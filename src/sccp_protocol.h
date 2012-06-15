@@ -165,17 +165,17 @@ static const struct sccp_formatTypes {
  * \brief SCCP BLF States for Dynamic Speeddials (ENUM)
  */
 typedef enum {
-	SCCP_BLF_STATUS_UNKNOWN = 0,						/*!< unknown status - default */
-	SCCP_BLF_STATUS_IDLE = 1,										/*!< not in use */
-	SCCP_BLF_STATUS_INUSE = 2,										/*!< in use */
-	SCCP_BLF_STATUS_DND = 3,										/*!< dnd */
-	SCCP_BLF_STATUS_ALERTING = 4										/*!< alerting */
+	SCCP_BLF_STATUS_UNKNOWN 	= 0,									/*!< unknown status - default */
+	SCCP_BLF_STATUS_IDLE 		= 1,									/*!< not in use */
+	SCCP_BLF_STATUS_INUSE 		= 2,									/*!< in use */
+	SCCP_BLF_STATUS_DND 		= 3,									/*!< dnd */
+	SCCP_BLF_STATUS_ALERTING 	= 4									/*!< alerting */
 } sccp_BFLState_t;												/*!< blf states for dynamic speeddials */
 
-#    define SCCP_CFWD_NONE				0
-#    define SCCP_CFWD_ALL				1
-#    define SCCP_CFWD_BUSY				2
-#    define SCCP_CFWD_NOANSWER			3
+#    define SCCP_CFWD_NONE		0
+#    define SCCP_CFWD_ALL		1
+#    define SCCP_CFWD_BUSY		2
+#    define SCCP_CFWD_NOANSWER		3
 
 /*!
  * \brief SCCP CallForwardState Structure
@@ -186,10 +186,10 @@ static const struct sccp_callforwardstate {
 	const char *const longtext;
 } sccp_callforwardstates[] = {
 	/* *INDENT-OFF* */
-	{SCCP_CFWD_NONE, "None", "No Call Forward"},
-	{SCCP_CFWD_ALL, "All", "All Calls are forwarded"},
-	{SCCP_CFWD_BUSY, "Busy", "Call is forwarded when busy"}, 
-	{SCCP_CFWD_NOANSWER, "NoAnswer", "Call is forwarded when no-answer"},
+	{SCCP_CFWD_NONE, 	"None", "No Call Forward"},
+	{SCCP_CFWD_ALL, 	"All", "All Calls are forwarded"},
+	{SCCP_CFWD_BUSY, 	"Busy", "Call is forwarded when busy"}, 
+	{SCCP_CFWD_NOANSWER, 	"NoAnswer", "Call is forwarded when no-answer"},
 	/* *INDENT-ON* */
 };
 
@@ -203,48 +203,52 @@ static const struct sccp_callforwardstate {
 #    define SCCP_DNDMODE		4
 #    define SKINNY_TONE 		5
 #    define SKINNY_ALARM		6
-#    define SKINNY_DEVICETYPE	7
-#    define SKINNY_DEVICE_RS	8
+#    define SKINNY_DEVICETYPE		7
+#    define SKINNY_DEVICE_RS		8
 #    define SKINNY_STIMULUS		9
-#    define SKINNY_BUTTONTYPE	10
+#    define SKINNY_BUTTONTYPE		10
 #    define SKINNY_LAMPMODE		11
 #    define SKINNY_STATION		12
-#    define SKINNY_LBL		13
+#    define SKINNY_LBL			13
 #    define SKINNY_CALLTYPE		14
 #    define SKINNY_KEYMODE		15
-#    define SKINNY_DEVICE_STATE	16
+#    define SKINNY_DEVICE_STATE		16
 #    define SKINNY_CODEC		17
 
 /*!
  * \brief Skinny Protocol Call States (ENUM)
  */
 typedef enum {
-	SKINNY_CALLSTATE_OFFHOOK = 1,
-	SKINNY_CALLSTATE_ONHOOK = 2,
-	SKINNY_CALLSTATE_RINGOUT = 3,
-	SKINNY_CALLSTATE_RINGIN = 4,
-	SKINNY_CALLSTATE_CONNECTED = 5,
-	SKINNY_CALLSTATE_BUSY = 6,
-	SKINNY_CALLSTATE_CONGESTION = 7,
-	SKINNY_CALLSTATE_HOLD = 8,
-	SKINNY_CALLSTATE_CALLWAITING = 9,
-	SKINNY_CALLSTATE_CALLTRANSFER = 10,
-	SKINNY_CALLSTATE_CALLPARK = 11,
-	SKINNY_CALLSTATE_PROCEED = 12,
+	/* *INDENT-OFF* */
+	SKINNY_CALLSTATE_OFFHOOK 	= 1,
+	SKINNY_CALLSTATE_ONHOOK 	= 2,
+	SKINNY_CALLSTATE_RINGOUT 	= 3,
+	SKINNY_CALLSTATE_RINGIN 	= 4,
+	SKINNY_CALLSTATE_CONNECTED 	= 5,
+	SKINNY_CALLSTATE_BUSY 		= 6,
+	SKINNY_CALLSTATE_CONGESTION 	= 7,
+	SKINNY_CALLSTATE_HOLD 		= 8,
+	SKINNY_CALLSTATE_CALLWAITING 	= 9,
+	SKINNY_CALLSTATE_CALLTRANSFER 	= 10,
+	SKINNY_CALLSTATE_CALLPARK 	= 11,
+	SKINNY_CALLSTATE_PROCEED 	= 12,
 	SKINNY_CALLSTATE_CALLREMOTEMULTILINE = 13,
-	SKINNY_CALLSTATE_INVALIDNUMBER = 14,
-	SKINNY_CALLSTATE_HOLDYELLOW = 15,
-	SKINNY_CALLSTATE_INTERCOMONEWAY = 16,
-	SKINNY_CALLSTATE_HOLDRED = 17
+	SKINNY_CALLSTATE_INVALIDNUMBER	= 14,
+	SKINNY_CALLSTATE_HOLDYELLOW	= 15,
+	SKINNY_CALLSTATE_INTERCOMONEWAY	= 16,
+	SKINNY_CALLSTATE_HOLDRED	= 17
+	/* *INDENT-ON* */
 } skinny_callstate_t;
 
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
 typedef enum {
-	SKINNY_CALLTYPE_INBOUND = 1,
-	SKINNY_CALLTYPE_OUTBOUND = 2,
-	SKINNY_CALLTYPE_FORWARD = 3
+	/* *INDENT-OFF* */
+	SKINNY_CALLTYPE_INBOUND		= 1,
+	SKINNY_CALLTYPE_OUTBOUND	= 2,
+	SKINNY_CALLTYPE_FORWARD		= 3
+	/* *INDENT-ON* */
 } skinny_calltype_t;												/*!< Skinny Calltype */
 
 /*!
@@ -255,9 +259,9 @@ static const struct skinny_calltype {
 	const char *const text;
 } skinny_calltypes[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_CALLTYPE_INBOUND, "Inbound"},
-	{SKINNY_CALLTYPE_OUTBOUND, "Outbound"}, 
-	{SKINNY_CALLTYPE_FORWARD, "Forward"},
+	{SKINNY_CALLTYPE_INBOUND,	"Inbound"},
+	{SKINNY_CALLTYPE_OUTBOUND,	"Outbound"}, 
+	{SKINNY_CALLTYPE_FORWARD,	"Forward"},
 	/* *INDENT-ON* */
 };
 
@@ -278,11 +282,13 @@ static const struct skinny_devfeature {
  * \brief Skinny Call Priority (ENUM)
  */
 typedef enum {
-	SKINNY_CALLPRIORITY_HIGHEST = 0,
-	SKINNY_CALLPRIORITY_HIGH = 1,
-	SKINNY_CALLPRIORITY_MEDIUM = 2,
-	SKINNY_CALLPRIORITY_LOW = 3,
-	SKINNY_CALLPRIORITY_NORMAL = 4
+	/* *INDENT-OFF* */
+	SKINNY_CALLPRIORITY_HIGHEST	= 0,
+	SKINNY_CALLPRIORITY_HIGH	= 1,
+	SKINNY_CALLPRIORITY_MEDIUM	= 2,
+	SKINNY_CALLPRIORITY_LOW		= 3,
+	SKINNY_CALLPRIORITY_NORMAL	= 4
+	/* *INDENT-ON* */
 } skinny_callPriority_t;											/*!< Skinny Call Priority */
 
 /*!
@@ -309,25 +315,26 @@ typedef enum {
 #    define StationDateTemplateSize 		6
 //#define StationMaxDisplayTextSize             33
 #    define StationMaxDisplayTextSize		32
-#    define StationMaxDisplayNotifySize 		32
-#    define StationMaxDirnumSize			24
+#    define StationMaxDisplayNotifySize 	32
+#    define StationMaxDirnumSize		24
 #    define StationMaxNameSize			40
-#    define StationMaxSoftKeyDefinition 		32
-#    define StationMaxSoftKeySetDefinition		16
-#    define StationMaxSoftKeyIndex			16
+#    define StationMaxSoftKeyDefinition 	32
+#    define StationMaxSoftKeySetDefinition	16
+#    define StationMaxSoftKeyIndex		16
 #    define StationMaxSoftKeyLabelSize		16
-#    define StationMaxVersionSize			16
+#    define StationMaxVersionSize		16
 #    define StationMaxServers			5
 #    define ServerMaxNameSize			48
 #    define StationMaxServiceURLSize		256
-#    define StationMaxPorts				16
-#    define StationMaxXMLMessage			2048
+#    define StationMaxPorts			16
+#    define StationMaxXMLMessage		2048
 #    define StationMaxImageVersionSize		32
 
-#    define APPID_CONFERENCE				1
-#    define APPID_PROVISION				2
+#    define APPID_CONFERENCE			1
+#    define APPID_PROVISION			2
 
 /* skinny tones skinny_tone2str */
+/* *INDENT-OFF* */
 #    define SKINNY_TONE_SILENCE 		0
 #    define SKINNY_TONE_DTMF1			1
 #    define SKINNY_TONE_DTMF2			2
@@ -339,14 +346,14 @@ typedef enum {
 #    define SKINNY_TONE_DTMF8			8
 #    define SKINNY_TONE_DTMF9			9
 #    define SKINNY_TONE_DTMF0			0xa
-#    define SKINNY_TONE_DTMFSTAR			0xe
-#    define SKINNY_TONE_DTMFPOUND			0xf
+#    define SKINNY_TONE_DTMFSTAR		0xe
+#    define SKINNY_TONE_DTMFPOUND		0xf
 #    define SKINNY_TONE_DTMFA			0x10
 #    define SKINNY_TONE_DTMFB			0x11
 #    define SKINNY_TONE_DTMFC			0x12
 #    define SKINNY_TONE_DTMFD			0x13
 #    define SKINNY_TONE_INSIDEDIALTONE		0x21
-#    define SKINNY_TONE_OUTSIDEDIALTONE 		0x22
+#    define SKINNY_TONE_OUTSIDEDIALTONE 	0x22
 #    define SKINNY_TONE_LINEBUSYTONE		0x23
 #    define SKINNY_TONE_ALERTINGTONE		0x24
 #    define SKINNY_TONE_REORDERTONE 		0x25
@@ -354,28 +361,28 @@ typedef enum {
 #    define SKINNY_TONE_RECORDERDETECTEDTONE	0x27
 #    define SKINNY_TONE_REVERTINGTONE		0x28
 #    define SKINNY_TONE_RECEIVEROFFHOOKTONE 	0x29
-#    define SKINNY_TONE_PARTIALDIALTONE 		0x2a
-#    define SKINNY_TONE_NOSUCHNUMBERTONE		0x2b
+#    define SKINNY_TONE_PARTIALDIALTONE 	0x2a
+#    define SKINNY_TONE_NOSUCHNUMBERTONE	0x2b
 #    define SKINNY_TONE_BUSYVERIFICATIONTONE	0x2c
-#    define SKINNY_TONE_CALLWAITINGTONE 		0x2d
-#    define SKINNY_TONE_CONFIRMATIONTONE		0x2e
+#    define SKINNY_TONE_CALLWAITINGTONE 	0x2d
+#    define SKINNY_TONE_CONFIRMATIONTONE	0x2e
 #    define SKINNY_TONE_CAMPONINDICATIONTONE	0x2f
 #    define SKINNY_TONE_RECALLDIALTONE		0x30
 #    define SKINNY_TONE_ZIPZIP			0x31
 #    define SKINNY_TONE_ZIP 			0x32
-#    define SKINNY_TONE_BEEPBONK			0x33
-#    define SKINNY_TONE_MUSICTONE			0x34
-#    define SKINNY_TONE_HOLDTONE			0x35
-#    define SKINNY_TONE_TESTTONE			0x36
+#    define SKINNY_TONE_BEEPBONK		0x33
+#    define SKINNY_TONE_MUSICTONE		0x34
+#    define SKINNY_TONE_HOLDTONE		0x35
+#    define SKINNY_TONE_TESTTONE		0x36
 #    define SKINNY_TONE_DTMONITORWARNINGTONE	0x37
 #    define SKINNY_TONE_ADDCALLWAITING		0x40
-#    define SKINNY_TONE_PRIORITYCALLWAIT		0x41
-#    define SKINNY_TONE_RECALLDIAL			0x42
+#    define SKINNY_TONE_PRIORITYCALLWAIT	0x41
+#    define SKINNY_TONE_RECALLDIAL		0x42
 #    define SKINNY_TONE_BARGIN			0x43
 #    define SKINNY_TONE_DISTINCTALERT		0x44
 #    define SKINNY_TONE_PRIORITYALERT		0x45
 #    define SKINNY_TONE_REMINDERRING		0x46
-#    define SKINNY_TONE_PRECEDENCE_RINGBACK		0x47
+#    define SKINNY_TONE_PRECEDENCE_RINGBACK	0x47
 #    define SKINNY_TONE_PREEMPTIONTONE		0x48
 #    define SKINNY_TONE_MF1 			0x50
 #    define SKINNY_TONE_MF2 			0x51
@@ -392,25 +399,26 @@ typedef enum {
 #    define SKINNY_TONE_MFKP2			0x5c
 #    define SKINNY_TONE_MFSTP			0x5d
 #    define SKINNY_TONE_MFST3P			0x5e
-#    define SKINNY_TONE_MILLIWATT			0x5f
+#    define SKINNY_TONE_MILLIWATT		0x5f
 #    define SKINNY_TONE_MILLIWATTTEST		0x60
-#    define SKINNY_TONE_HIGHTONE			0x61
+#    define SKINNY_TONE_HIGHTONE		0x61
 #    define SKINNY_TONE_FLASHOVERRIDE		0x62
 #    define SKINNY_TONE_FLASH			0x63
-#    define SKINNY_TONE_PRIORITY			0x64
-#    define SKINNY_TONE_IMMEDIATE			0x65
-#    define SKINNY_TONE_PREAMPWARN			0x66
+#    define SKINNY_TONE_PRIORITY		0x64
+#    define SKINNY_TONE_IMMEDIATE		0x65
+#    define SKINNY_TONE_PREAMPWARN		0x66
 #    define SKINNY_TONE_2105HZ			0x67
 #    define SKINNY_TONE_2600HZ			0x68
 #    define SKINNY_TONE_440HZ			0x69
 #    define SKINNY_TONE_300HZ			0x6a
-#    define SKINNY_TONE_MLPP_PALA			0x77
-#    define SKINNY_TONE_MLPP_ICA			0x78
-#    define SKINNY_TONE_MLPP_VCA			0x79
-#    define SKINNY_TONE_MLPP_BPA			0x7A
-#    define SKINNY_TONE_MLPP_BNEA			0x7B
-#    define SKINNY_TONE_MLPP_UPA			0x7C
+#    define SKINNY_TONE_MLPP_PALA		0x77
+#    define SKINNY_TONE_MLPP_ICA		0x78
+#    define SKINNY_TONE_MLPP_VCA		0x79
+#    define SKINNY_TONE_MLPP_BPA		0x7A
+#    define SKINNY_TONE_MLPP_BNEA		0x7B
+#    define SKINNY_TONE_MLPP_UPA		0x7C
 #    define SKINNY_TONE_NOTONE			0x7f
+/* *INDENT-ON* */
 
 /*!
  * \brief Skinny Tone Structure
@@ -420,101 +428,101 @@ static const struct skinny_tone {
 	const char *const text;
 } skinny_tones[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_TONE_SILENCE, "Silence"},
-	{SKINNY_TONE_DTMF1, "DTMF 1"},
-	{SKINNY_TONE_DTMF2, "DTMF 2"},
-	{SKINNY_TONE_DTMF3, "DTMF 3"},
-	{SKINNY_TONE_DTMF4, "DTMF 4"},
-	{SKINNY_TONE_DTMF5, "DTMF 5"},
-	{SKINNY_TONE_DTMF6, "DTMF 6"},
-	{SKINNY_TONE_DTMF7, "DTMF 7"},
-	{SKINNY_TONE_DTMF8, "DTMF 8"},
-	{SKINNY_TONE_DTMF9, "DTMF 9"},
-	{SKINNY_TONE_DTMF0, "DTMF 0"},
-	{SKINNY_TONE_DTMFSTAR, "DTMF Star"},
-	{SKINNY_TONE_DTMFPOUND, "DTMF Pound"},
-	{SKINNY_TONE_DTMFA, "DTMF A"},
-	{SKINNY_TONE_DTMFB, "DTMF B"},
-	{SKINNY_TONE_DTMFC, "DTMF C"},
-	{SKINNY_TONE_DTMFD, "DTMF D"},
-	{SKINNY_TONE_INSIDEDIALTONE, "Inside Dial Tone"},
-	{SKINNY_TONE_OUTSIDEDIALTONE, "Outside Dial Tone"},
-	{SKINNY_TONE_LINEBUSYTONE, "Line Busy Tone"},
-	{SKINNY_TONE_ALERTINGTONE, "Alerting Tone"},
-	{SKINNY_TONE_REORDERTONE, "Reorder Tone"},
-	{SKINNY_TONE_RECORDERWARNINGTONE, "Recorder Warning Tone"},
-	{SKINNY_TONE_RECORDERDETECTEDTONE, "Recorder Detected Tone"},
-	{SKINNY_TONE_REVERTINGTONE, "Reverting Tone"},
-	{SKINNY_TONE_RECEIVEROFFHOOKTONE, "Receiver OffHook Tone"},
-	{SKINNY_TONE_PARTIALDIALTONE, "Partial Dial Tone"},
-	{SKINNY_TONE_NOSUCHNUMBERTONE, "No Such Number Tone"},
-	{SKINNY_TONE_BUSYVERIFICATIONTONE, "Busy Verification Tone"},
-	{SKINNY_TONE_CALLWAITINGTONE, "Call Waiting Tone"},
-	{SKINNY_TONE_CONFIRMATIONTONE, "Confirmation Tone"},
-	{SKINNY_TONE_CAMPONINDICATIONTONE, "Camp On Indication Tone"},
-	{SKINNY_TONE_RECALLDIALTONE, "Recall Dial Tone"},
-	{SKINNY_TONE_ZIPZIP, "Zip Zip"},
-	{SKINNY_TONE_ZIP, "Zip"},
-	{SKINNY_TONE_BEEPBONK, "Beep Bonk"},
-	{SKINNY_TONE_MUSICTONE, "Music Tone"},
-	{SKINNY_TONE_HOLDTONE, "Hold Tone"},
-	{SKINNY_TONE_TESTTONE, "Test Tone"},
-	{SKINNY_TONE_DTMONITORWARNINGTONE, "DT Monitor Warning Tone"},
-	{SKINNY_TONE_ADDCALLWAITING, "Add Call Waiting"},
-	{SKINNY_TONE_PRIORITYCALLWAIT, "Priority Call Wait"},
-	{SKINNY_TONE_RECALLDIAL, "Recall Dial"},
-	{SKINNY_TONE_BARGIN, "Barg In"},
-	{SKINNY_TONE_DISTINCTALERT, "Distinct Alert"},
-	{SKINNY_TONE_PRIORITYALERT, "Priority Alert"},
-	{SKINNY_TONE_REMINDERRING, "Reminder Ring"},
-	{SKINNY_TONE_PRECEDENCE_RINGBACK, "Precedence RingBank"},
-	{SKINNY_TONE_PREEMPTIONTONE, "Pre-EmptionTone"},
-	{SKINNY_TONE_MF1, "MF1"},
-	{SKINNY_TONE_MF2, "MF2"},
-	{SKINNY_TONE_MF3, "MF3"},
-	{SKINNY_TONE_MF4, "MF4"},
-	{SKINNY_TONE_MF5, "MF5"},
-	{SKINNY_TONE_MF6, "MF6"},
-	{SKINNY_TONE_MF7, "MF7"},
-	{SKINNY_TONE_MF8, "MF8"},
-	{SKINNY_TONE_MF9, "MF9"},
-	{SKINNY_TONE_MF0, "MF0"},
-	{SKINNY_TONE_MFKP1, "MFKP1"},
-	{SKINNY_TONE_MFST, "MFST"},
-	{SKINNY_TONE_MFKP2, "MFKP2"},
-	{SKINNY_TONE_MFSTP, "MFSTP"},
-	{SKINNY_TONE_MFST3P, "MFST3P"},
-	{SKINNY_TONE_MILLIWATT, "MILLIWATT"},
-	{SKINNY_TONE_MILLIWATTTEST, "MILLIWATT TEST"},
-	{SKINNY_TONE_HIGHTONE, "HIGH TONE"},
-	{SKINNY_TONE_FLASHOVERRIDE, "FLASH OVERRIDE"},
-	{SKINNY_TONE_FLASH, "FLASH"},
-	{SKINNY_TONE_PRIORITY, "PRIORITY"},
-	{SKINNY_TONE_IMMEDIATE, "IMMEDIATE"},
-	{SKINNY_TONE_PREAMPWARN, "PRE-AMP WARN"},
-	{SKINNY_TONE_2105HZ, "2105 HZ"},
-	{SKINNY_TONE_2600HZ, "2600 HZ"},
-	{SKINNY_TONE_440HZ, "440 HZ"},
-	{SKINNY_TONE_300HZ, "300 HZ"},
-	{SKINNY_TONE_MLPP_PALA, "MLPP Pala"},
-	{SKINNY_TONE_MLPP_ICA, "MLPP Ica"},
-	{SKINNY_TONE_MLPP_VCA, "MLPP Vca"},
-	{SKINNY_TONE_MLPP_BPA, "MLPP Bpa"},
-	{SKINNY_TONE_MLPP_BNEA, "MLPP Bnea"},
-	{SKINNY_TONE_MLPP_UPA, "MLPP Upa"}, 
-	{SKINNY_TONE_NOTONE, "No Tone"},
+	{SKINNY_TONE_SILENCE,			"Silence"},
+	{SKINNY_TONE_DTMF1,			"DTMF 1"},
+	{SKINNY_TONE_DTMF2,			"DTMF 2"},
+	{SKINNY_TONE_DTMF3,			"DTMF 3"},
+	{SKINNY_TONE_DTMF4,			"DTMF 4"},
+	{SKINNY_TONE_DTMF5,			"DTMF 5"},
+	{SKINNY_TONE_DTMF6,			"DTMF 6"},
+	{SKINNY_TONE_DTMF7,			"DTMF 7"},
+	{SKINNY_TONE_DTMF8,			"DTMF 8"},
+	{SKINNY_TONE_DTMF9,			"DTMF 9"},
+	{SKINNY_TONE_DTMF0,			"DTMF 0"},
+	{SKINNY_TONE_DTMFSTAR,			"DTMF Star"},
+	{SKINNY_TONE_DTMFPOUND,			"DTMF Pound"},
+	{SKINNY_TONE_DTMFA,			"DTMF A"},
+	{SKINNY_TONE_DTMFB,			"DTMF B"},
+	{SKINNY_TONE_DTMFC,			"DTMF C"},
+	{SKINNY_TONE_DTMFD,			"DTMF D"},
+	{SKINNY_TONE_INSIDEDIALTONE,		"Inside Dial Tone"},
+	{SKINNY_TONE_OUTSIDEDIALTONE,		"Outside Dial Tone"},
+	{SKINNY_TONE_LINEBUSYTONE,		"Line Busy Tone"},
+	{SKINNY_TONE_ALERTINGTONE,		"Alerting Tone"},
+	{SKINNY_TONE_REORDERTONE,		"Reorder Tone"},
+	{SKINNY_TONE_RECORDERWARNINGTONE,	"Recorder Warning Tone"},
+	{SKINNY_TONE_RECORDERDETECTEDTONE,	"Recorder Detected Tone"},
+	{SKINNY_TONE_REVERTINGTONE,		"Reverting Tone"},
+	{SKINNY_TONE_RECEIVEROFFHOOKTONE,	"Receiver OffHook Tone"},
+	{SKINNY_TONE_PARTIALDIALTONE,		"Partial Dial Tone"},
+	{SKINNY_TONE_NOSUCHNUMBERTONE,		"No Such Number Tone"},
+	{SKINNY_TONE_BUSYVERIFICATIONTONE,	"Busy Verification Tone"},
+	{SKINNY_TONE_CALLWAITINGTONE,		"Call Waiting Tone"},
+	{SKINNY_TONE_CONFIRMATIONTONE,		"Confirmation Tone"},
+	{SKINNY_TONE_CAMPONINDICATIONTONE,	"Camp On Indication Tone"},
+	{SKINNY_TONE_RECALLDIALTONE,		"Recall Dial Tone"},
+	{SKINNY_TONE_ZIPZIP,			"Zip Zip"},
+	{SKINNY_TONE_ZIP,			"Zip"},
+	{SKINNY_TONE_BEEPBONK,			"Beep Bonk"},
+	{SKINNY_TONE_MUSICTONE,			"Music Tone"},
+	{SKINNY_TONE_HOLDTONE,			"Hold Tone"},
+	{SKINNY_TONE_TESTTONE,			"Test Tone"},
+	{SKINNY_TONE_DTMONITORWARNINGTONE,	"DT Monitor Warning Tone"},
+	{SKINNY_TONE_ADDCALLWAITING,		"Add Call Waiting"},
+	{SKINNY_TONE_PRIORITYCALLWAIT,		"Priority Call Wait"},
+	{SKINNY_TONE_RECALLDIAL,		"Recall Dial"},
+	{SKINNY_TONE_BARGIN,			"Barg In"},
+	{SKINNY_TONE_DISTINCTALERT,		"Distinct Alert"},
+	{SKINNY_TONE_PRIORITYALERT,		"Priority Alert"},
+	{SKINNY_TONE_REMINDERRING,		"Reminder Ring"},
+	{SKINNY_TONE_PRECEDENCE_RINGBACK,	"Precedence RingBank"},
+	{SKINNY_TONE_PREEMPTIONTONE,		"Pre-EmptionTone"},
+	{SKINNY_TONE_MF1,			"MF1"},
+	{SKINNY_TONE_MF2,			"MF2"},
+	{SKINNY_TONE_MF3,			"MF3"},
+	{SKINNY_TONE_MF4,			"MF4"},
+	{SKINNY_TONE_MF5,			"MF5"},
+	{SKINNY_TONE_MF6,			"MF6"},
+	{SKINNY_TONE_MF7,			"MF7"},
+	{SKINNY_TONE_MF8,			"MF8"},
+	{SKINNY_TONE_MF9,			"MF9"},
+	{SKINNY_TONE_MF0,			"MF0"},
+	{SKINNY_TONE_MFKP1,			"MFKP1"},
+	{SKINNY_TONE_MFST,			"MFST"},
+	{SKINNY_TONE_MFKP2,			"MFKP2"},
+	{SKINNY_TONE_MFSTP,			"MFSTP"},
+	{SKINNY_TONE_MFST3P,			"MFST3P"},
+	{SKINNY_TONE_MILLIWATT,			"MILLIWATT"},
+	{SKINNY_TONE_MILLIWATTTEST,		"MILLIWATT TEST"},
+	{SKINNY_TONE_HIGHTONE,			"HIGH TONE"},
+	{SKINNY_TONE_FLASHOVERRIDE,		"FLASH OVERRIDE"},
+	{SKINNY_TONE_FLASH,			"FLASH"},
+	{SKINNY_TONE_PRIORITY,			"PRIORITY"},
+	{SKINNY_TONE_IMMEDIATE,			"IMMEDIATE"},
+	{SKINNY_TONE_PREAMPWARN,		"PRE-AMP WARN"},
+	{SKINNY_TONE_2105HZ,			"2105 HZ"},
+	{SKINNY_TONE_2600HZ,			"2600 HZ"},
+	{SKINNY_TONE_440HZ,			"440 HZ"},
+	{SKINNY_TONE_300HZ,			"300 HZ"},
+	{SKINNY_TONE_MLPP_PALA,			"MLPP Pala"},
+	{SKINNY_TONE_MLPP_ICA,			"MLPP Ica"},
+	{SKINNY_TONE_MLPP_VCA,			"MLPP Vca"},
+	{SKINNY_TONE_MLPP_BPA,			"MLPP Bpa"},
+	{SKINNY_TONE_MLPP_BNEA,			"MLPP Bnea"},
+	{SKINNY_TONE_MLPP_UPA,			"MLPP Upa"}, 
+	{SKINNY_TONE_NOTONE,			"No Tone"},
 	/* *INDENT-ON* */
 };
 
 /* alarm skinny_alarm2str*/
-#    define SKINNY_ALARM_CRITICAL			0
-#    define SKINNY_ALARM_WARNING			1
+#    define SKINNY_ALARM_CRITICAL		0
+#    define SKINNY_ALARM_WARNING		1
 #    define SKINNY_ALARM_INFORMATIONAL		2
-#    define SKINNY_ALARM_UNKNOWN			4
+#    define SKINNY_ALARM_UNKNOWN		4
 #    define SKINNY_ALARM_MAJOR			7
 #    define SKINNY_ALARM_MINOR			8
-#    define SKINNY_ALARM_MARGINAL			10
-#    define SKINNY_ALARM_TRACEINFO			20
+#    define SKINNY_ALARM_MARGINAL		10
+#    define SKINNY_ALARM_TRACEINFO		20
 
 /*!
  * \brief Skinny Alarm Structure
@@ -524,14 +532,14 @@ static const struct skinny_alarm {
 	const char *const text;
 } skinny_alarms[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_ALARM_CRITICAL,		"Critical"},
-	{SKINNY_ALARM_WARNING,		"Warning"},
-	{SKINNY_ALARM_INFORMATIONAL,	"Informational"},
-	{SKINNY_ALARM_UNKNOWN,		"Unknown"},
-	{SKINNY_ALARM_MAJOR,		"Major"},
-	{SKINNY_ALARM_MINOR,		"Minor"},
-	{SKINNY_ALARM_MARGINAL,		"Marginal"}, 
-	{SKINNY_ALARM_TRACEINFO,	"TraceInfo"},
+	{SKINNY_ALARM_CRITICAL,			"Critical"},
+	{SKINNY_ALARM_WARNING,			"Warning"},
+	{SKINNY_ALARM_INFORMATIONAL,		"Informational"},
+	{SKINNY_ALARM_UNKNOWN,			"Unknown"},
+	{SKINNY_ALARM_MAJOR,			"Major"},
+	{SKINNY_ALARM_MINOR,			"Minor"},
+	{SKINNY_ALARM_MARGINAL,			"Marginal"}, 
+	{SKINNY_ALARM_TRACEINFO,		"TraceInfo"},
 	/* *INDENT-ON* */
 };
 
