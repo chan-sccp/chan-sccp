@@ -324,14 +324,12 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
  *
  * \todo I don't understand what this functions returns
  */
-static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, void *data)
+static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 {
-	char *linkId = (char *)data;
+	const char *linkId = (char *)data;
 
 	if (!data)
 		return 0;
-
-	//pbx_log(LOG_NOTICE, "SCCP: peer name: %s, linkId: %s\n", ast->name ? ast->name : "(null)", ast->linkedid ? ast->linkedid : "(null)");
 
 	return !ast->pbx && ast->linkedid && (!strcasecmp(ast->linkedid, linkId)) && !ast->masq;
 }
