@@ -883,6 +883,21 @@ static sccp_parkresult_t sccp_wrapper_asterisk110_park(const sccp_channel_t * ho
 
 }
 
+static boolean_t sccp_asterisk110_getFeatureExtension(const sccp_channel_t *channel, char **extension){
+	struct ast_call_feature *feat;
+	
+	ast_rdlock_call_features();
+	feat = ast_find_call_feature("automon");
+	
+	
+	if(feat){
+		*extension = strdup(feat->exten);
+	}
+	ast_unlock_call_features();
+	
+	return feat ? TRUE : FALSE;
+}
+
 /*!
  * \brief Pickup asterisk channel target using chan
  * 
@@ -2364,7 +2379,7 @@ sccp_pbx_cb sccp_pbx = {
 	feature_getFromDatabase:	sccp_asterisk_getFromDatabase,
 	feature_removeFromDatabase:	sccp_asterisk_removeFromDatabase,
 	feature_removeTreeFromDatabase:	sccp_asterisk_removeTreeFromDatabase,
-	getFeatureExtension:		NULL,
+	getFeatureExtension:		sccp_asterisk110_getFeatureExtension,
 	feature_pickup:			sccp_wrapper_asterisk110_pickupChannel,
 
 	eventSubscribe:			NULL,
@@ -2454,9 +2469,11 @@ struct sccp_pbx_cb sccp_pbx = {
 	
 	
 	.feature_park			= sccp_wrapper_asterisk110_park,
+	.getFeatureExtension		= sccp_asterisk110_getFeatureExtension,
 	.feature_pickup			= sccp_wrapper_asterisk110_pickupChannel,
 	
 	.findChannelByCallback		= sccp_wrapper_asterisk110_findChannelWithCallback,
+	
 
 	.moh_start			= sccp_asterisk_moh_start,
 	.moh_stop			= sccp_asterisk_moh_stop,

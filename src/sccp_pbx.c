@@ -734,7 +734,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 	if (PBX(set_callerid_name))
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
 
-	if (d && d->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE) {
+// 	if (d && d->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE) {
+	/** check for monitor request */
+	if(d 
+	    && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) 
+	    && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
+
 		sccp_feat_monitor(d, c->line, 0, c);
 		sccp_feat_changed(d, SCCP_FEATURE_MONITOR);
 	}

@@ -51,7 +51,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	uint8_t instance = 0;
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
 	boolean_t lineFound = FALSE;
-	uint32_t state = 0;
 
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[254] = "";
@@ -136,19 +135,24 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
 				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 
-				//config->button.feature.status = (device->monitorFeature.status) ? 1 : 0;
-				switch (config->button.feature.status) {
-				case SCCP_FEATURE_MONITOR_STATE_DISABLED:
-					//config->button.feature.status = 131329;
-					state = 0;
-					break;
-				case SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE:
-					state = 66306;
-					break;
-				case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-					state = 131589;
-					break;
-				}
+				switch(device->monitorFeature.status){
+				  
+				  case 0:
+				    config->button.feature.status = 0;
+ 				    break;
+				    
+				  case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
+				    config->button.feature.status = 131586;
+ 				    break;
+				    
+ 				  case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+				    config->button.feature.status = 131843;
+				    break;
+
+				  case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+				    config->button.feature.status = 131589;
+				    break;
+ 				}
 
 				break;
 
@@ -265,13 +269,13 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				REQ(featureMessage, FeatureStatDynamicMessage);
 				featureMessage->msg.FeatureStatDynamicMessage.lel_instance = htolel(instance);
 				featureMessage->msg.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
-				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(state ? state : config->button.feature.status);
+				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
 				sccp_copy_string(featureMessage->msg.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
 			} else {
 				REQ(featureMessage, FeatureStatMessage);
 				featureMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
 				featureMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
-				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(state ? state : config->button.feature.status);
+				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
 				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
 			}
 			sccp_dev_send(device, featureMessage);

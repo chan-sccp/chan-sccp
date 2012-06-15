@@ -742,8 +742,8 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 				channel = get_sccp_channel_from_pbx_channel(pbxBridge);
 			}
 
-			if (channel)
-				if ((d = sccp_channel_getDevice_retainted(channel))) {
+			if (channel){
+				if ((d = sccp_channel_getDevice_retained(channel))) {
 					if (strcasecmp("MonitorStart", event)) {
 						d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					} else {
