@@ -1,0 +1,148 @@
+Index: apps/app_sms.c
+===================================================================
+--- apps/app_sms.c	(Revision 368929)
++++ apps/app_sms.c	(Arbeitskopie)
+@@ -56,6 +56,7 @@
+ #include "asterisk/callerid.h"
+ #include "asterisk/utils.h"
+ #include "asterisk/app.h"
++#include "asterisk/message.h"
+ 
+ /*** DOCUMENTATION
+ 	<application name="SMS" language="en_US">
+@@ -121,6 +122,13 @@
+ 
+ static char *app = "SMS";
+ 
++static int sms_msg_send(const struct ast_msg *msg, const char *to, const char *from);
++
++static const struct ast_msg_tech sms_msg_tech = {
++	.name = "sms",
++	.msg_send = sms_msg_send,
++};
++
+ /*
+  * 80 samples of a single period of the wave. At 8000 Hz, it means these
+  * are the samples of a 100 Hz signal.
+@@ -984,7 +992,68 @@
+ 	}
+ }
+ 
++static int isPrintableChar(char c)
++{
++	if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')
++	    && (c < '0' || c > '9') && (c != ' ') && (c != '\'')
++	    && (c != '(') && (c != ')') && (c != '+') && (c != ',')
++	    && (c != '-') && (c != '.') && (c != '/') && (c != ':')
++	    && (c != '=') && (c != '?') && (c != '_') && (c != '\\')
++	    && (c != '@') && (c != '"') && (c != '%') && (c != '$')
++	    && (c != '&') && (c != '#') && (c != ';')
++	    //&& (c != '£')
++	    && (c != '<') && (c != '>') && (c != ']') && (c != '{')
++	    && (c != '}') && (c != '*') && (c != '^')) {
++		return 0;
++	} else {
++		return 1;
++	}
++}
++
+ /*! \brief white a received text message to a file */
++static void sms_queuemessage(sms_t * h){
++	struct ast_msg *msg;
++	int res;
++	char *from;
++	char *to;
++	unsigned int p;
++
++	
++	struct ast_str *m_text;// = ast_str_alloca(256);
++  
++	if (!(msg = ast_msg_alloc())) {
++		return;
++	}
++
++
++	to = (*h->da) ? h->da : "";
++	from = (*h->oa) ? h->oa : "";
++	res = ast_msg_set_to(msg, "%s", to);
++	res |= ast_msg_set_from(msg, "\"%s\" <sms:%s>", from, from);
++
++	
++	m_text = ast_str_alloca(h->udl + 1);
++	
++	for (p = 0; p < h->udl; p++) {
++		unsigned short v = h->ud[p];
++		if (isPrintableChar( (char)v) ){
++			ast_str_append(&m_text, 0, "%c", (char)v);
++		}
++	}
++
++	
++	res |= ast_msg_set_body(msg, "%s", ast_str_buffer(m_text));
++	res |= ast_msg_set_context(msg, "%s", "messages");
++	res |= ast_msg_set_exten(msg, "%s", to);
++	
++
++	if (res) {
++		ast_msg_destroy(msg);
++	} else {
++		ast_msg_queue(msg);
++	}
++  
++}
+ static void sms_writefile(sms_t * h)
+ {
+ 	char fn[200] = "", fn2[200] = "";
+@@ -1132,6 +1201,7 @@
+ 			p += unpacksms(h->dcs, h->imsg + p, h->udh, &h->udhl, h->ud, &h->udl, h->udhi);
+ 			h->rx = 1;                      /* received message */
+ 			sms_writefile(h);               /* write the file */
++			sms_queuemessage(h);
+ 			if (p != h->imsg[1] + 2) {
+ 				ast_log(LOG_WARNING, "Mismatch receive unpacking %d/%d\n", p, h->imsg[1] + 2);
+ 				return 0xFF;		  /* duh! */
+@@ -1155,6 +1225,7 @@
+ 			p += unpacksms(h->dcs, h->imsg + p, h->udh, &h->udhl, h->ud, &h->udl, h->udhi);
+ 			h->rx = 1;                      /* received message */
+ 			sms_writefile(h);               /* write the file */
++			sms_queuemessage(h);
+ 			if (p != h->imsg[1] + 2) {
+ 				ast_log(LOG_WARNING, "Mismatch receive unpacking %d/%d\n", p, h->imsg[1] + 2);
+ 				return 0xFF;                /* duh! */
+@@ -1313,6 +1384,7 @@
+ 	}
+ 	h->rx = 1;                              /* received message */
+ 	sms_writefile(h);                       /* write the file */
++	sms_queuemessage(h);
+ 	return 0;                               /* no error */
+ }
+ 
+@@ -2055,8 +2127,17 @@
+ 	return (res);
+ }
+ 
++
++static int sms_msg_send(const struct ast_msg *msg, const char *to, const char *from)
++{
++	int res;
++
++	return res;
++}
++
+ static int unload_module(void)
+ {
++	ast_msg_tech_unregister(&sms_msg_tech);
+ 	return ast_unregister_application(app);
+ }
+ 
+@@ -2068,6 +2149,10 @@
+ 		wavea[p] = AST_LIN2A(wave[p]);
+ 	}
+ #endif
++	if (ast_msg_tech_register(&sms_msg_tech)) {
++		return AST_MODULE_LOAD_FAILURE;
++	}
++
+ 	snprintf(log_file, sizeof(log_file), "%s/sms", ast_config_AST_LOG_DIR);
+ 	return ast_register_application_xml(app, sms_exec);
+ }
