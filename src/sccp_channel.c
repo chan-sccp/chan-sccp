@@ -2066,7 +2066,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 
 		sccp_copy_string(sccp_destination_remote_channel->callInfo.lastRedirectingPartyName, sccp_destination_local_channel->callInfo.calledPartyName, sizeof(sccp_destination_remote_channel->callInfo.lastRedirectingPartyName));
 		sccp_copy_string(sccp_destination_remote_channel->callInfo.lastRedirectingPartyNumber, sccp_destination_local_channel->callInfo.calledPartyNumber, sizeof(sccp_destination_remote_channel->callInfo.lastRedirectingPartyNumber));
-		sccp_destination_remote_channel->callInfo.lastRedirectingParty_valid = -1;
+		sccp_destination_remote_channel->callInfo.lastRedirectingParty_valid = 0;
 
 		sccp_destination_remote_device = sccp_destination_remote_device ? sccp_device_release(sccp_destination_remote_device) : NULL;
 		sccp_destination_remote_channel = sccp_channel_release(sccp_destination_remote_channel);

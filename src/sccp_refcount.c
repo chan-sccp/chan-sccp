@@ -155,7 +155,7 @@ static void sccp_refcount_moveFromLiveToDeadObjects(RefCountedObject *obj)
 	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) moveFromLiveToDeadObjects: %p\n", obj);
         SCCP_RWLIST_WRLOCK(&refcount_liveobjects);
         SCCP_RWLIST_WRLOCK(&refcount_deadobjects);
-        SCCP_RWLIST_REMOVE(&refcount_liveobjects, obj, list);
+        obj = SCCP_RWLIST_REMOVE(&refcount_liveobjects, obj, list);
         obj->dead_since = time(0);
         SCCP_RWLIST_INSERT_TAIL(&refcount_deadobjects, obj, list);
         SCCP_RWLIST_UNLOCK(&refcount_deadobjects);
