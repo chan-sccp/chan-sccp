@@ -21,6 +21,8 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 #include <semaphore.h>
 #include "sccp_threadpool.h"
+#include <signal.h>
+#undef pthread_create
 
 /* The threadpool */
 struct sccp_threadpool_t {
