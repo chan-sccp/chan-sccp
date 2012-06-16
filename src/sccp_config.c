@@ -1161,18 +1161,18 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, c
 sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	sccp_lampMode_t mwilamp = 0;
+	sccp_lampMode_t mwilamp = SKINNY_LAMP_OFF;
 
-	if (!sccp_true(value)) {
-		mwilamp = SKINNY_LAMP_OFF;
-	} else if (sccp_true(value)) {
-		mwilamp = SKINNY_LAMP_ON;
-	} else if (!strcasecmp(value, "wink")) {
+	if (!strcasecmp(value, "wink")) {
 		mwilamp = SKINNY_LAMP_WINK;
 	} else if (!strcasecmp(value, "flash")) {
 		mwilamp = SKINNY_LAMP_FLASH;
 	} else if (!strcasecmp(value, "blink")) {
 		mwilamp = SKINNY_LAMP_BLINK;
+	} else if (!sccp_true(value)) {
+		mwilamp = SKINNY_LAMP_OFF;
+	} else if (sccp_true(value)) {
+		mwilamp = SKINNY_LAMP_ON;
 	} else {
 		pbx_log(LOG_WARNING, "Invalid mwilamp value, should be one of 'off', 'on', 'wink', 'flash' or 'blink'\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
