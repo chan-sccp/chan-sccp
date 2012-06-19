@@ -493,6 +493,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Keepalive", CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state", CLI_AMI_LIST_WIDTH, "%s(%d)", deviceregistrationstatus2str(d->registrationState), d->registrationState);
 	CLI_AMI_OUTPUT_PARAM("State", CLI_AMI_LIST_WIDTH, "%s(%d)", devicestatus2str(d->state), d->state);
+	CLI_AMI_OUTPUT_PARAM("MWI light", CLI_AMI_LIST_WIDTH, "%s(%d)", lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_BOOL("MWI handset light", CLI_AMI_LIST_WIDTH, d->mwilight);
 	CLI_AMI_OUTPUT_PARAM("Description", CLI_AMI_LIST_WIDTH, "%s", d->description);
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type", CLI_AMI_LIST_WIDTH, "%s", d->config_type);
@@ -915,7 +916,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_PARAM("VoiceMail number", CLI_AMI_LIST_WIDTH, "%s", l->vmnum ? l->vmnum : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Transfer to Voicemail", CLI_AMI_LIST_WIDTH, "%s", l->trnsfvm ? l->trnsfvm : "No");
 	CLI_AMI_OUTPUT_BOOL("MeetMe enabled", CLI_AMI_LIST_WIDTH, l->meetme);
-	CLI_AMI_OUTPUT_BOOL("MeetMe number", CLI_AMI_LIST_WIDTH, l->meetmenum);
+	CLI_AMI_OUTPUT_PARAM("MeetMe number", CLI_AMI_LIST_WIDTH, "%s", l->meetmenum);
 	CLI_AMI_OUTPUT_PARAM("MeetMe Options", CLI_AMI_LIST_WIDTH, "%s", l->meetmeopts);
 	CLI_AMI_OUTPUT_PARAM("Context", CLI_AMI_LIST_WIDTH, "%s (%s)", l->context ? l->context : "<not set>", pbx_context_find(l->context) ? "exists" : "does not exist !!");
 	CLI_AMI_OUTPUT_PARAM("Language", CLI_AMI_LIST_WIDTH, "%s", l->language ? l->language : "<not set>");
