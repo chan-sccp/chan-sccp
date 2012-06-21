@@ -348,7 +348,14 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
         			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount already reached 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", obj->datatype, obj->identifier, obj, refcountval);
 	                        return NULL;
                         }
-	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
+// 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
+#ifdef SCCP_BUILTIN_CAS_PTR
+		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
+#else
+			obj->refcount = newrefcountval;
+		} while (0);
+#endif
+		
                 sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", obj->datatype, obj->identifier, obj, newrefcountval);
 		return ptr;
 	} else {
@@ -383,7 +390,14 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
                         }
 	                refcountval = obj->refcount;
 	                newrefcountval = refcountval-1;
-	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
+// 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
+#ifdef SCCP_BUILTIN_CAS_PTR
+		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
+#else
+			obj->refcount = newrefcountval;
+		} while (0);
+#endif		
+		
 	        if (0 == newrefcountval) {
 			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: refcount for object(%p) has reached 0 -> cleaning up!\n", obj->identifier, obj);
 #if CS_REFCOUNT_LIVEOBJECTS
