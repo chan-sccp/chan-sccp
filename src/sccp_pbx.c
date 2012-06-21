@@ -329,6 +329,15 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 		free(cid_name);
 	if (cid_number)
 		free(cid_number);
+	
+	
+	/** 
+	 * workaround to fix: 
+	 * [Jun 21 08:44:15] WARNING[21040]: channel.c:4934 ast_write: Codec mismatch on channel SCCP/109-0000000a setting write format to slin16 from ulaw native formats 0x0 (nothing) 
+	 * 
+	 */
+	PBX(rtp_setWriteFormat)(c, SKINNY_CODEC_WIDEBAND_256K);
+	PBX(rtp_setReadFormat)(c, SKINNY_CODEC_WIDEBAND_256K);
 
 	l = sccp_line_release(l);
 	c = sccp_channel_release(c);
