@@ -2019,6 +2019,9 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	if (callid) {
 		if (d->active_channel && d->active_channel->callid == callid) {
 			channel = sccp_channel_get_active(d);
+			if(channel){
+				l = sccp_line_retain(channel->line);
+			}
 		} else {
 			if (l) {
 				channel = sccp_find_channel_on_line_byid(l, callid);
