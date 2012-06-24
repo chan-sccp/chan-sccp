@@ -100,8 +100,10 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 			// we have a channel, checking if
 			if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
+				  pbx_log(LOG_ERROR, "%s: 1\n", DEV_ID_LOG(device));
 					// if we have an outbound call, we can set callforward to dialed number -FS
 					if (c->dialedNumber && !sccp_strlen_zero(c->dialedNumber)) {	// checking if we have a number !
+					  pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
 						// we are on call, so no tone has been played until now :)
 						//sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
@@ -111,11 +113,13 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 				} else if (c->owner && ast_bridged_channel(c->owner)) {	// check if we have an ast channel to get callerid from
 					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
+					pbx_log(LOG_ERROR, "%s: 3\n", DEV_ID_LOG(device));
 
 					if (PBX(get_callerid_name))
 						PBX(get_callerid_number) (c, &number);
 					if (number) {
 						sccp_line_cfwd(l, device, type, number);
+						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
 						// we are on call, so no tone has been played until now :)
 						sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, linedevice->lineInstance, 0, 0);
 						sccp_channel_endcall(c);
@@ -130,6 +134,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 					}
 				}
 			} else if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
+			  pbx_log(LOG_ERROR, "%s: 5\n", DEV_ID_LOG(device));
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
 				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
@@ -144,9 +149,36 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 				goto EXIT;
 			}
 		} else {
+			/* see case for channel */
+		}
+	}
+	
+	if(!c){
+		// if we where here there is no call in progress, so we should allocate a channel.
+		c = sccp_channel_allocate(l, device);
+		if (!c) {
+			pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(device), l->name);
+			goto EXIT;
+		}
+		sccp_channel_set_active(device, c);
+		
+		if (!sccp_pbx_channel_allocate(c)) {
+			pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
+			sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);	// implicitly retained device by sccp_action
+			goto EXIT;
+		}
+		
+	} else {
+		if(c->state == SCCP_CHANNELSTATE_OFFHOOK){
+			
+			/** we just opened a channel for cfwd, switch ss_action = SCCP_SS_GETFORWARDEXTEN */
+			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+			// we are dialing but without entering a number :D -FS
+			sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
+
+		} else { 
 			// other call in progress, put on hold
 			int ret = sccp_channel_hold(c);
-
 			if (!ret) {
 				pbx_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
 				goto EXIT;
@@ -154,28 +186,17 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 			c = sccp_channel_release(c);
 		}
 	}
-	// if we where here there is no call in progress, so we should allocate a channel.
-	c = sccp_channel_allocate(l, device);
 
-	if (!c) {
-		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(device), l->name);
-		goto EXIT;
-	}
+	
 
 	c->ss_action = SCCP_SS_GETFORWARDEXTEN;					/* Simpleswitch will catch a number to be dialed */
 	c->ss_data = type;							/* this should be found in thread */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
-
-	sccp_channel_set_active(device, c);
 	sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
+	sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, "Enter number to cfwd", 0);
 
-	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
-		pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
-		sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);	// implicitly retained device by sccp_action
-		goto EXIT;
-	}
+	
 
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
@@ -1285,16 +1306,16 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 		event.event.featureChanged.featureType = featureType;
 		sccp_event_fire(&event);
 
-		if (SCCP_FEATURE_MONITOR == featureType) {
-			/* Special case for monitor */
-			sccp_moo_t *r;
-
-			REQ(r, SetLampMessage);
-			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-			r->msg.SetLampMessage.lel_stimulusInstance = 0;
-			r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0))) ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
-			sccp_dev_send(device, r);
-		}
+// 		if (SCCP_FEATURE_MONITOR == featureType) {
+// 			/* Special case for monitor */
+// 			sccp_moo_t *r;
+// 
+// 			REQ(r, SetLampMessage);
+// 			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+// 			r->msg.SetLampMessage.lel_stimulusInstance = 0;
+// 			r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0))) ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+// 			sccp_dev_send(device, r);
+// 		}
 
 	}
 }
