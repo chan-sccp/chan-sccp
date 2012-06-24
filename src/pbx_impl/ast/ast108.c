@@ -486,6 +486,12 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 
 		if (c->rtp.audio.rtp)
 			ast_rtp_instance_update_source(c->rtp.audio.rtp);
+		
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP:c->state: %d\n",c->state);
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED) {
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+		}
 		res = 0;
 		break;
 
@@ -566,6 +572,16 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
                         break;
 #endif                        
 	case -1:								// Asterisk prod the channel
+	  
+		
+		/** this is a dirty workaround to fix audio issue while pickup a parked call
+		 * reason: asterisk do not indicate connected if we dial to a parked extension
+		 * -MC
+		 */
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED) {
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+		}
 		res = -1;
 		break;
 	default:
@@ -1283,6 +1299,8 @@ EXITFUNC:
 static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
 {
 	//! \todo change this handling and split pbx and sccp handling -MC
+	
+	
 	return sccp_pbx_call(chan, addr, timeout);
 }
 
