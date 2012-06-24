@@ -480,6 +480,15 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 		if (c->rtp.audio.rtp)
 			ast_rtp_instance_change_source(c->rtp.audio.rtp);
+		
+		/** this is a dirty workaround to fix audio issue while pickup a parked call
+		 * reason: asterisk do not indicate connected if we dial to a parked extension
+		 * -MC
+		 */
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED) {
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+		}
 		res = 0;
 		break;
 
@@ -536,6 +545,14 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		break;
 #endif
 	case -1:								// Asterisk prod the channel
+		/** this is a dirty workaround to fix audio issue while pickup a parked call
+		 * reason: asterisk do not indicate connected if we dial to a parked extension
+		 * -MC
+		 */
+		if(c->state != SCCP_CHANNELSTATE_CONNECTED) {
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+		}
 		res = -1;
 		break;
 	default:
