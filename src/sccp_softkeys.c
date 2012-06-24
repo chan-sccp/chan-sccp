@@ -180,10 +180,13 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
 	if (c) {								// Handle termination of dialling if in appropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-		if (c->state == SCCP_CHANNELSTATE_DIALING) {
+		if(c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
+			sccp_line_cfwd(c->line, d, c->ss_data, c->dialedNumber);
+			
+		} else if (c->state == SCCP_CHANNELSTATE_DIALING) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch(c);
-		}
+		} 
 	}
 }
 
@@ -687,7 +690,7 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 {
 	sccp_line_t *line = NULL;
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name :"(NULL)", lineInstance, c ? c->callid : -1);
 	if (!l && d) {
 
 		if (d->defaultLineInstance > 0) {
