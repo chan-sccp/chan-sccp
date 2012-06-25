@@ -231,7 +231,7 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
  */
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t *event)
 {
-	if (event)
+	if (!event)
 		return;
 
 	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "Get deviceAttachedEvent\n");
