@@ -2219,11 +2219,15 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
                                 /* Check for the presence of a devicestate specifier and register in device list. */
                                 if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
                                         dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
-                                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
-                                        SCCP_LIST_LOCK(&d->devstateSpecifiers);
-                                        sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
-                                        SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
-                                        SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+                                        if (!dspec) {
+                                                pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
+                                        } else {
+                                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+                                                SCCP_LIST_LOCK(&d->devstateSpecifiers);
+                                                sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
+                                                SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
+                                                SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+                                        }
                                 }
                         }
                 }
