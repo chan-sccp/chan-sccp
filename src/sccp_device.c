@@ -2042,13 +2042,14 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, ui
  */
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message)
 {
-	char *newValue = strdup(message);
+	char *newValue = NULL;
 	char *oldValue = NULL;
 	char *yieldedValue;
 	
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
+	newValue = strdup(message);
 	do {
 		/** already a message for this priority */
 		oldValue = device->messageStack[priority];
@@ -2081,7 +2082,6 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 		return;
 
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
-
 
 	do {
 		oldValue = device->messageStack[priority];
