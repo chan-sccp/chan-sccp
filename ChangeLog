@@ -1,4 +1,132 @@
 ------------------------------------------------------------------------
+r3498 | marcelloceschia | 2012-06-21 20:01:50 +0200 (Thu, 21 Jun 2012) | 1 line
+
+workaround for gcc < 4.2
+------------------------------------------------------------------------
+r3497 | marcelloceschia | 2012-06-21 18:34:38 +0200 (Thu, 21 Jun 2012) | 1 line
+
+workaround to fix warning: channel.c:4934 ast_write: Codec mismatch on channel SCCP/abc-00000001 setting write format to slin16 from ulaw native formats 0x0 (nothing)
+------------------------------------------------------------------------
+r3496 | marcelloceschia | 2012-06-19 18:05:42 +0200 (Tue, 19 Jun 2012) | 1 line
+
+fixes MeetMe number display issue reported by Jacob Miles
+------------------------------------------------------------------------
+r3495 | marcelloceschia | 2012-06-16 10:10:48 +0200 (Sat, 16 Jun 2012) | 1 line
+
+change mwilamp config setting
+------------------------------------------------------------------------
+r3494 | marcelloceschia | 2012-06-15 20:40:36 +0200 (Fri, 15 Jun 2012) | 1 line
+
+add app_sms.patch
+------------------------------------------------------------------------
+r3493 | marcelloceschia | 2012-06-15 20:02:41 +0200 (Fri, 15 Jun 2012) | 1 line
+
+update monitor feature
+------------------------------------------------------------------------
+r3492 | marcelloceschia | 2012-06-15 16:53:10 +0200 (Fri, 15 Jun 2012) | 1 line
+
+fixes warnings
+------------------------------------------------------------------------
+r3491 | marcelloceschia | 2012-06-15 16:38:23 +0200 (Fri, 15 Jun 2012) | 1 line
+
+fix warning
+------------------------------------------------------------------------
+r3490 | marcelloceschia | 2012-06-15 16:18:58 +0200 (Fri, 15 Jun 2012) | 1 line
+
+fixes indent
+------------------------------------------------------------------------
+r3489 | marcelloceschia | 2012-06-15 16:16:55 +0200 (Fri, 15 Jun 2012) | 1 line
+
+fixes 'warning: nested extern declaration of 'pthread_kill'' on FreeBSD
+------------------------------------------------------------------------
+r3488 | marcelloceschia | 2012-06-15 14:19:01 +0200 (Fri, 15 Jun 2012) | 1 line
+
+warning fix
+------------------------------------------------------------------------
+r3487 | marcelloceschia | 2012-06-15 13:58:53 +0200 (Fri, 15 Jun 2012) | 1 line
+
+fixes issue with asterisk 1.6
+------------------------------------------------------------------------
+r3486 | marcelloceschia | 2012-06-15 13:08:27 +0200 (Fri, 15 Jun 2012) | 1 line
+
+fixes asterisk 1.8 issue on FreeBSD
+------------------------------------------------------------------------
+r3485 | marcelloceschia | 2012-06-15 11:28:10 +0200 (Fri, 15 Jun 2012) | 1 line
+
+workaround for 'undefined symbol: __sync_val_compare_and_swap_4'
+------------------------------------------------------------------------
+r3482 | marcelloceschia | 2012-06-10 15:48:09 +0200 (Sun, 10 Jun 2012) | 1 line
+
+fixes configure issue using FreeBSD
+------------------------------------------------------------------------
+r3479 | marcelloceschia | 2012-06-09 09:53:47 +0200 (Sat, 09 Jun 2012) | 1 line
+
+fixes resume call using AMI functions - reported by Jacob Miles
+------------------------------------------------------------------------
+r3478 | marcelloceschia | 2012-06-08 20:41:37 +0200 (Fri, 08 Jun 2012) | 1 line
+
+fixes dtmf issue reported by Steven Haigh and Jacob Miles
+------------------------------------------------------------------------
+r3477 | marcelloceschia | 2012-06-08 20:41:04 +0200 (Fri, 08 Jun 2012) | 1 line
+
+fixes debug level value set by sccp.conf
+------------------------------------------------------------------------
+r3476 | marcelloceschia | 2012-06-08 20:23:32 +0200 (Fri, 08 Jun 2012) | 1 line
+
+fixes dtmf issue reported by Steven Haigh and Jacob Miles
+------------------------------------------------------------------------
+r3475 | marcelloceschia | 2012-06-08 20:03:56 +0200 (Fri, 08 Jun 2012) | 1 line
+
+fixes issue with 'Rejecting device: Device Unknown' reported by Alexandre Rodrigues and Jacob Miles
+------------------------------------------------------------------------
+r3473 | marcelloceschia | 2012-05-29 19:30:21 +0200 (Tue, 29 May 2012) | 1 line
+
+add missing files
+------------------------------------------------------------------------
+r3471 | marcelloceschia | 2012-05-29 17:20:13 +0200 (Tue, 29 May 2012) | 1 line
+
+resize buffer for incomming call prompt and use safe version of sprintf
+------------------------------------------------------------------------
+r3470 | marcelloceschia | 2012-05-29 17:10:51 +0200 (Tue, 29 May 2012) | 1 line
+
+update to Diederiks refcount version to work strait forward to stable v4
+------------------------------------------------------------------------
+r3468 | ddegroot | 2012-05-04 15:54:16 +0200 (Fri, 04 May 2012) | 1 line
+
+Update Hints documentation, clarifying the point that we are refering to a dialplan context, and that it needs to be present, and contain hinted extensions. Renamed the speeddial hint-context from hint to hints, overall.
+------------------------------------------------------------------------
+r3467 | ddegroot | 2012-05-04 14:16:11 +0200 (Fri, 04 May 2012) | 1 line
+
+Updated definition of ast_channel_unref in ast106.h
+------------------------------------------------------------------------
+r3466 | ddegroot | 2012-05-04 12:35:19 +0200 (Fri, 04 May 2012) | 1 line
+
+Removed forward of prodding during rtp_write
+------------------------------------------------------------------------
+r3465 | ddegroot | 2012-05-03 20:43:45 +0200 (Thu, 03 May 2012) | 1 line
+
+Renamed sccp_asterisk_getForwardingForChannel to sccp_asterisk_getForwardOriginator. Renamed pbx_find_channel_by_forwarding_for to pbx_find_forward_originator_channel_by_linkedid. Revised both pbx_find_ functions
+------------------------------------------------------------------------
+r3464 | ddegroot | 2012-05-03 20:11:16 +0200 (Thu, 03 May 2012) | 1 line
+
+Revised c->parentChannel indication.
+------------------------------------------------------------------------
+r3463 | ddegroot | 2012-05-03 19:54:13 +0200 (Thu, 03 May 2012) | 1 line
+
+Make FORWARDING_FOR work using new LINKEDID
+------------------------------------------------------------------------
+r3462 | ddegroot | 2012-05-03 19:43:07 +0200 (Thu, 03 May 2012) | 1 line
+
+Added setChannelLinkedId, renamed LINKID to LINKEDID. Using new LINKEDID to during ast1.6 indication of remotePeer to originator.
+------------------------------------------------------------------------
+r3461 | ddegroot | 2012-05-03 17:07:14 +0200 (Thu, 03 May 2012) | 1 line
+
+Added CS_EXPERIMENTAL 'FORWARDER_FOR' helper flag, to handle sending indication back to original caller. This way hangup/busy/congestion while ringing can be notified to remote end.
+------------------------------------------------------------------------
+r3460 | ddegroot | 2012-05-03 16:57:45 +0200 (Thu, 03 May 2012) | 1 line
+
+debug logging changes
+------------------------------------------------------------------------
 r3459 | ddegroot | 2012-05-02 16:28:03 +0200 (Wed, 02 May 2012) | 1 line
 
 Corrected handle_keypad_button issue when using 7912 phones

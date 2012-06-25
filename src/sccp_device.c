@@ -1212,14 +1212,17 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 				continue;
 
 			k = sccp_malloc(sizeof(sccp_speed_t));
-			memset(k, 0, sizeof(sccp_speed_t));
-
-			k->instance = instance;
-			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			sccp_copy_string(k->name, config->label, sizeof(k->name));
-			sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
-			if (!sccp_strlen_zero(config->button.speeddial.hint)) {
-				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
+			if (!k) {
+				pbx_log(LOG_ERROR, "Error allocating memory for sccp speeddial structure");
+			} else {
+				memset(k, 0, sizeof(sccp_speed_t));
+				k->instance = instance;
+				k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				sccp_copy_string(k->name, config->label, sizeof(k->name));
+				sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
+				if (!sccp_strlen_zero(config->button.speeddial.hint)) {
+					sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
+				}
 			}
 		}
 	}

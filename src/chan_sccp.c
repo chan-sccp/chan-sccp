@@ -691,10 +691,14 @@ boolean_t sccp_prePBXLoad()
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
 	GLOB(cfg) = sccp_config_getConfig();
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 
+	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
+	if (!GLOB(hotline)) {
+		pbx_log(LOG_ERROR, "Error allocating memory for GLOB(hotline)");
+		return FALSE;
+	}
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
 	sccp_create_hotline();
