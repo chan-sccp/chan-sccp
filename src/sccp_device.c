@@ -321,6 +321,11 @@ sccp_device_t *sccp_device_create(const char *id)
 sccp_device_t *sccp_device_createAnonymous(const char *name)
 {
 	sccp_device_t *d = sccp_device_create(name);
+	
+	if (!d) {
+		pbx_log(LOG_ERROR, "SCCP: sccp_device_create(%s) failed", name);
+		return NULL;
+	}
 
 	d->realtime = TRUE;
 	d->isAnonymous = TRUE;
@@ -678,7 +683,7 @@ sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
  */
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
-	if (d && d->session) {
+	if (d && d->session && r) {
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		return sccp_session_send(d, r);
 	} else
@@ -753,7 +758,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 {
 	sccp_moo_t *r;
 
-	if (!d)
+	if (!d )
 		return;
 
 	if (!d->softkeysupport)
