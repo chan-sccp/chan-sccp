@@ -492,7 +492,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 
-	if (instance == 0)
+	if (!d || instance == 0)
 		return NULL;
 
 	SCCP_LIST_LOCK(&d->buttonconfig);
@@ -843,6 +843,9 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
 {
+	if (!d)
+		return NULL;
+		
 	sccp_selectedchannel_t *sc = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
@@ -2087,6 +2090,10 @@ boolean_t implode(char *str[], char *sep, char **res)
 	}
 
 	*res = sccp_malloc((strlen(str[0]) * strlen(sep) + 1) * sizeof(char *));
+	if (*res == NULL) {
+		pbx_log(LOG_ERROR, "Error allocating memory during implode");
+		return FALSE;
+	}
 	memset(*res, 0, (strlen(str[0]) * strlen(sep) + 1) * sizeof(char *));
 	if (*res != NULL) {
 		strcat(*res, str[nn]);
@@ -2096,6 +2103,7 @@ boolean_t implode(char *str[], char *sep, char **res)
 				strcat(*res, sep);
 				strcat(*res, str[nn]);
 			} else {
+				pbx_log(LOG_ERROR, "Error allocating memory during implode");
 				return FALSE;
 			}
 		}
