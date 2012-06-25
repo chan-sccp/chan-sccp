@@ -1916,10 +1916,10 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	if (!sccp_destination_local_channel->owner || !sccp_source_local_channel || !sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08X and %s-%08X\n", 
 			d->id, 
-			(sccp_destination_local_channel->line && sccp_destination_local_channel->line->name)? sccp_destination_local_channel->line->name : "(null)", 
-			sccp_destination_local_channel->callid ? sccp_destination_local_channel->callid : 0, 
-			(sccp_source_local_channel->line && sccp_source_local_channel->line->name) ? sccp_source_local_channel->line->name : "(null)", 
-			sccp_source_local_channel->callid ? sccp_source_local_channel->callid : 0 );
+			(sccp_destination_local_channel && sccp_destination_local_channel->line && sccp_destination_local_channel->line->name)? sccp_destination_local_channel->line->name : "(null)", 
+			(sccp_destination_local_channel && sccp_destination_local_channel->callid) ? sccp_destination_local_channel->callid : 0, 
+			(sccp_source_local_channel && sccp_source_local_channel->line && sccp_source_local_channel->line->name) ? sccp_source_local_channel->line->name : "(null)", 
+			(sccp_source_local_channel && sccp_source_local_channel->callid) ? sccp_source_local_channel->callid : 0 );
 		d = sccp_device_release(d);
 		sccp_source_local_channel = sccp_channel_release(sccp_source_local_channel);
 		return;
