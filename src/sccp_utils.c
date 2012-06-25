@@ -2064,9 +2064,8 @@ char **explode(const char *str, const char *sep)
 			res[nn] = strdup(tmp);
 			tmp = strtok(NULL, sep);
 		}
-	} else {
-		return NULL;
 	}
+	sccp_free(ds);
 	return res;
 }
 
