@@ -180,13 +180,25 @@ void sccp_manager_eventListener(const sccp_event_t *event)
 	case SCCP_EVENT_DEVICE_ATTACHED:
 		device = event->event.deviceAttached.linedevice->device; // already retained in the event
 		linedevice = event->event.deviceAttached.linedevice;     // already retained in the event
-		manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", "ATTACHED", device->id, linedevice->line->name, linedevice->line->label, linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+		manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", 
+			"ATTACHED", 
+			device->id, 
+			linedevice && linedevice->line ? linedevice->line->name : "(null)", 
+			linedevice && linedevice->line ? linedevice->line->label : "(null)", 
+			linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", 
+			linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
 		break;
 
 	case SCCP_EVENT_DEVICE_DETACHED:
 		device = event->event.deviceAttached.linedevice->device; // already retained in the event
 		linedevice = event->event.deviceAttached.linedevice;     // already retained in the event
-		manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", "DETACHED", device->id, linedevice->line->name, linedevice->line->label, linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+		manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", 
+			"DETACHED", 
+			device->id, 
+			linedevice && linedevice->line ? linedevice->line->name : "(null)", 
+			linedevice && linedevice->line ? linedevice->line->label : "(null)", 
+			linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", 
+			linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
 		break;
 
 	default:
