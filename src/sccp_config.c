@@ -2536,7 +2536,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		   However, we need to force distributed devstate even on single asterisk boxes so to get the desired events. (-DD) */
 #ifdef CS_NEW_DEVICESTATE
 		ast_enable_distributed_devstate();
-		specifier->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, "devstate subscription", device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(buf), AST_EVENT_IE_END);
+		specifier->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, "devstate subscription", device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, buf, AST_EVENT_IE_END);
 #endif		
 	}
 	SCCP_LIST_UNLOCK(&device->devstateSpecifiers);
@@ -2645,7 +2645,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                                         astman_append(s, "DefaultValue: %s\r\n", config->defaultValue);
                                                 }
                                                 if (strlen(config->description)!=0) {
-                                                description=malloc(sizeof(char) * strlen(config->description));	
+//                                                        description=malloc(sizeof(char) * strlen(config->description));	
                                                         description=strdup(config->description);	
                                                         astman_append(s, "Description: ");
                                                         while ((description_part=strsep(&description, "\n"))) {
@@ -2654,6 +2654,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
                                                                 }
                                                         }
                                                         astman_append(s, "%s%s\r\n", !sccp_strlen_zero(possible_values) ? "(POSSIBLE VALUES: " : "", possible_values);
+                                                        sccp_free(description);
                                                 }
                                                 astman_append(s, "\r\n");
                                                 if (possible_values)
