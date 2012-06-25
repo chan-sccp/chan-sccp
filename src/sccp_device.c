@@ -1079,6 +1079,9 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineIns
  */
 void sccp_dev_cleardisplay(const sccp_device_t * d)
 {
+	if (!d)
+		return;
+		
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
 		return;								/* only for telecaster and new phones */
 
