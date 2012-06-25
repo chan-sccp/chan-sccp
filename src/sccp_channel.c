@@ -1977,6 +1977,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 			pbx_log(LOG_WARNING, "%s: Unable to create thread for the blind transfer ring indication. %s\n", d->id, strerror(errno));
 		}
 		pthread_attr_destroy(&attr);
+		sccp_free(dual);
 #endif
 		/* changing callerid for source part */
 		if ((sccp_source_remote_channel = get_sccp_channel_from_pbx_channel(pbx_source_remote_channel))) {
