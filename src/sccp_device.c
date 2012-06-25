@@ -725,12 +725,13 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	if (opt == SKINNY_DEVICE_RS_OK) {
 		/* this message is mandatory to finish process */
 		REQ(r, SetLampMessage);
-		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-		r->msg.SetLampMessage.lel_stimulusInstance = 0;
-		r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
-		d->mwilight &= ~(1 << 0);
-		sccp_dev_send(d, r);
-
+		if (r) {
+			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+			r->msg.SetLampMessage.lel_stimulusInstance = 0;
+			r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
+			d->mwilight &= ~(1 << 0);
+			sccp_dev_send(d, r);
+		}
 		if (!d->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d->session, d, NULL);
@@ -769,6 +770,9 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 		softKeySetIndex = (( /* d->conference && */ d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
 
 	REQ(r, SelectSoftKeysMessage);
+	if (!r)
+		return;
+		
 	r->msg.SelectSoftKeysMessage.lel_lineInstance = htolel(line);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(callid);
 	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(softKeySetIndex);
@@ -801,6 +805,9 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	sccp_moo_t *r;
 
 	REQ(r, SetRingerMessage);
+	if (!r)
+		return;
+		
 	r->msg.SetRingerMessage.lel_ringMode = htolel(opt);
 	/* Note that for distinctive ringing to work with the higher protocol versions
 	   the following actually needs to be set to 1 as the original comment says.
@@ -826,6 +833,9 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 		return;
 
 	REQ(r, SetSpeakerModeMessage);
+	if (!r)
+		return;
+		
 	r->msg.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
@@ -844,6 +854,9 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 		return;
 
 	REQ(r, SetMicroModeMessage);
+	if (!r)
+		return;
+		
 	r->msg.SetMicroModeMessage.lel_micMode = htolel(mode);
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
@@ -871,6 +884,9 @@ void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * 
 		return;
 
 	REQ(r, ActivateCallPlaneMessage);
+	if (!r)
+		return;
+		
 	if (status)
 		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(device, r);
@@ -908,8 +924,15 @@ void sccp_dev_deactivate_cplane(sccp_device_t * d)
 void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
 {
 	sccp_moo_t *r;
+	if (!d) {
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Null device for device starttone\n");
+		return;
+	}
 
 	REQ(r, StartToneMessage);
+	if (!r)
+		return;
+		
 	r->msg.StartToneMessage.lel_tone = htolel(tone);
 	r->msg.StartToneMessage.lel_toneTimeout = htolel(timeout);
 	r->msg.StartToneMessage.lel_lineInstance = htolel(line);
@@ -932,6 +955,9 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 	if (!d || !d->session)
 		return;
 	REQ(r, StopToneMessage);
+	if (!r)
+		return;
+		
 	r->msg.StopToneMessage.lel_lineInstance = htolel(line);
 	r->msg.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
@@ -1006,6 +1032,9 @@ void sccp_dev_clearprompt(const sccp_device_t * d, const uint8_t lineInstance, c
 		return;								/* only for telecaster and new phones */
 
 	REQ(r, ClearPromptStatusMessage);
+	if (!r)
+		return;
+		
 	r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
 	r->msg.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(d, r);
@@ -1086,6 +1115,9 @@ void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char
 		return;
 
 	REQ(r, DisplayTextMessage);
+	if (!r)
+		return;
+		
 	sccp_copy_string(r->msg.DisplayTextMessage.displayMessage, msg, sizeof(r->msg.DisplayTextMessage.displayMessage));
 
 	sccp_dev_send(d, r);
@@ -1909,6 +1941,9 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 		return 0;
 
 	REQ(r, Reset);
+	if (!r)
+		return 0;
+		
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
 	return 1;
@@ -1933,6 +1968,8 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	if (!d)
 		return;
 	REQ(r, CallStateMessage);
+	if (!r)
+		return;
 	r->msg.CallStateMessage.lel_callState = htolel(state);
 	r->msg.CallStateMessage.lel_lineInstance = htolel(instance);
 	r->msg.CallStateMessage.lel_callReference = htolel(callid);
@@ -2016,6 +2053,9 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 	}
 
 	REQ(r, KeypadButtonMessage);
+	if (!r)
+		return;
+		
 	r->msg.KeypadButtonMessage.lel_kpButton = htolel(digit);
 	r->msg.KeypadButtonMessage.lel_lineInstance = htolel(line);
 	r->msg.KeypadButtonMessage.lel_callReference = htolel(callid);
