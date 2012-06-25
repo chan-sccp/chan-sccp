@@ -1124,7 +1124,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #    ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
-				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", pbx_channel_name(chan), chan->uniqueid, "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l) ? l->name : "(null)", (c) ? (char *)&c->callid : "(null)");
+				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", (chan) ? pbx_channel_name(chan) : "(null)", (chan && chan->uniqueid) ? chan->uniqueid : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *)&c->callid : "(null)");
 			}
 #    endif
 			break;
