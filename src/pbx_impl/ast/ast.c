@@ -492,6 +492,11 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 		pbx_log (LOG_NOTICE, "%s: channel is a zombie. exiting hangup\n", ast_channel->name ? ast_channel->name : "--");
                 return FALSE;
         }
+        
+        if(ast_test_flag(ast_channel, AST_FLAG_BLOCKING)){
+		ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
+		return TRUE;
+        }
 
 	if (ast_channel->_softhangup != 0) {
         	if (AST_STATE_DOWN == ast_channel->_state) {
@@ -500,6 +505,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 		} else {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. forcing queued_hangup.\n", ast_channel->name);
 			pbx_hangup_type = PBX_QUEUED_HANGUP;
+			pbx_log (LOG_NOTICE, "set to PBX_QUEUED_HANGUP\n");
 		}
 	}
 
@@ -563,37 +569,62 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_channel->_softhangup ? "yes" : "no", 
 		ast_channel->hangupcause);
 
-	if (AST_STATE_UP != ast_channel->_state) {
-		if ( NULL == sccp_channel) {    // prevent dereferecing null pointer
-			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
-			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
-			return TRUE;
-                } else {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: checking ast/sccp state\n", ast_channel->name);
-			if (            (AST_STATE_DIALING == ast_channel->_state && SCCP_CHANNELSTATE_PROGRESS != sccp_channel->state) ||
-					SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state ||
-					SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state
-                                ) {
-                                // AST_STATE_DIALING == ast_channel->_state                        -> use ast_hangup when still in dialing state
-                                // SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state       	   -> use ast_hangup after callforward ss-switch
-                                // SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  	   -> use ast_hangup before connection to pbx is established 
-                                // SCCP_CHANNELSTATE_INVALIDNUMBER != sccp_channel->state  	   -> use softhangup for progress
-				sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_HARD_HANGUP);
-				sccp_channel_release(sccp_channel);
-				return TRUE;
-                        } else if (
-					( (AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && (SCCP_CHANNELSTATE_DIALING == sccp_channel->state || SCCP_CHANNELSTATE_RINGOUT == sccp_channel->state) ) ||
-					SCCP_CHANNELSTATE_BUSY == sccp_channel->state ||
-					SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state
-				) {
-				/* softhangup when pbx_channel structure is still needed afterwards */
-				sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_SOFT_HANGUP);
-				sccp_channel_release(sccp_channel);
-				return TRUE;
-			}
-		}
+// 	if (AST_STATE_UP != ast_channel->_state) {
+// 		if ( NULL == sccp_channel) {    // prevent dereferecing null pointer
+// 			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
+// 			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
+// 			return TRUE;
+//                 } else {
+// 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: checking ast/sccp state\n", ast_channel->name);
+// 			if (            (AST_STATE_DIALING == ast_channel->_state && SCCP_CHANNELSTATE_PROGRESS != sccp_channel->state) ||
+// 					SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state ||
+// 					SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state
+//                                 ) {
+//                                 // AST_STATE_DIALING == ast_channel->_state                        -> use ast_hangup when still in dialing state
+//                                 // SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state       	   -> use ast_hangup after callforward ss-switch
+//                                 // SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state  	   -> use ast_hangup before connection to pbx is established 
+//                                 // SCCP_CHANNELSTATE_INVALIDNUMBER != sccp_channel->state  	   -> use softhangup for progress
+// 				sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_HARD_HANGUP);
+// 				sccp_channel_release(sccp_channel);
+// 				return TRUE;
+//                         } else if (
+// 					( (AST_STATE_RING == ast_channel->_state || AST_STATE_RINGING == ast_channel->_state) && (SCCP_CHANNELSTATE_DIALING == sccp_channel->state || SCCP_CHANNELSTATE_RINGOUT == sccp_channel->state) ) ||
+// 					SCCP_CHANNELSTATE_BUSY == sccp_channel->state ||
+// 					SCCP_CHANNELSTATE_CONGESTION == sccp_channel->state
+// 				) {
+// 				/* softhangup when pbx_channel structure is still needed afterwards */
+// 				sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_SOFT_HANGUP);
+// 				sccp_channel_release(sccp_channel);
+// 				return TRUE;
+// 			}
+// 		}
+// 	}
+	
+// 	if (ast_channel->pbx == NULL) {
+// 	    pbx_log (LOG_NOTICE, "no pbx\n");
+// 		sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_HARD_HANGUP);
+// 	} else {
+// 	    pbx_log (LOG_NOTICE, "PBX %p\n",ast_channel->pbx);
+// 		sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_QUEUED_HANGUP);
+// 	}
+	if(ast_test_flag(ast_channel, AST_FLAG_BLOCKING)){
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
+		ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
+		
+	} else if (AST_STATE_UP == ast_channel->_state){
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
+#if ASTERISK_VERSION_NUMBER < 10601
+		ast_channel->whentohangup = 0;
+#else
+		ast_channel->whentohangup = ast_tvnow();
+#endif
+		ast_queue_hangup(ast_channel);
+	} else {
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", ast_channel->name);
+		ast_hangup(ast_channel);
 	}
-	sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_QUEUED_HANGUP);
+	
+	
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
 	return TRUE;
 }
