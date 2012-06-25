@@ -2230,7 +2230,7 @@ void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices
 	    && PBX(checkhangup) (sccp_forwarding_channel)
 	    && pbx_exists_extension(sccp_forwarding_channel->owner, sccp_forwarding_channel->line->context, dialedNumber, 1, sccp_forwarding_channel->line->cid_num)) {
 		/* found an extension, let's dial it */
-		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, strdup(dialedNumber));
+		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		PBX(set_callstate) (sccp_forwarding_channel, AST_STATE_RING);
 		if (pbx_pbx_start(sccp_forwarding_channel->owner)) {
