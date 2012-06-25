@@ -433,6 +433,11 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  */
 void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_dnd function called without specifying a device\n");
+		return;
+	}
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed\n", DEV_ID_LOG(d));
 
 	if (!d->dndFeature.enabled) {
@@ -575,10 +580,12 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
 				x = sccp_malloc(sizeof(sccp_selectedchannel_t));
-				x->channel = c;
-				SCCP_LIST_LOCK(&d->selectedChannels);
-				SCCP_LIST_INSERT_HEAD(&d->selectedChannels, x, list);
-				SCCP_LIST_UNLOCK(&d->selectedChannels);
+				if (x != NULL) {
+					x->channel = c;
+					SCCP_LIST_LOCK(&d->selectedChannels);
+					SCCP_LIST_INSERT_HEAD(&d->selectedChannels, x, list);
+					SCCP_LIST_UNLOCK(&d->selectedChannels);
+				}
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
 		} else if (SCCP_RWLIST_GETSIZE(l->channels) < 2) {
@@ -661,13 +668,14 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		sccp_free(x);
 	} else {
 		x = sccp_malloc(sizeof(sccp_selectedchannel_t));
-		x->channel = c;
-		SCCP_LIST_LOCK(&d->selectedChannels);
-		SCCP_LIST_INSERT_HEAD(&d->selectedChannels, x, list);
-		SCCP_LIST_UNLOCK(&d->selectedChannels);
-		status = 1;
+		if (x != NULL) {
+			x->channel = c;
+			SCCP_LIST_LOCK(&d->selectedChannels);
+			SCCP_LIST_INSERT_HEAD(&d->selectedChannels, x, list);
+			SCCP_LIST_UNLOCK(&d->selectedChannels);
+			status = 1;
+		}
 	}
-
 	numSelectedChannels = sccp_device_selectedchannels_count(d);
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_select) '%d' channels selected\n", DEV_ID_LOG(d), numSelectedChannels);
@@ -814,6 +822,11 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
+	if (!d) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
+		return;
+	}
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Private Pressed\n", DEV_ID_LOG(d));
 
 	if (!d->privacyFeature.enabled) {
