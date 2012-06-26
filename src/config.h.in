@@ -20,6 +20,9 @@
 /* using IAX */
 #undef AIX
 
+/* Defined AO_REQUIRE_CAS */
+#undef AO_REQUIRE_CAS
+
 /* NOT Defined ASTERISK_CONF !! */
 #undef ASTERISK_CONF
 
@@ -344,6 +347,9 @@
 
 /* Uses Asterisk as PBX */
 #undef HAVE_ASTERISK
+
+/* Define to 1 if you have the <atomic_ops.h> header file. */
+#undef HAVE_ATOMIC_OPS_H
 
 /* Define to 1 if bswap_16 is available. */
 #undef HAVE_BSWAP_16
@@ -812,6 +818,9 @@
 
 /* if the compiler supports __sync_val_compare_and_swap */
 #undef SCCP_ATOMIC_BUILTINS
+
+/* Found Atomic Ops Library */
+#undef SCCP_ATOMIC_OPS
 
 /* SCCP_BIG_ENDIAN */
 #undef SCCP_BIG_ENDIAN
