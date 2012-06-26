@@ -179,6 +179,7 @@ AS_IF([test "x$sccp_cv_atomic_CAS" = "xyes"],
 AS_IF([test "$sccp_cv_atomic_incr" = "yes"],
 	[AC_DEFINE([SCCP_BUILTIN_INCR],[1],[if the compiler supports __sync_fetch_and_add])])
 AS_IF([test "$sccp_cv_atomic_CAS" = "yes" -a "$sccp_cv_atomic_incr" = "yes"],
+                [AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])]
   		[AC_DEFINE([SCCP_ATOMIC_BUILTINS],[1],[if the compiler supports __sync_val_compare_and_swap])
 		 $1],
 		[$2])
@@ -199,6 +200,7 @@ AC_DEFUN([SCCP_CHECK_ATOMIC_OPS], [
 		[
                 AS_IF([test "x$enable_atomic_ops" == xyes], [
                         AC_CHECK_HEADERS([atomic_ops.h],[
+                                AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
                                 AC_DEFINE([SCCP_ATOMIC_OPS],1,[Found Atomic Ops Library])
                                 AC_DEFINE([AO_REQUIRE_CAS],1,[Defined AO_REQUIRE_CAS])
 dnl                                LDFLAGS="$LDFLAGS -llibatomic_ops"
