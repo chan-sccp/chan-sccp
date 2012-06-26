@@ -193,23 +193,21 @@ AC_DEFUN([SCCP_CHECK_ATOMIC_OPS], [
 	     [AS_HELP_STRING([--disable-atomic-ops],
 	                 [fallback if compiler-builtins for atomic functions are not available (using http://www.hpl.hp.com/research/linux/atomic_ops)])
 	],enable_atomic_ops=$enableval, enable_atomic_ops=yes)
-	AS_IF([test "$sccp_cv_atomic_CAS" = "yes" -a "$sccp_cv_atomic_incr" = "yes"],
-		[
-			dnl already provided using buildin methods
-		],
-		[
-                AS_IF([test "x$enable_atomic_ops" == xyes], [
-                        AC_CHECK_HEADERS([atomic_ops.h],[
-                                AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
-                                AC_DEFINE([SCCP_ATOMIC_OPS],1,[Found Atomic Ops Library])
-                                AC_DEFINE([AO_REQUIRE_CAS],1,[Defined AO_REQUIRE_CAS])
-dnl                                LDFLAGS="$LDFLAGS -llibatomic_ops"
-dnl                                AC_SUBST([LDFLAGS])
-                        ], [
-                                AC_MSG_RESULT('Your platform does not support atomic operations and atomic_ops.h could not be found.')
-                                AC_MSG_RESULT('Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform, or')
-                                AC_MSG_RESULT('Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated')
-                        ])
+	AS_IF([test "$sccp_cv_atomic_CAS" != "yes" -o "$sccp_cv_atomic_incr" != "yes" -o "x$enable_atomic_ops" != "xno"],
+		AC_MSG_CHECKING([ - availability 'libatomic_ops'...])
+                [AC_CHECK_HEADERS([atomic_ops.h],[
+			AC_MSG_RESULT([yes])
+                        AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
+                        AC_DEFINE([SCCP_ATOMIC_OPS],1,[Found Atomic Ops Library])
+                        AC_DEFINE([AO_REQUIRE_CAS],1,[Defined AO_REQUIRE_CAS])
+dnl                        LDFLAGS="$LDFLAGS -llibatomic_ops"
+dnl                        AC_SUBST([LDFLAGS])
+                ], [
+			AC_MSG_RESULT([no])
+                        AC_MSG_RESULT('Your platform does not support atomic operations and atomic_ops.h could not be found.')
+                        AC_MSG_RESULT('Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform, or')
+                        AC_MSG_RESULT('Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated')
+dnl                        exit 254
                 ])
         ])
 ])
