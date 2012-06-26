@@ -288,11 +288,17 @@ sccp_device_t *sccp_device_create(const char *id)
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "Init MessageStack\n");
 
 	/* initialize messageStack */
+#ifndef SCCP_BUILTIN_CAS_PTR	
+	pbx_mutex_init(&d->messageStackLock);
+	sccp_mutex_lock(&d->messageStackLock);
+#endif	
 	uint8_t i;
-
 	for (i = 0; i < ARRAY_LEN(d->messageStack); i++) {
 		d->messageStack[i] = NULL;
 	}
+#ifndef SCCP_BUILTIN_CAS_PTR	
+	sccp_mutex_unlock(&d->messageStackLock);
+#endif
 
 	/* disable videomode softkey for all softkeysets */
 	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
@@ -1356,13 +1362,18 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 	int i;
 
-//      for(i = ARRAY_LEN(d->messageStack); i >= 0; i--){
+#ifndef SCCP_BUILTIN_CAS_PTR	
+	sccp_mutex_lock(&d->messageStackLock);
+#endif	
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 		if (d->messageStack[i] != NULL) {
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
 			goto DONE;
 		}
 	}
+#ifndef SCCP_BUILTIN_CAS_PTR	
+	sccp_mutex_unlock(&d->messageStackLock);
+#endif
 
 	/* when we are here, there's nothing to display */
 	if (d->hasDisplayPrompt()) {
@@ -1817,11 +1828,18 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	/* cleanup message stack */
+#ifndef SCCP_BUILTIN_CAS_PTR	
+	sccp_mutex_lock(&d->messageStackLock);
+#endif	
 	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
 		if (d && d->messageStack && d->messageStack[i] != NULL) {
 			sccp_free(d->messageStack[i]);
 		}
 	}
+#ifndef SCCP_BUILTIN_CAS_PTR	
+	sccp_mutex_unlock(&d->messageStackLock);
+	pbx_mutex_destroy(&d->messageStackLock);
+#endif	
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 	sccp_mutex_unlock(&d->lock);						// using real device lock while using refcount
@@ -2095,27 +2113,24 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 {
 	char *newValue = NULL;
 	char *oldValue = NULL;
-	char *yieldedValue;
 	
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
 	newValue = strdup(message);
+#ifdef SCCP_BUILTIN_CAS_PTR		// lock-less, atomic implementation
+	char *yieldedValue;
 	do {
 		/** already a message for this priority */
 		oldValue = device->messageStack[priority];
-#ifdef SCCP_BUILTIN_CAS_PTR
 		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
-#elif SCCP_ATOMIC_OPS
-		yieldedValue = (char *)((uintptr_t)AO_compare_and_swap((size_t *)&device->messageStack[priority], (size_t)oldValue, (size_t)newValue));			// Atomic Swap using boemc atomic_ops library
-#else
-		// would require lock
-       		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
-		device->messageStack[priority] = newValue;
-		yieldedValue = oldValue;
-#endif
 	} while (yieldedValue != oldValue);
-
+#else
+	sccp_mutex_lock(&device->messageStackLock);
+	oldValue = device->messageStack[priority];
+	device->messageStack[priority] = newValue;
+	sccp_mutex_unlock(&device->messageStackLock);
+#endif
 	
 	if (oldValue) {
 		sccp_free(oldValue);
@@ -2131,26 +2146,24 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 	
 	char *newValue = NULL;
 	char *oldValue = NULL;
-	char *yieldedValue;
 
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
+#ifdef SCCP_BUILTIN_CAS_PTR		// lock-less, atomic implementation
+	char *yieldedValue;
 	do {
 		oldValue = device->messageStack[priority];
-#ifdef SCCP_BUILTIN_CAS_PTR
 		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
-#elif SCCP_ATOMIC_OPS
-		yieldedValue = (char *)((uintptr_t)AO_compare_and_swap((size_t *)&device->messageStack[priority], (size_t)oldValue, (size_t)newValue));			// Atomic Swap using boemc atomic_ops library
-#else
-		// would require lock
-       		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
-		device->messageStack[priority] = newValue;
-		yieldedValue = oldValue;
-#endif
 	} while (yieldedValue != oldValue);
+#else
+	sccp_mutex_lock(&device->messageStackLock);
+	oldValue = device->messageStack[priority];
+	device->messageStack[priority] = newValue;
+	sccp_mutex_unlock(&device->messageStackLock);
+#endif
 	
 	if (oldValue) {
 		sccp_free(oldValue);
