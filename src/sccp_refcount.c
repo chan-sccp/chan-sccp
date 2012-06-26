@@ -353,10 +353,12 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	                        return NULL;
                         }
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
-#ifdef SCCP_BUILTIN_CAS_PTR
+#ifdef SCCP_ATOMIC
+#  ifdef SCCP_BUILTIN_CAS_PTR
 		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
-#elif SCCP_ATOMIC_OPS
+#  else
                 } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));           		// Atomic Swap  using boemc atomic_ops library
+#  endif                
 #else
                         // would require lock
         		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
@@ -399,10 +401,12 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	                refcountval = obj->refcount;
 	                newrefcountval = refcountval-1;
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
-#ifdef SCCP_BUILTIN_CAS_PTR
+#ifdef SCCP_ATOMIC
+#  ifdef SCCP_BUILTIN_CAS_PTR
 		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
-#elif SCCP_ATOMIC_OPS
+#  else
                 } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));			// Atomic Swap  using boemc atomic_ops library
+#  endif                
 #else
         		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
 			obj->refcount = newrefcountval;
