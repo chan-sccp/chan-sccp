@@ -60,6 +60,9 @@ extern "C" {
 #    elif HAVE_SYS_ENDIAN_H
 #        include <sys/endian.h>
 #    endif
+#    ifdef HAVE_ATOMIC_OPS_H
+#        include <atomic_ops.h>
+#    endif
 
 #    include "sccp_lock.h"
 #    include "sccp_refcount.h"

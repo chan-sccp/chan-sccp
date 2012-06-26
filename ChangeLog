@@ -1,4 +1,112 @@
 ------------------------------------------------------------------------
+r3527 | ddegroot | 2012-06-25 21:50:00 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer in sccp_dev_cleardisplay
+------------------------------------------------------------------------
+r3526 | ddegroot | 2012-06-25 21:49:17 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer during transfer when sccp_source_local_channel is not set.
+------------------------------------------------------------------------
+r3525 | ddegroot | 2012-06-25 21:36:54 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer after calling REQ->(sccp_build_packet).
+------------------------------------------------------------------------
+r3524 | ddegroot | 2012-06-25 21:28:55 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer during transfer when sccp_source_local_channel is not set.
+------------------------------------------------------------------------
+r3523 | ddegroot | 2012-06-25 20:28:12 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Make manager_event parameters conditional, to prevent null pointer dereference
+------------------------------------------------------------------------
+r3522 | ddegroot | 2012-06-25 20:27:23 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Check for null before dereferencing
+------------------------------------------------------------------------
+r3521 | ddegroot | 2012-06-25 20:14:14 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Check result of malloc / calloc before use.
+------------------------------------------------------------------------
+r3520 | ddegroot | 2012-06-25 19:57:23 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer in sccp_softkeys.c
+------------------------------------------------------------------------
+r3519 | ddegroot | 2012-06-25 19:47:38 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer in sccp_utils.c
+------------------------------------------------------------------------
+r3518 | ddegroot | 2012-06-25 19:41:49 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer during sccp_mwi_deviceAttachedEvent
+------------------------------------------------------------------------
+r3517 | ddegroot | 2012-06-25 19:39:46 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer
+------------------------------------------------------------------------
+r3516 | ddegroot | 2012-06-25 19:39:35 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent dereferencing null pointer
+------------------------------------------------------------------------
+r3515 | ddegroot | 2012-06-25 18:00:53 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent memory leak in sccp_channel_forward
+------------------------------------------------------------------------
+r3514 | ddegroot | 2012-06-25 17:57:24 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent memory leak in addMessageToStack (sccp_device.c)
+------------------------------------------------------------------------
+r3513 | ddegroot | 2012-06-25 17:56:47 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Prevent memory leaks in sccp_config.c
+------------------------------------------------------------------------
+r3512 | ddegroot | 2012-06-25 16:39:55 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Release memory after failed init / malloc in sccp_threadpool.c. Check tp_p before use in sccp_threadpool.c
+------------------------------------------------------------------------
+r3511 | marcelloceschia | 2012-06-25 16:19:16 +0200 (Mon, 25 Jun 2012) | 1 line
+
+move sccp_free(dual) for errors
+------------------------------------------------------------------------
+r3510 | ddegroot | 2012-06-25 15:59:11 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Free ds after usage in sccp_utils.c:explode function
+------------------------------------------------------------------------
+r3509 | ddegroot | 2012-06-25 15:47:22 +0200 (Mon, 25 Jun 2012) | 1 line
+
+Free dual after usage. Prevent memory leak during transfer
+------------------------------------------------------------------------
+r3507 | marcelloceschia | 2012-06-25 11:14:18 +0200 (Mon, 25 Jun 2012) | 1 line
+
+does this fix the hangup core dumps?
+------------------------------------------------------------------------
+r3506 | marcelloceschia | 2012-06-24 20:41:08 +0200 (Sun, 24 Jun 2012) | 1 line
+
+allow cfwd for channel state offhook
+------------------------------------------------------------------------
+r3505 | marcelloceschia | 2012-06-24 20:40:20 +0200 (Sun, 24 Jun 2012) | 1 line
+
+check ss_action for Dial softkey
+------------------------------------------------------------------------
+r3504 | marcelloceschia | 2012-06-24 20:35:16 +0200 (Sun, 24 Jun 2012) | 1 line
+
+check ss_action for Dial softkey
+------------------------------------------------------------------------
+r3503 | marcelloceschia | 2012-06-24 19:18:23 +0200 (Sun, 24 Jun 2012) | 1 line
+
+fixes issue with 'Device sent a Keypress, but there is no line specified! Exiting'
+------------------------------------------------------------------------
+r3502 | marcelloceschia | 2012-06-24 19:15:24 +0200 (Sun, 24 Jun 2012) | 1 line
+
+fixes issue with 'Device sent a Keypress, but there is no line specified! Exiting'
+------------------------------------------------------------------------
+r3501 | marcelloceschia | 2012-06-24 18:50:00 +0200 (Sun, 24 Jun 2012) | 1 line
+
+workaround to fix the audio issue while calling a pared extension
+------------------------------------------------------------------------
+r3500 | marcelloceschia | 2012-06-24 18:48:51 +0200 (Sun, 24 Jun 2012) | 1 line
+
+workaround to fix the audio issue while calling a pared extension
+------------------------------------------------------------------------
 r3498 | marcelloceschia | 2012-06-21 20:01:50 +0200 (Thu, 21 Jun 2012) | 1 line
 
 workaround for gcc < 4.2

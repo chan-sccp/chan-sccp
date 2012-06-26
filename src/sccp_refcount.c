@@ -69,7 +69,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define CS_REFCOUNT_LIVEOBJECTS DEBUG
 
 struct refcount_object {
+#if !SCCP_ATOMIC_OPS
 	volatile int refcount;
+#else
+	volatile size_t refcount;
+#endif
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
 	char identifier[StationMaxDeviceNameSize];
@@ -299,7 +303,7 @@ void *sccp_refcount_object_alloc(size_t size, const char *datatype, const char *
 #if CS_REFCOUNT_LIVEOBJECTS
 	sccp_refcount_addToLiveObjects(obj);
 #endif
-	sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_3 "SCCP: (Refcount) Refcount initialized for object %p in %p to %d\n", ptr, obj, obj->refcount);
+	sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_3 "SCCP: (Refcount) Refcount initialized for object %p in %p to %d\n", ptr, obj, (int)obj->refcount);
 	return (void *)ptr;
 }
 
@@ -351,7 +355,11 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
 #ifdef SCCP_BUILTIN_CAS_PTR
 		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
+#elif SCCP_ATOMIC_OPS
+                } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));           		// Atomic Swap  using boemc atomic_ops library
 #else
+                        // would require lock
+        		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
 			obj->refcount = newrefcountval;
 		} while (0);
 #endif
@@ -393,16 +401,20 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
 #ifdef SCCP_BUILTIN_CAS_PTR
 		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
+#elif SCCP_ATOMIC_OPS
+                } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));			// Atomic Swap  using boemc atomic_ops library
 #else
+        		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
 			obj->refcount = newrefcountval;
 		} while (0);
-#endif		
+#endif
 		
 	        if (0 == newrefcountval) {
 			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: refcount for object(%p) has reached 0 -> cleaning up!\n", obj->identifier, obj);
 #if CS_REFCOUNT_LIVEOBJECTS
 			sccp_refcount_moveFromLiveToDeadObjects(obj);
 #else
+                        // would require lock
                         sccp_refcount_addToDeadObjects(obj);
 #endif
 //			usleep(1000);

@@ -1026,6 +1026,7 @@ enable_static
 enable_largefile
 enable_builtin_atomics
 enable_cross_cmpxchg16b
+enable_atomic_ops
 enable_shared
 with_pic
 enable_fast_install
@@ -1728,6 +1729,10 @@ Optional Features:
                           when cross compiling, ordinarily we asume that
                           cmpxchg16b is not available, however this option
                           forces us to assume that cmpxchg16b IS available
+  --disable-atomic-ops    fallback if compiler-builtins for atomic functions
+                          are not available (using
+                          http://www.hpl.hp.com/research/linux/atomic_ops)
+
   --enable-shared[=PKGS]  build shared libraries [default=yes]
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
@@ -7518,6 +7523,54 @@ $as_echo "#define SCCP_ATOMIC_BUILTINS 1" >>confdefs.h
 fi
 
 
+	# Check whether --enable-atomic_ops was given.
+if test "${enable_atomic_ops+set}" = set; then :
+  enableval=$enable_atomic_ops; enable_atomic_ops=$enableval
+else
+  enable_atomic_ops=yes
+fi
+
+	if test "$sccp_cv_atomic_CAS" = "yes" -a "$sccp_cv_atomic_incr" = "yes"; then :
+
+
+else
+
+                if test "x$enable_atomic_ops" == xyes; then :
+
+                        for ac_header in atomic_ops.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "atomic_ops.h" "ac_cv_header_atomic_ops_h" "$ac_includes_default"
+if test "x$ac_cv_header_atomic_ops_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ATOMIC_OPS_H 1
+_ACEOF
+
+
+$as_echo "#define SCCP_ATOMIC_OPS 1" >>confdefs.h
+
+
+$as_echo "#define AO_REQUIRE_CAS 1" >>confdefs.h
+
+
+else
+
+                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Your platform does not support atomic operations and atomic_ops.h could not be found.'" >&5
+$as_echo "'Your platform does not support atomic operations and atomic_ops.h could not be found.'" >&6; }
+                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform" >&5
+$as_echo "'Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform" >&6; }
+                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated'" >&5
+$as_echo "'Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated'" >&6; }
+
+fi
+
+done
+
+
+fi
+
+fi
+
+
 
 case $TERM in
        #   for the most important terminal types we directly know the sequences
@@ -8018,13 +8071,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:8021: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:8074: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8024: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:8077: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8027: output\"" >&5)
+  (eval echo "\"\$as_me:8080: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -9218,7 +9271,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9221 "configure"' > conftest.$ac_ext
+  echo '#line 9274 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -12622,11 +12675,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12625: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12678: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12629: \$? = $ac_status" >&5
+   echo "$as_me:12682: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -12961,11 +13014,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12964: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13017: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12968: \$? = $ac_status" >&5
+   echo "$as_me:13021: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13066,11 +13119,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13069: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13122: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13073: \$? = $ac_status" >&5
+   echo "$as_me:13126: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13121,11 +13174,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13124: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13177: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13128: \$? = $ac_status" >&5
+   echo "$as_me:13181: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15505,7 +15558,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15508 "configure"
+#line 15561 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15601,7 +15654,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15604 "configure"
+#line 15657 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17557,11 +17610,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17560: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17613: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17564: \$? = $ac_status" >&5
+   echo "$as_me:17617: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17656,11 +17709,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17659: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17712: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17663: \$? = $ac_status" >&5
+   echo "$as_me:17716: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17708,11 +17761,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17711: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17764: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17715: \$? = $ac_status" >&5
+   echo "$as_me:17768: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19590,7 +19643,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 19593 "configure"
+#line 19646 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H

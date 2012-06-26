@@ -2106,7 +2106,11 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 		oldValue = device->messageStack[priority];
 #ifdef SCCP_BUILTIN_CAS_PTR
 		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
+#elif SCCP_ATOMIC_OPT
+		yieldedValue = __AO_compare_and_swap(&device->messageStack[priority], oldValue, newValue);			// Atomic Swap using boemc atomic_ops library
 #else
+		// would require lock
+       		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
 		device->messageStack[priority] = newValue;
 		yieldedValue = oldValue;
 #endif
@@ -2138,7 +2142,11 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 		oldValue = device->messageStack[priority];
 #ifdef SCCP_BUILTIN_CAS_PTR
 		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
+#elif SCCP_ATOMIC_OPT
+		yieldedValue = __AO_compare_and_swap(&device->messageStack[priority], oldValue, newValue);			// Atomic Swap using boemc atomic_ops library
 #else
+		// would require lock
+       		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
 		device->messageStack[priority] = newValue;
 		yieldedValue = oldValue;
 #endif
