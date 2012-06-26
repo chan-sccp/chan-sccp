@@ -2118,13 +2118,23 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 		return;
 
 	newValue = strdup(message);
-#ifdef SCCP_BUILTIN_CAS_PTR		// lock-less, atomic implementation
+#ifdef SCCP_ATOMIC
+#  ifdef BUILTIN_CAS_PTR		// lock-less, atomic implementation
 	char *yieldedValue;
 	do {
 		/** already a message for this priority */
 		oldValue = device->messageStack[priority];
 		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
 	} while (yieldedValue != oldValue);
+#  else
+	// only the boolean compare and swap is available in boemc implementation
+	boolean_t yieldedValue=FALSE;
+	do {
+		/** already a message for this priority */
+		oldValue = device->messageStack[priority];
+		yieldedValue = AO_compare_and_swap((uintptr_t *)&device->messageStack[priority], (uintptr_t)oldValue, (uintptr_t)newValue);		// Atomic Swap using boemc atomic_ops
+	} while (!yieldedValue);
+#endif	
 #else
 	sccp_mutex_lock(&device->messageStackLock);
 	oldValue = device->messageStack[priority];
@@ -2152,12 +2162,21 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 
 	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
-#ifdef SCCP_BUILTIN_CAS_PTR		// lock-less, atomic implementation
+#ifdef SCCP_ATOMIC
+#  ifdef BUILTIN_CAS_PTR		// lock-less, atomic implementation
 	char *yieldedValue;
 	do {
 		oldValue = device->messageStack[priority];
 		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
 	} while (yieldedValue != oldValue);
+#  else
+	// only the boolean compare and swap is available in boemc implementation
+	boolean_t yieldedValue=FALSE;
+	do {
+		oldValue = device->messageStack[priority];
+		yieldedValue = AO_compare_and_swap((uintptr_t *)&device->messageStack[priority], (uintptr_t)oldValue, (uintptr_t)newValue);		// Atomic Swap using boemc atomic_ops
+	} while (!yieldedValue);
+#endif	
 #else
 	sccp_mutex_lock(&device->messageStackLock);
 	oldValue = device->messageStack[priority];
