@@ -7510,17 +7510,25 @@ if test "x$sccp_cv_atomic_CAS" = "xyes"; then :
 $as_echo "#define SCCP_BUILTIN_CAS 1" >>confdefs.h
 
 fi
-if test "$sccp_cv_atomic_incr" = "yes"; then :
+if test "x$sccp_cv_atomic_incr" = "xyes"; then :
 
 $as_echo "#define SCCP_BUILTIN_INCR 1" >>confdefs.h
 
 fi
-if test "$sccp_cv_atomic_CAS" = "yes" -a "$sccp_cv_atomic_incr" = "yes"; then :
+if test "$sccp_cv_atomic_CAS" = "yes" -a "x$sccp_cv_atomic_CASptr" = "xyes" -a "$sccp_cv_atomic_incr" = "yes"; then :
+
+                 	using_atomic_buildin="yes"
 
 $as_echo "#define SCCP_ATOMIC 1" >>confdefs.h
 
 
 $as_echo "#define SCCP_ATOMIC_BUILTINS 1" >>confdefs.h
+
+
+
+else
+
+			using_atomic_buildin="no"
 
 
 fi
@@ -7533,13 +7541,9 @@ else
   enable_atomic_ops=yes
 fi
 
-	if test "$sccp_cv_atomic_CAS" != "yes" -a "$sccp_cv_atomic_incr" != "yes"; then :
+	if test "x$using_atomic_buildin" = "xno" -a "x$enable_atomic_ops" = "xyes"; then :
 
-		if test "x$enable_atomic_ops" == "xyes"; then :
-
-                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'libatomic_ops'..." >&5
-$as_echo_n "checking  - availability 'libatomic_ops'...... " >&6; }
-                        for ac_header in atomic_ops.h
+                for ac_header in atomic_ops.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "atomic_ops.h" "ac_cv_header_atomic_ops_h" "$ac_includes_default"
 if test "x$ac_cv_header_atomic_ops_h" = xyes; then :
@@ -7547,8 +7551,6 @@ if test "x$ac_cv_header_atomic_ops_h" = xyes; then :
 #define HAVE_ATOMIC_OPS_H 1
 _ACEOF
 
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
 
 $as_echo "#define SCCP_ATOMIC 1" >>confdefs.h
 
@@ -7559,23 +7561,21 @@ $as_echo "#define SCCP_ATOMIC_OPS 1" >>confdefs.h
 $as_echo "#define AO_REQUIRE_CAS 1" >>confdefs.h
 
 
+
 else
 
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Your platform does not support atomic operations and atomic_ops.h could not be found.'" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Your platform does not support atomic operations and atomic_ops.h could not be found.'" >&5
 $as_echo "'Your platform does not support atomic operations and atomic_ops.h could not be found.'" >&6; }
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform" >&5
 $as_echo "'Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform" >&6; }
-                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated'" >&5
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated'" >&5
 $as_echo "'Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated'" >&6; }
+
 
 fi
 
 done
 
-
-fi
 
 fi
 
