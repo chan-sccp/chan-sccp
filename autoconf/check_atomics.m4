@@ -201,6 +201,8 @@ AC_DEFUN([SCCP_CHECK_ATOMIC_OPS], [
                         AC_CHECK_HEADERS([atomic_ops.h],[
                                 AC_DEFINE([SCCP_ATOMIC_OPS],1,[Found Atomic Ops Library])
                                 AC_DEFINE([AO_REQUIRE_CAS],1,[Defined AO_REQUIRE_CAS])
+dnl                                LDFLAGS="$LDFLAGS -llibatomic_ops"
+dnl                                AC_SUBST([LDFLAGS])
                         ], [
                                 AC_MSG_RESULT('Your platform does not support atomic operations and atomic_ops.h could not be found.')
                                 AC_MSG_RESULT('Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform, or')
