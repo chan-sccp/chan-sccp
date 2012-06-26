@@ -176,40 +176,42 @@ AS_IF([test "x$sccp_cv_atomic_CAS64" = "xyes"],
 	  	[if the compiler supports __sync_val_compare_and_swap on 64-bit ints])])
 AS_IF([test "x$sccp_cv_atomic_CAS" = "xyes"],
 	[AC_DEFINE([SCCP_BUILTIN_CAS],[1],[if the compiler supports __sync_val_compare_and_swap])])
-AS_IF([test "$sccp_cv_atomic_incr" = "yes"],
+AS_IF([test "x$sccp_cv_atomic_incr" = "xyes"],
 	[AC_DEFINE([SCCP_BUILTIN_INCR],[1],[if the compiler supports __sync_fetch_and_add])])
-AS_IF([test "$sccp_cv_atomic_CAS" = "yes" -a "$sccp_cv_atomic_incr" = "yes"],
-                [AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])]
-  		[AC_DEFINE([SCCP_ATOMIC_BUILTINS],[1],[if the compiler supports __sync_val_compare_and_swap])
-		 $1],
-		[$2])
+AS_IF([test "$sccp_cv_atomic_CAS" = "yes" -a "x$sccp_cv_atomic_CASptr" = "xyes" -a "$sccp_cv_atomic_incr" = "yes"],
+                [
+                 	using_atomic_buildin="yes"
+                 	AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
+  		 	AC_DEFINE([SCCP_ATOMIC_BUILTINS],[1],[if the compiler supports __sync_val_compare_and_swap])
+		 	$1
+		],[
+			using_atomic_buildin="no"
+			$2
+		])
 ])
 
 
-# SCCP_CHECK_ATOMIC_OPS
+# SCCP_CHECK_ATOMIC_OPS([action-if-found], [action-if-not-found])
 # ------------------------------------------------------------------------------
 AC_DEFUN([SCCP_CHECK_ATOMIC_OPS], [
 	AC_ARG_ENABLE([atomic_ops],
 	     [AS_HELP_STRING([--disable-atomic-ops],
 	                 [fallback if compiler-builtins for atomic functions are not available (using http://www.hpl.hp.com/research/linux/atomic_ops)])
 	],enable_atomic_ops=$enableval, enable_atomic_ops=yes)
-	AS_IF([test "$sccp_cv_atomic_CAS" != "yes" -a "$sccp_cv_atomic_incr" != "yes"],[
-		AS_IF([test "x$enable_atomic_ops" == "xyes"],[
-                        AC_MSG_CHECKING([ - availability 'libatomic_ops'...])
-                        AC_CHECK_HEADERS([atomic_ops.h],[
-                                AC_MSG_RESULT([yes])
-                                AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
-                                AC_DEFINE([SCCP_ATOMIC_OPS],1,[Found Atomic Ops Library])
-                                AC_DEFINE([AO_REQUIRE_CAS],1,[Defined AO_REQUIRE_CAS])
-        dnl                        LDFLAGS="$LDFLAGS -llibatomic_ops"
-        dnl                        AC_SUBST([LDFLAGS])
-                        ], [
-                                AC_MSG_RESULT([no])
-                                AC_MSG_RESULT('Your platform does not support atomic operations and atomic_ops.h could not be found.')
-                                AC_MSG_RESULT('Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform, or')
-                                AC_MSG_RESULT('Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated')
-        dnl                        exit 254
-                        ])
+	AS_IF([test "x$using_atomic_buildin" = "xno" -a "x$enable_atomic_ops" = "xyes"],[
+                AC_CHECK_HEADERS([atomic_ops.h],[
+                        AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
+                        AC_DEFINE([SCCP_ATOMIC_OPS],1,[Found Atomic Ops Library])
+                        AC_DEFINE([AO_REQUIRE_CAS],1,[Defined AO_REQUIRE_CAS])
+dnl                        LDFLAGS="$LDFLAGS -llibatomic_ops"
+dnl                        AC_SUBST([LDFLAGS])
+			$1
+                ], [
+                        AC_MSG_RESULT('Your platform does not support atomic operations and atomic_ops.h could not be found.')
+                        AC_MSG_RESULT('Please install the libatomic-ops-dev / libatomic-ops-devel package for your platform, or')
+                        AC_MSG_RESULT('Download the necessary library from http://www.hpl.hp.com/research/linux/atomic_ops so that these operations can be emulated')
+dnl                        exit 254
+			$2
                 ])
         ])
 ])
