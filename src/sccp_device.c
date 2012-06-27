@@ -689,11 +689,14 @@ sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
  */
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
+	int result = -1;
 	if (d && d->session && r) {
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
-		return sccp_session_send(d, r);
-	} else
-		return -1;
+		result = sccp_session_send(d, r);
+	}
+	if (r)
+		sccp_free(r);
+	return result;
 }
 
 /*!
@@ -823,7 +826,6 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), station2str(opt), opt);
-
 }
 
 /*!
