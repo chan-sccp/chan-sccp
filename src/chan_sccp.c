@@ -691,7 +691,11 @@ boolean_t sccp_prePBXLoad()
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	GLOB(cfg) = sccp_config_getConfig();
+	//GLOB(cfg) = sccp_config_getConfig();
+	if (sccp_config_getConfig() > CONFIG_STATUS_FILE_OK) {
+		pbx_log(LOG_ERROR, "Error loading configfile !");
+		return FALSE;
+	}
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
 
 	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
@@ -847,26 +851,48 @@ int sccp_reload(void)
 		return 1;
 	}
 
-	struct ast_config *cfg = sccp_config_getConfig();
-
-	if (cfg) {												// no errors
-		pbx_log(LOG_NOTICE, "SCCP reloading configuration.\n");
-		readingtype = SCCP_CONFIG_READRELOAD;
-		GLOB(reload_in_progress) = TRUE;
-		pbx_mutex_unlock(&GLOB(lock));
-		if (!sccp_config_general(readingtype)) {
-			pbx_log(LOG_ERROR, "Unable to reload configuration.\n");
-			GLOB(reload_in_progress) = FALSE;
+	sccp_config_file_status_t cfg = sccp_config_getConfig();
+	switch (cfg) {
+		case CONFIG_STATUS_FILE_NOT_CHANGED:
+			pbx_log(LOG_NOTICE, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+			returnval = 0;
+			break;
+		case CONFIG_STATUS_FILE_OK:
+			pbx_log(LOG_NOTICE, "SCCP reloading configuration.\n");
+			readingtype = SCCP_CONFIG_READRELOAD;
+			GLOB(reload_in_progress) = TRUE;
 			pbx_mutex_unlock(&GLOB(lock));
-			return 2;
-		}
-		sccp_config_readDevicesLines(readingtype);
-		pbx_mutex_lock(&GLOB(lock));
-		GLOB(reload_in_progress) = FALSE;
-		returnval = 3;
-	} else {
-		pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
-		returnval = 4;
+			if (!sccp_config_general(readingtype)) {
+				pbx_log(LOG_ERROR, "Unable to reload configuration.\n");
+				GLOB(reload_in_progress) = FALSE;
+				pbx_mutex_unlock(&GLOB(lock));
+				return 2;
+			}
+			sccp_config_readDevicesLines(readingtype);
+			pbx_mutex_lock(&GLOB(lock));
+			GLOB(reload_in_progress) = FALSE;
+			returnval = 3;
+			break;
+		case CONFIG_STATUS_FILE_OLD:
+			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
+			pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
+			returnval = 4;
+			break;
+		case CONFIG_STATUS_FILE_NOT_SCCP:
+			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
+			pbx_log(LOG_ERROR, "\n\n --> You are using an configuration file is not following the sccp format, please check '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
+			returnval = 4;
+			break;
+		case CONFIG_STATUS_FILE_NOT_FOUND:
+			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
+			pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
+			returnval = 4;
+			break;
+		case CONFIG_STATUS_FILE_INVALID:
+			pbx_log(LOG_ERROR, "Error reloading from '%s'\n", GLOB(config_file_name));
+			pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
+			returnval = 4;
+			break;
 	}
 	pbx_mutex_unlock(&GLOB(lock));
 	return returnval;
