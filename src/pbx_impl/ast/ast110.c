@@ -896,6 +896,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk110_park(const sccp_channel_t * ho
 		}
 		arg->device = sccp_device_release(arg->device);
 	}
+	sccp_free(arg);
 	return PARK_RESULT_FAIL;
 
 }
