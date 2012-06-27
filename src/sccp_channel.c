@@ -1839,8 +1839,8 @@ static void *sccp_channel_transfer_ringing_thread(void *data)
 	struct sccp_dual_transfer *dual = data;
 
 	if (!data || !dual->transfered)
-		return NULL;
-
+		goto FINAL;
+	
 	pbx_channel_lock(dual->transfered);
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", pbx_channel_name(dual->transfered), pbx_channel_name(dual->transfered));
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (Transfer destination %s(%p)\n", pbx_channel_name(dual->destination), pbx_channel_name(dual->destination));
@@ -1848,14 +1848,14 @@ static void *sccp_channel_transfer_ringing_thread(void *data)
 	if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", pbx_channel_name(dual->transfered), (void *)dual->transfered);
 		pbx_indicate(dual->transfered, AST_CONTROL_RINGING);
-
 	} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", pbx_channel_name(dual->transfered), (void *)dual->transfered);
 		PBX(moh_start) (dual->transfered, NULL, NULL);							//! \todo use pbx impl
 	}
 	pbx_channel_unlock(dual->transfered);
-	sccp_free(dual);
 
+FINAL:
+	sccp_free(dual);
 	return NULL;
 }
 
@@ -1982,6 +1982,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 			pbx_log(LOG_WARNING, "%s: Unable to create thread for the blind transfer ring indication. %s\n", d->id, strerror(errno));
 			sccp_free(dual);
 		}
+		pthread_detach(t);
 		pthread_attr_destroy(&attr);
 #endif
 		/* changing callerid for source part */

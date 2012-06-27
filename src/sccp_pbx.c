@@ -38,28 +38,24 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 {
 	struct sccp_answer_conveyor_struct *conveyor = data;
 
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
 
 	int instance = 0;
 
 	sleep(GLOB(autoanswer_ring_time));
 	pthread_testcancel();
 
-	if (!conveyor)
-		return NULL;
+	if (!conveyor || !conveyor->linedevice || !(conveyor->linedevice->device = sccp_device_retain(conveyor->linedevice->device))) {
+		goto FINAL;
+	}
 
-	if (!conveyor->linedevice)
-		return NULL;
+	if (!(c = sccp_channel_find_byid(conveyor->callid))) {
+		goto FINAL;
+	}
 
-	if (!(conveyor->linedevice->device = sccp_device_retain(conveyor->linedevice->device)))
-		return NULL;
-
-	c = sccp_channel_find_byid(conveyor->callid);
-	if (!c)
-		return NULL;
-
-	if (c->state != SCCP_CHANNELSTATE_RINGING)
-		return NULL;
+	if (c->state != SCCP_CHANNELSTATE_RINGING) {
+		goto FINAL;
+	}
 
 	sccp_channel_answer(conveyor->linedevice->device, c);
 
@@ -71,9 +67,10 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		sccp_dev_set_microphone(conveyor->linedevice->device, SKINNY_STATIONMIC_OFF);
 
 	conveyor->linedevice->device = sccp_device_release(conveyor->linedevice->device);
-	sccp_free(conveyor);
-	c = sccp_channel_release(c);
 
+FINAL:	
+	sccp_free(conveyor);
+	c = c ? sccp_channel_release(c) : NULL;
 	return NULL;
 }
 
@@ -307,7 +304,9 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 					pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 					if (pbx_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, conveyor)) {
 						pbx_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", DEV_ID_LOG(linedevice->device), l->name, c->callid, strerror(errno));
+						sccp_free(conveyor);
 					}
+					pthread_detach(t);
 					pthread_attr_destroy(&attr);
 #endif					
 				}
