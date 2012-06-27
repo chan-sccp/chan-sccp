@@ -446,8 +446,13 @@ int load_config(void)
 #else
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
+	if (sccp_config_getConfig(FALSE) > CONFIG_STATUS_FILE_OK) {
+		pbx_log(LOG_ERROR, "Error loading configfile !");
+		return FALSE;
+	}
 
 	if (!sccp_config_general(SCCP_CONFIG_READINITIAL)) {
+		pbx_log(LOG_ERROR, "Error parsing configfile !");
 		return 0;
 	}
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
@@ -691,8 +696,8 @@ boolean_t sccp_prePBXLoad()
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	//GLOB(cfg) = sccp_config_getConfig();
-	if (sccp_config_getConfig() > CONFIG_STATUS_FILE_OK) {
+
+	if (sccp_config_getConfig(FALSE) > CONFIG_STATUS_FILE_OK) {
 		pbx_log(LOG_ERROR, "Error loading configfile !");
 		return FALSE;
 	}
@@ -749,7 +754,7 @@ int sccp_preUnload(void)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
-	pbx_config_destroy(GLOB(cfg));
+//	pbx_config_destroy(GLOB(cfg));
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
@@ -830,7 +835,7 @@ int sccp_preUnload(void)
 	sccp_refcount_destroy();
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));
-	pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
+//	pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
 }
 
@@ -851,7 +856,7 @@ int sccp_reload(void)
 		return 1;
 	}
 
-	sccp_config_file_status_t cfg = sccp_config_getConfig();
+	sccp_config_file_status_t cfg = sccp_config_getConfig(TRUE);
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
 			pbx_log(LOG_NOTICE, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));

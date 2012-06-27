@@ -1764,7 +1764,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		GLOB(config_file_name) = sccp_strdupa(argv[2]);
 	}
 
-	sccp_config_file_status_t cfg = sccp_config_getConfig();
+	sccp_config_file_status_t cfg = sccp_config_getConfig(TRUE);
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
 			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));

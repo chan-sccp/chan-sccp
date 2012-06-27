@@ -290,9 +290,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_CHANGED) == SCCP_CONFIG_FLAG_CHANGED) {	
 		pbx_log(LOG_NOTICE, "changed config param at %s='%s' in line %d\n - %s -> please check sccp.conf file\n", name, value, lineno, sccpConfigOption->description);
-	} else if ((flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) {	
+	} else if ((flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED && lineno > 0) {	
 		pbx_log(LOG_NOTICE, "deprecated config param at %s='%s' in line %d\n - %s -> using old implementation\n", name, value, lineno, sccpConfigOption->description);
-	} else if ((flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) {
+	} else if ((flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE && lineno > 0) {
 		pbx_log(LOG_WARNING, "obsolete config param at %s='%s' in line %d\n - %s -> param skipped\n", name, value, lineno, sccpConfigOption->description);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
@@ -2243,10 +2243,10 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
  * \brief Find the Correct Config File
  * \return Asterisk Config Object as ast_config
  */
-sccp_config_file_status_t sccp_config_getConfig()
+sccp_config_file_status_t sccp_config_getConfig(boolean_t reload)
 {
 //	struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS & CONFIG_FLAG_FILEUNCHANGED };
-	struct ast_flags config_flags = { CONFIG_FLAG_FILEUNCHANGED };
+	struct ast_flags config_flags = { reload ? CONFIG_FLAG_FILEUNCHANGED : 0};
 
 	if (sccp_strlen_zero(GLOB(config_file_name))) {
 		GLOB(config_file_name) = "sccp.conf";
@@ -2255,6 +2255,7 @@ sccp_config_file_status_t sccp_config_getConfig()
 	if (CONFIG_STATUS_FILEMISSING == GLOB(cfg)) {
 		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
 		pbx_config_destroy(GLOB(cfg));
+		GLOB(cfg)=NULL;
 		return CONFIG_STATUS_FILE_NOT_FOUND;
 	} else if (CONFIG_STATUS_FILEUNCHANGED == GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting reload.\n", GLOB(config_file_name));
@@ -2262,16 +2263,20 @@ sccp_config_file_status_t sccp_config_getConfig()
 	} else if (CONFIG_STATUS_FILEINVALID == GLOB(cfg)) {
 		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
 		pbx_config_destroy(GLOB(cfg));
+		GLOB(cfg)=NULL;
 		return CONFIG_STATUS_FILE_INVALID;
 	} else if (GLOB(cfg) && ast_variable_browse(GLOB(cfg), "devices")) {	/* Warn user when old entries exist in sccp.conf */
 		pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
 		pbx_config_destroy(GLOB(cfg));
+		GLOB(cfg)=NULL;
 		return CONFIG_STATUS_FILE_OLD;
 	} else if (!ast_variable_browse(GLOB(cfg), "general")) {
 		pbx_log(LOG_ERROR, "Missing [general] section, SCCP disabled\n");
 		pbx_config_destroy(GLOB(cfg));
+		GLOB(cfg)=NULL;
 		return CONFIG_STATUS_FILE_NOT_SCCP;
 	}
+	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", GLOB(config_file_name));
 	return CONFIG_STATUS_FILE_OK;
 }
 
