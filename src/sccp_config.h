@@ -95,9 +95,21 @@ void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
 int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 
-#    define CONFIG_STATUS_FILEOLD       (void *)-3
-#    define CONFIG_STATUS_FILE_NOT_SCCP (void *)-4
-struct ast_config *sccp_config_getConfig(void);
+/*!
+ * \brief Enum for Config File Status (Return Values)
+ */
+typedef enum {
+  /* *INDENT-OFF* */
+  CONFIG_STATUS_FILE_NOT_CHANGED = -1,
+  CONFIG_STATUS_FILE_OK = 0,
+  CONFIG_STATUS_FILE_OLD = 1,
+  CONFIG_STATUS_FILE_NOT_SCCP = 2,
+  CONFIG_STATUS_FILE_NOT_FOUND = 3,
+  CONFIG_STATUS_FILE_INVALID = 5,
+  /* *INDENT-ON* */
+} sccp_config_file_status_t;
+
+sccp_config_file_status_t sccp_config_getConfig(void);
 sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v);
