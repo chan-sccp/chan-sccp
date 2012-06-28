@@ -1,4 +1,32 @@
 ------------------------------------------------------------------------
+r3483 | marcelloceschia | 2012-06-14 13:53:03 +0200 (Thu, 14 Jun 2012) | 1 line
+
+fixes issue wie sccp_free
+------------------------------------------------------------------------
+r3481 | marcelloceschia | 2012-06-10 15:33:09 +0200 (Sun, 10 Jun 2012) | 1 line
+
+fixes compile issues in FreeBSD
+------------------------------------------------------------------------
+r3480 | marcelloceschia | 2012-06-10 15:02:18 +0200 (Sun, 10 Jun 2012) | 1 line
+
+fixes configure issue using FreeBSD
+------------------------------------------------------------------------
+r3472 | marcelloceschia | 2012-05-29 17:27:50 +0200 (Tue, 29 May 2012) | 1 line
+
+update to Diederiks refcount version to work strait forward to stable v4
+------------------------------------------------------------------------
+r3469 | marcelloceschia | 2012-05-21 09:03:43 +0200 (Mon, 21 May 2012) | 1 line
+
+remove -Wno-unused-but-set-variable
+------------------------------------------------------------------------
+r3449 | marcelloceschia | 2012-04-30 19:56:14 +0200 (Mon, 30 Apr 2012) | 1 line
+
+backport 1.6 issues
+------------------------------------------------------------------------
+r3418 | ddegroot | 2012-04-26 18:24:03 +0200 (Thu, 26 Apr 2012) | 1 line
+
+Update ChangeLogs
+------------------------------------------------------------------------
 r3416 | ddegroot | 2012-04-26 17:58:37 +0200 (Thu, 26 Apr 2012) | 1 line
 
 Renamed WARNING txt file

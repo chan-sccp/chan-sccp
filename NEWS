@@ -1,5 +1,98 @@
+Version: 4.0.0_STABLE
+============================
+Added Functionality:
+ - Support for multiple asterisk version (1.6.2 -> 1.10.x)
+ - Enabled supporting for differnt PBX backends (asterisk as reference design)
+ - New sccp.conf parser
+
+Fixed/Improved
+ - Improved protocol handling
+ - Improved codec handling
+ - Improved rtp handling
+ - Improved hint / event handling
+
+Version: 3.1.3_STABLE
+============================
+Added Functionality:
+ - Added support for 69xx phones
+   - Fixed handle_openreceivechannel to cope with devices that do not send passthrupartyid
+   - Fixed handle_startmediatransmission to cope with devices that do not send passthrupartyid
+
+Fixed/Improved
+ - Adapted socket handling for larger numbers of phones. Changed keepalive handling. Changed session_stop handling
+ - Added locking to sccp_channel_addLine / sccp_channel_removeLine, also fixes sccp_channel_find functionality
+ - Backported register handling
+ - Backported debugcategory handling
+ - Updated keypad button handling
+ - Updated crossdevice registration to cleanup open channels correctly while in the sccp_pbx_hangup function
+ - Fixed compile issues when using older gcc versions
+ - Prevent segfault during sccp_pbx_softswitch_locked
+ - Fixed invalidnumber indication signalling
+ - Extended logging in different locations
+ - Reduced number of RTP error messages, where none where necessary
+
+Version: 3.1.2_STABLE
+============================
+Fixed/Improved
+ - Compilation on FreeBSD
+ - Autoconf script
+
+Version: 3.1.1_STABLE
+============================
+Fixed/Improved: 
+ - Video Support
+ - Minor Bug Fixes
+
+Version: 3.0.4_STABLE
+============================
+Fixed/Improved:
+ - Small bug fixes
+ - Fix hint issue on 7914 addons (with 7960 and dynamic speeddials)
+
+Version: 3.0.3_STABLE
+============================
+Fixed/Improved:
+ - Small bug fixes
+ - Fix compile against older asterisk 1.4 versions
+
+Version: 3.0.2_STABLE
+============================
+Fixed/Improved:
+ - Fixed devstate detection
+
+Version: 3.0.1_STABLE
+============================
+ - bug fixes for configure when using crosscompiling
+ - minor bug fixes when compiling against older asterisk versions
+
+Version: 3.0.0_STABLE
+============================
+Added Functionality:
+ - improved Video Support
+
+Fixed/Improved:
+ - bug fixes for locking
+ - bug fixes in codec handling
+ - bug fixes in rtp handling
+ - configure updates 
+
+
+Version: 3.0_RC3.1
+============================
+Added Functionality:
+ - Major overhaul of the locking system
+ - Moved from using socket_select to socket_poll
+ - Added sccp_pbx_wrapper, to ease the migration towards support for Asterisk 1.8
+
+Fixed/Improved:
+ - bug fixes for locking
+ - bug fixes for socket handling
+ - bug fixes for configure script
+ - lots of small bugs reported by users
+ - documentation updates
+
 Version: 3.0_RC3
-===================
+============================
 Added Functionality:
  - Dialplan Function SCCPDEVICE, SCCPLINE and SCCPCHANNEL
  - DevState Feature Button (--enable-devstate)
@@ -18,7 +111,7 @@ Fixed/Improved:
  - documentation updates
 
 Version: 3.0_RC2
-================
+============================
 Added Functionality:
  - sccp reload
  - dynamic speeddial with and without callerid
@@ -28,18 +121,6 @@ Fixed/Improved:
  - improved callerid passing during call forward
 
 Version: 3.0_RC1
-================
-Added Functionality: 
- - HotLine
- - Shared Lines
- - Dynamic speed dials
- - New configuration file handling using templating 
 
-Fixed/Improved: 
- - Realtime database support
- - Debug indications
- - Direct transfer
- - Group pickup
- - Call parking
 
-Version: 3.0_PreRC3
+

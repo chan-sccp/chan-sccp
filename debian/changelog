@@ -1,3 +1,20 @@
+chan-sccp-b (4.0.0-0) unstable; urgency=low
+============================
+  * Added Functionality:
+  *  - Support for multiple asterisk version (1.6.2 -> 1.10.x)
+  *  - Enabled supporting for differnt PBX backends (asterisk as reference
+  *  - design)
+  *  - New sccp.conf parser
+  *    
+  * Fixed/Improved:
+  *  - Improved protocol handling
+  *  - Improved codec handling   
+  *  - Improved rtp handling  
+  *  - Improved hint / event handling
+  * 
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 28 Jun 2012 11:19:26 +0200
+
 chan-sccp-b (3.0.0-3) unstable; urgency=low
 
   * Release Candidate 3
