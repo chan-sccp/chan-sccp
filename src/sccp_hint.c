@@ -835,6 +835,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
 	uint32_t state;								/* used to fall back to old behavior */
+	sccp_speed_t k;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	char displayMessage[80];
@@ -855,7 +856,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 		if (subscriber->device->inuseprotocolversion >= 15) {
-			sccp_speed_t *k = sccp_dev_speed_find_byindex((sccp_device_t *) subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL);
+			sccp_dev_speed_find_byindex((sccp_device_t *) subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
 
 			REQ(r, FeatureStatDynamicMessage);
 			r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
@@ -863,51 +864,51 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 
 			switch (hint->currentState) {
 			case SCCP_CHANNELSTATE_ONHOOK:
-				snprintf(displayMessage, sizeof(displayMessage), (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
+				snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 				r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
 				break;
 
 			case SCCP_CHANNELSTATE_DOWN:
-				snprintf(displayMessage, sizeof(displayMessage), (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
+				snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 				r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
 				break;
 
 			case SCCP_CHANNELSTATE_RINGING:
 				if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
 					if(strlen(hint->callInfo.partyName) > 0){
-						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k->name);
+						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
 					}else if(strlen(hint->callInfo.partyNumber) > 0){
-						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k->name);
+						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
 					}else{
-						snprintf(displayMessage, sizeof(displayMessage), "%s", k->name);
+						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 					}				  
 				} else {
-					snprintf(displayMessage, sizeof(displayMessage), "%s", (k) ? k->name : "unknown speeddial");
+					snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 				}
 				r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING);	/* ringin */
 				break;
 
 			case SCCP_CHANNELSTATE_DND:
-				snprintf(displayMessage, sizeof(displayMessage), (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
+				snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 				r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_DND);	/* dnd */
 				break;
 
 			case SCCP_CHANNELSTATE_CONGESTION:
-				snprintf(displayMessage, sizeof(displayMessage), (k) ? k->name : "unknown speeddial", sizeof(displayMessage));
+				snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 				r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* device/line not found */
 				break;
 
 			default:
 				if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
 					if(strlen(hint->callInfo.partyName) > 0){
-						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k->name);
+						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
 					}else if(strlen(hint->callInfo.partyNumber) > 0){
-						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k->name);
+						snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
 					}else{
-						snprintf(displayMessage, sizeof(displayMessage), "%s", k->name);
+						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 					}
 				} else {
-					snprintf(displayMessage, sizeof(displayMessage), "%s", (k) ? k->name : "unknown speeddial");
+					snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 				}
 				r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
 				break;
@@ -917,9 +918,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 			sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
 			sccp_dev_send(subscriber->device, r);
-
-			if (k)
-				sccp_free(k);
 
 			continue;
 		}
