@@ -734,13 +734,15 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	if (opt == SKINNY_DEVICE_RS_OK) {
 		/* this message is mandatory to finish process */
 		REQ(r, SetLampMessage);
+
 		if (r) {
 			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 			r->msg.SetLampMessage.lel_stimulusInstance = 0;
-			r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
-			d->mwilight &= ~(1 << 0);
+			r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
+// 			d->mwilight &= ~(1 << 0);
 			sccp_dev_send(d, r);
 		}
+
 		if (!d->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d->session, d, NULL);
@@ -1242,13 +1244,16 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \lock
  * 	- device->buttonconfig
  */
-sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type)
+void sccp_dev_speed_find_byindex(sccp_device_t *d, uint16_t instance, uint8_t type, sccp_speed_t *k)
 {
-	sccp_speed_t *k = NULL;
 	sccp_buttonconfig_t *config;
 
 	if (!d || !d->session || instance == 0)
-		return NULL;
+		return;
+	
+	memset(k, 0, sizeof(sccp_speed_t));
+	sccp_copy_string(k->name, "unknown speeddial", sizeof(k->name));
+
 
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -1259,24 +1264,18 @@ sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, 
 			if (type == SCCP_BUTTONTYPE_HINT && sccp_strlen_zero(config->button.speeddial.hint))
 				continue;
 
-			k = sccp_malloc(sizeof(sccp_speed_t));
-			if (!k) {
-				pbx_log(LOG_ERROR, "Error allocating memory for sccp speeddial structure");
-			} else {
-				memset(k, 0, sizeof(sccp_speed_t));
-				k->instance = instance;
-				k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-				sccp_copy_string(k->name, config->label, sizeof(k->name));
-				sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
-				if (!sccp_strlen_zero(config->button.speeddial.hint)) {
-					sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
-				}
+			
+			k->valid = TRUE;
+			k->instance = instance;
+			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			sccp_copy_string(k->name, config->label, sizeof(k->name));
+			sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
+			if (!sccp_strlen_zero(config->button.speeddial.hint)) {
+				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
 			}
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
-
-	return k;
 }
 
 /*!
