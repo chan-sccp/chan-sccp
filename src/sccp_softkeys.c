@@ -303,15 +303,15 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	char *adhocNumber = NULL;
-	sccp_speed_t *k = NULL;
+	sccp_speed_t k;
 	sccp_line_t *line = NULL;
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
 	if (!l) {
 		/* handle dummy speeddial */
-		k = sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT);
-		if (k && (strlen(k->ext) > 0)) {
-			adhocNumber = k->ext;
+		sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT, &k);
+		if (strlen(k.ext) > 0) {
+			adhocNumber = k.ext;
 		}
 
 		/* use default line if it is set */
@@ -340,9 +340,6 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			sccp_channel_newcall(line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
 		line = sccp_line_release(line);
 	}
-
-	if (k)
-		sccp_free(k);
 }
 
 /*!
