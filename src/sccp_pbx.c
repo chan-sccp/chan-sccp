@@ -1159,7 +1159,7 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
  * \param c SCCP Channel
  * \param digits Multiple Digits as char
  */
-void sccp_pbx_senddigits(sccp_channel_t * c, char *digits)
+void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits)
 {
 	if (PBX(send_digits))
 		PBX(send_digits) (c, digits);
