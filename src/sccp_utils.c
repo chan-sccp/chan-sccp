@@ -1141,13 +1141,13 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 	unsigned int x;
 //	unsigned int y;
 	int errors = 0;
-	const char *parse = NULL;
+	char *parse = NULL;
 	char *this = NULL;
 	boolean_t found = FALSE;
 //	boolean_t mapped = FALSE;
 	skinny_codec_t codec;
 
-	parse = list;
+	parse = sccp_strdupa(list);
 	while ((this = strsep(&parse, ","))) {
 		all = strcasecmp(this, "all") ? 0 : 1;
 

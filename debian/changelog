@@ -1,4 +1,4 @@
-chan-sccp-b (4.0.0-0) unstable; urgency=low
+chan-sccp-b (4.0.0-0.2) stable; urgency=low
 ============================
   * Added Functionality:
   *  - Support for multiple asterisk version (1.6.2 -> 1.10.x)
@@ -15,7 +15,7 @@ chan-sccp-b (4.0.0-0) unstable; urgency=low
 
  -- Diederik de Groot <dkgroot@sourceforge.net>  Thu, 28 Jun 2012 11:19:26 +0200
 
-chan-sccp-b (3.0.0-3) unstable; urgency=low
+chan-sccp-b (3.0.0-3) stable; urgency=low
 
   * Release Candidate 3
   * 
