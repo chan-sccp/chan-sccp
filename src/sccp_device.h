@@ -69,7 +69,7 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
 void sccp_dev_cleardisplaynotify(const sccp_device_t * d);
 void sccp_dev_cleardisplayprinotify(const sccp_device_t * d);
 
-sccp_speed_t *sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type);
+void sccp_dev_speed_find_byindex(sccp_device_t *d, uint16_t instance, uint8_t type, sccp_speed_t *k);
 sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d);
 void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l);
 
