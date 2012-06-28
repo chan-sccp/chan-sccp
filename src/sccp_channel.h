@@ -51,7 +51,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel);
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, char *dial, uint8_t calltype);
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_destroy(sccp_channel_t * c);
 
