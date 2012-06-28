@@ -962,7 +962,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 {
 	sccp_line_t *l = NULL;
 	sccp_moo_t *r1;
-	sccp_speed_t *k = NULL;
+	sccp_speed_t k;
 	sccp_buttonconfig_t *config;
 
 	uint8_t lineNumber = letohl(r->msg.LineStatReqMessage.lel_lineNumber);
@@ -972,10 +972,10 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 
 	/* if we find no regular line - it can be a speeddial with hint */
 	if (!l)
-		k = sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_HINT);
+		sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_HINT, &k);
 
 	REQ(r1, LineStatMessage);
-	if (!l && !k) {
+	if (!l && k.valid) {
 		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line %d\n", DEV_ID_LOG(s->device), lineNumber);
 		r1->msg.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 		sccp_dev_send(s->device, r1);
@@ -983,16 +983,16 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 	}
 	r1->msg.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 
-	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, ((l) ? l->name : (k) ? k->name : ""), sizeof(r1->msg.LineStatMessage.lineDirNumber));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(r1->msg.LineStatMessage.lineDirNumber));
 
 	/* lets set the device description for the first line, so it will be display on top of device -MC */
 	if (lineNumber == 1) {
 		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
 	} else {
-		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : (k) ? k->name : ""), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
+		sccp_copy_string(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(r1->msg.LineStatMessage.lineFullyQualifiedDisplayName));
 	}
 
-	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, ((l) ? l->label : (k) ? k->name : ""), sizeof(r1->msg.LineStatMessage.lineDisplayName));
+	sccp_copy_string(r1->msg.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(r1->msg.LineStatMessage.lineDisplayName));
 
 	sccp_dev_send(d, r1);
 
@@ -1016,11 +1016,6 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 		l = sccp_line_release(l);
 	}
-	/* remove speeddial if present */
-	if (k) {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: line is hint for %s\n", DEV_ID_LOG(s->device), k->hint);
-		sccp_free(k);
-	}
 }
 
 /*!
@@ -1031,7 +1026,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
  */
 void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	sccp_speed_t *k;
+	sccp_speed_t k;
 	sccp_moo_t *r1;
 
 	int wanted = letohl(r->msg.SpeedDialStatReqMessage.lel_speedDialNumber);
@@ -1041,17 +1036,15 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
 	REQ(r1, SpeedDialStatMessage);
 	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
 
-	k = sccp_dev_speed_find_byindex(s->device, wanted, SCCP_BUTTONTYPE_SPEEDDIAL);
-	if (k) {
-		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k->ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
-		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k->name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
-		sccp_free(k);
+	sccp_dev_speed_find_byindex(s->device, wanted, SCCP_BUTTONTYPE_SPEEDDIAL, &k);
+	if (k.valid) {
+		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
+		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
 	} else {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), wanted);
 	}
 
 	sccp_dev_send(d, r1);
-
 }
 
 /*!
@@ -1072,7 +1065,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	sccp_line_t *l = NULL;
 	sccp_line_t *al = NULL;
-	sccp_speed_t *k;
+	sccp_speed_t k;
 	sccp_channel_t *channel = NULL, *sccp_channel_1 = NULL;
 	uint8_t stimulus;
 	uint8_t instance;
@@ -1131,9 +1124,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		l = sccp_line_find_byid(d, instance);
 		if (!l) {
 			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
-			k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
-			if (k)
-				sccp_handle_speeddial(d, k);
+			sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT, &k);
+			if (k.valid)
+				sccp_handle_speeddial(d, &k);
 			else
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 			goto func_exit;
@@ -1188,9 +1181,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		break;
 
 	case SKINNY_BUTTONTYPE_SPEEDDIAL:
-		k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_SPEEDDIAL);
-		if (k)
-			sccp_handle_speeddial(d, k);
+		sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_SPEEDDIAL, &k);
+		if (k.valid)
+			sccp_handle_speeddial(d, &k);
 		else
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 		break;
@@ -1339,9 +1332,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		break;
 
 	case SKINNY_BUTTONTYPE_BLFSPEEDDIAL:									//busy lamp field type speeddial
-		k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
-		if (k)
-			sccp_handle_speeddial(d, k);
+		sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT, &k);
+		if (k.valid)
+			sccp_handle_speeddial(d, &k);
 		else
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
 		break;
@@ -1397,7 +1390,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
  * \lock
  * 	- channel
  */
-void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
+void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t *k)
 {
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l;
@@ -1436,9 +1429,8 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 	} else {
 		/* check Remote RINGING + gpickup */
 #ifdef CS_SCCP_PICKUP
-//#    ifdef CS_EXPERIMENTAL
 		l = sccp_line_find_byid(d, k->instance);
-		if (l && l->pickupgroup && PBX(feature_pickup)) {
+		if (l && l->pickupgroup && PBX(feature_pickup) && !sccp_strlen_zero(k->hint)) {
 			const char *hint_context;
 			const char *hint_extension;
 			char *splitter = strdup(k->hint);
@@ -1446,16 +1438,13 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 			hint_extension = strsep(&splitter, "@");
 			hint_context = strsep(&splitter, "@");
 
-			if (AST_EXTENSION_RINGING == pbx_extension_state(NULL, hint_context, hint_extension)) {
+			if (AST_EXTENSION_RINGING == pbx_extension_state(NULL, hint_context, hint_extension))  {
 				if (sccp_feat_grouppickup(l, d)) {
 					sccp_line_release(l);
 					return;
 				}
 			}
-//                      sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
-//                      sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
 		}
-//#    endif
 #endif
 
 		// Pull up a channel
@@ -1470,7 +1459,6 @@ void sccp_handle_speeddial(sccp_device_t * d, sccp_speed_t * k)
 			l = sccp_line_release(l);
 		}
 	}
-	sccp_free(k);
 }
 
 /*!
@@ -2879,10 +2867,11 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	 * the new speeddial style uses feature to display state
 	 * unfortunately we dont know how to handle this on other way
 	 */
+	sccp_speed_t k;
 	if ((unknown == 1 && d->inuseprotocolversion >= 15)) {
-		sccp_speed_t *k = sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT);
+		sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT, &k);
 
-		if (k) {
+		if (k.valid) {
 			sccp_moo_t *r1;
 
 			REQ(r1, FeatureStatDynamicMessage);
@@ -2890,10 +2879,8 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 			r1->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			r1->msg.FeatureStatDynamicMessage.lel_status = 0;
 
-			sccp_copy_string(r1->msg.FeatureStatDynamicMessage.DisplayName, k->name, sizeof(r1->msg.FeatureStatDynamicMessage.DisplayName));
+			sccp_copy_string(r1->msg.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(r1->msg.FeatureStatDynamicMessage.DisplayName));
 			sccp_dev_send(d, r1);
-
-			sccp_free(k);
 			return;
 		}
 	}
