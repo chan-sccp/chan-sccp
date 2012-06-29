@@ -20,14 +20,25 @@
 
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
-#ifdef DARWIN
-#  include <fcntl.h>
-static const char *sem_file_name = "sccp_threadpool_thread.semaphore";
+#ifndef DARWIN									/* Normal implementation for named and unnamed semaphores */
+#  include <semaphore.h>
+#else										/* Mac OSX does not implement sem_init and only supports named semaphores by default */
+#  include <mach/mach_init.h>
+#  include <mach/task.h>
+#  include <mach/semaphore.h>
+#  define sem_t 		semaphore_t					/* Remapping semaphore command to sync up with gnu implementation */
+#  define sem_init(s,p,c) 	semaphore_create(mach_task_self(),s,SYNC_POLICY_FIFO,c)
+#  define sem_wait(s) 		semaphore_wait(*s)
+#  define sem_post(s) 		semaphore_signal(*s)
+#  define sem_destroy(s) 	semaphore_destroy(mach_task_self(), *s)
 #endif
-#include <semaphore.h>
+
 #include "sccp_threadpool.h"
 #include <signal.h>
 #undef pthread_create
+
+#define SEMAPHORE_LOCKED	(0)
+#define SEMAPHORE_UNLOCKED	(1)
 
 /* The threadpool */
 struct sccp_threadpool_t {
@@ -98,29 +109,19 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	}
 
 	/* Initialise semaphore */
-#ifdef DARWIN													/* MacOSX does not support unnamed semaphores */
-	tp_p->jobqueue->queueSem = sem_open(sem_file_name, O_CREAT, 0777, 0);
-	if (tp_p->jobqueue->queueSem == NULL) {
-		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating named semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
-		sccp_free(tp_p->threads);
-		sccp_free(tp_p);
-		return NULL;
-	}	
-#else
-	tp_p->jobqueue->queueSem = (sem_t *) malloc(sizeof(sem_t));						/* MALLOC job queue semaphore */
+	tp_p->jobqueue->queueSem = (sem_t *) malloc(sizeof(sem_t));							/* MALLOC job queue semaphore */
 	if (tp_p->jobqueue->queueSem == NULL) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 		sccp_free(tp_p->threads);
 		sccp_free(tp_p);
 		return NULL;
 	}
-	if (sem_init(tp_p->jobqueue->queueSem, 0 ,0)) {								/* Create semaphore with no shared, initial value */
+	if (sem_init(tp_p->jobqueue->queueSem, 0 ,SEMAPHORE_LOCKED)) {							/* Create semaphore with no shared, initial value */
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 		sccp_free(tp_p->threads);
 		sccp_free(tp_p);
 		return NULL;
 	}
-#endif
 
 	/* Make threads in pool */
 	int t;
@@ -287,17 +288,9 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	}
 
 	/* Kill semaphore */
-#ifdef DARWIN													/* MacOSX does not support unnamed semaphores */
-	if (sem_close(tp_p->jobqueue->queueSem) != 0) {
-		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
-	}
-	sem_unlink(sem_file_name);
-#else
 	if (sem_destroy(tp_p->jobqueue->queueSem) != 0) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
 	}
-	free(tp_p->jobqueue->queueSem);										/* DEALLOC job queue semaphore */
-#endif	
 
 	/* Wait for threads to finish */
 	for (t = 0; t < (tp_p->threadsN); t++) {
@@ -310,6 +303,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 
 	/* Dealloc */
 	free(tp_p->threads);											/* DEALLOC threads             */
+	free(tp_p->jobqueue->queueSem);										/* DEALLOC job queue semaphore */
 	free(tp_p->jobqueue);											/* DEALLOC job queue           */
 	free(tp_p);												/* DEALLOC thread pool         */
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Threadpool Ended\n");
