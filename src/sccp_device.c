@@ -753,7 +753,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	} else if (opt == SKINNY_DEVICE_RS_PROGRESS) {
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_DEVICE_PREREGISTERED;
-		event.event.deviceRegistered.device = d;
+		event.event.deviceRegistered.device = sccp_device_retain(d);
 		sccp_event_fire(&event);
 	}
 	d->registrationTime = time(0);
@@ -1553,7 +1553,7 @@ void *sccp_dev_postregistration(void *data)
 	memset(&event, 0, sizeof(sccp_event_t));
 
 	event.type = SCCP_EVENT_DEVICE_REGISTERED;
-	event.event.deviceRegistered.device = d;
+	event.event.deviceRegistered.device = sccp_device_retain(d);
 	sccp_event_fire(&event);
 
 	/* read status from db */
@@ -1703,7 +1703,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_DEVICE_UNREGISTERED;
-		event.event.deviceRegistered.device = d;
+		event.event.deviceRegistered.device = sccp_device_retain(d);
 		sccp_event_fire(&event);
 
 		/* cleanup statistics */
