@@ -13,13 +13,22 @@
  * $Revision: 2130 $  
  */
 #ifndef SCCP_THREADPOOL_H_
-#    define SCCP_THREADPOOL_H_
+#  define SCCP_THREADPOOL_H_
 
-//#include "config.h"
-//#    include <asterisk.h>
-//#    include <asterisk/lock.h>
-#    include <pthread.h>
+#  include <pthread.h>
+
+#  ifndef DARWIN								/* Normal implementation for named and unnamed semaphores */
 #    include <semaphore.h>
+#  else										/* Mac OSX does not implement sem_init and only supports named semaphores by default */
+#    include <mach/mach_init.h>
+#    include <mach/task.h>
+#    include <mach/semaphore.h>
+#    define sem_t 		semaphore_t					/* Remapping semaphore command to sync up with gnu implementation */
+#    define sem_init(s,p,c) 	semaphore_create(mach_task_self(),s,SYNC_POLICY_FIFO,c)
+#    define sem_wait(s) 		semaphore_wait(*s)
+#    define sem_post(s) 		semaphore_signal(*s)
+#    define sem_destroy(s) 	semaphore_destroy(mach_task_self(), *s)
+#  endif
 
 /* Description: Library providing a threading pool where you can add work on the fly. The number
  *              of threads in the pool is adjustable when creating the pool. In most cases
