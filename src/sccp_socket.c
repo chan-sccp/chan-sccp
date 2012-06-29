@@ -77,14 +77,18 @@ static int sccp_sockect_getOurAddressfor(struct in_addr *them, struct in_addr *u
 
 void sccp_socket_stop_sessionthread(sccp_session_t *session) {
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Closing session\n", DEV_ID_LOG(session->device));
+	if (!session) {
+		pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
+		return;
+	}
+	
 	if (session->session_thread) {
 		session->session_stop=1;
-		pthread_cancel(session->session_thread);
-		usleep(100);
-		if (AST_PTHREADT_NULL != session->session_thread) {
+		usleep(((session->device) ? session->device->keepalive : GLOB(keepalive)) * 1.1);
+		if (session && AST_PTHREADT_NULL != session->session_thread) {
 			pthread_kill(session->session_thread, SIGURG);
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
 		}
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
 	} else {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
 		sccp_session_close(session);
@@ -276,6 +280,7 @@ void sccp_session_close(sccp_session_t * s)
 		return;
 
 	sccp_session_lock(s);
+	s->session_stop=1;
 	if (s->fds[0].fd > 0) {
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
@@ -722,7 +727,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		sccp_free(r);
 		r = NULL;
 		if (s) {
-                        ast_log(LOG_WARNING, "%s. closing connection", DEV_ID_LOG(s->device));
+                        ast_log(LOG_WARNING, "%s. closing connection\n", DEV_ID_LOG(s->device));
                         if (s->device && s->device->registrationState)
                                 s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
                         s->session_stop = 1;
