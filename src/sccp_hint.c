@@ -328,7 +328,6 @@ void sccp_hint_lineStatusChangedDebug(sccp_line_t *line, sccp_device_t *device)
 {
 	struct sccp_hint_lineState *lineState = NULL;
 
-
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
 		if (lineState->line == line) {
@@ -571,7 +570,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 
 		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
-			if (lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT) {
+			if (lineDevice->device && lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT) {
 				allDevicesInDND = FALSE;
 				break;
 			}
@@ -582,13 +581,15 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
 	} else {
+		SCCP_LIST_LOCK(&line->devices);
 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
 
-		if (lineDevice) {
+		if (lineDevice && lineDevice->device) {
 			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 				lineState->state = SCCP_CHANNELSTATE_DND;
 			}
 		} 
+		SCCP_LIST_UNLOCK(&line->devices);
 	}
 	
 	if(lineState->state == SCCP_CHANNELSTATE_DND){
@@ -841,8 +842,15 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 	char displayMessage[80];
 #endif
 
-	if (!hint)
+	if (!&GLOB(module_running) || !sccp_refcount_isRunning()) {
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "Skip processing hint while we are shutting down.\n");
 		return;
+	}
+
+	if (!hint) {
+		pbx_log(LOG_ERROR, "SCCP: no hint provided to notifySubscribers about\n");
+		return;
+	}
 
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null");
 
