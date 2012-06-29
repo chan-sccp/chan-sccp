@@ -20,6 +20,9 @@
 
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
+#ifdef DARWIN
+#  include <fcntl.h>
+#endif
 #include <semaphore.h>
 #include "sccp_threadpool.h"
 #include <signal.h>
@@ -94,8 +97,30 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	}
 
 	/* Initialise semaphore */
+#ifdef DARWIN													/* MacOSX does not support unnamed semaphores */
+	const char *sem_file_name = "sccp_threadpool_thread.semaphore";
+	tp_p->jobqueue->queueSem = sem_open(sem_file_name, O_CREAT, 0777, 0);
+	if (tp_p->jobqueue->queueSem == NULL) {
+		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating named semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
+		sccp_free(tp_p->threads);
+		sccp_free(tp_p);
+		return NULL;
+	}	
+#else
 	tp_p->jobqueue->queueSem = (sem_t *) malloc(sizeof(sem_t));						/* MALLOC job queue semaphore */
-	sem_init(tp_p->jobqueue->queueSem, 0, 0);								/* no shared, initial value */
+	if (tp_p->jobqueue->queueSem == NULL) {
+		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
+		sccp_free(tp_p->threads);
+		sccp_free(tp_p);
+		return NULL;
+	}
+	if (sem_init(tp_p->jobqueue->queueSem, 0 ,0)) {								/* Create semaphore with no shared, initial value */
+		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
+		sccp_free(tp_p->threads);
+		sccp_free(tp_p);
+		return NULL;
+	}
+#endif
 
 	/* Make threads in pool */
 	int t;
@@ -262,9 +287,16 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	}
 
 	/* Kill semaphore */
-	if (sem_destroy(tp_p->jobqueue->queueSem) != 0) {
-		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore\n");
+#ifdef DARWIN													/* MacOSX does not support unnamed semaphores */
+	if (sem_close(tp_p->jobqueue->queueSem) != 0) {
+		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
 	}
+#else
+	if (sem_destroy(tp_p->jobqueue->queueSem) != 0) {
+		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
+	}
+	free(tp_p->jobqueue->queueSem);										/* DEALLOC job queue semaphore */
+#endif	
 
 	/* Wait for threads to finish */
 	for (t = 0; t < (tp_p->threadsN); t++) {
@@ -277,7 +309,6 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 
 	/* Dealloc */
 	free(tp_p->threads);											/* DEALLOC threads             */
-	free(tp_p->jobqueue->queueSem);										/* DEALLOC job queue semaphore */
 	free(tp_p->jobqueue);											/* DEALLOC job queue           */
 	free(tp_p);												/* DEALLOC thread pool         */
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Threadpool Ended\n");
