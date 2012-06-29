@@ -29,11 +29,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 
 /* The threadpool */
 struct sccp_threadpool_t {
-	pthread_t *threads;							/*!< pointer to threads' ID   */
-	int threadsN;								/*!< amount of threads        */
-	sccp_threadpool_jobqueue *jobqueue;					/*!< pointer to the job queue */
-	time_t last_size_check;							/*!< Time since last resize check */
-	int job_high_water_mark;						/*!< Highest number of jobs outstanding since last resize check */
+	pthread_t *threads;								/*!< pointer to threads' ID   */
+	int threadsN;									/*!< amount of threads        */
+	sccp_threadpool_jobqueue *jobqueue;						/*!< pointer to the job queue */
+	time_t last_size_check;								/*!< Time since last resize check */
+	int job_high_water_mark;							/*!< Highest number of jobs outstanding since last resize check */
 };
 
 /* Container for all things that each thread is going to need */
@@ -96,14 +96,14 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	}
 
 	/* Initialise semaphore */
-	tp_p->jobqueue->queueSem = (sem_t *) malloc(sizeof(sem_t));							/* MALLOC job queue semaphore */
+	tp_p->jobqueue->queueSem = (sem_t *) malloc(sizeof(sem_t));						/* MALLOC job queue semaphore */
 	if (tp_p->jobqueue->queueSem == NULL) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 		sccp_free(tp_p->threads);
 		sccp_free(tp_p);
 		return NULL;
 	}
-	if (sem_init(tp_p->jobqueue->queueSem, 0 ,SEMAPHORE_LOCKED)) {							/* Create semaphore with no shared, initial value */
+	if (sem_init(tp_p->jobqueue->queueSem, 0 ,SEMAPHORE_LOCKED)) {						/* Create semaphore with no shared, initial value */
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 		sccp_free(tp_p->threads);
 		sccp_free(tp_p);
@@ -122,7 +122,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	for (t = 0; t < threadsN; t++) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Create thread %d in pool \n", t);
 		
-		pbx_pthread_create(&(tp_p->threads[t]), &attr, (void *)sccp_threadpool_thread_do, (void *)tp_p);	/* MALLOCS INSIDE PTHREAD HERE */
+		pbx_pthread_create(&(tp_p->threads[t]), &attr, (void *)sccp_threadpool_thread_do, (void *)tp_p);/* MALLOCS INSIDE PTHREAD HERE */
 	}
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Threadpool Started\n");
@@ -148,7 +148,7 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 	int t;
 	int newsize;
 	if (tp_p && tp_p->jobqueue) {
-		if (tp_p->jobqueue->jobsN > (tp_p->threadsN * 2) && tp_p->threadsN < THREADPOOL_MAX_SIZE) {		/* increase */
+		if (tp_p->jobqueue->jobsN > (tp_p->threadsN * 2) && tp_p->threadsN < THREADPOOL_MAX_SIZE) {	/* increase */
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Add new thread to threadpool %p\n", tp_p);
 
 			newsize = tp_p->threadsN + 1;
@@ -229,7 +229,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 	if (!sccp_threadpool_shuttingdown) {
 		sccp_threadpool_job_t *newJob;
 
-		newJob = (sccp_threadpool_job_t *) malloc(sizeof(sccp_threadpool_job_t));				/* MALLOC job */
+		newJob = (sccp_threadpool_job_t *) malloc(sizeof(sccp_threadpool_job_t));			/* MALLOC job */
 		if (newJob == NULL) {
 			pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Could not allocate memory for new job\n");
 			exit(1);

@@ -25,53 +25,53 @@
 #    include <mach/semaphore.h>
 #    define sem_t 		semaphore_t					/* Remapping semaphore command to sync up with gnu implementation */
 #    define sem_init(s,p,c) 	semaphore_create(mach_task_self(),s,SYNC_POLICY_FIFO,c)
-#    define sem_wait(s) 		semaphore_wait(*s)
-#    define sem_post(s) 		semaphore_signal(*s)
+#    define sem_wait(s) 	semaphore_wait(*s)
+#    define sem_post(s) 	semaphore_signal(*s)
 #    define sem_destroy(s) 	semaphore_destroy(mach_task_self(), *s)
 #  endif
 
-/* Description: Library providing a threading pool where you can add work on the fly. The number
- *              of threads in the pool is adjustable when creating the pool. In most cases
- *              this should equal the number of threads supported by your cpu.
+/* Description: 	Library providing a threading pool where you can add work on the fly. The number
+ *              	of threads in the pool is adjustable when creating the pool. In most cases
+ *              	this should equal the number of threads supported by your cpu.
  *          
- *              In this header file a detailed overview of the functions and the threadpool logical
- *              scheme is present in case tweaking of the pool is needed. 
+ *              	In this header file a detailed overview of the functions and the threadpool logical
+ *              	scheme is present in case tweaking of the pool is needed. 
  * */
 
 /* 
  * Fast reminders:
  * 
- * tp           = threadpool 
- * sccp_threadpool       = threadpool
- * sccp_threadpool_t     = threadpool type
- * tp_p         = threadpool pointer
- * sem          = semaphore
- * xN           = x can be any string. N stands for amount
+ * tp  		        = threadpool 
+ * sccp_threadpool      = threadpool
+ * sccp_threadpool_t    = threadpool type
+ * tp_p         	= threadpool pointer
+ * sem          	= semaphore
+ * xN           	= x can be any string. N stands for amount
  * 
  * */
 
-/*              _______________________________________________________        
- *             /                                                       \
- *             |   JOB QUEUE        | job1 | job2 | job3 | job4 | ..   |
- *             |                                                       |
- *             |   threadpool      | thread1 | thread2 | ..           |
- *             \_______________________________________________________/
- * 
- * Description:       Jobs are added to the job queue. Once a thread in the pool
- *                    is idle, it is assigned with the first job from the queue(and
- *                    erased from the queue). It's each thread's job to read from 
- *                    the queue serially(using lock) and executing each job
- *                    until the queue is empty.
+/*                       _______________________________________________________        
+ *                      /                                                       \
+ *                      |   JOB QUEUE        | job1 | job2 | job3 | job4 | ..   |
+ *                      |                                                       |
+ *                      |   threadpool      | thread1 | thread2 | ..            |
+ *                      \_______________________________________________________/
+ *      
+ * Description:       	Jobs are added to the job queue. Once a thread in the pool
+ *                    	is idle, it is assigned with the first job from the queue(and
+ *                    	erased from the queue). It's each thread's job to read from 
+ *                    	the queue serially(using lock) and executing each job
+ *                    	until the queue is empty.
  * 
  * 
  *    Scheme:
  * 
- *    sccp_threadpool______                jobqueue____                      ______ 
- *    |           |               |           |       .----------->|_job0_| Newly added job
- *    |           |               |  head------------'             |_job1_|
- *    | jobqueue----------------->|           |                    |_job2_|
- *    |           |               |  tail------------.             |__..__| 
- *    |___________|               |___________|       '----------->|_jobn_| Job for thread to take
+ *    sccp_threadpool_                jobqueue____                      ______ 
+ *    |               |               |           |       .----------->|_job0_| Newly added job
+ *    |               |               |  head------------'             |_job1_|
+ *    | jobqueue--------------------->|           |                    |_job2_|
+ *    |               |               |  tail------------.             |__..__| 
+ *    |_______________|               |___________|       '----------->|_jobn_| Job for thread to take
  * 
  * 
  *    job0________ 
@@ -79,9 +79,9 @@
  *    | function---->
  *    |           |
  *    |   arg------->
- *    |           |         job1________ 
- *    |  next-------------->|           |
- *    |___________|         |           |..
+ *    |           |                   job1________ 
+ *    |  next------------------------>|           |
+ *    |___________|                   |           |..
  */
 
 /* ================================= STRUCTURES ================================================ */
