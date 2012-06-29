@@ -135,6 +135,9 @@ static boolean_t sccp_refcount_isLiveObject(RefCountedObject *obj)	// check if i
 }
 #endif
 
+int sccp_refcount_isRunning(void) {
+        return !refcount_destroyed;
+}
 
 /* negative / deadlist check */
 #if !CS_REFCOUNT_LIVEOBJECTS
