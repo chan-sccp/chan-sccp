@@ -75,7 +75,7 @@ static int sccp_sockect_getOurAddressfor(struct in_addr *them, struct in_addr *u
 	return 0;
 }
 
-static void sccp_socket_stop_sessionthread(sccp_session_t *session) {
+void sccp_socket_stop_sessionthread(sccp_session_t *session) {
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Closing session\n", DEV_ID_LOG(session->device));
 	if (session->session_thread) {
 		session->session_stop=1;
