@@ -234,11 +234,11 @@ void sccp_refcount_destroy(void)
         while (SCCP_RWLIST_GETSIZE(refcount_liveobjects) != 0 || SCCP_RWLIST_GETSIZE(refcount_deadobjects) != 0) {
                	pbx_log(LOG_VERBOSE, "SCCP: (Refcount) live objects %i, dead objects %i. Destroying...\n", SCCP_RWLIST_GETSIZE(refcount_liveobjects), SCCP_RWLIST_GETSIZE(refcount_deadobjects));
                	if (SCCP_RWLIST_GETSIZE(refcount_liveobjects) != 0) {
-               	        pbx_log(LOG_ERROR, "SCCP: (Refcount) There is still a live %i refcounted objects in use. Notify developers\n", SCCP_RWLIST_GETSIZE(refcount_liveobjects));
+               	        if (num_tries > 1) 
+                       	        pbx_log(LOG_NOTICE, "SCCP: (Refcount) There is still a live %i refcounted objects in use.\n", SCCP_RWLIST_GETSIZE(refcount_liveobjects));
                	        sccp_refcount_dumpLiveObjects();
-                        usleep(SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT);
                         num_tries++;
-                        if (num_tries > 2) {
+                        if (num_tries > 3) {
                        	        pbx_log(LOG_ERROR, "SCCP: (Refcount) Forcing Exit -> Leaking Memory for %d Objects. Notify developers\n", SCCP_RWLIST_GETSIZE(refcount_liveobjects));
                                 goto EXIT;
                         }
