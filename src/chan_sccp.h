@@ -815,7 +815,7 @@ struct sccp_speed {
 	char name[StationMaxNameSize];						/*!< The name of the speed dial button */
 	char ext[SCCP_MAX_EXTENSION];						/*!< The number to dial when it's hit */
 	char hint[SCCP_MAX_EXTENSION];						/*!< The HINT on this SpeedDial */
-	boolean_t valid;							/*!< sppeddial configuration is valid or not */
+	boolean_t valid;							/*!< Speeddial configuration is valid or not */
 
 	SCCP_LIST_ENTRY(sccp_speed_t) list;					/*!< SpeedDial Linked List Entry */
 
