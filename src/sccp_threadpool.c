@@ -171,7 +171,7 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 {
 	while (tp_p && tp_p->jobqueue && sccp_threadpool_keepalive) {
 		pthread_testcancel();
-		if (tp_p && tp_p->jobqueue && sem_wait(tp_p->jobqueue->queueSem)) {							/* WAITING until there is work in the queue */
+		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {							/* WAITING until there is work in the queue */
 			pbx_log(LOG_ERROR, "sccp_threadpool_thread_do(): Error while waiting for semaphore");
 			exit(1);
 		}
