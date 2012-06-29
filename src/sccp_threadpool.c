@@ -22,6 +22,7 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 #ifdef DARWIN
 #  include <fcntl.h>
+static const char *sem_file_name = "sccp_threadpool_thread.semaphore";
 #endif
 #include <semaphore.h>
 #include "sccp_threadpool.h"
@@ -98,7 +99,6 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 
 	/* Initialise semaphore */
 #ifdef DARWIN													/* MacOSX does not support unnamed semaphores */
-	const char *sem_file_name = "sccp_threadpool_thread.semaphore";
 	tp_p->jobqueue->queueSem = sem_open(sem_file_name, O_CREAT, 0777, 0);
 	if (tp_p->jobqueue->queueSem == NULL) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating named semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
@@ -291,6 +291,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	if (sem_close(tp_p->jobqueue->queueSem) != 0) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
 	}
+	sem_unlink(sem_file_name);
 #else
 	if (sem_destroy(tp_p->jobqueue->queueSem) != 0) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
