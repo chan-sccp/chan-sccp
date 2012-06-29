@@ -726,8 +726,9 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                         if (s->device && s->device->registrationState)
                                 s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
                         s->session_stop = 1;
-                        pthread_cancel(s->session_thread);
-                        s->session_thread = AST_PTHREADT_NULL;
+//                        pthread_cancel(s->session_thread);
+//                        s->session_thread = AST_PTHREADT_NULL;
+                        sccp_socket_stop_sessionthread(s);
 		}
 		return -1;
 	}
@@ -757,8 +758,9 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                         if (s->device && s->device->registrationState)
                                                 s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
                                         s->session_stop = 1;
-                                        pthread_cancel(s->session_thread);
-                                        s->session_thread = AST_PTHREADT_NULL;
+//                                        pthread_cancel(s->session_thread);
+//                                        s->session_thread = AST_PTHREADT_NULL;
+                                        sccp_socket_stop_sessionthread(s);
                                 }
                                 break;
                         }
