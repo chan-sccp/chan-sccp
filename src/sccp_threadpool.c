@@ -169,10 +169,10 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
  * the sccp_threadpool is to be killed. In that manner we try to BYPASS sem_wait and end each thread. */
 void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 {
-	while (tp_p && tp_p->jobqueue && sccp_threadpool_keepalive) {
+	while (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sccp_threadpool_keepalive) {
 		pthread_testcancel();
 		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {							/* WAITING until there is work in the queue */
-			pbx_log(LOG_ERROR, "sccp_threadpool_thread_do(): Error while waiting for semaphore");
+			pbx_log(LOG_ERROR, "sccp_threadpool_thread_do(): Error while waiting for semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 			return;
 		}
 		if (sccp_threadpool_keepalive) {
