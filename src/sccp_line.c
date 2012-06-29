@@ -175,7 +175,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 	sccp_event_t event;
 	memset(&event, 0, sizeof(sccp_event_t));
 	event.type = SCCP_EVENT_LINE_CREATED;
-	event.event.lineCreated.line = line;
+	event.event.lineCreated.line = sccp_line_retain(line);
 	sccp_event_fire(&event);
 
 	return line;
@@ -208,7 +208,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	sccp_event_t event;
 	memset(&event, 0, sizeof(sccp_event_t));
 	event.type = SCCP_EVENT_LINE_DELETED;
-	event.event.lineCreated.line = line;
+	event.event.lineCreated.line = sccp_line_retain(line);
 	sccp_event_fire(&event);
 */
 	sccp_line_release(line);
@@ -572,7 +572,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	memset(&event, 0, sizeof(sccp_event_t));
 	event.type = SCCP_EVENT_DEVICE_ATTACHED;
-	event.event.deviceAttached.linedevice = linedevice;
+	event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
 	sccp_event_fire(&event);
 
 #ifdef CS_DYNAMIC_CONFIG
@@ -617,10 +617,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			memset(&event, 0, sizeof(sccp_event_t));
 
 			event.type = SCCP_EVENT_DEVICE_DETACHED;
-			event.event.deviceAttached.linedevice = linedevice;
+			event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
 			sccp_event_fire(&event);
-//                        sccp_device_release(linedevice->device);	// released in __sccp_lineDevice_destroy
-//                        sccp_line_release(linedevice->line);		// released in __sccp_lineDevice_destroy
 			sccp_linedevice_release(linedevice);
 		}
 	}

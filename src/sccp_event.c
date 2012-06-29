@@ -158,26 +158,32 @@ void sccp_event_fire(const sccp_event_t *event)
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
-			e->event.deviceRegistered.device = sccp_device_retain(event->event.deviceRegistered.device);
+//			e->event.deviceRegistered.device = sccp_device_retain(event->event.deviceRegistered.device);
+			e->event.deviceRegistered.device = event->event.deviceRegistered.device;
 			break;
 
 		case SCCP_EVENT_LINE_CREATED:
-			e->event.lineCreated.line = sccp_line_retain(event->event.lineCreated.line);
+//			e->event.lineCreated.line = sccp_line_retain(event->event.lineCreated.line);
+			e->event.lineCreated.line = event->event.lineCreated.line;
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 		case SCCP_EVENT_DEVICE_DETACHED:
-			e->event.deviceAttached.linedevice = sccp_linedevice_retain(event->event.deviceAttached.linedevice);
+//			e->event.deviceAttached.linedevice = sccp_linedevice_retain(event->event.deviceAttached.linedevice);
+			e->event.deviceAttached.linedevice = event->event.deviceAttached.linedevice;
 			break;
 		
 		case SCCP_EVENT_FEATURE_CHANGED:
-			e->event.featureChanged.device = sccp_device_retain(event->event.featureChanged.device);
+//			e->event.featureChanged.device = sccp_device_retain(event->event.featureChanged.device);
+			e->event.featureChanged.device = event->event.featureChanged.device;
 			e->event.featureChanged.featureType = event->event.featureChanged.featureType;
 			break;
 		
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			e->event.lineStatusChanged.line = sccp_line_retain(event->event.lineStatusChanged.line);
-			e->event.lineStatusChanged.device = sccp_device_retain(event->event.lineStatusChanged.device);
+//			e->event.lineStatusChanged.line = sccp_line_retain(event->event.lineStatusChanged.line);
+			e->event.lineStatusChanged.line = event->event.lineStatusChanged.line;
+//			e->event.lineStatusChanged.device = sccp_device_retain(event->event.lineStatusChanged.device);
+			e->event.lineStatusChanged.device = event->event.lineStatusChanged.device;
 			e->event.lineStatusChanged.state = event->event.lineStatusChanged.state;
 			break;
 		
