@@ -82,8 +82,9 @@
  * In a configuration file this could look like:
  * \code
  * button = line, 519
- * button = line, 519@01: Phone1
- * button = line, 519@02: Phone1!silent
+ * button = line, 520@01: Phone1
+ * button = line, 521@02: Phone1!silent
+ * button = line, 522@03: Phone1, default
  * button = empty
  * button = speeddial, "Cantine", 332, 332@hints
  * button = service, "Asterisk", "www.asterisk.org"
