@@ -998,7 +998,7 @@ struct sccp_device {
 	boolean_t(*hasDisplayPrompt) (void);					/*!< had Display Prompt callback function (derived from devicetype and protocol) */
 
 	char *(messageStack[SCCP_MAX_MESSAGESTACK]);				/*!< Message Stack Array */
-#ifndef SCCP_BUILTIN_CAS_PTR
+#ifndef SCCP_ATOMIC
 	sccp_mutex_t messageStackLock;						/*!< Message Stack Lock */
 #endif	
 	sccp_call_statistics_t call_statistics[2];				/*!< Call statistics */
