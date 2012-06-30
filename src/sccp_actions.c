@@ -978,8 +978,8 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 		sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_HINT, &k);
 
 	REQ(r1, LineStatMessage);
-	if (!l && k.valid) {
-		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line %d\n", DEV_ID_LOG(s->device), lineNumber);
+	if (!l && !k.valid) {
+		pbx_log(LOG_ERROR, "%s: requested a line configuration for unknown line/speeddial %d\n", DEV_ID_LOG(s->device), lineNumber);
 		r1->msg.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 		sccp_dev_send(s->device, r1);
 		return;
@@ -1044,7 +1044,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
 	} else {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: speeddial %d not assigned\n", DEV_ID_LOG(s->device), wanted);
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: speeddial %d unknown\n", DEV_ID_LOG(s->device), wanted);
 	}
 
 	sccp_dev_send(d, r1);
