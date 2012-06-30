@@ -288,7 +288,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "Init MessageStack\n");
 
 	/* initialize messageStack */
-#ifndef SCCP_BUILTIN_CAS_PTR	
+#ifndef SCCP_ATOMIC
 	pbx_mutex_init(&d->messageStackLock);
 	sccp_mutex_lock(&d->messageStackLock);
 #endif	
@@ -296,7 +296,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	for (i = 0; i < ARRAY_LEN(d->messageStack); i++) {
 		d->messageStack[i] = NULL;
 	}
-#ifndef SCCP_BUILTIN_CAS_PTR	
+#ifndef SCCP_ATOMIC
 	sccp_mutex_unlock(&d->messageStackLock);
 #endif
 
@@ -1364,7 +1364,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 	int i;
 
-#ifndef SCCP_BUILTIN_CAS_PTR	
+#ifndef SCCP_ATOMIC
 	sccp_mutex_lock(&d->messageStackLock);
 #endif	
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
@@ -1373,7 +1373,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 			goto DONE;
 		}
 	}
-#ifndef SCCP_BUILTIN_CAS_PTR	
+#ifndef SCCP_ATOMIC
 	sccp_mutex_unlock(&d->messageStackLock);
 #endif
 
@@ -1830,7 +1830,7 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	/* cleanup message stack */
-#ifndef SCCP_BUILTIN_CAS_PTR	
+#ifndef SCCP_ATOMIC
 	sccp_mutex_lock(&d->messageStackLock);
 #endif	
 	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
@@ -1838,7 +1838,7 @@ int __sccp_device_destroy(const void *ptr)
 			sccp_free(d->messageStack[i]);
 		}
 	}
-#ifndef SCCP_BUILTIN_CAS_PTR	
+#ifndef SCCP_ATOMIC
 	sccp_mutex_unlock(&d->messageStackLock);
 	pbx_mutex_destroy(&d->messageStackLock);
 #endif	

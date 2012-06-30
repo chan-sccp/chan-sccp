@@ -69,10 +69,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define CS_REFCOUNT_LIVEOBJECTS DEBUG
 
 struct refcount_object {
-#if !SCCP_ATOMIC_OPS
-	volatile int refcount;
-#else
+#if SCCP_ATOMIC_OPS
 	volatile size_t refcount;
+#else
+	volatile int32_t refcount;
 #endif
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
@@ -357,7 +357,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
                         }
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
 #ifdef SCCP_ATOMIC
-#  ifdef SCCP_BUILTIN_CAS_PTR
+#  ifdef SCCP_BUILTIN_CAS32
 		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
 #  else
                 } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));           		// Atomic Swap  using boemc atomic_ops library
@@ -405,7 +405,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	                newrefcountval = refcountval-1;
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
 #ifdef SCCP_ATOMIC
-#  ifdef SCCP_BUILTIN_CAS_PTR
+#  ifdef SCCP_BUILTIN_CAS32
 		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
 #  else
                 } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));			// Atomic Swap  using boemc atomic_ops library

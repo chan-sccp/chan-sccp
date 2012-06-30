@@ -178,7 +178,10 @@ AS_IF([test "x$sccp_cv_atomic_CAS" = "xyes"],
 	[AC_DEFINE([SCCP_BUILTIN_CAS],[1],[if the compiler supports __sync_val_compare_and_swap])])
 AS_IF([test "x$sccp_cv_atomic_incr" = "xyes"],
 	[AC_DEFINE([SCCP_BUILTIN_INCR],[1],[if the compiler supports __sync_fetch_and_add])])
-AS_IF([test "$sccp_cv_atomic_CAS" = "yes" -a "x$sccp_cv_atomic_CASptr" = "xyes" -a "$sccp_cv_atomic_incr" = "yes"],
+	
+	
+dnl AS_IF([test "$sccp_cv_atomic_CAS" = "yes" -a "x$sccp_cv_atomic_CASptr" = "xyes" -a "$sccp_cv_atomic_incr" = "yes"],
+AS_IF([test "$sccp_cv_atomic_CAS32" = "yes" -a "x$sccp_cv_atomic_CASptr" = "xyes" -a "$sccp_cv_atomic_incr" = "yes"],
                 [
                  	using_atomic_buildin="yes"
                  	AC_DEFINE([SCCP_ATOMIC],1,[Defined SCCP Atomic])
