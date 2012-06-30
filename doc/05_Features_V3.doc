@@ -81,7 +81,9 @@
  * 
  * In a configuration file this could look like:
  * \code
- * button = line, "My Line", 519
+ * button = line, 519
+ * button = line, 519@01: Phone1
+ * button = line, 519@02: Phone1!silent
  * button = empty
  * button = speeddial, "Cantine", 332, 332@hints
  * button = service, "Asterisk", "www.asterisk.org"
@@ -372,9 +374,12 @@
  *
  * \subsection nf_sccp_function	 	How to use dialplan functions
  * 
- * We have added new dialplan function \ref nf_sccp_dialplan_sccpdevice SCCPDEVICE, 
- * \ref nf_sccp_dialplan_sccpline SCCPLINE and nf_sccp_dialplan_sccpchannel SCCPCHANNEL
+ * We have added new dialplan functions 
+ * \ref nf_sccp_dialplan_sccpdevice SCCPDEVICE, \ref nf_sccp_dialplan_sccpline SCCPLINE and nf_sccp_dialplan_sccpchannel SCCPCHANNEL
  * to provide the ability to ask information about sccp device, sccp lines and sccp channels. 
+ *
+ * And \ref nf_sccp_dialplan_sccpsetcodec SCCPSetCodec, \ref nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty and \ref nf_sccp_dialplan_sccpsetmessage SCCPSetMessage
+ * to provide the ability to change chan_sccp behaviour while prosessing dialplan requests.
  *
  * \subsubsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
  *
@@ -451,6 +456,28 @@
  * Set(other_channel_dialed_number=${SCCPCHANNEL(4,dialed_number)});
  * \endcode
  * to put the information of the/a channel in a dialplan variable.
+ *
+ *
+ * Dialplan function to manipulate sccp channels and dial commands are:
+ * \subsubsection nf_sccp_dialplan_sccpsetcodec SCCPSetCodec
+ * Usage: SCCPSetCodec(codec)
+ * Sets the preferred codec for dialing out with the next DIAL statemnet using an sccp channel.
+ *
+ * Previous function name SetSCCPCodec(codec) is now deprecated in favour of SCCPSetCodec.
+ *
+ * \subsubsection nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty
+ * Usage: SCCPSetCalledParty("name" <ext>)
+ * Sets the name and number of the called party before using the DIAL statement, only usefull when dialing an SCCP Channel.
+ *
+ * Previous function name SetCalledParty(codec) is now deprecated in favour of SCCPSetCalledParty.
+ *
+ * \subsubsection nf_sccp_dialplan_sccpsetmessage SCCPSetMessage
+ * Usage: SCCPSetMessage(<message text> [,timeout])
+ * Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message.
+ *
+ *
+ * Previous function name SetMessage(codec) is now deprecated in favour of SCCPSetMessage.
+ *
  *
  *
  *
