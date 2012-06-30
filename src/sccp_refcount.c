@@ -72,7 +72,11 @@ struct refcount_object {
 #if SCCP_ATOMIC_OPS
 	volatile size_t refcount;
 #else
+#  ifdef SCCP_BUILTIN_CAS64
 	volatile int32_t refcount;
+#  else
+	volatile int64_t refcount;
+#  endif	
 #endif
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
