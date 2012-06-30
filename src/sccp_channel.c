@@ -262,7 +262,8 @@ void sccp_channel_unsetDevice(sccp_channel_t * channel)
 		channel->privateData->device = sccp_device_release((sccp_device_t *) channel->privateData->device);
 		memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
 		memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
-		sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
+//		sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
+		strncpy(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	} else {
 		pbx_log(LOG_NOTICE, "SCCP: unsetDevice without channel->privateData->device set\n");
 	}
