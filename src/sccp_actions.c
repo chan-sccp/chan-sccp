@@ -2614,7 +2614,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 	if ((d = sccp_device_retain(d))) {
 		// update last_call_statistics
 		last_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_LAST];
-		sccp_copy_string(last_call_stats->type, "LAST", sizeof(last_call_stats->type));
+		strncpy(last_call_stats->type, "LAST", sizeof(last_call_stats->type));
 		if (letohl(r->lel_reserved < 19)) {
 			last_call_stats->num = letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier);
 			last_call_stats->packets_sent = letohl(r->msg.ConnectionStatisticsRes.lel_SentPackets);
@@ -2658,7 +2658,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 
 		// update avg_call_statistics
 		avg_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_AVG];
-		sccp_copy_string(avg_call_stats->type, "AVG", sizeof(last_call_stats->type));
+		strncpy(avg_call_stats->type, "AVG", sizeof(last_call_stats->type));
 		avg_call_stats->packets_sent = CALC_AVG(last_call_stats->packets_sent, avg_call_stats->packets_sent, avg_call_stats->num);
 		avg_call_stats->packets_received = CALC_AVG(last_call_stats->packets_received, avg_call_stats->packets_received, avg_call_stats->num);
 		avg_call_stats->packets_lost = CALC_AVG(last_call_stats->packets_lost, avg_call_stats->packets_lost, avg_call_stats->num);
