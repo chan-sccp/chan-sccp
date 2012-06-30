@@ -141,7 +141,7 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
  */
 void sccp_event_fire(const sccp_event_t *event)
 {
-	if (event == NULL || !sccp_refcount_isRunning)
+	if (event == NULL || FALSE==sccp_refcount_isRunning())
 		return;
 
 	sccp_event_t *e = (sccp_event_t *)sccp_refcount_object_alloc(sizeof(sccp_event_t),"event", event2str(event->type), sccp_event_destroy);
