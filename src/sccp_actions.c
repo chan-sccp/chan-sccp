@@ -199,14 +199,14 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	}
 
 	/* some test to detect active calls */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, active call? %s\n", deviceName, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
+//	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, active call? %s\n", deviceName, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
         device->registrationState = SKINNY_DEVICE_RS_TOKEN;
 	if (sendAck) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
+		sccp_log((DEBUGCAT_ACTION & DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
 		sccp_session_tokenAck(s);
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverInstance=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), letohl(serverInstance), GLOB(token_backoff_time));
+		sccp_log((DEBUGCAT_ACTION & DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverInstance=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), letohl(serverInstance), GLOB(token_backoff_time));
 		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 	}
 
