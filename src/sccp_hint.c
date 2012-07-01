@@ -337,9 +337,10 @@ void sccp_hint_lineStatusChangedDebug(sccp_line_t *line, sccp_device_t *device)
 	
 	/** create new state holder for line */
 	if(!lineState){
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: Create new hint_lineState for line: %s\n", DEV_ID_LOG(device), line->name);
 		lineState = sccp_malloc(sizeof(struct sccp_hint_lineState));
 		if (!lineState) {
-			pbx_log(LOG_ERROR, "%s: Memory Allocation Error while creating hint-lineState object for line %s\n", device->id, line->name);
+			pbx_log(LOG_ERROR, "%s: Memory Allocation Error while creating hint-lineState object for line %s\n", DEV_ID_LOG(device), line->name);
 			return;
 		}	
 		memset(lineState, 0, sizeof(struct sccp_hint_lineState));
@@ -368,7 +369,7 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 	sccp_line_t *line = NULL;
 	
 	if ((line = sccp_line_retain(lineState->line))) {
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: update status\n", line->name);
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: Update Line Channel State\n", line->name);
 		if ((line->devices.size > 1 && line->channels.size > 1) || line->channels.size > 1) {
 			/* line is currently shared */
 			sccp_hint_updateLineStateForSharedLine(lineState);
@@ -433,18 +434,20 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 			lineState->state = SCCP_CHANNELSTATE_CONNECTED;
 		}
 	} else {
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: no active channels\n", line->name);
 		if (line->devices.size == 0) {
 			/** the line does not have a device attached, mark them as unavailable (congestion) */
 // 			sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyName));
 // 			sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyNumber));
 
+			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: number of devices that have this line registered is 0\n", line->name);
 			lineState->state = SCCP_CHANNELSTATE_ZOMBIE;	// CS_DYNAMIC_SPEEDDIAL
 		} else {
 			lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 		}
 	}
 DONE:
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "set sharedLineState to %d\n", lineState->state);
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: Set sharedLineState to %s (%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
 }
 
 /*!
@@ -465,7 +468,6 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	/** clear cid information */
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
-
 
 	/* no line, or line without devices */
 	if (!line || (line && line->devices.size == 0)) {
@@ -552,11 +554,11 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 		device = device ? sccp_device_release(device) : NULL;
 		channel = sccp_channel_release(channel);
 	} else {
-		lineState->state = SCCP_CHANNELSTATE_DOWN;
+		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 		sccp_hint_checkForDND(lineState);
 	}// if(channel)
 DONE:
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "set singleLineState to %d\n", lineState->state);
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: Set singleLineState to %s (%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
 }
 
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
@@ -605,10 +607,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
  */
 void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
-	pbx_event_t 	 	*event;
-	char 			channelName[100];	// magic number
 	enum ast_device_state  	deviceState;
-  
   
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", 
 				   channelstate2str(lineState->state), 
@@ -618,7 +617,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 				   lineState->line->name
 	);
 	
-	sprintf(channelName, "SCCP/%s", lineState->line->name);
 	deviceState = AST_DEVICE_UNKNOWN;
 	
 	switch (lineState->state) {
@@ -666,10 +664,21 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			deviceState = AST_DEVICE_INUSE;
 			break;
 	}
+#if CS_AST_HAS_EVENT_CIDNAME
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "Set cidName to '%s' and cidNum to '%s' for hint\n", 
 				   lineState->callInfo.partyName, 
 				   lineState->callInfo.partyNumber
 	);
+#endif
+
+	// replaced event by pbx_devstate_changed function 
+	// the event system does not fire correctly upon first device registration
+	// pbx_devstate_changed function uses the same event system in the background	
+/*
+	char channelName[100];	// magic number
+	sprintf(channelName, "SCCP/%s", lineState->line->name);
+
+	pbx_event_t 	 	*event;
 	event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE,
 		  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
 		  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, deviceState, 
@@ -681,7 +690,8 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		  AST_EVENT_IE_END);
 
 	pbx_event_queue_and_cache(event);
-// 	ast_event_queue(event);
+*/
+	pbx_devstate_changed(deviceState, "SCCP/%s", lineState->line->name);
 }
 
 

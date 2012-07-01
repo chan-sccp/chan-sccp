@@ -748,11 +748,10 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
 	if (d->isAnonymous == TRUE) {
-//              sccp_dev_set_activeline(d, GLOB(hotline)->line);
-		sccp_line_addDevice(GLOB(hotline)->line, d, 1, NULL);
-		sccp_hint_lineStatusChanged(GLOB(hotline)->line, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
+	        l = GLOB(hotline)->line;
+		sccp_line_addDevice(l, d, 1, NULL);
+		sccp_hint_lineStatusChanged(l, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
 	} else {
-
 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
 				if ((l = sccp_line_retain(btn[i].ptr))) {
@@ -824,7 +823,6 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
 void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	sccp_moo_t *r1;
-
 	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
 	REQ(r1, UnregisterAckMessage);
 	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
