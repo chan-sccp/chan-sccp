@@ -607,7 +607,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
  */
 void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
-	enum ast_device_state  	deviceState;
+	enum ast_device_state deviceState = AST_DEVICE_UNKNOWN;
   
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", 
 				   channelstate2str(lineState->state), 
@@ -616,8 +616,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 				   sccp_channelState2AstDeviceState(lineState->state), 
 				   lineState->line->name
 	);
-	
-	deviceState = AST_DEVICE_UNKNOWN;
 	
 	switch (lineState->state) {
 		case SCCP_CHANNELSTATE_DOWN:
@@ -671,27 +669,25 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	);
 #endif
 
-	// replaced event by pbx_devstate_changed function 
-	// the event system does not fire correctly upon first device registration
-	// pbx_devstate_changed function uses the same event system in the background	
-/*
 	char channelName[100];	// magic number
 	sprintf(channelName, "SCCP/%s", lineState->line->name);
 
-	pbx_event_t 	 	*event;
-	event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE,
-		  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
-		  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, deviceState, 
-// 		  AST_EVENT_IE_EID, AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
+	if (ast_device_state(channelName) != AST_DEVICE_UNKNOWN) {
+		pbx_event_t 	 	*event;
+		
+		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE,
+			  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
+			  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, deviceState, 
+// 			  AST_EVENT_IE_EID, AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
 #if CS_AST_HAS_EVENT_CIDNAME
-		  AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName,
-		  AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+			  AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName,
+			  AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
 #endif		  
-		  AST_EVENT_IE_END);
-
-	pbx_event_queue_and_cache(event);
-*/
-	pbx_devstate_changed(deviceState, "SCCP/%s", lineState->line->name);
+			  AST_EVENT_IE_END);
+		pbx_event_queue_and_cache(event);
+	} else {
+		pbx_devstate_changed(deviceState, "SCCP/%s", lineState->line->name);
+	}
 }
 
 
