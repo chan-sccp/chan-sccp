@@ -190,8 +190,8 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 		}
 		if (sccp_threadpool_keepalive) {
 			/* Read job from queue and execute it */
-			void *(*func_buff) (void *arg);
-			void *arg_buff;
+			void *(*func_buff) (void *arg) = NULL;
+			void *arg_buff = NULL;
 			sccp_threadpool_job_t *job_p;
 
 			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
