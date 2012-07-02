@@ -463,122 +463,126 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	// \todo find working lock
 	sccp_linedevices_t *linedevice;
 
-	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "traverse lines\n");
+	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: __sccp_indicate_remote_device: traverse linedevices\n");
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
 
 		stateVisibility = (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN;
 
-		if (!device || !linedevice ||!linedevice->device)
+		if (!device || !linedevice)
 			break;
+
+		if (!linedevice->device) {
+			pbx_log (LOG_NOTICE, "Strange to meet a linedevice (%p) here without a valid device connected to it !", linedevice); 
+			break;
+		}
 
 		if (linedevice->device == device)
 			continue;
 
-		if (!(remoteDevice = sccp_device_retain(linedevice->device))) {
-			break;
-		}
-
-		/* check if we have one part of the remote channel */
-		activeChannel = sccp_channel_get_active_nolock(remoteDevice);
-		if (activeChannel && sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
-			stateVisibility = SKINNY_CALLINFO_VISIBILITY_HIDDEN;
-			activeChannel = sccp_channel_release(activeChannel);
-		}	
-		/* done */
-
-		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
-		sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(c->line->channels));
-
-		instance = sccp_device_find_index_for_line(remoteDevice, c->line->name);
-
-		switch (state) {
-		case SCCP_CHANNELSTATE_DOWN:
-			break;
-		case SCCP_CHANNELSTATE_OFFHOOK:
-			if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING) {
-				sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
-				sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);	/* send connected, so it is not listed as missed call */
+		if ((remoteDevice = sccp_device_retain(linedevice->device))) {
+			/* check if we have one part of the remote channel */
+			if ((activeChannel = sccp_channel_get_active_nolock(remoteDevice))) {
+				if (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
+					stateVisibility = SKINNY_CALLINFO_VISIBILITY_HIDDEN;
+				}	
+				activeChannel = sccp_channel_release(activeChannel);
 			}
-			break;
-		case SCCP_CHANNELSTATE_GETDIGITS:
+			/* done */
 
-			break;
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
+			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
+			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(c->line->channels));
 
-			break;
-		case SCCP_CHANNELSTATE_ONHOOK:
-			//if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
-			sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+			instance = sccp_device_find_index_for_line(remoteDevice, c->line->name);
 
-			/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
-			if (c->answered_elsewhere)
-				sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+			switch (state) {
+			case SCCP_CHANNELSTATE_DOWN:
+				break;
+			case SCCP_CHANNELSTATE_OFFHOOK:
+				if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING) {
+					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);	/* send connected, so it is not listed as missed call */
+				}
+				break;
+			case SCCP_CHANNELSTATE_GETDIGITS:
 
-			sccp_dev_clearprompt(remoteDevice, instance, c->callid);
-			sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+				break;
+			case SCCP_CHANNELSTATE_SPEEDDIAL:
 
-			break;
-		case SCCP_CHANNELSTATE_RINGOUT:
+				break;
+			case SCCP_CHANNELSTATE_ONHOOK:
+				//if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
+				sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
 
-			break;
-		case SCCP_CHANNELSTATE_RINGING:
+				/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
+				if (c->answered_elsewhere)
+					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
-			break;
-		case SCCP_CHANNELSTATE_CONNECTED:
-			/* DD: We sometimes set the channel to offhook first before setting it to connected state.
-			   This seems to be necessary to have incoming calles logged properly.
-			   If this is done, the ringer would not get turned off on remote devices.
-			   So I removed the if clause below. Hopefully, this will not cause other calls to stop
-			   ringing if multiple calls are ringing concurrently on a shared line. */
+				sccp_dev_clearprompt(remoteDevice, instance, c->callid);
+				sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 
-			sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
-			//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* 7985 dont like this command when in shared line */
-			sccp_dev_clearprompt(remoteDevice, instance, c->callid);
-			sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-			sccp_channel_send_callinfo(remoteDevice, c);
+				break;
+			case SCCP_CHANNELSTATE_RINGOUT:
 
-			sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
+				break;
+			case SCCP_CHANNELSTATE_RINGING:
 
-			break;
-		case SCCP_CHANNELSTATE_BUSY:
+				break;
+			case SCCP_CHANNELSTATE_CONNECTED:
+				/* DD: We sometimes set the channel to offhook first before setting it to connected state.
+				   This seems to be necessary to have incoming calles logged properly.
+				   If this is done, the ringer would not get turned off on remote devices.
+				   So I removed the if clause below. Hopefully, this will not cause other calls to stop
+				   ringing if multiple calls are ringing concurrently on a shared line. */
 
-			break;
-		case SCCP_CHANNELSTATE_PROCEED:
+				sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+				//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* 7985 dont like this command when in shared line */
+				sccp_dev_clearprompt(remoteDevice, instance, c->callid);
+				sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+				sccp_channel_send_callinfo(remoteDevice, c);
 
-			break;
-		case SCCP_CHANNELSTATE_HOLD:
-			//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-			remoteDevice->indicate->remoteHold(remoteDevice, instance, c->callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-			sccp_channel_send_callinfo(remoteDevice, c);
-			break;;
-		case SCCP_CHANNELSTATE_CONGESTION:
+				sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
 
-			break;
-		case SCCP_CHANNELSTATE_CALLWAITING:
+				break;
+			case SCCP_CHANNELSTATE_BUSY:
 
-			break;
-		case SCCP_CHANNELSTATE_CALLTRANSFER:
+				break;
+			case SCCP_CHANNELSTATE_PROCEED:
 
-			break;
-		case SCCP_CHANNELSTATE_CALLCONFERENCE:
+				break;
+			case SCCP_CHANNELSTATE_HOLD:
+				//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+				remoteDevice->indicate->remoteHold(remoteDevice, instance, c->callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+				sccp_channel_send_callinfo(remoteDevice, c);
+				break;;
+			case SCCP_CHANNELSTATE_CONGESTION:
 
-			break;
-		case SCCP_CHANNELSTATE_CALLPARK:
+				break;
+			case SCCP_CHANNELSTATE_CALLWAITING:
 
-			break;
-		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+				break;
+			case SCCP_CHANNELSTATE_CALLTRANSFER:
 
-			break;
-		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+				break;
+			case SCCP_CHANNELSTATE_CALLCONFERENCE:
 
-			break;
-		case SCCP_CHANNELSTATE_DIALING:
+				break;
+			case SCCP_CHANNELSTATE_CALLPARK:
 
-			break;
-		case SCCP_CHANNELSTATE_DIGITSFOLL:
-			break;
+				break;
+			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+
+				break;
+			case SCCP_CHANNELSTATE_INVALIDNUMBER:
+
+				break;
+			case SCCP_CHANNELSTATE_DIALING:
+
+				break;
+			case SCCP_CHANNELSTATE_DIGITSFOLL:
+				break;
+			}
+			remoteDevice = sccp_device_release(remoteDevice);
 		}
-		remoteDevice = sccp_device_release(remoteDevice);
 	}
 //      SCCP_LIST_UNLOCK(&c->line->devices);
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state remote device SCCP (%s) on call %08x\n", device->id, sccp_indicate2str(state), c->callid);

@@ -353,9 +353,6 @@ void sccp_hint_lineStatusChangedDebug(sccp_line_t *line, sccp_device_t *device)
 	if (lineState && lineState->line) {
 		/** update line state */
 		sccp_hint_updateLineState(lineState);
-	
-		/** push chages to pbx */
-		sccp_hint_notifyPBX(lineState);
 	}
 }
 
@@ -377,6 +374,8 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 			/* just one device per line */
 			sccp_hint_updateLineStateForSingleLine(lineState);
 		}
+		/** push chages to pbx */
+		sccp_hint_notifyPBX(lineState);
 		
 		line = sccp_line_release(line);
 	}
@@ -494,7 +493,6 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 					state = SCCP_CHANNELSTATE_DND;
 				}
 			}
-			lineDevice = sccp_linedevice_release(lineDevice);
 		}
 
 		switch (state) {
@@ -552,6 +550,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 		
 		lineState->state = state;
 		device = device ? sccp_device_release(device) : NULL;
+		lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
 		channel = sccp_channel_release(channel);
 	} else {
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
