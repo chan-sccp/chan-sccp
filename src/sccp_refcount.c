@@ -77,9 +77,9 @@ struct refcount_object {
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
 	char identifier[StationMaxDeviceNameSize];
-	void *data;
 	SCCP_RWLIST_ENTRY(RefCountedObject) list;
 	time_t dead_since;
+	void *data;
 };
 boolean_t refcount_destroyed = TRUE;
 
