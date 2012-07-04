@@ -1457,7 +1457,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 
 //      //! \todo check for forward status during registration -MC
-	if (!(linedevice = sccp_util_getDeviceConfiguration(device, l))) {
+	if (!(linedevice = sccp_linedevice_find(device, l))) {
 		if (device->registrationState == SKINNY_DEVICE_RS_OK) {
 			pbx_log(LOG_NOTICE, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
 		} else {
@@ -1468,7 +1468,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 				sccp_handle_AvailableLines(device->session, device, NULL);
 				device->linesRegistered = TRUE;
 
-				linedevice = sccp_util_getDeviceConfiguration(device, l);
+				linedevice = sccp_linedevice_find(device, l);
 				if (linedevice) {
 					device->protocol->sendCallforwardMessage(device, linedevice);
 					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);

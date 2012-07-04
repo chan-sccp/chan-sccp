@@ -574,10 +574,9 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			if (buttonconfig->type == LINE) {										\
 				l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);					\
 				if (l) {												\
-					if ((linedevice = sccp_util_getDeviceConfiguration(d, l))) {
+					linedevice = sccp_linedevice_find(d, l);
 #define CLI_AMI_TABLE_AFTER_ITERATION 													\
-						sccp_linedevice_release(linedevice);							\
-					}												\
+					linedevice = linedevice ? sccp_linedevice_release(linedevice) : NULL;				\
 				sccp_line_release(l);											\
 				}													\
 			}

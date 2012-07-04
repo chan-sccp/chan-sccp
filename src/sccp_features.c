@@ -74,7 +74,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 		return;
 	}
 
-	linedevice = sccp_util_getDeviceConfiguration(device, l);
+	linedevice = sccp_linedevice_find(device, l);
 	if (!linedevice) {
 		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
 		return;

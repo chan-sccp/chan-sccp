@@ -513,7 +513,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	if (!l || !device)
 		return;
 
-	linedevice = sccp_util_getDeviceConfiguration(device, l);
+	linedevice = sccp_linedevice_find(device, l);
 	if (linedevice) {
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
 		sccp_linedevice_release(linedevice);
