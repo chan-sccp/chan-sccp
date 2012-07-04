@@ -39,13 +39,17 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 	struct sccp_answer_conveyor_struct *conveyor = data;
 
 	sccp_channel_t *c = NULL;
+	sccp_device_t *device = NULL;
 
 	int instance = 0;
 
 	sleep(GLOB(autoanswer_ring_time));
 	pthread_testcancel();
 
-	if (!conveyor || !conveyor->linedevice || !(conveyor->linedevice->device = sccp_device_retain(conveyor->linedevice->device))) {
+	if (!conveyor || !conveyor->linedevice) {
+		goto FINAL;
+	}
+	if (!(device = sccp_device_retain(conveyor->linedevice->device))) {
 		goto FINAL;
 	}
 
@@ -57,20 +61,20 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		goto FINAL;
 	}
 
-	sccp_channel_answer(conveyor->linedevice->device, c);
+	sccp_channel_answer(device, c);
 
 	if (GLOB(autoanswer_tone) != SKINNY_TONE_SILENCE && GLOB(autoanswer_tone) != SKINNY_TONE_NOTONE) {
-		instance = sccp_device_find_index_for_line(conveyor->linedevice->device, c->line->name);
-		sccp_dev_starttone(conveyor->linedevice->device, GLOB(autoanswer_tone), instance, c->callid, 0);
+		instance = sccp_device_find_index_for_line(device, c->line->name);
+		sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, 0);
 	}
 	if (c->autoanswer_type == SCCP_AUTOANSWER_1W)
-		sccp_dev_set_microphone(conveyor->linedevice->device, SKINNY_STATIONMIC_OFF);
-
-	conveyor->linedevice->device = sccp_device_release(conveyor->linedevice->device);
+		sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
 
 FINAL:	
-	sccp_free(conveyor);
 	c = c ? sccp_channel_release(c) : NULL;
+	device = device ? sccp_device_release(device) : NULL;
+	conveyor->linedevice = sccp_linedevice_release(conveyor->linedevice);		// retain in calling thread
+	sccp_free(conveyor);
 	return NULL;
 }
 
@@ -292,7 +296,7 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 				if (conveyor) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Running the autoanswer thread on %s\n", DEV_ID_LOG(linedevice->device), PBX(getChannelName) (c));
 					conveyor->callid = c->callid;
-					conveyor->linedevice = linedevice;
+					conveyor->linedevice = sccp_linedevice_retain(linedevice);
 
 #if CS_EXPERIMENTAL
 					sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_pbx_call_autoanswer_thread, (void *)conveyor);
