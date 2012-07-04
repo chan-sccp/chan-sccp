@@ -760,15 +760,12 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
                                         SCCP_LIST_LOCK(&d->buttonconfig);
                                         SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
                                                 if (btn[i].instance == buttonconfig->instance && buttonconfig->type == LINE) {
-                                                        d->configurationStatistic.numberOfLines++;
                                                         sccp_line_addDevice(l, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
-                                                        /* notify the line is on */
                                                         sccp_hint_lineStatusChanged(l, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
                                                         if (FALSE == defaultLineSet && !d->defaultLineInstance) {
                                                                 d->defaultLineInstance = buttonconfig->instance;
                                                                 defaultLineSet = TRUE;
                                                         }
-                                                        continue;
                                                 }
                                         }
                                         SCCP_LIST_UNLOCK(&d->buttonconfig);
