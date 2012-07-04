@@ -1890,19 +1890,35 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
  * \warning
  * 	- line->devices is not always locked
  */
-sccp_linedevices_t *sccp_util_getDeviceConfiguration(const sccp_device_t * device, const sccp_line_t * line)
+sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
 {
-	sccp_linedevices_t *linedevice;
-
-	if (!line || !device)
+	if (!line) {
+		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
 		return NULL;
-
-	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-		if (linedevice->device == device)
-			return sccp_linedevice_retain(linedevice);
+	}
+	if (!device) {
+		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line ? line->name : "UNDEF");
+		return NULL;
 	}
 
-	return NULL;
+	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevices_t *ld = NULL;
+
+	SCCP_LIST_LOCK(&((sccp_line_t*)line)->devices);
+	SCCP_LIST_TRAVERSE(&((sccp_line_t*)line)->devices, linedevice, list) {
+		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "linedevice %p for device %s line %s\n", linedevice, DEV_ID_LOG(linedevice->device), linedevice->line->name);
+		if (device == linedevice->device) {
+			ld = sccp_linedevice_retain(linedevice);
+			sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: found linedevice for line %s. Returning linedevice %p\n", DEV_ID_LOG(device), ld->line->name, ld);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&((sccp_line_t*)line)->devices);
+	
+	if (!ld) {
+		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
+	}
+	return ld;
 }
 
 /*!

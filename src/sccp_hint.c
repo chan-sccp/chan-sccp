@@ -394,7 +394,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
 
 	/* no line, or line without devices */
-	if (!line || (line && line->devices.size == 0)) {
+	if (!line || (line && 0 == line->devices.size)) {
 		lineState->state = SCCP_CHANNELSTATE_CONGESTION;
 
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "no line or no device; line: %s\n", (line) ? line->name : "null");
@@ -434,7 +434,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 		}
 	} else {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: no active channels\n", line->name);
-		if (line->devices.size == 0) {
+		if (0 == line->devices.size ) {
 			/** the line does not have a device attached, mark them as unavailable (congestion) */
 // 			sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyName));
 // 			sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyNumber));
@@ -469,7 +469,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
 
 	/* no line, or line without devices */
-	if (!line || (line && line->devices.size == 0)) {
+	if (!line || (line && 0 == line->devices.size)) {
 		lineState->state = SCCP_CHANNELSTATE_CONGESTION;
 
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "no line or no device; line: %s\n", (line) ? line->name : "null");

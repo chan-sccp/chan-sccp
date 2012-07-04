@@ -1330,7 +1330,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	/** set called party name */
 	sccp_linedevices_t *linedevice = NULL;
 
-	if ((linedevice = sccp_util_getDeviceConfiguration(device, channel->line))) {
+	if ((linedevice = sccp_linedevice_find(device, channel->line))) {
 		if (!sccp_strlen_zero(linedevice->subscriptionId.number)) {
 			sprintf(channel->callInfo.calledPartyNumber, "%s%s", channel->line->cid_num, linedevice->subscriptionId.number);
 		} else {
@@ -1566,7 +1566,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	/** set called party name */
 	sccp_linedevices_t *linedevice = NULL;
 
-	if ((linedevice = sccp_util_getDeviceConfiguration(d, channel->line))) {
+	if ((linedevice = sccp_linedevice_find(d, channel->line))) {
 		if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 
 			if (linedevice && !sccp_strlen_zero(linedevice->subscriptionId.number)) {

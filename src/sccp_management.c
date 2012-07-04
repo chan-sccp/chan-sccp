@@ -451,7 +451,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 	}
 
 	if (line) {
-		linedevice = sccp_util_getDeviceConfiguration(d, line);
+		linedevice = sccp_linedevice_find(d, line);
 		if (linedevice) {
 			if (sccp_strcaseequals("all", forwardType)) {
 				if (sccp_strcaseequals("no", Disable)) {
