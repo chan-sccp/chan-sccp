@@ -494,7 +494,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS="$CFLAGS_saved -O0 -Os -Wall "
+		CFLAGS="$CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
@@ -504,6 +504,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			AX_CFLAGS_GCC_OPTION_NEW(-Wnonnull)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
+			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
     		fi 
     		if test "x$CC" = "xclang"; then
     			CFLAGS="$CFLAGS -fcatch-undefined-behavior "
@@ -515,12 +516,13 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS="$CFLAGS_saved -O3 "
+		CFLAGS="$CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)	// has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-ignored-qualifiers)
+			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		fi		
 	fi
 	CFLAGS_saved="$CFLAGS"
