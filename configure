@@ -29361,7 +29361,7 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS="$CFLAGS_saved -O0 -Os -Wall "
+		CFLAGS="$CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
 		if test "x$GCC" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wstrict-prototypes" >&5
 $as_echo_n "checking CFLAGS for gcc -Wstrict-prototypes... " >&6; }
@@ -29741,6 +29741,69 @@ case ".$ac_cv_cflags_gcc_option__Wnonnull" in
  ;;
 esac
 
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -fstack-protector-all" >&5
+$as_echo_n "checking CFLAGS for gcc -fstack-protector-all... " >&6; }
+if ${ac_cv_cflags_gcc_option__fstack_protector_all+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_cflags_gcc_option__fstack_protector_all="no, unknown"
+
+ ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+ ac_save_CFLAGS="$CFLAGS"
+for ac_arg in "-pedantic -Werror % -fstack-protector-all"     "-pedantic % -fstack-protector-all %% no, obsolete"     #
+do CFLAGS="$ac_save_CFLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_cflags_gcc_option__fstack_protector_all=`echo $ac_arg | sed -e 's,.*% *,,'` ; break
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+done
+ CFLAGS="$ac_save_CFLAGS"
+ ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_cflags_gcc_option__fstack_protector_all" >&5
+$as_echo "$ac_cv_cflags_gcc_option__fstack_protector_all" >&6; }
+case ".$ac_cv_cflags_gcc_option__fstack_protector_all" in
+     .ok|.ok,*)  ;;
+   .|.no|.no,*)  ;;
+   *)
+   if echo " $CFLAGS " | grep " $ac_cv_cflags_gcc_option__fstack_protector_all " 2>&1 >/dev/null
+   then { { $as_echo "$as_me:${as_lineno-$LINENO}: : CFLAGS does contain \$ac_cv_cflags_gcc_option__fstack_protector_all"; } >&5
+  (: CFLAGS does contain $ac_cv_cflags_gcc_option__fstack_protector_all) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+   else { { $as_echo "$as_me:${as_lineno-$LINENO}: : CFLAGS=\"\$CFLAGS \$ac_cv_cflags_gcc_option__fstack_protector_all\""; } >&5
+  (: CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__fstack_protector_all") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+                      CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__fstack_protector_all"
+   fi
+ ;;
+esac
+
     		fi
     		if test "x$CC" = "xclang"; then
     			CFLAGS="$CFLAGS -fcatch-undefined-behavior "
@@ -29754,7 +29817,7 @@ $as_echo "#define DEBUG 0" >>confdefs.h
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS="$CFLAGS_saved -O3 "
+		CFLAGS="$CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
 		if test "x$GCC" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-long-long... " >&6; }
@@ -29941,6 +30004,69 @@ case ".$ac_cv_cflags_gcc_option__Wno_ignored_qualifiers" in
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }
                       CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__Wno_ignored_qualifiers"
+   fi
+ ;;
+esac
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -fstack-protector" >&5
+$as_echo_n "checking CFLAGS for gcc -fstack-protector... " >&6; }
+if ${ac_cv_cflags_gcc_option__fstack_protector+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_cflags_gcc_option__fstack_protector="no, unknown"
+
+ ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+ ac_save_CFLAGS="$CFLAGS"
+for ac_arg in "-pedantic -Werror % -fstack-protector"     "-pedantic % -fstack-protector %% no, obsolete"     #
+do CFLAGS="$ac_save_CFLAGS "`echo $ac_arg | sed -e 's,%%.*,,' -e 's,%,,'`
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+return 0;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_cflags_gcc_option__fstack_protector=`echo $ac_arg | sed -e 's,.*% *,,'` ; break
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+done
+ CFLAGS="$ac_save_CFLAGS"
+ ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_cflags_gcc_option__fstack_protector" >&5
+$as_echo "$ac_cv_cflags_gcc_option__fstack_protector" >&6; }
+case ".$ac_cv_cflags_gcc_option__fstack_protector" in
+     .ok|.ok,*)  ;;
+   .|.no|.no,*)  ;;
+   *)
+   if echo " $CFLAGS " | grep " $ac_cv_cflags_gcc_option__fstack_protector " 2>&1 >/dev/null
+   then { { $as_echo "$as_me:${as_lineno-$LINENO}: : CFLAGS does contain \$ac_cv_cflags_gcc_option__fstack_protector"; } >&5
+  (: CFLAGS does contain $ac_cv_cflags_gcc_option__fstack_protector) 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+   else { { $as_echo "$as_me:${as_lineno-$LINENO}: : CFLAGS=\"\$CFLAGS \$ac_cv_cflags_gcc_option__fstack_protector\""; } >&5
+  (: CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__fstack_protector") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }
+                      CFLAGS="$CFLAGS $ac_cv_cflags_gcc_option__fstack_protector"
    fi
  ;;
 esac
