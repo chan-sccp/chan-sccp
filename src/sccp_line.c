@@ -70,7 +70,7 @@ void sccp_line_pre_reload(void)
 void sccp_line_post_reload(void)
 {
 	sccp_line_t *l;
-	sccp_linedevices_t *ld;
+	sccp_linedevices_t *linedevice;
 
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
 		if (!l->pendingDelete && !l->pendingUpdate)
@@ -78,10 +78,10 @@ void sccp_line_post_reload(void)
 
 		if ((l = sccp_line_retain(l))) {
 			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, ld, list) {
-				if ((ld->device = sccp_device_retain(ld->device))) {
-					ld->device->pendingUpdate = 1;
-					ld->device = sccp_device_release(ld->device);
+			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+				if ((linedevice->device = sccp_device_retain(linedevice->device))) {
+					linedevice->device->pendingUpdate = 1;
+					linedevice->device = sccp_device_release(linedevice->device);
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
@@ -430,18 +430,22 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 {
 	sccp_linedevices_t *linedevice;
 
-	if (!l)
+	if (!l || !device)
 		return;
 
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		if (linedevice->device == device)
-			break;
-	}
-	SCCP_LIST_UNLOCK(&l->devices);
-
-	if (!linedevice) {
-		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+//	SCCP_LIST_LOCK(&l->devices);
+//	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+//		if (linedevice->device == device)
+//			break;
+//	}
+//	SCCP_LIST_UNLOCK(&l->devices);
+//
+//	if (!linedevice) {
+//		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+//		return;
+//	}
+	if (!(linedevice = sccp_linedevice_find(device, l))) {
+		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
 		return;
 	}
 
@@ -489,6 +493,7 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 		}
 		sccp_dev_forward_status(l, linedevice->lineInstance, device);
 	}
+	linedevice = sccp_linedevice_release(linedevice);
 }
 
 /*!
@@ -510,13 +515,26 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 {
 	sccp_linedevices_t *linedevice = NULL;
 
-	if (!l || !device)
+	if (!device || !l) {
+		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: No line or device provided\n");
 		return;
-
-	linedevice = sccp_linedevice_find(device, l);
-	if (linedevice) {
+	}
+		
+	if ((linedevice = sccp_linedevice_find(device, l))) {
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
 		sccp_linedevice_release(linedevice);
+		// early exit
+		return;
+	}
+
+	if (!(device = sccp_device_retain(device))) {
+		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: Device could not be retained for line : %s\n", l ? l->name : "UNDEF");
+		return;
+	}
+
+	if (!(l = sccp_line_retain(l))) {
+		pbx_log(LOG_ERROR, "%s: sccp_line_addDevice: Line could not be retained\n", DEV_ID_LOG(device));
+		device = sccp_device_release(device);		
 		return;
 	}
 	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
@@ -539,6 +557,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	linedevice->line->statistic.numberOfActiveDevices++;
+	linedevice->device->configurationStatistic.numberOfLines++;
 
 	/* read cfwd status from db */
 #ifndef ASTDB_FAMILY_KEY_LEN
@@ -578,6 +597,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 #ifdef CS_DYNAMIC_CONFIG
 	regcontext_exten(l, &(linedevice->subscriptionId), 1);
 #endif
+	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
+	l = sccp_line_release(l);
+	device = sccp_device_release(device);
 }
 
 /*!
