@@ -144,6 +144,23 @@ struct ast_channel_tech sccp_tech = {
 
 #endif
 
+/*!
+ * \brief Convert an array of skinny_codecs (enum) to ast_codec_prefs
+ *
+ * \param skinny_codecs Array of Skinny Codecs
+ *
+ * \return bit array fmt/Format of ast_format_type (int)
+ *
+ * \todo check bitwise operator (not sure) - DdG 
+ */
+int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
+{
+	struct ast_format *dst = NULL;
+	uint32_t codec= skinny_codecs2pbx_codecs(skinny_codecs);		// convert to bitfield
+	dst = ast_format_from_old_bitfield(dst, codec);				// convert bitfield to ast_format
+	return ast_codec_pref_append(astCodecPref, dst);			// return ast_codec_pref
+}
+
 static boolean_t sccp_wrapper_asterisk110_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
 
 #define RTP_NEW_SOURCE(_c,_log) 								\
@@ -418,7 +435,7 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
 			PBX_CHANNEL_TYPE *remotePeer;
 
-			for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+			for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
 				if (pbx_find_channel_by_linkid(remotePeer, (void *)ast->linkedid)) {
 					char buf[512];
 					sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
@@ -445,7 +462,7 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 					sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 					sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
-					ast_channel_unref(remotePeer);
+					remotePeer = ast_channel_unref(remotePeer);
 					break;
 				}
 
@@ -737,7 +754,7 @@ boolean_t sccp_wrapper_asterisk110_allocPBXChannel(const sccp_channel_t * channe
 	if (!sccp_strlen_zero(line->language)) {
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);	/* this will core asterisk on hangup */
 	}
-	ast_channel_ref((*pbx_channel));
+	(*pbx_channel) = ast_channel_ref((*pbx_channel));
 
 	return TRUE;
 }
@@ -764,7 +781,7 @@ int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		sccp_channel_release(c);
 	}	
 	ast_channel->tech_pvt = NULL;
-	ast_channel_unref(ast_channel);
+	ast_channel = ast_channel_unref(ast_channel);
 	return res;
 }
 
@@ -1196,8 +1213,8 @@ static int sccp_wrapper_asterisk110_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 	}
 
 	c->owner = newchan;
-	ast_channel_ref(c->owner);
-	ast_channel_unref(oldchan);
+	c->owner = ast_channel_ref(c->owner);
+	oldchan = ast_channel_unref(oldchan);
 	c = sccp_channel_release(c);
 
 	return 0;
@@ -1555,7 +1572,7 @@ static boolean_t sccp_wrapper_asterisk110_create_audio_rtp(sccp_channel_t * c)
 	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock;
-	struct ast_codec_pref astCodecPref;
+//	struct ast_codec_pref astCodecPref;
 
 	if (!c)
 		return FALSE;
@@ -1617,7 +1634,7 @@ static boolean_t sccp_wrapper_asterisk110_create_video_rtp(sccp_channel_t * c)
 	sccp_session_t *s;
 	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock;
-	struct ast_codec_pref astCodecPref;
+//	struct ast_codec_pref astCodecPref;
 
 	if (!c)
 		return FALSE;
@@ -1867,7 +1884,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 
 	((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
 		if (pbx_find_channel_by_linkid(remotePeer, (void *)channel->owner->linkedid)) {
 			break;
 		}
@@ -1876,7 +1893,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 
 	if (remotePeer) {
 		*pbx_channel = remotePeer;
-		ast_channel_unref(remotePeer);
+		remotePeer = ast_channel_unref(remotePeer);
 		return TRUE;
 	}
 	return FALSE;
@@ -1979,7 +1996,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_findChannelWithCallback(int (*
 		((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 	}
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
@@ -2686,7 +2703,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 
 	((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
