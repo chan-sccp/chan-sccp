@@ -333,12 +333,7 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
 #    define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
 #    define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
 
-//skinny_codec_t *pbx_codecs2skinny_codecs(int codecs);
 int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
-
-//skinny_codec_t *pbx_codec_pref2sccp_codec_pref(struct ast_codec_pref *prefs);
-//struct ast_codec_pref *sccp_codec_pref2pbx_codec_pref(skinny_codec_t *skinny_codecs);
 
 #    define sccp_strndup(str, len) \
 	_sccp_strndup((str), (len), __FILE__, __LINE__, __PRETTY_FUNCTION__)
