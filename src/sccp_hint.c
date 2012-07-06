@@ -188,7 +188,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	if (event) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "restore state for '%s', state %d\n", hint->hint_dialplan, ast_event_get_ie_uint(event, AST_EVENT_IE_STATE));
 	}else{
-		/** this workaround restores the state by using ast_device_state function, my be it is also posible in an other way */
+		/** this workaround restores the state by using ast_device_state function, may be it is also possible in an other way */
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "no state to restore for %s\n", hint->hint_dialplan);
 		event = pbx_event_new(AST_EVENT_DEVICE_STATE,
 			AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, 
@@ -606,8 +606,13 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
  */
 void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
-	enum ast_device_state deviceState = AST_DEVICE_UNKNOWN;
+	char channelName[100];	// magic number
+	sprintf(channelName, "SCCP/%s", lineState->line->name);
   
+	enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN; 
+	int event_signal_method = AST_EVENT_DEVICE_STATE_CHANGE;
+	enum ast_device_state currentDeviceState = ast_device_state(channelName);
+
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", 
 				   channelstate2str(lineState->state), 
 				   lineState->state, 
@@ -616,31 +621,38 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 				   lineState->line->name
 	);
 	
+	if (currentDeviceState == AST_DEVICE_UNKNOWN || currentDeviceState == AST_DEVICE_UNAVAILABLE) {
+		event_signal_method = AST_EVENT_DEVICE_STATE;							// new device registration
+	}
+	
 	switch (lineState->state) {
 		case SCCP_CHANNELSTATE_DOWN:
 		case SCCP_CHANNELSTATE_ONHOOK:
-			deviceState = AST_DEVICE_NOT_INUSE;
+			newDeviceState = AST_DEVICE_NOT_INUSE;
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
-			deviceState = AST_DEVICE_RINGING;
+			newDeviceState = AST_DEVICE_RINGING;
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
-			deviceState = AST_DEVICE_ONHOLD;
+			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-			deviceState = AST_DEVICE_ONHOLD;
+			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-		  	deviceState = AST_DEVICE_BUSY;
+		  	newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_DND:
-			deviceState = AST_DEVICE_BUSY;
+			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
-		case SCCP_CHANNELSTATE_ZOMBIE:
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-			deviceState = AST_DEVICE_UNAVAILABLE;
+			newDeviceState = AST_DEVICE_UNAVAILABLE;
+			break;
+		case SCCP_CHANNELSTATE_ZOMBIE:
+			event_signal_method = AST_EVENT_DEVICE_STATE;						// device unregister
+			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 		  
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
@@ -658,7 +670,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-			deviceState = AST_DEVICE_INUSE;
+			newDeviceState = AST_DEVICE_INUSE;
 			break;
 	}
 #if CS_AST_HAS_EVENT_CIDNAME
@@ -668,25 +680,16 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	);
 #endif
 
-	char channelName[100];	// magic number
-	sprintf(channelName, "SCCP/%s", lineState->line->name);
-
-	if (ast_device_state(channelName) != AST_DEVICE_UNKNOWN) {
-		pbx_event_t 	 	*event;
-		
-		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE,
-			  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
-			  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, deviceState, 
-// 			  AST_EVENT_IE_EID, AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
+	pbx_event_t 	 	*event;
+	event = pbx_event_new(event_signal_method,
+		  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
+		  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
 #if CS_AST_HAS_EVENT_CIDNAME
-			  AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName,
-			  AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+		  AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName,
+		  AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
 #endif		  
-			  AST_EVENT_IE_END);
-		pbx_event_queue_and_cache(event);
-	} else {
-		pbx_devstate_changed(deviceState, "SCCP/%s", lineState->line->name);
-	}
+		  AST_EVENT_IE_END);
+	pbx_event_queue_and_cache(event);
 }
 
 
