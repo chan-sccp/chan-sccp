@@ -22614,10 +22614,6 @@ $as_echo "${T_MD}Checking Asterisk Version:${T_ME}" >&6; }
 	REALTIME_USEABLE=1
 	version_found=0
 
-
-
-
-
 	ac_fn_c_check_header_mongrel "$LINENO" "asterisk/version.h" "ac_cv_header_asterisk_version_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_version_h" = xyes; then :
 
@@ -22831,7 +22827,8 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 else
-  ac_fn_c_check_header_mongrel "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$ac_includes_default"
+
+		ac_fn_c_check_header_mongrel "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
 
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking version in asterisk/ast_version.h" >&5
@@ -22851,17 +22848,17 @@ $as_echo "#define ASTERISK_VERSION_GROUP 112" >>confdefs.h
 
 $as_echo "#define ASTERISK_REPOS_LOCATION \"trunk\"" >>confdefs.h
 
-	                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: Experimental at the moment. Anything might break." >&5
-$as_echo "WARNING: Experimental at the moment. Anything might break." >&6; }
 
 				version_found=1
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
 $as_echo "done" >&6; }
+	                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: Experimental at the moment. Anything might break." >&5
+$as_echo "WARNING: Experimental at the moment. Anything might break." >&6; }
 
 else
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
-$as_echo "'ASTERISK_VERSION could not be established" >&6; }
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established'" >&5
+$as_echo "'ASTERISK_VERSION could not be established'" >&6; }
 
 
 fi
@@ -22869,7 +22866,6 @@ fi
 
 
 fi
-
 
 
 	if test $version_found == 0; then
