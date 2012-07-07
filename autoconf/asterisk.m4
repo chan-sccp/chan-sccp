@@ -11,10 +11,6 @@ AC_DEFUN([AST_GET_VERSION], [
 	REALTIME_USEABLE=1
 	version_found=0
 	
-	
-	
-	
-	
 	AC_CHECK_HEADER([asterisk/version.h],[
 		AC_MSG_CHECKING([version in asterisk/version.h])
 		AC_TRY_COMPILE([
@@ -140,7 +136,7 @@ dnl					if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
 		],[
 			AC_MSG_RESULT('ASTERISK_VERSION could not be established)
 		])
-	],
+	], [
 		AC_CHECK_HEADER(
 			[asterisk/ast_version.h],
 			[
@@ -152,16 +148,15 @@ dnl					if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
 				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200],[ASTERISK Version Number])
 				AC_DEFINE([ASTERISK_VERSION_GROUP], [112],[ASTERISK Version Group])
 				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["trunk"],[ASTERISK Source Location])
-	                        AC_MSG_RESULT([WARNING: Experimental at the moment. Anything might break.])
 				
 				version_found=1
 				AC_MSG_RESULT(done)
+	                        AC_MSG_RESULT([WARNING: Experimental at the moment. Anything might break.])
 			],[
-				AC_MSG_RESULT('ASTERISK_VERSION could not be established)
+				AC_MSG_RESULT(['ASTERISK_VERSION could not be established'])
 			]
 		)
-	)
-	
+	])
 	if test $version_found == 0; then
 		echo ""
 		echo ""
