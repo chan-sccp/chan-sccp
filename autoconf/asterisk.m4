@@ -9,135 +9,158 @@ dnl REVISION: $Revision: $
 AC_DEFUN([AST_GET_VERSION], [
 	CONFIGURE_PART([Checking Asterisk Version:])
 	REALTIME_USEABLE=1
-	AC_CHECK_HEADER([asterisk/version.h],[
-		AC_MSG_CHECKING([version in asterisk/version.h])
-		AC_TRY_COMPILE([
-			#include <asterisk/version.h>
-		],[
-			const char *test_src = ASTERISK_VERSION;
-		], [
-			AC_MSG_RESULT(processing...)
-			pbx_ver=$(eval "$ac_cpp conftest.$ac_ext" 2>/dev/null | $EGREP test_src |$EGREP -o '\".*\"')
+	version_found=0
+	
+	AC_CHECK_HEADER(
+		[asterisk/ast_version.h],
+		[
+			AC_MSG_CHECKING([version in asterisk/ast_version.h])
+			ASTERISK_VER_GROUP=110
+			ASTERISK_VERSION_NUMBER=11000
 
-			# process tgz, branch, trunk
-			if echo $pbx_ver|grep -q "\"SVN-branch"; then
-				ASTERISK_REPOS_LOCATION=BRANCH
-				pbx_ver=${pbx_ver:12}						# remove head
-			elif echo $pbx_ver|grep -q "\"SVN-trunk"; then
-				ASTERISK_REPOS_LOCATION=TRUNK
-				pbx_ver=${pbx_ver:11}						# remove head
-				if test "${pbx_ver:0:1}" == "r" ; then
-					pbx_ver="1.10.1"					# default trunk without number
-				fi
-			else
-				ASTERISK_REPOS_LOCATION=TGZ
-			fi
-
-			# remove from pbx_ver
-	    		# remove from pbx_ver
-	    		pbx_ver=${pbx_ver%%-*}							# remove tail
-			#pbx_ver=${pbx_ver//\"/}						# remove '"'
-			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
-
-			# process version number
-			version_found=0
-			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
-				#if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then  
-dnl				if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
-				if echo $pbx_ver|grep -q "$x"; then
-					if test ${#x} -gt 3; then		# 1.10
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
-					elif test ${#x} -lt 3; then		# 1.10
-						ASTERISK_VER_GROUP="110"
-					else
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
-					fi
-					AC_SUBST([ASTERISK_VER_GROUP])
-					
-					if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
-						REALTIME_USEABLE=0
-					fi
-					
-					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-##					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
-					#ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					#else
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					#fi
-					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
-
-					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
-					ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					#else
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					#fi
-
-					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
-					
-					version_found=1
-					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'])
-
-					AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUMBER],`echo ${ASTERISK_VERSION_NUMBER}`,[ASTERISK Version Number])
-					AC_SUBST([ASTERISK_VERSION_NUMBER])
-					AC_DEFINE_UNQUOTED([ASTERISK_VERSION_GROUP],`echo ${ASTERISK_VER_GROUP}`,[ASTERISK Version Group])
-					AC_SUBST([ASTERISK_VER_GROUP])
-					AC_DEFINE_UNQUOTED([ASTERISK_REPOS_LOCATION],`echo ${ASTERISK_REPOS_LOCATION}`,[ASTERISK Source Location])
-					AC_SUBST([ASTERISK_REPOS_LOCATION])
-
-					case "${ASTERISK_VER_GROUP}" in
-						102) AC_DEFINE([ASTERISK_CONF_1_2], [1], [Defined ASTERISK_CONF_1_2]);;
-						104) AC_DEFINE([ASTERISK_CONF_1_4], [1], [Defined ASTERISK_CONF_1_4]);;
-						106) AC_DEFINE([ASTERISK_CONF_1_6], [1], [Defined ASTERISK_CONF_1_6]);;
-						108) AC_DEFINE([ASTERISK_CONF_1_8], [1], [Defined ASTERISK_CONF_1_8]);;
-						110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
-						*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
-					esac 
-
-					if [ test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ]; then
-						echo ""
-						CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
-						echo ""
-						echo "Please install a higher version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
-					if [ test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ]; then
-						echo ""
-						CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
-						echo ""
-						echo "Please install a lower version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
-				fi 
-			done
-			if test $version_found == 0; then
-				echo ""
-				echo ""
-				echo "PBX branch version could not be determined"
-				echo "==================================="
-				echo "Either install asterisk and asterisk-devel packages"
-				echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
-				exit
-			fi
+			AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
+			AC_DEFINE([ASTERISK_VERSION_NUMBER], [11000],[ASTERISK Version Number])
+			AC_DEFINE([ASTERISK_VERSION_GROUP], [110],[ASTERISK Version Group])
+			AC_DEFINE([ASTERISK_REPOS_LOCATION], ["trunk"],[ASTERISK Source Location])
+			
+			version_found=1
 			AC_MSG_RESULT(done)
 		],[
       			AC_MSG_RESULT('ASTERISK_VERSION could not be established)
-    		])
-  	],
-  	[AC_MSG_RESULT('asterisk/version.h' Could not be found)]
-  	)
+    		]
+	)
+	
+	if test $version_found == 0; then
+	
+		AC_CHECK_HEADER([asterisk/version.h],[
+			AC_MSG_CHECKING([version in asterisk/version.h])
+			AC_TRY_COMPILE([
+				#include <asterisk/version.h>
+			],[
+				const char *test_src = ASTERISK_VERSION;
+			], [
+				AC_MSG_RESULT(processing...)
+				pbx_ver=$(eval "$ac_cpp conftest.$ac_ext" 2>/dev/null | $EGREP test_src |$EGREP -o '\".*\"')
+
+				# process tgz, branch, trunk
+				if echo $pbx_ver|grep -q "\"SVN-branch"; then
+					ASTERISK_REPOS_LOCATION=BRANCH
+					pbx_ver=${pbx_ver:12}						# remove head
+				elif echo $pbx_ver|grep -q "\"SVN-trunk"; then
+					ASTERISK_REPOS_LOCATION=TRUNK
+					pbx_ver=${pbx_ver:11}						# remove head
+					if test "${pbx_ver:0:1}" == "r" ; then
+						pbx_ver="1.10.1"					# default trunk without number
+					fi
+				else
+					ASTERISK_REPOS_LOCATION=TGZ
+				fi
+
+				# remove from pbx_ver
+				# remove from pbx_ver
+				pbx_ver=${pbx_ver%%-*}							# remove tail
+				#pbx_ver=${pbx_ver//\"/}						# remove '"'
+				pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
+
+				# process version number
+				for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
+					#if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then  
+dnl					if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
+					if echo $pbx_ver|grep -q "$x"; then
+						if test ${#x} -gt 3; then		# 1.10
+							ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
+						elif test ${#x} -lt 3; then		# 1.10
+							ASTERISK_VER_GROUP="110"
+						else
+							ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
+						fi
+						AC_SUBST([ASTERISK_VER_GROUP])
+						
+						if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
+							REALTIME_USEABLE=0
+						fi
+						
+						#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+						ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+						#ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+						#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+							#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+						#else
+							#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+						#fi
+						#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+
+						#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+						ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+						ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+						#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+							#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+						#else
+							ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+						#fi
+
+						#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+						
+						version_found=1
+						AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'])
+
+						AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUMBER],`echo ${ASTERISK_VERSION_NUMBER}`,[ASTERISK Version Number])
+						AC_SUBST([ASTERISK_VERSION_NUMBER])
+						AC_DEFINE_UNQUOTED([ASTERISK_VERSION_GROUP],`echo ${ASTERISK_VER_GROUP}`,[ASTERISK Version Group])
+						AC_SUBST([ASTERISK_VER_GROUP])
+						AC_DEFINE_UNQUOTED([ASTERISK_REPOS_LOCATION],`echo ${ASTERISK_REPOS_LOCATION}`,[ASTERISK Source Location])
+						AC_SUBST([ASTERISK_REPOS_LOCATION])
+
+						case "${ASTERISK_VER_GROUP}" in
+							102) AC_DEFINE([ASTERISK_CONF_1_2], [1], [Defined ASTERISK_CONF_1_2]);;
+							104) AC_DEFINE([ASTERISK_CONF_1_4], [1], [Defined ASTERISK_CONF_1_4]);;
+							106) AC_DEFINE([ASTERISK_CONF_1_6], [1], [Defined ASTERISK_CONF_1_6]);;
+							108) AC_DEFINE([ASTERISK_CONF_1_8], [1], [Defined ASTERISK_CONF_1_8]);;
+							110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
+							*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
+						esac 
+
+						if [ test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ]; then
+							echo ""
+							CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
+							echo ""
+							echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
+							echo ""
+							echo "Please install a higher version of asterisk"
+							echo ""
+							echo ""
+							exit 255
+						fi
+						if [ test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ]; then
+							echo ""
+							CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
+							echo ""
+							echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
+							echo ""
+							echo "Please install a lower version of asterisk"
+							echo ""
+							echo ""
+							exit 255
+						fi
+					fi 
+				done
+				if test $version_found == 0; then
+					echo ""
+					echo ""
+					echo "PBX branch version could not be determined"
+					echo "==================================="
+					echo "Either install asterisk and asterisk-devel packages"
+					echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
+					exit
+				fi
+				AC_MSG_RESULT(done)
+			],[
+				AC_MSG_RESULT('ASTERISK_VERSION could not be established)
+			])
+		],
+		[AC_MSG_RESULT('asterisk/version.h' Could not be found)]
+		)
+	fi
 ])
 
 dnl Find Asterisk Header Files
