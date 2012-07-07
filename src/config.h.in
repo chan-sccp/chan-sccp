@@ -29,6 +29,9 @@
 /* Defined ASTERISK_CONF_1_10 */
 #undef ASTERISK_CONF_1_10
 
+/* Defined ASTERISK_CONF_1_12 */
+#undef ASTERISK_CONF_1_12
+
 /* Defined ASTERISK_CONF_1_2 */
 #undef ASTERISK_CONF_1_2
 

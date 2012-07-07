@@ -22612,6 +22612,12 @@ $as_echo "" >&6; }
 $as_echo "${T_MD}Checking Asterisk Version:${T_ME}" >&6; }
 
 	REALTIME_USEABLE=1
+	version_found=0
+
+
+
+
+
 	ac_fn_c_check_header_mongrel "$LINENO" "asterisk/version.h" "ac_cv_header_asterisk_version_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_version_h" = xyes; then :
 
@@ -22653,13 +22659,12 @@ $as_echo "processing..." >&6; }
 			fi
 
 			# remove from pbx_ver
-	    		# remove from pbx_ver
-	    		pbx_ver=${pbx_ver%%-*}							# remove tail
+			# remove from pbx_ver
+			pbx_ver=${pbx_ver%%-*}							# remove tail
 			#pbx_ver=${pbx_ver//\"/}						# remove '"'
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			version_found=0
 			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
 				#if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then
 				if echo $pbx_ver|grep -q "$x"; then
@@ -22677,7 +22682,7 @@ $as_echo "processing..." >&6; }
 					fi
 
 					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-##					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
 					#ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
 					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
 						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
@@ -22819,18 +22824,63 @@ $as_echo "done" >&6; }
 
 else
 
-      			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
 $as_echo "'ASTERISK_VERSION could not be established" >&6; }
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'asterisk/version.h' Could not be found" >&5
-$as_echo "'asterisk/version.h' Could not be found" >&6; }
+  ac_fn_c_check_header_mongrel "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$ac_includes_default"
+if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking version in asterisk/ast_version.h" >&5
+$as_echo_n "checking version in asterisk/ast_version.h... " >&6; }
+				ASTERISK_VER_GROUP=112
+				ASTERISK_VERSION_NUMBER=11200
+
+
+$as_echo "#define ASTERISK_CONF_1_12 1" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_VERSION_NUMBER 11200" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_VERSION_GROUP 112" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_REPOS_LOCATION \"trunk\"" >>confdefs.h
+
+	                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: Experimental at the moment. Anything might break." >&5
+$as_echo "WARNING: Experimental at the moment. Anything might break." >&6; }
+
+				version_found=1
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+$as_echo "done" >&6; }
+
+else
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
+$as_echo "'ASTERISK_VERSION could not be established" >&6; }
+
 
 fi
 
+
+
+fi
+
+
+
+	if test $version_found == 0; then
+		echo ""
+		echo ""
+		echo "PBX branch version could not be determined"
+		echo "==================================="
+		echo "Either install asterisk and asterisk-devel packages"
+		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
+		exit
+	fi
 
 
 

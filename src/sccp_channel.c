@@ -1361,7 +1361,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			pbx_clear_flag(pbx_bridged_channel, AST_FLAG_MOH);
 		}
 #endif
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(channel->owner->_state), channel->owner->_state);
+//		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(channel->owner->_state), channel->owner->_state);
 		PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);
 
 		if (channel->state != SCCP_CHANNELSTATE_OFFHOOK)
@@ -1439,7 +1439,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents))
-		manager_event(EVENT_FLAG_CALL, "Hold", "Status: On\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), channel->owner->uniqueid);
+		manager_event(EVENT_FLAG_CALL, "Hold", "Status: On\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID)(channel));
 #endif
 
 	if (l) {
@@ -1554,7 +1554,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents))
-		manager_event(EVENT_FLAG_CALL, "Hold", "Status: Off\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), channel->owner->uniqueid);
+		manager_event(EVENT_FLAG_CALL, "Hold", "Status: Off\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID)(channel));
 #endif
 
 	/* state of channel is set down from the remoteDevices, so correct channel state */
@@ -2227,7 +2227,7 @@ void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices
 		PBX(set_callerid_redirectingParty) (sccp_forwarding_channel, sccp_forwarding_channel->line->cid_num, sccp_forwarding_channel->line->cid_name);
 
 	/* dial sccp_forwarding_channel */
-	sccp_copy_string(sccp_forwarding_channel->owner->exten, dialedNumber, sizeof(sccp_forwarding_channel->owner->exten));
+	PBX(setChannelExten)(sccp_forwarding_channel, dialedNumber);
 
 	/* \todo copy device line setvar variables from parent channel to forwarder->owner */
 

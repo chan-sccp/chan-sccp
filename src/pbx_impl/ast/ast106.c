@@ -1923,6 +1923,44 @@ static const char *sccp_wrapper_asterisk16_getChannelName(const sccp_channel_t *
 	return emptyChannelName;
 }
 
+static const char *sccp_wrapper_asterisk16_getChannelUniqueID(const sccp_channel_t * channel)
+{
+	static const char *emptyChannelUniqueID = "--no-channeluniqueid--";
+
+	if (channel->owner) {
+		return channel->owner->uniqueid;
+	}
+	return emptyChannelUniqueID;
+}
+
+static const char *sccp_wrapper_asterisk16_getChannelExten(const sccp_channel_t * channel)
+{
+	static const char *emptyChannelExten = "--no-channelexten--";
+
+	if (channel->owner) {
+		return channel->owner->exten;
+	}
+	return emptyChannelExten;
+}
+
+
+static const char *sccp_wrapper_asterisk16_getChannelExten(const sccp_channel_t * channel)
+{
+	static const char *emptyChannelExten = "--no-channelexten--";
+
+	if (channel->owner) {
+		return channel->owner->exten;
+	}
+	return emptyChannelExten;
+}
+
+static void sccp_wrapper_asterisk16_setChannelExten(const sccp_channel_t * channel, const char *exten)
+{ 
+        if (channel->owner) {
+        	sccp_copy_string(channel->owner->exten, exten, sizeof(channel->owner->exten));
+        }
+}
+
 /*!
  * \brief Find Asterisk/PBX channel by linkedid
  *
@@ -2304,6 +2342,9 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelLinkedId:		sccp_wrapper_asterisk16_getChannelLinkedId,
 	setChannelLinkedId:		sccp_wrapper_asterisk16_setChannelLinkedId,
 	getChannelName:			sccp_wrapper_asterisk16_getChannelName,
+	getChannelUniqueID:		sccp_wrapper_asterisk16_getChannelUniqueID,
+	getChannelExten:		sccp_wrapper_asterisk16_getChannelExten,
+	setChannelExten:		sccp_wrapper_asterisk16_setChannelExten,
 
 	set_nativeAudioFormats:		sccp_wrapper_asterisk16_setNativeAudioFormats,
 	set_nativeVideoFormats:		sccp_wrapper_asterisk16_setNativeVideoFormats,
@@ -2392,6 +2433,10 @@ struct sccp_pbx_cb sccp_pbx = {
 	.getChannelLinkedId		= sccp_wrapper_asterisk16_getChannelLinkedId,
 	.setChannelLinkedId		= sccp_wrapper_asterisk16_setChannelLinkedId,
 	.getChannelName			= sccp_wrapper_asterisk16_getChannelName,
+	.getChannelUniqueID		= sccp_wrapper_asterisk16_getChannelUniqueID,
+	.getChannelExten:		= sccp_wrapper_asterisk16_getChannelExten,
+	.setChannelExten:		= sccp_wrapper_asterisk16_setChannelExten,
+
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk16_checkHangup,
 	
