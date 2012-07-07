@@ -28,7 +28,19 @@ int sccp_restart_monitor(void);
 const char *pbx_getformatname(const struct ast_format *format);
 char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *format);
 
-#    define pbx_channel_name(x) pbx_channel_name(x)
+/* Redefinitions for asterisk-trunk, need to be sorted  */
+#    define pbx_channel_name(x) ast_channel_name(x)
+
+#    undef pbx_channel_uniqueid
+#    undef pbx_channel_flags
+#    undef CS_AST_CHANNEL_PVT
+#    undef CS_AST_CHANNEL_PVT_TYPE
+#    undef CS_AST_CHANNEL_PVT_CMP_TYPE
+#    define pbx_channel_uniqueid(x) ast_channel_uniqueid(x)
+#    define pbx_channel_flags(_a) ast_channel_flags(_a)
+#    define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)ast_channel_tech_pvt(x))
+#    define CS_AST_CHANNEL_PVT_TYPE(x) ast_channel_tech(x)->type
+#    define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(CS_AST_CHANNEL_PVT_TYPE(x), y, strlen(y))
 
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const

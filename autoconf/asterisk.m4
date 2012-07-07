@@ -145,13 +145,14 @@ dnl					if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
 			[asterisk/ast_version.h],
 			[
 				AC_MSG_CHECKING([version in asterisk/ast_version.h])
-				ASTERISK_VER_GROUP=110
-				ASTERISK_VERSION_NUMBER=11000
+				ASTERISK_VER_GROUP=112
+				ASTERISK_VERSION_NUMBER=11200
 
 				AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
-				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11000],[ASTERISK Version Number])
-				AC_DEFINE([ASTERISK_VERSION_GROUP], [110],[ASTERISK Version Group])
+				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200],[ASTERISK Version Number])
+				AC_DEFINE([ASTERISK_VERSION_GROUP], [112],[ASTERISK Version Group])
 				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["trunk"],[ASTERISK Source Location])
+	                        AC_MSG_RESULT([WARNING: Experimental at the moment. Anything might break.])
 				
 				version_found=1
 				AC_MSG_RESULT(done)

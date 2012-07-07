@@ -2093,6 +2093,33 @@ static const char *sccp_wrapper_asterisk111_getChannelName(const sccp_channel_t 
 	return emptyChannelName;
 }
 
+static const char *sccp_wrapper_asterisk111_getChannelUniqueID(const sccp_channel_t * channel)
+{
+	static const char *emptyChannelUniqueID = "--no-channeluniqueid--";
+
+	if (channel->owner) {
+		return ast_channel_uniqueid(channel);
+	}
+	return emptyChannelUniqueID;
+}
+
+static const char *sccp_wrapper_asterisk111_getChannelExten(const sccp_channel_t * channel)
+{
+	static const char *emptyChannelExten = "--no-channelexten--";
+
+	if (channel->owner) {
+		return ast_channel_exten(channel);
+	}
+	return emptyChannelExten;
+}
+
+static void sccp_wrapper_asterisk110_setChannelExten(const sccp_channel_t * channel, const char *exten)
+{ 
+        if (channel-owner) {
+        	ast_channel_exten_set(channel->owner, exten);
+        }
+}
+
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE *ast, int subclass, const char *data, int datalen)
 {
 	sccp_channel_t *c = NULL;
@@ -2262,6 +2289,9 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelLinkedId:		sccp_wrapper_asterisk111_getChannelLinkedId,
 	setChannelLinkedId:		sccp_wrapper_asterisk111_setChannelLinkedId,
 	getChannelName:			sccp_wrapper_asterisk111_getChannelName,
+	getChannelUniqueID:		sccp_wrapper_asterisk111_getChannelUniqueID,
+	getChannelExten:		sccp_wrapper_asterisk111_getChannelExten,
+	setChannelExten:		sccp_wrapper_asterisk111_setChannelExten,
 
 	set_nativeAudioFormats:		sccp_wrapper_asterisk111_setNativeAudioFormats,
 	set_nativeVideoFormats:		sccp_wrapper_asterisk111_setNativeVideoFormats,
@@ -2348,6 +2378,10 @@ struct sccp_pbx_cb sccp_pbx = {
 	.getChannelLinkedId		= sccp_wrapper_asterisk111_getChannelLinkedId,
 	.setChannelLinkedId		= sccp_wrapper_asterisk111_setChannelLinkedId,
 	.getChannelName			= sccp_wrapper_asterisk111_getChannelName,
+	.getChannelUniqueID		= sccp_wrapper_asterisk111_getChannelUniqueID,
+	.getChannelExten		= sccp_wrapper_asterisk111_getChannelExten,
+	.setChannelExten		= sccp_wrapper_asterisk111_setChannelExten,
+
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk111_checkHangup,
 	

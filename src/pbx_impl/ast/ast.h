@@ -78,43 +78,23 @@
 #    include "define.h"
 #    ifdef ASTERISK_CONF_1_2
 #        include "ast102.h"
-//#        include "ast10200.h"
 #        define PBXVER 10200
 #    endif
 #    ifdef ASTERISK_CONF_1_4
 #        include "ast104.h"
-//#        include "ast10400.h"
 #        define PBXVER 10400
 #    endif
 #    ifdef ASTERISK_CONF_1_6
 #        include "ast106.h"
-
-/*#        if ASTERISK_VERSION_NUMBER == 10600
-#            include "ast10600.h"
-#            define PBXVER 10600
-#        elif ASTERISK_VERSION_NUMBER == 10601
-#            include "ast10601.h"
-#            define PBXVER 10601
-#        elif ASTERISK_VERSION_NUMBER == 10602
-#            include "ast10602.h"
-#            define PBXVER 10602
-#        endif
-*/
 #    endif
 #    ifdef ASTERISK_CONF_1_8
 #        include "ast108.h"
 #    endif
 #    ifdef ASTERISK_CONF_1_10
-#        	ifdef ASTERISK_REPOS_LOCATION_TRUNK
-#        include "astTrunk.h"
-#        	else
-#        include "ast110.h"
-#        	endif
-
-/*#        if ASTERISK_VERSION_NUMBER == 11000
-#            include "ast11000.h"
-#            define PBXVER 11000
-#        endif*/
+#     	include "ast110.h"
+#    endif
+#    ifdef ASTERISK_CONF_1_12
+#      	include "astTrunk.h"
 #    endif
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */

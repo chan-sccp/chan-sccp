@@ -110,7 +110,6 @@
 #    define pbx_channel_undefer_dtmf ast_channel_undefer_dtmf
 #    define pbx_channel_unregister ast_channel_unregister
 #    define pbx_check_hangup ast_check_hangup
-#    define pbx_clear_flag ast_clear_flag
 #    define pbx_cli ast_cli
 #    define pbx_cli_entry ast_cli_entry
 #    define pbx_cli_register ast_cli_register
@@ -224,7 +223,6 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_sched_when ast_sched_when
 #    define pbx_set_callerid ast_set_callerid
 #    define pbx_setcallstate ast_setcallstate
-#    define pbx_set_flag ast_set_flag
 #    define pbx_set_read_format ast_set_read_format
 #    define pbx_setstate ast_setstate
 #    define pbx_set_write_format ast_set_write_format
@@ -243,9 +241,6 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_string_field_build ast_string_field_build
 #    define pbx_string_field_set ast_string_field_set
 #    define pbx_strip ast_strip
-#    define pbx_test_flag ast_test_flag
-#    define pbx_set_flag ast_set_flag
-#    define pbx_set2_flag ast_set2_flag
 #    define pbx_trim_blanks ast_trim_blanks
 #    define pbx_true ast_true
 #    define pbx_tvnow ast_tvnow
@@ -261,4 +256,12 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_bridge_depart ast_bridge_depart
 #    define pbx_hangup ast_hangup
 #    define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
+
+// Fixes for asterisk-trunk, need to sorted later
+#    define pbx_channel_flags(_a) _a					/* needed in asterisk trunk */
+#    define pbx_clear_flag(_a,_b) ast_clear_flag(pbx_channel_flags(_a),_b)
+#    define pbx_set_flag(_a,_b) ast_set_flag(pbx_channel_flags(_a),_b)
+#    define pbx_test_flag(_a,_b) ast_test_flag(pbx_channel_flags(_a),_b)
+#    define pbx_set2_flag ast_set2_flag
+#    define pbx_channel_uniqueid(x) (x)->owner->uniqueid
 #endif
