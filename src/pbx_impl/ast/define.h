@@ -270,10 +270,14 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_pbx(_a) (_a)->pbx
 #    define pbx_channel_hangupcause(_a) (_a)->hangupcause
 #    define pbx_channel_set_hangupcause(_a,_b) (_a)->hangupcause = _b
+#    define pbx_channel_softhangup(_a) (_a)->_softhangup
 #    define pbx_channel_context(_a) (_a)->context
 #    define pbx_channel_nativeformats(_a) (_a)->nativeformats
 #    define pbx_channel_exten(_a) (_a)->exten
 #    define pbx_channel_macroexten(_a) (_a)->macroexten
 #    define pbx_channel_macrocontext(_a) (_a)->macrocontext
 #    define pbx_channel_dialcontext(_a) (_a)->dialcontext
+#    define pbx_channel_callgroup(_a) (_a)->callgroup
+#    define pbx_channel_masq(_a) (_a)->masq
+#    define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
 #endif

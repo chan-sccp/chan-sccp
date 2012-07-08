@@ -455,7 +455,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
  *
  * \see static int find_channel_by_group(PBX_CHANNEL_TYPE *c, void *data) from features.c
  */
-static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE * c, void *data)
+static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE * ast, void *data)
 {
 	sccp_line_t *line = data;
 	int res;
@@ -463,13 +463,13 @@ static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE * c, void *data)
 	struct ast_str *callgroup_buf = pbx_str_alloca(256);
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(256);
 
-	sccp_print_group(callgroup_buf, sizeof(callgroup_buf), c->callgroup);
+	sccp_print_group(callgroup_buf, sizeof(callgroup_buf), pbx_channel_callgroup(ast));
 	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), line->pickupgroup);
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) callgroup=%s, pickupgroup=%s, state %d\n", c->name, callgroup_buf ? pbx_str_buffer(callgroup_buf) : "", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "", c->_state);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) callgroup=%s, pickupgroup=%s, state %d\n", pbx_channel_name(ast), callgroup_buf ? pbx_str_buffer(callgroup_buf) : "", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "", pbx_channel_state(ast));
 
-	res = !c->pbx && ((line->pickupgroup & c->callgroup) || (line->pickupgroup == c->callgroup)) && ((c->_state & AST_STATE_RINGING) || (c->_state & AST_STATE_RING)) && !pbx_test_flag(pbx_channel_flags(c), AST_FLAG_ZOMBIE) && !c->masq;
+	res = !pbx_channel_pbx(ast) && ((line->pickupgroup & pbx_channel_callgroup(ast)) || (line->pickupgroup == pbx_channel_callgroup(ast))) && ((pbx_channel_state(ast) & AST_STATE_RINGING) || (pbx_channel_state(ast) & AST_STATE_RING)) && !pbx_test_flag(pbx_channel_flags(ast), AST_FLAG_ZOMBIE) && !pbx_channel_masq(ast);
 
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) res %d\n", c->name, res);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) res %d\n", pbx_channel_name(ast), res);
 
 	return res;
 }
@@ -542,11 +542,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 		if (PBX(feature_pickup) (c, target)) {
 			res = 0;
-			original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+			pbx_channel_set_hangupcause(original, AST_CAUSE_NORMAL_CLEARING);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 		} else {
 			res = 1;
-			original->hangupcause = AST_CAUSE_CALL_REJECTED;
+			pbx_channel_set_hangupcause(original, AST_CAUSE_CALL_REJECTED);
 		}
 		sccp_channel_answer(d, c);
 		pbx_channel_unlock(target);
@@ -698,11 +698,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
-#ifdef CS_AST_HAS_AST_STRING_FIELD
-	pbx_string_field_set(c->owner, call_forward, l->trnsfvm);
-#else
-	sccp_copy_string(c->owner->call_forward, l->trnsfvm, sizeof(c->owner->call_forward));
-#endif
+        PBX(setChannelCallForward)(c, l->trnsfvm);
 	instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 	pbx_setstate(c->owner, AST_STATE_BUSY);
@@ -991,7 +987,7 @@ static void *sccp_feat_meetme_thread(void *data)
 	}
 	// SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE
 	if (c && c->owner) {
-		if (!c->owner->context || sccp_strlen_zero(c->owner->context)) {
+		if (!pbx_channel_context(c->owner) || sccp_strlen_zero(pbx_channel_context(c->owner))) {
 			d = sccp_device_release(d);
 			return NULL;
 		}
@@ -1007,7 +1003,8 @@ static void *sccp_feat_meetme_thread(void *data)
 			snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, app->defaultMeetmeOption);
 		}
 
-		sccp_copy_string(context, c->owner->context, sizeof(context));
+		sccp_copy_string(context, pbx_channel_context(c->owner), sizeof(context));
+		
 		snprintf(ext, sizeof(ext), "sccp_meetme_temp_conference_%ud", eid);
 
 		if (!pbx_exists_extension(NULL, context, ext, 1, NULL)) {
@@ -1015,7 +1012,8 @@ static void *sccp_feat_meetme_thread(void *data)
 			pbx_log(LOG_WARNING, "SCCP: create extension exten => %s,%d,%s(%s)\n", ext, 1, app->appName, meetmeopts);
 		}
 
-		sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
+//		sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
+		PBX(setChannelExten)(c, ext);
 
 		c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1369,11 +1367,12 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 
 }
 
-int checkMonCond(void *v);
+//int checkMonCond(void *v);
 
 /*!
  * \brief Check Monitor Condition
  */
+/*
 int checkMonCond(void *v)
 {
 	PBX_CHANNEL_TYPE *c = (PBX_CHANNEL_TYPE *) v;
@@ -1383,7 +1382,7 @@ int checkMonCond(void *v)
 
 	return (c->monitor) ? 1 : 0;
 }
-
+*/
 /*!
  * \brief Feature Monitor
  * \param device SCCP Device

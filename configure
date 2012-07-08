@@ -22666,44 +22666,44 @@ $as_echo "processing..." >&6; }
 
 			# process version number
 			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
-				#if test `echo $pbx_ver | sed "s/^\(${x}\).*$/\1/g"` == "$x";then
-				if echo $pbx_ver|grep -q "$x"; then
-					if test ${#x} -gt 3; then		# 1.10
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
-					elif test ${#x} -lt 3; then		# 1.10
-						ASTERISK_VER_GROUP="110"
-					else
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
-					fi
+				if test $version_found == 0; then
+                                        if echo $pbx_ver|grep -q "$x"; then
+                                                if test ${#x} -gt 3; then		# 1.10
+                                                        ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
+                                                elif test ${#x} -lt 3; then		# 1.10
+                                                        ASTERISK_VER_GROUP="110"
+                                                else
+                                                        ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
+                                                fi
 
 
-					if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
-						REALTIME_USEABLE=0
-					fi
+                                                if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
+                                                        REALTIME_USEABLE=0
+                                                fi
 
-					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
-					#ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					#else
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					#fi
-					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+                                                #ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+                                                ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+                                                #ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+                                                #if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #else
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #fi
+                                                #ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 
-					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
-					ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					#else
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					#fi
+                                                #ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+                                                ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+                                                ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+                                                #if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #else
+                                                        ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #fi
 
-					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+                                                #ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 
-					version_found=1
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'" >&5
+                                                version_found=1
+                                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'" >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'" >&6; }
 
 
@@ -22725,60 +22725,29 @@ _ACEOF
 
 
 
-					case "${ASTERISK_VER_GROUP}" in
-						102)
+                                                case "${ASTERISK_VER_GROUP}" in
+                                                        102)
 $as_echo "#define ASTERISK_CONF_1_2 1" >>confdefs.h
 ;;
-						104)
+                                                        104)
 $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 ;;
-						106)
+                                                        106)
 $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 ;;
-						108)
+                                                        108)
 $as_echo "#define ASTERISK_CONF_1_8 1" >>confdefs.h
 ;;
-						110)
+                                                        110)
 $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 ;;
-						*)
+                                                        *)
 $as_echo "#define ASTERISK_CONF 0" >>confdefs.h
 ;;
-					esac
+                                                esac
 
-					if  test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ; then
-						echo ""
-
-case $TERM in
-       #   for the most important terminal types we directly know the sequences
-       xterm|xterm*|vt220|vt220*)
-               T_MD=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
-               T_ME=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
-        ;;
-       vt100|vt100*|cygwin)
-               T_MD=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
-               T_ME=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
-       ;;
-       *)
-               T_MD=''
-               T_ME=''
-       ;;
-esac
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
-$as_echo "" >&6; }
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&5
-$as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
-
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
-						echo ""
-						echo "Please install a higher version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
-					if  test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ; then
-						echo ""
+                                                if  test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ; then
+                                                        echo ""
 
 case $TERM in
        #   for the most important terminal types we directly know the sequences
@@ -22800,14 +22769,46 @@ $as_echo "" >&6; }
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&5
 $as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
 
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
-						echo ""
-						echo "Please install a lower version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
+                                                        echo ""
+                                                        echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
+                                                        echo ""
+                                                        echo "Please install a higher version of asterisk"
+                                                        echo ""
+                                                        echo ""
+                                                        exit 255
+                                                fi
+                                                if  test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ; then
+                                                        echo ""
+
+case $TERM in
+       #   for the most important terminal types we directly know the sequences
+       xterm|xterm*|vt220|vt220*)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
+        ;;
+       vt100|vt100*|cygwin)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
+       ;;
+       *)
+               T_MD=''
+               T_ME=''
+       ;;
+esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&5
+$as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
+
+                                                        echo ""
+                                                        echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
+                                                        echo ""
+                                                        echo "Please install a lower version of asterisk"
+                                                        echo ""
+                                                        echo ""
+                                                        exit 255
+                                                fi
+                                        fi
 				fi
 			done
 			if test $version_found == 0; then
@@ -22839,6 +22840,7 @@ if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
 $as_echo_n "checking version in asterisk/ast_version.h... " >&6; }
 				ASTERISK_VER_GROUP=112
 				ASTERISK_VERSION_NUMBER=11200
+				ASTERISK_REPOS_LOCATION=TRUNK
 
 
 $as_echo "#define ASTERISK_CONF_1_12 1" >>confdefs.h
@@ -22850,7 +22852,7 @@ $as_echo "#define ASTERISK_VERSION_NUMBER 11200" >>confdefs.h
 $as_echo "#define ASTERISK_VERSION_GROUP 112" >>confdefs.h
 
 
-$as_echo "#define ASTERISK_REPOS_LOCATION \"trunk\"" >>confdefs.h
+$as_echo "#define ASTERISK_REPOS_LOCATION \"TRUNK\"" >>confdefs.h
 
 
 				version_found=1

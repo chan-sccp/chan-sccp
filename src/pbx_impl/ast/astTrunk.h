@@ -39,12 +39,16 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    undef pbx_channel_pbx
 #    undef pbx_channel_hangupcause
 #    undef pbx_channel_set_hangupcause
+#    undef pbx_channel_softhangup
 #    undef pbx_channel_context
 #    undef pbx_channel_nativeformats
 #    undef pbx_channel_exten
 #    undef pbx_channel_macroexten
 #    undef pbx_channel_macrocontext
 #    undef pbx_channel_dialcontext
+#    undef pbx_channel_callgroup
+#    undef pbx_channel_masq
+#    undef pbx_channel_setwhentohangup_tv
 
 #    define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
 #    define pbx_channel_flags(_a) ast_channel_flags(_a)
@@ -54,12 +58,17 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    define pbx_channel_pbx(_a) ast_channel_pbx(_a)
 #    define pbx_channel_hangupcause(_a) ast_channel_hangupcause(_a)
 #    define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
+#    define pbx_channel_softhangup(_a) ast_channel_softhangup_internal_flag(_a)
+#    define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
 #    define pbx_channel_context(_a) ast_channel_context(_a)
 #    define pbx_channel_nativeformats(_a) ast_channel_nativeformats(_a)
 #    define pbx_channel_exten(_a) ast_channel_exten(_a)
 #    define pbx_channel_macroexten(_a) ast_channel_macroexten(_a)
 #    define pbx_channel_macrocontext(_a) ast_channel_macrocontext(_a)
 #    define pbx_channel_dialcontext(_a) ast_channel_dialcontext(_a)
+#    define pbx_channel_callgroup(_a) ast_channel_callgroup(_a)
+#    define pbx_channel_masq(_a) ast_channel_masq(_a)
+#    define pbx_channel_setwhentohangup_tv(_a, _b) ast_channel_setwhentohangup_tv(_a, _b)
 
 #    undef pbx_manager_register2
 #    define pbx_manager_register2(_a,_b,_c,_d,_e) ast_manager_register2(_a,_b,_c,ast_module_info->self,_d,_e)
