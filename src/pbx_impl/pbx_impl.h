@@ -63,6 +63,8 @@ struct sccp_pbx_cb {
 	void (*const setChannelMacroExten) (const sccp_channel_t *channel, const char *linkedid);
 	const char *(*const getChannelMacroContext) (const sccp_channel_t * channel);
 	void (*const setChannelMacroContext) (const sccp_channel_t *channel, const char *linkedid);
+	const char *(*const getChannelCallForward) (const sccp_channel_t * channel);
+	void (*const setChannelCallForward) (const sccp_channel_t *channel, const char *linkedid);
 
 	/** get channel by name */
 	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE **pbx_channel);

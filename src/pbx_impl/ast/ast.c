@@ -31,38 +31,24 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 #if ASTERISK_VERSION_NUMBER >= 10800
 	struct ast_channel_iterator *iter = ast_channel_iterator_all_new();
 	PBX_CHANNEL_TYPE *res = NULL;
-
-//      if (!target) {
-//              if (!(iter = ast_channel_iterator_all_new())) {
-//                      return NULL;
-//              }
-//      }
-//      target = ast_channel_iterator_next(iter);
-//      if (!ast_channel_unref(target)) {
-//              ast_channel_lock(target);
-//              return target;
-//      } else {
-//              if (iter) {
-//                      ast_channel_iterator_destroy(iter);
-//              }
-//              return NULL;
-//      }
+	PBX_CHANNEL_TYPE *tmp = NULL;
 
 	/* no target given, so just start iteration */
 	if (!target) {
-		res = ast_channel_iterator_next(iter);
+		tmp = ast_channel_iterator_next(iter);
 	} else {
 		/* search for our target channel and use the next iteration value */
-		while ((res = ast_channel_iterator_next(iter)) != NULL) {
-			if (res == target) {
-				res = ast_channel_iterator_next(iter);
+		while ((tmp = ast_channel_iterator_next(iter)) != NULL) {
+			if (tmp == target) {
+				tmp = ast_channel_iterator_next(iter);
 				break;
 			}
 		}
 	}
 
-	if (res) {
-		ast_channel_unref(res);
+	if (tmp) {
+		res = tmp;
+		tmp = ast_channel_unref(tmp);
 		ast_channel_lock(res);
 	}
 	ast_channel_iterator_destroy(iter);
@@ -86,6 +72,7 @@ PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *,
 #else
 	boolean_t matched = FALSE;
 	PBX_CHANNEL_TYPE *pbx_channel = NULL;
+	PBX_CHANNEL_TYPE *tmp = NULL;
 
 	struct ast_channel_iterator *iter = NULL;
 
@@ -93,24 +80,26 @@ PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *,
 		return NULL;
 	}
 
-	for (; iter && (pbx_channel = ast_channel_iterator_next(iter)); ast_channel_unref(pbx_channel)) {
-		pbx_channel_lock(pbx_channel);
-		if (is_match(pbx_channel, data)) {
+	for (; iter && (tmp = ast_channel_iterator_next(iter)); tmp = ast_channel_unref(tmp)) {
+		pbx_channel_lock(tmp);
+		if (is_match(tmp, data)) {
 			matched = TRUE;
 			break;
 		}
-		pbx_channel_unlock(pbx_channel);
+		pbx_channel_unlock(tmp);
 	}
 
 	if (iter) {
 		ast_channel_iterator_destroy(iter);
 	}
 
-	if (matched)
+	if (matched) {
+		pbx_channel = tmp;
+		tmp = ast_channel_unref(tmp);
 		return pbx_channel;
-	else
+	} else {
 		return NULL;
-
+	}
 #endif
 }
 
@@ -438,13 +427,7 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 #endif
 {
 	sccp_channel_t * c = NULL;
-#ifndef CS_AST_HAS_TECH_PVT
-//      if (!(NULL == pbx_channel) && !(NULL == pbx_channel->type) && !strncasecmp(pbx_channel->type, "SCCP", 4)) {
-	if (!strncasecmp(pbx_channel->type, "SCCP", 4)) {
-#else
-//      if (!(NULL == pbx_channel) && !(NULL == pbx_channel->tech) && !(NULL == pbx_channel->tech->type) && !strncasecmp(pbx_channel->tech->type, "SCCP", 4)) {
-	if (!strncasecmp(pbx_channel->tech->type, "SCCP", 4)) {
-#endif
+	if (!strncasecmp(CS_AST_CHANNEL_PVT_TYPE(pbx_channel), "SCCP", 4)) {
 		if ((c = CS_AST_CHANNEL_PVT(pbx_channel))){
 #if DEBUG
 			return sccp_refcount_retain(c, filename, lineno, func);
@@ -465,22 +448,22 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 		return FALSE;
 	}
 
-        if (pbx_test_flag(ast_channel, AST_FLAG_ZOMBIE)) {
-		pbx_log (LOG_NOTICE, "%s: channel is a zombie. exiting hangup\n", ast_channel->name ? ast_channel->name : "--");
+        if (pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_ZOMBIE)) {
+		pbx_log (LOG_NOTICE, "%s: channel is a zombie. exiting hangup\n", pbx_channel_name(ast_channel) ? pbx_channel_name(ast_channel) : "--");
                 return FALSE;
         }
         
-        if(ast_test_flag(ast_channel, AST_FLAG_BLOCKING)){
+        if(pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)){
 		ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
 		return TRUE;
         }
 
-	if (ast_channel->_softhangup != 0) {
-        	if (AST_STATE_DOWN == ast_channel->_state) {
-	                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. exiting hangup\n", ast_channel->name);
+	if (pbx_channel_softhangup(ast_channel) != 0) {
+        	if (AST_STATE_DOWN == pbx_channel_state(ast_channel)) {
+	                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. exiting hangup\n", pbx_channel_name(ast_channel));
         	        return FALSE;
 		} else {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. forcing queued_hangup.\n", ast_channel->name);
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: channel is already being hungup. forcing queued_hangup.\n", pbx_channel_name(ast_channel));
 			pbx_hangup_type = PBX_QUEUED_HANGUP;
 			pbx_log (LOG_NOTICE, "set to PBX_QUEUED_HANGUP\n");
 		}
@@ -489,28 +472,28 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
         /* check for briged pbx_channel */
 	PBX_CHANNEL_TYPE *pbx_bridged_channel = NULL;
 	if ((pbx_bridged_channel = CS_AST_BRIDGED_CHANNEL(ast_channel))) {
-		if (pbx_bridged_channel->_softhangup != 0) {
-			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: bridge peer: %s is already hanging up. exiting hangup.\n", ast_channel->name, pbx_bridged_channel->name);
+		if (pbx_channel_softhangup(pbx_bridged_channel) != 0) {
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: bridge peer: %s is already hanging up. exiting hangup.\n", pbx_channel_name(ast_channel), pbx_channel_name(pbx_bridged_channel));
 			return FALSE;
 		}
 	}
 
 	switch (pbx_hangup_type) {
 		case PBX_HARD_HANGUP:
-			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", ast_channel->name);
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
 			ast_indicate(ast_channel, -1);
 			ast_hangup(ast_channel);
 			break;
 		case PBX_SOFT_HANGUP:
-			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", pbx_channel_name(ast_channel));
 			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
 			break;
 		case PBX_QUEUED_HANGUP:
-			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", pbx_channel_name(ast_channel));
 #if ASTERISK_VERSION_NUMBER < 10601
-			ast_channel->whentohangup = 0;
+			pbx_channel_setwhentohangup_tv(ast_channel, 0);
 #else
-			ast_channel->whentohangup = ast_tvnow();
+			pbx_channel_setwhentohangup_tv(ast_channel, ast_tvnow());
 #endif
 // 			ast_channel->_state=AST_STATE_DOWN;
 			ast_queue_hangup(ast_channel);
@@ -528,31 +511,31 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	}
 
 
-	if ((ast_channel->_softhangup & AST_SOFTHANGUP_APPUNLOAD) != 0) {
-		ast_channel->hangupcause = AST_CAUSE_CHANNEL_UNACCEPTABLE;
+	if ((pbx_channel_softhangup(ast_channel) & AST_SOFTHANGUP_APPUNLOAD) != 0) {
+		pbx_channel_set_hangupcause(ast_channel, AST_CAUSE_CHANNEL_UNACCEPTABLE);
 		ast_softhangup(ast_channel, AST_SOFTHANGUP_APPUNLOAD);
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", ast_channel->name);
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", pbx_channel_name(ast_channel));
 		return TRUE;
 	}
 
 	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(ast_channel);
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s, hangupcause: %d\n", 
-		ast_channel->name, 
-		ast_channel->pbx ? "yes" : "no", 
-		pbx_state2str(ast_channel->_state), 
+		pbx_channel_name(ast_channel), 
+		pbx_channel_pbx(ast_channel) ? "yes" : "no", 
+		pbx_state2str(pbx_channel_state(ast_channel)), 
 		sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", 
-		ast_test_flag(ast_channel, AST_FLAG_BLOCKING) ? "yes" : "no", 
-		ast_channel->_softhangup ? "yes" : "no", 
-		ast_channel->hangupcause);
+		pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", 
+		pbx_channel_softhangup(ast_channel) ? "yes" : "no", 
+		pbx_channel_hangupcause(ast_channel));
 
 // 	if (AST_STATE_UP != ast_channel->_state) {
 // 		if ( NULL == sccp_channel) {    // prevent dereferecing null pointer
-// 			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
+// 			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", pbx_channel_name(ast_channel));
 // 			ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
 // 			return TRUE;
 //                 } else {
-// 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: checking ast/sccp state\n", ast_channel->name);
+// 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: checking ast/sccp state\n", pbx_channel_name(ast_channel));
 // 			if (            (AST_STATE_DIALING == ast_channel->_state && SCCP_CHANNELSTATE_PROGRESS != sccp_channel->state) ||
 // 					SCCP_CHANNELSTATE_OFFHOOK == sccp_channel->state ||
 // 					SCCP_CHANNELSTATE_INVALIDNUMBER == sccp_channel->state
@@ -584,20 +567,20 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 // 	    pbx_log (LOG_NOTICE, "PBX %p\n",ast_channel->pbx);
 // 		sccp_wrapper_asterisk_forceHangup(ast_channel, PBX_QUEUED_HANGUP);
 // 	}
-	if(ast_test_flag(ast_channel, AST_FLAG_BLOCKING)){
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", ast_channel->name);
+	if(pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)){
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock\n", pbx_channel_name(ast_channel));
 		ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
 		
-	} else if (AST_STATE_UP == ast_channel->_state){
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", ast_channel->name);
+	} else if (AST_STATE_UP == pbx_channel_state(ast_channel)){
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", pbx_channel_name(ast_channel));
 #if ASTERISK_VERSION_NUMBER < 10601
-		ast_channel->whentohangup = 0;
+		pbx_channel_setwhentohangup_tv(ast_channel, 0);
 #else
-		ast_channel->whentohangup = ast_tvnow();
+		pbx_channel_setwhentohangup_tv(ast_channel, ast_tvnow());
 #endif
 		ast_queue_hangup(ast_channel);
 	} else {
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", ast_channel->name);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
 		ast_hangup(ast_channel);
 	}
 	

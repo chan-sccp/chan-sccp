@@ -2412,6 +2412,7 @@ DECLARE_PBX_CHANNEL_STRGET(macroexten)
 DECLARE_PBX_CHANNEL_STRSET(macroexten)
 DECLARE_PBX_CHANNEL_STRGET(macrocontext)
 DECLARE_PBX_CHANNEL_STRSET(macrocontext)
+DECLARE_PBX_CHANNEL_STRGET(call_forward)
 
 static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
 {
@@ -2420,10 +2421,24 @@ static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * ch
        }
 }
 
+static void sccp_wrapper_asterisk_set_channel_call_forward(const sccp_channel_t * channel, const char *new_call_forward)
+{
+       if (channel->owner) {
+               pbx_string_field_set(channel->owner, call_forward, new_call_forward);
+       }
+}
+
 static void sccp_wrapper_asterisk_set_channel_name(const sccp_channel_t * channel, const char *new_name)
 {
        if (channel->owner) {
                pbx_string_field_set(channel->owner, name, new_name);
+       }
+}
+
+static void sccp_wrapper_asterisk_set_channel_call_forward(const sccp_channel_t * channel, const char *new_call_forward)
+{
+       if (channel->owner) {
+               pbx_string_field_set(channel->owner, call_forward, new_call_forward);
        }
 }
 
@@ -2702,6 +2717,8 @@ sccp_pbx_cb sccp_pbx = {
 	setChannelMacroExten:		sccp_wrapper_asterisk_set_channel_macroexten,
 	getChannelMacroContext:		sccp_wrapper_asterisk_get_channel_macrocontext,
 	setChannelMacroContext:		sccp_wrapper_asterisk_set_channel_macrocontext,
+	getChannelCallForward:		sccp_wrapper_asterisk_get_channel_call_forward,
+	setChannelCallForward:		sccp_wrapper_asterisk_set_channel_call_forward,
 
 	getChannelAppl:			sccp_wrapper_asterisk_get_channel_appl,
 	getChannelState:		sccp_wrapper_asterisk_get_channel_state,
@@ -2803,6 +2820,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.setChannelMacroExten		= sccp_wrapper_asterisk_set_channel_macroexten,
 	.getChannelMacroContext		= sccp_wrapper_asterisk_get_channel_macrocontext,
 	.setChannelMacroContext		= sccp_wrapper_asterisk_set_channel_macrocontext,
+	.getChannelCallForward		= sccp_wrapper_asterisk_get_channel_call_forward,
+	.setChannelCallForward		= sccp_wrapper_asterisk_set_channel_call_forward,
 
 	.getChannelAppl			= sccp_wrapper_asterisk_get_channel_appl,
 	.getChannelState		= sccp_wrapper_asterisk_get_channel_state,
