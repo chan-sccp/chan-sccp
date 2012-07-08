@@ -2423,7 +2423,7 @@ static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * ch
 static void sccp_wrapper_asterisk_set_channel_name(const sccp_channel_t * channel, const char *new_name)
 {
        if (channel->owner) {
-               pbx_string_field_set(channel->owner, name, "%s", new_name);
+               pbx_string_field_set(channel->owner, name, new_name);
        }
 }
 
