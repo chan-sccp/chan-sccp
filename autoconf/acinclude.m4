@@ -15,9 +15,13 @@ AC_DEFUN([CS_CHECK_PBX], [
     found_callweaver="no";
     echo "Search Path: $PBX_PATH"
     for dir in $PBX_PATH; do
-        checkdir="$dir"
-        echo -n "checking $dir for PBX Installation..."
-        if test -f "$dir/include/asterisk/asterisk.h"; then
+        if test "${dir::1}" == "."; then 
+	        checkdir="`pwd`/$dir"
+	else
+		checkdir="$dir"
+	fi
+        echo -n "checking $checkdir for PBX Installation..."
+        if test -f "$checkdir/include/asterisk/asterisk.h"; then
             echo "yes"
             found_pbx="yes";
             found_asterisk="yes";
@@ -29,7 +33,7 @@ AC_DEFUN([CS_CHECK_PBX], [
             CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
             break;
         fi
-        if test -f "$dir/include/asterisk.h"; then
+        if test -f "$checkdir/include/asterisk.h"; then
             echo "yes"
             found_pbx="yes";
             found_asterisk="yes";
@@ -41,7 +45,7 @@ AC_DEFUN([CS_CHECK_PBX], [
             CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
             break
         fi
-        if test -f "$dir/include/callweaver/callweaver.h"; then
+        if test -f "$checkdir/include/callweaver/callweaver.h"; then
             echo "yes"
             found_pbx="yes";
             found_callweaver="yes";
@@ -53,7 +57,7 @@ AC_DEFUN([CS_CHECK_PBX], [
             CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
             break;
         fi
-        if test -f "$dir/include/callweaver.h"; then
+        if test -f "$checkdir/include/callweaver.h"; then
             echo "yes"
             found_pbx="yes";
             found_callweaver="yes";
