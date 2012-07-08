@@ -13,3 +13,9 @@
 /doxygen.warn
 /libtool
 src/.libs/
+contrib/gen_sccpconf/.deps/
+contrib/gen_sccpconf/Makefile
+src/config.h.bak
+src/config.h.in.bak
+.*~
+*~

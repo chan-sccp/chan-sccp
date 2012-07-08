@@ -256,12 +256,24 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_bridge_depart ast_bridge_depart
 #    define pbx_hangup ast_hangup
 #    define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
+#    define pbx_clear_flag ast_clear_flag
+#    define pbx_set_flag ast_set_flag
+#    define pbx_test_flag ast_test_flag
+#    define pbx_set2_flag ast_set2_flag
 
 // Fixes for asterisk-trunk, need to sorted later
 #    define pbx_channel_flags(_a) _a					/* needed in asterisk trunk */
-#    define pbx_clear_flag(_a,_b) ast_clear_flag(pbx_channel_flags(_a),_b)
-#    define pbx_set_flag(_a,_b) ast_set_flag(pbx_channel_flags(_a),_b)
-#    define pbx_test_flag(_a,_b) ast_test_flag(pbx_channel_flags(_a),_b)
-#    define pbx_set2_flag ast_set2_flag
-#    define pbx_channel_uniqueid(x) (x)->owner->uniqueid
+#    define pbx_channel_uniqueid(_a) (_a)->uniqueid
+#    define pbx_channel_call_forward(_a) (_a)->call_forward
+#    define pbx_channel_appl(_a) (_a)->appl
+#    define pbx_channel_state(_a) (_a)->_state
+#    define pbx_channel_pbx(_a) (_a)->pbx
+#    define pbx_channel_hangupcause(_a) (_a)->hangupcause
+#    define pbx_channel_set_hangupcause(_a,_b) (_a)->hangupcause = _b
+#    define pbx_channel_context(_a) (_a)->context
+#    define pbx_channel_nativeformats(_a) (_a)->nativeformats
+#    define pbx_channel_exten(_a) (_a)->exten
+#    define pbx_channel_macroexten(_a) (_a)->macroexten
+#    define pbx_channel_macrocontext(_a) (_a)->macrocontext
+#    define pbx_channel_dialcontext(_a) (_a)->dialcontext
 #endif

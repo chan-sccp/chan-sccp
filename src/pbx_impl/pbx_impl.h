@@ -45,18 +45,30 @@ struct sccp_pbx_cb {
 	int (*const requestHangup) (PBX_CHANNEL_TYPE * channel);
 	int (*const forceHangup) (PBX_CHANNEL_TYPE * channel, pbx_hangup_type_t pbx_hangup_type);
 	sccp_extension_status_t(*const extension_status) (const sccp_channel_t * channel);
+	
 	const char *(*const getChannelName) (const sccp_channel_t *channel);
+	void (*const setChannelName) (const sccp_channel_t *channel, const char *name);
 	const char *(*const getChannelUniqueID) (const sccp_channel_t *channel);
+	const char *(*const getChannelAppl) (const sccp_channel_t *channel);
 	const char *(*const getChannelExten) (const sccp_channel_t *channel);
 	void (*const setChannelExten) (const sccp_channel_t *channel, const char *exten);
+	const char *(*const getChannelLinkedId) (const sccp_channel_t * channel);
+	void (*const setChannelLinkedId) (const sccp_channel_t *channel, const char *linkedid);
+	const enum ast_channel_state (*const getChannelState) (const sccp_channel_t *channel);
+	const struct ast_pbx *(*const getChannelPbx) (const sccp_channel_t *channel);
+	void (*const setChannelTechPVT) (const sccp_channel_t *channel);
+	const char *(*const getChannelContext) (const sccp_channel_t * channel);
+	void (*const setChannelContext) (const sccp_channel_t *channel, const char *linkedid);
+	const char *(*const getChannelMacroExten) (const sccp_channel_t * channel);
+	void (*const setChannelMacroExten) (const sccp_channel_t *channel, const char *linkedid);
+	const char *(*const getChannelMacroContext) (const sccp_channel_t * channel);
+	void (*const setChannelMacroContext) (const sccp_channel_t *channel, const char *linkedid);
 
 	/** get channel by name */
 	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE **pbx_channel);
 	boolean_t(*const getRemoteChannel) (const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel);
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
 	
-	const char *(*const getChannelLinkedId) (const sccp_channel_t * channel);
-	void (*const setChannelLinkedId) (const sccp_channel_t *channel, const char *linkedid);
 
 	int (*const set_nativeAudioFormats) (const sccp_channel_t * channel, skinny_codec_t codec[], int length);
 	int (*const set_nativeVideoFormats) (const sccp_channel_t * channel, uint32_t);

@@ -340,19 +340,27 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 #    if ASTERISK_VERSION_NUMBER >= 10400
 							      "dialcontext   = %s\n"
 #    endif
-							      "pbx           = %s\n" "state         = %d\n" "--------------------------------------------\n", pickupexten, !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, target->macroexten ? target->macroexten : "(NULL)", target->exten ? target->exten : "(NULL)", target->macrocontext ? target->macrocontext : "(NULL)", target->context ? target->context : "(NULL)",
+							      "pbx           = %s\n" "state         = %d\n" "--------------------------------------------\n", 
+							      pickupexten, 
+							      !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", 
+							      AST_STATE_RINGING, 
+							      AST_STATE_RING, 
+							      pbx_channel_macroexten(target) ? pbx_channel_macroexten(target) : "(NULL)", 
+							      pbx_channel_exten(target) ? pbx_channel_exten(target) : "(NULL)", 
+							      pbx_channel_macrocontext(target) ? pbx_channel_macrocontext(target) : "(NULL)",
+							      pbx_channel_context(target)? pbx_channel_context(target) : "(NULL)",
 #    if ASTERISK_VERSION_NUMBER >= 10400
-							      target->dialcontext ? target->dialcontext : "(NULL)",
+							      pbx_channel_dialcontext(target) ? pbx_channel_dialcontext(target) : "(NULL)",
 #    endif
-							      target->pbx ? "on" : "off", target->_state);
+							      pbx_channel_pbx(target) ? "on" : "off", pbx_channel_state(target));
 
-		if ((!strcasecmp(target->macroexten, pickupexten) || !strcasecmp(target->exten, pickupexten)) &&
+		if ((!strcasecmp(pbx_channel_macrocontext(target), pickupexten) || !strcasecmp(pbx_channel_exten(target), pickupexten)) &&
 #    if ASTERISK_VERSION_NUMBER < 10400
-		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->context, d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->macrocontext, d->pickupcontext)) : 1)) &&
+		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_context(target), d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_macrocontext(target), d->pickupcontext)) : 1)) &&
 #    else
-		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->dialcontext, d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(target->macrocontext, d->pickupcontext)) : 1)) &&
+		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_dialcontext(target), d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_macrocontext(target), d->pickupcontext)) : 1)) &&
 #    endif
-		    (!target->pbx && (target->_state == AST_STATE_RINGING || target->_state == AST_STATE_RING))) {
+		    (!pbx_channel_pbx(target) && (pbx_channel_state(target) == AST_STATE_RINGING || pbx_channel_state(target) == AST_STATE_RING))) {
 
 			tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
 
@@ -366,9 +374,9 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 					PBX(get_callerid_number) (tmpChannel, &number);
 			}
 
-			pbx_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s')\n", tmp->name, name ? name : "", number ? number : "");
+			pbx_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s')\n", pbx_channel_name(tmp), name ? name : "", number ? number : "");
 			tmp = NULL;
-			original->hangupcause = AST_CAUSE_CALL_REJECTED;
+			pbx_channel_set_hangupcause(original, AST_CAUSE_CALL_REJECTED);
 
 			res = 0;
 			if (d->pickupmodeanswer) {
@@ -384,10 +392,10 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 
 			if (res == 0) {
 				if ((res = pbx_channel_masquerade(target, c->owner))) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", PBX(getChannelName) (c), target->name);
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", PBX(getChannelName) (c), pbx_channel_name(target));
 					res = -1;
 				} else {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", target->name, PBX(getChannelName) (c));
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", pbx_channel_name(target), PBX(getChannelName) (c));
 					c->calltype = SKINNY_CALLTYPE_INBOUND;
 					sccp_channel_set_callingparty(c, name, number);
 					if (d->pickupmodeanswer) {
@@ -417,7 +425,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 						}
 						sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 					}
-					original->hangupcause = AST_CAUSE_NORMAL_CLEARING;
+					pbx_channel_set_hangupcause(original, AST_CAUSE_NORMAL_CLEARING);
 					pbx_setstate(original, AST_STATE_DOWN);
 				}
 				pbx_channel_unlock(target);
@@ -459,7 +467,7 @@ static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE * c, void *data)
 	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), line->pickupgroup);
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) callgroup=%s, pickupgroup=%s, state %d\n", c->name, callgroup_buf ? pbx_str_buffer(callgroup_buf) : "", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "", c->_state);
 
-	res = !c->pbx && ((line->pickupgroup & c->callgroup) || (line->pickupgroup == c->callgroup)) && ((c->_state & AST_STATE_RINGING) || (c->_state & AST_STATE_RING)) && !pbx_test_flag(c, AST_FLAG_ZOMBIE) && !c->masq;
+	res = !c->pbx && ((line->pickupgroup & c->callgroup) || (line->pickupgroup == c->callgroup)) && ((c->_state & AST_STATE_RINGING) || (c->_state & AST_STATE_RING)) && !pbx_test_flag(pbx_channel_flags(c), AST_FLAG_ZOMBIE) && !c->masq;
 
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) res %d\n", c->name, res);
 
@@ -507,7 +515,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	target = PBX(findChannelByCallback) (pbx_find_channel_by_group, l, FALSE);
 	if (target) {
 		/* create channel for pickup */
-		if (!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) || pbx_test_flag(c->owner, AST_FLAG_ZOMBIE)) {
+		if (!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) || pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
 			c = sccp_channel_allocate(l, d);
 			if (!c) {
 				pbx_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
