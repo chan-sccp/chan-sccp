@@ -1222,7 +1222,8 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	/* create/set linkid */
 	char linkedid[50];
 	sprintf(linkedid, "SCCP::%-10d", channel->callid);
-	PBX(setChannelLinkedId) (channel, linkedid);
+	if (PBX(setChannelLinkedId))
+		PBX(setChannelLinkedId) (channel, linkedid);
 	/* done */
 
 	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !channel->rtp.audio.rtp) {
