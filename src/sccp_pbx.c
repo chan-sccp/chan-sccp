@@ -117,9 +117,9 @@ int sccp_pbx_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 	char suffixedNumber[255] = { '\0' };					/*!< For saving the digittimeoutchar to the logs */
 	boolean_t hasSession = FALSE;
 
-	if (!sccp_strlen_zero(ast->call_forward)) {
+	if (!sccp_strlen_zero(pbx_channel_call_forward(ast))) {
 		PBX(queue_control)(ast, -1);					/* Prod Channel if in the middle of a call_forward instead of proceed */
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", ast->call_forward);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", pbx_channel_call_forward(ast));
 		return 0;
 	}									// CS_AST_CHANNEL_HAS_CID
 
@@ -515,8 +515,8 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 
 		PBX_CHANNEL_TYPE *br = NULL, *astForwardedChannel = c->parentChannel->owner;
 
-		if (c->owner->appl) {
-			sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) %s bridging to dialplan application %s\n", c->currentDeviceId, PBX(getChannelName) (c), c->owner->appl);
+		if (PBX(getChannelAppl)(c)) {
+			sccp_log((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) %s bridging to dialplan application %s\n", c->currentDeviceId, PBX(getChannelName) (c), PBX(getChannelAppl)(c));
 		}
 
 		/* at this point we do not have a pointer to ou bridge channel so we search for it -MC */
@@ -536,9 +536,9 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n", pbx_channel_name(br), pbx_channel_name(astForwardedChannel));
 			if (!pbx_channel_masquerade(astForwardedChannel, br)) {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(astForwardedChannel));
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", pbx_state2str(c->owner->_state));
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(br->_state));
+				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
+				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
+				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(pbx_channel_state(br)));
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 			} else {
 				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
@@ -546,19 +546,19 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			}
 		} else {
 			/* we have no bridge and can not make a masquerade -> end call */
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(c->owner->_state));
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(astForwardedChannel->_state));
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 
-			if (c->owner->_state == AST_STATE_RING && astForwardedChannel->_state == AST_STATE_DOWN && c->owner->pbx) {
-				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", c->owner->pbx ? "yes" : "no");
-				astForwardedChannel->hangupcause = AST_CAUSE_CALL_REJECTED;
-				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
+			if (pbx_channel_state(c->owner) == AST_STATE_RING && pbx_channel_state(astForwardedChannel) == AST_STATE_DOWN && PBX(getChannelPbx)(c)) {
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", PBX(getChannelPbx)(c) ? "yes" : "no");
+				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_CALL_REJECTED);
+				//astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
 				pbx_queue_hangup(astForwardedChannel);
 			} else {
 				pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
-				astForwardedChannel->hangupcause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
-				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
+				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
+//				astForwardedChannel->_softhangup |= AST_SOFTHANGUP_DEV;
 				pbx_queue_hangup(astForwardedChannel);
 				sccp_channel_endcall(c);
 				res = -1;
@@ -708,13 +708,14 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 		return 0;
 	}
 
-	/* need to reset the exten, otherwise it would be set to s */
-	//! \todo we should move this
-	memset(&tmp->exten, 0, sizeof(tmp->exten));
 
 	//\todo should we move this to pbx implementation ? -MC
 	c->owner = tmp;
-	tmp->tech_pvt = c;
+
+	/* need to reset the exten, otherwise it would be set to s */
+	PBX(setChannelExten)(c, "");
+
+	PBX(setChannelTechPVT)(c);
 	
 	sccp_channel_updateChannelCapability(c);
 	PBX(set_nativeAudioFormats) (c, c->preferences.audio, 1);
@@ -722,15 +723,13 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 	
 	//! \todo check locking
 	/* \todo we should remove this shit. */
+	char tmpName[StationMaxNameSize];
+	snprintf(tmpName, sizeof(tmpName), "SCCP/%s-%08x", l->name, c->callid);
+	PBX(setChannelName)(c, tmpName);
 
-#    ifdef CS_AST_HAS_AST_STRING_FIELD
-	pbx_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
-#    else
-	snprintf(tmp->name, sizeof(tmp->name), "SCCP/%s-%08x", l->name, c->callid);
-#    endif									// CS_AST_HAS_AST_STRING_FIELD
 	pbx_jb_configure(tmp, &GLOB(global_jbconf));
 	// CS_AST_HAS_TECH_PVT
-	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
+//	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
 
 	// \todo: Bridge?
 	// \todo: Transfer?
@@ -784,7 +783,7 @@ int sccp_pbx_sched_dial(const void *data)
 {
 	sccp_channel_t *c = NULL;
 	if ((c = sccp_channel_retain((sccp_channel_t *) data))) {
-		if (c->owner && !c->owner->pbx) {
+		if (c->owner && !PBX(getChannelPbx)(c)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
 		}
@@ -869,7 +868,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 	c->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 
 	/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
-	if (c->owner && c->owner->pbx) {
+	if (PBX(getChannelPbx)(c)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (!sccp_strlen_zero(c->dialedNumber)) {
@@ -1086,7 +1085,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 		v = v->next;
 	}
 
-	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
+//	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
+	PBX(setChannelExten)(c, shortenedNumber);
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 
 	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
@@ -1104,7 +1104,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
 	if (!sccp_strlen_zero(shortenedNumber) && !pbx_check_hangup(chan)
-	    && pbx_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num)) {
+	    && pbx_exists_extension(chan, pbx_channel_context(chan), shortenedNumber, 1, l->cid_num)) {
 		/* found an extension, let's dial it */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
@@ -1127,7 +1127,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #    ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
-				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", (chan) ? pbx_channel_name(chan) : "(null)", (chan && chan->uniqueid) ? chan->uniqueid : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *)&c->callid : "(null)");
+				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", PBX(getChannelName)(c), PBX(getChannelUniqueID)(c), "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *)&c->callid : "(null)");
 			}
 #    endif
 			break;
@@ -1136,7 +1136,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 
 		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x pbx_check_hangup(chan): %d\n", DEV_ID_LOG(d), l->name, c->callid, pbx_check_hangup(chan));
-		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, pbx_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ? "TRUE" : "FALSE");
+		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, pbx_exists_extension(chan, pbx_channel_context(chan), shortenedNumber, 1, l->cid_num) ? "TRUE" : "FALSE");
 		/* timeout and no extension match */
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
@@ -1205,7 +1205,7 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 */
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", PBX(getChannelName) (c), dest);
-	if (ast->_state == AST_STATE_RING) {
+	if (pbx_channel_state(ast) == AST_STATE_RING) {
 		//! \todo Blindtransfer needs to be implemented correctly
 
 /*

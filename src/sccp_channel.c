@@ -1356,9 +1356,9 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		/* do we need this ? -FS */
 #ifdef CS_AST_HAS_FLAG_MOH
 		pbx_bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner);
-		if (pbx_bridged_channel && pbx_test_flag(pbx_bridged_channel, AST_FLAG_MOH)) {
+		if (pbx_bridged_channel && pbx_test_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH)) {
 			PBX(moh_stop) (pbx_bridged_channel);							//! \todo use pbx impl
-			pbx_clear_flag(pbx_bridged_channel, AST_FLAG_MOH);
+			pbx_clear_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH);
 		}
 #endif
 //		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(channel->owner->_state), channel->owner->_state);

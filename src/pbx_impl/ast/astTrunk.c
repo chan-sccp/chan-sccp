@@ -2066,58 +2066,60 @@ static int sccp_wrapper_asterisk111_setOption(PBX_CHANNEL_TYPE *ast, int option,
 }
 #endif
 
-static const char *sccp_wrapper_asterisk111_getChannelLinkedId(const sccp_channel_t * channel)
-{
-	static const char *emptyLinkedId = "--no-linkedid--";
+#define DECLARE_PBX_CHANNEL_STRGET(_field) 									\
+static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel_t * channel)	 		\
+{														\
+	static const char *empty_channel_##_field = "--no-channel" #_field "--";					\
+	if (channel->owner) {											\
+		return ast_channel_##_field(channel->owner);							\
+	}													\
+	return empty_channel_##_field;										\
+}														\
+/*empty*/
+#define DECLARE_PBX_CHANNEL_STRSET(_field)									\
+static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char *##_field)	\
+{ 														\
+        if (channel->owner) {											\
+        	ast_channel_##_field##_set(channel->owner, ##_field);						\
+        }													\
+}														\
+/*empty*/
+DECLARE_PBX_CHANNEL_STRGET(name)
+DECLARE_PBX_CHANNEL_STRSET(name)
+DECLARE_PBX_CHANNEL_STRGET(uniqueid)
+DECLARE_PBX_CHANNEL_STRGET(appl)
+DECLARE_PBX_CHANNEL_STRGET(exten)
+DECLARE_PBX_CHANNEL_STRSET(exten)
+DECLARE_PBX_CHANNEL_STRGET(linkedid)
+DECLARE_PBX_CHANNEL_STRGETSET(linkedid)
+DECLARE_PBX_CHANNEL_STRGET(context)
+DECLARE_PBX_CHANNEL_STRSET(context)
+DECLARE_PBX_CHANNEL_STRGET(macroexten)
+DECLARE_PBX_CHANNEL_STRSET(macroexten)
+DECLARE_PBX_CHANNEL_STRGET(macrocontext)
+DECLARE_PBX_CHANNEL_STRSET(macrocontext)
 
+static const enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
+{
 	if (channel->owner) {
-		return channel->owner->linkedid;
+		return ast_channel_state(channel->owner);
 	}
-	return emptyLinkedId;
+	return 0;
 }
 
-static void sccp_wrapper_asterisk111_setChannelLinkedId(const sccp_channel_t * channel, const char *new_linkedid)
+static const struct ast_pbx *sccp_wrapper_asterisk_get_channel_pbx(const sccp_channel_t * channel)
 {
-       if (channel->owner) {
-               pbx_string_field_set(channel->owner, linkedid, new_linkedid);
-       }
-}
-
-static const char *sccp_wrapper_asterisk111_getChannelName(const sccp_channel_t * channel)
-{
-	static const char *emptyChannelName = "--no-channelname--";
-
 	if (channel->owner) {
-		return ast_channel_name(channel);
+		return ast_channel_pbx(channel->owner);
 	}
-	return emptyChannelName;
+	return NULL;
 }
 
-static const char *sccp_wrapper_asterisk111_getChannelUniqueID(const sccp_channel_t * channel)
+static void sccp_wrapper_asterisk_set_channel_tech_pvt(const sccp_channel_t * channel)
 {
-	static const char *emptyChannelUniqueID = "--no-channeluniqueid--";
-
 	if (channel->owner) {
-		return ast_channel_uniqueid(channel);
+		ast_channel_tech_pvt_set(channel->owner, channel);
 	}
-	return emptyChannelUniqueID;
-}
-
-static const char *sccp_wrapper_asterisk111_getChannelExten(const sccp_channel_t * channel)
-{
-	static const char *emptyChannelExten = "--no-channelexten--";
-
-	if (channel->owner) {
-		return ast_channel_exten(channel);
-	}
-	return emptyChannelExten;
-}
-
-static void sccp_wrapper_asterisk110_setChannelExten(const sccp_channel_t * channel, const char *exten)
-{ 
-        if (channel-owner) {
-        	ast_channel_exten_set(channel->owner, exten);
-        }
 }
 
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE *ast, int subclass, const char *data, int datalen)
@@ -2286,12 +2288,24 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelByName:		sccp_wrapper_asterisk111_getChannelByName,
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
 	getChannelByCallback:		NULL,
-	getChannelLinkedId:		sccp_wrapper_asterisk111_getChannelLinkedId,
-	setChannelLinkedId:		sccp_wrapper_asterisk111_setChannelLinkedId,
-	getChannelName:			sccp_wrapper_asterisk111_getChannelName,
-	getChannelUniqueID:		sccp_wrapper_asterisk111_getChannelUniqueID,
-	getChannelExten:		sccp_wrapper_asterisk111_getChannelExten,
-	setChannelExten:		sccp_wrapper_asterisk111_setChannelExten,
+
+	getChannelLinkedId:		sccp_wrapper_asterisk_get_channel_linkedid,
+	setChannelLinkedId:		NULL,
+	getChannelName:			sccp_wrapper_asterisk_get_channel_name,
+	getChannelUniqueID:		sccp_wrapper_asterisk_get_channel_uniqueid,
+	getChannelExten:		sccp_wrapper_asterisk_get_channel_exten,
+	setChannelExten:		sccp_wrapper_asterisk_set_channel_exten,
+	getChannelContext:		sccp_wrapper_asterisk_get_channel_context,
+	setChannelContext:		sccp_wrapper_asterisk_set_channel_context,
+	getChannelMacroExten:		sccp_wrapper_asterisk_get_channel_macroexten,
+	setChannelMacroExten:		sccp_wrapper_asterisk_set_channel_macroexten,
+	getChannelMacroContext:		sccp_wrapper_asterisk_get_channel_macrocontext,
+	setChannelMacroContext:		sccp_wrapper_asterisk_set_channel_macrocontext,
+
+	getChannelAppl:			sccp_wrapper_asterisk_get_channel_appl,
+	getChannelState:		sccp_wrapper_asterisk_get_channel_state,
+	getChannelPbx:			sccp_wrapper_asterisk_get_channel_pbx,
+	setChannelTechPVT:		sccp_wrapper_asterisk_set_channel_tech_pvt,
 
 	set_nativeAudioFormats:		sccp_wrapper_asterisk111_setNativeAudioFormats,
 	set_nativeVideoFormats:		sccp_wrapper_asterisk111_setNativeVideoFormats,
@@ -2375,12 +2389,25 @@ struct sccp_pbx_cb sccp_pbx = {
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
-	.getChannelLinkedId		= sccp_wrapper_asterisk111_getChannelLinkedId,
-	.setChannelLinkedId		= sccp_wrapper_asterisk111_setChannelLinkedId,
-	.getChannelName			= sccp_wrapper_asterisk111_getChannelName,
-	.getChannelUniqueID		= sccp_wrapper_asterisk111_getChannelUniqueID,
-	.getChannelExten		= sccp_wrapper_asterisk111_getChannelExten,
-	.setChannelExten		= sccp_wrapper_asterisk111_setChannelExten,
+
+	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,
+	.setChannelLinkedId		= NULL,
+	.getChannelName			= sccp_wrapper_asterisk_get_channel_name,
+	.setChannelName			= sccp_wrapper_asterisk_set_channel_name,
+	.getChannelUniqueID		= sccp_wrapper_asterisk_get_channel_uniqueid,
+	.getChannelExten		= sccp_wrapper_asterisk_get_channel_exten,
+	.setChannelExten		= sccp_wrapper_asterisk_set_channel_exten,
+	.getChannelContext		= sccp_wrapper_asterisk_get_channel_context,
+	.setChannelContext		= sccp_wrapper_asterisk_set_channel_context,
+	.getChannelMacroExten		= sccp_wrapper_asterisk_get_channel_macroexten,
+	.setChannelMacroExten		= sccp_wrapper_asterisk_set_channel_macroexten,
+	.getChannelMacroContext		= sccp_wrapper_asterisk_get_channel_macrocontext,
+	.setChannelMacroContext		= sccp_wrapper_asterisk_set_channel_macrocontext,
+
+	.getChannelAppl			= sccp_wrapper_asterisk_get_channel_appl,
+	.getChannelState		= sccp_wrapper_asterisk_get_channel_state,
+	.getChannelPbx			= sccp_wrapper_asterisk_get_channel_pbx,
+	.setChannelTechPVT		= sccp_wrapper_asterisk_set_channel_tech_pvt,
 
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk111_checkHangup,

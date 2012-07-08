@@ -2129,7 +2129,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
 
 			// Overlap Dialing should set display too -FS
-			if (channel->state == SCCP_CHANNELSTATE_DIALING && channel->owner && channel->owner->pbx) {
+			if (channel->state == SCCP_CHANNELSTATE_DIALING && PBX(getChannelPbx)(channel)) {
 				/* we shouldn't start pbx another time */
 				sccp_pbx_senddigit(channel, resp);
 				channel = sccp_channel_release(channel);

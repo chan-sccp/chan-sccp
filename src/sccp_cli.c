@@ -769,7 +769,8 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		memset(&cap_buf, 0, sizeof(cap_buf));
 
 		if (channel && channel->owner) {
-			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), channel->owner->nativeformats);
+//			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), channel->owner->nativeformats);
+			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 		}
 
 		sccp_linedevices_t *linedevice;
@@ -1054,7 +1055,7 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(Device,		s,	16,	d ? d->id : "(unknown)")				\
 		CLI_AMI_TABLE_FIELD(DeviceDescr,	s,	32,	d ? d->description : "(unknown)")			\
 		CLI_AMI_TABLE_FIELD(NumCalled,		s,	10,	channel->callInfo.calledPartyNumber)			\
-		CLI_AMI_TABLE_FIELD(PBX State,		s,	10,	(channel->owner) ? pbx_state2str(channel->owner->_state) : "(none)")	\
+		CLI_AMI_TABLE_FIELD(PBX State,		s,	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		s,	10,	sccp_indicate2str(channel->state))			\
 		CLI_AMI_TABLE_FIELD(ReadCodec,		s,	10,	codec2name(channel->rtp.audio.readFormat))		\
 		CLI_AMI_TABLE_FIELD(WriteCodec,		s,	10,	codec2name(channel->rtp.audio.writeFormat))

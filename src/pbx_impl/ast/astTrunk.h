@@ -33,14 +33,44 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 
 #    undef pbx_channel_uniqueid
 #    undef pbx_channel_flags
+#    undef pbx_channel_call_forward
+#    undef pbx_channel_appl
+#    undef pbx_channel_state
+#    undef pbx_channel_pbx
+#    undef pbx_channel_hangupcause
+#    undef pbx_channel_set_hangupcause
+#    undef pbx_channel_context
+#    undef pbx_channel_nativeformats
+#    undef pbx_channel_exten
+#    undef pbx_channel_macroexten
+#    undef pbx_channel_macrocontext
+#    undef pbx_channel_dialcontext
+
+#    define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
+#    define pbx_channel_flags(_a) ast_channel_flags(_a)
+#    define pbx_channel_call_forward(_a) ast_channel_call_forward(_a)
+#    define pbx_channel_appl(_a) ast_channel_appl(_a)
+#    define pbx_channel_state(_a) ast_channel_state(_a)
+#    define pbx_channel_pbx(_a) ast_channel_pbx(_a)
+#    define pbx_channel_hangupcause(_a) ast_channel_hangupcause(_a)
+#    define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
+#    define pbx_channel_context(_a) ast_channel_context(_a)
+#    define pbx_channel_nativeformats(_a) ast_channel_nativeformats(_a)
+#    define pbx_channel_exten(_a) ast_channel_exten(_a)
+#    define pbx_channel_macroexten(_a) ast_channel_macroexten(_a)
+#    define pbx_channel_macrocontext(_a) ast_channel_macrocontext(_a)
+#    define pbx_channel_dialcontext(_a) ast_channel_dialcontext(_a)
+
+#    undef pbx_manager_register2
+#    define pbx_manager_register2(_a,_b,_c,_d,_e) ast_manager_register2(_a,_b,_c,ast_module_info->self,_d,_e)
+
 #    undef CS_AST_CHANNEL_PVT
 #    undef CS_AST_CHANNEL_PVT_TYPE
 #    undef CS_AST_CHANNEL_PVT_CMP_TYPE
-#    define pbx_channel_uniqueid(x) ast_channel_uniqueid(x)
-#    define pbx_channel_flags(_a) ast_channel_flags(_a)
-#    define CS_AST_CHANNEL_PVT(x) ((sccp_channel_t*)ast_channel_tech_pvt(x))
-#    define CS_AST_CHANNEL_PVT_TYPE(x) ast_channel_tech(x)->type
-#    define CS_AST_CHANNEL_PVT_CMP_TYPE(x,y) !strncasecmp(CS_AST_CHANNEL_PVT_TYPE(x), y, strlen(y))
+
+#    define CS_AST_CHANNEL_PVT(_a) ((sccp_channel_t*)ast_channel_tech_pvt(_a))
+#    define CS_AST_CHANNEL_PVT_TYPE(_a) ast_channel_tech(_a)->type
+#    define CS_AST_CHANNEL_PVT_CMP_TYPE(_a,_b) !strncasecmp(CS_AST_CHANNEL_PVT_TYPE(_a), _b, strlen(_b))
 
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
