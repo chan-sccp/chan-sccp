@@ -2435,12 +2435,6 @@ static void sccp_wrapper_asterisk_set_channel_name(const sccp_channel_t * channe
        }
 }
 
-static void sccp_wrapper_asterisk_set_channel_call_forward(const sccp_channel_t * channel, const char *new_call_forward)
-{
-       if (channel->owner) {
-               pbx_string_field_set(channel->owner, call_forward, new_call_forward);
-       }
-}
 
 static const enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
 {
