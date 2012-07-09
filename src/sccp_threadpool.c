@@ -61,8 +61,8 @@ AST_MUTEX_DEFINE_STATIC(threadpool_mutex);									/* used to serialize queue ac
 /* Initialise thread pool */
 sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 {
-#ifndef CPU_COUNT
-	#warning CPU_COUNT not defined
+#ifndef CS_CPU_COUNT
+//	#warning CPU_COUNT not defined
 #endif	
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool\n");
 	sccp_threadpool_t *tp_p;
