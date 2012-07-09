@@ -15,7 +15,7 @@ AC_DEFUN([CS_CHECK_PBX], [
     found_callweaver="no";
     echo "Search Path: $PBX_PATH"
     for dir in $PBX_PATH; do
-        if test "${dir:0:1}" == "."; then 
+        if test "`echo $dir | cut -c1`" == "."; then 
 	        checkdir="`pwd`/$dir"
 	else
 		checkdir="$dir"
