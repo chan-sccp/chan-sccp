@@ -2128,7 +2128,7 @@ DECLARE_PBX_CHANNEL_STRSET(macrocontext)
 DECLARE_PBX_CHANNEL_STRGET(call_forward)
 DECLARE_PBX_CHANNEL_STRSET(call_forward)
 
-static const enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
+static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
 {
 	if (channel->owner) {
 		return ast_channel_state(channel->owner);

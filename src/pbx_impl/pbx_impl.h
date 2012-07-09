@@ -54,7 +54,7 @@ struct sccp_pbx_cb {
 	void (*const setChannelExten) (const sccp_channel_t *channel, const char *exten);
 	const char *(*const getChannelLinkedId) (const sccp_channel_t * channel);
 	void (*const setChannelLinkedId) (const sccp_channel_t *channel, const char *linkedid);
-	const enum ast_channel_state (*const getChannelState) (const sccp_channel_t *channel);
+	enum ast_channel_state (*const getChannelState) (const sccp_channel_t *channel);
 	const struct ast_pbx *(*const getChannelPbx) (const sccp_channel_t *channel);
 	void (*const setChannelTechPVT) (const sccp_channel_t *channel);
 	const char *(*const getChannelContext) (const sccp_channel_t * channel);

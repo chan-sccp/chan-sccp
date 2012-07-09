@@ -1958,7 +1958,7 @@ static void sccp_wrapper_asterisk_set_channel_call_forward(const sccp_channel_t 
        }
 }
 
-static const enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
+static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
 {
 	if (channel->owner) {
 		return channel->owner->_state;
