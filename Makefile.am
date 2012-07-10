@@ -38,7 +38,7 @@ if ENABLE_SVN2CL
 	  fi; \
 	fi
 else
-	svn log > ChangeLog
+	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog
 endif
 
 # Update doc/html/ChangeLog.html from SVN Log

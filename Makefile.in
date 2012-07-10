@@ -985,7 +985,7 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@              	--revision HEAD:$(CHANGELOG_OLDEST); \
 @ENABLE_SVN2CL_TRUE@	  fi; \
 @ENABLE_SVN2CL_TRUE@	fi
-@ENABLE_SVN2CL_FALSE@	svn log > ChangeLog
+@ENABLE_SVN2CL_FALSE@	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog
 
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
