@@ -45,7 +45,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 static int sccp_wrapper_asterisk110_channel_read(PBX_CHANNEL_TYPE *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE *ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel);
-boolean_t sccp_wrapper_asterisk110_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 boolean_t sccp_wrapper_asterisk110_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
@@ -717,30 +717,37 @@ static int sccp_wrapper_asterisk110_setNativeVideoFormats(const sccp_channel_t *
 	return 1;
 }
 
-boolean_t sccp_wrapper_asterisk110_allocPBXChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
+boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
-	*pbx_channel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, channel->line->cid_num, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+	sccp_line_t *line = NULL;
 
-	if (*pbx_channel == NULL)
+	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, channel->line->cid_num, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+
+	if ((*pbx_channel) == NULL) {
 		return FALSE;
+	}
 
 	if (!channel || !channel->line) {
 		return FALSE;
 	}
-	sccp_line_t *line = channel->line;
+	line = channel->line;
+
 
 	(*pbx_channel)->tech = &sccp_tech;
-	(*pbx_channel)->tech_pvt = &channel;
+	(*pbx_channel)->tech_pvt = channel;
+
+	memset((*pbx_channel)->exten, 0, sizeof((*pbx_channel)->exten));
+
 	sccp_copy_string((*pbx_channel)->context, line->context, sizeof((*pbx_channel)->context));
 
 	if (!sccp_strlen_zero(line->language))
-		ast_string_field_set(*pbx_channel, language, line->language);
+		ast_string_field_set((*pbx_channel), language, line->language);
 
 	if (!sccp_strlen_zero(line->accountcode))
-		ast_string_field_set(*pbx_channel, accountcode, line->accountcode);
+		ast_string_field_set((*pbx_channel), accountcode, line->accountcode);
 
 	if (!sccp_strlen_zero(line->musicclass))
-		ast_string_field_set(*pbx_channel, musicclass, line->musicclass);
+		ast_string_field_set((*pbx_channel), musicclass, line->musicclass);
 
 	if (line->amaflags)
 		(*pbx_channel)->amaflags = line->amaflags;
@@ -748,13 +755,15 @@ boolean_t sccp_wrapper_asterisk110_allocPBXChannel(const sccp_channel_t * channe
 		(*pbx_channel)->callgroup = line->callgroup;
 	if (line->pickupgroup)
 		(*pbx_channel)->pickupgroup = line->pickupgroup;
+
 	(*pbx_channel)->priority = 1;
+	(*pbx_channel)->adsicpe = AST_ADSI_UNAVAILABLE;
 
 	/** the the tonezone using language information */
-	if (!sccp_strlen_zero(line->language)) {
+	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);	/* this will core asterisk on hangup */
 	}
-	(*pbx_channel) = ast_channel_ref((*pbx_channel));
+	channel->owner = ast_channel_ref((*pbx_channel));
 
 	return TRUE;
 }
