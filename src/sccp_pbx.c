@@ -1135,7 +1135,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 	c->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 
 	/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
-	if (c->owner && c->owner->pbx) {
+	if (PBX(getChannelPbx)(c)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 		/* If there are any digits, send them instead of starting the PBX */
 		if (!sccp_strlen_zero(c->dialedNumber)) {
@@ -1352,7 +1352,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 		v = v->next;
 	}
 
-	sccp_copy_string(chan->exten, shortenedNumber, sizeof(chan->exten));
+	PBX(setChannelExten)(c, shortenedNumber);
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 
 	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
@@ -1370,7 +1370,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
 	if (!sccp_strlen_zero(shortenedNumber) && !pbx_check_hangup(chan)
-	    && pbx_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num)) {
+	    && pbx_exists_extension(chan, pbx_channel_context(chan), shortenedNumber, 1, l->cid_num)) {
 		/* found an extension, let's dial it */
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
@@ -1393,7 +1393,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #    ifdef CS_MANAGER_EVENTS
 			if (GLOB(callevents)) {
-				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", (chan) ? pbx_channel_name(chan) : "(null)", (chan && chan->uniqueid) ? chan->uniqueid : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *)&c->callid : "(null)");
+				manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", (chan) ? pbx_channel_name(chan) : "(null)", (chan) ? pbx_channel_uniqueid(chan) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *)&c->callid : "(null)");
 			}
 #    endif
 			break;
@@ -1402,7 +1402,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * c)
 
 		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x pbx_check_hangup(chan): %d\n", DEV_ID_LOG(d), l->name, c->callid, pbx_check_hangup(chan));
-		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, pbx_exists_extension(chan, chan->context, shortenedNumber, 1, l->cid_num) ? "TRUE" : "FALSE");
+		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, pbx_exists_extension(chan, pbx_channel_context(chan), shortenedNumber, 1, l->cid_num) ? "TRUE" : "FALSE");
 		/* timeout and no extension match */
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
