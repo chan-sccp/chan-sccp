@@ -374,7 +374,7 @@ AC_DEFUN([CS_WITH_CHANGELOG_OLDEST], [
 	AC_ARG_WITH(changelog-oldest,
 	    AC_HELP_STRING([--with-changelog-oldest=NUMBER], [Oldest revision to include in ChangeLog])
 	)
-	CHANGELOG_OLDEST=1021
+	CHANGELOG_OLDEST=3000
 	if test "x$with_changelog_oldest" != "x" ; then
 	  CHANGELOG_OLDEST=$with_changelog_oldest
 	fi
