@@ -1296,33 +1296,43 @@ static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * chan
 	return pbx_chan->cid.cid_pres;
 }
 
-static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
+static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 {
+	sccp_channel_t *c = NULL; 
 	int res=0;
-	sccp_channel_t *c = NULL;
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
 	
-	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
+        if (!sccp_strlen_zero(pbx_channel_call_forward(ast))) {
+        	PBX(queue_control)(ast, -1);                                    /* Prod Channel if in the middle of a call_forward instead of proceed */
+                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", pbx_channel_call_forward(ast));
+                return 0;
+        }
+                                                                	
+	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
+		pbx_log(LOG_WARNING, "SCCP: Asterisk request to call %s on channel: %s, but we don't have this channel!\n", dest, pbx_channel_name(ast));
 		return -1;
+	} else {
+		char *cid_name = NULL;
+		char *cid_number = NULL;
+
+		sccp_wrapper_asterisk16_callerid_name(c, &cid_name);
+		sccp_wrapper_asterisk16_callerid_number(c, &cid_number);
+
+		sccp_channel_set_callingparty(c, cid_name, cid_number);
+
+		if (cid_name) {
+			free(cid_name);
+		}
+
+		if (cid_number) {
+			free(cid_number);
+		}
+
+		res = sccp_pbx_call(c, dest, timeout);
+		c = sccp_channel_release(c);
+		return res;
 	}
-	char *cid_name = NULL;
-	char *cid_number = NULL;
-
-	sccp_wrapper_asterisk16_callerid_name(c, &cid_name);
-	sccp_wrapper_asterisk16_callerid_number(c, &cid_number);
-
-	sccp_channel_set_callingparty(c, cid_name, cid_number);
-
-	if (cid_name) {
-		free(cid_name);
-	}
-
-	if (cid_number) {
-		free(cid_number);
-	}
-
-	res = sccp_pbx_call(chan, addr, timeout);
-	c = sccp_channel_release(c);
-	return res;
 }
 
 static int sccp_wrapper_asterisk16_answer(PBX_CHANNEL_TYPE * chan)
