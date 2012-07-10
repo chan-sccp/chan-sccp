@@ -427,12 +427,7 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 #endif
 {
 	sccp_channel_t * c = NULL;
-//	if (CS_AST_CHANNEL_PVT_CMP_TYPE(pbx_channel, "SCCP")) {
-#ifndef CS_AST_HAS_TECH_PVT
-	if (pbx_channel && !strncasecmp(pbx_channel->type, "SCCP", 4)) {
-#else
-	if (pbx_channel && !strncasecmp(pbx_channel->tech->type, "SCCP", 4)) {
-#endif
+	if (CS_AST_CHANNEL_PVT_CMP_TYPE(pbx_channel, "SCCP")) {
 		if ((c = CS_AST_CHANNEL_PVT(pbx_channel))){
 #if DEBUG
 			return sccp_refcount_retain(c, filename, lineno, func);
@@ -444,7 +439,6 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 			return NULL;
 		}
 	} else {
-		pbx_log (LOG_ERROR, "Channel is not of type SCCP\n");
 		return NULL;
 	}
 }
