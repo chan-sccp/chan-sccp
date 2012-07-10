@@ -684,18 +684,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 		return 0;
 	}
 
-#if ASTTRUNKNEW
-	//\todo should we move this to pbx implementation ? -MC
-	c->owner = tmp;
-
-	/* need to reset the exten, otherwise it would be set to s */
-	PBX(setChannelExten)(c, "");
-
-	PBX(setChannelTechPVT)(c);
-	
 	sccp_channel_updateChannelCapability(c);
 	PBX(set_nativeAudioFormats) (c, c->preferences.audio, 1);
-
 	
 	//! \todo check locking
 	/* \todo we should remove this shit. */
@@ -704,8 +694,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 	PBX(setChannelName)(c, tmpName);
 
 	pbx_jb_configure(tmp, &GLOB(global_jbconf));
-	// CS_AST_HAS_TECH_PVT
-//	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
 
 	// \todo: Bridge?
 	// \todo: Transfer?
@@ -742,67 +730,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c)
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
-#else
-	/* need to reset the exten, otherwise it would be set to s */
-	//! \todo we should move this
-	memset(&tmp->exten, 0, sizeof(tmp->exten));
 
-	//\todo should we move this to pbx implementation ? -MC
-	c->owner = tmp;
-	tmp->tech_pvt = c;
-	
-	sccp_channel_updateChannelCapability(c);
-	PBX(set_nativeAudioFormats) (c, c->preferences.audio, 1);
-
-	
-	//! \todo check locking
-	/* \todo we should remove this shit. */
-
-#    ifdef CS_AST_HAS_AST_STRING_FIELD
-	pbx_string_field_build(tmp, name, "SCCP/%s-%08x", l->name, c->callid);
-#    else
-	snprintf(tmp->name, sizeof(tmp->name), "SCCP/%s-%08x", l->name, c->callid);
-#    endif									// CS_AST_HAS_AST_STRING_FIELD
-	pbx_jb_configure(tmp, &GLOB(global_jbconf));
-	// CS_AST_HAS_TECH_PVT
-	tmp->adsicpe = AST_ADSI_UNAVAILABLE;
-
-	// \todo: Bridge?
-	// \todo: Transfer?
-	sccp_mutex_lock(&GLOB(usecnt_lock));
-	GLOB(usecnt)++;
-	sccp_mutex_unlock(&GLOB(usecnt_lock));
-
-	pbx_update_use_count();
-
-	if (PBX(set_callerid_number))
-		PBX(set_callerid_number) (c, c->callInfo.callingPartyNumber);
-
-	if (PBX(set_callerid_name))
-		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
-
-// 	if (d && d->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE) {
-	/** check for monitor request */
-	if(d 
-	    && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) 
-	    && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ){
-
-		sccp_feat_monitor(d, c->line, 0, c);
-		sccp_feat_changed(d, SCCP_FEATURE_MONITOR);
-	}
-
-	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
-	 * chan_sip dont like this do sdp processing */
-//      PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
-
-	// export sccp informations in asterisk dialplan
-	if (d) {
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", pbx_inet_ntoa(d->session->sin.sin_addr));
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(d->skinny_type));
-	}
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
-#endif
 	l = l ? sccp_line_release(l) : NULL;
 	d = d ? sccp_device_release(d) : NULL;
 	return 1;
