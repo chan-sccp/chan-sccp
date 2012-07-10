@@ -814,7 +814,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(const sccp_channel_t * channel
 	if (!sccp_strlen_zero(line->language)) {
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);	/* this will core asterisk on hangup */
 	}
-	ast_channel_ref((*pbx_channel));
+	(*pbx_channel) = ast_channel_ref((*pbx_channel));
 
 	return TRUE;
 }
@@ -1320,12 +1320,27 @@ EXITFUNC:
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
 
-static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout)
+static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 {
-	//! \todo change this handling and split pbx and sccp handling -MC
-	
-	
-	return sccp_pbx_call(chan, addr, timeout);
+	sccp_channel_t *c = NULL; 
+	int res=0;
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
+
+	if (!sccp_strlen_zero(pbx_channel_call_forward(ast))) {
+		PBX(queue_control)(ast, -1);					/* Prod Channel if in the middle of a call_forward instead of proceed */
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", pbx_channel_call_forward(ast));
+		return 0;
+	}
+
+	if (!(c  = get_sccp_channel_from_pbx_channel(ast))) {
+		pbx_log(LOG_WARNING, "SCCP: Asterisk request to call %s on channel: %s, but we don't have this channel!\n", dest, pbx_channel_name(ast));
+		return -1;
+	} else {
+		res  = sccp_pbx_call(c, dest, timeout);
+		c = sccp_channel_release(c);
+		return res;
+	}
 }
 
 static int sccp_wrapper_asterisk18_answer(PBX_CHANNEL_TYPE * chan)
