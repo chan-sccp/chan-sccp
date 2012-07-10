@@ -396,11 +396,11 @@ AC_DEFUN([CS_GET_VERSION], [
     SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
   elif test -d .git || test -d ../.git || test -d ../../.git;then
     SCCP_VERSION="`cat .version|cut -d_ -f1`"
-    if test "`git branch | awk '{print $2}' | sed 's/\n//g'`" = "master"; then
+dnl    if test "`git branch | awk '{print $2}' | sed 's/\n//g'`" = "master"; then
       SCCP_BRANCH="TRUNK"
-    else 
-      SCCP_BRANCH="`git branch | awk '{print $2}' | sed s/\n//g`"
-    fi
+dnl    else 
+dnl      SCCP_BRANCH="`git branch | awk '{print $2}' | sed s/\n//g`"
+dnl    fi
     SCCP_REVISION="`git describe --always`"
   elif test -f .version; then
     SCCP_BRANCH="`cat .version|cut -d_ -f2`"
