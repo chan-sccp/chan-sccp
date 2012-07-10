@@ -368,21 +368,14 @@ AC_DEFUN([CS_GET_VERSION], [
 #  AC_UNDEFINE("PACKAGE_STRING")
 #  AC_UNDEFINE("PACKAGE_TARNAME")
 #  AC_UNDEFINE("PACKAGE_VERSION")
-  if test -d .hg; then
-    SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print $3}'|tr "/" "\n"|tail -n2|head -n1`"
-    if grep -q "default" .hg/branch; then
-      SCCP_BRANCH="TRUNK"
-    else 
-      SCCP_BRANCH="`cat .hg/branch`"
-    fi
-    SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
-  elif test -d .svn;then
-    PARTS=`LANG=C svn info | grep URL | awk '{print $2;}'`
-    FOURTH_PART="`echo $PARTS|awk -F/ '{print $6}'`"
-    if test "${FOURTH_PART}" = "branches"; then
-      FIFTH_PART="`echo $PARTS|awk -F/ '{print $7}'`"
-      SCCP_VERSION="${FIFTH_PART}"
-      SCCP_BRANCH="${FIFTH_PART}"
+  SCCP_BRANCH="unknown"
+  SCCP_VERSION="unknown"
+  SCCP_REVISION="unknown"
+
+  if test -d .svn;then
+    if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
+        SCCP_VERSION=`basename $(svnpath)`
+        SCCP_BRANCH=`basename $(svnpath)`
     else
       if test -f .version; then
         SCCP_VERSION="`cat .version|cut -d_ -f1`"
@@ -393,17 +386,27 @@ AC_DEFUN([CS_GET_VERSION], [
       fi
     fi
     SCCP_REVISION="`svnversion . |cut -dM -f1`"
-  elif test -f .version;then
-    SCCP_VERSION="`cat .version|cut -d_ -f1`"
-    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
-    if test -f .revision;then
-      SCCP_REVISION="`cat .revision`"
+  elif test -d .hg; then
+    SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print $3}'|tr "/" "\n"|tail -n2|head -n1`"
+    if grep -q "default" .hg/branch; then
+      SCCP_BRANCH="TRUNK"
+    else 
+      SCCP_BRANCH="`cat .hg/branch`"
     fi
-  else
-    SCCP_VERSION="unknown"
-    SCCP_BRANCH=""
-    SCCP_REVISION=""
+    SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
+  elif test -d .git;then
+    SCCP_VERSION="`cat .version|cut -d_ -f1`"
+    if test "`git branch`" == "master"; then
+      SCCP_BRANCH="TRUNK"
+    else 
+      SCCP_BRANCH="`git branch | awk '{print $2}'`"
+    fi
+    SCCP_REVISION="`git describe --always`"
+  elif test -f .version; then
+    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+    SCCP_VERSION="`cat .version|cut -d_ -f1`"
   fi
+
   AC_DEFINE_UNQUOTED([SCCP_VERSION],  "${SCCP_VERSION}", [Define the SCCP Version])
   AC_DEFINE_UNQUOTED([SCCP_BRANCH],   "${SCCP_BRANCH}", [Define the SCCP Branch])
   AC_DEFINE_UNQUOTED([SCCP_REVISION], "${SCCP_REVISION}", [Define the SCCP Revision])

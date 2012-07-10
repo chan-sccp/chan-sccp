@@ -3231,21 +3231,14 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 #  AC_UNDEFINE("PACKAGE_STRING")
 #  AC_UNDEFINE("PACKAGE_TARNAME")
 #  AC_UNDEFINE("PACKAGE_VERSION")
-  if test -d .hg; then
-    SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print }'|tr "/" "\n"|tail -n2|head -n1`"
-    if grep -q "default" .hg/branch; then
-      SCCP_BRANCH="TRUNK"
-    else
-      SCCP_BRANCH="`cat .hg/branch`"
-    fi
-    SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
-  elif test -d .svn;then
-    PARTS=`LANG=C svn info | grep URL | awk '{print ;}'`
-    FOURTH_PART="`echo $PARTS|awk -F/ '{print }'`"
-    if test "${FOURTH_PART}" = "branches"; then
-      FIFTH_PART="`echo $PARTS|awk -F/ '{print }'`"
-      SCCP_VERSION="${FIFTH_PART}"
-      SCCP_BRANCH="${FIFTH_PART}"
+  SCCP_BRANCH="unknown"
+  SCCP_VERSION="unknown"
+  SCCP_REVISION="unknown"
+
+  if test -d .svn;then
+    if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
+        SCCP_VERSION=`basename $(svnpath)`
+        SCCP_BRANCH=`basename $(svnpath)`
     else
       if test -f .version; then
         SCCP_VERSION="`cat .version|cut -d_ -f1`"
@@ -3256,17 +3249,27 @@ ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
       fi
     fi
     SCCP_REVISION="`svnversion . |cut -dM -f1`"
-  elif test -f .version;then
-    SCCP_VERSION="`cat .version|cut -d_ -f1`"
-    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
-    if test -f .revision;then
-      SCCP_REVISION="`cat .revision`"
+  elif test -d .hg; then
+    SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print }'|tr "/" "\n"|tail -n2|head -n1`"
+    if grep -q "default" .hg/branch; then
+      SCCP_BRANCH="TRUNK"
+    else
+      SCCP_BRANCH="`cat .hg/branch`"
     fi
-  else
-    SCCP_VERSION="unknown"
-    SCCP_BRANCH=""
-    SCCP_REVISION=""
+    SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
+  elif test -d .git;then
+    SCCP_VERSION="`cat .version|cut -d_ -f1`"
+    if test "`git branch`" == "master"; then
+      SCCP_BRANCH="TRUNK"
+    else
+      SCCP_BRANCH="`git branch | awk '{print }'`"
+    fi
+    SCCP_REVISION="`git describe --always`"
+  elif test -f .version; then
+    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+    SCCP_VERSION="`cat .version|cut -d_ -f1`"
   fi
+
 
 cat >>confdefs.h <<_ACEOF
 #define SCCP_VERSION "${SCCP_VERSION}"
@@ -8082,13 +8085,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:8085: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:8088: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8088: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:8091: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8091: output\"" >&5)
+  (eval echo "\"\$as_me:8094: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -9282,7 +9285,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9285 "configure"' > conftest.$ac_ext
+  echo '#line 9288 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -12686,11 +12689,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12689: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12692: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12693: \$? = $ac_status" >&5
+   echo "$as_me:12696: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13025,11 +13028,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13028: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13031: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13032: \$? = $ac_status" >&5
+   echo "$as_me:13035: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13130,11 +13133,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13133: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13136: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13137: \$? = $ac_status" >&5
+   echo "$as_me:13140: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13185,11 +13188,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13188: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13191: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13192: \$? = $ac_status" >&5
+   echo "$as_me:13195: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15569,7 +15572,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15572 "configure"
+#line 15575 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15665,7 +15668,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15668 "configure"
+#line 15671 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17621,11 +17624,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17624: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17627: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17628: \$? = $ac_status" >&5
+   echo "$as_me:17631: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17720,11 +17723,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17723: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17726: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17727: \$? = $ac_status" >&5
+   echo "$as_me:17730: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17772,11 +17775,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17775: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17778: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17779: \$? = $ac_status" >&5
+   echo "$as_me:17782: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -19654,7 +19657,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 19657 "configure"
+#line 19660 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
