@@ -1835,13 +1835,14 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		struct sockaddr_in sin;
 		sin.sin_family = AF_INET;
-//		sin.sin_port = GLOB(bindaddr.sin_port);
-		sin.sin_port= rand()*1000;
+		sin.sin_port = GLOB(bindaddr.sin_port);
+//		sin.sin_port= rand()*1000;
 		sin.sin_addr = s->ourip;
 		ast_sockaddr_from_sin(&sock, &sin);
 	} else {
 		ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
 	}
+
 	c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
 	if (!c->rtp.audio.rtp) {
 		d = sccp_device_release(d);
@@ -1860,8 +1861,9 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 		}
 
 		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(c->rtp.audio.rtp, 0));
-		ast_channel_set_fd(c->owner, 1, ast_rtp_instance_fd(c->rtp.audio.rtp , 1));
+		ast_channel_set_fd(c->owner, 1, ast_rtp_instance_fd(c->rtp.audio.rtp, 1));
 		ast_queue_frame(c->owner, &ast_null_frame);
+		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_NAT, d->nat);
 	}
 
 	memset(&astCodecPref, 0, sizeof(astCodecPref));
@@ -1988,8 +1990,9 @@ static int sccp_wrapper_asterisk18_rtp_set_peer(const struct sccp_rtp *rtp, cons
 	ast_sockaddr_set_port(&ast_sockaddr, ntohs(new_peer->sin_port));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Tell asterisk to send rtp media to %s:%d\n", ast_sockaddr_stringify_host(&ast_sockaddr), ast_sockaddr_port(&ast_sockaddr));
 	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr);
-	if (nat_active)
+	if (nat_active) {
 		ast_rtp_instance_set_prop(rtp->rtp, AST_RTP_PROPERTY_NAT, 1);
+	}
 	return res;
 }
 
