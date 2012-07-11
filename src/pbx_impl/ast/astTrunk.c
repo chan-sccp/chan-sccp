@@ -1198,7 +1198,7 @@ static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE * ast, const char *des
 		pbx_log(LOG_WARNING, "SCCP: Asterisk request to call %s on channel: %s, but we don't have this channel!\n", dest, pbx_channel_name(ast));
 		return -1;
 	} else {
-		res  = sccp_pbx_call(c, dest, timeout);
+		res  = sccp_pbx_call(c, (char *)dest, timeout);
 		c = sccp_channel_release(c);
 		return res;
 	}
