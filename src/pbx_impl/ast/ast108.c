@@ -1832,7 +1832,16 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	s = d->session;
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection on %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
 
-	ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
+	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
+		struct sockaddr_in sin;
+		sin.sin_family = AF_INET;
+//		sin.sin_port = GLOB(bindaddr.sin_port);
+		sin.sin_port= rand()*1000;
+		sin.sin_addr = s->ourip;
+		ast_sockaddr_from_sin(&sock, &sin);
+	} else {
+		ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
+	}
 	c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
 	if (!c->rtp.audio.rtp) {
 		d = sccp_device_release(d);
@@ -1974,6 +1983,7 @@ static int sccp_wrapper_asterisk18_rtp_set_peer(const struct sccp_rtp *rtp, cons
 	struct ast_sockaddr ast_sockaddr;
 	int res;
 
+	((struct sockaddr_in *)new_peer)->sin_family = AF_INET;
 	ast_sockaddr_from_sin(&ast_sockaddr, new_peer);
 	ast_sockaddr_set_port(&ast_sockaddr, ntohs(new_peer->sin_port));
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Tell asterisk to send rtp media to %s:%d\n", ast_sockaddr_stringify_host(&ast_sockaddr), ast_sockaddr_port(&ast_sockaddr));
