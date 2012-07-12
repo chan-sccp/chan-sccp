@@ -131,6 +131,9 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_hotline_context "sccp_config_parse_hotline_context"
 #define sccp_config_parse_hotline_exten "sccp_config_parse_hotline_exten"
 #define sccp_config_parse_dnd "sccp_config_parse_dnd"
+#define sccp_config_parse_jbflags_enable "sccp_config_parse_jbflags_enable"
+#define sccp_config_parse_jbflags_force "sccp_config_parse_jbflags_force"
+#define sccp_config_parse_jbflags_log "sccp_config_parse_jbflags_log"
 
 #include "../../src/sccp_config_entries.h"
 

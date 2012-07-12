@@ -407,8 +407,7 @@ top_srcdir = @top_srcdir@
 
 AUTOMAKE_OPTS = gnu silent-rules
 EXTRA_DIST = .version tools conf
-#SUBDIRS 			= src doc contrib/gen_sccpconf
-SUBDIRS = src doc
+SUBDIRS = src doc contrib/gen_sccpconf
 ACLOCAL_AMFLAGS = -I autoconf
 AM_CPPFLAGS = $(LTDLINCL)
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
@@ -984,7 +983,7 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@              	--revision HEAD:$(CHANGELOG_OLDEST); \
 @ENABLE_SVN2CL_TRUE@	  fi; \
 @ENABLE_SVN2CL_TRUE@	fi
-@ENABLE_SVN2CL_FALSE@	svn log > ChangeLog
+@ENABLE_SVN2CL_FALSE@	svn log -r$(CHANGELOG_OLDEST):HEAD > ChangeLog
 
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
@@ -1029,7 +1028,6 @@ rpm:    release
 	fi
 
 release:
-	@rm -f ChangeLog
 	@$(MAKE) ChangeLog
 	@if [ "`grep -i $(SCCP_VERSION)_$(SCCP_BRANCH) NEWS`" == "" ]; then \
 	  echo >>NEWS;\
@@ -1042,6 +1040,8 @@ release:
 
 gen_sccpconf:
 	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
+
+#@rm -f ChangeLog
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

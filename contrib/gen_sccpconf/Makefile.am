@@ -11,7 +11,7 @@ AUTOMAKE_OPTS		= gnu silent-rules
 
 bin_PROGRAMS 		= gen_sccpconf
 
-gen_sccpconf_SOURCES 	= gen_sccpconf.c gen_sccpconf.h  @top_srcdir@/sccp_config_entries.h
+gen_sccpconf_SOURCES 	= gen_sccpconf.c gen_sccpconf.h  @top_srcdir@/src/sccp_config_entries.h
 
 gen_sccpconf_CPPFLAGS	= $(PBX_CPPFLAGS)
 gen_sccpconf_CFLAGS	= $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS)
