@@ -9,7 +9,8 @@
 
 include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
-EXTRA_DIST 			= .version tools conf
+#EXTRA_DIST 			= .version tools conf
+EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf
 #SUBDIRS 			= src doc contrib/gen_sccpconf
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf

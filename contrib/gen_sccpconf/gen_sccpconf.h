@@ -17,7 +17,9 @@
 #define ARRAY_LEN(a) (size_t) (sizeof(a) / sizeof(0[a]))
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
 
+#undef offsetof
 #define offsetof(T, F) 0
+#undef offsize
 #define offsize(T, F) 0
 
 /*
@@ -104,7 +106,8 @@ typedef struct SCCPConfigOption {
 	const size_t size;
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	const char *generic_parser;
-	const char *str2enum;							/*!< convert used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
+	const char *str2enumval;
+	const char *enumkeys;
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
