@@ -328,7 +328,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTS = gnu silent-rules
-gen_sccpconf_SOURCES = gen_sccpconf.c gen_sccpconf.h  @top_srcdir@/sccp_config_entries.h
+gen_sccpconf_SOURCES = gen_sccpconf.c gen_sccpconf.h  @top_srcdir@/src/sccp_config_entries.h
 gen_sccpconf_CPPFLAGS = $(PBX_CPPFLAGS)
 gen_sccpconf_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
 	$(PTHREAD_CFLAGS) $(GCLIBS) -D_REENTRANT -D_GNU_SOURCE \

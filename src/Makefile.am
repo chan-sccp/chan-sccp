@@ -17,7 +17,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		
                                 pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h		sccp_lock.h		\
                                 sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
                                 sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
-                                sccp_appfunctions.h	sccp_socket.h
+                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_entries.h	sccp_config_entries.h
                                 
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
@@ -29,17 +29,18 @@ chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicat
                                 
 EXTRA_chan_sccp_la_SOURCES = 
 if BUILD_AST
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast.h pbx_impl/ast/ast.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast102.h pbx_impl/ast/ast102.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1020x.h pbx_impl/ast/ast1020x.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast104.h pbx_impl/ast/ast104.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1040x.h pbx_impl/ast/ast1040x.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast106.h pbx_impl/ast/ast106.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1060x.h pbx_impl/ast/ast1060x.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h pbx_impl/ast/ast108.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1080x.h pbx_impl/ast/ast1080x.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h pbx_impl/ast/ast110.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1100x.h pbx_impl/ast/ast1100x.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/define.h
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast.h      pbx_impl/ast/ast.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast102.h   pbx_impl/ast/ast102.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1020x.h pbx_impl/ast/ast1020x.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast104.h   pbx_impl/ast/ast104.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1040x.h pbx_impl/ast/ast1040x.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast106.h   pbx_impl/ast/ast106.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1060x.h pbx_impl/ast/ast1060x.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h   pbx_impl/ast/ast108.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1080x.h pbx_impl/ast/ast1080x.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h   pbx_impl/ast/ast110.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1100x.h pbx_impl/ast/ast1100x.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/astTrunk.h pbx_impl/ast/astTrunk.c
 endif
 
