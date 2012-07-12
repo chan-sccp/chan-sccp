@@ -1,3 +1,14 @@
+2012-07-12  ddegroot
+
+	* [r3634] ChangeLog, Makefile.am, Makefile.in,
+	  autoconf/asterisk.m4, autoconf/extra.m4,
+	  backport_monitor_feature.patch[DEL], configure,
+	  contrib/backport_monitor_feature.patch[CPY],
+	  contrib/gen_sccpconf/Makefile.am,
+	  contrib/gen_sccpconf/Makefile.in,
+	  contrib/gen_sccpconf/gen_sccpconf.h, src/Makefile.am,
+	  src/Makefile.in: Fix make release procedures for V4.0 and trunk
+
 2012-06-30  ddegroot
 
 	* [r3584] conf/sccp.conf, doc/05_Features_V3.doc: Fix button
