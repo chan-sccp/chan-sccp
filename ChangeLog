@@ -1,5 +1,10 @@
 2012-07-12  ddegroot
 
+	* [r3635] ChangeLog, Makefile.am, Makefile.in,
+	  contrib/gen_sccpconf/gen_sccpconf.h, src/Makefile.in: Fix
+	  gen_sccpconf to compile against changed V4.1
+	  src/sccp_config_entries.h
+
 	* [r3634] contrib/gen_sccpconf/Makefile.am,
 	  contrib/gen_sccpconf/Makefile.in, src/Makefile.am,
 	  src/Makefile.in: Fix make release procedures for V4.0 and trunk

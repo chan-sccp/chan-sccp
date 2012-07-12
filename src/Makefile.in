@@ -46,13 +46,13 @@ host_triplet = @host@
 target_triplet = @target@
 #  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast102.h   pbx_impl/ast/ast102.c
 #  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1020x.h pbx_impl/ast/ast1020x.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast104.h   pbx_impl/ast/ast104.c
 #  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1040x.h pbx_impl/ast/ast1040x.c
 #  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1060x.h pbx_impl/ast/ast1060x.c
 #  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1080x.h pbx_impl/ast/ast1080x.c
 #  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1100x.h pbx_impl/ast/ast1100x.c
 @BUILD_AST_TRUE@am__append_1 = pbx_impl/ast/define.h \
 @BUILD_AST_TRUE@	pbx_impl/ast/ast.h pbx_impl/ast/ast.c \
-@BUILD_AST_TRUE@	pbx_impl/ast/ast104.h pbx_impl/ast/ast104.c \
 @BUILD_AST_TRUE@	pbx_impl/ast/ast106.h pbx_impl/ast/ast106.c \
 @BUILD_AST_TRUE@	pbx_impl/ast/ast108.h pbx_impl/ast/ast108.c \
 @BUILD_AST_TRUE@	pbx_impl/ast/ast110.h pbx_impl/ast/ast110.c \
@@ -125,8 +125,7 @@ am_chan_sccp_la_OBJECTS = chan_sccp_la-chan_sccp.lo \
 	chan_sccp_la-sccp_protocol.lo chan_sccp_la-sccp_socket.lo \
 	chan_sccp_la-sccp_threadpool.lo
 am__EXTRA_chan_sccp_la_SOURCES_DIST = pbx_impl/ast/define.h \
-	pbx_impl/ast/ast.h pbx_impl/ast/ast.c pbx_impl/ast/ast104.h \
-	pbx_impl/ast/ast104.c pbx_impl/ast/ast106.h \
+	pbx_impl/ast/ast.h pbx_impl/ast/ast.c pbx_impl/ast/ast106.h \
 	pbx_impl/ast/ast106.c pbx_impl/ast/ast108.h \
 	pbx_impl/ast/ast108.c pbx_impl/ast/ast110.h \
 	pbx_impl/ast/ast110.c pbx_impl/ast/astTrunk.h \
@@ -400,7 +399,7 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_hint.h sccp_lock.h sccp_refcount.h sccp_protocol.h \
 	sccp_dllists.h sccp_indicate.h sccp_management.h sccp_mwi.h \
 	common.h sccp_rtp.h sccp_appfunctions.h sccp_socket.h \
-	sccp_cli_entries.h sccp_config_entries.h chan_sccp.c \
+	sccp_cli_table.h sccp_config_entries.h chan_sccp.c \
 	sccp_channel.c sccp_device.c sccp_indicate.c sccp_pbx.c \
 	pbx_impl/pbx_impl.c sccp_softkeys.c sccp_featureButton.c \
 	sccp_line.c sccp_utils.c sccp_actions.c sccp_cli.c \
@@ -496,7 +495,6 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-ast.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-ast104.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-ast106.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-ast108.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-ast110.Plo@am__quote@
@@ -745,13 +743,6 @@ chan_sccp_la-ast.lo: pbx_impl/ast/ast.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pbx_impl/ast/ast.c' object='chan_sccp_la-ast.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-ast.lo `test -f 'pbx_impl/ast/ast.c' || echo '$(srcdir)/'`pbx_impl/ast/ast.c
-
-chan_sccp_la-ast104.lo: pbx_impl/ast/ast104.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-ast104.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-ast104.Tpo -c -o chan_sccp_la-ast104.lo `test -f 'pbx_impl/ast/ast104.c' || echo '$(srcdir)/'`pbx_impl/ast/ast104.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/chan_sccp_la-ast104.Tpo $(DEPDIR)/chan_sccp_la-ast104.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='pbx_impl/ast/ast104.c' object='chan_sccp_la-ast104.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-ast104.lo `test -f 'pbx_impl/ast/ast104.c' || echo '$(srcdir)/'`pbx_impl/ast/ast104.c
 
 chan_sccp_la-ast106.lo: pbx_impl/ast/ast106.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(chan_sccp_la_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-ast106.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-ast106.Tpo -c -o chan_sccp_la-ast106.lo `test -f 'pbx_impl/ast/ast106.c' || echo '$(srcdir)/'`pbx_impl/ast/ast106.c
