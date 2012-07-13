@@ -1663,6 +1663,12 @@ static boolean_t sccp_wrapper_asterisk16_checkHangup(const sccp_channel_t * chan
 	return (!res) ? TRUE : FALSE;
 }
 
+static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+{
+	ast_rtp_get_them(rtp, address);
+	return TRUE;
+}
+
 static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
 {
 	ast_rtp_get_us(rtp, address);
@@ -2415,7 +2421,7 @@ sccp_pbx_cb sccp_pbx = {
 	sched_wait:			sccp_wrapper_asterisk16_sched_wait,
 
 	/* rtp */
-	rtp_getPeer:			NULL,
+	rtp_getPeer:			sccp_wrapper_asterisk16_rtpGetPeer,
 	rtp_getUs:			sccp_wrapper_asterisk16_rtpGetUs,
 	rtp_setPeer:			sccp_wrapper_asterisk16_rtp_set_peer,
 	rtp_setWriteFormat:		sccp_wrapper_asterisk16_setWriteFormat,
@@ -2529,6 +2535,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_nativeVideoFormats 	= sccp_wrapper_asterisk16_setNativeVideoFormats,
 
 	/* rtp */
+	.rtp_getPeer			= sccp_wrapper_asterisk16_rtpGetPeer,
 	.rtp_getUs 			= sccp_wrapper_asterisk16_rtpGetUs,
 	.rtp_stop 			= sccp_wrapper_asterisk16_rtp_stop,
 	.rtp_audio_create 		= sccp_wrapper_asterisk16_create_audio_rtp,
