@@ -167,7 +167,6 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 /* Works correctly, but is using asterisk function outside of pbx_impl */
 	struct ast_sockaddr ast_sockaddr_source;
 	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
-	ast_sockaddr_to_sin(&ast_sockaddr_source, &source);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
 		device->id,
 		ast_sockaddr_stringify_host(&ast_sockaddr_source), 
