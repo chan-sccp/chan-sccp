@@ -966,12 +966,21 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		);
 /*This is what i would like to do, but it get the ip address wrong, but the port is correct */
 /*
-	struct sockaddr_in source;
-	PBX(rtp_getUs) (channel->rtp.audio.rtp, &source);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+	struct sockaddr_in peer;
+	PBX(rtp_getPeer) (channel->rtp.audio.rtp, &peer);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s) getPeer\n", 
 		DEV_ID_LOG(d), 
-		pbx_inet_ntoa(source.sin_addr),
-		ntohs(source.sin_port),
+		pbx_inet_ntoa(peer.sin_addr),
+		ntohs(peer.sin_port),
+		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
+		ntohs(channel->rtp.audio.phone_remote.sin_port),
+		d->nat ? "yes" : "no"
+		);
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s) rtp.audio.phone\n", 
+		DEV_ID_LOG(d), 
+		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr),
+		ntohs(channel->rtp.audio.phone.sin_port),
 		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
 		ntohs(channel->rtp.audio.phone_remote.sin_port),
 		d->nat ? "yes" : "no"
