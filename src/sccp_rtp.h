@@ -32,5 +32,6 @@ uint8_t sccp_rtp_get_sampleRate(skinny_codec_t codec);
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp);
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp);
 boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_in *us);
+boolean_t sccp_rtp_getPeer(const struct sccp_rtp *rtp, struct sockaddr_in *us);
 
 #endif										// __SCCP_RTP_H

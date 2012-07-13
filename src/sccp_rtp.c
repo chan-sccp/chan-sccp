@@ -142,6 +142,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
  */
 void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_in *new_peer)
 {
+	struct sockaddr_in source = {0};
 	sccp_device_t *device;
 	int nat = 0;
 
@@ -159,11 +160,47 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 	}
 
 	memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set phone address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+//	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set Phone RTP/UDP to '%s:%d'\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
-	//update pbx
 	device = sccp_channel_getDevice_retained(c);
 	nat = device ? device->nat : 0;
+
+/*IP WRONG, PORT RIGHT (Don't Understand why) , THis is what i would like to do*/
+/*
+	PBX(rtp_getUs) (rtp->rtp, &source);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		device->id,
+		pbx_inet_ntoa(source.sin_addr),
+		ntohs(source.sin_port),
+		pbx_inet_ntoa(new_peer->sin_addr), 
+		ntohs(new_peer->sin_port),
+		nat ? "yes" : "no");
+*/
+
+/* Works correctly, but is using asterisk function outside of pbx_impl */
+	struct ast_sockaddr ast_sockaddr_source;
+	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
+	ast_sockaddr_to_sin(&ast_sockaddr_source, &source);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		device->id,
+		ast_sockaddr_stringify_host(&ast_sockaddr_source), 
+		ast_sockaddr_port(&ast_sockaddr_source), 
+		pbx_inet_ntoa(new_peer->sin_addr), 
+		ntohs(new_peer->sin_port),
+		nat ? "yes" : "no");
+
+/* Conversion to using sin inplace -> Wrong Again. Just as a test/check  */
+/*
+	ast_sockaddr_to_sin(&ast_sockaddr_source, &source);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		device->id,
+		pbx_inet_ntoa(source.sin_addr),
+		ntohs(source.sin_port),
+		pbx_inet_ntoa(new_peer->sin_addr), 
+		ntohs(new_peer->sin_port),
+		nat ? "yes" : "no");
+*/
+	//update pbx
 	if (PBX(rtp_setPeer)) {
 		PBX(rtp_setPeer) (rtp, new_peer, nat);
 	}
@@ -292,9 +329,23 @@ boolean_t sccp_rtp_getUs(const struct sccp_rtp * rtp, struct sockaddr_in * us)
 {
 	if (rtp->rtp) {
 		PBX(rtp_getUs) (rtp->rtp, us);
+		return TRUE;
 	} else {
 		us = (struct sockaddr_in *)&rtp->phone_remote;
+//		return FALSE;
+		return TRUE;
 	}
+}
 
-	return TRUE;
+/*!
+ * \brief Retrieve Phone Socket Information
+ */
+boolean_t sccp_rtp_getPeer(const struct sccp_rtp * rtp, struct sockaddr_in * them)
+{
+	if (rtp->rtp) {
+		PBX(rtp_getPeer) (rtp->rtp, them);
+		return TRUE;
+	} else {
+		return FALSE;
+	}
 }
