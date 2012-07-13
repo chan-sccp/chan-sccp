@@ -1720,6 +1720,15 @@ static boolean_t sccp_wrapper_asterisk111_checkHangup(const sccp_channel_t * cha
 	return (!res) ? TRUE : FALSE;
 }
 
+static boolean_t sccp_wrapper_asterisk111_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+{
+	struct ast_sockaddr addr;
+
+	ast_rtp_instance_get_remote_address(rtp, &addr);
+	ast_sockaddr_to_sin(&addr, address);
+	return TRUE;
+}
+
 static boolean_t sccp_wrapper_asterisk111_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
 {
 	struct ast_sockaddr addr;
@@ -1742,15 +1751,26 @@ static boolean_t sccp_wrapper_asterisk111_getChannelByName(const char *name, PBX
 
 static int sccp_wrapper_asterisk111_rtp_set_peer(const struct sccp_rtp *rtp, const struct sockaddr_in *new_peer, int nat_active)
 {
-	struct ast_sockaddr ast_sockaddr;
+	struct ast_sockaddr ast_sockaddr_dest;
+	struct ast_sockaddr ast_sockaddr_source;
 	int res;
 
-	ast_sockaddr_from_sin(&ast_sockaddr, new_peer);
-	ast_sockaddr_set_port(&ast_sockaddr, ntohs(new_peer->sin_port));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Tell asterisk to send rtp media to %s:%d\n", ast_sockaddr_stringify_host(&ast_sockaddr), ast_sockaddr_port(&ast_sockaddr));
-	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr);
-	if (nat_active)
+	((struct sockaddr_in *)new_peer)->sin_family = AF_INET;
+	ast_sockaddr_from_sin(&ast_sockaddr_dest, new_peer);
+	ast_sockaddr_set_port(&ast_sockaddr_dest, ntohs(new_peer->sin_port));
+	
+	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr_dest);
+	
+	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: Tell PBX to send RTP/UDP media from '%s:%d' to '%s:%d' (NAT: %s)\n", 
+		ast_sockaddr_stringify_host(&ast_sockaddr_source), 
+		ast_sockaddr_port(&ast_sockaddr_source), 
+		ast_sockaddr_stringify_host(&ast_sockaddr_dest), 
+		ast_sockaddr_port(&ast_sockaddr_dest),
+		nat_active ? "yes" : "no");
+	if (nat_active) {
 		ast_rtp_instance_set_prop(rtp->rtp, AST_RTP_PROPERTY_NAT, 1);
+	}
 	return res;
 }
 
@@ -2373,7 +2393,7 @@ sccp_pbx_cb sccp_pbx = {
 	sched_wait:			sccp_wrapper_asterisk111_sched_wait,
 
 	/* rtp */
-	rtp_getPeer:			NULL,
+	rtp_getPeer:			sccp_wrapper_asterisk111_rtpGetPeer,
 	rtp_getUs:			sccp_wrapper_asterisk111_rtpGetUs,
 	rtp_setPeer:			sccp_wrapper_asterisk111_rtp_set_peer,
 	rtp_setWriteFormat:		sccp_wrapper_asterisk111_setWriteFormat,
@@ -2485,6 +2505,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_nativeVideoFormats 	= sccp_wrapper_asterisk111_setNativeVideoFormats,
 
 	/* rtp */
+	.rtp_getPeer			= sccp_wrapper_asterisk111_rtpGetPeer,
 	.rtp_getUs 			= sccp_wrapper_asterisk111_rtpGetUs,
 	.rtp_stop 			= sccp_wrapper_asterisk111_rtp_stop,
 	.rtp_audio_create 		= sccp_wrapper_asterisk111_create_audio_rtp,

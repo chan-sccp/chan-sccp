@@ -566,13 +566,21 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		break;
 
 	case AST_CONTROL_VIDUPDATE:						/* Request a video frame update */
+#ifdef CS_SCCP_VIDEO
 		if (c->rtp.video.rtp && d && sccp_device_isVideoSupported(d)) {
 			d->protocol->sendFastPictureUpdate(d, c);
 			res = 0;
 		} else
+#endif
 			res = -1;
 		break;
 #ifdef CS_AST_CONTROL_INCOMPLETE
+#    ifdef CS_EXPERIMENTAL
+	case AST_CONTROL_REDIRECTING:						/*!< Indication of Redirecting */
+		sccp_log("SCCP: Call is being forwarded\m");
+//		sccp_wrapper_asterisk18_update_redirecting(c, data, datalen)
+		break;
+#endif
 	case AST_CONTROL_INCOMPLETE:						/*!< Indication that the extension dialed is incomplete */
 		/* \todo implement dial continuation by:
 		 *  - display message incomplete number
@@ -1960,6 +1968,15 @@ static boolean_t sccp_wrapper_asterisk18_checkHangup(const sccp_channel_t * chan
 	return (!res) ? TRUE : FALSE;
 }
 
+static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+{
+	struct ast_sockaddr addr;
+
+	ast_rtp_instance_get_remote_address(rtp, &addr);
+	ast_sockaddr_to_sin(&addr, address);
+	return TRUE;
+}
+
 static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
 {
 	struct ast_sockaddr addr;
@@ -1982,14 +1999,23 @@ static boolean_t sccp_wrapper_asterisk18_getChannelByName(const char *name, PBX_
 
 static int sccp_wrapper_asterisk18_rtp_set_peer(const struct sccp_rtp *rtp, const struct sockaddr_in *new_peer, int nat_active)
 {
-	struct ast_sockaddr ast_sockaddr;
+	struct ast_sockaddr ast_sockaddr_dest;
+	struct ast_sockaddr ast_sockaddr_source;
 	int res;
 
 	((struct sockaddr_in *)new_peer)->sin_family = AF_INET;
-	ast_sockaddr_from_sin(&ast_sockaddr, new_peer);
-	ast_sockaddr_set_port(&ast_sockaddr, ntohs(new_peer->sin_port));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Tell asterisk to send rtp media to %s:%d\n", ast_sockaddr_stringify_host(&ast_sockaddr), ast_sockaddr_port(&ast_sockaddr));
-	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr);
+	ast_sockaddr_from_sin(&ast_sockaddr_dest, new_peer);
+	ast_sockaddr_set_port(&ast_sockaddr_dest, ntohs(new_peer->sin_port));
+	
+	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr_dest);
+	
+	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: Tell PBX to send RTP/UDP media from '%s:%d' to '%s:%d' (NAT: %s)\n", 
+		ast_sockaddr_stringify_host(&ast_sockaddr_source), 
+		ast_sockaddr_port(&ast_sockaddr_source), 
+		ast_sockaddr_stringify_host(&ast_sockaddr_dest), 
+		ast_sockaddr_port(&ast_sockaddr_dest),
+		nat_active ? "yes" : "no");
 	if (nat_active) {
 		ast_rtp_instance_set_prop(rtp->rtp, AST_RTP_PROPERTY_NAT, 1);
 	}
@@ -2770,7 +2796,7 @@ sccp_pbx_cb sccp_pbx = {
 	sched_wait:			sccp_wrapper_asterisk18_sched_wait,
 
 	/* rtp */
-	rtp_getPeer:			NULL,
+	rtp_getPeer:			sccp_wrapper_asterisk18_rtpGetPeer,
 	rtp_getUs:			sccp_wrapper_asterisk18_rtpGetUs,
 	rtp_setPeer:			sccp_wrapper_asterisk18_rtp_set_peer,
 	rtp_setWriteFormat:		sccp_wrapper_asterisk18_setWriteFormat,
@@ -2880,6 +2906,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_nativeVideoFormats 	= sccp_wrapper_asterisk18_setNativeVideoFormats,
 
 	/* rtp */
+	.rtp_getPeer			= sccp_wrapper_asterisk18_rtpGetPeer,
 	.rtp_getUs 			= sccp_wrapper_asterisk18_rtpGetUs,
 	.rtp_stop 			= sccp_wrapper_asterisk18_rtp_stop,
 	.rtp_audio_create 		= sccp_wrapper_asterisk18_create_audio_rtp,
