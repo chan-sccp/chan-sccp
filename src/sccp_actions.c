@@ -2426,7 +2426,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_indicate2str(channel->state), channel->state);
-	        sccp_channel_setDevice(channel, d);
+		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
 		        sccp_channel_set_active(d, channel);
 
