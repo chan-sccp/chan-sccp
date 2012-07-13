@@ -2351,7 +2351,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	sccp_channel_t *channel = NULL;
 	char ipAddr[16];
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, passthrupartyid = 0;
-	uint32_t unknown1 = 0, unknown2 = 0, unknown3 = 0, unknown4 = 0;
+// 	uint32_t unknown1 = 0, unknown2 = 0, unknown3 = 0, unknown4 = 0;
 
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 17) {
@@ -2359,20 +2359,20 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		partyID = letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck.bel_ipAddr, 4);
-		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
-		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
-		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
-		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
+// 		unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
+// 		unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
+// 		unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
+// 		unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
 		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
 	} else {
 		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
-		unknown1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_1);
-		unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
-		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
-		unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
+// 		unknown1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_1);
+// 		unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
+// 		unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
+// 		unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
 		callID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_callReference);
 	}
 	
