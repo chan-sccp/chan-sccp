@@ -142,7 +142,6 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
  */
 void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_in *new_peer)
 {
-	struct sockaddr_in source = {0};
 	sccp_device_t *device;
 	int nat = 0;
 
@@ -165,18 +164,6 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 	device = sccp_channel_getDevice_retained(c);
 	nat = device ? device->nat : 0;
 
-/*IP WRONG, PORT RIGHT (Don't Understand why) , THis is what i would like to do*/
-/*
-	PBX(rtp_getUs) (rtp->rtp, &source);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
-		device->id,
-		pbx_inet_ntoa(source.sin_addr),
-		ntohs(source.sin_port),
-		pbx_inet_ntoa(new_peer->sin_addr), 
-		ntohs(new_peer->sin_port),
-		nat ? "yes" : "no");
-*/
-
 /* Works correctly, but is using asterisk function outside of pbx_impl */
 	struct ast_sockaddr ast_sockaddr_source;
 	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
@@ -189,13 +176,28 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		ntohs(new_peer->sin_port),
 		nat ? "yes" : "no");
 
-/* Conversion to using sin inplace -> Wrong Again. Just as a test/check  */
+/*IP WRONG, PORT RIGHT (Don't Understand why) , THis is what i would like to do*/
 /*
-	ast_sockaddr_to_sin(&ast_sockaddr_source, &source);
+	struct sockaddr_in astside = {0};
+	PBX(rtp_getUs) (rtp->rtp, &astside);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
 		device->id,
-		pbx_inet_ntoa(source.sin_addr),
-		ntohs(source.sin_port),
+		pbx_inet_ntoa(astside.sin_addr),
+		ntohs(astside.sin_port),
+		pbx_inet_ntoa(new_peer->sin_addr), 
+		ntohs(new_peer->sin_port),
+		nat ? "yes" : "no");
+*/
+
+
+/* Conversion to using sin inplace -> Wrong Again. Just as a test/check  */
+/*
+	struct sockaddr_in astside = {0};
+	ast_sockaddr_to_sin(&ast_sockaddr_source, &astside);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		device->id,
+		pbx_inet_ntoa(astside.sin_addr),
+		ntohs(astside.sin_port),
 		pbx_inet_ntoa(new_peer->sin_addr), 
 		ntohs(new_peer->sin_port),
 		nat ? "yes" : "no");
