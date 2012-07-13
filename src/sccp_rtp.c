@@ -180,10 +180,11 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		device->id,
 		pbx_inet_ntoa(astside.sin_addr),
 		ntohs(astside.sin_port));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " to:%15s:%d (NAT: %s)\n", 
+	sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n", 
 		pbx_inet_ntoa(new_peer->sin_addr), 
 		ntohs(new_peer->sin_port),
 		nat ? "yes" : "no");
+
 	//update pbx
 	if (PBX(rtp_setPeer)) {
 		PBX(rtp_setPeer) (rtp, new_peer, nat);
