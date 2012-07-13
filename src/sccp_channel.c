@@ -899,18 +899,16 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		return;
 	}
 
-	if (!(d = sccp_channel_getDevice_retained(channel)))
+	if (!(d = sccp_channel_getDevice_retained(channel))) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_channel_startmediatransmission) Could not retrieve device from channel\n");
 		return;
+	}
 
 	/* Mute mic feature: If previously set, mute the microphone after receiving of media is already open, but before starting to send to rtp. */
 	/* This must be done in this exact order to work also on newer phones like the 8945. It must also be done in other places for other phones. */
 	if (!channel->isMicrophoneEnabled()) {
 		sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 	}
-	//check if bind address is an global bind address
-	//if (!channel->rtp.audio.phone_remote.sin_addr.s_addr) {
-	//      channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-	//}
 
 	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
 	if (d->nat) {
@@ -937,7 +935,6 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 			memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
 		}
 	} else {
-
 		/** \todo move this to the initial part, otherwise we overwrite direct rtp destination */
 		channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
 	}
@@ -953,28 +950,17 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
 	
-/* Works correctly, but is using asterisk function outside of pbx_impl */
-/*	struct ast_sockaddr ast_sockaddr_dest;
-	ast_rtp_instance_get_local_address(channel->rtp.audio.rtp, &ast_sockaddr_dest);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
-		DEV_ID_LOG(d), 
-		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), 
-		ntohs(channel->rtp.audio.phone.sin_port),
-		ast_sockaddr_stringify_host(&ast_sockaddr_dest),
-		ast_sockaddr_port(&ast_sockaddr_dest), 
-		d->nat ? "yes" : "no"
-		);
-*/
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d", 
+	// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d",
 		DEV_ID_LOG(d), 
 		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr),
-		ntohs(channel->rtp.audio.phone.sin_port));
-		
+		ntohs(channel->rtp.audio.phone.sin_port)
+	);
 	sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n",
-		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
+		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr),
 		ntohs(channel->rtp.audio.phone_remote.sin_port),
 		d->nat ? "yes" : "no"
-		);
+	);
 		
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", 
 		DEV_ID_LOG(d), 
@@ -984,7 +970,8 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		channel->line->silencesuppression ? "ON" : "OFF", 
 		channel->passthrupartyid, 
 		channel->callid
-		);
+	);
+	
 	d = sccp_device_release(d);
 }
 
