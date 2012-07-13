@@ -952,8 +952,40 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send RTP media to: '%s:%d' with codec: %s(%d), tos %d, silencesuppression: %s, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+	
+/* Works correctly, but is using asterisk function outside of pbx_impl */
+	struct ast_sockaddr ast_sockaddr_dest;
+	ast_rtp_instance_get_remote_address(channel->rtp.audio.rtp, &ast_sockaddr_dest);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		DEV_ID_LOG(d), 
+		ast_sockaddr_stringify_host(&ast_sockaddr_dest),
+		ast_sockaddr_port(&ast_sockaddr_dest), 
+		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
+		ntohs(channel->rtp.audio.phone_remote.sin_port),
+		d->nat ? "yes" : "no"
+		);
+/*This is what i would like to do, but it get the ip address wrong, but the port is correct */
+/*
+	struct sockaddr_in source;
+	PBX(rtp_getUs) (channel->rtp.audio.rtp, &source);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		DEV_ID_LOG(d), 
+		pbx_inet_ntoa(source.sin_addr),
+		ntohs(source.sin_port),
+		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
+		ntohs(channel->rtp.audio.phone_remote.sin_port),
+		d->nat ? "yes" : "no"
+		);
+*/		
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", 
+		DEV_ID_LOG(d), 
+		codec2str(channel->rtp.audio.readFormat), 
+		channel->rtp.audio.readFormat, 
+		d->audio_tos, 
+		channel->line->silencesuppression ? "ON" : "OFF", 
+		channel->passthrupartyid, 
+		channel->callid
+		);
 	d = sccp_device_release(d);
 }
 

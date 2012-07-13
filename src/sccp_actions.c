@@ -2385,8 +2385,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	}
 	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u, CallID: %u\n", d->id, status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID, callID);
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callID);
+//	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
 	
 	if (status) {
 		// rtp error from the phone 
@@ -2425,7 +2425,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			return;
 		}
 
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(channel->state), channel->state);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_indicate2str(channel->state), channel->state);
 	        sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
 		        sccp_channel_set_active(d, channel);
@@ -2480,7 +2480,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 	struct sockaddr_in sin;
 	sccp_channel_t *channel;
 	char ipAddr[16];
-	uint32_t status = 0, ipPort = 0, partyID = 0, passthrupartyid = 0;
+	uint32_t status = 0, ipPort = 0, partyID = 0, passthrupartyid = 0, callID;
 
 	memset(ipAddr, 0, 16);
 	if (d->inuseprotocolversion < 15) {
@@ -2489,18 +2489,21 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, 4);
 		memcpy(&sin.sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, sizeof(sin.sin_addr));
+		callID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_callReference);
 	} else {
 		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_portNumber));
 		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_passThruPartyId);
 		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_orcStatus);
 		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, 16);
 		memcpy(&sin.sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, sizeof(sin.sin_addr));
+		callID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_callReference);
 	}
 
 	sin.sin_family = AF_INET;
 	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
+//	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callID);
 	if (status) {
 		/* rtp error from the phone */
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
@@ -3341,7 +3344,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 			) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, Remote TCP/IP: '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
                 } else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
 			if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
@@ -3508,7 +3511,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	c->rtp.video.readState &= ~SCCP_RTP_STATUS_PROGRESS;
 	c->rtp.video.readState |= SCCP_RTP_STATUS_ACTIVE;
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, RemoteIP: %s, Port: %d, CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, Remote TCP/IP '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
 
 	c = sccp_channel_release(c);
 }
