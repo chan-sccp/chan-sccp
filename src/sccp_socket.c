@@ -552,7 +552,7 @@ static void sccp_accept_connection(void)
 
 	pbx_pthread_create(&s->session_thread, &attr, sccp_socket_device_thread, s);
 	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int)stacksize);
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int)stacksize);
 	}
 	sccp_session_unlock(s);
 }

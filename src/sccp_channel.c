@@ -970,7 +970,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr),
 		ntohs(channel->rtp.audio.phone.sin_port));
 		
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " to:%15s:%d (NAT: %s)\n",
+	sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n",
 		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
 		ntohs(channel->rtp.audio.phone_remote.sin_port),
 		d->nat ? "yes" : "no"
