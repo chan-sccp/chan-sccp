@@ -277,7 +277,7 @@ void sccp_channel_unsetDevice(sccp_channel_t * channel)
 void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device)
 {
 	if (NULL != channel->privateData->device) {
-		pbx_log(LOG_NOTICE, "SCCP: sccp_channel_setDevice: Auto Release was Necessary\n");
+		sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_4 "SCCP: sccp_channel_setDevice: Auto Release was Necessary\n");
 		sccp_channel_unsetDevice(channel);
 	}
 
@@ -842,7 +842,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	//! \todo handle payload error
 	//! \todo use rtp codec map
 
-	sccp_rtp_getUs(&channel->rtp.video, &channel->rtp.video.phone_remote);
+//	sccp_rtp_getUs(&channel->rtp.video, &channel->rtp.video.phone_remote);
 
 	//check if bind address is an global bind address
 	if (!channel->rtp.video.phone_remote.sin_addr.s_addr) {
@@ -954,7 +954,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 	d->protocol->sendStartMediaTransmission(d, channel);
 	
 /* Works correctly, but is using asterisk function outside of pbx_impl */
-	struct ast_sockaddr ast_sockaddr_dest;
+/*	struct ast_sockaddr ast_sockaddr_dest;
 	ast_rtp_instance_get_local_address(channel->rtp.audio.rtp, &ast_sockaddr_dest);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
 		DEV_ID_LOG(d), 
@@ -964,31 +964,18 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		ast_sockaddr_port(&ast_sockaddr_dest), 
 		d->nat ? "yes" : "no"
 		);
-
-/*This is what i would like to do, but it get the ip address wrong, but the port is correct */
-/*
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+*/
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d", 
 		DEV_ID_LOG(d), 
 		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr),
-		ntohs(channel->rtp.audio.phone.sin_port),
+		ntohs(channel->rtp.audio.phone.sin_port));
+		
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " to:%15s:%d (NAT: %s)\n",
 		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
 		ntohs(channel->rtp.audio.phone_remote.sin_port),
 		d->nat ? "yes" : "no"
 		);
-*/		
-/* Or */
-/*
-	struct sockaddr_in astside;
-	PBX(rtp_getUs) (channel->rtp.audio.rtp, &astside);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s) getPeer\n", 
-		DEV_ID_LOG(d), 
-		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), 
-		ntohs(channel->rtp.audio.phone.sin_port),
-		pbx_inet_ntoa(astside.sin_addr),
-		ntohs(astside.sin_port),
-		d->nat ? "yes" : "no"
-		);
-*/
+		
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", 
 		DEV_ID_LOG(d), 
 		codec2str(channel->rtp.audio.readFormat), 

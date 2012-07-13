@@ -159,13 +159,12 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 	}
 
 	memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
-//	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set Phone RTP/UDP to '%s:%d'\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 	device = sccp_channel_getDevice_retained(c);
 	nat = device ? device->nat : 0;
 
 /* Works correctly, but is using asterisk function outside of pbx_impl */
-	struct ast_sockaddr ast_sockaddr_source;
+/*	struct ast_sockaddr ast_sockaddr_source;
 	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
 		device->id,
@@ -174,33 +173,17 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		pbx_inet_ntoa(new_peer->sin_addr), 
 		ntohs(new_peer->sin_port),
 		nat ? "yes" : "no");
-
-/*IP WRONG, PORT RIGHT (Don't Understand why) , THis is what i would like to do*/
-/*
+*/
 	struct sockaddr_in astside = {0};
 	PBX(rtp_getUs) (rtp->rtp, &astside);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d", 
 		device->id,
 		pbx_inet_ntoa(astside.sin_addr),
-		ntohs(astside.sin_port),
+		ntohs(astside.sin_port));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 " to:%15s:%d (NAT: %s)\n", 
 		pbx_inet_ntoa(new_peer->sin_addr), 
 		ntohs(new_peer->sin_port),
 		nat ? "yes" : "no");
-*/
-
-
-/* Conversion to using sin inplace -> Wrong Again. Just as a test/check  */
-/*
-	struct sockaddr_in astside = {0};
-	ast_sockaddr_to_sin(&ast_sockaddr_source, &astside);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
-		device->id,
-		pbx_inet_ntoa(astside.sin_addr),
-		ntohs(astside.sin_port),
-		pbx_inet_ntoa(new_peer->sin_addr), 
-		ntohs(new_peer->sin_port),
-		nat ? "yes" : "no");
-*/
 	//update pbx
 	if (PBX(rtp_setPeer)) {
 		PBX(rtp_setPeer) (rtp, new_peer, nat);
