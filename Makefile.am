@@ -100,3 +100,5 @@ release:
 
 gen_sccpconf:
 	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
+
+isntall: install
