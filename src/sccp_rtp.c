@@ -143,7 +143,6 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_in *new_peer)
 {
 	sccp_device_t *device;
-	int nat = 0;
 
 	/* validate socket */
 	if (new_peer->sin_port == 0) {
@@ -151,45 +150,35 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		return;
 	}
 
-	/* check if we have new infos */
-	/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
-	if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
-//              return;
+	if ((device = sccp_channel_getDevice_retained(c))) {
+		/* check if we have new infos */
+		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
+/*		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
+			// return;
+		}*/
+
+		memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
+
+		//update pbx
+		if (PBX(rtp_setPeer)) {
+			PBX(rtp_setPeer) (rtp, new_peer, device->nat);
+		}
+
+		// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d",
+			DEV_ID_LOG(device), 
+			pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr),
+			ntohs(c->rtp.audio.phone_remote.sin_port)
+		);
+		sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n",
+			pbx_inet_ntoa(c->rtp.audio.phone.sin_addr),
+			ntohs(c->rtp.audio.phone.sin_port),
+			device->nat ? "yes" : "no"
+		);
+
+		device = sccp_device_release(device);
 	}
-
-	memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
-
-	device = sccp_channel_getDevice_retained(c);
-	nat = device ? device->nat : 0;
-
-/* Works correctly, but is using asterisk function outside of pbx_impl */
-/*	struct ast_sockaddr ast_sockaddr_source;
-	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
-		device->id,
-		ast_sockaddr_stringify_host(&ast_sockaddr_source), 
-		ast_sockaddr_port(&ast_sockaddr_source), 
-		pbx_inet_ntoa(new_peer->sin_addr), 
-		ntohs(new_peer->sin_port),
-		nat ? "yes" : "no");
-*/
-	struct sockaddr_in astside = {0};
-	PBX(rtp_getUs) (rtp->rtp, &astside);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d", 
-		device->id,
-		pbx_inet_ntoa(astside.sin_addr),
-		ntohs(astside.sin_port));
-	sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n", 
-		pbx_inet_ntoa(new_peer->sin_addr), 
-		ntohs(new_peer->sin_port),
-		nat ? "yes" : "no");
-
-	//update pbx
-	if (PBX(rtp_setPeer)) {
-		PBX(rtp_setPeer) (rtp, new_peer, nat);
-	}
-	device = device ? sccp_device_release(device) : NULL;
 }
 
 /*!
