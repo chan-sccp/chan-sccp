@@ -955,15 +955,27 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 	
 /* Works correctly, but is using asterisk function outside of pbx_impl */
 	struct ast_sockaddr ast_sockaddr_dest;
-	ast_rtp_instance_get_remote_address(channel->rtp.audio.rtp, &ast_sockaddr_dest);
+	ast_rtp_instance_get_local_address(channel->rtp.audio.rtp, &ast_sockaddr_dest);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
 		DEV_ID_LOG(d), 
+		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), 
+		ntohs(channel->rtp.audio.phone.sin_port),
 		ast_sockaddr_stringify_host(&ast_sockaddr_dest),
 		ast_sockaddr_port(&ast_sockaddr_dest), 
+		d->nat ? "yes" : "no"
+		);
+
+/*	struct ast_sockaddr ast_sockaddr_src;
+	ast_rtp_instance_get_local_address(channel->rtp.audio.rtp, &ast_sockaddr_src);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", 
+		DEV_ID_LOG(d), 
+		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr),
+		ntohs(channel->rtp.audio.phone.sin_port),
 		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
 		ntohs(channel->rtp.audio.phone_remote.sin_port),
 		d->nat ? "yes" : "no"
 		);
+*/		
 /*This is what i would like to do, but it get the ip address wrong, but the port is correct */
 /*
 	struct sockaddr_in peer;
@@ -976,16 +988,7 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 		ntohs(channel->rtp.audio.phone_remote.sin_port),
 		d->nat ? "yes" : "no"
 		);
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s) rtp.audio.phone\n", 
-		DEV_ID_LOG(d), 
-		pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr),
-		ntohs(channel->rtp.audio.phone.sin_port),
-		pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), 
-		ntohs(channel->rtp.audio.phone_remote.sin_port),
-		d->nat ? "yes" : "no"
-		);
-*/		
+*/
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", 
 		DEV_ID_LOG(d), 
 		codec2str(channel->rtp.audio.readFormat), 
