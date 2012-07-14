@@ -145,7 +145,7 @@ void sccp_manager_module_start()
  */
 void sccp_manager_module_stop()
 {
-
+	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_PREREGISTERED | SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED);
 }
 
 /*!

@@ -102,6 +102,23 @@ static void *sccp_event_processor(void *data){
 }
 
 /*!
+ * \brief unSubscribe from an Event
+ * \param eventType SCCP Event Type
+ */
+void sccp_event_unsubscribe(sccp_event_type_t eventType)
+{
+	int i, n;
+	for(i = 0, n = 1<<i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1<<i){
+		if(eventType & n){
+			if (subscribtions[i].aSyncSize)
+				sccp_free(subscribtions[i].async);
+			if (subscribtions[i].syncSize)
+				sccp_free(subscribtions[i].sync);
+		}
+	}
+}
+
+/*!
  * \brief Subscribe to an Event
  * \param eventType SCCP Event Type
  * \param cb SCCP Event Call Back
