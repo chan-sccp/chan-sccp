@@ -284,9 +284,6 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
-	pbx_variables_destroy(l->variables);
-	l->variables = NULL;
-
 	sccp_line_destroy(l);
 }
 
@@ -352,6 +349,11 @@ int __sccp_line_destroy(const void *ptr)
 	SCCP_LIST_UNLOCK(&l->channels);
 	if (SCCP_LIST_EMPTY(&l->channels))
 		SCCP_LIST_HEAD_DESTROY(&l->channels);
+
+	if (l->variables) {
+		pbx_variables_destroy(l->variables);
+		l->variables = NULL;
+	}
 
 	sccp_mutex_unlock(&l->lock);
 	pbx_mutex_destroy(&l->lock);

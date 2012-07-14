@@ -1747,8 +1747,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 
-		pbx_variables_destroy(d->variables);
-		d->variables = NULL;
 	#endif
 		if (remove_from_global) {
 			sccp_device_destroy(d);
@@ -1838,6 +1836,10 @@ int __sccp_device_destroy(const void *ptr)
 	pbx_mutex_destroy(&d->messageStackLock);
 #endif	
 
+	if (d->variables) {
+		pbx_variables_destroy(d->variables);
+		d->variables = NULL;
+	}	
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 	sccp_mutex_unlock(&d->lock);						// using real device lock while using refcount
