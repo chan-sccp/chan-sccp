@@ -155,6 +155,7 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_load_realtime ast_load_realtime
 #    define pbx_log ast_log
 #    define pbx_malloc ast_malloc
+#    define pbx_manager_register_xml ast_manager_register_xml
 #    define pbx_manager_register2 ast_manager_register2
 #    define pbx_manager_unregister ast_manager_unregister
 #    define pbx_matchmore_extension ast_matchmore_extension
@@ -284,4 +285,6 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_callgroup(_a) (_a)->callgroup
 #    define pbx_channel_masq(_a) (_a)->masq
 #    define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
+#    define pbx_channel_blocker(_a) (_a)->blocker
+#    define pbx_channel_blockproc(_a) (_a)->blockproc
 #endif
