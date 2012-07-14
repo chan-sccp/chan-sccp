@@ -136,7 +136,7 @@ static void sccp_read_data(sccp_session_t * s)
 			pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
 		} else {
 			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
-			pbx_log(LOG_NOTICE, "SCCP: read zero bytes from socket -> device closed connection or network unreachable. closing connection. %d\n", s->fds[0].revents);
+			sccp_log(DEBUGCAT_CORE)("SCCP: device closed connection or network unreachable. closing connection. %d\n", s->fds[0].revents);
 			sccp_socket_stop_sessionthread(s);
 		}
 		sccp_free(input);
