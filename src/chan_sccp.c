@@ -755,6 +755,7 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 //	pbx_config_destroy(GLOB(cfg));
+	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));

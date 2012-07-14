@@ -123,6 +123,7 @@ struct sccp_event_subscriber {
 //      SCCP_LIST_HEAD(, sccp_event_subscriber_t) subscriber;
 // };
 
+void sccp_event_unsubscribe(sccp_event_type_t eventType);
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowASyncExecution);
 
 void sccp_event_fire(const sccp_event_t * event);
