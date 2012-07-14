@@ -109,6 +109,8 @@ void sccp_hint_module_stop()
 		}
 		SCCP_LIST_UNLOCK(&lineStates);
 	}
+	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED);
+	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED);
 }
 
 
@@ -741,10 +743,13 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 		/* All subscriptions that have this device should be removed */
 		SCCP_LIST_TRYLOCK(&hint->subscribers);
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list) {
-			if (!strcasecmp(subscriber->device->id, deviceName))
+			if (!strcasecmp(subscriber->device->id, deviceName)) {
 				SCCP_LIST_REMOVE_CURRENT(list);
+				sccp_free(subscriber);
+			}
 		}
-		SCCP_LIST_TRAVERSE_SAFE_END SCCP_LIST_UNLOCK(&hint->subscribers);
+		SCCP_LIST_TRAVERSE_SAFE_END;
+		SCCP_LIST_UNLOCK(&hint->subscribers);
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 }
