@@ -224,12 +224,14 @@ struct {												\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
 	pbx_mutex_init_notracking(&(head)->lock);									\
+/*	pbx_mutex_init(&(head)->lock);*/									\
 	(head)->size=0;											\
 }
 #    define SCCP_RWLIST_HEAD_INIT(head) {								\
 	(head)->first = NULL;										\
 	(head)->last = NULL;										\
 	pbx_rwlock_init_notracking(&(head)->lock);									\
+/*	pbx_rwlock_init(&(head)->lock);*/									\
 	(head)->size=0;											\
 }
 
