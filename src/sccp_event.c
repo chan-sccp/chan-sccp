@@ -107,15 +107,17 @@ static void *sccp_event_processor(void *data){
  */
 void sccp_event_unsubscribe(sccp_event_type_t eventType)
 {
+/*
 	int i, n;
 	for(i = 0, n = 1<<i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1<<i){
 		if(eventType & n){
-			if (subscribtions[i].aSyncSize)
+			if (subscribtions[i].aSyncSize && subscribtions[i].async)
 				sccp_free(subscribtions[i].async);
-			if (subscribtions[i].syncSize)
+			if (subscribtions[i].syncSize && subscribtions[i].sync)
 				sccp_free(subscribtions[i].sync);
 		}
 	}
+*/	
 }
 
 /*!
@@ -133,13 +135,21 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 		if(eventType & n){
 			if(allowASyncExecution){
 				size = subscribtions[i].aSyncSize;
-				subscribtions[i].async = (sccp_event_subscriber_t *) realloc(subscribtions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
+				if (!size) {
+					subscribtions[i].async = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
+				} else {
+					subscribtions[i].async = (sccp_event_subscriber_t *) realloc(subscribtions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
+				}
 				subscribtions[i].async[size].callback_function = cb;
 				subscribtions[i].async[size].eventType = eventType;
 				subscribtions[i].aSyncSize++;
 			}else{
 				size = subscribtions[i].syncSize;
-				subscribtions[i].sync = (sccp_event_subscriber_t *) realloc(subscribtions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
+				if (!size) {
+					subscribtions[i].sync = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
+				} else {
+					subscribtions[i].sync = (sccp_event_subscriber_t *) realloc(subscribtions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
+				}
 				subscribtions[i].sync[size].callback_function = cb;
 				subscribtions[i].sync[size].eventType = eventType;
 				subscribtions[i].syncSize++;
