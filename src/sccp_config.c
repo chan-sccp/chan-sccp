@@ -1326,25 +1326,53 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
 	return changed;
 }
 
-/*!
- * \brief Config Converter/Parser for Setvar Value
- */
 sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_CHANGED;
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
+	PBX_VARIABLE_TYPE *v = NULL;
+	PBX_VARIABLE_TYPE *tmpvar = NULL;
 	PBX_VARIABLE_TYPE *newvar = NULL;
-	PBX_VARIABLE_TYPE *prevVar = *(PBX_VARIABLE_TYPE **)dest;
-
-	newvar = sccp_create_variable(value);
-	if (newvar) {
-		newvar->next = prevVar;
-		*(PBX_VARIABLE_TYPE **)dest = newvar;
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	}
-
-	return changed;
+	PBX_VARIABLE_TYPE *prevvar = *(PBX_VARIABLE_TYPE **)dest;
+	
+	char *varname = sccp_strdupa(value);
+	char *varval = NULL;
+	
+        if (!sccp_strlen_zero(varname)) {
+                if ((varval = strchr(varname, '='))) {
+                        *varval++ = '\0';
+                        for (v = prevvar; v; v = v->next) {
+                                if (!strcmp(v->name,varname)) {
+                                        // found -> replace
+                                        if ((tmpvar = ast_variable_new(varname, varval, ""))) {
+                                                tmpvar->next = newvar;
+                                                newvar = tmpvar;
+                                                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                        }
+                                } else {
+                                        // clone old variable entry
+                                        if ((tmpvar = ast_variable_new(v->name, v->value, ""))) {
+                                                tmpvar->next = newvar;
+                                                newvar = tmpvar;
+                                        }
+                                }
+                        }
+                        if (changed != SCCP_CONFIG_CHANGE_CHANGED) {
+                                //new variable
+                                if ((tmpvar = ast_variable_new(varname, varval, ""))) {
+                                        tmpvar->next = newvar;
+                                        newvar = tmpvar;
+                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
+                                }
+                        }
+                        *(PBX_VARIABLE_TYPE **)dest = newvar;
+                        ast_variables_destroy(prevvar);
+                } else {
+                        pbx_log(LOG_ERROR, "SCCP: (sccp_config_parse_variables) Error Parsing Variables (value=%s)\n", value);
+        		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                }
+        }
+        return changed;
 }
 
 /*!

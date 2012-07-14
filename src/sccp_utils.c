@@ -243,29 +243,6 @@ void sccp_safe_sleep(int ms)
 }
 
 /*!
- * \brief Create an asterisk variable
- * \param buf Variable Definition in format "[var]=[value]"
- */
-PBX_VARIABLE_TYPE *sccp_create_variable(const char *buf)
-{
-	PBX_VARIABLE_TYPE *tmpvar = NULL;
-	char *varname = sccp_strdupa(buf), *varval = NULL;
-
-	if ((varval = strchr(varname, '='))) {
-		*varval++ = '\0';
-#if ASTERISK_VERSION_NUMBER >= 10600
-		if ((tmpvar = ast_variable_new(varname, varval, ""))) {
-#else
-		if ((tmpvar = ast_variable_new(varname, varval))) {
-#endif
-			return tmpvar;
-		}
-	}
-	return NULL;
-}
-
-
-/*!
  * \brief Find Device by ID
  * \param name Device ID (hostname)
  * \param useRealtime Use RealTime as Boolean
