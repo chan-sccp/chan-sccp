@@ -1358,7 +1358,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
                                 }
                         }
                         if (changed != SCCP_CONFIG_CHANGE_CHANGED) {
-                                //new variable
+                                // new variable
                                 if ((tmpvar = ast_variable_new(varname, varval, ""))) {
                                         tmpvar->next = newvar;
                                         newvar = tmpvar;
