@@ -159,12 +159,24 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_manager_unregister ast_manager_unregister
 #    define pbx_matchmore_extension ast_matchmore_extension
 #    define pbx_moh_stop ast_moh_stop
+
 #    define pbx_mutex_t ast_mutex_t
 #    define pbx_mutex_destroy ast_mutex_destroy
 #    define pbx_mutex_init ast_mutex_init
+#    define pbx_mutex_init_notracking ast_mutex_init_notracking
 #    define pbx_mutex_lock ast_mutex_lock
 #    define pbx_mutex_trylock ast_mutex_trylock
 #    define pbx_mutex_unlock ast_mutex_unlock
+#    define pbx_rwlock_t ast_rwlock_t
+#    define pbx_rwlock_destroy ast_rwlock_destroy
+#    define pbx_rwlock_init_notracking ast_rwlock_init_notracking
+#    define pbx_rwlock_rdlock ast_rwlock_rdlock
+#    define pbx_rwlock_trylock ast_rwlock_trylock
+#    define pbx_rwlock_tryrdlock ast_rwlock_tryrdlock
+#    define pbx_rwlock_trywrlock ast_rwlock_trywrlock
+#    define pbx_rwlock_unlock ast_rwlock_unlock
+#    define pbx_rwlock_wrlock ast_rwlock_wrlock
+
 #    define pbx_park_call ast_park_call
 #    define pbx_party_name_free ast_party_name_free
 #    define pbx_party_number_free ast_party_number_free
@@ -207,14 +219,6 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_rtp_instance_update_source ast_rtp_instance_update_source
 #    define pbx_rtp_instance_write ast_rtp_instance_write
 #    define pbx_rtp_set_vars ast_rtp_set_vars
-#    define pbx_rwlock_destroy ast_rwlock_destroy
-#    define pbx_rwlock_init ast_rwlock_init
-#    define pbx_rwlock_rdlock ast_rwlock_rdlock
-#    define pbx_rwlock_trylock ast_rwlock_trylock
-#    define pbx_rwlock_tryrdlock ast_rwlock_tryrdlock
-#    define pbx_rwlock_trywrlock ast_rwlock_trywrlock
-#    define pbx_rwlock_unlock ast_rwlock_unlock
-#    define pbx_rwlock_wrlock ast_rwlock_wrlock
 #    define pbx_safe_sleep ast_safe_sleep
 #    define pbx_sched_add ast_sched_add
 #    define pbx_sched_del ast_sched_del

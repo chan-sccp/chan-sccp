@@ -59,13 +59,13 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 // current implementation
 // 
 // Using positive live object list to verify existence. This is a heavy weight solution, when the number of devices/lines/hints etc increases. (Garantees existence)
-// If we would use negative dead object list to verify non-existence instead, we would only have to verify a much short list, the garbage collection time might have to be increased
+// If we would use negative dead object list to verify non-existence instead, we would only have to verify a much shorter list, the garbage collection time might have to be increased
 // When we only use a negative check the liveobject list could be removed
 // 
 // To make 100% sure we are not missing out any inflight references that have not been accounted for.
-// We migh have to implemented both methods for DEVELOPMENT(livelistcheck) and PRODUCTION(deadlistcheck)
+// We might have to implemented both methods for DEVELOPMENT(livelistcheck) and PRODUCTION(deadlistcheck)
 //
-// define CS_REFCOUNT_LIVEOBJECTS controls which version is used
+// CS_REFCOUNT_LIVEOBJECTS controls which version is used
 #define CS_REFCOUNT_LIVEOBJECTS DEBUG
 
 struct refcount_object {
