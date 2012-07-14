@@ -76,7 +76,7 @@ static struct manager_custom_hook sccp_manager_hook = {
  */
 int sccp_register_management(void)
 {
-	int result;
+	int result = 0;
 
 	/* Register manager commands */
 #    if ASTERISK_VERSION_NUMBER < 10600
@@ -84,17 +84,20 @@ int sccp_register_management(void)
 #    else
 #        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
 #    endif
+
+#    if ASTERISK_VERSION_NUMBER < 11200
 	result = pbx_manager_register2("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices (text format)", management_show_devices_desc);
 	result |= pbx_manager_register2("SCCPListLines", _MAN_FLAGS, sccp_manager_show_lines, "List SCCP lines (text format)", management_show_lines_desc);
 	result |= pbx_manager_register2("SCCPDeviceRestart", _MAN_FLAGS, sccp_manager_restart_device, "Restart a given device", management_restart_devices_desc);
 	result |= pbx_manager_register2("SCCPDeviceAddLine", _MAN_FLAGS, sccp_manager_device_add_line, "add a line to device", management_show_device_add_line_desc);
 	result |= pbx_manager_register2("SCCPDeviceUpdate", _MAN_FLAGS, sccp_manager_device_update, "add a line to device", management_device_update_desc);
 	result |= pbx_manager_register2("SCCPLineForwardUpdate", _MAN_FLAGS, sccp_manager_line_fwd_update, "add a line to device", management_line_fwd_update_desc);
-	result |= pbx_manager_register2("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", "");	/*!< \todo add description for ami */
-	result |= pbx_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", "");	/*!< \todo add description for ami */
-	result |= pbx_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", "");	/*!< \todo add description for ami */
-	result |= pbx_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", "");	/*!< \todo add description for ami */
+	result |= pbx_manager_register2("SCCPStartCall", _MAN_FLAGS, sccp_manager_startCall, "start a new call on device", "");	//!< \todo add description for ami
+	result |= pbx_manager_register2("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", "");	//!< \todo add description for ami
+	result |= pbx_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", "");	//!< \todo add description for ami
+	result |= pbx_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", "");	//!< \todo add description for ami
 	result |= pbx_manager_register2("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata", management_fetch_config_metadata_desc);
+#    endif
 #    undef _MAN_FLAGS
 
 #    if HAVE_PBX_MANAGER_HOOK_H
@@ -109,8 +112,8 @@ int sccp_register_management(void)
  */
 int sccp_unregister_management(void)
 {
-	int result;
-
+	int result = 0;
+#    if ASTERISK_VERSION_NUMBER < 11200
 	result = pbx_manager_unregister("SCCPListDevices");
 	result |= pbx_manager_unregister("SCCPDeviceRestart");
 	result |= pbx_manager_unregister("SCCPDeviceAddLine");
@@ -121,7 +124,7 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
 	result |= pbx_manager_unregister("SCCPConfigMetaData");
-
+#endif
 #    if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_unregister_hook(&sccp_manager_hook);
 #    endif
@@ -229,7 +232,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
 	pbxman_send_listack(s, m, "Device status list will follow", "start");
-	/* List the peers in separate manager events */
+	// List the peers in separate manager events 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		timeinfo = localtime(&device->registrationTime);
@@ -249,8 +252,9 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
-	/* Send final confirmation */
+	// Send final confirmation 
 	astman_append(s, "Event: SCCPListDevicesComplete\r\n" "EventList: Complete\r\n" "ListItems: %d\r\n" "\r\n", total);
+	
 	return 0;
 }
 

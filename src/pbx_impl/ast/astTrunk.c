@@ -733,7 +733,7 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	ast_channel_tech_set(*pbx_channel, &sccp_tech);
 	ast_channel_tech_pvt_set(*pbx_channel, &channel);
 	ast_channel_context_set(*pbx_channel, line->context);
-	ast_channel_exten_set(*pbx_channel, NULL);
+	ast_channel_exten_set(*pbx_channel, "");
 
 	if (!sccp_strlen_zero(line->language))
 		ast_channel_language_set((*pbx_channel), line->language);
@@ -758,6 +758,7 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		ast_channel_zone_set((*pbx_channel), ast_get_indication_zone(line->language));	/* this will core asterisk on hangup */
 	}
+	ast_module_ref(ast_module_info->self);
 	channel->owner = ast_channel_ref((*pbx_channel));
 
 	return TRUE;
@@ -791,14 +792,16 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
+		c->owner = NULL;
+		ast_channel_tech_pvt_set(c->owner, NULL);
 		sccp_channel_release(c);
-	}	
-	ast_channel_tech_pvt_set(ast_channel, NULL);
-	ast_channel = ast_channel_unref(ast_channel);
+	}
+//	ast_channel = ast_channel_unref(ast_channel);
+	ast_module_unref(ast_module_info->self);
 	return res;
 }
 
@@ -1783,7 +1786,7 @@ static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * 
 	struct ast_format fmt;
 
 	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
-	ast_set_write_format((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
+//	ast_set_write_format((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
 //	ast_channel_rawwriteformat_set((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
 	if (0 != channel->rtp.audio.rtp)
 		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &fmt);
@@ -1797,9 +1800,8 @@ static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * c
 		return FALSE;
 
 	struct ast_format fmt;
-
 	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
-	ast_set_read_format((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
+//	ast_set_read_format((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
 //	ast_channel_rawreadformat_set(&channel->owner, &fmt);
 	if (0 != channel->rtp.audio.rtp)
 		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &fmt);

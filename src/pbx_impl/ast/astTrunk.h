@@ -49,6 +49,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    undef pbx_channel_callgroup
 #    undef pbx_channel_masq
 #    undef pbx_channel_setwhentohangup_tv
+#    undef pbx_channel_blocker
+#    undef pbx_channel_blockproc
 
 #    define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
 #    define pbx_channel_flags(_a) ast_channel_flags(_a)
@@ -69,6 +71,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    define pbx_channel_callgroup(_a) ast_channel_callgroup(_a)
 #    define pbx_channel_masq(_a) ast_channel_masq(_a)
 #    define pbx_channel_setwhentohangup_tv(_a, _b) ast_channel_setwhentohangup_tv(_a, _b)
+#    define pbx_channel_blocker(_a) ast_channel_blocker(_a)
+#    define pbx_channel_blockproc(_a) ast_channel_blockproc(_a)
 
 #    undef pbx_manager_register2
 #    define pbx_manager_register2(_a,_b,_c,_d,_e) ast_manager_register2(_a,_b,_c,ast_module_info->self,_d,_e)
