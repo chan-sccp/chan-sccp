@@ -46,7 +46,10 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 	sleep(GLOB(autoanswer_ring_time));
 	pthread_testcancel();
 
-	if (!conveyor || !conveyor->linedevice) {
+	if (!conveyor) {
+		return NULL;
+	}	
+	if (!conveyor->linedevice) {
 		goto FINAL;
 	}
 	if (!(device = sccp_device_retain(conveyor->linedevice->device))) {
@@ -73,7 +76,7 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 FINAL:	
 	c = c ? sccp_channel_release(c) : NULL;
 	device = device ? sccp_device_release(device) : NULL;
-	conveyor->linedevice = sccp_linedevice_release(conveyor->linedevice);		// retain in calling thread
+	conveyor->linedevice = conveyor->linedevice ? sccp_linedevice_release(conveyor->linedevice) : NULL;		// retained in calling thread, final release here
 	sccp_free(conveyor);
 	return NULL;
 }
