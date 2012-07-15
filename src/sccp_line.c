@@ -235,13 +235,14 @@ void sccp_line_kill(sccp_line_t * l)
 	if (!l)
 		return;
 
-	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+//	SCCP_LIST_LOCK(&l->channels);
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
 		sccp_channel_retain(c);
 		sccp_channel_endcall(c);
 		sccp_channel_release(c);
 	}
-	SCCP_LIST_UNLOCK(&l->channels);
+	SCCP_LIST_TRAVERSE_SAFE_END;
+//	SCCP_LIST_UNLOCK(&l->channels);
 }
 
 /*!
@@ -277,12 +278,12 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 
 	sccp_line_kill(l);
 
-	SCCP_LIST_LOCK(&l->devices);
+//	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		sccp_line_removeDevice(linedevice->line, linedevice->device);
 	}	
 	SCCP_LIST_TRAVERSE_SAFE_END;
-	SCCP_LIST_UNLOCK(&l->devices);
+//	SCCP_LIST_UNLOCK(&l->devices);
 
 	sccp_line_destroy(l);
 }
