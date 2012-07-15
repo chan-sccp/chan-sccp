@@ -174,6 +174,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
 	AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 	AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so you cannot build rpm packages (no problem)])
+	AC_PATH_PROGS(OBJCOPY,objcopy,[echo objcopy not found so we can not safe debug information (no problem)])
 	AC_PROG_CC
 	AC_PROG_CC_C_O
 	AC_PROG_GCC_TRADITIONAL
@@ -189,6 +190,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_SUBST(SVN)
 	AC_SUBST(GREP)
 	AC_SUBST(RPMBUILD)
+	AC_SUBST(OBJCOPY)
 ])
 
 AC_DEFUN([CS_FIND_LIBRARIES], [
