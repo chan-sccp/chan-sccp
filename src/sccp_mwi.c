@@ -10,7 +10,7 @@
  * $Revision$
  */
 
-#include "config.h"
+#include <config.h>
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")

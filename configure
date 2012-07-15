@@ -914,6 +914,9 @@ CAT
 SED
 M4
 SH
+HG
+GIT
+SVNVERSION
 SVN
 RANLIB
 LD
@@ -926,6 +929,9 @@ CXXDEPMODE
 ac_ct_CXX
 CXXFLAGS
 CXX
+SCCP_REVISION
+SCCP_BRANCH
+SCCP_VERSION
 BUILD_USER
 BUILD_KERNEL
 BUILD_HOSTNAME
@@ -997,9 +1003,6 @@ build_os
 build_vendor
 build_cpu
 build
-SCCP_REVISION
-SCCP_BRANCH
-SCCP_VERSION
 target_alias
 host_alias
 build_alias
@@ -3249,75 +3252,6 @@ ac_config_guess="$SHELL $ac_aux_dir/config.guess"  # Please don't use this var.
 ac_config_sub="$SHELL $ac_aux_dir/config.sub"  # Please don't use this var.
 ac_configure="$SHELL $ac_aux_dir/configure"  # Please don't use this var.
 
-
-
-
-
-#  AC_UNDEFINE("PACKAGE_BUGREPORT")
-#  AC_UNDEFINE("PACKAGE_NAME")
-#  AC_UNDEFINE("PACKAGE_STRING")
-#  AC_UNDEFINE("PACKAGE_TARNAME")
-#  AC_UNDEFINE("PACKAGE_VERSION")
-  SCCP_BRANCH="unknown"
-  SCCP_VERSION="unknown"
-  SCCP_REVISION="unknown"
-
-  if test -d .svn || test -d ../.svn || test -d ../../.svn;then
-    if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
-        SCCP_VERSION=`basename $(svnpath)`
-        SCCP_BRANCH=`basename $(svnpath)`
-    else
-      if test -f .version; then
-        SCCP_VERSION="`cat .version|cut -d_ -f1`"
-        SCCP_BRANCH="`cat .version|cut -d_ -f2`"
-      else
-        SCCP_VERSION="TRUNK"
-        SCCP_BRANCH="TRUNK"
-      fi
-    fi
-    SCCP_REVISION="`svnversion . |cut -dM -f1`"
-  elif test -d .hg || test -d ../.hg || test -d ../../.hg;then
-    SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print }'|tr "/" "\n"|tail -n2|head -n1`"
-    if grep -q "default" .hg/branch; then
-      SCCP_BRANCH="TRUNK"
-    else
-      SCCP_BRANCH="`cat .hg/branch`"
-    fi
-    SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
-  elif test -d .git || test -d ../.git || test -d ../../.git;then
-    SCCP_VERSION="`cat .version|cut -d_ -f1`"
-      SCCP_BRANCH="TRUNK"
-    SCCP_REVISION="`git describe --always`"
-  elif test -f .version; then
-    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
-    SCCP_VERSION="`cat .version|cut -d_ -f1`"
-  fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define SCCP_VERSION "${SCCP_VERSION}"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define SCCP_BRANCH "${SCCP_BRANCH}"
-_ACEOF
-
-
-cat >>confdefs.h <<_ACEOF
-#define SCCP_REVISION "${SCCP_REVISION}"
-_ACEOF
-
-
-
-
-  if test "${SCCP_BRANCH}" = "TRUNK"; then
-    PACKAGE_NAME="Chan_SCCP_(${SCCP_VERSION}_${SCCP_BRANCH})"
-    PACKAGE_VERSION="${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
-  else
-    PACKAGE_NAME="Chan_SCCP_${SCCP_VERSION}_(${SCCP_BRANCH})"
-    PACKAGE_VERSION="${SCCP_VERSION}_${SCCP_BRANCH}"
-  fi
 
 
 
@@ -5944,6 +5878,78 @@ _ACEOF
 	  mandir=/usr/share/man
 	fi
 
+
+#  AC_UNDEFINE("PACKAGE_BUGREPORT")
+#  AC_UNDEFINE("PACKAGE_NAME")
+#  AC_UNDEFINE("PACKAGE_STRING")
+#  AC_UNDEFINE("PACKAGE_TARNAME")
+#  AC_UNDEFINE("PACKAGE_VERSION")
+  SCCP_BRANCH="unknown"
+  SCCP_VERSION="unknown"
+  SCCP_REVISION="unknown"
+
+  BASE=`dirname $ac_dir`
+  pushd $BASE
+  if test ! -z "$SVN" && test ! -z "$SVNVERSION" && (test -d .svn || test -d ../.svn || test -d ../../.svn);then
+      if test "`basename $($SVN info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
+          SCCP_VERSION=`basename $(svnpath)`
+          SCCP_BRANCH=`basename $(svnpath)`
+      else
+        if test -f .version; then
+          SCCP_VERSION="`cat .version|cut -d_ -f1`"
+          SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+        else
+          SCCP_VERSION="TRUNK"
+          SCCP_BRANCH="TRUNK"
+        fi
+      fi
+      SCCP_REVISION="`svnversion .|cut -d: -f2 |cut -dM -f1`"
+  elif test ! -z "$HG" && (test -d .hg || test -d ../.hg || test -d ../../.hg);then
+      SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print }'|tr "/" "\n"|tail -n2|head -n1`"
+      if grep -q "default" .hg/branch; then
+        SCCP_BRANCH="TRUNK"
+      else
+        SCCP_BRANCH="`cat .hg/branch`"
+      fi
+      SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
+  elif test ! -z "$GIT" && (test -d .git || test -d ../.git || test -d ../../.git);then
+      SCCP_VERSION="`cat .version|cut -d_ -f1`"
+          SCCP_BRANCH="TRUNK"
+            SCCP_REVISION="`git describe --always`"
+  elif test -f .version; then
+    SCCP_BRANCH="`cat .version|cut -d_ -f2`"
+    SCCP_VERSION="`cat .version|cut -d_ -f1`"
+  fi
+  popd
+
+
+cat >>confdefs.h <<_ACEOF
+#define SCCP_VERSION "${SCCP_VERSION}"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define SCCP_BRANCH "${SCCP_BRANCH}"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define SCCP_REVISION "${SCCP_REVISION}"
+_ACEOF
+
+
+
+
+  if test "${SCCP_BRANCH}" = "TRUNK"; then
+    PACKAGE_NAME="Chan_SCCP_(${SCCP_VERSION}_${SCCP_BRANCH})"
+    PACKAGE_VERSION="${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"
+  else
+    PACKAGE_NAME="Chan_SCCP_${SCCP_VERSION}_(${SCCP_BRANCH})"
+    PACKAGE_VERSION="${SCCP_VERSION}_${SCCP_BRANCH}"
+  fi
+
+
+
 ac_ext=cpp
 ac_cpp='$CXXCPP $CPPFLAGS'
 ac_compile='$CXX -c $CXXFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -8106,13 +8112,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:8109: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:8115: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8112: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:8118: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8115: output\"" >&5)
+  (eval echo "\"\$as_me:8121: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -9306,7 +9312,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9309 "configure"' > conftest.$ac_ext
+  echo '#line 9315 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -10647,7 +10653,148 @@ fi
 
   test -n "$SVN" && break
 done
-test -n "$SVN" || SVN="echo Missing subversion so some stuff will be borked"
+test -n "$SVN" || SVN="echo Missing subversion"
+
+	for ac_prog in svnversion
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_SVNVERSION+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $SVNVERSION in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_SVNVERSION="$SVNVERSION" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="${PATH}:/opt/csw/bin"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_SVNVERSION="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+SVNVERSION=$ac_cv_path_SVNVERSION
+if test -n "$SVNVERSION"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SVNVERSION" >&5
+$as_echo "$SVNVERSION" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$SVNVERSION" && break
+done
+test -n "$SVNVERSION" || SVNVERSION="echo Missing subversion"
+
+	for ac_prog in git
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_GIT+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $GIT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_GIT="$GIT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="${PATH}:/opt/csw/bin"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_GIT="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+GIT=$ac_cv_path_GIT
+if test -n "$GIT"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $GIT" >&5
+$as_echo "$GIT" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$GIT" && break
+done
+test -n "$GIT" || GIT="echo Missing git"
+
+	for ac_prog in hg
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_HG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $HG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_HG="$HG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+as_dummy="${PATH}:/opt/csw/bin"
+for as_dir in $as_dummy
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_HG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+HG=$ac_cv_path_HG
+if test -n "$HG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $HG" >&5
+$as_echo "$HG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$HG" && break
+done
+test -n "$HG" || HG="echo Missing mercurial"
 
 	for ac_prog in bash sh
 do
@@ -12756,11 +12903,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:12759: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:12906: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:12763: \$? = $ac_status" >&5
+   echo "$as_me:12910: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13095,11 +13242,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13098: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13245: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13102: \$? = $ac_status" >&5
+   echo "$as_me:13249: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13200,11 +13347,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13203: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13350: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13207: \$? = $ac_status" >&5
+   echo "$as_me:13354: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13255,11 +13402,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13258: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13405: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13262: \$? = $ac_status" >&5
+   echo "$as_me:13409: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15639,7 +15786,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15642 "configure"
+#line 15789 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -15735,7 +15882,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15738 "configure"
+#line 15885 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17691,11 +17838,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17694: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17841: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:17698: \$? = $ac_status" >&5
+   echo "$as_me:17845: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -17790,11 +17937,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17793: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17940: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17797: \$? = $ac_status" >&5
+   echo "$as_me:17944: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -17842,11 +17989,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17845: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17992: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:17849: \$? = $ac_status" >&5
+   echo "$as_me:17996: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18817,6 +18964,9 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
+
+
+
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -19161,22 +19311,24 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 # patch libtool to add HOST_CC sometimes needed in crosscompiling a win32 dll
-if grep "HOST_CC" libtool >/dev/null; then
-  if test "$build" != "$host" ; then
-    if test "_$HOST_CC" = "_" ; then
-      HOST_CC="false"
-      for i in `echo $PATH | sed 's,:, ,g'` ; do
-      test -x $i/cc && HOST_CC=$i/cc
-      done
-    fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: patching libtool to add HOST_CC=$HOST_CC" >&5
+if test -f libtool; then
+  if grep "HOST_CC" libtool >/dev/null; then
+    if test "$build" != "$host" ; then
+      if test "_$HOST_CC" = "_" ; then
+        HOST_CC="false"
+        for i in `echo $PATH | sed 's,:, ,g'` ; do
+        test -x $i/cc && HOST_CC=$i/cc
+        done
+      fi
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: patching libtool to add HOST_CC=$HOST_CC" >&5
 $as_echo "patching libtool to add HOST_CC=$HOST_CC" >&6; }
-    test -f libtool.old || (mv libtool libtool.old && cp libtool.old libtool)
-    sed -e "/BEGIN.*LIBTOOL.*CONFIG/a\\
-HOST_CC=$HOST_CC" libtool >libtool.new
-    (test -s libtool.new || rm libtool.new) 2>/dev/null
-    test -f libtool.new && mv libtool.new libtool # not 2>/dev/null !!
-    test -f libtool     || mv libtool.old libtool
+      test -f libtool.old || (mv libtool libtool.old && cp libtool.old libtool)
+      sed -e "/BEGIN.*LIBTOOL.*CONFIG/a\\
+  HOST_CC=$HOST_CC" libtool >libtool.new
+      (test -s libtool.new || rm libtool.new) 2>/dev/null
+      test -f libtool.new && mv libtool.new libtool # not 2>/dev/null !!
+      test -f libtool     || mv libtool.old libtool
+    fi
   fi
 fi
 
@@ -19725,7 +19877,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 19728 "configure"
+#line 19880 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -29488,7 +29640,7 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS="$CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
+		CFLAGS=" $CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
 		if test "x$GCC" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wstrict-prototypes" >&5
 $as_echo_n "checking CFLAGS for gcc -Wstrict-prototypes... " >&6; }
@@ -29944,7 +30096,7 @@ $as_echo "#define DEBUG 0" >>confdefs.h
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS="$CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
+		CFLAGS=" $CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
 		if test "x$GCC" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-long-long... " >&6; }
@@ -30200,7 +30352,7 @@ esac
 
 		fi
 	fi
-	CFLAGS_saved="$CFLAGS"
+	CFLAGS="$CFLAGS -I. "			CFLAGS_saved="$CFLAGS"
 
 
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-debug: ${enable_debug}" >&5
@@ -33713,10 +33865,14 @@ fi
 #
 # we are not using the PACKAGE_ define in any of the sources
 #
-cp src/config.h src/config.h.bak
-cp src/config.h.in src/config.h.in.bak
-grep -v PACKAGE_ src/config.h.bak > src/config.h
-grep -v PACKAGE_ src/config.h.in.bak > src/config.h.in
+if test -f src/config.h; then
+	cp src/config.h src/config.h.bak;
+	grep -v PACKAGE_ src/config.h.bak > src/config.h
+fi
+if test -f src/config.h.in; then
+	cp src/config.h.in src/config.h.in.bak;
+	grep -v PACKAGE_ src/config.h.in.bak > src/config.h.in
+fi
 touch src/stamp-h1
 
 # CREATE_COMMON

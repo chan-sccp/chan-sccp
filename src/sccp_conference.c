@@ -15,7 +15,7 @@
  * 		When to use:	Only methods directly related to the sccp conference implementation should be stored in this source file.
  *   		Relationships: 	
  */
-#include "config.h"
+#include <config.h>
 #include "common.h"
 
 #ifdef CS_SCCP_CONFERENCE

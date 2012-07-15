@@ -11,7 +11,7 @@
  * $Revision$
  */ 
 
-#include "config.h"
+#include <config.h>
 #include "common.h"
 
 /* CallInfo Message */

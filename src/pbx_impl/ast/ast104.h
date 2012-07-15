@@ -12,7 +12,7 @@
 #ifndef SCCP_AST_MAJOR_H_
 #    define SCCP_AST_MAJOR_H_
 
-#    include "../../config.h"
+#    include <config.h>
 #    include "../../common.h"
 
 #    define sccp_sched_context_destroy sched_context_destroy

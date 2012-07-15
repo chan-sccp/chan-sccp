@@ -12,7 +12,7 @@
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
  */
-#include "../../config.h"
+#include <config.h>
 #include "../../common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")

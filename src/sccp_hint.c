@@ -29,7 +29,7 @@
  * \todo (Page needs to be re-written)
  */
 
-#include "config.h"
+#include <config.h>
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")

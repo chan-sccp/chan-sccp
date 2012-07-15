@@ -14,7 +14,7 @@
 #ifndef SCCP_AST_MAJOR_H_
 #    define SCCP_AST_MAJOR_H_
 
-#    include "../../config.h"
+#    include <config.h>
 #    include "../../common.h"
 
 #    define pbx_channel_unref ast_channel_unref

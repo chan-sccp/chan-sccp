@@ -18,8 +18,6 @@ MAX_ASTERISK_VERSION=111
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
 
-CS_GET_VERSION([.])
-
 dnl cross-compile macros
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -54,6 +52,8 @@ AC_REVISION($Revision$)
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
 CS_SETUP_DEFAULTS
+CS_GET_VERSION([.])
+
 AC_PROG_CXX
 
 CONFIGURE_PART([Checking host platform:])
@@ -136,10 +136,14 @@ AC_OUTPUT
 #
 # we are not using the PACKAGE_ define in any of the sources
 #
-cp src/config.h src/config.h.bak
-cp src/config.h.in src/config.h.in.bak
-grep -v PACKAGE_ src/config.h.bak > src/config.h
-grep -v PACKAGE_ src/config.h.in.bak > src/config.h.in
+if test -f src/config.h; then 
+	cp src/config.h src/config.h.bak;
+	grep -v PACKAGE_ src/config.h.bak > src/config.h
+fi
+if test -f src/config.h.in; then 
+	cp src/config.h.in src/config.h.in.bak;
+	grep -v PACKAGE_ src/config.h.in.bak > src/config.h.in
+fi
 touch src/stamp-h1
 
 dnl Call the AC_CONFIG_COMMANDS from create_common.m4
