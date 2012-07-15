@@ -98,7 +98,7 @@
  * \!section lock_starvation Prevent Starvation
  * \!section lock_assumptions Locking Assumptions
  */
-#include "config.h"
+#include <config.h>
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")

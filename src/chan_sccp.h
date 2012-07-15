@@ -25,7 +25,7 @@
 extern "C" {
 #    endif
 
-#    include "config.h"
+#    include <config.h>
 #    include "common.h"
 
 #    define sccp_mutex_t ast_mutex_t

@@ -11,7 +11,7 @@
  * $Revision: 2044 $  
  */
 
-#include "../../config.h"
+#include <config.h>
 #include "../../common.h"
 #include "ast110.h"
 

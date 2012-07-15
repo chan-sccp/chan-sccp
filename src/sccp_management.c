@@ -9,7 +9,7 @@
  * $Date: 2010-11-22 14:09:28 +0100 (Mon, 22 Nov 2010) $
  * $Revision: 2174 $  
  */
-#include "config.h"
+#include <config.h>
 #ifdef CS_SCCP_MANAGER
 #    include "common.h"
 

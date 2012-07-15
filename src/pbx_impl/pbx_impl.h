@@ -15,7 +15,7 @@
 #ifndef __PBX_IMPL_H
 #    define __PBX_IMPL_H
 
-#    include "../config.h"
+#    include <config.h>
 #    include "../common.h"
 
 #    ifdef HAVE_ASTERISK

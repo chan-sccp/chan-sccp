@@ -163,7 +163,10 @@ dnl	AC_GNU_SOURCE
 AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_LANG_SAVE
 	AC_LANG_C
-	AC_PATH_PROGS(SVN, svn, [echo Missing subversion so some stuff will be borked],${PATH}:/opt/csw/bin)
+	AC_PATH_PROGS(SVN, svn, [echo Missing subversion],${PATH}:/opt/csw/bin)
+	AC_PATH_PROGS(SVNVERSION, svnversion, [echo Missing subversion],${PATH}:/opt/csw/bin)
+	AC_PATH_PROGS(GIT, git, [echo Missing git],${PATH}:/opt/csw/bin)
+	AC_PATH_PROGS(HG, hg, [echo Missing mercurial],${PATH}:/opt/csw/bin)
 	AC_PATH_PROGS(SHELL,bash sh,[echo No compatible shell found])
 	AC_PATH_PROGS(SH,bash sh,[echo No compatible shell found])
 	AC_PATH_PROGS(M4,gm4 m4,[echo No m4 found, who will process my macros now ?])
@@ -188,6 +191,9 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_C_INLINE
 	AC_PROG_LIBTOOL
 	AC_SUBST(SVN)
+	AC_SUBST(SVNVERSION)
+	AC_SUBST(GIT)
+	AC_SUBST(HG)
 	AC_SUBST(GREP)
 	AC_SUBST(RPMBUILD)
 	AC_SUBST(OBJCOPY)
@@ -496,7 +502,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS="$CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
+		CFLAGS=" $CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
@@ -518,7 +524,7 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS="$CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
+		CFLAGS=" $CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
@@ -527,6 +533,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		fi		
 	fi
+	CFLAGS="$CFLAGS -I. "		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS_saved="$CFLAGS"
 ])
 

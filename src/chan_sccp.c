@@ -19,7 +19,7 @@
 
 //#define AST_MODULE "chan_sccp"
 
-#include "config.h"
+#include <config.h>
 #include "common.h"
 #include <signal.h>
 
