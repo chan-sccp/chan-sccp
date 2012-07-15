@@ -53,16 +53,23 @@ chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
-	@test -z "$(DESTDIR)$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"
-	@if test "x$(strip_binaries)"=="xyes" ; then \
-	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
-	else \
-	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; \
+	@test -z "$(DESTDIR)$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"							
+	@if test ! -z "$(OBJCOPY)" && test -d "/usr/lib/debug$(DESTDIR)$(csmoddir)" ; then					\
+		if test -f /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so; then 						\
+			rm /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so;							\
+		fi;														\
+		$(OBJCOPY) --only-keep-debug .libs/chan_sccp.so /usr/lib/debug/$(DESTDIR)$(csmoddir)/chan_sccp.so;		\
+                $(OBJCOPY) --strip-debug --add-gnu-debuglink=/usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so .libs/chan_sccp.so ;\
 	fi
-	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          \
-		echo    "=============================================================="; \
-		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           \
-		echo    "=============================================================="; \
-		echo    "Please restart asterisk to use the new version of chan_sccp.so"; \
-		echo    "=============================================================="; \
+	@if test "x$(strip_binaries)"=="xyes" ; then 										\
+	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 					\
+	else 															\
+	        $(INSTALL) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 								\
+	fi
+	@if test -d "$(DESTDIR)$(csmoddir)"; then                                          					\
+		echo    "=============================================================="; 					\
+		echo    "Installed chan_sccp.so to '$(DESTDIR)$(csmoddir)'...";           					\
+		echo    "=============================================================="; 					\
+		echo    "Please restart asterisk to use the new version of chan_sccp.so"; 					\
+		echo    "=============================================================="; 					\
 	fi
