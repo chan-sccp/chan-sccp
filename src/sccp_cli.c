@@ -374,6 +374,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 	struct tm *timeinfo;
 	char regtime[25];
 	int local_total = 0;
+	sccp_device_t *d;
 
 	// table definition
 #define CLI_AMI_TABLE_NAME Devices
@@ -381,11 +382,11 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_device_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &GLOB(devices)
-#define CLI_AMI_TABLE_LIST_ITER_VAR d
+#define CLI_AMI_TABLE_LIST_ITER_VAR list_dev
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_RWLIST_RDLOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_RWLIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 																\
-	if ((d = sccp_device_retain(d))) {															\
+	if ((d = sccp_device_retain(list_dev))) {															\
 		timeinfo = localtime(&d->registrationTime); 													\
 		strftime(regtime, sizeof(regtime), "%c ", timeinfo);
 
@@ -406,6 +407,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_TABLE_FIELD(Act,		s,  	3, 	(d->active_channel) ? "Yes" : "No")							\
 		CLI_AMI_TABLE_FIELD(Lines, 		d,  	5, 	d->configurationStatistic.numberOfLines)
 #include "sccp_cli_table.h"
+
 	// end of table definition
 	if (s)
 		*total = local_total;
