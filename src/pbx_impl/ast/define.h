@@ -145,6 +145,8 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_extension_state_add ast_extension_state_add
 #    define pbx_extension_state_del ast_extension_state_del
 #    define pbx_extension_state ast_extension_state
+#    define pbx_event_get_cached ast_event_get_cached
+#    define pbx_event_destroy ast_event_destroy
 #    define pbx_get_group ast_get_group
 #    define pbx_get_hint ast_get_hint
 #    define pbx_gethostbyname ast_gethostbyname
