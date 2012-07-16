@@ -31,7 +31,7 @@
 #define CONFIG_TYPE_TEMPLATED 2
 #define CONFIG_TYPE_SHORT 3
 #define CONFIG_TYPE_XML 4
-#define CONFIG_TYPE_MYSQL 4
+#define CONFIG_TYPE_MYSQL 5
 //#define CONFIG_TYPE_JSON 5
 char *replace(const char *s, const char *old, const char *new);
 
@@ -399,25 +399,24 @@ int main(int argc, char *argv[])
 
 		if (!strcasecmp(argv[2], "ALL")) {
 			config_type=CONFIG_TYPE_ALL;
-		}
-		else if (!strcasecmp(argv[2], "DEFAULTS")) {
+		} else if (!strcasecmp(argv[2], "DEFAULTS")) {
 			config_type=CONFIG_TYPE_DEFAULTS;
-		}
-		else if (!strcasecmp(argv[2], "TEMPLATED")) {
+		} else if (!strcasecmp(argv[2], "TEMPLATED")) {
 			config_type=CONFIG_TYPE_TEMPLATED;
-		}
-		else if (!strcasecmp(argv[2], "SHORT")) {
+		} else if (!strcasecmp(argv[2], "SHORT")) {
 			config_type=CONFIG_TYPE_SHORT;	
-		}	
-		else if (!strcasecmp(argv[2], "XML")) {
+		} else if (!strcasecmp(argv[2], "XML")) {
 			config_type=CONFIG_TYPE_XML;	
-		}
-		else if (!strcasecmp(argv[2], "MYSQL")) {
+		} else if (!strcasecmp(argv[2], "MYSQL")) {
 			config_type=CONFIG_TYPE_MYSQL;	
+		} else {
+			printf("\nERROR: Unknown Type Specified: %s !!\n\n", argv[2]);
+			goto USAGE;
 		}
 	} else {
-		printf("Usae: gen_sccpconf <config filename> <conf_type>\n");	
-		printf("      where conf_type is one of: (ALL | DEFAULTS | TEMPLATED | SHORT | XML)\n");
+USAGE:
+		printf("Usage: gen_sccpconf <config filename> <conf_type>\n");	
+		printf("       where conf_type is one of: (ALL | DEFAULTS | TEMPLATED | SHORT | XML | MYSQL)\n");
 		return 1;
 	}
 	
