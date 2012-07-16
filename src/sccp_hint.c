@@ -74,6 +74,7 @@ SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
  */
 void sccp_hint_module_start()
 {
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting hint system\n");
 	/* */
 	SCCP_LIST_HEAD_INIT(&lineStates);
 
@@ -89,17 +90,7 @@ void sccp_hint_module_start()
  */
 void sccp_hint_module_stop()
 {
-  
-	{
-		sccp_hint_list_t *hint;
-		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
-		while ((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
-			pbx_event_unsubscribe(hint->device_state_sub);
-			sccp_free(hint);
-		}
-		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
-	}
-	
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Stopping hint system\n");
 	{ 
 		struct sccp_hint_lineState *lineState;
 		SCCP_LIST_LOCK(&lineStates);
@@ -109,8 +100,33 @@ void sccp_hint_module_stop()
 		}
 		SCCP_LIST_UNLOCK(&lineStates);
 	}
-	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED);
-	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED);
+
+	{
+		sccp_hint_list_t *hint;
+		sccp_device_t *device;
+		sccp_hint_SubscribingDevice_t *subscriber;
+		
+		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
+		while ((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
+			pbx_event_unsubscribe(hint->device_state_sub);
+			
+			// All subscriptions that have this device should be removed, force cleanup 
+			SCCP_LIST_LOCK(&hint->subscribers);
+			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&hint->subscribers, list))) {
+				if ((device = sccp_device_retain((sccp_device_t *)subscriber->device))) {
+					subscriber->device = sccp_device_release(subscriber->device);
+					device = sccp_device_release(device);
+					sccp_free(subscriber);
+				}
+			}
+			SCCP_LIST_UNLOCK(&hint->subscribers);
+			sccp_free(hint);
+		}
+		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
+	}
+	
+	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED, sccp_hint_eventListener);
+	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_hint_handleFeatureChangeEvent);
 }
 
 
@@ -202,7 +218,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	if(event){
 		  sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "restore2 state for '%s', state %d\n", hint->hint_dialplan, ast_event_get_ie_uint(event, AST_EVENT_IE_STATE));
 		  sccp_hint_devstate_cb(event, hint);
-		  ast_event_destroy(event);
+		  pbx_event_destroy(event);
 	}
 
 	return hint;
@@ -611,9 +627,9 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	char channelName[100];	// magic number
 	sprintf(channelName, "SCCP/%s", lineState->line->name);
   
+	pbx_event_t 	 	*event;
 	enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN; 
 	int event_signal_method = AST_EVENT_DEVICE_STATE_CHANGE;
-	enum ast_device_state currentDeviceState = ast_device_state(channelName);
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", 
 				   channelstate2str(lineState->state), 
@@ -623,8 +639,12 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 				   lineState->line->name
 	);
 	
-	if (currentDeviceState == AST_DEVICE_UNKNOWN || currentDeviceState == AST_DEVICE_UNAVAILABLE) {
-		event_signal_method = AST_EVENT_DEVICE_STATE;							// new device registration
+	// check if device already registered
+        event = pbx_event_get_cached(AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_END);
+        if (!event) {		// device is unknown
+		event_signal_method = AST_EVENT_DEVICE_STATE;
+	} else { 
+		pbx_event_destroy(event);
 	}
 	
 	switch (lineState->state) {
@@ -682,7 +702,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	);
 #endif
 
-	pbx_event_t 	 	*event;
 	event = pbx_event_new(event_signal_method,
 		  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
 		  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
@@ -709,16 +728,20 @@ static void sccp_hint_deviceRegistered(const sccp_device_t *device)
 {
 	sccp_buttonconfig_t *config;
 	uint8_t positionOnDevice = 0;
+	sccp_device_t *d = NULL; 
 
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-		positionOnDevice++;
+	if ((d = sccp_device_retain((sccp_device_t *)device))) {
+		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+			positionOnDevice++;
 
-		if (config->type == SPEEDDIAL) {
-			if (sccp_strlen_zero(config->button.speeddial.hint)) {
-				continue;
+			if (config->type == SPEEDDIAL) {
+				if (sccp_strlen_zero(config->button.speeddial.hint)) {
+					continue;
+				}
+				sccp_hint_addSubscription4Device(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 			}
-			sccp_hint_addSubscription4Device(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 		}
+		sccp_device_release(d);
 	}
 }
 
@@ -736,15 +759,21 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
 	sccp_hint_list_t *hint = NULL;
 	sccp_hint_SubscribingDevice_t *subscriber;
+	sccp_device_t *d = NULL;
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 
 		/* All subscriptions that have this device should be removed */
-		SCCP_LIST_TRYLOCK(&hint->subscribers);
+		SCCP_LIST_LOCK(&hint->subscribers);
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list) {
-			if (!strcasecmp(subscriber->device->id, deviceName)) {
+			if (subscriber->device && !strcasecmp(subscriber->device->id, deviceName)) {
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: Freeing subscriber from hint exten: %s in %s\n", deviceName, hint->exten, hint->context);
 				SCCP_LIST_REMOVE_CURRENT(list);
+				if ((d = sccp_device_retain((sccp_device_t *)subscriber->device))) {
+					subscriber->device = sccp_device_release(subscriber->device);
+					d = sccp_device_release(d);
+				}
 				sccp_free(subscriber);
 			}
 		}
@@ -766,6 +795,8 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
  * 
  * \lock
  * 	- sccp_hint_subscriptions
+ *
+ * \note called with retained device
  */
 static void sccp_hint_addSubscription4Device(const sccp_device_t *device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice)
 {
@@ -775,11 +806,6 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t *device, const 
 	char *splitter, *hint_exten, *hint_context;
 
 	sccp_copy_string(buffer, hintStr, sizeof(buffer));
-
-	if (!device) {
-		pbx_log(LOG_ERROR, "adding hint to: %s without device is not allowed\n", hintStr);
-		return;
-	}
 
 	/* get exten and context */
 	splitter = buffer;
@@ -818,7 +844,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t *device, const 
 	}
 
 	/* add subscribing device */
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "create subscriber\n");
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: create subscriber or hint: %s in %s\n", device->id, hint->exten, hint->context);
 	sccp_hint_SubscribingDevice_t *subscriber;
 
 	subscriber = sccp_malloc(sizeof(sccp_hint_SubscribingDevice_t));
@@ -828,13 +854,13 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t *device, const 
 	}	
 	memset(subscriber, 0, sizeof(sccp_hint_SubscribingDevice_t));
 
-	subscriber->device = device;
+	subscriber->device = sccp_device_retain((sccp_device_t *)device);
 	subscriber->instance = instance;
 	subscriber->positionOnDevice = positionOnDevice;
 
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
 
-	sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
+	sccp_dev_set_keyset(device, subscriber->instance, 0, KEYMODE_ONHOOK);
 	sccp_hint_notifySubscribers(hint);
 }
 
@@ -846,6 +872,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t *device, const 
  */
 static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 {
+	sccp_device_t *d;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
 	uint32_t state;								/* used to fall back to old behavior */
@@ -867,192 +894,197 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t *hint)
 
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null");
 
+	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list) {
 		if (!subscriber->device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
+			sccp_free(subscriber);
 			continue;
 		}
-
-		state = hint->currentState;
+		if ((d = sccp_device_retain((sccp_device_t *)subscriber->device))) {
+			state = hint->currentState;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
-		if (subscriber->device->inuseprotocolversion >= 15) {
-			sccp_dev_speed_find_byindex((sccp_device_t *) subscriber->device, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
+			if (d->inuseprotocolversion >= 15) {
+				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
 
-			REQ(r, FeatureStatDynamicMessage);
-			if (r) {
-				r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
-				r->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+				REQ(r, FeatureStatDynamicMessage);
+				if (r) {
+					r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
+					r->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 
-				switch (hint->currentState) {
-				case SCCP_CHANNELSTATE_ONHOOK:
-					snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-					r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
-					break;
+					switch (hint->currentState) {
+					case SCCP_CHANNELSTATE_ONHOOK:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
+						break;
 
-				case SCCP_CHANNELSTATE_DOWN:
-					snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-					r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
-					break;
+					case SCCP_CHANNELSTATE_DOWN:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
+						break;
 
-				case SCCP_CHANNELSTATE_RINGING:
-					if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
-						if(strlen(hint->callInfo.partyName) > 0){
-							snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-						}else if(strlen(hint->callInfo.partyNumber) > 0){
-							snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-						}else{
-							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-						}				  
-					} else {
-						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-					}
-					r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING);	/* ringin */
-					break;
-
-				case SCCP_CHANNELSTATE_DND:
-					snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-					r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_DND);	/* dnd */
-					break;
-
-				case SCCP_CHANNELSTATE_CONGESTION:
-					snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-					r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* device/line not found */
-					break;
-
-				default:
-					if (sccp_hint_isCIDavailabe(subscriber->device, subscriber->positionOnDevice) == TRUE) {
-						if(strlen(hint->callInfo.partyName) > 0){
-							snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
-						}else if(strlen(hint->callInfo.partyNumber) > 0){
-							snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
-						}else{
+					case SCCP_CHANNELSTATE_RINGING:
+						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
+							if(strlen(hint->callInfo.partyName) > 0){
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
+							}else if(strlen(hint->callInfo.partyNumber) > 0){
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
+							}else{
+								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+							}				  
+						} else {
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						}
-					} else {
-						snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING);	/* ringin */
+						break;
+
+					case SCCP_CHANNELSTATE_DND:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_DND);	/* dnd */
+						break;
+
+					case SCCP_CHANNELSTATE_CONGESTION:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* device/line not found */
+						break;
+
+					default:
+						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
+							if(strlen(hint->callInfo.partyName) > 0){
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
+							}else if(strlen(hint->callInfo.partyNumber) > 0){
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.partyNumber, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "<->", k.name);
+							}else{
+								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+							}
+						} else {
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						}
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
+						break;
 					}
-					r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
+
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
+					sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
+					sccp_dev_send(d, r);
+				} else {
+					sccp_free(r);
+				}
+			} else {
+				/*
+				   we have dynamic speeddial enabled, but subscriber can not handle this.
+				   We have to switch back to old hint style and send old state.
+				 */
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(d), state);
+#endif										// CS_DYNAMIC_SPEEDDIAL
+				/*
+				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
+				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
+				 */
+//		              if (hint->currentState != SCCP_CHANNELSTATE_ONHOOK) {
+//		                      state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+//		              } else {
+//		                      state = SCCP_CHANNELSTATE_ONHOOK;
+//		              }
+#ifndef CS_EXPERIMENTAL_
+				switch (hint->currentState) {
+				case SCCP_CHANNELSTATE_ONHOOK:
+				case SCCP_CHANNELSTATE_RINGING:
+					state = hint->currentState;
+					break;
+				default:
+					state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 					break;
 				}
 
-				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "set display name to: \"%s\"\n", displayMessage);
-				sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
-				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
-				sccp_dev_send(subscriber->device, r);
-			} else {
-				sccp_free(r);
-			}
+				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
+					/* we send a congestion to the phone, so call will not be marked as missed call */
+					sccp_device_sendcallstate(d, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+				}
 
-			continue;
-		}
+				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
 
-		/*
-		   we have dynamic speeddial enabled, but subscriber can not handle this.
-		   We have to switch back to old hint style and send old state.
-		 */
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(subscriber->device), state);
-#endif										// CS_DYNAMIC_SPEEDDIAL
-		/*
-		   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
-		   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
-		 */
-//              if (hint->currentState != SCCP_CHANNELSTATE_ONHOOK) {
-//                      state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-//              } else {
-//                      state = SCCP_CHANNELSTATE_ONHOOK;
-//              }
-#ifndef CS_EXPERIMENTAL_
-		switch (hint->currentState) {
-		case SCCP_CHANNELSTATE_ONHOOK:
-		case SCCP_CHANNELSTATE_RINGING:
-			state = hint->currentState;
-			break;
-		default:
-			state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-			break;
-		}
+				/* create CallInfoMessage */
+				REQ(r, CallInfoMessage);
 
-		if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
-			/* we send a congestion to the phone, so call will not be marked as missed call */
-			sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-		}
+				/* set callInfo */
+				if (r) {
+					sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.partyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+					sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.partyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting callingPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingPartyName);
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting calledPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledPartyName);
 
-		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+					sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.partyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+					sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.partyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting callingParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingParty);
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting calledParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledParty);
 
-		/* create CallInfoMessage */
-		REQ(r, CallInfoMessage);
+					r->msg.CallInfoMessage.lel_lineId = htolel(subscriber->instance);
+					r->msg.CallInfoMessage.lel_callRef = htolel(0);
+					r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
+					sccp_dev_send(d, r);
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(d), subscriber->instance, hint->currentState);
+				} else {
+					sccp_free(r);
+				}
 
-		/* set callInfo */
-		sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.partyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-		sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.partyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting callingPartyName: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.callingPartyName);
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting calledPartyName: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.calledPartyName);
-
-		sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.partyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-		sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.partyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting callingParty: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.callingParty);
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: setting calledParty: '%s'\n", DEV_ID_LOG(subscriber->device), r->msg.CallInfoMessage.calledParty);
-
-		r->msg.CallInfoMessage.lel_lineId = htolel(subscriber->instance);
-		r->msg.CallInfoMessage.lel_callRef = htolel(0);
-		r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
-		sccp_dev_send(subscriber->device, r);
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(subscriber->device), subscriber->instance, hint->currentState);
-
-		if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
-			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
-		} else {
-			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
-		}
+				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
+					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
+				} else {
+					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
+				}
 #else
-		switch (hint->currentState) {
-		case SCCP_CHANNELSTATE_ONHOOK:
-			break;
-		default:
-			state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-			break;
-		}
-
-		if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
-			/* we send a congestion to the phone, so call will not be marked as missed call */
-			sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-			// remove from messageStack
-//			sccp_device_clearMessageFromStack((sccp_device_t *)subscriber->device, 8);
-		}
-
-		sccp_device_sendcallstate(subscriber->device, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-
-		if (SCCP_CHANNELSTATE_RINGING == hint->currentState) {
-			char msg_buf[40];
-			if (SKINNY_CALLTYPE_INBOUND == hint->callInfo.calltype) {
-				if (!sccp_strlen_zero(hint->callInfo.partyName)) {
-					sprintf(msg_buf, "%s -> %s", hint->callInfo.partyNumber, hint->exten);
-				} else {
-					sprintf(msg_buf, "%s -> %s", hint->callInfo.partyName, hint->exten);
+				switch (hint->currentState) {
+				case SCCP_CHANNELSTATE_ONHOOK:
+					break;
+				default:
+					state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+					break;
 				}
-			} else {
-				if (!sccp_strlen_zero(hint->callInfo.partyName)) {
-					sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyNumber);
-				} else {
-					sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyName);
-				}
-			}
-			sccp_dev_displaynotify(subscriber->device, msg_buf, 5);
-			// possibly use messageStack instead
-//			sccp_device_addMessageToStack((sccp_device_t *)subscriber->device, 8, msg_buf);
-		}
 
-		if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
-			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
-		} else {
-			sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
+				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
+					/* we send a congestion to the phone, so call will not be marked as missed call */
+					sccp_device_sendcallstate(d, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+					// remove from messageStack
+//					sccp_device_clearMessageFromStack((sccp_device_t *)d, 8);
+				}
+
+				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
+
+				if (SCCP_CHANNELSTATE_RINGING == hint->currentState) {
+					char msg_buf[40];
+					if (SKINNY_CALLTYPE_INBOUND == hint->callInfo.calltype) {
+						if (!sccp_strlen_zero(hint->callInfo.partyName)) {
+							sprintf(msg_buf, "%s -> %s", hint->callInfo.partyNumber, hint->exten);
+						} else {
+							sprintf(msg_buf, "%s -> %s", hint->callInfo.partyName, hint->exten);
+						}
+					} else {
+						if (!sccp_strlen_zero(hint->callInfo.partyName)) {
+							sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyNumber);
+						} else {
+							sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyName);
+						}
+					}
+					sccp_dev_displaynotify(d, msg_buf, 5);
+					// possibly use messageStack instead
+//					sccp_device_addMessageToStack((sccp_device_t *)d, 8, msg_buf);
+				}
+
+				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
+					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
+				} else {
+					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
+				}
+#endif		// protocol version > 15
+			}					
+			d = sccp_device_release(d);
 		}
-#endif
-				
 	}
-	SCCP_LIST_TRAVERSE_SAFE_END
-  
+	SCCP_LIST_TRAVERSE_SAFE_END; 
+	SCCP_LIST_UNLOCK(&hint->subscribers);
 }
 
 /*!
