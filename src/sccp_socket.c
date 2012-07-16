@@ -443,10 +443,12 @@ void *sccp_socket_device_thread(void *session)
 					break;
 				}
 			} else {						/* poll error */
-				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-				if (s->device && s->device->registrationState)
-		                        s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
-				s->session_stop = 1;
+				if (!s->session_stop) {
+					pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+					if (s->device && s->device->registrationState)
+			                        s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
+					s->session_stop = 1;
+				}
 				break;
 			}
 		} else {							/* session is gone */
