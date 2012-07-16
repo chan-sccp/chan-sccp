@@ -1779,7 +1779,7 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_hostname_t *permithost = NULL;
 	int i;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroing Device\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
 	sccp_mutex_lock(&d->lock);						// using real device lock while using refcount
 
 	/* remove button config */
