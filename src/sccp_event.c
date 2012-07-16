@@ -28,11 +28,11 @@ void sccp_event_destroy(sccp_event_t *event);
  * \brief SCCP Event Listeners Structure
  */
 struct sccp_event_aSyncEventProcessorThreadArg{
-	const struct sccp_event_subscribtions *subscribers;
+	const struct sccp_event_subscriptions *subscribers;
 	sccp_event_t *event;
 };
 
-struct sccp_event_subscribtions{
+struct sccp_event_subscriptions{
 	int syncSize;
 	sccp_event_subscriber_t *sync;
 	
@@ -40,7 +40,7 @@ struct sccp_event_subscribtions{
 	sccp_event_subscriber_t *async;
 };
 
-struct sccp_event_subscribtions subscribtions[NUMBER_OF_EVENT_TYPES];
+struct sccp_event_subscriptions subscriptions[NUMBER_OF_EVENT_TYPES];
 
 boolean_t sccp_event_running = FALSE;
 
@@ -82,7 +82,7 @@ void sccp_event_destroy(sccp_event_t *event)
 
 static void *sccp_event_processor(void *data){
 	struct sccp_event_aSyncEventProcessorThreadArg *args;
-	const struct sccp_event_subscribtions *subscribers;
+	const struct sccp_event_subscriptions *subscribers;
 	sccp_event_t *event;
 	int n;
 	
@@ -110,8 +110,8 @@ void sccp_event_module_start(void)
 	int i;
 	if (!sccp_event_running) {
 		for(i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			subscribtions[i].async = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
-			subscribtions[i].sync = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
+			subscriptions[i].async = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
+			subscriptions[i].sync = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
 		}
 		sccp_event_running = TRUE;
 	}
@@ -123,13 +123,13 @@ void sccp_event_module_stop(void)
 	if (sccp_event_running) {
 		sccp_event_running = FALSE;
 		for(i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			subscribtions[i].aSyncSize=0;
-			subscribtions[i].syncSize=0;
+			subscriptions[i].aSyncSize=0;
+			subscriptions[i].syncSize=0;
 		}
 		usleep(20);	// arbitairy time for other threads to finish their business
 		for(i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			free(subscribtions[i].async);
-			free(subscribtions[i].sync);
+			free(subscriptions[i].async);
+			free(subscriptions[i].sync);
 		}
 	}
 }
@@ -149,21 +149,21 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 	for(i = 0, n = 1<<i; i < NUMBER_OF_EVENT_TYPES && sccp_event_running; i++, n = 1<<i){
 		if(eventType & n){
 			if(allowASyncExecution){
-				size = subscribtions[i].aSyncSize;
+				size = subscriptions[i].aSyncSize;
 				if (size) {
-					subscribtions[i].async = (sccp_event_subscriber_t *) realloc(subscribtions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
+					subscriptions[i].async = (sccp_event_subscriber_t *) realloc(subscriptions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
 				}
-				subscribtions[i].async[size].callback_function = cb;
-				subscribtions[i].async[size].eventType = eventType;
-				subscribtions[i].aSyncSize++;
+				subscriptions[i].async[size].callback_function = cb;
+				subscriptions[i].async[size].eventType = eventType;
+				subscriptions[i].aSyncSize++;
 			}else{
-				size = subscribtions[i].syncSize;
+				size = subscriptions[i].syncSize;
 				if (size) {
-					subscribtions[i].sync = (sccp_event_subscriber_t *) realloc(subscribtions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
+					subscriptions[i].sync = (sccp_event_subscriber_t *) realloc(subscriptions[i].async, (size+1) * sizeof(sccp_event_subscriber_t));
 				}
-				subscribtions[i].sync[size].callback_function = cb;
-				subscribtions[i].sync[size].eventType = eventType;
-				subscribtions[i].syncSize++;
+				subscriptions[i].sync[size].callback_function = cb;
+				subscriptions[i].sync[size].eventType = eventType;
+				subscriptions[i].syncSize++;
 			}
 		}
 	}
@@ -178,16 +178,16 @@ void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t c
 	int i, n, x;
 	for(i = 0, n = 1<<i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1<<i){
 		if(eventType & n){
-			for (x=0; x<subscribtions[i].aSyncSize; x++) {
-				if (subscribtions[i].async[x].callback_function == cb) {
-					subscribtions[i].async[x].callback_function = (void *)NULL;
-					subscribtions[i].async[x].eventType = 0;
+			for (x=0; x<subscriptions[i].aSyncSize; x++) {
+				if (subscriptions[i].async[x].callback_function == cb) {
+					subscriptions[i].async[x].callback_function = (void *)NULL;
+					subscriptions[i].async[x].eventType = 0;
 				}
 			}
-			for (x=0; x<subscribtions[i].syncSize; x++) {
-				if (subscribtions[i].sync[x].callback_function == cb) {
-					subscribtions[i].sync[x].callback_function = (void *)NULL;
-					subscribtions[i].sync[x].eventType = 0;
+			for (x=0; x<subscriptions[i].syncSize; x++) {
+				if (subscriptions[i].sync[x].callback_function == cb) {
+					subscriptions[i].sync[x].callback_function = (void *)NULL;
+					subscriptions[i].sync[x].eventType = 0;
 				}
 			}
 		}
@@ -265,13 +265,13 @@ void sccp_event_fire(const sccp_event_t *event)
 
 	/* start async thread if nessesary */
 	if (GLOB(module_running)) {
-		if(subscribtions[i].aSyncSize > 0 && sccp_event_running){
+		if(subscriptions[i].aSyncSize > 0 && sccp_event_running){
 			/* create thread for async subscribers */
 			struct sccp_event_aSyncEventProcessorThreadArg *arg = malloc(sizeof(struct sccp_event_aSyncEventProcessorThreadArg));
 			if (!arg) {
 				pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event_aSyncEventProcessorThreadArg. Skipping\n", event);
 			} else {
-				arg->subscribers = &subscribtions[i];
+				arg->subscribers = &subscriptions[i];
 				arg->event = sccp_event_retain(e);
 
 				/* initialized with default attributes */
@@ -290,9 +290,9 @@ void sccp_event_fire(const sccp_event_t *event)
 	
 		/* execute sync subscribers */
 		if ((e = sccp_event_retain(e))) {
-			for(n = 0; n < subscribtions[i].syncSize && sccp_event_running; n++){
-				if (subscribtions[i].sync[n].callback_function != NULL) {
-					subscribtions[i].sync[n].callback_function( (const sccp_event_t *)e);
+			for(n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++){
+				if (subscriptions[i].sync[n].callback_function != NULL) {
+					subscriptions[i].sync[n].callback_function( (const sccp_event_t *)e);
 				}
 			}
 			sccp_event_release(e);
@@ -301,14 +301,14 @@ void sccp_event_fire(const sccp_event_t *event)
 		// we are unloading. switching to synchonous mode for everything
 		sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, event2str(e->type));
 		if ((e = sccp_event_retain(e))) {
-			for(n = 0; n < subscribtions[i].syncSize && sccp_event_running; n++){
-				if (subscribtions[i].sync[n].callback_function != NULL) {
-					subscribtions[i].sync[n].callback_function( (const sccp_event_t *)e);
+			for(n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++){
+				if (subscriptions[i].sync[n].callback_function != NULL) {
+					subscriptions[i].sync[n].callback_function( (const sccp_event_t *)e);
 				}
 			}
-			for(n = 0; n < subscribtions[i].aSyncSize && sccp_event_running; n++){
-				if (subscribtions[i].async[n].callback_function != NULL) {
-					subscribtions[i].async[n].callback_function( (const sccp_event_t *)e);
+			for(n = 0; n < subscriptions[i].aSyncSize && sccp_event_running; n++){
+				if (subscriptions[i].async[n].callback_function != NULL) {
+					subscriptions[i].async[n].callback_function( (const sccp_event_t *)e);
 				}
 			}
 			sccp_event_release(e);
