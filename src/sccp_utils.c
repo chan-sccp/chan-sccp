@@ -19,29 +19,6 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /*!
- * \brief is Printable Character
- * \param c Character
- * \return true/false
- */
-static int isPrintableChar(char c)
-{
-	if ((c < 'A' || c > 'Z') && (c < 'a' || c > 'z')
-	    && (c < '0' || c > '9') && (c != ' ') && (c != '\'')
-	    && (c != '(') && (c != ')') && (c != '+') && (c != ',')
-	    && (c != '-') && (c != '.') && (c != '/') && (c != ':')
-	    && (c != '=') && (c != '?') && (c != '_') && (c != '\\')
-	    && (c != '@') && (c != '"') && (c != '%') && (c != '$')
-	    && (c != '&') && (c != '#') && (c != ';')
-	    //&& (c != '£')
-	    && (c != '<') && (c != '>') && (c != ']') && (c != '{')
-	    && (c != '}') && (c != '*') && (c != '^')) {
-		return 0;
-	} else {
-		return 1;
-	}
-}
-
-/*!
  * \brief Print out a messagebuffer
  * \param messagebuffer Pointer to Message Buffer as char
  * \param len Lenght as Int
@@ -76,7 +53,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 			memset(temp, 0, sizeof(temp));
 			sprintf(temp, "%02X ", messagebuffer[cur]);
 			strcat(row, temp);
-			if (isPrintableChar((char)messagebuffer[cur]))
+			if (isprint((char)messagebuffer[cur]))
 				sprintf(temp, "%c", messagebuffer[cur]);
 			else
 				sprintf(temp, ".");
