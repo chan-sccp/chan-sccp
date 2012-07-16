@@ -625,6 +625,7 @@ boolean_t sccp_prePBXLoad()
 
 	GLOB(general_threadpool) = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
 
+	sccp_event_module_start();
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
 	sccp_manager_module_start();
@@ -728,7 +729,8 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 //	pbx_config_destroy(GLOB(cfg));
-	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED);
+	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
+	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
 	close(GLOB(descriptor));
@@ -748,6 +750,7 @@ int sccp_preUnload(void)
 
 	//! \todo make this pbx independend
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
+
 
 	/* removing devices */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
@@ -795,9 +798,6 @@ int sccp_preUnload(void)
 	sccp_mutex_destroy(&GLOB(socket_lock));
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
 
-	sccp_threadpool_destroy(GLOB(general_threadpool));
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
-
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
 	if (GLOB(ha))
 		sccp_free_ha(GLOB(ha));
@@ -807,6 +807,11 @@ int sccp_preUnload(void)
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
 
+	sccp_hint_module_stop();
+	sccp_event_module_stop();
+
+	sccp_threadpool_destroy(GLOB(general_threadpool));
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
 	sccp_refcount_destroy();
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));
