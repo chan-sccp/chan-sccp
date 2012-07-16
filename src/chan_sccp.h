@@ -266,7 +266,7 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 	} sccp_tokenstate_t;
 
 #    include "sccp_protocol.h"
-#    if HAVE_ASTERISK
+#    ifdef HAVE_ASTERISK
 #        include "pbx_impl/ast/ast.h"
 #    endif
 

@@ -283,87 +283,60 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
  * Used to map SKinny Message Id's to their Handling Implementations
  */
 struct sccp_messageMap_cb {
-	uint32_t messageId;
 	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
 	boolean_t deviceIsNecessary;
 };
-
-/*!
- * \brief SCCP Message Handler Callback Mapping
- *
- * Used to map SKinny Message Id's to their Handling Implementations
- */
-static const struct sccp_messageMap_cb messagesCbMap[] = {
-	{KeepAliveMessage, sccp_handle_KeepAliveMessage, FALSE},						/* on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token */
-	{OffHookMessage, sccp_handle_offhook, TRUE},
-	{OnHookMessage, sccp_handle_onhook, TRUE},
-	{SoftKeyEventMessage, sccp_handle_soft_key_event, TRUE},
-	{OpenReceiveChannelAck, sccp_handle_open_receive_channel_ack, TRUE},
-	{OpenMultiMediaReceiveChannelAckMessage, sccp_handle_OpenMultiMediaReceiveAck, TRUE},
-	{StartMediaTransmissionAck, sccp_handle_startmediatransmission_ack, TRUE},
-
-	{IpPortMessage, NULL, TRUE},
-	{VersionReqMessage, sccp_handle_version, TRUE},
-	{CapabilitiesResMessage, sccp_handle_capabilities_res, TRUE},
-	{ButtonTemplateReqMessage, sccp_handle_button_template_req, TRUE},
-	{SoftKeyTemplateReqMessage, sccp_handle_soft_key_template_req, TRUE},
-	{SoftKeySetReqMessage, sccp_handle_soft_key_set_req, TRUE},
-	{LineStatReqMessage, sccp_handle_line_number, TRUE},
-	{SpeedDialStatReqMessage, sccp_handle_speed_dial_stat_req, TRUE},
-	{StimulusMessage, sccp_handle_stimulus, TRUE},
-
-	{HeadsetStatusMessage, sccp_handle_headset, TRUE},
-	{TimeDateReqMessage, sccp_handle_time_date_req, TRUE},
-	{KeypadButtonMessage, sccp_handle_keypad_button, TRUE},
-
-	{ConnectionStatisticsRes, sccp_handle_ConnectionStatistics, TRUE},
-	{ServerReqMessage, sccp_handle_ServerResMessage, TRUE},
-	{ConfigStatReqMessage, sccp_handle_ConfigStatMessage, TRUE},
-	{EnblocCallMessage, sccp_handle_EnblocCallMessage, TRUE},
-	{RegisterAvailableLinesMessage, sccp_handle_AvailableLines, TRUE},
-	{ForwardStatReqMessage, sccp_handle_forward_stat_req, TRUE},
-	{FeatureStatReqMessage, sccp_handle_feature_stat_req, TRUE},
-	{ServiceURLStatReqMessage, sccp_handle_services_stat_req, TRUE},
-	{AccessoryStatusMessage, sccp_handle_accessorystatus_message, TRUE},
-	{DialedPhoneBookMessage, sccp_handle_dialedphonebook_message, TRUE},
-	{UpdateCapabilitiesMessage, sccp_handle_updatecapabilities_message, TRUE},
-	{Unknown_0x004A_Message, sccp_handle_unknown_message, TRUE},
-	{DisplayDynamicNotifyMessage, sccp_handle_unknown_message, TRUE},
-	{DisplayDynamicPriNotifyMessage, sccp_handle_unknown_message, TRUE},
-	{SpeedDialStatDynamicMessage, sccp_handle_speed_dial_stat_req, TRUE},
-	{ExtensionDeviceCaps, sccp_handle_unknown_message, TRUE},
-	{DeviceToUserDataVersion1Message, sccp_handle_device_to_user, TRUE},
-	{DeviceToUserDataResponseVersion1Message, sccp_handle_device_to_user_response, TRUE},
-	{RegisterTokenRequest, sccp_handle_token_request, FALSE},
-	{UnregisterMessage, sccp_handle_unregister, FALSE},
-	{RegisterMessage, sccp_handle_register, FALSE},
-	{AlarmMessage, sccp_handle_alarm, FALSE},
-	{XMLAlarmMessage, sccp_handle_XMLAlarmMessage, FALSE},
-	{SPCPRegisterTokenRequest, sccp_handle_SPCPTokenReq, FALSE},
-	{StartMultiMediaTransmissionAck, sccp_handle_startmultimediatransmission_ack, TRUE},
-	{MediaTransmissionFailure, sccp_handle_mediatransmissionfailure, TRUE},
-	{MiscellaneousCommandMessage, sccp_handle_miscellaneousCommandMessage, TRUE},
-};
-
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
 
-/*!
- * \brief Get SCCP Message Handler by Message Id
- * \param messageId Skinny Message Id
- * \return Message CallBack Entry
- */
-inline static const sccp_messageMap_cb_t *sccp_getMessageMap_by_MessageId(uint32_t messageId)
-{
-	uint32_t i;
 
-	for (i = 0; i < ARRAY_LEN(messagesCbMap); i++) {
-		if (messagesCbMap[i].messageId == messageId) {
-			return &messagesCbMap[i];
-		}
-	}
-
-	return NULL;
-}
+static const struct sccp_messageMap_cb messagesCbMap[] = {
+	[KeepAliveMessage] = {sccp_handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
+	[OffHookMessage]={sccp_handle_offhook, TRUE},
+	[OnHookMessage]={sccp_handle_onhook, TRUE},
+	[SoftKeyEventMessage]={sccp_handle_soft_key_event, TRUE},
+	[OpenReceiveChannelAck]={sccp_handle_open_receive_channel_ack, TRUE},
+	[OpenMultiMediaReceiveChannelAckMessage]={sccp_handle_OpenMultiMediaReceiveAck, TRUE},
+	[StartMediaTransmissionAck]={sccp_handle_startmediatransmission_ack, TRUE},
+	[IpPortMessage]={NULL, TRUE},
+	[VersionReqMessage]={sccp_handle_version, TRUE},
+	[CapabilitiesResMessage]={sccp_handle_capabilities_res, TRUE},
+	[ButtonTemplateReqMessage]={sccp_handle_button_template_req, TRUE},
+	[SoftKeyTemplateReqMessage]={sccp_handle_soft_key_template_req, TRUE},
+	[SoftKeySetReqMessage]={sccp_handle_soft_key_set_req, TRUE},
+	[LineStatReqMessage]={sccp_handle_line_number, TRUE},
+	[SpeedDialStatReqMessage]={sccp_handle_speed_dial_stat_req, TRUE},
+	[StimulusMessage]={sccp_handle_stimulus, TRUE},
+	[HeadsetStatusMessage]={sccp_handle_headset, TRUE},
+	[TimeDateReqMessage]={sccp_handle_time_date_req, TRUE},
+	[KeypadButtonMessage]={sccp_handle_keypad_button, TRUE},
+	[ConnectionStatisticsRes]={sccp_handle_ConnectionStatistics, TRUE},
+	[ServerReqMessage]={sccp_handle_ServerResMessage, TRUE},
+	[ConfigStatReqMessage]={sccp_handle_ConfigStatMessage, TRUE},
+	[EnblocCallMessage]={sccp_handle_EnblocCallMessage, TRUE},
+	[RegisterAvailableLinesMessage]={sccp_handle_AvailableLines, TRUE},
+	[ForwardStatReqMessage]={sccp_handle_forward_stat_req, TRUE},
+	[FeatureStatReqMessage]={sccp_handle_feature_stat_req, TRUE},
+	[ServiceURLStatReqMessage]={sccp_handle_services_stat_req, TRUE},
+	[AccessoryStatusMessage]={sccp_handle_accessorystatus_message, TRUE},
+	[DialedPhoneBookMessage]={sccp_handle_dialedphonebook_message, TRUE},
+	[UpdateCapabilitiesMessage]={sccp_handle_updatecapabilities_message, TRUE},
+	[Unknown_0x004A_Message]={sccp_handle_unknown_message, TRUE},
+	[DisplayDynamicNotifyMessage]={sccp_handle_unknown_message, TRUE},
+	[DisplayDynamicPriNotifyMessage]={sccp_handle_unknown_message, TRUE},
+	[SpeedDialStatDynamicMessage]={sccp_handle_speed_dial_stat_req, TRUE},
+	[ExtensionDeviceCaps]={sccp_handle_unknown_message, TRUE},
+	[DeviceToUserDataVersion1Message]={sccp_handle_device_to_user, TRUE},
+	[DeviceToUserDataResponseVersion1Message]={sccp_handle_device_to_user_response, TRUE},
+	[RegisterTokenRequest]={sccp_handle_token_request, FALSE},
+	[UnregisterMessage]={sccp_handle_unregister, FALSE},
+	[RegisterMessage]={sccp_handle_register, FALSE},
+	[AlarmMessage]={sccp_handle_alarm, FALSE},
+	[XMLAlarmMessage]={sccp_handle_XMLAlarmMessage, FALSE},
+	[SPCPRegisterTokenRequest]={sccp_handle_SPCPTokenReq, FALSE},
+	[StartMultiMediaTransmissionAck]={sccp_handle_startmultimediatransmission_ack, TRUE},
+	[MediaTransmissionFailure]={sccp_handle_mediatransmissionfailure, TRUE},
+	[MiscellaneousCommandMessage]={sccp_handle_miscellaneousCommandMessage, TRUE},
+};
 
 /*!
  * \brief 	Controller function to handle Received Messages
@@ -375,7 +348,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	const sccp_messageMap_cb_t *messageMap_cb = NULL;
 	uint32_t mid = 0;
 	sccp_device_t *device = NULL;
-
+	
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
 		if (r) {
@@ -392,7 +365,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	mid = letohl(r->lel_messageId);
 
 	/* search for message handler */
-	messageMap_cb = sccp_getMessageMap_by_MessageId(mid);
+	messageMap_cb = &messagesCbMap[mid];
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", DEV_ID_LOG(s->device), message2str(mid), mid);
 
 	/* we dont know how to handle event */
