@@ -153,7 +153,7 @@ echo
 echo "Operating System : $BUILD_OS"
 echo "          Kernel : $BUILD_KERNEL"
 echo "    Architecture : $BUILD_MACHINE"
-echo "Asterisk Version : $ASTERISK_STR_VER"
+echo "Asterisk Version : $ASTERISK_VERSION_NUMBER"
 echo "  Asterisk Repos : $ASTERISK_REPOS_LOCATION"
 echo "      Build user : $BUILD_USER"
 echo "         Version : ${SCCP_VERSION}_${SCCP_BRANCH}_r${SCCP_REVISION}"

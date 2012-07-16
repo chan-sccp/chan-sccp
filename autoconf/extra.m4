@@ -26,7 +26,10 @@ AC_DEFUN([CS_SETUP_BUILD],[
 		BUILD_HOSTNAME="`${UNAME} -n`"
 		BUILD_KERNEL="`${UNAME} -r`"
 		if test "_${AWK}" != "_No" && test "_${FINGER}" != "_No"; then
-			BUILD_USER="`${FINGER} -lp $(echo "$USER") | ${HEAD} -n 1 | ${AWK} -F:\  '{print $3}'`"
+			BUILD_USER="`${FINGER} -lp |${HEAD} -n1 |${CUT} -d: -f3|${CUT} -c 2-`"
+dnl			BUILD_USER="`${FINGER} -lp |${HEAD} -n1 |${AWK} -F:\  '{print $3}'`"
+		elif test ! -z "${USERNAME}"; then
+			BUILD_USER="${USERNAME}"		
 		else
 			BUILD_USER="`${WHOAMI}`"
 		fi
