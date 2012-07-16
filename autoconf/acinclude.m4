@@ -376,8 +376,8 @@ AC_DEFUN([CS_GET_VERSION], [
 
   BASE=`dirname $ac_dir`
   pushd $BASE
-  if test ! -z "$SVN" && test ! -z "$SVNVERSION" && (test -d .svn || test -d ../.svn || test -d ../../.svn);then
-      if test "`basename $($SVN info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
+  if test ! -z "$SVN" && test -d .svn || test -d ../.svn || test -d ../../.svn;then
+      if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
           SCCP_VERSION=`basename $(svnpath)`
           SCCP_BRANCH=`basename $(svnpath)`
       else
@@ -390,7 +390,7 @@ AC_DEFUN([CS_GET_VERSION], [
         fi
       fi
       SCCP_REVISION="`svnversion .|cut -d: -f2 |cut -dM -f1`"
-  elif test ! -z "$HG" && (test -d .hg || test -d ../.hg || test -d ../../.hg);then
+  elif test ! -z "$HG" && test -d .hg || test -d ../.hg || test -d ../../.hg;then
       SCCP_VERSION="`cat .hg/hgrc |grep http|awk '{print $3}'|tr "/" "\n"|tail -n2|head -n1`"
       if grep -q "default" .hg/branch; then
         SCCP_BRANCH="TRUNK"
@@ -398,7 +398,7 @@ AC_DEFUN([CS_GET_VERSION], [
         SCCP_BRANCH="`cat .hg/branch`"
       fi
       SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
-  elif test ! -z "$GIT" && (test -d .git || test -d ../.git || test -d ../../.git);then
+  elif test ! -z "$GIT" && test -d .git || test -d ../.git || test -d ../../.git;then
       SCCP_VERSION="`cat .version|cut -d_ -f1`"
   dnl    if test "`git branch | awk '{print $2}' | sed 's/\n//g'`" = "master"; then
         SCCP_BRANCH="TRUNK"
