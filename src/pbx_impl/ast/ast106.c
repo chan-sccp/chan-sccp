@@ -2737,7 +2737,7 @@ static struct ast_module_info __mod_info = {
 	NULL,
 	NULL,
 	AST_MODULE,
-	"Skinny Client Control Protocol (SCCP). CPP-Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
+	"Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
 	ASTERISK_GPL_KEY,
 	AST_MODFLAG_LOAD_ORDER,
 	AST_BUILDOPT_SUM,
