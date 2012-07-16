@@ -2678,14 +2678,12 @@ static int unload_module(void)
 	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
 	sccp_mwi_module_stop();
-	sccp_hint_module_stop();
 #ifdef CS_SCCP_MANAGER
 	sccp_unregister_management();
 #endif
 #ifdef HAVE_PBX_MESSAGE_H
 	ast_msg_tech_unregister(&sccp_msg_tech);
 #endif
-	sccp_event_module_stop();
 
 	sccp_globals_lock(monitor_lock);
 	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
