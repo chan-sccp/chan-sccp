@@ -20,8 +20,8 @@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2012-07-15 14:30:35 +0200 (Sun, 15 Jul 2012) $
-# REVISION: $Revision: 3668 $
+# DATE:     $Date: 2012-07-15 17:52:18 +0200 (Sun, 15 Jul 2012) $
+# REVISION: $Revision: 3669 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 
 VPATH = @srcdir@
@@ -1015,13 +1015,13 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(DESTDIR)$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"							
-	@if test ! -z "$(OBJCOPY)" && test -d "/usr/lib/debug$(DESTDIR)$(csmoddir)" ; then					\
-		if test -f /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so; then 						\
-			rm /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so;							\
-		fi;														\
-		$(OBJCOPY) --only-keep-debug .libs/chan_sccp.so /usr/lib/debug/$(DESTDIR)$(csmoddir)/chan_sccp.so;		\
-                $(OBJCOPY) --strip-debug --add-gnu-debuglink=/usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so .libs/chan_sccp.so ;\
-	fi
+#	@if test ! -z "$(OBJCOPY)" && test -d "/usr/lib/debug$(DESTDIR)$(csmoddir)" ; then					\
+#		if test -f /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so; then 						\
+#			rm /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so;							\
+#		fi;														\
+#		$(OBJCOPY) --only-keep-debug .libs/chan_sccp.so /usr/lib/debug/$(DESTDIR)$(csmoddir)/chan_sccp.so;		\
+#                $(OBJCOPY) --strip-debug --add-gnu-debuglink=/usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so .libs/chan_sccp.so ;\
+#	fi
 	@if test "x$(strip_binaries)"=="xyes" ; then 										\
 	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 					\
 	else 															\
