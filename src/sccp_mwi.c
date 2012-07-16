@@ -77,9 +77,9 @@ void sccp_mwi_module_stop()
 	SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
 	SCCP_LIST_HEAD_DESTROY(&sccp_mailbox_subscriptions);
 
-	sccp_event_unsubscribe(SCCP_EVENT_LINE_CREATED);
-	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_ATTACHED);
-	sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED);
+	sccp_event_unsubscribe(SCCP_EVENT_LINE_CREATED, sccp_mwi_linecreatedEvent);
+	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_ATTACHED, sccp_mwi_deviceAttachedEvent);
+	sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED, sccp_mwi_lineStatusChangedEvent);
 }
 
 #ifdef CS_AST_HAS_EVENT
