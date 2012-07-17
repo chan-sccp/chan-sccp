@@ -147,7 +147,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	}
 
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/UNDEF-UNDEF");
-	channel = (sccp_channel_t *) sccp_refcount_object_alloc(sizeof(sccp_channel_t), "channel", designator, __sccp_channel_destroy);
+	channel = (sccp_channel_t *) sccp_refcount_object_alloc(sizeof(sccp_channel_t), SCCP_REF_CHANNEL, designator, __sccp_channel_destroy);
 	if (!channel) {
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel on line %s\n", l->id, l->name);

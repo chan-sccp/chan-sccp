@@ -68,14 +68,27 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 // CS_REFCOUNT_LIVEOBJECTS controls which version is used
 #define CS_REFCOUNT_LIVEOBJECTS DEBUG
 
+
+struct sccp_refcount_obj_info {
+	int (*destructor) (const void *ptr);
+	char datatype[StationMaxDeviceNameSize];
+}; 
+
+static struct sccp_refcount_obj_info obj_info[] = {
+        [SCCP_REF_DEVICE]={NULL, "device"},
+        [SCCP_REF_LINE]={NULL, "line"},
+        [SCCP_REF_CHANNEL]={NULL, "channel"},
+        [SCCP_REF_LINEDEVICE]={NULL, "linedevice"},
+        [SCCP_REF_EVENT]={NULL, "event"},
+};
+
 struct refcount_object {
 #if SCCP_ATOMIC_OPS
 	volatile size_t refcount;
 #else
 	volatile int refcount;
 #endif
-	int (*destructor) (const void *ptr);
-	char datatype[StationMaxDeviceNameSize];
+        enum sccp_refcounted_types type;
 	char identifier[StationMaxDeviceNameSize];
 	SCCP_RWLIST_ENTRY(RefCountedObject) list;
 	time_t dead_since;
@@ -218,11 +231,14 @@ static void sccp_refcount_dumpLiveObjects()
 {
 	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) dumpLiveObjects\n");
         RefCountedObject *list_obj = NULL;
+        struct sccp_refcount_obj_info *objInfo=NULL;
 
         SCCP_RWLIST_RDLOCK(&refcount_liveobjects);
         SCCP_RWLIST_TRAVERSE(&refcount_liveobjects, list_obj, list) {
-                if (list_obj)
-               	        pbx_log(LOG_ERROR, "SCCP: (Refcount) dumpLiveObject type=%s, identifier=%s, obj pointer=%p, data pointer=%p\n", list_obj->datatype, list_obj->identifier, list_obj, list_obj->data);
+                if (list_obj) {
+                        objInfo=&obj_info[list_obj->type];
+               	        pbx_log(LOG_ERROR, "SCCP: (Refcount) dumpLiveObject type=%s, identifier=%s, obj pointer=%p, data pointer=%p\n", objInfo->datatype, list_obj->identifier, list_obj, list_obj->data);
+                }
         }
         SCCP_RWLIST_UNLOCK(&refcount_liveobjects);
 }
@@ -284,7 +300,8 @@ EXIT:
 }
 #endif
 
-void *sccp_refcount_object_alloc(size_t size, const char *datatype, const char *identifier, void *destructor)
+//void *sccp_refcount_object_alloc(size_t size, const char *datatype, const char *identifier, void *destructor)
+void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
 {
 	RefCountedObject *obj;
 	char *ptr;
@@ -300,8 +317,10 @@ void *sccp_refcount_object_alloc(size_t size, const char *datatype, const char *
 	ptr += sizeof(RefCountedObject);
 	obj->refcount = 1;
 	obj->data = ptr;
-	obj->destructor = destructor;
-	sccp_copy_string(obj->datatype, datatype, sizeof(obj->datatype));
+	obj->type = type;
+	
+        if (!(&obj_info[type])->destructor)
+                (&obj_info[type])->destructor = destructor;
 	sccp_copy_string(obj->identifier, identifier, sizeof(obj->identifier));
 #if CS_REFCOUNT_LIVEOBJECTS
 	sccp_refcount_addToLiveObjects(obj);
@@ -352,7 +371,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	                refcountval = obj->refcount;
 	                newrefcountval = refcountval+1;
 	                if(refcountval < 1) {
-        			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount already reached 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", obj->datatype, obj->identifier, obj, refcountval);
+        			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount already reached 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
 	                        return NULL;
                         }
 // 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
@@ -369,10 +388,10 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 		} while (0);
 #endif
 		
-                sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", obj->datatype, obj->identifier, obj, newrefcountval);
+                sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, newrefcountval);
 		return ptr;
 	} else {
-		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && obj->datatype) ? obj->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);
+		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);
 		return NULL;
 	}
 }
@@ -398,7 +417,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 #else
 	                if (NULL == obj || sccp_refcount_isDeadObject(obj) || NULL == obj->data || obj->refcount < 0) {
 #endif
-        			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount would go below 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", obj->datatype, obj->identifier, obj, refcountval);
+        			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount would go below 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
 	                        return NULL;
                         }
 	                refcountval = obj->refcount;
@@ -424,14 +443,13 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
                         // would require lock
                         sccp_refcount_addToDeadObjects(obj);
 #endif
-//			usleep(1000);
-			obj->destructor(ptr);
+                        (&obj_info[obj->type])->destructor(ptr);
 			memset(obj->data, 0, sizeof(obj->data));		// leave cleaned memory segment, just in case another thread is in neighborhood (reentrancy)
 		} else {
-			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: <%*.*s refcount for %s: %s(%p) decreased to: %d\n", obj->identifier, refcountval, refcountval, "------------", obj->datatype, obj->identifier, obj, refcountval);
+			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: <%*.*s refcount for %s: %s(%p) decreased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
 		}
 	} else {
-		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to release a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && obj->datatype) ? obj->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);
+		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to release a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);
 	}
 
 	return NULL;
