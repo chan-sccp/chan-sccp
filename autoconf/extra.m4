@@ -419,17 +419,17 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
-	PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
+dnl	PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
 	AC_ARG_WITH([asterisk],
-	    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[PBX_PATH="${withval}"],)
-	    if test "x${PBX_PATHl}" = "xyes"; then 
-		PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
-	    fi
+	    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[NEW_PBX_PATH="${withval}"],)
 	AC_ARG_WITH([callweaver],
-	    [AC_HELP_STRING([--with-callwaver=PATH],[Location of the Callweaver installation])],[PBX_PATH="${withval}"],)
-	    if test "x${PBX_PATH}" = "xyes"; then 
-		PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw"; 
-	    fi
+	    [AC_HELP_STRING([--with-callwaver=PATH],[Location of the Callweaver installation])],[NEW_PBX_PATH="${withval}"],)
+
+	if test "x${NEW_PBX_PATH}" != "xyes" && test "x${NEW_PBX_PATH}" != "x"; then 
+		PBX_PATH="${NEW_PBX_PATH}";
+	else
+		PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
+	fi
 	   
 	CFLAGS_saved="$CFLAGS"
 	CPPFLAGS_saved="$CPPFLAGS"
@@ -505,7 +505,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS=" $CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
+		CFLAGS="$CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
@@ -527,7 +527,7 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		enable_debug_mutex="no"
 		strip_binaries="yes"
 		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS=" $CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
+		CFLAGS="$CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
@@ -536,7 +536,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		fi		
 	fi
-	CFLAGS="$CFLAGS -I. "		dnl include our own directory first, so that we can find config.h when using a builddir
+	CFLAGS="$CFLAGS -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS_saved="$CFLAGS"
 ])
 
