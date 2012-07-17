@@ -23177,7 +23177,7 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
   	#if ASTERISK_VERSION_NUMBER >= 10400
 	#  include <asterisk.h>
 	#endif
-	#include <asterisk/autoconfig.h>
+//	#include <asterisk/autoconfig.h>
 	#include <asterisk/buildopts.h>
   "
 
@@ -33898,6 +33898,11 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
+
+# Fix PACKAGE_??? redefinition by asterisk/autoconfig.h
+cp src/config.h src/config.h.bak
+grep -v PACKAGE_ src/config.h.bak > src/config.h
+touch src/stamp-h1
 
 echo
 echo "Operating System : $BUILD_OS"

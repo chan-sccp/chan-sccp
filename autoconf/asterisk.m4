@@ -178,7 +178,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
   	#if ASTERISK_VERSION_NUMBER >= 10400
 	#  include <asterisk.h>
 	#endif
-	#include <asterisk/autoconfig.h>
+//	#include <asterisk/autoconfig.h>
 	#include <asterisk/buildopts.h>
   "
     
