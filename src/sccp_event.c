@@ -209,7 +209,7 @@ void sccp_event_fire(const sccp_event_t *event)
 	if (event == NULL || FALSE==sccp_refcount_isRunning() ||  !sccp_event_running)
 		return;
 
-	sccp_event_t *e = (sccp_event_t *)sccp_refcount_object_alloc(sizeof(sccp_event_t),"event", event2str(event->type), sccp_event_destroy);
+	sccp_event_t *e = (sccp_event_t *)sccp_refcount_object_alloc(sizeof(sccp_event_t), SCCP_REF_EVENT, event2str(event->type), sccp_event_destroy);
 	if (!e) {
 		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
 		return;

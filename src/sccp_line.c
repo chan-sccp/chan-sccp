@@ -108,7 +108,7 @@ void sccp_line_post_reload(void)
  */
 sccp_line_t *sccp_line_create(const char *name)
 {
-	sccp_line_t *l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), "line", name, __sccp_line_destroy);
+	sccp_line_t *l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
 
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
@@ -545,7 +545,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	}
 	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
-	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), "linedevice", "", __sccp_lineDevice_destroy);
+	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), SCCP_REF_LINEDEVICE, "ld", __sccp_lineDevice_destroy);
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
 
 	linedevice->device = sccp_device_retain(device);

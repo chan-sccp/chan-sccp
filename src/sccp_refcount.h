@@ -14,13 +14,21 @@
 
 #include <setjmp.h>
 
+enum sccp_refcounted_types {
+        SCCP_REF_DEVICE = 1,
+        SCCP_REF_LINE,
+        SCCP_REF_CHANNEL,
+        SCCP_REF_LINEDEVICE,
+        SCCP_REF_EVENT
+};
+
 typedef struct refcount_object RefCountedObject;
 
 void sccp_refcount_init(void);
 void sccp_refcount_destroy(void);
 int sccp_refcount_isRunning(void);
 int sccp_refcount_schedule_cleanup(const void *data);
-void *sccp_refcount_object_alloc(size_t size, const char *datatype, const char *identifier, void *destructor);
+void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor);
 void sccp_refcount_updateIdentifier(void *ptr, char *identifier);
 inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, const char *func);
 inline void *sccp_refcount_release(const void *ptr, const char *filename, int lineno, const char *func);
