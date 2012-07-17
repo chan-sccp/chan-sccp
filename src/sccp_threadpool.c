@@ -24,6 +24,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 #include <signal.h>
 #undef pthread_create
 
+#if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
+#include <sys/sysinfo.h>								// to retrieve processor info
+#endif
+
 #define SEMAPHORE_LOCKED	(0)
 #define SEMAPHORE_UNLOCKED	(1)
 
@@ -61,12 +65,16 @@ AST_MUTEX_DEFINE_STATIC(threadpool_mutex);									/* used to serialize queue ac
 /* Initialise thread pool */
 sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 {
-#ifndef CS_CPU_COUNT
-//	#warning CPU_COUNT not defined
-#endif	
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool\n");
 	sccp_threadpool_t *tp_p;
 
+//#ifndef CS_CPU_COUNT
+//	#warning CPU_COUNT not defined
+//#endif	
+
+#if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
+	threadsN = get_nprocs_conf();		// get current number of active processors
+#endif
 	if (!threadsN || threadsN < THREADPOOL_MIN_SIZE)
 		threadsN = THREADPOOL_MIN_SIZE;
 	
