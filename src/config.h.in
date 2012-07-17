@@ -304,7 +304,7 @@
 /* Using Darwin / Apple OSX */
 #undef DARWIN
 
-/* Extra debugging. */
+/* No Extra debugging. */
 #undef DEBUG
 
 /* Enable extra garbage collection debugging. */
@@ -715,6 +715,9 @@
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/sysinfo.h> header file. */
+#undef HAVE_SYS_SYSINFO_H
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H

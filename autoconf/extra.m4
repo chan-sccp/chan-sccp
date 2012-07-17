@@ -9,6 +9,7 @@ AC_DEFUN([CS_SETUP_DEFAULTS], [
 ])
 
 AC_DEFUN([CS_SETUP_BUILD],[
+
 	AC_PATH_TOOL([UNAME], [uname], No)
 	AC_PATH_PROGS(DATE,date,No)
 	AC_PATH_PROGS(UNAME,uname,No)
@@ -114,7 +115,7 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 	  *-*-linux*)
 		AC_DEFINE([LINUX],[1],[using LINUX])
 		LARGEFILE_FLAGS="-D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
-		CFLAGS="$CFLAGS $LARGEFILE_FLAGS"
+		CFLAGS_saved="$CFLAGS_saved $LARGEFILE_FLAGS"
 		ostype=linux
 		;;
 	  *cygwin*)
@@ -153,7 +154,7 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_HEADER_RESOLV
 dnl	AC_GNU_SOURCE
 
-	CFLAGS="$CFLAGS -std=gnu89"
+	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
 
 	if test "${cross_compiling}" = "yes"; 
 	then
@@ -215,7 +216,7 @@ AC_DEFUN([CS_FIND_LIBRARIES], [
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr malloc calloc realloc free]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
-	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h])
+	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
 ])
@@ -419,7 +420,6 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 ])
 
 AC_DEFUN([CS_WITH_PBX], [
-dnl	PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
 	AC_ARG_WITH([asterisk],
 	    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[NEW_PBX_PATH="${withval}"],)
 	AC_ARG_WITH([callweaver],
@@ -428,12 +428,15 @@ dnl	PBX_PATH="$prefix /usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/lo
 	if test "x${NEW_PBX_PATH}" != "xyes" && test "x${NEW_PBX_PATH}" != "x"; then 
 		PBX_PATH="${NEW_PBX_PATH}";
 	else
-		PBX_PATH="/usr /usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/sfw";
+		PBX_PATH="/usr /usr/local /opt"
+		if test -d /usr/pkg ; then
+			PBX_PATH="$PBX_PATH /usr/pkg"
+		fi
+		if test -d /usr/sfw ; then
+			PBX_PATH="$PBX_PATH /usr/sfw"
+		fi
 	fi
 	   
-	CFLAGS_saved="$CFLAGS"
-	CPPFLAGS_saved="$CPPFLAGS"
-	LDFLAGS_saved="$LDFLAGS"
 	AC_SUBST([PBX_PATH])
 	PBX_MANDATORY="yes"
 	
@@ -486,26 +489,30 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 
 
 AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
-	AC_ARG_ENABLE(optimization,     
-		[AC_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])],
-		OPTIMIZECPU=$enableval,OPTIMIZECPU=yes)
-	if test "${SCCP_BRANCH}" == "TRUNK"; then 
+	AC_ARG_ENABLE(optimization, [AC_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])], enable_optimization=$enableval,enable_optimization=yes)
+	AC_ARG_ENABLE(debug,[AC_HELP_STRING([--enable-debug],[enable debug information])],enable_debug=$enableval,enable_debug=no)
+	AC_MSG_NOTICE([--enable-optimization: ${enable_optimization}])
+	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
+
+	if test "${SCCP_BRANCH}" == "TRUNK" || test "$enable_optimization" == "no" || test "${enable_debug}" = "yes"; then 
 		strip_binaries="no"
-		GDB_FLAGS="-g"
-	else 
+		CFLAGS_saved="${CFLAGS_saved} -O0 "
+	else
 		strip_binaries="yes"
+		CFLAGS_saved="${CFLAGS_saved} -O3 "
 		GDB_FLAGS=""
 	fi
 
-	AC_MSG_NOTICE([--enable-optimization: ${OPTIMIZECPU}])
-		AC_ARG_ENABLE(debug,[AC_HELP_STRING([--enable-debug],[enable debug information])],enable_debug=$enableval,enable_debug=no)
 	if test "${enable_debug}" = "yes"; then
 		AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
-		CFLAGS="$CFLAGS_saved -O0 -Os -Wall -D_FORTIFY_SOURCE=2 "
+
+		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^[ \t]*//;s/[ \t]*$//'`" 	dnl Remove leading/ending spaces
+		CFLAGS_saved="${CFLAGS_saved} -Wall -D_FORTIFY_SOURCE=2"
+		GDB_FLAGS="-g3 -ggdb3"
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
@@ -518,16 +525,13 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
     		fi 
     		if test "x$CC" = "xclang"; then
-    			CFLAGS="$CFLAGS -fcatch-undefined-behavior "
+    			CFLAGS_saved="{$CFLAGS_saved} -fcatch-undefined-behavior "
     		fi
-		GDB_FLAGS="-g"
 	else
-		AC_DEFINE([DEBUG],[0],[Extra debugging.])
+		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		enable_do_crash="no"
 		enable_debug_mutex="no"
-		strip_binaries="yes"
-		GDB_FLAGS="$GDB_FLAGS"
-		CFLAGS="$CFLAGS_saved -O3 -D_FORTIFY_SOURCE=1 "
+		CFLAGS_saved="${CFLAGS_saved} -D_FORTIFY_SOURCE=1 "
 		if test "x$GCC" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
@@ -536,15 +540,15 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		fi		
 	fi
-	CFLAGS="$CFLAGS -I."		dnl include our own directory first, so that we can find config.h when using a builddir
-	CFLAGS_saved="$CFLAGS"
+	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
+	CFLAGS="${CFLAGS_saved}"
+	AC_SUBST([GDB_FLAGS])
 ])
 
 AC_DEFUN([CS_ENABLE_DEBUG], [
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 	AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
 	AC_SUBST([strip_binaries])
-	AC_SUBST([GDB_FLAGS])
 ])
 
 AC_DEFUN([CS_DISABLE_PICKUP], [
