@@ -31,36 +31,22 @@ EXTRA_chan_sccp_la_SOURCES =
 if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/define.h
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast.h      pbx_impl/ast/ast.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast102.h   pbx_impl/ast/ast102.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1020x.h pbx_impl/ast/ast1020x.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast104.h   pbx_impl/ast/ast104.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1040x.h pbx_impl/ast/ast1040x.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast106.h   pbx_impl/ast/ast106.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1060x.h pbx_impl/ast/ast1060x.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h   pbx_impl/ast/ast108.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1080x.h pbx_impl/ast/ast1080x.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h   pbx_impl/ast/ast110.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast1100x.h pbx_impl/ast/ast1100x.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/astTrunk.h pbx_impl/ast/astTrunk.c
 endif
 
-chan_sccp_la_CPPFLAGS	= $(PBX_CPPFLAGS)
-chan_sccp_la_LIBADD	= $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
+chan_sccp_la_CPPFLAGS	  = $(PBX_CPPFLAGS)
+chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
-chan_sccp_la_CFLAGS	= -I. $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCLIBS) $(EVENT_LIBS)
-chan_sccp_la_CFLAGS	+= -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(GCFLAGS) $(EVENT_CFLAGS)
-chan_sccp_la_LDFLAGS	= -avoid-version -module  $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS)
+chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS)
+chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(EVENT_CFLAGS) $(EVENT_LIBS)
+chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
 	@test -z "$(DESTDIR)$(csmoddir)" || $(mkdir_p) "$(DESTDIR)$(csmoddir)"							
-#	@if test ! -z "$(OBJCOPY)" && test -d "/usr/lib/debug$(DESTDIR)$(csmoddir)" ; then					\
-#		if test -f /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so; then 						\
-#			rm /usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so;							\
-#		fi;														\
-#		$(OBJCOPY) --only-keep-debug .libs/chan_sccp.so /usr/lib/debug/$(DESTDIR)$(csmoddir)/chan_sccp.so;		\
-#                $(OBJCOPY) --strip-debug --add-gnu-debuglink=/usr/lib/debug$(DESTDIR)$(csmoddir)/chan_sccp.so .libs/chan_sccp.so ;\
-#	fi
 	@if test "x$(strip_binaries)"=="xyes" ; then 										\
 	        $(INSTALL) $(INSTALL_STRIP_FLAG) .libs/chan_sccp.so "$(DESTDIR)$(csmoddir)"; 					\
 	else 															\
