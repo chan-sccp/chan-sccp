@@ -245,9 +245,6 @@
 /* experimental newip enabled */
 #undef CS_EXPERIMENTAL_NEWIP
 
-/* experimental refcount enabled */
-#undef CS_EXPERIMENTAL_REFCOUNT
-
 /* experimental rtp enabled */
 #undef CS_EXPERIMENTAL_RTP
 
@@ -265,6 +262,9 @@
 
 /* 'ast_devstate_changed' available */
 #undef CS_NEW_DEVICESTATE
+
+/* refcount liveobject debugging */
+#undef CS_REFCOUNT_LIVEOBJECTS
 
 /* conference enabled */
 #undef CS_SCCP_CONFERENCE
