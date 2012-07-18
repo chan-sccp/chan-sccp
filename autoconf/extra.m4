@@ -674,12 +674,12 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_NEWIP], [
 	AC_MSG_NOTICE([--enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)])
 ])
 
-AC_DEFUN([CS_ENABLE_EXPERIMENTAL_REFCOUNT], [
-	AC_ARG_ENABLE(experimental_refcount, 
-	  AC_HELP_STRING([--enable-experimental-refcount], [enable experimental refcount (only for developers)]), 
-	    ac_cv_experimental_refcount=$enableval, ac_cv_experimental_refcount=no)
-	AS_IF([test "_${ac_cv_experimental_refcount}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_REFCOUNT, 1, [experimental refcount enabled])])
-	AC_MSG_NOTICE([--enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)])
+AC_DEFUN([CS_ENABLE_REFCOUNT_LIVEOBJECTS], [
+	AC_ARG_ENABLE(refcount-liveobjects, 
+	  AC_HELP_STRING([--enable-refcount-liveobjects], [enable keeping liveobjects for refcount debugging]), 
+	    ac_cv_refcount_liveobjects=$enableval, ac_cv_refcount_liveobjects=no)
+	AS_IF([test "_${ac_cv_refcount_liveobjects}" == "_yes"], [AC_DEFINE(CS_REFCOUNT_LIVEOBJECTS, 1, [refcount liveobject debugging])])
+	AC_MSG_NOTICE([--enable-refcount-liveobjects: ${ac_cv_refcount_liveobjects} (only for debugging)])
 ])
 
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
@@ -762,7 +762,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_EXPERIMENTAL_CODEC
 	CS_ENABLE_EXPERIMENTAL_RTP
 	CS_ENABLE_EXPERIMENTAL_NEWIP
-	CS_ENABLE_EXPERIMENTAL_REFCOUNT
+	CS_ENABLE_REFCOUNT_LIVEOBJECTS
 	CS_DISABLE_DEVSTATE_FEATURE
 	CS_DISABLE_DYNAMIC_SPEEDDIAL
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID

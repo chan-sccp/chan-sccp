@@ -1097,7 +1097,7 @@ enable_experimental_mode
 enable_experimental_codec
 enable_experimental_rtp
 enable_experimental_newip
-enable_experimental_refcount
+enable_refcount_liveobjects
 enable_devstate_feature
 enable_dynamic_speeddial
 enable_dynamic_speeddial_cid
@@ -1801,8 +1801,8 @@ Optional Features:
                           enable experimental rtp (only for developers)
   --enable-experimental-newip
                           enable experimental newip (only for developers)
-  --enable-experimental-refcount
-                          enable experimental refcount (only for developers)
+  --enable-refcount-liveobjects
+                          enable keeping liveobjects for refcount debugging
   --disable-devstate-feature
                           disable device state feature button
   --disable-dynamic-speeddial
@@ -30508,20 +30508,20 @@ fi
 $as_echo "$as_me: --enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)" >&6;}
 
 
-	# Check whether --enable-experimental_refcount was given.
-if test "${enable_experimental_refcount+set}" = set; then :
-  enableval=$enable_experimental_refcount; ac_cv_experimental_refcount=$enableval
+	# Check whether --enable-refcount-liveobjects was given.
+if test "${enable_refcount_liveobjects+set}" = set; then :
+  enableval=$enable_refcount_liveobjects; ac_cv_refcount_liveobjects=$enableval
 else
-  ac_cv_experimental_refcount=no
+  ac_cv_refcount_liveobjects=no
 fi
 
-	if test "_${ac_cv_experimental_refcount}" == "_yes"; then :
+	if test "_${ac_cv_refcount_liveobjects}" == "_yes"; then :
 
-$as_echo "#define CS_EXPERIMENTAL_REFCOUNT 1" >>confdefs.h
+$as_echo "#define CS_REFCOUNT_LIVEOBJECTS 1" >>confdefs.h
 
 fi
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)" >&5
-$as_echo "$as_me: --enable-experimental-refcount: ${ac_cv_experimental_refcount} (only for developers)" >&6;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-refcount-liveobjects: ${ac_cv_refcount_liveobjects} (only for debugging)" >&5
+$as_echo "$as_me: --enable-refcount-liveobjects: ${ac_cv_refcount_liveobjects} (only for debugging)" >&6;}
 
 
 	# Check whether --enable-devstate_feature was given.

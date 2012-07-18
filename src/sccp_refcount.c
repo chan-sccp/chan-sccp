@@ -66,8 +66,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 // We might have to implemented both methods for DEVELOPMENT(livelistcheck) and PRODUCTION(deadlistcheck)
 //
 // CS_REFCOUNT_LIVEOBJECTS controls which version is used
-#define CS_REFCOUNT_LIVEOBJECTS DEBUG
-
 
 struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -112,7 +110,7 @@ void sccp_refcount_init(void)
 }
 
 #if CS_REFCOUNT_LIVEOBJECTS
-static void sccp_refcount_addToLiveObjects(RefCountedObject *obj)
+inline static void sccp_refcount_addToLiveObjects(RefCountedObject *obj)
 {
 	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) addToLiveObjects: %p\n", obj);
         SCCP_RWLIST_WRLOCK(&refcount_liveobjects);
@@ -122,7 +120,7 @@ static void sccp_refcount_addToLiveObjects(RefCountedObject *obj)
 #endif
 
 #if !CS_REFCOUNT_LIVEOBJECTS
-static void sccp_refcount_addToDeadObjects(RefCountedObject *obj)
+inline static void sccp_refcount_addToDeadObjects(RefCountedObject *obj)
 {
 	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) addToDeadObjects: %p\n", obj);
         SCCP_RWLIST_WRLOCK(&refcount_deadobjects);
@@ -133,7 +131,7 @@ static void sccp_refcount_addToDeadObjects(RefCountedObject *obj)
 
 /* positive / livelist check */
 #if CS_REFCOUNT_LIVEOBJECTS
-static boolean_t sccp_refcount_isLiveObject(RefCountedObject *obj)	// check if in alive objects list
+inline static boolean_t sccp_refcount_isLiveObject(RefCountedObject *obj)	// check if in alive objects list
 {
 //	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) isLiveObject: %p\n", obj);
         RefCountedObject *list_obj = NULL;
@@ -154,7 +152,7 @@ int sccp_refcount_isRunning(void) {
 
 /* negative / deadlist check */
 #if !CS_REFCOUNT_LIVEOBJECTS
-static boolean_t sccp_refcount_isDeadObject(RefCountedObject *obj)	// check if NOT in deadobjects list
+inline static boolean_t sccp_refcount_isDeadObject(RefCountedObject *obj)	// check if NOT in deadobjects list
 {
 //	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) isDeadObject: %p\n", obj);
         RefCountedObject *list_obj = NULL;
