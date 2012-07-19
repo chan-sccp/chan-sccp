@@ -2022,14 +2022,15 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			l = sccp_line_find_byname_wo(cat, FALSE);
 			if (!l) {
 				l = sccp_line_create(cat);
-//				sccp_copy_string(l->name, cat, sizeof(l->name));
-				l = sccp_line_addToGlobals(l);		// can return previous line on doubles
-			}
-			if (l) {
+				sccp_config_buildLine(l, v, cat, FALSE);
+				l = sccp_line_addToGlobals(l);				/** never add a line to globals, before configuration is done, this will cause issues with mwi and hint -MC */
+			} else {
+				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
         			sccp_config_buildLine(l, v, cat, FALSE);
-		        	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s\n", line_count, cat);
-		        	l = sccp_line_release(l);
                         }
+
+			l = l ? sccp_line_release(l) : NULL;
+
 		} else if (!strcasecmp(utype, "softkeyset")) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "read set %s\n", cat);
 			v = ast_variable_browse(GLOB(cfg), cat);
