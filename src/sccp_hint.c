@@ -630,7 +630,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
   
 	pbx_event_t 	 	*event;
 	enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN; 
-	int event_signal_method = AST_EVENT_DEVICE_STATE_CHANGE;
+//	int event_signal_method = AST_EVENT_DEVICE_STATE_CHANGE;
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", 
 				   channelstate2str(lineState->state), 
@@ -641,12 +641,12 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	);
 	
 	// check if device already registered
-        event = pbx_event_get_cached(AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_END);
+/*        event = pbx_event_get_cached(AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_END);
         if (!event) {		// device is unknown
 		event_signal_method = AST_EVENT_DEVICE_STATE;
 	} else { 
 		pbx_event_destroy(event);
-	}
+	}*/
 	
 	switch (lineState->state) {
 		case SCCP_CHANNELSTATE_DOWN:
@@ -674,7 +674,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
-			event_signal_method = AST_EVENT_DEVICE_STATE;						// device unregister
+//			event_signal_method = AST_EVENT_DEVICE_STATE;						// device unregister
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 		  
