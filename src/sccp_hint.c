@@ -193,7 +193,8 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 				AST_EVENT_IE_END);
 #else
 	hint->device_state_sub = pbx_event_subscribe(
-				AST_EVENT_DEVICE_STATE_CHANGE, 
+// 				AST_EVENT_DEVICE_STATE_CHANGE, 
+				AST_EVENT_DEVICE_STATE, 
 				sccp_hint_devstate_cb, "sccp_devstate_subscription", hint, 
 				AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan,
 				AST_EVENT_IE_END);
@@ -701,8 +702,10 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 				   lineState->callInfo.partyNumber
 	);
 #endif
-
-	event = pbx_event_new(event_signal_method,
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "notify pbx to set state to %d for channel %s\n", newDeviceState, channelName);
+	/* with AST_EVENT_DEVICE_STATE_CHANGE we will miss the first event */
+// 	event = pbx_event_new(event_signal_method,
+	event = pbx_event_new(AST_EVENT_DEVICE_STATE,
 		  AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
 		  AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
 #if CS_AST_HAS_EVENT_CIDNAME
