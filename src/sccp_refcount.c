@@ -65,7 +65,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 // To make 100% sure we are not missing out any inflight references that have not been accounted for.
 // We might have to implemented both methods for DEVELOPMENT(livelistcheck) and PRODUCTION(deadlistcheck)
 //
-// CS_REFCOUNT_LIVEOBJECTS controls which version is used
+// CS_REFCOUNT_LIVEOBJECTS controls which version is used (config.h)
+
+#ifndef SCCP_ATOMIC
+        AST_MUTEX_DEFINE_STATIC_NOTRACKING(cas_lock);			// need lock if no atomic functions are available (very coarse lock)
+#endif
 
 struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -81,11 +85,7 @@ static struct sccp_refcount_obj_info obj_info[] = {
 };
 
 struct refcount_object {
-#if SCCP_ATOMIC_OPS
-	volatile size_t refcount;
-#else
-	volatile int refcount;
-#endif
+	volatile CAS32_TYPE refcount;
         enum sccp_refcounted_types type;
 	char identifier[StationMaxDeviceNameSize];
 	SCCP_RWLIST_ENTRY(RefCountedObject) list;
@@ -349,7 +349,8 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 {
 	RefCountedObject *obj;
 	char *cptr;
-	int refcountval, newrefcountval;
+	volatile int refcountval;
+	int newrefcountval;
 
 	cptr = (char *)ptr;
 	cptr -= sizeof(RefCountedObject);
@@ -366,27 +367,11 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	                if (NULL == obj || sccp_refcount_isDeadObject(obj) || NULL == obj->data || obj->refcount <= 0)
 #endif
 	                        return NULL;
-	                refcountval = obj->refcount;
-	                newrefcountval = refcountval+1;
-	                if(refcountval < 1) {
-        			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount already reached 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
-	                        return NULL;
-                        }
-// 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
-#ifdef SCCP_ATOMIC
-#  ifdef SCCP_BUILTIN_CAS32
-		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
-#  else
-                } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));           		// Atomic Swap  using boemc atomic_ops library
-#  endif                
-#else
-                        // would require lock
-        		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
-			obj->refcount = newrefcountval;
-		} while (0);
-#endif
-		
-                sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, newrefcountval);
+                        refcountval = obj->refcount;
+                        newrefcountval = refcountval+1;
+	        } while(obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval) != obj->refcount);	// atomic inc if not zero
+
+                sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval+1);
 		return ptr;
 	} else {
 		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);
@@ -399,7 +384,8 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 {
 	RefCountedObject *obj;
 	char *cptr;
-	int refcountval, newrefcountval;
+	volatile int refcountval;
+	int newrefcountval;
 
 	cptr = (char *)ptr;
 	cptr -= sizeof(RefCountedObject);
@@ -418,20 +404,9 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
         			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount would go below 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
 	                        return NULL;
                         }
-	                refcountval = obj->refcount;
-	                newrefcountval = refcountval-1;
-// 	        } while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));
-#ifdef SCCP_ATOMIC
-#  ifdef SCCP_BUILTIN_CAS32
-		} while (!__sync_bool_compare_and_swap(&obj->refcount, refcountval, newrefcountval));		// Atomic Swap In newmsgptr
-#  else
-                } while (!AO_compare_and_swap(&obj->refcount, refcountval, newrefcountval));			// Atomic Swap  using boemc atomic_ops library
-#  endif                
-#else
-        		#warning "Atomic functions not implemented, please install libatomic_ops package to remedy. Otherwise problems are to be expected."
-			obj->refcount = newrefcountval;
-		} while (0);
-#endif
+                        refcountval = obj->refcount;
+                        newrefcountval = refcountval - 1;
+	        } while(!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval) != obj->refcount); 	// atomic dec but not below zero
 		
 	        if (0 == newrefcountval) {
 			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: refcount for object(%p) has reached 0 -> cleaning up!\n", obj->identifier, obj);
@@ -444,7 +419,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
                         (&obj_info[obj->type])->destructor(ptr);
 			memset(obj->data, 0, sizeof(obj->data));		// leave cleaned memory segment, just in case another thread is in neighborhood (reentrancy)
 		} else {
-			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: <%*.*s refcount for %s: %s(%p) decreased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
+			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: <%*.*s refcount for %s: %s(%p) decreased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, newrefcountval);
 		}
 	} else {
 		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to release a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);

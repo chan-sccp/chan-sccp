@@ -141,4 +141,39 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #        define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
 #    endif									// CS_AST_DEBUG_CHANNEL_LOCKS
 
+
+// Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
+#ifdef SCCP_ATOMIC
+#  ifdef SCCP_BUILTIN_CAS32
+        #define CAS32(_a,_b,_c) __sync_val_compare_and_swap(_a, _b, _c)
+        #define CAS32_TYPE size_t
+#  else
+        #define CAS32(_a,_b,_c) AO_compare_and_swap(_a, _b, _c)
+        #define CAS32_TYPE int
+#  endif                
+#ifdef SCCP_BUILTIN_CAS_PTR
+        #define CAS_PTR(_a,_b,_c) __sync_bool_compare_and_swap(_a, _b, _c)
+#else
+        #define CAS_PTR(_a,_b,_c) ) AO_compare_and_swap((uintptr_t *)_a, (uintptr_t)_b, _(uintptr_t)_c)
+#endif
+#else
+        #define CAS32_TYPE int
+        #define CAS32(_a,_b,_c)				\
+        ({						\
+                ast_mutex_lock(&cas_lock);		\
+                *_a = _c;				\
+                ast_mutex_unlock(&cas_lock);		\
+                *_a;					\
+        })
+        #define CAS_PTR(_a,_b,_c) 			\
+        ({						\
+                int res=0;				\
+                ast_mutex_lock(&cas_lock);		\
+                _a = _c;				\
+                res = 1;				\
+                ast_mutex_unlock(&cas_lock);		\
+                res;					\
+        })
+#endif
+
 #endif										// __SCCP_LOCK_H
