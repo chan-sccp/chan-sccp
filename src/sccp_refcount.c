@@ -369,7 +369,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	                        return NULL;
                         refcountval = obj->refcount;
                         newrefcountval = refcountval+1;
-	        } while(obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval) != obj->refcount);	// atomic inc if not zero
+	        } while(obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval) != refcountval);	// atomic inc if not zero
 
                 sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval+1);
 		return ptr;
@@ -406,7 +406,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
                         }
                         refcountval = obj->refcount;
                         newrefcountval = refcountval - 1;
-	        } while(!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval) != obj->refcount); 	// atomic dec but not below zero
+	        } while(!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval) != refcountval); 	// atomic dec but not below zero
 		
 	        if (0 == newrefcountval) {
 			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: refcount for object(%p) has reached 0 -> cleaning up!\n", obj->identifier, obj);
