@@ -1,4 +1,12 @@
+2012-07-22  ddegroot
+
+	* [r3699] doc/Makefile.am: Addding chan-sccp-b_pdf.sty to
+	  EXTRA_DIST
+
 2012-07-12  ddegroot
+
+	* [r3637] ChangeLog, Makefile.am, Makefile.in, src/Makefile.in:
+	  Moved gen_sccpconf compilation to optional
 
 	* [r3634] ChangeLog, Makefile.am, Makefile.in,
 	  autoconf/asterisk.m4, autoconf/extra.m4,
