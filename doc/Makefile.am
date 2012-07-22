@@ -11,6 +11,8 @@ EXTRA_DIST = doxygen.cfg doxygen-header  														\
 	01_Index.doc                            05_Features_V3.doc                  09_Developers_Guide.doc         13_Reporting_Issues_Problems.doc 	\
 	02_What_Is_Chan_SCCP.doc                06_New_Features.doc                 10_Sources_Explained.doc						\
 	03_Building_and_Installation_Guide.doc  07_Frequently_Asked_Questions.doc   11_Consulted_Documentation.doc					\
-	04_Setup_Guide.doc                      08_Supported_Operating_Systems.doc  12_Licensing.doc
+	04_Setup_Guide.doc                      08_Supported_Operating_Systems.doc  12_Licensing.doc							\
+	chan-sccp-b_pdf.sty
+	
 DX_CLEANFILES = everything to clean.
 
