@@ -188,10 +188,14 @@ int sccp_addons_taps(sccp_device_t * d)
  */
 void sccp_addons_clear(sccp_device_t * d)
 {
+	sccp_addon_t *addon;
 	if (!d)
 		return;
 
-	while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
+// 	while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
+	while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
+		sccp_free(addon);
+	}
 }
 
 /*!
