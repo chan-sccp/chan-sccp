@@ -196,6 +196,8 @@ void sccp_addons_clear(sccp_device_t * d)
 	while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
 		sccp_free(addon);
 	}
+	d->addons.first = NULL;										\
+	d->addons.last = NULL;
 }
 
 /*!
