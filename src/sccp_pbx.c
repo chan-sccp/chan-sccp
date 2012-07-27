@@ -278,7 +278,7 @@ int sccp_pbx_call(sccp_channel_t *c, char *dest, int timeout)
 					conveyor->callid = c->callid;
 					conveyor->linedevice = sccp_linedevice_retain(linedevice);
 
-#if CS_EXPERIMENTAL
+#if !CS_EXPERIMENTAL	/* new default */
 					sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_pbx_call_autoanswer_thread, (void *)conveyor);
 #else
 					pthread_t t;
@@ -292,7 +292,7 @@ int sccp_pbx_call(sccp_channel_t *c, char *dest, int timeout)
 					}
 					pthread_detach(t);
 					pthread_attr_destroy(&attr);
-#endif					
+#endif
 				}
 			}
 		}
