@@ -71,6 +71,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
         AST_MUTEX_DEFINE_STATIC_NOTRACKING(cas_lock);			// need lock if no atomic functions are available (very coarse lock)
 #endif
 
+#define SCCP_HASH_PRIME 563
+#define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
+
 struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
@@ -90,6 +93,7 @@ struct refcount_object {
 	char identifier[StationMaxDeviceNameSize];
 	SCCP_RWLIST_ENTRY(RefCountedObject) list;
 	time_t dead_since;
+	int data_hash;
 	void *data;
 };
 boolean_t refcount_destroyed = TRUE;
@@ -316,6 +320,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	obj->refcount = 1;
 	obj->data = ptr;
 	obj->type = type;
+	obj->data_hash = SCCP_SIMPLE_HASH(ptr);
 	
         if (!(&obj_info[type])->destructor)
                 (&obj_info[type])->destructor = destructor;
@@ -359,7 +364,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 #if DEBUG
         sccp_log((DEBUGCAT_REFCOUNT)) ("%-15.15s:%-4.4d (%-25.25s) ", filename, lineno, func);
 #endif	
-	if (ptr && cptr && obj) {
+	if (ptr && cptr && obj && obj->data_hash == SCCP_SIMPLE_HASH(ptr)) {
 	        do {
 #if CS_REFCOUNT_LIVEOBJECTS
 	                if (NULL == obj || !sccp_refcount_isLiveObject(obj) || NULL == obj->data || obj->refcount <= 0)
@@ -394,7 +399,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 #if DEBUG
         sccp_log((DEBUGCAT_REFCOUNT)) ("%-15.15s:%-4.4d (%-25.25s) ", filename, lineno, func);
 #endif	
-	if (ptr && cptr && obj) {
+	if (ptr && cptr && obj && obj->data_hash == SCCP_SIMPLE_HASH(ptr)) {
 	        do {
 #if CS_REFCOUNT_LIVEOBJECTS
 	                if (NULL == obj || !sccp_refcount_isLiveObject(obj) || NULL == obj->data || obj->refcount < 0) {
