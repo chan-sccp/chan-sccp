@@ -483,6 +483,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	sccp_device_t *device = NULL;
 	sccp_linedevices_t *lineDevice = NULL;
 	uint8_t state;
+	boolean_t dev_privacy=FALSE;
 	
 	/** clear cid information */
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
@@ -512,12 +513,15 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;
 				}
+				dev_privacy = device->privacyFeature.enabled;
+				device = device ? sccp_device_release(device) : NULL;
 			}
+			lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
 		}
 
 		switch (state) {
 		case SCCP_CHANNELSTATE_DOWN:
-			lineState->state = SCCP_CHANNELSTATE_ONHOOK;
+			state = SCCP_CHANNELSTATE_ONHOOK;
 			break;
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 			break;
@@ -544,9 +548,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 		case SCCP_CHANNELSTATE_CALLPARK:
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-
-			if (!device || device->privacyFeature.enabled == 0 || (device->privacyFeature.enabled == 1 && channel->privacy == FALSE)) {
-
+			if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 				/** set cid name/number information according to the call direction */
 				switch(channel->calltype){
 					case SKINNY_CALLTYPE_INBOUND:
@@ -569,8 +571,6 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 		}
 		
 		lineState->state = state;
-		device = device ? sccp_device_release(device) : NULL;
-		lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
 		channel = sccp_channel_release(channel);
 	} else {
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
