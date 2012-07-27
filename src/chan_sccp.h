@@ -89,7 +89,7 @@ extern "C" {
 #    define THREADPOOL_RESIZE_INTERVAL 120
 
 #    define CHANNEL_DESIGNATOR_SIZE 20
-#    define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 1000								// ms
+#    define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000								// ms
 
 /*! \todo I don't like the -1 returned value */
 #    define sccp_true(x) (pbx_true(x) ? 1 : 0)
