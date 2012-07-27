@@ -331,7 +331,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 #if CS_REFCOUNT_LIVEOBJECTS
 	sccp_refcount_addToLiveObjects(obj);
 #endif
-	sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_3 "SCCP: (Refcount) Refcount initialized for object %p in %p to %d\n", ptr, obj, (int)obj->refcount);
+	sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_3 "SCCP: (Refcount) Refcount initialized for object %p (HASH: %d) in %p to %d\n", ptr, obj->data_hash, obj, (int)obj->refcount);
 	obj->alive = SCCP_LIVE_MARKER;
 	return (void *)ptr;
 }
