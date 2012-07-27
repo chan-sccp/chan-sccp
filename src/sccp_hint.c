@@ -481,6 +481,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	sccp_line_t *line = lineState->line;
 	sccp_channel_t *channel = NULL;
 	sccp_device_t *device = NULL;
+	sccp_linedevices_t *lineDevice = NULL;
 	uint8_t state;
 	
 	/** clear cid information */
@@ -500,13 +501,13 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	SCCP_LIST_UNLOCK(&line->channels);
 	if (channel && (channel = sccp_channel_retain(channel))) {
 		lineState->callInfo.calltype = channel->calltype;
+		state = channel->state;
 
 		SCCP_LIST_LOCK(&line->devices);
-		sccp_linedevices_t *lineDevice = sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices));
+		lineDevice = SCCP_LIST_FIRST(&line->devices);
 		SCCP_LIST_UNLOCK(&line->devices);
 
-		state = channel->state;
-		if (lineDevice) {
+		if ((lineDevice = sccp_linedevice_retain(lineDevice))) {
 			if ((device = sccp_device_retain(lineDevice->device))) {
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;

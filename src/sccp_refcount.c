@@ -92,6 +92,7 @@ struct refcount_object {
         enum sccp_refcounted_types type;
 	char identifier[StationMaxDeviceNameSize];
 	SCCP_RWLIST_ENTRY(RefCountedObject) list;
+	unsigned int dead:1;
 	time_t dead_since;
 	int data_hash;
 	void *data;
@@ -320,6 +321,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	obj->refcount = 1;
 	obj->data = ptr;
 	obj->type = type;
+	obj->dead = 0;
 	obj->data_hash = SCCP_SIMPLE_HASH(ptr);
 	
         if (!(&obj_info[type])->destructor)
@@ -364,12 +366,12 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 #if DEBUG
         sccp_log((DEBUGCAT_REFCOUNT)) ("%-15.15s:%-4.4d (%-25.25s) ", filename, lineno, func);
 #endif	
-	if (ptr && cptr && obj && obj->data_hash == SCCP_SIMPLE_HASH(ptr)) {
+	if (ptr && cptr && obj && !obj->dead && obj->data_hash == SCCP_SIMPLE_HASH(ptr)) {
 	        do {
 #if CS_REFCOUNT_LIVEOBJECTS
-	                if (NULL == obj || !sccp_refcount_isLiveObject(obj) || NULL == obj->data || obj->refcount <= 0)
+	                if (NULL == obj || obj->dead || !sccp_refcount_isLiveObject(obj) || NULL == obj->data || obj->refcount <= 0)
 #else	                
-	                if (NULL == obj || sccp_refcount_isDeadObject(obj) || NULL == obj->data || obj->refcount <= 0)
+	                if (NULL == obj || obj->dead || sccp_refcount_isDeadObject(obj) || NULL == obj->data || obj->refcount <= 0)
 #endif
 	                        return NULL;
                         refcountval = obj->refcount;
@@ -377,7 +379,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	        } while(obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval) != refcountval);	// atomic inc if not zero
 
                 sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval+1);
-		return ptr;
+		return !obj->dead ? ptr : NULL;
 	} else {
 		sccp_log (0) ("SCCP: (Refcount) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF",(obj && obj->identifier) ? obj->identifier : "UNREF", obj);
 		return NULL;
@@ -399,12 +401,12 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 #if DEBUG
         sccp_log((DEBUGCAT_REFCOUNT)) ("%-15.15s:%-4.4d (%-25.25s) ", filename, lineno, func);
 #endif	
-	if (ptr && cptr && obj && obj->data_hash == SCCP_SIMPLE_HASH(ptr)) {
+	if (ptr && cptr && obj && !obj->dead && obj->data_hash == SCCP_SIMPLE_HASH(ptr)) {
 	        do {
 #if CS_REFCOUNT_LIVEOBJECTS
-	                if (NULL == obj || !sccp_refcount_isLiveObject(obj) || NULL == obj->data || obj->refcount < 0) {
+	                if (NULL == obj || obj->dead || !sccp_refcount_isLiveObject(obj) || NULL == obj->data || obj->refcount < 0) {
 #else
-	                if (NULL == obj || sccp_refcount_isDeadObject(obj) || NULL == obj->data || obj->refcount < 0) {
+	                if (NULL == obj || obj->dead || sccp_refcount_isDeadObject(obj) || NULL == obj->data || obj->refcount < 0) {
 #endif
         			sccp_log (0) ("SCCP: (Refcount) ALARM !! refcount would go below 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
 	                        return NULL;
@@ -414,11 +416,11 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	        } while(!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval) != refcountval); 	// atomic dec but not below zero
 		
 	        if (0 == newrefcountval) {
+			obj->dead = 1;
 			sccp_log((DEBUGCAT_REFCOUNT)) ("%s: refcount for object(%p) has reached 0 -> cleaning up!\n", obj->identifier, obj);
 #if CS_REFCOUNT_LIVEOBJECTS
 			sccp_refcount_moveFromLiveToDeadObjects(obj);
 #else
-                        // would require lock
                         sccp_refcount_addToDeadObjects(obj);
 #endif
                         (&obj_info[obj->type])->destructor(ptr);
