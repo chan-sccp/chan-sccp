@@ -1340,7 +1340,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	case SKINNY_STIMULUS_GROUPCALLPICKUP:									/*!< pickup feature button */
 
 		if (d->defaultLineInstance > 0) {
-			sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
 
 			/*! \todo use feature map or sccp_feat_handle_directpickup */
 			if ((l = sccp_line_find_byid(d, d->defaultLineInstance))) {
