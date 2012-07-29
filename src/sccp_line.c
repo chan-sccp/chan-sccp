@@ -193,13 +193,14 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
  */
 sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 {
+	sccp_line_t *removed_line = NULL;
 	if (!line) {
 		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
 		return NULL;
 	}
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
+	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", line->name);
 
@@ -211,7 +212,9 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	event.event.lineCreated.line = sccp_line_retain(line);
 	sccp_event_fire(&event);
 */
-	sccp_line_release(line);
+	if(removed_line) {
+		sccp_line_release(line);
+	}
 
 	return line;
 }
