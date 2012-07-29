@@ -545,7 +545,9 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	}
 	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
-	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), SCCP_REF_LINEDEVICE, "ld", __sccp_lineDevice_destroy);
+	char ld_id[25];
+	sprintf(ld_id, "%s/%s", device->id, l->name);
+	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), SCCP_REF_LINEDEVICE, ld_id, __sccp_lineDevice_destroy);
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
 
 	linedevice->device = sccp_device_retain(device);
@@ -678,7 +680,7 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((channel = sccp_channel_retain(channel))) {				// Add into list retained
 			sccp_channel_updateChannelDesignator(channel);
-			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s", channel->callid, l->name);
+			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", channel->callid, l->name);
 			if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST)
 				SCCP_LIST_INSERT_TAIL(&l->channels, channel, list);
 			else
