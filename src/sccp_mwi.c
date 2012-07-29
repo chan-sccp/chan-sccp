@@ -579,6 +579,7 @@ void sccp_mwi_check(sccp_device_t * device)
 		} else {
 			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: MWI already %s on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
 		}
+        	device = sccp_device_release(device);
 		return;								// <---- This return must be outside the inner if
 	}
 
