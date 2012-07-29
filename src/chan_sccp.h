@@ -95,7 +95,7 @@ extern "C" {
 #    define sccp_true(x) (pbx_true(x) ? 1 : 0)
 
 // changed debug parameter to match any DEBUGCATegories given on an sccp_log line
-#    define sccp_log(_x) if ((sccp_globals->debug & (_x)) != 0)  ast_verbose
+#    define sccp_log(_x) if ((sccp_globals->debug & (_x)) == _x)  ast_verbose
 
 #    define GLOB(x) sccp_globals->x
 
