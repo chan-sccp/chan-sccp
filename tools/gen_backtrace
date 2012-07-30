@@ -7,6 +7,10 @@
 # we want everything on stderr, so the program is not disturbed
 exec 1>&2
 
+if test -z "`which gdb`"; then
+	echo "Please install gdb (GNU Debugger) so that we can generate a comprehensive backtrace"
+fi
+
 PID=$1
 TMPFILE=/tmp/gdb.$$
 cat << EOF  > $TMPFILE
