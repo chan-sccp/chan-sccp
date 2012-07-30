@@ -689,11 +689,10 @@ boolean_t sccp_prePBXLoad()
 }
 
 #if DEBUG
-#include <dlfcn.h>
 /* 
  * Segfault Handler
- * Author : Andrew Tridgell <junkcode@tridgell.net>
- * URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
+ * Copied from 	Author : Andrew Tridgell <junkcode@tridgell.net>
+ * 		URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
  */
 static int segv_handler(int sig)
 {
@@ -710,8 +709,9 @@ static int segv_handler(int sig)
 
         snprintf(cmd, sizeof(cmd), "gen_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1", (int)getpid(), p+1, (int)getpid());
         system(cmd);
+        ast_log(LOG_ERROR, "\n\n\nCheck /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details\n\n\n", p+1, (int)getpid());
         signal(SIGSEGV, SIG_DFL);
-        fprintf(stdout, "Check /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details\n", p+1, (int)getpid());
+        fprintf(stdout, "\n\n\nCheck /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details\n\n\n", p+1, (int)getpid());
         return 0;
 }
 
