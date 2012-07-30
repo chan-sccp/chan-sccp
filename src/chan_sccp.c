@@ -688,10 +688,47 @@ boolean_t sccp_prePBXLoad()
 	return TRUE;
 }
 
+#if DEBUG
+#include <dlfcn.h>
+/* 
+ * Segfault Handler
+ * Author : Andrew Tridgell <junkcode@tridgell.net>
+ * URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
+ */
+static int segv_handler(int sig)
+{
+        char cmd[100];
+        char progname[100];
+        char *p;
+        int n;
+        fprintf(stdout, "Dumping Core");
+        
+        n = readlink("/proc/self/exe",progname,sizeof(progname));
+        progname[n] = 0;
+
+        p = strrchr(progname, '/');
+        *p = 0;
+
+        snprintf(cmd, sizeof(cmd), "if test -n \"`which gen_backtrace`\"; then gen_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1; else echo 'please install tools/gen_backtrace to a location in your PATH';fi", (int)getpid(), p+1, (int)getpid());
+        fprintf(stdout, "Running backtrace. Check /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details", p+1, (int)getpid());
+        system(cmd);
+        signal(SIGSEGV, SIG_DFL);
+        return 0;
+}
+
+static void segv_init() __attribute__((constructor));
+void segv_init(void)
+{
+        signal(SIGSEGV, (sighandler_t) segv_handler);
+        signal(SIGBUS, (sighandler_t) segv_handler);
+}
+#endif
+
 boolean_t sccp_postPBX_load()
 {
 	pbx_mutex_lock(&GLOB(lock));
 	GLOB(module_running) = TRUE;
+	segv_init();
 	sccp_refcount_schedule_cleanup((const void *)0);
 	pbx_mutex_unlock(&GLOB(lock));
 	return TRUE;
@@ -825,6 +862,8 @@ int sccp_preUnload(void)
  */
 int sccp_reload(void)
 {
+	int *pointer=0;
+	*pointer=1;
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 	int returnval = 0;
