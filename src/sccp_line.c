@@ -715,7 +715,7 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c)
 	if ((l = sccp_line_retain(l))) {
 		SCCP_LIST_LOCK(&l->channels);
 		if ((channel = SCCP_LIST_REMOVE(&l->channels, c, list))) {
-			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s", channel->callid, l->name);
+			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", channel->callid, l->name);
 			l->statistic.numberOfActiveChannels--;
 			channel = sccp_channel_release(channel);			// Remove retain from list
 		}			
