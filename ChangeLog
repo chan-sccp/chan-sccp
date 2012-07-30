@@ -1,4 +1,357 @@
+2012-07-30  ddegroot
+
+	* [r3722] tools/gen_backtrace: Add error message to
+	  tools/gen_backtrace when gdb is not installed
+
+	* [r3721] src/chan_sccp.c: Printout location of the backtrace file
+	  after generation
+
+	* [r3720] src/chan_sccp.c: Printout location of the backtrace file
+	  after generation
+
+	* [r3719] src/chan_sccp.c: Remove segvfault test case from sccp
+	  reload
+
+	* [r3718] src/chan_sccp.c, tools/gen_backtrace[ADD]: Added
+	  automatic backtrace generation to chan_sccp.c, uses
+	  tools/gen_backtrace script(need to be installed in execution PATH
+	  location) and gdb to generate a complete backtrace when we
+	  experience a segfault withing chan-sccp-b.
+
+	* [r3717] src/sccp_line.c: Fixed line return in debug message
+
+2012-07-29  ddegroot
+
+	* [r3716] src/sccp_line.c: Correct the way sccp_lines are
+	  destroyed, to prevent double sccp_release on removal from globals
+	  list
+
+	* [r3715] src/sccp_actions.c: Corrected debugcat
+
+	* [r3714] src/chan_sccp.h: Debugcat finally working the way i want
+	  it to.
+
+	* [r3713] src/sccp_line.c: Rectified refcount identifier for
+	  linedevices
+
+	* [r3712] src/sccp_actions.c: Fixed double line retain without
+	  correctly releasing before retaking in sccp_handle_keypad_button
+
+	* [r3711] src/sccp_mwi.c: Fixed device refcount release in
+	  sccp_mwi_check when on active call
+
+	* [r3710] src/sccp_actions.c: Fixed linereturn in debug message
+
+2012-07-27  ddegroot
+
+	* [r3709] src/sccp_refcount.c: Printout HASH value during refcount
+	  object alloc
+
+	* [r3708] src/chan_sccp.h, src/sccp_refcount.c: Increased
+	  deadobject time to 2000 ms. Revised obj->dead(boolean) to
+	  obj->alive(magic number)
+
+	* [r3707] src/sccp_hint.c: Logical cleanup of
+	  sccp_hint_updateLineStateForSingleLine
+
+	* [r3706] src/sccp_hint.c, src/sccp_refcount.c: Added obj->dead to
+	  refcount system, checked while returning pointer.
+
+	* [r3705] src/sccp_pbx.c, src/sccp_refcount.c: Added hash pointer
+	  verification before returning refcounted object
+
+2012-07-23  marcelloceschia
+
+	* [r3704] src/sccp_utils.c: sccp_addons_clear clear head
+
+	* [r3703] src/sccp_utils.c: fixes leak in sccp_addons_clear
+
+2012-07-22  ddegroot
+
+	* [r3700] doc/Makefile.am: Addding chan-sccp-b_pdf.sty to
+	  EXTRA_DIST
+
+2012-07-20  ddegroot
+
+	* [r3698] src/sccp_refcount.c: Fix sccp_refcount CAS32 while loop
+
+	* [r3697] src/sccp_lock.h, src/sccp_refcount.c: Cleaned up
+	  sccp_refcount.c by using generalized CAS macro's (defined in
+	  sccp_lock.h)
+
+2012-07-19  ddegroot
+
+	* [r3696] src/sccp_config.c, src/sccp_hint.c: Fixed retaining with
+	  invalid line in sccp_config.c. Cleanup after marcello's hint fix.
+
+2012-07-19  marcelloceschia
+
+	* [r3695] src/sccp_hint.c: use AST_EVENT_DEVICE_STATE, to solve the
+	  hint issue for the moment
+
+	* [r3694] src/sccp_config.c: fixes mwi issue
+
+2012-07-18  ddegroot
+
+	* [r3693] autoconf/extra.m4, configure, src/config.h.in,
+	  src/sccp_refcount.c: Removed configure.ac
+	  --enable-experimental-refcount because it has become the basis
+	  for V4.1. To extend the debugging for refcount there is a new
+	  option --enable-refcount-liveobjects, which can be used by
+	  developers to trace back faults in retain/release sequences, it
+	  should not be necessary to use this option in normal use (keeping
+	  a list of liveobjects does cost more memory and processing
+	  power).
+
+2012-07-17  ddegroot
+
+	* [r3692] src/pbx_impl/ast/ast108.c: Fixed spurious ´\m' in
+	  ast108.c
+
+	* [r3691] configure: Flush configure changes
+
+	* [r3690] autoconf/asterisk.m4, configure, configure.ac,
+	  src/config.h.in: Fix PACKAGE_ redefined error. Shorten asterisk
+	  header file detection section.
+
+	* [r3689] autoconf/asterisk.m4, configure, configure.ac,
+	  src/config.h.in: Reverted removal of PACKAGE_??? redefined 'fix'
+
+	* [r3688] configure, src/Makefile.in, src/sccp_channel.c,
+	  src/sccp_device.c, src/sccp_event.c, src/sccp_line.c,
+	  src/sccp_refcount.c, src/sccp_refcount.h: Refactored
+	  sccp_refcount so that we do not include a pointer to the datatype
+	  and destructor in every stored object, but only once. Resulting
+	  in smaller memory footprint of the refcount system
+
+	* [r3687] autoconf/asterisk.m4, autoconf/extra.m4, configure,
+	  configure.ac, src/Makefile.am, src/Makefile.in, src/config.h.in:
+	  Fixed --enable-debug to negate <optimized out> when using gdb
+	  (removed the leading -O2 before the -O0 entry). Also added -ggdb3
+	  and -g3 to extend the amount of symbol information generated for
+	  use by gdb.
+
+	* [r3686] src/sccp_threadpool.c: Added gnu generic version to count
+	  available cpu's on system.
+
+	* [r3685] Makefile.in, aclocal.m4, autoconf/extra.m4, configure,
+	  configure.ac, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in: Cleanup of configure.ac
+
+2012-07-16  ddegroot
+
+	* [r3684] contrib/gen_sccpconf/gen_sccpconf.c: Fix gen_sccpconf to
+	  generate correct sccp.conf / sccp.xml / sccp.sql on demand
+
+	* [r3683] src/sccp_socket.c: Suppress error (poll returned 4) when
+	  shutting down module
+
+	* [r3682] configure, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c: Update AST_MODULE_INFO
+
+	* [r3681] autoconf/acinclude.m4, autoconf/extra.m4, configure,
+	  configure.ac, tools/versioncheck: Using external
+	  tools/versioncheck to calculate repository version instead of
+	  acincluce.m4 system
+
+	* [r3680] autoconf/acinclude.m4, configure: Corrected configure
+	  repository revision number check
+
+	* [r3679] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c: Synced ast106.c, astTrunk.c and
+	  ast110.c with ast108.c for module unload
+
+	* [r3678] src/sccp_event.c: Corrected subscribtion to subscription
+
+	* [r3677] src/Makefile.in, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/define.h: Reordered
+	  module loading / unloading, to prevent memory leaks
+
+	* [r3676] src/sccp_device.c: Update comment
+
+	* [r3675] src/sccp_hint.c: Using retain/release of device during
+	  sccp_hint_subscribe and sccp_hint_unsubscribe
+
+	* [r3674] src/sccp_event.h: Revised sccp_event_module_stop /
+	  sccp_event_unsubscribe
+
+	* [r3673] src/chan_sccp.c, src/sccp_event.c, src/sccp_management.c,
+	  src/sccp_mwi.c: Revised sccp_event_module_stop /
+	  sccp_event_unsubscribe
+
+	* [r3672] configure, src/Makefile.am, src/Makefile.in,
+	  src/config.h.in: Removed objcopy from make install temporarily
+	  (negative side effects on second compilation)
+
+	* [r3671] src/chan_sccp.c, src/chan_sccp.h: Replaced messagesCbMap
+	  Array Lookup by an array indexed by messageId, saving countless
+	  array lookups per call.
+
+	* [r3670] src/sccp_utils.c: Replaced isPrintableChar by isprint
+	  (from ctype.h)
+
+2012-07-15  ddegroot
+
+	* [r3669] Makefile.in, autoconf/acinclude.m4, autoconf/config.sub,
+	  autoconf/depcomp, autoconf/extra.m4, configure, configure.ac,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/config.h.in, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/pbx_impl.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_appfunctions.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_event.c,
+	  src/sccp_event.h, src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_line.c,
+	  src/sccp_lock.c, src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_pbx.c, src/sccp_protocol.c, src/sccp_refcount.c,
+	  src/sccp_rtp.c, src/sccp_socket.c, src/sccp_softkeys.c,
+	  src/sccp_threadpool.c, src/sccp_utils.c: Use autoconf ability to
+	  compile in a builddir. #include "config.h" has been replaced by
+	  #include <config.h> so that it will be searched. Added -I. to
+	  CFLAGS, to search for <config.h>. Adapted autocon/acinclude.m4
+	  CS_CHECK_VERSION to search in ac_dir instead of builddir for
+	  svn/git/hg revision
+
+	* [r3668] Makefile.in, aclocal.m4, autoconf/extra.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in: If /usr/lib/debug exists we add
+	  our debug symbols there, before stripping
+
+	* [r3667] debian/changelog, debian/control, debian/rules: Added
+	  debian chan-sccp-b-dbg package, to contain debug symbols
+
+	* [r3666] src/sccp_pbx.c: Prevent null pointer dereference, in
+	  converyor
+
+	* [r3665] src/sccp_cli.c: Prevent null pointer dereference
+
+	* [r3664] src/sccp_event.c: reinstated sccp_event_unsubscribe.
+	  Fixed major bug in subscribtions[i].sync traversal during
+	  event_fire handling, only the first event callback would be
+	  fired. i needed to substituted for n (maybe using these kinds of
+	  counter variables can be counter productive at times).
+
+	* [r3663] src/sccp_line.c: Removed list locks during line_kill and
+	  line_clean, keep giving error and cannot find the reason why,
+	  then again they are not very important when using safe list
+	  traversal at this stage.
+
+2012-07-14  ddegroot
+
+	* [r3662] src/sccp_config.c: Simplify sccp_config_parse_variables
+	  (including skip for templated config entries)
+
+	* [r3661] src/sccp_event.c: Revert sccp_event_unsubscribe, using
+	  free on an array might not be so smart
+
+	* [r3660] src/pbx_impl/ast/define.h, src/sccp_dllists.h: Update
+	  define.h
+
+	* [r3659] src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/astTrunk.h,
+	  src/sccp_cli.c, src/sccp_management.c: Making progress with
+	  asterisk-trunk. Trying to create correct ast_channel alloc
+
+	* [r3658] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/define.h: Add
+	  pbx_channel_blocker and pbx_channel_blockproc to be able to
+	  compile against asterisk-trunk again
+
+	* [r3657] src/sccp_socket.c: Reducing pbx_log to sccp_log when
+	  socket connection closed
+
+	* [r3656] src/sccp_config.c, src/sccp_device.c, src/sccp_line.c:
+	  Move d->variable / l->variable destory to device / line
+	  destuctors
+
+	* [r3655] src/sccp_config.c, src/sccp_utils.c, src/sccp_utils.h:
+	  Fixed memoryleak in sccp_utils.c by replacing methode in
+	  sccp_config_parse_variables and removing sccp_create_variable
+	  function
+
+	* [r3654] src/chan_sccp.c, src/sccp_event.c, src/sccp_event.h,
+	  src/sccp_management.c, src/sccp_mwi.c: Fix memory leak in
+	  sccp_event.h because of missing sccp_event_unsubscribe (alloc in
+	  sccp_event_subscribe)
+
+	* [r3653] src/sccp_hint.c: Fix memory leak during device unregister
+	  in sccp_hint.c
+
+	* [r3652] src/sccp_device.c, src/sccp_line.c: Cleanup d->variables
+	  / l->variables during cleanup
+
+	* [r3651] src/pbx_impl/ast/define.h, src/sccp_dllists.h,
+	  src/sccp_refcount.c: Fixed list/refcount mutex_destroy issue when
+	  asterisk has been compiled with DEBUG_THREADS, by using
+	  ast_mutex_init_notracking for sccp_dllists.h
+
+2012-07-13  ddegroot
+
+	* [r3650] src/sccp_channel.c, src/sccp_rtp.c: Update RTP/UDP
+	  Logging showing correct ip-address / port information (clean up
+	  after several trials)
+
+	* [r3649] src/sccp_device.c, src/sccp_socket.c: Changed session
+	  addDevice / removeDevice, inversion of release and session=NULL
+
+	* [r3648] src/sccp_channel.c, src/sccp_rtp.c, src/sccp_socket.c:
+	  Update RTP/UDP Logging showing correct ip-address / port
+	  information (found issue with pbx_inet_ntoa). Suppress memory
+	  usage notification of thread
+
+2012-07-13  marcelloceschia
+
+	* [r3647] src/sccp_actions.c: remove warning
+
+2012-07-13  ddegroot
+
+	* [r3646] src/sccp_actions.c, src/sccp_channel.c, src/sccp_rtp.c:
+	  Update RTP/UDP Logging showing correct ip-address / port
+	  information (found issue with pbx_inet_ntoa)
+
+	* [r3645] src/sccp_rtp.c: Update sccp_channel test logging with
+	  another example4
+
+	* [r3644] src/sccp_channel.c, src/sccp_rtp.c: Update sccp_channel
+	  test logging with another example3
+
+2012-07-13  marcelloceschia
+
+	* [r3643] Makefile.am: need isntall
+
+2012-07-13  ddegroot
+
+	* [r3642] src/sccp_channel.c: Update sccp_channel test logging with
+	  another example
+
+	* [r3641] doc/Makefile.in, src/Makefile.in, src/sccp_channel.c:
+	  Update sccp_channel test logging with another example
+
+	* [r3640] src/sccp_actions.c, src/sccp_channel.c, src/sccp_rtp.c,
+	  src/sccp_rtp.h: Updated RTP/UDP ip-addtess Logging for
+	  sccp_channel_startmediatransmission,
+	  sccp_handle_open_receive_channel_ack and sccp_rtp_set_phone.
+
+	* [r3639] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/pbx_impl.h: Implemented PBX(getPeer) functions.
+	  Updated logging in PBX(set_peer) function
+
+	* [r3638] src/pbx_impl/ast/ast.c: Added ast_channel->blocked but no
+	  blocker during requestHangup (wait for blocker to be present
+	  before commencing softhangup)
+
 2012-07-12  ddegroot
+
+	* [r3636] ., ChangeLog, Makefile.in, contrib/gen_sccpconf, doc,
+	  doc/Makefile.am, doc/Makefile.in, src, src/Makefile.am,
+	  src/Makefile.in: Fix release system for V4.1. Update svnignore
 
 	* [r3635] ChangeLog, Makefile.am, Makefile.in,
 	  contrib/gen_sccpconf/gen_sccpconf.h, src/Makefile.in: Fix
