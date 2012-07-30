@@ -219,6 +219,7 @@ CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DATE = @DATE@
+DEBUG = @DEBUG@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
 DOXYGEN_PAPER_SIZE = @DOXYGEN_PAPER_SIZE@
@@ -260,6 +261,7 @@ FGREP = @FGREP@
 FINGER = @FINGER@
 GCFLAGS = @GCFLAGS@
 GCLIBS = @GCLIBS@
+GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
 GREP = @GREP@
@@ -883,7 +885,8 @@ install-dvi: install-dvi-recursive
 install-dvi-am:
 
 install-exec-am:
-
+	@$(NORMAL_INSTALL)
+	$(MAKE) $(AM_MAKEFLAGS) install-exec-hook
 install-html: install-html-recursive
 
 install-html-am:
@@ -925,7 +928,7 @@ ps-am:
 uninstall-am:
 
 .MAKE: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) ctags-recursive \
-	install-am install-strip tags-recursive
+	install-am install-exec-am install-strip tags-recursive
 
 .PHONY: $(RECURSIVE_CLEAN_TARGETS) $(RECURSIVE_TARGETS) CTAGS GTAGS \
 	all all-am am--refresh check check-am clean clean-generic \
@@ -935,13 +938,14 @@ uninstall-am:
 	distclean-libtool distclean-tags distcleancheck distdir \
 	distuninstallcheck dvi dvi-am html html-am info info-am \
 	install install-am install-data install-data-am install-dvi \
-	install-dvi-am install-exec install-exec-am install-html \
-	install-html-am install-info install-info-am install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	installdirs-am maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-generic mostlyclean-libtool pdf pdf-am \
-	ps ps-am tags tags-recursive uninstall uninstall-am
+	install-dvi-am install-exec install-exec-am install-exec-hook \
+	install-html install-html-am install-info install-info-am \
+	install-man install-pdf install-pdf-am install-ps \
+	install-ps-am install-strip installcheck installcheck-am \
+	installdirs installdirs-am maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-generic \
+	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-recursive \
+	uninstall uninstall-am
 
 
 @DX_COND_doc_TRUE@@DX_COND_ps_TRUE@doxygen-ps: @DX_DOCDIR@/@PACKAGE@.ps
@@ -1070,6 +1074,11 @@ gen_sccpconf:
 	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
 
 isntall: install
+
+install-exec-hook:
+	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
+		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\
+	fi
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

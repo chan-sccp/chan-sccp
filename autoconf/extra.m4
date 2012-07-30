@@ -182,6 +182,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PATH_PROGS(WHOAMI,whoami,[echo whoami not found so no version info will be available])
 	AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so you cannot build rpm packages (no problem)])
 	AC_PATH_PROGS(OBJCOPY,objcopy,[echo objcopy not found so we can not safe debug information (no problem)])
+	AC_PATH_PROGS(GDB,gdb,[echo gdb not found so we can not generate backtraces (no problem)])
 	AC_PROG_CC
 	AC_PROG_CC_C_O
 	AC_PROG_GCC_TRADITIONAL
@@ -201,6 +202,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_SUBST(GREP)
 	AC_SUBST(RPMBUILD)
 	AC_SUBST(OBJCOPY)
+	AC_SUBST(GDB)
 ])
 
 AC_DEFUN([CS_FIND_LIBRARIES], [
@@ -506,6 +508,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	if test "${enable_debug}" = "yes"; then
 		AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
+		DEBUG=1
 		enable_do_crash="yes"
 		enable_debug_mutex="yes"
 		strip_binaries="no"
@@ -529,6 +532,7 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
     		fi
 	else
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
+		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		CFLAGS_saved="${CFLAGS_saved} -D_FORTIFY_SOURCE=1 "
@@ -542,6 +546,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 	fi
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved}"
+	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
 ])
 

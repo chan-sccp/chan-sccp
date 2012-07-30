@@ -102,3 +102,8 @@ gen_sccpconf:
 	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
 
 isntall: install
+
+install-exec-hook:
+	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
+		$(INSTALL) -C tools/chan-sccp-b_backtrace /usr/bin/chan-sccp-b_backtrace;						\
+	fi
