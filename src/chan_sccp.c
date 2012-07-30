@@ -862,8 +862,6 @@ int sccp_preUnload(void)
  */
 int sccp_reload(void)
 {
-	int *pointer=0;
-	*pointer=1;
 #ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 	int returnval = 0;
