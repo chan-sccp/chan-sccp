@@ -701,7 +701,6 @@ static int segv_handler(int sig)
         char progname[100];
         char *p;
         int n;
-        fprintf(stdout, "Dumping Core");
         
         n = readlink("/proc/self/exe",progname,sizeof(progname));
         progname[n] = 0;
@@ -709,10 +708,10 @@ static int segv_handler(int sig)
         p = strrchr(progname, '/');
         *p = 0;
 
-        snprintf(cmd, sizeof(cmd), "if test -n \"`which gen_backtrace`\"; then gen_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1; else echo 'please install tools/gen_backtrace to a location in your PATH';fi", (int)getpid(), p+1, (int)getpid());
-        fprintf(stdout, "Running backtrace. Check /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details", p+1, (int)getpid());
+        snprintf(cmd, sizeof(cmd), "gen_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1", (int)getpid(), p+1, (int)getpid());
         system(cmd);
         signal(SIGSEGV, SIG_DFL);
+        fprintf(stdout, "Check /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details\n", p+1, (int)getpid());
         return 0;
 }
 
