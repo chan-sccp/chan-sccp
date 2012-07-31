@@ -67,9 +67,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 //
 // CS_REFCOUNT_LIVEOBJECTS controls which version is used (config.h)
 
-#ifndef SCCP_ATOMIC
-        AST_MUTEX_DEFINE_STATIC_NOTRACKING(cas_lock);			// need lock if no atomic functions are available (very coarse lock)
-#endif
+//#ifndef SCCP_ATOMIC
+//        AST_MUTEX_DEFINE_STATIC_NOTRACKING(cas_lock);			// need lock if no atomic functions are available (very coarse lock)
+//#endif
 
 #define SCCP_HASH_PRIME 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
@@ -89,6 +89,9 @@ static struct sccp_refcount_obj_info obj_info[] = {
 };
 
 struct refcount_object {
+#ifndef SCCP_ATOMIC
+        ast_mutex_t lock;
+#endif
 	volatile CAS32_TYPE refcount;
         enum sccp_refcounted_types type;
 	char identifier[StationMaxDeviceNameSize];
@@ -378,7 +381,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	                        return NULL;
                         refcountval = obj->refcount;
                         newrefcountval = refcountval+1;
-	        } while(obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval) != refcountval);	// atomic inc if not zero
+	        } while(obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval, obj_lock) != refcountval);	// atomic inc if not zero
 
                 sccp_log((DEBUGCAT_REFCOUNT)) ("%s: %*.*s> refcount for %s: %s(%p) increased to: %d\n", obj->identifier, refcountval, refcountval, "------------", (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval+1);
 		return SCCP_LIVE_MARKER == obj->alive ? ptr : NULL;
@@ -415,7 +418,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
                         }
                         refcountval = obj->refcount;
                         newrefcountval = refcountval - 1;
-	        } while(!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval) != refcountval); 	// atomic dec but not below zero
+	        } while(!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval, obj_lock) != refcountval); 	// atomic dec but not below zero
 		
 	        if (0 == newrefcountval) {
 			obj->alive = 0;
