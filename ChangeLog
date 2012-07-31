@@ -1,4 +1,14 @@
+2012-07-31  ddegroot
+
+	* [r3726] autoconf/asterisk.m4, configure: Copied V4.1
+	  autoconf/asterisk.m4
+
 2012-07-22  ddegroot
+
+	* [r3702] ChangeLog, Makefile.in, aclocal.m4, autoconf/config.sub,
+	  autoconf/depcomp, configure, contrib/gen_sccpconf/Makefile.in,
+	  doc/Makefile.in, src/Makefile.in, src/config.h.in: Run bootstrap
+	  before creating new tgz release
 
 	* [r3699] doc/Makefile.am: Addding chan-sccp-b_pdf.sty to
 	  EXTRA_DIST
