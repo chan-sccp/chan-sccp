@@ -9,6 +9,8 @@ dnl REVISION: $Revision: $
 AC_DEFUN([AST_GET_VERSION], [
 	CONFIGURE_PART([Checking Asterisk Version:])
 	REALTIME_USEABLE=1
+	version_found=0
+	
 	AC_CHECK_HEADER([asterisk/version.h],[
 		AC_MSG_CHECKING([version in asterisk/version.h])
 		AC_TRY_COMPILE([
@@ -34,79 +36,91 @@ AC_DEFUN([AST_GET_VERSION], [
 			fi
 
 			# remove from pbx_ver
-	    		pbx_ver=${pbx_ver%%-*}							# remove tail
-			#pbx_ver=${pbx_ver//\"/}							# remove '"'
+			# remove from pbx_ver
+			pbx_ver=${pbx_ver%%-*}							# remove tail
+			#pbx_ver=${pbx_ver//\"/}						# remove '"'
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			version_found=0
 			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
-				#if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
-				if echo $pbx_ver|grep -q "$x"; then
-					if test ${#x} -gt 3; then		# 1.10
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
-					elif test ${#x} -lt 3; then		# 1.10
-						ASTERISK_VER_GROUP="110"
-					else
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
-					fi
-					AC_SUBST([ASTERISK_VER_GROUP])
-					
-					if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
-						REALTIME_USEABLE=0
-					fi
-					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
-					ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					#else
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					#fi
+				if test $version_found == 0; then
+                                        if echo $pbx_ver|grep -q "$x"; then
+                                                if test ${#x} -gt 3; then		# 1.10
+                                                        ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
+                                                elif test ${#x} -lt 3; then		# 1.10
+                                                        ASTERISK_VER_GROUP="110"
+                                                else
+                                                        ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
+                                                fi
+                                                AC_SUBST([ASTERISK_VER_GROUP])
+                                                
+                                                if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
+                                                        REALTIME_USEABLE=0
+                                                fi
+                                                
+                                                #ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+                                                ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+                                                #ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+                                                #if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #else
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #fi
+                                                #ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 
-					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
-					
-					version_found=1
-					AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'])
+                                                #ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+                                                ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\([0-9]*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+                                                ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+                                                #if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #else
+                                                        ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #fi
 
-					AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUMBER],`echo ${ASTERISK_VERSION_NUMBER}`,[ASTERISK Version Number])
-					AC_SUBST([ASTERISK_VERSION_NUMBER])
-					AC_DEFINE_UNQUOTED([ASTERISK_VERSION_GROUP],`echo ${ASTERISK_VER_GROUP}`,[ASTERISK Version Group])
-					AC_SUBST([ASTERISK_VER_GROUP])
-					AC_DEFINE_UNQUOTED([ASTERISK_REPOS_LOCATION],`echo ${ASTERISK_REPOS_LOCATION}`,[ASTERISK Source Location])
-					AC_SUBST([ASTERISK_REPOS_LOCATION])
+                                                #ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+                                                
+                                                version_found=1
+                                                AC_MSG_RESULT([Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'])
 
-					case "${ASTERISK_VER_GROUP}" in
-						102) AC_DEFINE([ASTERISK_CONF_1_2], [1], [Defined ASTERISK_CONF_1_2]);;
-						104) AC_DEFINE([ASTERISK_CONF_1_4], [1], [Defined ASTERISK_CONF_1_4]);;
-						106) AC_DEFINE([ASTERISK_CONF_1_6], [1], [Defined ASTERISK_CONF_1_6]);;
-						108) AC_DEFINE([ASTERISK_CONF_1_8], [1], [Defined ASTERISK_CONF_1_8]);;
-						110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
-						*) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
-					esac 
+                                                AC_DEFINE_UNQUOTED([ASTERISK_VERSION_NUMBER],`echo ${ASTERISK_VERSION_NUMBER}`,[ASTERISK Version Number])
+                                                AC_SUBST([ASTERISK_VERSION_NUMBER])
+                                                AC_DEFINE_UNQUOTED([ASTERISK_VERSION_GROUP],`echo ${ASTERISK_VER_GROUP}`,[ASTERISK Version Group])
+                                                AC_SUBST([ASTERISK_VER_GROUP])
+                                                AC_DEFINE_UNQUOTED([ASTERISK_REPOS_LOCATION],`echo ${ASTERISK_REPOS_LOCATION}`,[ASTERISK Source Location])
+                                                AC_SUBST([ASTERISK_REPOS_LOCATION])
 
-					if [ test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ]; then
-						echo ""
-						CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
-						echo ""
-						echo "Please install a higher version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
-					if [ test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ]; then
-						echo ""
-						CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
-						echo ""
-						echo "Please install a lower version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
+                                                case "${ASTERISK_VER_GROUP}" in
+                                                        102) AC_DEFINE([ASTERISK_CONF_1_2], [1], [Defined ASTERISK_CONF_1_2]);;
+                                                        104) AC_DEFINE([ASTERISK_CONF_1_4], [1], [Defined ASTERISK_CONF_1_4]);;
+                                                        106) AC_DEFINE([ASTERISK_CONF_1_6], [1], [Defined ASTERISK_CONF_1_6]);;
+                                                        108) AC_DEFINE([ASTERISK_CONF_1_8], [1], [Defined ASTERISK_CONF_1_8]);;
+                                                        110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
+                                                        *) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
+                                                esac 
+
+                                                if [ test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ]; then
+                                                        echo ""
+                                                        CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
+                                                        echo ""
+                                                        echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
+                                                        echo ""
+                                                        echo "Please install a higher version of asterisk"
+                                                        echo ""
+                                                        echo ""
+                                                        exit 255
+                                                fi
+                                                if [ test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ]; then
+                                                        echo ""
+                                                        CONFIGURE_PART([Asterisk Version ${ASTERISK_VER} Not Supported])
+                                                        echo ""
+                                                        echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
+                                                        echo ""
+                                                        echo "Please install a lower version of asterisk"
+                                                        echo ""
+                                                        echo ""
+                                                        exit 255
+                                                fi
+                                        fi
 				fi 
 			done
 			if test $version_found == 0; then
@@ -120,11 +134,40 @@ AC_DEFUN([AST_GET_VERSION], [
 			fi
 			AC_MSG_RESULT(done)
 		],[
-      			AC_MSG_RESULT('ASTERISK_VERSION could not be established)
-    		])
-  	],
-  	[AC_MSG_RESULT('asterisk/version.h' Could not be found)]
-  	)
+			AC_MSG_RESULT('ASTERISK_VERSION could not be established)
+		])
+	], [
+		AC_CHECK_HEADER(
+			[asterisk/ast_version.h],
+			[
+				AC_MSG_CHECKING([version in asterisk/ast_version.h])
+				ASTERISK_VER_GROUP=112
+				ASTERISK_VERSION_NUMBER=11200
+				ASTERISK_REPOS_LOCATION=TRUNK
+
+				AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
+				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
+				AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
+				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+				
+				version_found=1
+				AC_MSG_RESULT(done)
+	                        AC_MSG_RESULT([WARNING: Experimental at the moment. Anything might break.])
+			],[
+				AC_MSG_RESULT(['ASTERISK_VERSION could not be established'])
+			]
+		)
+	])
+	if test $version_found == 0; then
+		echo ""
+		echo ""
+		echo "PBX branch version could not be determined"
+		echo "==================================="
+		echo "Either install asterisk and asterisk-devel packages"
+		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=[path]"
+		exit
+	fi
+	
 ])
 
 dnl Find Asterisk Header Files
@@ -132,9 +175,18 @@ AC_DEFUN([AST_CHECK_HEADERS],[
   CONFIGURE_PART([Checking Asterisk Headers:])
   
   HEADER_INCLUDE="
+	#undef PACKAGE
+	#undef PACKAGE_BUGREPORT
+	#undef PACKAGE_NAME
+	#undef PACKAGE_STRING
+	#undef PACKAGE_TARNAME
+	#undef PACKAGE_VERSION
+	#undef VERSION
   	#if ASTERISK_VERSION_NUMBER >= 10400
-	#include <asterisk.h>
+	#  include <asterisk.h>
 	#endif
+	#include <asterisk/autoconfig.h>
+	#include <asterisk/buildopts.h>
   "
     
   AC_CHECK_HEADER([asterisk/lock.h],
@@ -144,10 +196,8 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			CS_CHECK_AST_TYPEDEF([struct ast_lock_track],[asterisk/lock.h],AC_DEFINE([CS_AST_LOCK_TRACK],1,[Asterisk Lock Track Support]))
                 ],[
                 	lock_compiled=no
-                ],[
-                        #if ASTERISK_VERSION_NUMBER >= 10400
-                        #include <asterisk.h>
-                        #endif
+                ],[	
+                	$HEADER_INCLUDE
                 ]
   )
 
@@ -158,19 +208,14 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 	                AC_DEFINE(HAVE_PBX_ACL_H,1,[Found 'asterisk/acl.h'])
 			CS_CHECK_AST_TYPEDEF([struct ast_ha],[asterisk/acl.h],AC_DEFINE([CS_AST_HA],1,['struct ast_ha' available]))
 	    	],,[
-                        #if ASTERISK_VERSION_NUMBER >= 10400
-                        #include <asterisk.h>
-                        #endif
+                	$HEADER_INCLUDE
 	    	]
     )
     AC_CHECK_HEADER([asterisk/buildopts.h], 
 		[
 			AC_DEFINE(HAVE_PBX_BUILDOPTS_H,1,[Found 'asterisk/buildopts.h'])
 	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_channel_locks'...],[ac_cv_ast_debug_channel_locks],[
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
-					#include <asterisk/buildopts.h>
+		                	$HEADER_INCLUDE
 				], [
                                 	int test_format = (int)DEBUG_CHANNEL_LOCKS;
                                 ], [CS_AST_DEBUG_CHANNEL_LOCKS],
@@ -178,28 +223,21 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                         )
 
 	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_threads'...],[ac_cv_ast_debug_threads],[
-                                	#if ASTERISK_VERSION_NUMBER >= 10400
-                                	#include <asterisk.h>
-                                	#endif
-                                	#include <asterisk/buildopts.h>
+		                	$HEADER_INCLUDE
                                 ], [
                                 	int test_format = (int)DEBUG_THREADS;
                                 ], [CS_AST_DEBUG_THREADS],
                                 ['DEBUG_THREADS' available]
                         )
 		],,[
-                        #if ASTERISK_VERSION_NUMBER >= 10400
-                        #include <asterisk.h>
-                        #endif
+	               	$HEADER_INCLUDE
 		]
     )
     AC_CHECK_HEADER([asterisk/abstract_jb.h],
     		[
 	    		AC_DEFINE(HAVE_PBX_ABSTRACT_JB_H,1,[Found 'asterisk/abstract_jb.h'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_jb.target_extra'...],[ac_cv_ast_jb_target_extra],[
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		                	$HEADER_INCLUDE
 					#include <asterisk/abstract_jb.h>
 				], [
 					struct ast_jb_conf test_jbconf;
@@ -208,22 +246,17 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				[CS_AST_JB_TARGETEXTRA],['DEBUG_THREADS' available]
 			)						
 		],,[ 
-			#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
-    ])
+	               	$HEADER_INCLUDE
+	           ]
+    )
     AC_CHECK_HEADER([asterisk/linkedlists.h],	AC_DEFINE(HAVE_PBX_LINKEDLISTS_H,1,[Found 'asterisk/linkedlists.h']),,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/app.h],
 		[	
 			AC_DEFINE(HAVE_PBX_APP_H,1,[Found 'asterisk/app.h'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_app_has_voicemail'...],[ac_cv_ast_app_has_voicemail],[
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		                	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_LINKEDLISTS_H
 					#include <asterisk/linkedlists.h>
 					#endif		
@@ -234,9 +267,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_app_separate_args'...],[ac_cv_ast_app_seperate_args], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		                	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_LINKEDLISTS_H
 					#include <asterisk/linkedlists.h>
 					#endif		
@@ -249,9 +280,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			        AC_DEFINE(sccp_app_separate_args(x,y,z,w),ast_app_separate_args(x,y,z,w),[Found 'ast_app_separate_args' in asterisk/app.h])
 		        fi
 		],,[
-			#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+                	$HEADER_INCLUDE
 			#ifdef HAVE_PBX_LINKEDLISTS_H
 			#include <asterisk/linkedlists.h>
 			#endif		
@@ -260,34 +289,25 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     		[
     			AC_DEFINE(HAVE_PBX_ASTDB_H,1,[Found 'asterisk/astdb.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/network.h],
     		[
     			AC_DEFINE(HAVE_PBX_NETWORK_H,1,[Found 'asterisk/astdb.h'])
 		],,[ 
-		
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/callerid.h],
     		[
     			AC_DEFINE(HAVE_PBX_CALLERID_H,1,[Found 'asterisk/callerid.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/causes.h],
     		[
     			AC_DEFINE(HAVE_PBX_CAUSES_H,1,[Found 'asterisk/causes.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/channel.h],
 		[
@@ -296,9 +316,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			CS_CHECK_AST_TYPEDEF([struct ast_channel_tech],[asterisk/channel.h],AC_DEFINE([CS_AST_HAS_TECH_PVT],1,['struct ast_channel_tech' available]))
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_bridged_channel'...],[ac_cv_ast_bridged_channel],[
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/channel.h>
 				], [
 					struct ast_channel *test_bridged_channel = ast_bridged_channel(NULL);
@@ -308,9 +326,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			CS_CHECK_AST_TYPEDEF([struct ast_callerid],[asterisk/channel.h],AC_DEFINE([CS_AST_CHANNEL_HAS_CID],1,['struct ast_callerid' available]))
 
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'max_musicclass'...],[ac_cv_ast_max_musicclass], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		               	$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 				], [
 					int test_musicclass = (int)MAX_MUSICCLASS;
@@ -319,9 +335,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_flag_moh'...],[ac_cv_ast_flag_moh], [
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/channel.h>
 				], [
 					int test_moh = (int)AST_FLAG_MOH;
@@ -329,9 +343,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_max_context'...], [ac_cv_ast_max_context], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		               	$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 				], [
 					int test_context = (int)AST_MAX_CONTEXT;
@@ -340,9 +352,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			])
 
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_max_account_code'...], [ac_cv_ast_max_account_code], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		               	$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 				], [
 					int test_account_code = (int)AST_MAX_ACCOUNT_CODE;
@@ -353,17 +363,13 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			
 			CS_CHECK_AST_TYPEDEF([ast_group_t],[asterisk/channel.h],AC_DEFINE([CS_AST_HAS_AST_GROUP_T],1,['ast_group_t' available]))
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/channel_pvt.h],
     		[
     			AC_DEFINE(HAVE_PBX_CHANNEL_pvt_H,1,[Found 'asterisk/channel_pvt.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/cli.h],
 		[
@@ -387,26 +393,20 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				AC_MSG_RESULT(no)
 			])		
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/config.h],
     		[
     			AC_DEFINE(HAVE_PBX_CONFIG_H,1,[Found 'asterisk/config.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/extconf.h],
     		[
     			AC_DEFINE(HAVE_PBX_EXTCONF_H,1,[Found 'asterisk/extconf.h'])
     			AC_DEFINE(PBX_VARIABLE_TYPE,[struct ast_variable],[Defined PBX_VARIABLE as 'struct ast_variable'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/devicestate.h],
 		[
@@ -414,9 +414,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			DEVICESTATE_H=yes
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_devstate_changed'...], [ac_cv_ast_devstate_changed], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
 					int test_devicestate_changed = ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", "test");
@@ -424,9 +422,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_ringing'...], [ac_cv_ast_device_ringing], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
 					int test_device_ringing = (int)AST_DEVICE_RINGING;
@@ -434,9 +430,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_ringinuse'...], [ac_cv_ast_device_ringinuse], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
 					int test_device_ringinuse = (int)AST_DEVICE_RINGINUSE;
@@ -444,9 +438,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_onhold'...], [ac_cv_ast_device_onhold], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
 					int test_device_onhold = (int)AST_DEVICE_ONHOLD;
@@ -454,35 +446,27 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_total'...], [ac_cv_ast_device_total], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
 					int test_device_total = (int)AST_DEVICE_TOTAL;
 				], [CS_AST_DEVICE_TOTAL],['AST_DEVICE_TOTAL' available]
 			)
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/endian.h],	
     		[
 			AC_DEFINE([CS_AST_HAS_ENDIAN],1,[Found 'asterisk/endian.h'])
 			AC_DEFINE([HAVE_PBX_ENDIAN_H],1,[Found 'asterisk/endian.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/event.h],	
     		[
     			AC_DEFINE(HAVE_PBX_EVENT_H,1,[Found 'asterisk/event.h'])
     			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_event_subscribe'...], [ac_cv_ast_event_subscribe], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/event.h>
 				], [
 					ast_event_cb_t test_cb;
@@ -492,10 +476,24 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
+    AC_CHECK_HEADER([asterisk/event_defs.h],	
+    		[
+    			AC_DEFINE(HAVE_PBX_EVENT_DEFS_CIDNAME_H,1,[Found 'asterisk/event_defs.h'])
+    			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ac_cv_ast_event_defs_cidname'...], [ac_cv_ast_event_defs_cidname], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/event_defs.h>
+				], [
+					int data = AST_EVENT_IE_CEL_CIDNAME;				
+				], [CS_AST_HAS_EVENT_CIDNAME],['ac_cv_ast_event_defs_cidname' available]
+			)
+
+		],,[ 
+	               	$HEADER_INCLUDE
+    ])
+    
+    
     AC_CHECK_HEADER([asterisk/features.h],
     		[
     			AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h'])
@@ -509,18 +507,14 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				AC_MSG_RESULT(no)
 			])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/frame.h],
 		[
 			AC_DEFINE(HAVE_PBX_FRAME_H,1,[Found 'asterisk/frame.h'])			
 			AC_DEFINE(PBX_FRAME_TYPE,[struct ast_frame],[Define PBX_FRAME as 'struct ast_frame'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_frame.data.ptr'...], [ac_cv_ast_frame_data_ptr], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					struct ast_frame test_frame = { AST_FRAME_DTMF, };
@@ -529,9 +523,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_vidupdate' is available...], [ac_cv_ast_control_vidupdate], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_vidupdate = (int)AST_CONTROL_VIDUPDATE;
@@ -539,18 +531,14 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_control_t38_parameters'...], [ac_cv_ast_control_t38_parameters], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_T38_param = (int)AST_CONTROL_T38_PARAMETERS;
 				], [AC_DEFINE(CS_AST_CONTROL_T38_PARAMETERS,1,['AST_CONTROL_T38_PARAMETERS' available])
 				], [
 				CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_t38'...], [ac_cv_ast_control_t38], [
-						#if ASTERISK_VERSION_NUMBER >= 10400
-						#include <asterisk.h>
-						#endif
+				               	$HEADER_INCLUDE
 						#include <asterisk/frame.h>
 					], [
 						int test_control_T38 = (int)AST_CONTROL_T38;
@@ -559,29 +547,23 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			])
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_srcupdate'...], [ac_cv_ast_control_srcupdate], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_srcupdate = (int)AST_CONTROL_SRCUPDATE;
 				], [CS_AST_CONTROL_SRCUPDATE], ['AST_CONTROL_SRCUPDATE' available]
 			)
 
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_controlL_incomplete'...], [ac_cv_ast_controlL_incomplete], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_incomplete'...], [ac_cv_ast_control_incomplete], [
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
-					int test_controlL_incomplete = (int)AST_CONTROL_INCOMPLETE;
+					int test_control_incomplete = (int)AST_CONTROL_INCOMPLETE;
 				], [CS_AST_CONTROL_INCOMPLETE], ['AST_CONTROL_INCOMPLETE' available]
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_hold'...], [ac_cv_ast_control_hold], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_hold = (int)AST_CONTROL_HOLD;
@@ -589,9 +571,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 						
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_connected_line'...], [ac_cv_ast_control_connected_line], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_connected_line = (int)AST_CONTROL_CONNECTED_LINE;
@@ -599,9 +579,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_format_siren7'...], [ac_cv_ast_format_siren7], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_format_siren7 = (int)AST_FORMAT_SIREN7;
@@ -613,9 +591,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 		        fi
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_srcchange'...], [ac_cv_ast_control_srcchange], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_srcchange = (int)AST_CONTROL_SRCCHANGE;
@@ -623,9 +599,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_redirecting'...], [ac_cv_ast_control_redirecting], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 				], [
 					int test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
@@ -633,34 +607,26 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_transfer'...], [ac_cv_ast_control_transfer], [
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/frame.h>
 				], [
 					int test_control_transfer = (int)AST_CONTROL_TRANSFER;
 				], [CS_AST_CONTROL_TRANSFER], ['AST_CONTROL_TRANSFER' available]
 			)
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/logger.h],
     		[
     			AC_DEFINE(HAVE_PBX_LOGGER_H,1,[Found 'asterisk/logger.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/manager.h],	
     		[
     			AC_DEFINE(HAVE_PBX_MANAGER_H,1,[Found 'asterisk/manager.h'])
     		],,[
-	    		#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+	               	$HEADER_INCLUDE
 			#ifdef HAVE_PBX_STRINGFIELDS_H
 			#include <asterisk/stringfields.h>
 			#endif
@@ -671,43 +637,33 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			AC_DEFINE(HAVE_PBX_MODULE_H,1,[Found 'asterisk/module.h'])
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_module_ref'...], [ac_cv_ast_module_ref], [
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif				
+		               	$HEADER_INCLUDE
 				#include <asterisk/module.h>
 				],[
 					struct ast_module *test_module_ref = ast_module_ref(NULL);
 				],[CS_AST_MODULE_REF],['ast_module_ref' available]
 			)
 		],,[ 
-			#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+	               	$HEADER_INCLUDE
 		]
     )
     AC_CHECK_HEADER([asterisk/musiconhold.h],
     		[
     			AC_DEFINE(HAVE_PBX_MUSICONHOLD_H,1,[Found 'asterisk/musiconhold.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/options.h],
     		[
     			AC_DEFINE(HAVE_PBX_OPTIONS_H,1,[Found 'asterisk/options.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/pbx.h],
 		[
 			AC_DEFINE(HAVE_PBX_PBX_H,1,[Found 'asterisk/pbx.h'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_get_hint'...], [ac_cv_ast_get_hint], [
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif				
+		               	$HEADER_INCLUDE
 				#ifdef HAVE_PBX_CHANNEL_H
 				#include <asterisk/channel.h>
 				#endif
@@ -718,9 +674,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_extension_onhold'...], [ac_cv_ast_extension_onhold], [
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/pbx.h>
 				], [
 					int test_ext_onhold = (int)AST_EXTENSION_ONHOLD;
@@ -728,18 +682,14 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_extension_ringing'...], [ac_cv_ast_extension_ringing], [
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/pbx.h>
 				], [
 					int test_ext_ringing = (int)AST_EXTENSION_RINGING;
 				], [CS_AST_HAS_EXTENSION_RINGING],['AST_EXTENSION_RINGING' available]
 			)
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/rtp_engine.h],
 		[
@@ -747,9 +697,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			AC_DEFINE(HAVE_PBX_RTP_ENGINE_H,1,[Found 'asterisk/rtp_engine.h'])
 			AC_DEFINE(PBX_RTP_TYPE,[struct ast_rtp_instance],[Defined PBX_RTP_TYPE as 'struct ast_rtp_instance'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_rtp_instance_new'...], [ac_cv_ast_rtp_instance_new], [
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/rtp_engine.h>
 				], [
 					struct sched_context *test_sched=NULL;
@@ -765,9 +713,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                         AC_DEFINE(HAVE_PBX_RTP_H,1,[Found 'asterisk/rtp.h'])
 					AC_DEFINE(PBX_RTP_TYPE,[struct ast_rtp],[Defined PBX_RTP_TYPE as 'struct ast_rtp'])
                                         CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_rtp_new_source'...], [ac_cv_ast_rtp_new_source], [
-	                                                #if ASTERISK_VERSION_NUMBER >= 10400
-       		                                        #include <asterisk.h>
-       		                                        #endif
+					               	$HEADER_INCLUDE
        		                                        #include <asterisk/rtp.h>
                                                 ], [
                                                         struct ast_rtp *test_rtp=NULL;
@@ -776,9 +722,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                         )
 
                                         CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_rtp_change_source'...], [ac_cv_ast_rtp_change_source], [
-        	                                        #if ASTERISK_VERSION_NUMBER >= 10400
-               		                                #include <asterisk.h>
-               		                                #endif
+					               	$HEADER_INCLUDE
                		                                #include <asterisk/rtp.h>
                	                                ], [
                                                         struct ast_rtp *test_rtp=NULL;
@@ -791,18 +735,14 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 #endif
                 	])
 		],[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/sched.h],
 		[
 			AC_DEFINE(HAVE_PBX_SCHED_H,1,[Found 'asterisk/sched.h'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_sched_del'...], [ac_cv_ast_sched_del], [
 					#include <unistd.h>				
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif				
+			               	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_OPTIONS_H
 					#include <asterisk/options.h>
 					#endif
@@ -817,9 +757,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				],[CS_AST_SCHED_DEL],['AST_SCHED_DEL' available]
 			)
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/strings.h],
 		[
@@ -828,9 +766,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			dnl Checking for ast_copy_string
 			AC_MSG_CHECKING([ - availability 'ast_copy_string'...])
 			AC_TRY_COMPILE([
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/strings.h>
 				], [
 					const char *test_src = "SRC";
@@ -844,42 +780,32 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					AC_DEFINE([sccp_copy_string(x,y,z)],[strncpy(x,y,z - 1)],['ast_copy_string' replacement])			
 				])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/stringfields.h],	
     		[
     			AC_DEFINE(HAVE_PBX_STRINGFIELDS_H,1,[Found 'asterisk/stringfields.h'])
 			AC_DEFINE(CS_AST_HAS_AST_STRING_FIELD,1,[Found 'ast_string_field_' in asterisk])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/cel.h],
     		[
     			AC_DEFINE(HAVE_PBX_CEL_H,1,[Found 'asterisk/stringfields.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/message.h],
     		[
     			AC_DEFINE(HAVE_PBX_MESSAGE_H,1,[Found 'asterisk/message.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/translate.h],
     		[
     			AC_DEFINE(HAVE_PBX_TRANSLATE_H,1,[Found 'asterisk/translate.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/utils.h],
 		[
@@ -887,9 +813,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 
 			AC_MSG_CHECKING([ - availability 'ast_free'...])
 			AC_TRY_COMPILE([
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/utils.h>
 				], [
 					ast_free(NULL);
@@ -903,9 +827,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 
 			AC_MSG_CHECKING([ - availability 'ast_random'...])
 			AC_TRY_COMPILE([
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/utils.h>
 				], [
 					unsigned int test_random = ast_random();
@@ -917,25 +839,19 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				AC_MSG_RESULT(no)
 			])		
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/astobj.h],
     		[
     			AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/astobj2.h],
     		[
     			AC_DEFINE(HAVE_PBX_ASTOBJ2_H,1,[Found 'asterisk/astobj2.h'])
 		],,[ 
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
     ])
     
     if test "${ASTERISK_VER_GROUP}" == "1.8"; then

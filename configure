@@ -22337,6 +22337,8 @@ $as_echo "" >&6; }
 $as_echo "${T_MD}Checking Asterisk Version:${T_ME}" >&6; }
 
 	REALTIME_USEABLE=1
+	version_found=0
+
 	ac_fn_c_check_header_mongrel "$LINENO" "asterisk/version.h" "ac_cv_header_asterisk_version_h" "$ac_includes_default"
 if test "x$ac_cv_header_asterisk_version_h" = xyes; then :
 
@@ -22378,40 +22380,51 @@ $as_echo "processing..." >&6; }
 			fi
 
 			# remove from pbx_ver
-	    		pbx_ver=${pbx_ver%%-*}							# remove tail
-			#pbx_ver=${pbx_ver//\"/}							# remove '"'
+			# remove from pbx_ver
+			pbx_ver=${pbx_ver%%-*}							# remove tail
+			#pbx_ver=${pbx_ver//\"/}						# remove '"'
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			version_found=0
 			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
-				#if [ ! test -z `expr match "${pbx_ver}" "^\($x\).*"` ]; then
-				if echo $pbx_ver|grep -q "$x"; then
-					if test ${#x} -gt 3; then		# 1.10
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
-					elif test ${#x} -lt 3; then		# 1.10
-						ASTERISK_VER_GROUP="110"
-					else
-						ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
-					fi
+				if test $version_found == 0; then
+                                        if echo $pbx_ver|grep -q "$x"; then
+                                                if test ${#x} -gt 3; then		# 1.10
+                                                        ASTERISK_VER_GROUP="`echo $x|sed 's/\.//g'`"
+                                                elif test ${#x} -lt 3; then		# 1.10
+                                                        ASTERISK_VER_GROUP="110"
+                                                else
+                                                        ASTERISK_VER_GROUP="`echo $x|sed 's/\./0/g'`"
+                                                fi
 
 
-					if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
-						REALTIME_USEABLE=0
-					fi
-					#ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
-					ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
-					ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
-					#if test ${#ASTERISK_MINOR_VER1} -gt 1; then
-						#ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
-					#else
-						ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
-					#fi
+                                                if test "$ASTERISK_VER_GROUP" == "102"; then						# switch off realtime for 1.2
+                                                        REALTIME_USEABLE=0
+                                                fi
 
-					#ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+                                                #ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+                                                ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+                                                #ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+                                                #if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #else
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #fi
+                                                #ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
 
-					version_found=1
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'" >&5
+                                                #ASTERISK_MINOR_VER=${pbx_ver/$x\./}							# remove leading '1.x.'
+                                                ASTERISK_MINOR_VER=`echo $pbx_ver|sed "s/^$x.\(0-9*\)\(.*\)/\1/g"`			# remove leading and trailing .*
+                                                ASTERISK_MINOR_VER1=${ASTERISK_MINOR_VER%%.*}						# remove trailing '.*'
+                                                #if test ${#ASTERISK_MINOR_VER1} -gt 1; then
+                                                        #ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #else
+                                                        ASTERISK_VERSION_NUMBER="${ASTERISK_VER_GROUP}0${ASTERISK_MINOR_VER1}"		# add only third version part
+                                                #fi
+
+                                                #ASTERISK_STR_VER="${x}.${ASTERISK_MINOR_VER1}"
+
+                                                version_found=1
+                                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'" >&5
 $as_echo "Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER} ($x)'" >&6; }
 
 
@@ -22433,60 +22446,29 @@ _ACEOF
 
 
 
-					case "${ASTERISK_VER_GROUP}" in
-						102)
+                                                case "${ASTERISK_VER_GROUP}" in
+                                                        102)
 $as_echo "#define ASTERISK_CONF_1_2 1" >>confdefs.h
 ;;
-						104)
+                                                        104)
 $as_echo "#define ASTERISK_CONF_1_4 1" >>confdefs.h
 ;;
-						106)
+                                                        106)
 $as_echo "#define ASTERISK_CONF_1_6 1" >>confdefs.h
 ;;
-						108)
+                                                        108)
 $as_echo "#define ASTERISK_CONF_1_8 1" >>confdefs.h
 ;;
-						110)
+                                                        110)
 $as_echo "#define ASTERISK_CONF_1_10 1" >>confdefs.h
 ;;
-						*)
+                                                        *)
 $as_echo "#define ASTERISK_CONF 0" >>confdefs.h
 ;;
-					esac
+                                                esac
 
-					if  test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ; then
-						echo ""
-
-case $TERM in
-       #   for the most important terminal types we directly know the sequences
-       xterm|xterm*|vt220|vt220*)
-               T_MD=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
-               T_ME=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
-        ;;
-       vt100|vt100*|cygwin)
-               T_MD=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
-               T_ME=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
-       ;;
-       *)
-               T_MD=''
-               T_ME=''
-       ;;
-esac
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
-$as_echo "" >&6; }
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&5
-$as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
-
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
-						echo ""
-						echo "Please install a higher version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
-					if  test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ; then
-						echo ""
+                                                if  test ${ASTERISK_VER_GROUP} -lt ${MIN_ASTERISK_VERSION} ; then
+                                                        echo ""
 
 case $TERM in
        #   for the most important terminal types we directly know the sequences
@@ -22508,14 +22490,46 @@ $as_echo "" >&6; }
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&5
 $as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
 
-						echo ""
-						echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
-						echo ""
-						echo "Please install a lower version of asterisk"
-						echo ""
-						echo ""
-						exit 255
-					fi
+                                                        echo ""
+                                                        echo "This version of chan-sccp-b only has support for Asterisk 1.6.x and above."
+                                                        echo ""
+                                                        echo "Please install a higher version of asterisk"
+                                                        echo ""
+                                                        echo ""
+                                                        exit 255
+                                                fi
+                                                if  test ${ASTERISK_VER_GROUP} -gt ${MAX_ASTERISK_VERSION} ; then
+                                                        echo ""
+
+case $TERM in
+       #   for the most important terminal types we directly know the sequences
+       xterm|xterm*|vt220|vt220*)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c", 27, 91, 49, 109); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c", 27, 91, 109); }' </dev/null 2>/dev/null`
+        ;;
+       vt100|vt100*|cygwin)
+               T_MD=`awk 'BEGIN { printf("%c%c%c%c%c%c", 27, 91, 49, 109, 0, 0); }' </dev/null 2>/dev/null`
+               T_ME=`awk 'BEGIN { printf("%c%c%c%c%c", 27, 91, 109, 0, 0); }' </dev/null 2>/dev/null`
+       ;;
+       *)
+               T_MD=''
+               T_ME=''
+       ;;
+esac
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: " >&5
+$as_echo "" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&5
+$as_echo "${T_MD}Asterisk Version ${ASTERISK_VER} Not Supported${T_ME}" >&6; }
+
+                                                        echo ""
+                                                        echo "This version of chan-sccp-b only has support for Asterisk 1.11.x and below."
+                                                        echo ""
+                                                        echo "Please install a lower version of asterisk"
+                                                        echo ""
+                                                        echo ""
+                                                        exit 255
+                                                fi
+                                        fi
 				fi
 			done
 			if test $version_found == 0; then
@@ -22532,18 +22546,64 @@ $as_echo "done" >&6; }
 
 else
 
-      			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established" >&5
 $as_echo "'ASTERISK_VERSION could not be established" >&6; }
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: 'asterisk/version.h' Could not be found" >&5
-$as_echo "'asterisk/version.h' Could not be found" >&6; }
+
+		ac_fn_c_check_header_mongrel "$LINENO" "asterisk/ast_version.h" "ac_cv_header_asterisk_ast_version_h" "$ac_includes_default"
+if test "x$ac_cv_header_asterisk_ast_version_h" = xyes; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking version in asterisk/ast_version.h" >&5
+$as_echo_n "checking version in asterisk/ast_version.h... " >&6; }
+				ASTERISK_VER_GROUP=112
+				ASTERISK_VERSION_NUMBER=11200
+				ASTERISK_REPOS_LOCATION=TRUNK
+
+
+$as_echo "#define ASTERISK_CONF_1_12 1" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_VERSION_NUMBER 11200" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_VERSION_GROUP 112" >>confdefs.h
+
+
+$as_echo "#define ASTERISK_REPOS_LOCATION \"TRUNK\"" >>confdefs.h
+
+
+				version_found=1
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+$as_echo "done" >&6; }
+	                        { $as_echo "$as_me:${as_lineno-$LINENO}: result: WARNING: Experimental at the moment. Anything might break." >&5
+$as_echo "WARNING: Experimental at the moment. Anything might break." >&6; }
+
+else
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: 'ASTERISK_VERSION could not be established'" >&5
+$as_echo "'ASTERISK_VERSION could not be established'" >&6; }
+
 
 fi
 
+
+
+fi
+
+
+	if test $version_found == 0; then
+		echo ""
+		echo ""
+		echo "PBX branch version could not be determined"
+		echo "==================================="
+		echo "Either install asterisk and asterisk-devel packages"
+		echo "Or specify the location where asterisk can be found, using ./configure --with-asterisk=path"
+		exit
+	fi
 
 
 
@@ -22570,15 +22630,22 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 
 
   HEADER_INCLUDE="
+	#undef PACKAGE
+	#undef PACKAGE_BUGREPORT
+	#undef PACKAGE_NAME
+	#undef PACKAGE_STRING
+	#undef PACKAGE_TARNAME
+	#undef PACKAGE_VERSION
+	#undef VERSION
   	#if ASTERISK_VERSION_NUMBER >= 10400
-	#include <asterisk.h>
+	#  include <asterisk.h>
 	#endif
+	#include <asterisk/autoconfig.h>
+	#include <asterisk/buildopts.h>
   "
 
   ac_fn_c_check_header_compile "$LINENO" "asterisk/lock.h" "ac_cv_header_asterisk_lock_h" "
-                        #if ASTERISK_VERSION_NUMBER >= 10400
-                        #include <asterisk.h>
-                        #endif
+                	$HEADER_INCLUDE
 
 
 "
@@ -22642,9 +22709,7 @@ fi
 $as_echo "#define PBX_CHANNEL_TYPE struct ast_channel" >>confdefs.h
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/acl.h" "ac_cv_header_asterisk_acl_h" "
-                        #if ASTERISK_VERSION_NUMBER >= 10400
-                        #include <asterisk.h>
-                        #endif
+                	$HEADER_INCLUDE
 
 
 "
@@ -22697,9 +22762,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/buildopts.h" "ac_cv_header_asterisk_buildopts_h" "
-                        #if ASTERISK_VERSION_NUMBER >= 10400
-                        #include <asterisk.h>
-                        #endif
+	               	$HEADER_INCLUDE
 
 
 "
@@ -22724,10 +22787,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
-					#include <asterisk/buildopts.h>
+		                	$HEADER_INCLUDE
 
 int
 main ()
@@ -22799,10 +22859,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-                                	#if ASTERISK_VERSION_NUMBER >= 10400
-                                	#include <asterisk.h>
-                                	#endif
-                                	#include <asterisk/buildopts.h>
+		                	$HEADER_INCLUDE
 
 int
 main ()
@@ -22862,9 +22919,8 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/abstract_jb.h" "ac_cv_header_asterisk_abstract_jb_h" "
-			#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+	               	$HEADER_INCLUDE
+
 
 "
 if test "x$ac_cv_header_asterisk_abstract_jb_h" = xyes; then :
@@ -22888,9 +22944,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		                	$HEADER_INCLUDE
 					#include <asterisk/abstract_jb.h>
 
 int
@@ -22952,9 +23006,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/linkedlists.h" "ac_cv_header_asterisk_linkedlists_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_linkedlists_h" = xyes; then :
@@ -22965,9 +23017,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/app.h" "ac_cv_header_asterisk_app_h" "
-			#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+                	$HEADER_INCLUDE
 			#ifdef HAVE_PBX_LINKEDLISTS_H
 			#include <asterisk/linkedlists.h>
 			#endif
@@ -22994,9 +23044,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		                	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_LINKEDLISTS_H
 					#include <asterisk/linkedlists.h>
 					#endif
@@ -23072,9 +23120,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		                	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_LINKEDLISTS_H
 					#include <asterisk/linkedlists.h>
 					#endif
@@ -23143,9 +23189,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/astdb.h" "ac_cv_header_asterisk_astdb_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_astdb_h" = xyes; then :
@@ -23158,10 +23202,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/network.h" "ac_cv_header_asterisk_network_h" "
-
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_network_h" = xyes; then :
@@ -23174,9 +23215,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/callerid.h" "ac_cv_header_asterisk_callerid_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_callerid_h" = xyes; then :
@@ -23189,9 +23228,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/causes.h" "ac_cv_header_asterisk_causes_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_causes_h" = xyes; then :
@@ -23204,9 +23241,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/channel.h" "ac_cv_header_asterisk_channel_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_channel_h" = xyes; then :
@@ -23271,9 +23306,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/channel.h>
 
 int
@@ -23385,9 +23418,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		               	$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 
 int
@@ -23460,9 +23491,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/channel.h>
 
 int
@@ -23534,9 +23563,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		               	$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 
 int
@@ -23608,9 +23635,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+		               	$HEADER_INCLUDE
 					#include <asterisk/channel.h>
 
 int
@@ -23713,9 +23738,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/channel_pvt.h" "ac_cv_header_asterisk_channel_pvt_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_channel_pvt_h" = xyes; then :
@@ -23728,9 +23751,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/cli.h" "ac_cv_header_asterisk_cli_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_cli_h" = xyes; then :
@@ -23793,9 +23814,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/config.h" "ac_cv_header_asterisk_config_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_config_h" = xyes; then :
@@ -23808,9 +23827,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/extconf.h" "ac_cv_header_asterisk_extconf_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_extconf_h" = xyes; then :
@@ -23826,9 +23843,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/devicestate.h" "ac_cv_header_asterisk_devicestate_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_devicestate_h" = xyes; then :
@@ -23854,9 +23869,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 
 int
@@ -23929,9 +23942,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 
 int
@@ -24004,9 +24015,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 
 int
@@ -24079,9 +24088,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 
 int
@@ -24154,9 +24161,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 
 int
@@ -24217,9 +24222,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/endian.h" "ac_cv_header_asterisk_endian_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_endian_h" = xyes; then :
@@ -24235,9 +24238,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/event.h" "ac_cv_header_asterisk_event_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_event_h" = xyes; then :
@@ -24261,9 +24262,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/event.h>
 
 int
@@ -24326,10 +24325,96 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 fi
 
 
+    ac_fn_c_check_header_compile "$LINENO" "asterisk/event_defs.h" "ac_cv_header_asterisk_event_defs_h" "
+	               	$HEADER_INCLUDE
+
+"
+if test "x$ac_cv_header_asterisk_event_defs_h" = xyes; then :
+
+
+$as_echo "#define HAVE_PBX_EVENT_DEFS_CIDNAME_H 1" >>confdefs.h
+
+
+		ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ac_cv_ast_event_defs_cidname'..." >&5
+$as_echo_n "checking  - availability 'ac_cv_ast_event_defs_cidname'...... " >&6; }
+if ${ac_cv_ast_event_defs_cidname+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+			               	$HEADER_INCLUDE
+					#include <asterisk/event_defs.h>
+
+int
+main ()
+{
+
+					int data = AST_EVENT_IE_CEL_CIDNAME;
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_event_defs_cidname="yes"
+                                        if ${ac_cv_ast_event_defs_cidname+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_event_defs_cidname="no"
+                                        if ${ac_cv_ast_event_defs_cidname+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_event_defs_cidname" >&5
+$as_echo "$ac_cv_ast_event_defs_cidname" >&6; }
+        eval val=\$ac_cv_ast_event_defs_cidname
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_EVENT_CIDNAME 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+
+
+
+
+fi
+
+
+
+
     ac_fn_c_check_header_compile "$LINENO" "asterisk/features.h" "ac_cv_header_asterisk_features_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_features_h" = xyes; then :
@@ -24367,9 +24452,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/frame.h" "ac_cv_header_asterisk_frame_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_frame_h" = xyes; then :
@@ -24396,9 +24479,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -24472,9 +24553,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -24546,9 +24625,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -24612,9 +24689,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-						#if ASTERISK_VERSION_NUMBER >= 10400
-						#include <asterisk.h>
-						#endif
+				               	$HEADER_INCLUDE
 						#include <asterisk/frame.h>
 
 int
@@ -24696,9 +24771,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -24762,25 +24835,23 @@ ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
 ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
-        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ast_controlL_incomplete'..." >&5
-$as_echo_n "checking  - availability 'ast_controlL_incomplete'...... " >&6; }
-if ${ac_cv_ast_controlL_incomplete+:} false; then :
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ast_control_incomplete'..." >&5
+$as_echo_n "checking  - availability 'ast_control_incomplete'...... " >&6; }
+if ${ac_cv_ast_control_incomplete+:} false; then :
   $as_echo_n "(cached) " >&6
 else
 
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
 main ()
 {
 
-					int test_controlL_incomplete = (int)AST_CONTROL_INCOMPLETE;
+					int test_control_incomplete = (int)AST_CONTROL_INCOMPLETE;
 
   ;
   return 0;
@@ -24788,8 +24859,8 @@ main ()
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
 
-                                        ac_cv_ast_controlL_incomplete="yes"
-                                        if ${ac_cv_ast_controlL_incomplete+:} false; then :
+                                        ac_cv_ast_control_incomplete="yes"
+                                        if ${ac_cv_ast_control_incomplete+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   "yes"
@@ -24798,8 +24869,8 @@ fi
 
 else
 
-                                        ac_cv_ast_controlL_incomplete="no"
-                                        if ${ac_cv_ast_controlL_incomplete+:} false; then :
+                                        ac_cv_ast_control_incomplete="no"
+                                        if ${ac_cv_ast_control_incomplete+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   "no"
@@ -24812,9 +24883,9 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_controlL_incomplete" >&5
-$as_echo "$ac_cv_ast_controlL_incomplete" >&6; }
-        eval val=\$ac_cv_ast_controlL_incomplete
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_control_incomplete" >&5
+$as_echo "$ac_cv_ast_control_incomplete" >&6; }
+        eval val=\$ac_cv_ast_control_incomplete
         if test "x$val" = "xyes"; then
 
 $as_echo "#define CS_AST_CONTROL_INCOMPLETE 1" >>confdefs.h
@@ -24846,9 +24917,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -24921,9 +24990,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -24996,9 +25063,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -25077,9 +25142,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -25152,9 +25215,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/frame.h>
 
 int
@@ -25227,9 +25288,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/frame.h>
 
 int
@@ -25290,9 +25349,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/logger.h" "ac_cv_header_asterisk_logger_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_logger_h" = xyes; then :
@@ -25305,9 +25362,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/manager.h" "ac_cv_header_asterisk_manager_h" "
-	    		#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+	               	$HEADER_INCLUDE
 			#ifdef HAVE_PBX_STRINGFIELDS_H
 			#include <asterisk/stringfields.h>
 			#endif
@@ -25324,9 +25379,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/module.h" "ac_cv_header_asterisk_module_h" "
-			#if ASTERISK_VERSION_NUMBER >= 10400
-			#include <asterisk.h>
-			#endif
+	               	$HEADER_INCLUDE
 
 
 "
@@ -25352,9 +25405,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/module.h>
 
 int
@@ -25415,9 +25466,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/musiconhold.h" "ac_cv_header_asterisk_musiconhold_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_musiconhold_h" = xyes; then :
@@ -25430,9 +25479,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/options.h" "ac_cv_header_asterisk_options_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_options_h" = xyes; then :
@@ -25445,9 +25492,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/pbx.h" "ac_cv_header_asterisk_pbx_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_pbx_h" = xyes; then :
@@ -25471,9 +25516,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#ifdef HAVE_PBX_CHANNEL_H
 				#include <asterisk/channel.h>
 				#endif
@@ -25549,9 +25592,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/pbx.h>
 
 int
@@ -25624,9 +25665,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/pbx.h>
 
 int
@@ -25687,9 +25726,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/rtp_engine.h" "ac_cv_header_asterisk_rtp_engine_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_rtp_engine_h" = xyes; then :
@@ -25719,9 +25756,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#include <asterisk/rtp_engine.h>
 
 int
@@ -25813,9 +25848,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-	                                                #if ASTERISK_VERSION_NUMBER >= 10400
-       		                                        #include <asterisk.h>
-       		                                        #endif
+					               	$HEADER_INCLUDE
        		                                        #include <asterisk/rtp.h>
 
 int
@@ -25889,9 +25922,7 @@ else
                         cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-        	                                        #if ASTERISK_VERSION_NUMBER >= 10400
-               		                                #include <asterisk.h>
-               		                                #endif
+					               	$HEADER_INCLUDE
                		                                #include <asterisk/rtp.h>
 
 int
@@ -25957,9 +25988,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/sched.h" "ac_cv_header_asterisk_sched_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_sched_h" = xyes; then :
@@ -25984,9 +26013,7 @@ else
 /* end confdefs.h.  */
 
 					#include <unistd.h>
-					#if ASTERISK_VERSION_NUMBER >= 10400
-					#include <asterisk.h>
-					#endif
+			               	$HEADER_INCLUDE
 					#ifdef HAVE_PBX_OPTIONS_H
 					#include <asterisk/options.h>
 					#endif
@@ -26055,9 +26082,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/strings.h" "ac_cv_header_asterisk_strings_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_strings_h" = xyes; then :
@@ -26073,9 +26098,7 @@ $as_echo_n "checking  - availability 'ast_copy_string'...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/strings.h>
 
 int
@@ -26113,9 +26136,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/stringfields.h" "ac_cv_header_asterisk_stringfields_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_stringfields_h" = xyes; then :
@@ -26131,9 +26152,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/cel.h" "ac_cv_header_asterisk_cel_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_cel_h" = xyes; then :
@@ -26146,9 +26165,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/message.h" "ac_cv_header_asterisk_message_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_message_h" = xyes; then :
@@ -26161,9 +26178,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/translate.h" "ac_cv_header_asterisk_translate_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_translate_h" = xyes; then :
@@ -26176,9 +26191,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/utils.h" "ac_cv_header_asterisk_utils_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_utils_h" = xyes; then :
@@ -26192,9 +26205,7 @@ $as_echo_n "checking  - availability 'ast_free'...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/utils.h>
 
 int
@@ -26229,9 +26240,7 @@ $as_echo_n "checking  - availability 'ast_random'...... " >&6; }
 			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-				#if ASTERISK_VERSION_NUMBER >= 10400
-				#include <asterisk.h>
-				#endif
+		               	$HEADER_INCLUDE
 				#include <asterisk/utils.h>
 
 int
@@ -26265,9 +26274,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/astobj.h" "ac_cv_header_asterisk_astobj_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_astobj_h" = xyes; then :
@@ -26280,9 +26287,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/astobj2.h" "ac_cv_header_asterisk_astobj2_h" "
-		#if ASTERISK_VERSION_NUMBER >= 10400
-		#include <asterisk.h>
-		#endif
+	               	$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_astobj2_h" = xyes; then :
