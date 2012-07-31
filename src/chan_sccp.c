@@ -727,7 +727,9 @@ boolean_t sccp_postPBX_load()
 {
 	pbx_mutex_lock(&GLOB(lock));
 	GLOB(module_running) = TRUE;
+#if DEBUG
 	segv_init();
+#endif
 	sccp_refcount_schedule_cleanup((const void *)0);
 	pbx_mutex_unlock(&GLOB(lock));
 	return TRUE;
