@@ -200,7 +200,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		s->device = d;				/* attach device to session, so it can be cleaned up during session cleanup */
 		
 		/* check ACLs for this device */
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION))(VERBOSE_PREFIX_3 "here1\n");
 		if (sccp_device_checkACL(d, s) == FALSE) {
 			ast_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
 			d->registrationState = SKINNY_DEVICE_RS_FAILED;
@@ -227,7 +226,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream \n", r->msg.RegisterMessage.sId.deviceName);
 		d->nat = 1;
 	}
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION))(VERBOSE_PREFIX_3 "here6\n");
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
 	s->device = d;
