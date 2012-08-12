@@ -1748,10 +1748,10 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 
 	#endif
-		if (remove_from_global) {
-			sccp_device_destroy(d);
-//			sccp_device_removeFromGlobals(d);
-		}
+// 		if (remove_from_global) {
+// 			sccp_device_destroy(d);
+// //			sccp_device_removeFromGlobals(d);
+// 		}
 		d = sccp_device_release(d);
 	}
 }
@@ -1867,7 +1867,6 @@ int sccp_device_destroy(const void *ptr)
 {
 	sccp_device_t *d = (sccp_device_t *) ptr;
 	sccp_device_removeFromGlobals(d);
-	sccp_device_release(d);
 	return 0;
 }
 

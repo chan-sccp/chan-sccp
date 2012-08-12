@@ -344,7 +344,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 //                if (obj->refcount == 0) {	// racecondition ?
                 if (newrefcountval == 0) {
                         obj->alive = 0;
-                        sccp_log(DEBUGCAT_REFCOUNT)(VERBOSE_PREFIX_1 "SCCP: (release) Finalizing %p (%p)\n", obj, ptr);
+                        sccp_log(DEBUGCAT_REFCOUNT)(VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s) (release) Finalizing %p (%p)\n", filename, lineno, func, obj, ptr);
                         remove_obj(ptr);
                 } else {
                         if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))
