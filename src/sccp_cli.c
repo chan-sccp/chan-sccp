@@ -1170,9 +1170,72 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#if defined(DEBUG) || defined(CS_EXPERIMENTAL)
 
+#if defined(DEBUG) || defined(CS_EXPERIMENTAL)
 /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
+
+#define NUM_LOOPS 20
+#define NUM_OBJECTS 100
+
+struct refcount_test {
+	int id;
+	int loop;
+	unsigned int threadid;
+	char *test;
+} *object[NUM_OBJECTS];
+
+static void sccp_cli_refcount_test_destroy(struct refcount_test *obj) 
+{
+	sccp_log(0) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int)pthread_self());
+	sccp_free(object[obj->id]);
+	object[obj->id]=NULL;
+	free(obj);
+	obj=NULL;
+};
+
+static void *sccp_cli_refcount_test_thread(void *data) 
+{
+	boolean_t working = *(boolean_t *)data;
+	struct refcount_test *obj=NULL, *obj1=NULL;
+	int test, loop;
+	int random_object;
+	
+	if (working) {
+		// CORRECT
+		for (loop = 0; loop < NUM_LOOPS; loop++) {
+			for (test=0; test<NUM_OBJECTS; test++) {
+				random_object=rand() % NUM_OBJECTS;
+				sccp_log(0) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int)pthread_self());
+				if ((obj = sccp_refcount_retain(object[random_object], __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+					usleep(random_object % 10);
+					if ((obj1 = sccp_refcount_retain(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+						usleep(random_object % 10);
+						obj1 = sccp_refcount_release(obj1, __FILE__,__LINE__,__PRETTY_FUNCTION__);
+					}
+					obj = sccp_refcount_release(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+			}		
+		}
+	} else {
+		// FALSE
+		for (loop = 0; loop < NUM_LOOPS; loop++) {
+			for (test=0; test<NUM_OBJECTS; test++) {
+				random_object=rand() % NUM_OBJECTS;
+				sccp_log(0) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int)pthread_self());
+				if ((obj = sccp_refcount_retain(object[random_object], __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+					usleep(random_object % 10);
+					if ((obj = sccp_refcount_retain(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+						usleep(random_object % 10);
+						obj = sccp_refcount_release(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__);		// obj will be NULL after releasing
+					}
+					obj = sccp_refcount_release(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__);
+				}
+			}		
+		}
+	}
+		
+	return NULL;
+}
 
 /*!
  * \brief Test Message
@@ -1270,6 +1333,44 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 #    endif
+	if (!strcasecmp(argv[3], "refcount")) {
+		int thread;
+		boolean_t working = TRUE;
+		int num_threads= (argc == 5) ? atoi(argv[4]) : 4;
+		if (argc == 6 && !strcmp(argv[5],"fail")) {
+			working = FALSE;
+		}
+		pthread_t t;
+		int  test;
+		char id[23];
+
+		for (test=0; test<NUM_OBJECTS; test++) {
+			snprintf(id, sizeof(id), "%d/%d", test, (unsigned int)pthread_self());
+			object[test] = (struct refcount_test *)sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, sccp_cli_refcount_test_destroy);
+			object[test]->id = test;
+			object[test]->threadid= (unsigned int)pthread_self();
+			object[test]->test= strdup(id);
+			sccp_log(0) ("TEST: Created %d\n", object[test]->id);
+		}		
+		sccp_refcount_print_hashtable(fd);
+		sleep(3);
+	
+		for (thread=0; thread < num_threads; thread++) {
+			pbx_pthread_create(&t, NULL, sccp_cli_refcount_test_thread, &working);
+		}
+		pthread_join(t, NULL);
+		sleep(3);
+
+		for (test=0; test<NUM_OBJECTS; test++) {
+			if (object[test]) {
+				sccp_log(0) ("TEST: Final Release %d, thread: %d\n", object[test]->id, (unsigned int)pthread_self());
+				sccp_refcount_release(object[test], __FILE__,__LINE__,__PRETTY_FUNCTION__);
+			}
+		}
+		sleep(1);
+		sccp_refcount_print_hashtable(fd);
+		return RESULT_SUCCESS;
+	}
 	return RESULT_FAILURE;
 }
 
@@ -1280,7 +1381,36 @@ static char cli_test_message_usage[] = "Usage: sccp test message [message_name]\
 CLI_ENTRY(cli_test_message, sccp_test_message, "Test a Message", cli_test_message_usage, FALSE)
 #    undef CLI_COMPLETE
 #    undef CLI_COMMAND
-#endif
+
+/* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
+
+/*!
+ * \brief Print Refcount Hash Table
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+static int sccp_show_refcount(int fd, int argc, char *argv[])
+{
+	if (argc < 3)
+		return RESULT_SHOWUSAGE;
+
+	sccp_refcount_print_hashtable(fd);
+	return RESULT_SUCCESS;
+}
+
+static char cli_show_refcount_usage[] = "Usage: sccp show refcount [sortorder]\n" "	Show Refcount Hash Table. sortorder can be hash or type\n";
+
+#    define CLI_COMMAND "sccp", "show", "refcount"
+#    define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refcount_usage, FALSE)
+#    undef CLI_COMPLETE
+#    undef CLI_COMMAND
+
+#endif	//defined(DEBUG) || defined(CS_EXPERIMENTAL)
 
 /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
 
@@ -2355,6 +2485,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_remote_answer, "Remotely answer a call."),
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
 	AST_CLI_DEFINE(cli_test_message, "Test message."),
+	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 #endif
 	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement.")
 };
