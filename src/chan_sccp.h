@@ -40,6 +40,10 @@ extern "C" {
 #    endif
 
 /* Add bswap function if necessary */
+#if defined(HAVE_BSWAP_16) || defined(HAVE_BSWAP_32) || defined(HAVE_BSWAP_64)
+#    include <byteswap.h>
+#endif
+
 #    ifndef HAVE_BSWAP_16
 	static inline unsigned short bswap_16(unsigned short x) {
 		return (x >> 8) | (x << 8);
