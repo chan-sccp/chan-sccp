@@ -39,26 +39,19 @@ extern "C" {
 #        define UI64FMT "%llu"							// contributed by Stéphane Plantard
 #    endif
 
-/* Add bswap function if necessary */
-#if defined(HAVE_BSWAP_16) || defined(HAVE_BSWAP_32) || defined(HAVE_BSWAP_64)
-#    include <byteswap.h>
-#endif
-
-#    ifndef HAVE_BSWAP_16
+	/* Add bswap function if necessary */
 	static inline unsigned short bswap_16(unsigned short x) {
 		return (x >> 8) | (x << 8);
 	}
-#    endif
-#    ifndef HAVE_BSWAP_32
+
 	static inline unsigned int bswap_32(unsigned int x) {
 		return (bswap_16(x & 0xffff) << 16) | (bswap_16(x >> 16));
 	}
-#    endif
-#    ifndef HAVE_BSWAP_64
+
 	static inline unsigned long long bswap_64(unsigned long long x) {
 		return (((unsigned long long)bswap_32(x & 0xffffffffull)) << 32) | (bswap_32(x >> 32));
 	}
-#    endif
+
 
 /* Byte swap based on platform endianes */
 #    if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
