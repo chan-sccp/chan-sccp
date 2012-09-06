@@ -18,11 +18,12 @@
 #include "config.h"
 #include "common.h"
 
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
+
 #ifdef CS_SCCP_CONFERENCE
 #    include "asterisk/bridging.h"
 #    include "asterisk/bridging_features.h"
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#    if ASTERISK_VERSION_NUMBER >= 10602
+// #    if ASTERISK_VERSION_NUMBER >= 10602
 #        include "asterisk/astobj2.h"
 static int lastConferenceID = 99;
 
@@ -1070,5 +1071,5 @@ sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_confer
 	return participant;
 }
 
-#    endif									// ASTERISK_VERSION_NUMBER
+// #    endif									// ASTERISK_VERSION_NUMBER
 #endif										// CS_SCCP_CONFERENCE
