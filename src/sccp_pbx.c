@@ -415,6 +415,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+		d = NULL;					/* do not use any device within this loop, otherwise we get a "Major Logic Error" -MC */
 	} else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
 		c->state = SCCP_CHANNELSTATE_DOWN;		// device is reregistering
 	} else {
