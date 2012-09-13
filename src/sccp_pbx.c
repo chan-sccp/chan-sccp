@@ -411,7 +411,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState && (d = sccp_device_retain(linedevice->device))) {
 				sccp_indicate(d, c, SKINNY_CALLSTATE_ONHOOK);
-				sccp_device_release(d);
+				d = sccp_device_release(d);
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
