@@ -320,7 +320,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		str = (char *)dst;
 
 		if (strcasecmp(str, value) ) {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
+			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 			pbx_copy_string(dst, value, sccpConfigOption->size);
 //		}else{
