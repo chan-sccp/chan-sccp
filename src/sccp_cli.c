@@ -783,7 +783,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 			if ((d = sccp_device_retain(linedevice->device))) {
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-9s %-20s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
-						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, "", (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 				} else {
 					astman_append(s, "Event: LineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
