@@ -263,7 +263,7 @@ static inline void remove_obj(const void *ptr)
 #include <asterisk/cli.h>
 void sccp_refcount_print_hashtable(int fd) 
 {
-        int x, prev;;
+        int x, prev = 0;
         RefCountedObject *obj=NULL;
 
         pbx_cli(fd, "+==============================================================================================+\n");
