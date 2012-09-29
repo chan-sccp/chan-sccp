@@ -24,7 +24,7 @@ chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicat
                                 sccp_line.c		sccp_utils.c		sccp_actions.c		sccp_cli.c		\
                                 sccp_features.c 	sccp_config.c		sccp_hint.c		sccp_lock.c		\
                                 sccp_refcount.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
-                                sccp_mwi.c		sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	\
+                                sccp_mwi.c		conference/sccp_conference10.c	sccp_rtp.c		sccp_appfunctions.c	\
                                 sccp_protocol.c		sccp_socket.c		sccp_threadpool.c
                                 
 EXTRA_chan_sccp_la_SOURCES = 
