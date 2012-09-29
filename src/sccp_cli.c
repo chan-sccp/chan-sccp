@@ -738,9 +738,9 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 	const char *actionid = "";
 
 	if (!s) {
-		pbx_cli(fd, "\n+--- Lines -----------------------------------------------------------------------------------------------------------------+\n");
-		pbx_cli(fd, "| %-13s %-9s %-20s %-16s %-4s %-4s %-49s |\n", "Ext", "Suffix", "Label", "Device", "MWI", "Chs", "Active Channel");
-		pbx_cli(fd, "+ ============= ========= ==================== ================ ==== ==== ================================================= +\n");
+		pbx_cli(fd, "\n+--- Lines ---------------------------------------------------------------------------------------------------------------------------+\n");
+		pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4s %-49s |\n", "Ext", "Suffix", "Label", "Device", "MWI", "Chs", "Active Channel");
+		pbx_cli(fd, "+ ============= ========= ============================== ================ ==== ==== ================================================= +\n");
 	} else {
 		astman_append(s, "Event: TableStart\r\n");
 		local_total++;
@@ -782,7 +782,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if ((d = sccp_device_retain(linedevice->device))) {
 				if (!s) {
-					pbx_cli(fd, "| %-13s %-9s %-20s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
+					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
 						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 				} else {
 					astman_append(s, "Event: LineEntry\r\n");
@@ -807,7 +807,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 
 		if (found_linedevice == 0) {
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-9s %-20s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 			} else {
 				astman_append(s, "Event: LineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
@@ -821,14 +821,14 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		}
 		if (!s) {
 			for (v = l->variables; v; v = v->next)
-				pbx_cli(fd, "| %-13s %-9s %-20s = %-74.74s |\n", "", "Variable:", v->name, v->value);
+				pbx_cli(fd, "| %-13s %-9s %-30s = %-74.74s |\n", "", "Variable:", v->name, v->value);
 
 			if (strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
-				pbx_cli(fd, "| %-13s %-9s %-20s %-76.76s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
+				pbx_cli(fd, "| %-13s %-9s %-30s %-76.76s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
 		}
 	}
 	if (!s) {
-		pbx_cli(fd, "+---------------------------------------------------------------------------------------------------------------------------+\n");
+		pbx_cli(fd, "+-------------------------------------------------------------------------------------------------------------------------------------+\n");
 	} else {
 		astman_append(s, "Event: TableEnd\r\n");
 		local_total++;
