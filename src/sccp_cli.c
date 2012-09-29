@@ -2299,6 +2299,7 @@ CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_us
 static int sccp_remote_answer(int fd, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
 
 	if (argc < 3)
 		return RESULT_SHOWUSAGE;
@@ -2316,17 +2317,18 @@ static int sccp_remote_answer(int fd, int argc, char *argv[])
 	if (!c) {
 		pbx_cli(fd, "Can't find channel for ID %s\n", argv[2]);
 		return RESULT_FAILURE;
+	} else {
+		pbx_cli(fd, "ANSWERING CHANNEL %s \n", argv[2]);
+		if ((d = sccp_channel_getDevice_retained(c))) {
+			sccp_channel_answer(d, c);
+			d = sccp_device_release(d);
+		}
+		if (c->owner) {
+			PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+		}
+		c = sccp_channel_release(c);
+		return RESULT_SUCCESS;
 	}
-	pbx_cli(fd, "ANSWERING CHANNEL %s \n", argv[2]);
-	sccp_device_t *d = sccp_channel_getDevice_retained(c);
-
-	sccp_channel_answer(d, c);
-	d = sccp_device_release(d);
-	if (c->owner) {
-		PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
-	}
-	c = sccp_channel_release(c);
-	return RESULT_SUCCESS;
 }
 
 static char remote_answer_usage[] = "Usage: sccp answer <channelId>\n" "Answer a ringing/incoming channel\n";
