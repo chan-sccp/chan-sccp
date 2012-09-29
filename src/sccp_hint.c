@@ -1134,7 +1134,8 @@ sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *dev
 
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
-		if (!strcasecmp(lineState->line->name, linename)) {
+//		if (!strcasecmp(lineState->line->name, linename)) {
+		if (sccp_strcaseequals(lineState->line->name, linename)) {		// includes check if both params are not zero / null
 			state = lineState->state;
 			break;
 		}
