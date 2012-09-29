@@ -31,8 +31,8 @@ extern "C" {
 		uint32_t id;							/*!< conference id */
 		sccp_conference_participant_t *moderator;			/*!< how initializes the conference */
 		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
-		 SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
-		 SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
+		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
+		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
@@ -56,7 +56,7 @@ extern "C" {
 		char exitexten[SCCP_MAX_CONTEXT];				/*!< Extension to jump to after hangup */
 		int exitpriority;						/*!< Priority to jump to after hangup */
 
-		 SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
+		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
 /* prototype definition */
@@ -81,8 +81,8 @@ extern "C" {
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
-#        if defined(__cplusplus) || defined(c_plusplus)
+#       if defined(__cplusplus) || defined(c_plusplus)
 }
-#        endif
+#       endif
 #    endif									/* CS_SCCP_CONFERENCE */
 #endif										/* SCCP_CONFERENCE_H_ */

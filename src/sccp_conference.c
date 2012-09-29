@@ -43,14 +43,15 @@ sccp_conference_participant_t *sccp_conference_participant_find_byid(sccp_confer
  *
  * \todo Implement SCCP:StartAnnouncementMessage SCCP:StopAnnouncementMessage
  */
-sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
-{
+sccp_conference_t *sccp_conference_create(sccp_channel_t *owner) {
+	
+
+	sccp_conference_t 		*conference	= NULL;
+	sccp_conference_participant_t 	*moderator 	= NULL;
+
+	
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
-
-	sccp_conference_t *conference = NULL;
-
-	sccp_conference_participant_t *moderator = NULL;
-
+	
 	//int   confCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX | AST_BRIDGE_CAPABILITY_THREAD | AST_BRIDGE_CAPABILITY_VIDEO;
 
 	if (NULL == owner) {
@@ -91,9 +92,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	}
 
 	/* Initialize data structures */
-
 	memset(moderator, 0, sizeof(sccp_conference_participant_t));
-
 	pbx_bridge_features_init(&moderator->features);
 
 //      pbx_mutex_init(&moderator->cond_lock);
@@ -104,7 +103,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 	owner->conference = conference;
 	conference->moderator = moderator;
 
-#        if 0
+#if 0
 	/* add moderator to participants list */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: adding moderator to participant list.\n", owner->device->id);
 	SCCP_LIST_LOCK(&conference->participants);
@@ -116,7 +115,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to add moderator channel (preparation phase).\n");
 		/* TODO: Error handling. */
 	}
-#        endif
+#endif
 
 	/* Store conference in global list. */
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: adding conference to global conference list.\n", owner->currentDeviceId);
@@ -126,13 +125,13 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference: Conference with id %d created; Owner: %s \n", owner->currentDeviceId, conference->id, owner->currentDeviceId);
 
-#        if 0
+#if 0
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_create.\n");
 	if (pbx_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to initiate join thread for moderator.\n");
 		return conference;
 	}
-#        endif
+#endif
 
 	return conference;
 }
@@ -143,30 +142,21 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * owner)
  * \lock
  * 	- asterisk channel
  */
-int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * chan)
-{
+int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t *participant, PBX_CHANNEL_TYPE *chan) {
+  
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addAstChannelToConferenceBridge called.\n");
 
-	if (NULL == participant)
+	/** */
+	if (NULL == participant || NULL == participant->conference || NULL == chan)
 		return -1;
 
-	sccp_conference_t *conference = participant->conference;
 
-	if (NULL == conference)
-		return -1;
 
-	if (NULL == chan)
-		return -1;
-
-	// Now done in add_participant
-	// pbx_channel_lock(chan);
 
 	if (chan->pbx) {
-		//pbx_channel_lock(chan);
 		pbx_set_flag(chan, AST_FLAG_BRIDGE_HANGUP_DONT);						/*! don't let the after-bridge code run the h-exten */
 		pbx_set_flag(chan, AST_FLAG_NBRIDGE);								/*! This channel is in a native bridge */
 		pbx_set_flag(chan, AST_FLAG_BLOCKING);								/*! a thread is blocking on this channel */
-		//pbx_channel_unlock(chan);
 	}
 	//PBX_CHANNEL_TYPE *bridge = CS_AST_BRIDGED_CHANNEL(chan);
 
@@ -187,7 +177,6 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 
 	if (pbx_channel_masquerade(participant->conferenceBridgePeer, participant->origChannel)) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
-		//pbx_channel_unlock(chan);
 		PBX(requestHangup) (participant->conferenceBridgePeer);
 		participant->conferenceBridgePeer = NULL;
 		return -1;
@@ -197,7 +186,7 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 		pbx_do_masquerade(participant->conferenceBridgePeer);/** \todo make this pbx independent */
 		pbx_channel_unlock(participant->conferenceBridgePeer);
 
-		/* assign hangup cause to origChannel */
+		/** assign hangup cause to origChannel */
 		participant->origChannel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
 	}
 
@@ -216,15 +205,14 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
 		participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
 	} else {
 		pbx_log(LOG_NOTICE, "SCCP: Conference: We already have a sccp channel for this participant; assuming moderator.\n");
-		/* In the future we may need to consider that / if the moderator changes the sccp channel due to creating new channel for the moderator */
+		/** In the future we may need to consider that / if the moderator changes the sccp channel due to creating new channel for the moderator */
 	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: Establishing Join thread via sccp_conference_addAstChannelToConferenceBridge.\n");
 	if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
 		// \todo TODO: error handling
 	}
-	// Now done in add_participant
-	// pbx_channel_unlock(chan);
+
 
 	return 0;
 }
@@ -243,6 +231,13 @@ int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_
  */
 void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
+	sccp_conference_participant_t	*localParticipant 	= NULL;
+	sccp_conference_participant_t	*remoteParticipant 	= NULL;
+	PBX_CHANNEL_TYPE 		*localCallLeg 		= NULL;
+	PBX_CHANNEL_TYPE 		*remoteCallLeg 		= NULL;
+	boolean_t 			adding_moderator	= FALSE;
+	sccp_device_t 			*device			= NULL;
+  
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 
 	if (!channel || !conference) {
@@ -250,15 +245,11 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		return;
 	}
 
-	sccp_conference_participant_t *localParticipant = NULL, *remoteParticipant = NULL;
+	
 
-	//PBX_CHANNEL_TYPE *currentParticipantPeer;
-
-	PBX_CHANNEL_TYPE *localCallLeg = NULL, *remoteCallLeg = NULL;
-
-	/* We need to handle adding the moderator in a special way: Both legs of the call
+	/** We need to handle adding the moderator in a special way: Both legs of the call
 	   need to be added to the conference at the same time. (-DD) */
-	boolean_t adding_moderator = (channel == conference->moderator->channel);
+	adding_moderator = (channel == conference->moderator->channel);
 
 	if (NULL != channel->conference && !adding_moderator) {
 		pbx_log(LOG_NOTICE, "%s: Conference: Already in conference: %s-%08x\n", (char *)channel->currentDeviceId, channel->line->name, channel->callid);
@@ -318,7 +309,6 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 
 	/* get the exitcontext, to jump to after hangup */
 
-	pbx_channel_lock(remoteCallLeg);
 	if (!pbx_strlen_zero(remoteCallLeg->macrocontext)) {
 		pbx_copy_string(remoteParticipant->exitcontext, remoteCallLeg->macrocontext, sizeof(remoteParticipant->exitcontext));
 		pbx_copy_string(remoteParticipant->exitexten, remoteCallLeg->macroexten, sizeof(remoteParticipant->exitexten));
@@ -366,7 +356,7 @@ void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: member #%d -- %s\n", conference->id, part->id, sccp_channel_toString(part->channel));
 	}
 
-	sccp_device_t *device = sccp_channel_getDevice_retained(conference->moderator->channel);
+	device = sccp_channel_getDevice_retained(conference->moderator->channel);
 
 	if (device && conference && device->conferencelist_active) {
 		sccp_conference_show_list(conference, conference->moderator->channel);
@@ -550,19 +540,23 @@ void sccp_conference_module_start()
  *
  * \param data Data
  */
-static void *sccp_conference_join_thread(void *data)
-{
+static void *sccp_conference_join_thread(void *data) {
+  
+	PBX_CHANNEL_TYPE		*astChannel	= NULL;
+	sccp_device_t			*d 		= NULL;
+	sccp_conference_participant_t	*participant	= NULL;
+  
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
-
-	sccp_conference_participant_t *participant = (sccp_conference_participant_t *) data;
-
-	PBX_CHANNEL_TYPE *astChannel;
-	sccp_device_t *d = NULL;
-
-	if (NULL == participant) {
+	
+	if (NULL == data) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: Join thread: NULL participant.\n");
 		return NULL;
 	}
+
+	/** cast data to conference_participant */
+	participant = (sccp_conference_participant_t *) data;
+
+	
 
 	astChannel = participant->conferenceBridgePeer;
 

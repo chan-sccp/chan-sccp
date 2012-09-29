@@ -20,14 +20,145 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
+static int lastConferenceID = 99;
+static int lastParticipantID = 0;
+SCCP_LIST_HEAD(, sccp_conference_t) conferences;								/*!< our list of conferences */
 
-sccp_conference_t *sccp_conference_create(sccp_channel_t * owner){
-	return NULL;
-	
+static void __sccp_conference_destroy(sccp_conference_t *conference){
+	if (!conference)
+		return;
 
+	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying conference %08x\n", conference->id);
+
+	return;
 }
-void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant){}
-void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant){}
+
+static void __sccp_conference_participant_destroy(sccp_conference_participant_t *participant){
+	if (!participant)
+		return;
+
+	return;
+}
+
+
+#define sccp_conference_release(x) 	sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_conference_retain(x) 	sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+#define sccp_participant_release(x) 	sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_participant_retain(x) 	sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+
+
+sccp_conference_t *sccp_conference_create(sccp_channel_t *conferenceCreatorChannel){
+	sccp_conference_t 		*conference	= NULL;
+	sccp_conference_participant_t 	*moderator 	= NULL;
+	char 				conferenceIdentifier[CHANNEL_DESIGNATOR_SIZE];
+	int 				conferenceID 	= ++lastConferenceID;
+
+
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
+	
+	/** create conference */
+	snprintf(conferenceIdentifier, CHANNEL_DESIGNATOR_SIZE, "SCCP/conference/%d", conferenceID);
+	conference = (sccp_conference_t *) sccp_refcount_object_alloc(sizeof(sccp_conference_t), SCCP_REF_CHANNEL, conferenceIdentifier, __sccp_conference_destroy);
+	if (NULL == conference) {
+		pbx_log(LOG_ERROR, "SCCP: Conference: cannot alloc memory for new conference.\n");
+		return NULL;
+	}
+	
+	/** initialize new conference */
+	memset(conference, 0, sizeof(sccp_conference_t));
+	conference->id = conferenceID;
+	SCCP_LIST_HEAD_INIT(&conference->participants);
+	conference->bridge = ast_bridge_new(AST_BRIDGE_CAPABILITY_1TO1MIX, AST_BRIDGE_FLAG_SMART);
+	
+	
+	/** create participant(moderator) */
+	moderator = (sccp_conference_participant_t *) sccp_refcount_object_alloc(sizeof(sccp_conference_participant_t), SCCP_REF_MODERATOR, "sccp::participant", __sccp_conference_participant_destroy);
+	if (!moderator) {
+		pbx_log(LOG_ERROR, "SCCP: Conference: cannot alloc memory for new conference moderator.\n");
+		sccp_conference_release(conference);
+		return NULL;
+	}
+	/** initialize new moderator */
+	memset(moderator, 0, sizeof(sccp_conference_participant_t));
+	ast_bridge_features_init(&moderator->features);
+	
+	moderator->channel = conferenceCreatorChannel;
+	moderator->conference = sccp_conference_retain(conference);
+	conference->moderator = sccp_participant_retain(moderator);
+	
+	conferenceCreatorChannel->conference = sccp_conference_retain(conference);
+	
+	
+	
+	SCCP_LIST_LOCK(&conferences);
+	SCCP_LIST_INSERT_HEAD(&conferences, (sccp_conference_t *)sccp_conference_retain(conference), list);
+	SCCP_LIST_UNLOCK(&conferences);
+	
+	/** we return the pointer, so do not release conference */
+	return conference;
+}
+
+
+
+void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_t *participantChannel){
+	
+	PBX_CHANNEL_TYPE 		*astChannel = NULL;
+	sccp_conference_participant_t 	*participant; 
+	
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
+	
+	/** create participant(moderator) */
+	participant = (sccp_conference_participant_t *) sccp_refcount_object_alloc(sizeof(sccp_conference_participant_t), SCCP_REF_MODERATOR, "sccp::participant", __sccp_conference_participant_destroy);
+	
+	if (!participant) {
+		pbx_log(LOG_ERROR, "SCCP Conference: cannot alloc memory for new conference participant.\n");
+		return;
+	}
+	
+	participant->conference = sccp_conference_retain(conference);
+	participant->id = ++lastParticipantID;
+	pbx_bridge_features_init(&participant->features);
+	
+	participant->origChannel = astChannel = CS_AST_BRIDGED_CHANNEL(participantChannel->owner);
+// 	participant->conferenceBridgePeer->readformat = astChannel->readformat;
+// 	participant->conferenceBridgePeer->writeformat = astChannel->writeformat;
+// 	participant->conferenceBridgePeer->nativeformats = astChannel->nativeformats;
+	
+	/** add to participant list */
+	SCCP_LIST_LOCK(&conference->participants);
+	SCCP_LIST_INSERT_TAIL(&conference->participants, participant, list);
+	SCCP_LIST_UNLOCK(&conference->participants);
+	
+	
+	ast_bridge_impart(participant->conference->bridge, participant->origChannel, NULL, &participant->features, 1);
+	
+	pbx_log(LOG_NOTICE, "SCCP-Conference: Participant joined the conference.\n");
+	
+	
+	/** do not retain participant, because we added it to conferencelist */
+	return;
+}
+
+
+void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_conference_participant_t *participant){
+	
+	/* Update the presence of the moderator */
+	if (participant == conference->moderator) {
+		conference->moderator = NULL;
+	}
+	
+	
+	SCCP_LIST_LOCK(&conference->participants);
+	participant = SCCP_LIST_REMOVE(&conference->participants, participant, list);
+	SCCP_LIST_UNLOCK(&conference->participants);
+	
+	ast_bridge_depart(participant->conference->bridge, participant->origChannel);
+	
+	if (conference->participants.size < 1) {
+		sccp_conference_end(conference);
+	}
+}
 void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel){}
 void sccp_conference_module_start(void){}
 void sccp_conference_end(sccp_conference_t * conference){}
@@ -48,5 +179,5 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_cha
 
 #endif
 
-// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets on;
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
  
