@@ -20,7 +20,9 @@ enum sccp_refcounted_types {
         SCCP_REF_CHANNEL,
         SCCP_REF_LINEDEVICE,
         SCCP_REF_EVENT,
-        SCCP_REF_TEST
+        SCCP_REF_TEST,
+	SCCP_REF_CONFERENCE,
+	SCCP_REF_MODERATOR,
 };
 
 typedef struct refcount_object RefCountedObject;

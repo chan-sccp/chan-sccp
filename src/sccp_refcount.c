@@ -73,6 +73,8 @@ struct sccp_refcount_obj_info {
         [SCCP_REF_LINEDEVICE]={NULL, "linedevice", DEBUGCAT_LINE},
         [SCCP_REF_EVENT]={NULL, "event", DEBUGCAT_EVENT},
         [SCCP_REF_TEST]={NULL, "test", DEBUGCAT_HIGH},
+        [SCCP_REF_CONFERENCE]={NULL, "conference", DEBUGCAT_HIGH},
+        [SCCP_REF_MODERATOR]={NULL, "moderator", DEBUGCAT_HIGH},
 };
 
 #ifdef SCCP_ATOMIC

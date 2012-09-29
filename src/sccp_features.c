@@ -738,11 +738,8 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		return;
 
 	uint8_t num = sccp_device_numberOfChannels(d);
+	pbx_log(LOG_NOTICE, "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
-	if (num < 2) {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-		return;
-	}
 
 	if (!d->conference) {
 		d->conference = sccp_conference_create(c);
@@ -754,11 +751,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		selectedFound = TRUE;
 
 		if (NULL != selectedChannel->channel) {
-//                      if(c != channel) {
-			sccp_conference_addParticipant(d->conference, channel);
-//                      } else {
-//                              pbx_log(LOG_NOTICE, "%s: not adding NULL channel to conference.\n", DEV_ID_LOG(d));
-//                      }
+			sccp_conference_addParticipant(d->conference, selectedChannel->channel);
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
