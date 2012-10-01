@@ -709,9 +709,7 @@ static int segv_handler(int sig)
 
         snprintf(cmd, sizeof(cmd), "chan-sccp-b_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1", (int)getpid(), p+1, (int)getpid());
         system(cmd);
-        ast_log(LOG_ERROR, "\n\n\nCheck /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details\n\n\n", p+1, (int)getpid());
         signal(SIGSEGV, SIG_DFL);
-        fprintf(stdout, "\n\n\nCheck /var/log/asterisk/chan-sccp-b_%s.%d.backtrace for more details\n\n\n", p+1, (int)getpid());
         return 0;
 }
 
