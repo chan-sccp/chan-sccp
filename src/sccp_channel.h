@@ -62,7 +62,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c, boolean_t sw
 
 void sccp_channel_transfer(sccp_channel_t * c);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
-void sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
+int sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
 #    if DEBUG
 #        define sccp_channel_getDevice_retained(_x) __sccp_channel_getDevice_retained(_x, __FILE__,__LINE__,__PRETTY_FUNCTION__)

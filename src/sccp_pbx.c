@@ -224,28 +224,28 @@ int sccp_pbx_call(sccp_channel_t *c, char *dest, int timeout)
 		/* do we have cfwd enabled? */
 		if (linedevice->cfwdAll.enabled) {
 			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
-			sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_channel_send_callinfo(linedevice->device, c);
-			
+			if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number) == 0) {
+				sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_channel_send_callinfo(linedevice->device, c);
 #ifdef CS_EXPERIMENTAL
-			if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDER_FOR"))) {
-				struct ast_var_t *variables;
-				const char *var, *val;
-				char mask[25];
+				if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDER_FOR"))) {
+					struct ast_var_t *variables;
+					const char *var, *val;
+					char mask[25];
 
-				ast_channel_lock(c->owner);
-				sprintf(mask, "SCCP::%d", c->callid);
-				AST_LIST_TRAVERSE(&c->owner->varshead, variables, entries) {
-					if ((var = ast_var_name(variables)) && (val = ast_var_value(variables)) && (!strcmp("LINKID", var)) && (strcmp(mask, val))) {
-						sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "SCCP: LINKID %s\n", val);
-						pbx_builtin_setvar_helper(c->owner, "__FORWARDER_FOR", val);
+					ast_channel_lock(c->owner);
+					sprintf(mask, "SCCP::%d", c->callid);
+					AST_LIST_TRAVERSE(&c->owner->varshead, variables, entries) {
+						if ((var = ast_var_name(variables)) && (val = ast_var_value(variables)) && (!strcmp("LINKID", var)) && (strcmp(mask, val))) {
+							sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "SCCP: LINKID %s\n", val);
+							pbx_builtin_setvar_helper(c->owner, "__FORWARDER_FOR", val);
+						}
 					}
+					ast_channel_unlock(c->owner);
 				}
-				ast_channel_unlock(c->owner);
-			}
 #endif		
-			sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number);
-			isRinging = TRUE;
+				isRinging = TRUE;
+			}
 			continue;
 		}
 
@@ -324,7 +324,7 @@ int sccp_pbx_call(sccp_channel_t *c, char *dest, int timeout)
 
 	l = sccp_line_release(l);
 
-	return 0;
+	return isRinging != TRUE;
 }
 
 /*!

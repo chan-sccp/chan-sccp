@@ -2185,14 +2185,15 @@ void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_c
  * \lock
  * 	- channel
  */
-void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber)
+int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber)
 {
 	sccp_channel_t *sccp_forwarding_channel = NULL;
 	char dialedNumber[256];
+	int res=0;
 
 	if (!sccp_channel_parent) {
 		pbx_log(LOG_ERROR, "We can not forward a call without parent channel\n");
-		return;
+		return -1;
 	}
 
 	sccp_copy_string(dialedNumber, fwdNumber, sizeof(dialedNumber));
@@ -2201,7 +2202,7 @@ void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices
 
 	if (!sccp_forwarding_channel) {
 		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel\n", lineDevice->device->id);
-		return;
+		return -1;
 	}
 
 	sccp_forwarding_channel->parentChannel = sccp_channel_retain(sccp_channel_parent);
@@ -2219,8 +2220,8 @@ void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices
 		sccp_line_removeChannel(sccp_forwarding_channel->line, sccp_forwarding_channel);
 		sccp_channel_clean(sccp_forwarding_channel);
 		sccp_channel_destroy(sccp_forwarding_channel);
-		sccp_forwarding_channel = sccp_channel_release(sccp_forwarding_channel);
-		return;
+		res = -1;
+		goto EXIT_FUNC;
 	}
 
 	/* setting callerid */
@@ -2262,9 +2263,15 @@ void sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices
 		if (pbx_pbx_start(sccp_forwarding_channel->owner)) {
 			pbx_log(LOG_WARNING, "%s: invalide number\n", "SCCP");
 		}
+	} else {
+		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
+		sccp_channel_endcall(sccp_forwarding_channel);
+		res=-1;
+		goto EXIT_FUNC;
 	}
-
+EXIT_FUNC:
 	sccp_forwarding_channel = sccp_channel_release(sccp_forwarding_channel);
+	return res;
 }
 
 #ifdef CS_SCCP_PARK
