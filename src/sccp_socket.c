@@ -84,10 +84,13 @@ void sccp_socket_stop_sessionthread(sccp_session_t *session) {
 	
 	if (session->session_thread) {
 		session->session_stop=1;
-		usleep(((session->device) ? session->device->keepalive : GLOB(keepalive)) * 1.1);
+		pthread_join(session->session_thread, NULL); 
 		if (session && AST_PTHREADT_NULL != session->session_thread) {
-			pthread_kill(session->session_thread, SIGURG);
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
+			usleep(((session->device) ? session->device->keepalive : GLOB(keepalive)) * 1.1);
+			if (session && AST_PTHREADT_NULL != session->session_thread) {
+				pthread_kill(session->session_thread, SIGURG);
+				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
+			}
 		}
 	} else {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
@@ -369,7 +372,7 @@ void sccp_socket_device_thread_exit(void *session)
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
 
-	s->session_thread = AST_PTHREADT_NULL;
+//	s->session_thread = AST_PTHREADT_NULL;
 	sccp_session_close(s);
 	destroy_session(s, 10);
 }
