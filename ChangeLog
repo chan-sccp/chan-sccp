@@ -1,4 +1,114 @@
+2012-10-02  ddegroot
+
+	* [r3752] src/chan_sccp.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_line.h: Fix refcount warnings during module unload
+
+2012-10-01  ddegroot
+
+	* [r3751] src/sccp_socket.c: pthread_join socket session, before
+	  sending pthread_kill and don't use s->session_thread =
+	  AST_PTHREADT_NULL anymore.
+
+	* [r3750] src/sccp_actions.c: Added missing device release in
+	  sccp_handle_SPCPTokenReq on Cross Device Token Request
+
+	* [r3749] src/sccp_channel.c, src/sccp_channel.h, src/sccp_pbx.c:
+	  Fix forward on invalid number by checking sccp_channel_forward
+	  before changing phone state
+
+	* [r3748] src/sccp_softkeys.c: Fix answerkey crash
+
+	* [r3747] src/chan_sccp.c: Remove extraneous logging during
+	  backtrace creation
+
+2012-09-29  marcelloceschia
+
+	* [r3746] src/Makefile.in, src/conference/sccp_conference10.c,
+	  src/sccp_conference.c, src/sccp_conference.h,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_refcount.c,
+	  src/sccp_refcount.h: start conference implementation for asterisk
+	  10
+
+2012-09-29  ddegroot
+
+	* [r3745] src/sccp_hint.c: Added null/zerolength check for
+	  strcasecmp in sccp_hint.c
+
+2012-09-29  marcelloceschia
+
+	* [r3744] Makefile.in, autoconf/config.guess, autoconf/config.sub,
+	  autoconf/depcomp, autoconf/install-sh, autoconf/missing,
+	  configure, src/Makefile.am, src/Makefile.in, src/conference[ADD],
+	  src/conference/sccp_conference10.c[ADD]: start with conference
+	  for asterisk 10
+
+2012-09-29  ddegroot
+
+	* [r3743] src/sccp_cli.c: Fix refcount for sccp_remote_answer
+	  having possible UNREF as device
+
+	* [r3742] src/sccp_cli.c: Extend width of sccp show lines
+
+2012-09-16  marcelloceschia
+
+	* [r3741] src/sccp_refcount.c: fixes compile warning
+
+2012-09-15  ddegroot
+
+	* [r3740] src/sccp_cli.c: Show line Label when device only has one
+	  line assigned to it
+
+	* [r3739] src/sccp_config.c: Reduce sccp.conf parse logging on
+	  device registration (with debug=core)
+
+2012-09-13  marcelloceschia
+
+	* [r3738] src/sccp_pbx.c: fixes refcount issue within
+	  sccp_pbx_hangup
+
+	* [r3737] src/sccp_pbx.c: fixes refcount issue within
+	  sccp_pbx_hangup
+
+2012-08-28  marcelloceschia
+
+	* [r3735] src/chan_sccp.h: fixes #include <byteswap.h> issue
+
+	* [r3734] src/chan_sccp.h: fixes #include <byteswap.h> issue
+
+2012-08-24  marcelloceschia
+
+	* [r3733] src/chan_sccp.h: fixes #include <byteswap.h> issue
+
+2012-08-12  marcelloceschia
+
+	* [r3732] src/sccp_device.c, src/sccp_refcount.c: fixes some issues
+	  with refcount
+
+	* [r3731] src/sccp_cli.c, src/sccp_refcount.c, src/sccp_refcount.h:
+	  add Diederiks hashtable version
+
+2012-08-05  marcelloceschia
+
+	* [r3729] src/sccp_line.c: resize buffer and use snprintf
+
+2012-07-31  ddegroot
+
+	* [r3728] src/sccp_lock.h, src/sccp_refcount.c: Added smaller
+	  locking to refcounted objects when atomic functions are not
+	  available
+
+	* [r3725] src/chan_sccp.c: Fix segv_init issue during
+	  sccp_postPBX_load
+
 2012-07-30  ddegroot
+
+	* [r3724] Makefile.in, contrib/gen_sccpconf/Makefile.in: Added
+	  automatic installation of chan-sccp-b_backtrace script
+
+	* [r3723] ChangeLog, Makefile.am, Makefile.in, autoconf/extra.m4,
+	  configure, doc/Makefile.in, src/Makefile.in, src/chan_sccp.c,
+	  tools/chan-sccp-b_backtrace[CPY], tools/gen_backtrace[DEL]: Added
+	  automatic installation of chan-sccp-b_backtrace script
 
 	* [r3722] tools/gen_backtrace: Add error message to
 	  tools/gen_backtrace when gdb is not installed
