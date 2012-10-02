@@ -10,7 +10,7 @@
 
 
 #include <config.h>
-#include "common.h"
+#include "../common.h"
 
 #ifdef CS_SCCP_CONFERENCE
 
