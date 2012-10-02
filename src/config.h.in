@@ -873,20 +873,8 @@
 /* Define the SCCP Version */
 #undef SCCP_VERSION
 
-/* The size of `char *', as computed by sizeof. */
-#undef SIZEOF_CHAR_P
-
 /* The size of `fd_set.fds_bits', as computed by sizeof. */
 #undef SIZEOF_FD_SET_FDS_BITS
-
-/* The size of `int', as computed by sizeof. */
-#undef SIZEOF_INT
-
-/* The size of `long', as computed by sizeof. */
-#undef SIZEOF_LONG
-
-/* The size of `long long', as computed by sizeof. */
-#undef SIZEOF_LONG_LONG
 
 /* using SOLARIS */
 #undef SOLARIS
@@ -910,6 +898,12 @@
 
 /* Define to a type of the same size as fd_set.fds_bits[[0]] */
 #undef TYPEOF_FD_SET_FDS_BITS
+
+/* Define UI64FMT as "%llu" */
+#undef UI64FMT
+
+/* Define ULONG as long long unsigned int */
+#undef ULONG
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
@@ -946,11 +940,6 @@
 # ifndef WORDS_BIGENDIAN
 #  undef WORDS_BIGENDIAN
 # endif
-#endif
-
-/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
