@@ -1716,6 +1716,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 		if (d->session && d->session->device) {
+			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+			usleep(10);
 //			sccp_session_lock(d->session);
 //			d->session->device = sccp_session_removeDevice(d->session);
 			sccp_session_removeDevice(d->session);
