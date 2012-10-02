@@ -340,12 +340,31 @@ dnl	AC_FUNC_REALLOC
 			AC_CHECK_TYPE(u_int32_t, uint32_t)
 		fi
 	fi
-	AC_CHECK_SIZEOF([int])
-	AC_CHECK_SIZEOF([long])
-	AC_CHECK_SIZEOF([long long])
-	AC_CHECK_SIZEOF([char *])
-	AC_CHECK_SIZEOF(long)
-	AC_CHECK_SIZEOF(long long)
+dnl replaced AC_CHECK_SIZEOF
+#	AC_CHECK_SIZEOF([int])
+#	AC_CHECK_SIZEOF([long])
+#	AC_CHECK_SIZEOF([long long])
+#	AC_CHECK_SIZEOF([char *])
+dnl with
+        AC_MSG_CHECKING([sizeof(long long) == sizeof(long)])
+        AC_RUN_IFELSE([AC_LANG_SOURCE([
+            int main(void)
+            {
+                    if (sizeof(long long) == sizeof(long))
+                    	return 0;
+		    else
+		    	return -1;
+            }
+        ])], [
+                AC_DEFINE(ULONG, [long unsigned int], [Define ULONG as long unsigned int])
+                AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%lu"])
+                AC_MSG_RESULT([yes])
+        ],  [
+                AC_DEFINE(ULONG, [long long unsigned int], [Define ULONG as long long unsigned int])
+                AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%llu"])
+                AC_MSG_RESULT([no])
+        ])
+dnl end replace
 	# Big Endian / Little Endian	
 	AC_C_BIGENDIAN(AC_DEFINE([__BYTE_ORDER],__BIG_ENDIAN,[Big Endian]),AC_DEFINE([__BYTE_ORDER],__LITTLE_ENDIAN,[Little Endian]))
 	AC_C_BIGENDIAN(AC_DEFINE(SCCP_BIG_ENDIAN,1,[SCCP_BIG_ENDIAN]),AC_DEFINE(SCCP_LITTLE_ENDIAN,1,[SCCP_LITTLE_ENDIAN]))

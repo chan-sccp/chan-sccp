@@ -907,12 +907,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			AC_MSG_RESULT(cross-compile)
 	)
 
-	AC_CHECK_SIZEOF([int])
-	AC_CHECK_SIZEOF([long])
-	AC_CHECK_SIZEOF([long long])
-	AC_CHECK_SIZEOF([char *])
-	AC_CHECK_SIZEOF(long)
-	AC_CHECK_SIZEOF(long long)
+#	AC_CHECK_SIZEOF([int])
+#	AC_CHECK_SIZEOF([long])
+#	AC_CHECK_SIZEOF([long long])
+#	AC_CHECK_SIZEOF([char *])
 	AC_COMPUTE_INT([ac_cv_sizeof_fd_set_fds_bits], [sizeof(foo.fds_bits[[0]])], [$ac_includes_default
 	fd_set foo;])
 	# This doesn't actually work; what it does is to use the variable set in the
