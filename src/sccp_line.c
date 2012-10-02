@@ -202,7 +202,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", line->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 
 	/* not sure if we should fire an event like this ? */
 /*	
@@ -213,10 +213,10 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	sccp_event_fire(&event);
 */
 	if(removed_line) {
-		sccp_line_release(line);
+		sccp_line_release(removed_line);
 	}
 
-	return line;
+	return removed_line;
 }
 
 /*!
@@ -231,7 +231,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
  * 	- line->channels
  * 	  - see sccp_channel_endcall();
  */
-void sccp_line_kill(sccp_line_t * l)
+void sccp_line_kill_channels(sccp_line_t * l)
 {
 	sccp_channel_t *c;
 
@@ -264,31 +264,30 @@ void sccp_line_kill(sccp_line_t * l)
  * 
  * \lock
  * 	- lines
- * 	- see sccp_line_kill()
+ * 	- see sccp_line_kill_channels()
  * 	- line->devices
  * 	- see sccp_line_destroy()
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
 	sccp_linedevices_t *linedevice;
+	sccp_line_t *line = NULL;
 
-	if (!l)
-		return;
+	if ((line = sccp_line_retain(l))) {
+		sccp_line_kill_channels(l);
 
-	if (remove_from_global) {
-		l = sccp_line_removeFromGlobals(l);
+		//SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
+			sccp_line_removeDevice(linedevice->line, linedevice->device);
+		}	
+		SCCP_LIST_TRAVERSE_SAFE_END;
+		//SCCP_LIST_UNLOCK(&l->devices);
+
+		if (remove_from_global) {
+			sccp_line_destroy(l);
+		}
+		line = sccp_line_release(line);
 	}
-
-	sccp_line_kill(l);
-
-//	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-		sccp_line_removeDevice(linedevice->line, linedevice->device);
-	}	
-	SCCP_LIST_TRAVERSE_SAFE_END;
-//	SCCP_LIST_UNLOCK(&l->devices);
-
-	sccp_line_destroy(l);
 }
 
 /*!
@@ -403,8 +402,7 @@ int __sccp_lineDevice_destroy(const void *ptr)
 int sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
-	sccp_line_removeFromGlobals(l);
-	sccp_line_release(l);
+	sccp_line_removeFromGlobals(l);		// final release
 	return 0;
 }
 

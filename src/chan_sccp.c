@@ -768,34 +768,18 @@ int sccp_preUnload(void)
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
-	close(GLOB(descriptor));
-	GLOB(descriptor) = -1;
-
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
-	sccp_globals_lock(socket_lock);
-	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
-		pthread_cancel(GLOB(socket_thread));
-		pthread_kill(GLOB(socket_thread), SIGURG);
-#ifndef HAVE_LIBGC
-		pthread_join(GLOB(socket_thread), NULL);
-#endif
-	}
-	GLOB(socket_thread) = AST_PTHREADT_STOP;
-	sccp_globals_unlock(socket_lock);
-
 	//! \todo make this pbx independend
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
-
 
 	/* removing devices */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
-		sccp_device_release(d);
+//		sccp_device_release(d);			// released by sccp_dev_clean
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		d->realtime = TRUE;										/* use realtime, to fully clear the device configuration */
-		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+//		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		sccp_dev_clean(d, TRUE, 0);		// performs a device reset if it has a session
 	}
 	if (SCCP_RWLIST_EMPTY(&GLOB(devices)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
@@ -803,7 +787,8 @@ int sccp_preUnload(void)
 
 	/* hotline will be removed by line removing function */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Hotline\n");
-	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);
+	sccp_line_release(GLOB(hotline)->line);
+	sccp_line_release(GLOB(hotline)->line);		// we need to find the point where it is being retained 2 per accident
 	sccp_free(GLOB(hotline));
 
 	/* removing lines */
@@ -816,17 +801,35 @@ int sccp_preUnload(void)
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
 
+	sleep(1);	// wait for events to finalize
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
+	close(GLOB(descriptor));
+	GLOB(descriptor) = -1;
+	
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_socket_stop_sessionthread(s);
-//		pthread_cancel(s->session_thread);
+////		pthread_cancel(s->session_thread);
 	}
 	if (SCCP_LIST_EMPTY(&GLOB(sessions)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
+	sccp_globals_lock(socket_lock);
+	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
+		pthread_cancel(GLOB(socket_thread));
+		pthread_kill(GLOB(socket_thread), SIGURG);
+#ifndef HAVE_LIBGC
+		pthread_join(GLOB(socket_thread), NULL);
+#endif
+	}
+	GLOB(socket_thread) = AST_PTHREADT_STOP;
+	sccp_globals_unlock(socket_lock);
 
 	sccp_manager_module_stop();
 	sccp_softkey_clear();
