@@ -791,8 +791,8 @@ int sccp_preUnload(void)
 
 	/* hotline will be removed by line removing function */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Hotline\n");
-	sccp_line_release(GLOB(hotline)->line);
-	sccp_line_release(GLOB(hotline)->line);		// we need to find the point where it is being retained 2 per accident
+	sccp_line_removeFromGlobals(GLOB(hotline)->line);
+	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);
 	sccp_free(GLOB(hotline));
 
 	/* removing lines */
