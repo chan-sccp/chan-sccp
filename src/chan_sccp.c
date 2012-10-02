@@ -768,6 +768,10 @@ int sccp_preUnload(void)
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
 
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
+	close(GLOB(descriptor));
+	GLOB(descriptor) = -1;
+
 	//! \todo make this pbx independend
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channels\n");
 
@@ -801,11 +805,8 @@ int sccp_preUnload(void)
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
 
-	sleep(1);	// wait for events to finalize
+	usleep(500);	// wait for events to finalize
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Descriptor\n");
-	close(GLOB(descriptor));
-	GLOB(descriptor) = -1;
 	
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
