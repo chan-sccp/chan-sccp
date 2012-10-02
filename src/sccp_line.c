@@ -271,22 +271,18 @@ void sccp_line_kill_channels(sccp_line_t * l)
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
 	sccp_linedevices_t *linedevice;
-	sccp_line_t *line = NULL;
 
-	if ((line = sccp_line_retain(l))) {
-		sccp_line_kill_channels(l);
+	sccp_line_kill_channels(l);
 
-		//SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-			sccp_line_removeDevice(linedevice->line, linedevice->device);
-		}	
-		SCCP_LIST_TRAVERSE_SAFE_END;
-		//SCCP_LIST_UNLOCK(&l->devices);
+	//SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
+		sccp_line_removeDevice(linedevice->line, linedevice->device);
+	}	
+	SCCP_LIST_TRAVERSE_SAFE_END;
+	//SCCP_LIST_UNLOCK(&l->devices);
 
-		if (remove_from_global) {
-			sccp_line_destroy(l);
-		}
-		line = sccp_line_release(line);
+	if (remove_from_global) {
+		sccp_line_destroy(l);
 	}
 }
 
