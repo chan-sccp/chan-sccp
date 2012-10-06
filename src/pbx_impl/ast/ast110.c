@@ -20,6 +20,7 @@ extern "C" {
 #endif
 #include <asterisk/sched.h>
 #include <asterisk/netsock2.h>
+#include <asterisk/format.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -1041,7 +1042,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 		options++;
 	}
 
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT "lineName=%s, options=%s\n", type, (uint64_t) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "");
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT " lineName=%s, options=%s\n", type, (uint64_t) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "");
 
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
@@ -1139,6 +1140,19 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 
 	/** get requested format */
 	codec = pbx_codec2skinny_codec(ast_format_cap_to_old_bitfield(format));
+	
+	/* get requested format */
+	{
+		struct ast_format tmpfmt;
+		ast_format_cap_iter_start(format);
+		while (!(ast_format_cap_iter_next(format, &tmpfmt))) {
+			if (AST_FORMAT_GET_TYPE(tmpfmt.id) == AST_FORMAT_TYPE_AUDIO) {
+				codec = pbx_codec2skinny_codec(tmpfmt.id);
+				break;
+			}
+		}
+		ast_format_cap_iter_end(format);
+	}
 
 	requestStatus = sccp_requestChannel(lineName, codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch(requestStatus) {
