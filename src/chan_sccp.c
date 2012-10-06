@@ -87,6 +87,10 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	if (!lineName) {
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
+	
+	if(!strcmp(lineName, "conference")){
+	  
+	}
 
 	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
 
