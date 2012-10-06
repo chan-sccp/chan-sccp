@@ -2245,7 +2245,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
 	/** check if we have a preference codec list */
-	if (pLength == 0 || ourPreferences[0] == 0) {
+	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
 		return 0;
 	}
@@ -2275,13 +2275,13 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 					sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 				}
 
-				if (rLength == 0 || remotePeerCapabilities[0] == 0) {
+				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
 					sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 					return firstJointCapability;
 				} else {
 					/* using capabilities from remote party, that matches our preferences & capabilities */
 					for (r = 0; r < rLength; r++) {
-						if (remotePeerCapabilities[r] == 0) {
+						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
 							break;
 						}
 						sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
