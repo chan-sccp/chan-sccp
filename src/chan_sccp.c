@@ -140,10 +140,13 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
 
 	/** set requested codec */
-//      if(requestedCodec != SKINNY_CODEC_NONE){
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
+	if(requestedCodec != SKINNY_CODEC_NONE){
 //              my_sccp_channel->rtp.audio.writeFormat = requestedCodec;
 //              my_sccp_channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
-//      }
+		my_sccp_channel->preferences.audio[0] = requestedCodec;
+		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
+	}
 //      sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "requested codec (%d)\n", my_sccp_channel->rtp.audio.writeFormat);
 
 	/** done */
