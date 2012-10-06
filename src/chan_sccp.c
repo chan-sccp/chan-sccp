@@ -128,37 +128,22 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		//pbx_log(LOG_NOTICE, "%s: calling all subscribers\n", l->id);
 	}
 
-//      my_sccp_channel->rtp.audio.writeState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
-//      //my_sccp_channel->rtp.audio.writeFormat = codec;
-// 
-//      my_sccp_channel->rtp.audio.readState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
-//      //my_sccp_channel->rtp.audio.readFormat = codec;
-
 	uint8_t size = (capabilityLength < sizeof(my_sccp_channel->remoteCapabilities.audio)) ? capabilityLength : sizeof(my_sccp_channel->remoteCapabilities.audio);
-
 	memset(&my_sccp_channel->remoteCapabilities.audio, 0, sizeof(my_sccp_channel->remoteCapabilities.audio));
 	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
 
-	/** set requested codec */
+	/** set requested codec as prefered codec */
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
 	if(requestedCodec != SKINNY_CODEC_NONE){
+		/** do not set write/read format, because we do not know the device capabilities on shared lines -MC */
 //              my_sccp_channel->rtp.audio.writeFormat = requestedCodec;
 //              my_sccp_channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
 		my_sccp_channel->preferences.audio[0] = requestedCodec;
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
+		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
 	}
 //      sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "requested codec (%d)\n", my_sccp_channel->rtp.audio.writeFormat);
-
 	/** done */
 
-//      uint8_t x;
-//      for (x = 0; x < capabilityLength && x <= sizeof(my_sccp_channel->remoteCapabilities.audio); x++) {
-//              my_sccp_channel->remoteCapabilities.audio[x] = capabilities[x];
-//      }
-
-	/** do not set prefered codec, because we do not know the device capabilities */
-//      my_sccp_channel->rtp.audio.writeState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
-//      my_sccp_channel->rtp.audio.readState |= SCCP_CODEC_STATUS_REMOTE_PREFERRED;
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
