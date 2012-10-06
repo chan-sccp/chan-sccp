@@ -750,7 +750,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
 		selectedFound = TRUE;
 
-		if (NULL != selectedChannel->channel) {
+		if (NULL != selectedChannel->channel && selectedChannel->channel != c ) {
 			sccp_conference_addParticipant(d->conference, selectedChannel->channel);
 		}
 	}
