@@ -96,7 +96,8 @@ struct refcount_object {
 	unsigned char data[0];
 };
 
-AST_RWLOCK_DEFINE_STATIC_NOTRACKING(objectslock);				// general lock to modify hash table entries
+//AST_RWLOCK_DEFINE_STATIC_NOTRACKING(objectslock);				// general lock to modify hash table entries
+ast_rwlock_t objectslock;							// general lock to modify hash table entries
 static struct refcount_objentry {
 	SCCP_RWLIST_HEAD(, RefCountedObject) refCountedObjects;			//!< one rwlock per hash table entry, used to modify list
 } *objects[SCCP_HASH_PRIME];							//!< objects hash table
@@ -105,6 +106,7 @@ void sccp_refcount_init(void)
 {
        	sccp_log ((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) init\n");
         refcount_destroyed = FALSE;
+        pbx_rwlock_init_notracking(&objectslock);				// No tracking to safe cpu cycles
 }
 
 void sccp_refcount_destroy(void)
@@ -136,6 +138,7 @@ void sccp_refcount_destroy(void)
        	        }
        	}
         ast_rwlock_unlock(&objectslock);
+        pbx_rwlock_destroy(&objectslock);
 }
 
 int sccp_refcount_isRunning(void) {
