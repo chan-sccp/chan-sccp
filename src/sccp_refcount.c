@@ -199,6 +199,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
         sccp_log(DEBUGCAT_REFCOUNT)(VERBOSE_PREFIX_1 "SCCP: (alloc_obj) Creating %p inside %p at hash: %d\n", ptr, obj, hash);
 	obj->alive = SCCP_LIVE_MARKER;
 
+	memset(ptr, 0, size);
         return ptr;
 }
 

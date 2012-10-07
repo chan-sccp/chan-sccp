@@ -2245,7 +2245,14 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
 	/** check if we have a preference codec list */
-	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
+	if ( (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) 
+	  && (rLength != 0 && remotePeerCapabilities[0] != SKINNY_CODEC_NONE)) 
+	{
+		/* using remote capabilities to */
+		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
+		return SKINNY_CODEC_NONE;
+	  
+	} else if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
 		return 0;
 	}
