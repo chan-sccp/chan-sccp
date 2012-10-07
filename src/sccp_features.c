@@ -730,9 +730,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 #ifdef CS_SCCP_CONFERENCE
 	sccp_channel_t *channel = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
-	sccp_line_t *line = NULL;
 	boolean_t selectedFound = FALSE;
-	uint8_t i = 0;
 
 	if (!(d = sccp_device_retain(d)) || !c)
 		return;
@@ -756,66 +754,23 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 	/* If no calls were selected, add all calls to the conference, across all lines. */
-	sccp_device_t *tmpDevice = NULL;
 
 	if (FALSE == selectedFound) {
-//		sccp_buttonconfig_t *config = NULL;
-// 		SCCP_LIST_LOCK(&d->buttonconfig);
-// 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-// 			if (config->type == LINE) {
-// 				line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-// 				if (!line)
-// 					continue;
-// 
-// 				SCCP_LIST_LOCK(&line->channels);
-// 				SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-// 					tmpDevice = sccp_channel_getDevice_retained(channel);
-// 					if (tmpDevice == d) {
-// 						sccp_conference_addParticipant(d->conference, channel);
-// 						/* Make sure not to add the moderator channel (ourselves) twice. */
-// 						if (c != channel) {
-// 							sccp_conference_addParticipant(d->conference, channel);
-// 						} else {
-// 							pbx_log(LOG_NOTICE, "%s: not adding our own active channel to device.\n", DEV_ID_LOG(d));
-// 						}
-// 					}
-// 					tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
-// 				}
-// 				SCCP_LIST_UNLOCK(&line->channels);
-// 				line = sccp_line_release(line);
-// 			}
-// 		}
-// 		SCCP_LIST_UNLOCK(&d->buttonconfig);
-
-		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
-				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
-                                        SCCP_LIST_LOCK(&line->channels);
-					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-                                              	pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), channel->owner->name, channelstate2str(channel->state));
-						tmpDevice = sccp_channel_getDevice_retained(channel);
-						if ( tmpDevice == d || tmpDevice == NULL ) {
-							/* Make sure not to add the moderator channel (ourselves) twice. */
-							if (c != channel) {
-								sccp_conference_addParticipant(d->conference, channel);
-							}
-							if (channel != d->active_channel) {
-                                                        	pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
-                                                                // drop from display
-/*                                                		channel->state = SCCP_CHANNELSTATE_DOWN;
-                                                		//PBX(set_callstate) (channel, AST_STATE_DOWN);*/
-                                                        	int instance = sccp_device_find_index_for_line(d, l->name);
-                                                		sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-							}
-						}
-						tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
-					}
-					SCCP_LIST_UNLOCK(&line->channels);
-				        line = sccp_line_release(line);
-				}
-			}
-
-		}
+		if (d->currentLine == l) {
+                        SCCP_LIST_LOCK(&l->channels);
+                        SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+                                pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
+                                /* Make sure not to add the moderator channel (ourselves) twice. */
+                                sccp_conference_addParticipant(d->conference, channel);
+                                if (channel != d->active_channel) {
+                                        pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+                                        // drop from display
+                                        int instance = sccp_device_find_index_for_line(d, l->name);
+                                        sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+                                }
+                        }
+                        SCCP_LIST_UNLOCK(&l->channels);
+                }
 	}
        	sccp_conference_addModerator(d->conference);
 #else
