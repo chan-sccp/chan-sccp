@@ -327,7 +327,7 @@ AC_DEFUN([CS_CHECK_TYPES], [
                 AC_MSG_RESULT([yes])
         ],  [
                 AC_DEFINE(ULONG, [long long unsigned int], [Define ULONG as long long unsigned int])
-                AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%llu"])
+                AC_DEFINE(UI64FMT, ["%llu"], [Define UI64FMT as "%llu"])
                 AC_MSG_RESULT([no])
         ])
 
