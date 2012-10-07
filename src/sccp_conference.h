@@ -35,6 +35,20 @@ extern "C" {
 		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
+        struct sccp_conference_goto_after {
+                char *accountcode;
+                char *exten;
+                char *context;
+                char *linkedid;
+                char *name;
+                struct ast_cdr *cdr; 
+                int amaflags;
+                int state;
+                format_t readformat;
+                format_t writeformat;
+                int priority;
+        };
+
 	struct sccp_conference_participant {
 		boolean_t pendingRemoval;					/*!< Pending Removal */
 
@@ -52,17 +66,16 @@ extern "C" {
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
 		unsigned int muted;						/*!< Participant is Muted */
 
-		char exitcontext[SCCP_MAX_CONTEXT];				/*!< Context to jump to after hangup */
-		char exitexten[SCCP_MAX_CONTEXT];				/*!< Extension to jump to after hangup */
-		int exitpriority;						/*!< Priority to jump to after hangup */
-
+		struct sccp_conference_goto_after goto_after;
+				
 		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
 /* prototype definition */
 
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
-	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant);
+//	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant);
+	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant, PBX_CHANNEL_TYPE *astChannel);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_module_start(void);
