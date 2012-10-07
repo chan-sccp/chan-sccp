@@ -54,14 +54,8 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 	participant->conference = sccp_conference_release(participant->conference);
 	participant->channel = participant->channel ? sccp_conference_retain(participant->channel) : NULL;
 	ast_bridge_features_cleanup(&participant->features);
-
-	
 	return;
 }
-
-
-
-
 
 sccp_conference_t *sccp_conference_create(sccp_channel_t *conferenceCreatorChannel){
 	sccp_conference_t 		*conference	= NULL;
@@ -113,57 +107,22 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *conferenceCreatorChann
 	
 	conferenceCreatorChannel->conference = sccp_conference_retain(conference);
 	
-	
-	
 	SCCP_LIST_LOCK(&conferences);
 	SCCP_LIST_INSERT_HEAD(&conferences, (sccp_conference_t *)sccp_conference_retain(conference), list);
 	SCCP_LIST_UNLOCK(&conferences);
-	
-	{
-		PBX_CHANNEL_TYPE *astChannel = conferenceCreatorChannel->owner;	
-		pbx_channel_lock(astChannel); /* this lock is nessesary to keep this channel after sccp_conference_addParticipant */
+
+	// We should call add Participant for moderator as well, almost completely the same	
+	sccp_conference_addParticipant(conference, conferenceCreatorChannel, conferenceCreatorChannel->owner);		// add moderator
 		
-		/** add remote party in first place */
-		sccp_conference_addParticipant(conference, conferenceCreatorChannel);
-		
-		moderator->conferenceBridgePeer = ast_channel_alloc(0, astChannel->_state, 0, 0, astChannel->accountcode, astChannel->exten, astChannel->context, astChannel->linkedid, astChannel->amaflags, "SCCP/CONFERENCE/%03X@%08X", moderator->id, conference->id);
-
-
-		/** break current bridge and swap moderator->conferenceBridgePeer with astChannel */
-		if (pbx_channel_masquerade(moderator->conferenceBridgePeer, astChannel)) {
-			pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
-			PBX(requestHangup) (moderator->conferenceBridgePeer);
-			moderator->conferenceBridgePeer = NULL;
-			pbx_channel_unlock(astChannel);
-			return NULL;
-		} else {
-			pbx_channel_lock(moderator->conferenceBridgePeer);
-
-			pbx_do_masquerade(moderator->conferenceBridgePeer);
-			pbx_channel_unlock(moderator->conferenceBridgePeer);
-
-			/** assign hangup cause to origChannel */
-			astChannel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
-		}
-
-#if SCCP_CONFERENCE_USE_IMPART == 1
-		ast_bridge_impart(moderator->conference->bridge, moderator->conferenceBridgePeer, NULL, &moderator->features, 1);
-#else
-		if (pbx_pthread_create_background(&moderator->joinThread, NULL, sccp_conference_join_thread, moderator) < 0) {
-			// \todo TODO: error handling
-		}
-#endif
-		
-		
-		pbx_channel_unlock(astChannel);
-	}
-	
-	
 	/** update callinfo */
-	sprintf(conferenceCreatorChannel->callInfo.callingPartyName, "Conference %d", conference->id);
-	sprintf(conferenceCreatorChannel->callInfo.calledPartyName, "Conference %d", conference->id);
-// 	sccp_channel_send_callinfo(conferenceCreatorChannel);
-	
+	sccp_device_t *d = NULL;
+	if ((d = sccp_channel_getDevice_retained(conferenceCreatorChannel))) {
+		sprintf(conferenceCreatorChannel->callInfo.callingPartyName, "Conference %d", conference->id);
+		sprintf(conferenceCreatorChannel->callInfo.calledPartyName, "Conference %d", conference->id);
+		sccp_channel_send_callinfo(d,conferenceCreatorChannel);
+		d = sccp_device_release(d);
+	}
+		
 	/** add to participant list */
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, moderator, list);
@@ -175,10 +134,10 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *conferenceCreatorChann
 
 
 
-void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_t *participantChannel){
-	
-	PBX_CHANNEL_TYPE 		*astChannel = NULL;
-	sccp_conference_participant_t 	*participant; 
+void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_t *participantChannel, PBX_CHANNEL_TYPE *astChannel) 
+{
+//	PBX_CHANNEL_TYPE 		*astChannel = NULL;
+	sccp_conference_participant_t 	*participant;
 	
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 	
@@ -191,17 +150,48 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	}
 	
 	pbx_bridge_features_init(&participant->features);
-	participant->channel = NULL;
+	participant->channel = sccp_channel_retain(participantChannel);;
 	participant->conference = sccp_conference_retain(conference);
 	participant->id = ++lastParticipantID;
 	
 	
-	astChannel = CS_AST_BRIDGED_CHANNEL(participantChannel->owner);	
-	
-	participant->conferenceBridgePeer = ast_channel_alloc(0, astChannel->_state, 0, 0, astChannel->accountcode, astChannel->exten, astChannel->context, astChannel->linkedid, astChannel->amaflags, "SCCP/CONFERENCE/%08X@%08X", participant->id, conference->id);
-	
+//	astChannel = CS_AST_BRIDGED_CHANNEL(participantChannel->owner);	
+	pbx_channel_lock(astChannel); /* this lock is nessesary to keep this channel after sccp_conference_addParticipant */
+//	participant->origChannel = astChannel;
 
-	/** break current bridge and swap moderator->conferenceBridgePeer with astChannel */
+	// copy current channel state / dialplan location to temp location before masquerading this channel out
+	participant->goto_after.accountcode = ast_strdupa(astChannel->accountcode);
+	participant->goto_after.exten = ast_strdupa(astChannel->exten);
+	participant->goto_after.context = ast_strdupa(astChannel->context);
+	participant->goto_after.linkedid = ast_strdupa(astChannel->linkedid);
+	participant->goto_after.name = ast_strdupa(astChannel->name);  
+	participant->goto_after.amaflags = astChannel->amaflags;
+	participant->goto_after.state = astChannel->_state;
+	participant->goto_after.writeformat = astChannel->writeformat;
+	participant->goto_after.readformat = astChannel->readformat;
+	participant->goto_after.cdr = astChannel->cdr ? ast_cdr_dup(astChannel->cdr) : NULL;
+	participant->goto_after.priority = astChannel->priority + 1;	// jump to next entry in dialplan
+	pbx_channel_unlock(astChannel);
+	
+	// do not hold channel lock while creating channel / setting explicit goto		
+	// use copied channel state & dialplan location to create a new channel
+	if (!(participant->conferenceBridgePeer = ast_channel_alloc(0, participant->goto_after.state, 0, 0,  participant->goto_after.accountcode, participant->goto_after.exten, participant->goto_after.context, participant->goto_after.linkedid, participant->goto_after.amaflags, "SCCP/CONFERENCE/%03X@%08X", participant->id, conference->id))) {
+		ast_cdr_discard(participant->goto_after.cdr);
+		return;
+	}
+	if (participant->goto_after.cdr) {
+		ast_cdr_discard(participant->goto_after.cdr);
+		participant->conferenceBridgePeer->cdr=participant->goto_after.cdr;
+		participant->goto_after.cdr = NULL;
+	}
+	participant->conferenceBridgePeer->readformat = participant->goto_after.readformat;
+	participant->conferenceBridgePeer->writeformat = participant->goto_after.writeformat;
+
+	ast_explicit_goto(participant->conferenceBridgePeer, participant->goto_after.context, participant->goto_after.exten, participant->goto_after.priority);
+
+	pbx_channel_lock(astChannel);
+
+	/** break current bridge and swap participant->conferenceBridgePeer with astChannel */
 	if (pbx_channel_masquerade(participant->conferenceBridgePeer, astChannel)) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
 		PBX(requestHangup) (participant->conferenceBridgePeer);
@@ -217,7 +207,6 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 		astChannel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
 	}
 	
-	
 	/** add to participant list */
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_INSERT_TAIL(&conference->participants, participant, list);
@@ -225,15 +214,24 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 	
 	
 #if SCCP_CONFERENCE_USE_IMPART == 1
+#if ASTERISK_VERSION_NUMBER < 11010
+	ast_bridge_impart(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features);
+#else
 	ast_bridge_impart(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, 1);
+#endif	
 #else
 	if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_join_thread, participant) < 0) {
 		// \todo TODO: error handling
 	}
 #endif
-	
+	sccp_device_t *d = NULL;
+	if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+		sprintf(participant->channel->callInfo.callingPartyName, "Conference %d", participant->conference->id);
+		sprintf(participant->channel->callInfo.calledPartyName, "Conference %d", participant->conference->id);
+		sccp_channel_send_callinfo(d,participant->channel);
+		d = sccp_device_release(d);
+	}
 	pbx_log(LOG_NOTICE, "SCCP-Conference::%d: Participant '%p' joined the conference.\n", participant->conference->id, participant);
-	
 	
 	/** do not retain participant, because we added it to conferencelist */
 	return;
@@ -248,15 +246,24 @@ void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_confe
 		return;
 	}
 	
-	
 	SCCP_LIST_LOCK(&conference->participants);
 	participant = SCCP_LIST_REMOVE(&conference->participants, participant, list);
 	SCCP_LIST_UNLOCK(&conference->participants);
 	
-// 	ast_bridge_depart(participant->conference->bridge, participant->conferenceBridgePeer);
+#if SCCP_CONFERENCE_USE_IMPART == 1
+ 	ast_bridge_depart(participant->conference->bridge, participant->conferenceBridgePeer);
+#else 	
 	ast_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
+#endif
+	// continue dialplan, using the copied data
+	if (ast_pbx_start(participant->conferenceBridgePeer)) {
+		ast_log(LOG_WARNING, "Unable to start PBX on %s\n", participant->conferenceBridgePeer->name);
+		ast_hangup(participant->conferenceBridgePeer);
+		return;
+	}
+
+	participant->channel = sccp_channel_retain(participant->channel);;
 	sccp_participant_release(participant);
-	
 	
 	if (conference->participants.size < 1) {
 		sccp_conference_end(conference);
@@ -264,19 +271,16 @@ void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_confe
 }
 
 #if SCCP_CONFERENCE_USE_IMPART == 0
+#if SCCP_CONFERENCE_USE_IMPART == 0
 static void *sccp_conference_join_thread(void *data) {
 	sccp_conference_participant_t	*participant	= NULL;
   
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: entering join thread.\n");
 	
-	
 	/** cast data to conference_participant */
 	participant = (sccp_conference_participant_t *) data;
 
-	
-
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering pbx_bridge_join: %s\n", participant->conferenceBridgePeer->name);
-
 	
 #if ASTERISK_VERSION_NUMBER < 11010
 	pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features);
@@ -285,13 +289,15 @@ static void *sccp_conference_join_thread(void *data) {
 #endif
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s\n", participant->conferenceBridgePeer->name);
 
+<<<<<<< .mine
+=======
 	/* do not block channel and force hangup */
 	ast_clear_flag(participant->conferenceBridgePeer, AST_FLAG_BLOCKING);
 	ast_hangup(participant->conferenceBridgePeer);
+>>>>>>> .r3774
 	sccp_conference_removeParticipant(participant->conference, participant);
 
 	participant->joinThread = AST_PTHREADT_NULL;
-
 	return NULL;
 }
 #endif
