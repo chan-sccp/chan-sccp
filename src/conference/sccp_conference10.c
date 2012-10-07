@@ -14,7 +14,6 @@
 
 #ifdef CS_SCCP_CONFERENCE
 
-
 #include "asterisk/bridging.h"
 #include "asterisk/bridging_features.h"
 
@@ -271,7 +270,6 @@ void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_confe
 }
 
 #if SCCP_CONFERENCE_USE_IMPART == 0
-#if SCCP_CONFERENCE_USE_IMPART == 0
 static void *sccp_conference_join_thread(void *data) {
 	sccp_conference_participant_t	*participant	= NULL;
   
@@ -289,12 +287,10 @@ static void *sccp_conference_join_thread(void *data) {
 #endif
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s\n", participant->conferenceBridgePeer->name);
 
-<<<<<<< .mine
-=======
 	/* do not block channel and force hangup */
 	ast_clear_flag(participant->conferenceBridgePeer, AST_FLAG_BLOCKING);
 	ast_hangup(participant->conferenceBridgePeer);
->>>>>>> .r3774
+
 	sccp_conference_removeParticipant(participant->conference, participant);
 
 	participant->joinThread = AST_PTHREADT_NULL;
