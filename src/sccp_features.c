@@ -793,15 +793,16 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
                                         SCCP_LIST_LOCK(&line->channels);
 					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+					  
 						tmpDevice = sccp_channel_getDevice_retained(channel);
-						if (tmpDevice == d || tmpDevice == NULL ) {
-							sccp_conference_addParticipant(d->conference, channel);
+						if ( tmpDevice == d || tmpDevice == NULL ) {
 							/* Make sure not to add the moderator channel (ourselves) twice. */
 							if (c != channel) {
 								sccp_conference_addParticipant(d->conference, channel);
 							}
 						}
 						tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
+						
 					}
 					SCCP_LIST_UNLOCK(&line->channels);
 				        line = sccp_line_release(line);
