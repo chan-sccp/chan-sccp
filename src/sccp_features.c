@@ -733,6 +733,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_line_t *line = NULL;
 	boolean_t selectedFound = FALSE;
+	uint8_t i = 0;
 
 	if (!(d = sccp_device_retain(d)) || !c)
 		return;
@@ -760,32 +761,54 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	sccp_device_t *tmpDevice = NULL;
 
 	if (FALSE == selectedFound) {
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if (config->type == LINE) {
-				line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-				if (!line)
-					continue;
+// 		SCCP_LIST_LOCK(&d->buttonconfig);
+// 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+// 			if (config->type == LINE) {
+// 				line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+// 				if (!line)
+// 					continue;
+// 
+// 				SCCP_LIST_LOCK(&line->channels);
+// 				SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+// 					tmpDevice = sccp_channel_getDevice_retained(channel);
+// 					if (tmpDevice == d) {
+// 						sccp_conference_addParticipant(d->conference, channel);
+// 						/* Make sure not to add the moderator channel (ourselves) twice. */
+// 						if (c != channel) {
+// 							sccp_conference_addParticipant(d->conference, channel);
+// 						} else {
+// 							pbx_log(LOG_NOTICE, "%s: not adding our own active channel to device.\n", DEV_ID_LOG(d));
+// 						}
+// 					}
+// 					tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
+// 				}
+// 				SCCP_LIST_UNLOCK(&line->channels);
+// 				line = sccp_line_release(line);
+// 			}
+// 		}
+// 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 
-				SCCP_LIST_LOCK(&line->channels);
-				SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-					tmpDevice = sccp_channel_getDevice_retained(channel);
-					if (tmpDevice == d) {
-						sccp_conference_addParticipant(d->conference, channel);
-						/* Make sure not to add the moderator channel (ourselves) twice. */
-						if (c != channel) {
+		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+			if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
+				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
+                                        SCCP_LIST_LOCK(&line->channels);
+					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+						tmpDevice = sccp_channel_getDevice_retained(channel);
+						if (tmpDevice == d || tmpDevice == NULL ) {
 							sccp_conference_addParticipant(d->conference, channel);
-						} else {
-							pbx_log(LOG_NOTICE, "%s: not adding our own active channel to device.\n", DEV_ID_LOG(d));
+							/* Make sure not to add the moderator channel (ourselves) twice. */
+							if (c != channel) {
+								sccp_conference_addParticipant(d->conference, channel);
+							}
 						}
+						tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
 					}
-					tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
+					SCCP_LIST_UNLOCK(&line->channels);
+				        line = sccp_line_release(line);
 				}
-				SCCP_LIST_UNLOCK(&line->channels);
-				line = sccp_line_release(line);
 			}
+
 		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 #else
 	/* sorry but this is private code -FS */
