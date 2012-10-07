@@ -105,7 +105,6 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t *conferenceCreatorChann
 		return NULL;
 	}
 	/** initialize new moderator */
-	memset(moderator, 0, sizeof(sccp_conference_participant_t));
 	ast_bridge_features_init(&moderator->features);
 	
 	moderator->channel = sccp_channel_retain(conferenceCreatorChannel);
@@ -191,10 +190,11 @@ void sccp_conference_addParticipant(sccp_conference_t *conference, sccp_channel_
 		return;
 	}
 	
+	pbx_bridge_features_init(&participant->features);
 	participant->channel = NULL;
 	participant->conference = sccp_conference_retain(conference);
 	participant->id = ++lastParticipantID;
-	pbx_bridge_features_init(&participant->features);
+	
 	
 	astChannel = CS_AST_BRIDGED_CHANNEL(participantChannel->owner);	
 	
@@ -302,7 +302,9 @@ static void *sccp_conference_join_thread(void *data) {
 
 
 void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel){}
-void sccp_conference_module_start(void){}
+void sccp_conference_module_start(void){
+	SCCP_LIST_HEAD_INIT(&conferences);
+}
 void sccp_conference_end(sccp_conference_t * conference){
 	sccp_conference_participant_t *part = NULL;
 
