@@ -263,7 +263,7 @@ void sccp_conference_removeParticipant(sccp_conference_t *conference, sccp_confe
 	}
 }
 
-
+#if SCCP_CONFERENCE_USE_IMPART == 0
 static void *sccp_conference_join_thread(void *data) {
 	sccp_conference_participant_t	*participant	= NULL;
   
@@ -285,13 +285,7 @@ static void *sccp_conference_join_thread(void *data) {
 #endif
 	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s\n", participant->conferenceBridgePeer->name);
 
-// 	if (pbx_pbx_start(astChannel)) {
-// 		pbx_log(LOG_WARNING, "SCCP: Unable to start PBX on %s\n", pbx_channel_name(participant->conferenceBridgePeer));
-// 		PBX(requestHangup) (astChannel);
-// 		// return -1;
-// 		return NULL;
-// 	}
-
+	/* do not block channel and force hangup */
 	ast_clear_flag(participant->conferenceBridgePeer, AST_FLAG_BLOCKING);
 	ast_hangup(participant->conferenceBridgePeer);
 	sccp_conference_removeParticipant(participant->conference, participant);
@@ -300,7 +294,7 @@ static void *sccp_conference_join_thread(void *data) {
 
 	return NULL;
 }
-
+#endif
 
 
 void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel){}
