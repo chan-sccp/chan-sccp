@@ -74,8 +74,8 @@ extern "C" {
 /* prototype definition */
 
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
-//	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant);
-	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participant, PBX_CHANNEL_TYPE *astChannel);
+	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
+	void sccp_conference_addModerator(sccp_conference_t * conference);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_module_start(void);
