@@ -91,7 +91,7 @@
 #        if ASTERISK_VERSION_NUMBER >= 10400
 #            include <asterisk.h>
 #        endif
-#        include <asterisk/lock.h>
+//#        include <asterisk/lock.h>
 int __sccp_mutex_lock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
 int __sccp_mutex_unlock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
 int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);

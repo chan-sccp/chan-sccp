@@ -1665,7 +1665,8 @@ static boolean_t sccp_wrapper_asterisk16_checkHangup(const sccp_channel_t * chan
 
 static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
 {
-	ast_rtp_get_them(rtp, address);
+//	ast_rtp_get_them(rtp, address);
+	ast_rtp_get_peer(rtp, address);
 	return TRUE;
 }
 
