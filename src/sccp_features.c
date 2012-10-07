@@ -740,7 +740,6 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	uint8_t num = sccp_device_numberOfChannels(d);
 	pbx_log(LOG_NOTICE, "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
-
 	if (!d->conference) {
 		d->conference = sccp_conference_create(c);
 	}
@@ -751,7 +750,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		selectedFound = TRUE;
 
 		if (NULL != selectedChannel->channel && selectedChannel->channel != c ) {
-			sccp_conference_addParticipant(d->conference, selectedChannel->channel, CS_AST_BRIDGED_CHANNEL(selectedChannel->channel->owner));
+			sccp_conference_addParticipant(d->conference, selectedChannel->channel);
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
@@ -793,26 +792,20 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
                                         SCCP_LIST_LOCK(&line->channels);
 					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+                                              	pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), channel->owner->name, channelstate2str(channel->state));
 						tmpDevice = sccp_channel_getDevice_retained(channel);
 						if ( tmpDevice == d || tmpDevice == NULL ) {
 							/* Make sure not to add the moderator channel (ourselves) twice. */
 							if (c != channel) {
-								sccp_conference_addParticipant(d->conference, channel, CS_AST_BRIDGED_CHANNEL(channel->owner));
+								sccp_conference_addParticipant(d->conference, channel);
 							}
 							if (channel != d->active_channel) {
                                                         	pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
                                                                 // drop from display
 /*                                                		channel->state = SCCP_CHANNELSTATE_DOWN;
+                                                		//PBX(set_callstate) (channel, AST_STATE_DOWN);*/
                                                         	int instance = sccp_device_find_index_for_line(d, l->name);
-                                                		//PBX(set_callstate) (channel, AST_STATE_DOWN);
-                                                		if (c == d->active_channel)
-                                                			sccp_dev_stoptone(d, instance, channel->callid);
-                                                        	sccp_dev_cleardisplaynotify(d);
-                                                		sccp_dev_clearprompt(d, instance, channel->callid);
-                                                		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-//                                                		sccp_dev_set_cplane(l, instance, d, 0);
-                                                		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_ONHOOK);
-*/                                                		
+                                                		sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 							}
 						}
 						tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
@@ -824,6 +817,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 
 		}
 	}
+       	sccp_conference_addModerator(d->conference);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
