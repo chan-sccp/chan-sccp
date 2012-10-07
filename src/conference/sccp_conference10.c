@@ -292,6 +292,8 @@ static void *sccp_conference_join_thread(void *data) {
 // 		return NULL;
 // 	}
 
+	ast_clear_flag(participant->conferenceBridgePeer, AST_FLAG_BLOCKING);
+	ast_hangup(participant->conferenceBridgePeer);
 	sccp_conference_removeParticipant(participant->conference, participant);
 
 	participant->joinThread = AST_PTHREADT_NULL;
