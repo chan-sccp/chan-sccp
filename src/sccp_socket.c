@@ -17,19 +17,23 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #include <sys/ioctl.h>
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+#ifdef SOLARIS
+    #include <sys/filio.h>		// provides FIONREAD on SOLARIS
+#endif
+#ifndef CS_USE_POLL_COMPAT
+#    include <poll.h>
 #    include <sys/poll.h>
 #else
+#    define AST_POLL_COMPAT 1
 #    include <asterisk/poll-compat.h>
 #endif
-
 #ifdef pbx_poll
 #    define sccp_socket_poll pbx_poll
 #else
 #    define sccp_socket_poll poll
 #endif
+
 sccp_session_t *sccp_session_find(const sccp_device_t * device);
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);

@@ -181,10 +181,10 @@ AC_DEFUN([CS_FIND_LIBRARIES], [
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr malloc calloc realloc free]) 
+	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr malloc calloc realloc free])
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
-	AC_CHECK_HEADERS([netinet/in.h fcntl.h])
+	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
 	AC_STRUCT_TM
 	AC_STRUCT_TIMEZONE
 ])
@@ -268,8 +268,8 @@ AC_DEFUN([CS_CHECK_TYPES], [
 	AC_TYPE_UINT32_T
 	AC_TYPE_UINT64_T
 	AC_FUNC_FSEEKO
-	AC_FUNC_MALLOC
-	AC_FUNC_REALLOC
+#	AC_FUNC_MALLOC
+#	AC_FUNC_REALLOC
 
 	dnl check declarations
 	AC_CHECK_DECLS(INET_ADDRSTRLEN,[],[],[#if HAVE_NETINET_IN_H
@@ -306,12 +306,31 @@ AC_DEFUN([CS_CHECK_TYPES], [
 			AC_CHECK_TYPE(u_int32_t, uint32_t)
 		fi
 	fi
-	AC_CHECK_SIZEOF([int])
-	AC_CHECK_SIZEOF([long])
-	AC_CHECK_SIZEOF([long long])
-	AC_CHECK_SIZEOF([char *])
-	AC_CHECK_SIZEOF(long)
-	AC_CHECK_SIZEOF(long long)
+#	AC_CHECK_SIZEOF([int])
+#	AC_CHECK_SIZEOF([long])
+#	AC_CHECK_SIZEOF([long long])
+#	AC_CHECK_SIZEOF([char *])
+#	AC_CHECK_SIZEOF(long)
+#	AC_CHECK_SIZEOF(long long)
+        AC_MSG_CHECKING([sizeof(long long) == sizeof(long)])
+        AC_RUN_IFELSE([AC_LANG_SOURCE([
+            int main(void)
+            {
+                    if (sizeof(long long) == sizeof(long))
+                        return 0;
+                    else
+                        return -1;
+            }
+        ])], [
+                AC_DEFINE(ULONG, [long unsigned int], [Define ULONG as long unsigned int])
+                AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%lu"])
+                AC_MSG_RESULT([yes])
+        ],  [
+                AC_DEFINE(ULONG, [long long unsigned int], [Define ULONG as long long unsigned int])
+                AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%llu"])
+                AC_MSG_RESULT([no])
+        ])
+
 	# Big Endian / Little Endian	
 	AC_C_BIGENDIAN(AC_DEFINE([__BYTE_ORDER],__BIG_ENDIAN,[Big Endian]),AC_DEFINE([__BYTE_ORDER],__LITTLE_ENDIAN,[Little Endian]))
 	AC_C_BIGENDIAN(AC_DEFINE(SCCP_BIG_ENDIAN,1,[SCCP_BIG_ENDIAN]),AC_DEFINE(SCCP_LITTLE_ENDIAN,1,[SCCP_LITTLE_ENDIAN]))
@@ -482,6 +501,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
 dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
+		AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
 		CFLAGS_saved="$CFLAGS"
 		GDB_FLAGS="-g"
 	else
@@ -494,6 +514,8 @@ dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
 		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 dnl		AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
+		AX_CFLAGS_GCC_OPTION_NEW(-Wno-ignored-qualifiers)
+		AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		CFLAGS_saved="$CFLAGS"
 	fi
 ])

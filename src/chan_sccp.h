@@ -30,15 +30,6 @@ extern "C" {
 
 #    define sccp_mutex_t ast_mutex_t
 
-/* fix cast for (uint64_t) during printf */
-#    if SIZEOF_LONG == SIZEOF_LONG_LONG
-#        define ULONG long unsigned int
-#        define UI64FMT "%lu"							// contributed by Stéphane Plantard
-#    else
-#        define ULONG long long unsigned int
-#        define UI64FMT "%llu"							// contributed by Stéphane Plantard
-#    endif
-
 /* Add bswap function if necessary */
 #    ifndef HAVE_BSWAP_16
 static inline unsigned short bswap_16(unsigned short x) {
