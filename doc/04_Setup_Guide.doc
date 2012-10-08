@@ -349,15 +349,36 @@
  *
  * (To upgrade from a previous database version checkout trunk/conf/database_updates)
  *  
- * /etc/asterisk/res_mysql.conf:
+ * Up till Asterisk 1.6
+ *
+ * /etc/asterisk/res_mysql.conf or /etc/asterisk/res_config_mysql.conf:
+ * \code
+ * [general]						; use general in extconfig.conf and the database name
+ * ;dbhost = 127.0.0.1
+ * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
+ *
+ * [asterisk]
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * \endcode
+ * 
+ * Fromg Asterisk 10 and up
+ *
+ * /etc/asterisk/res_config_mysql.conf:
  * \code
  * [general]
  * ;dbhost = 127.0.0.1
  * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
+ * requirements = warn					; This needs to be specified and cannot be left out
+ *
+ * [asterisk]
  * dbname = asterisk
  * dbuser = asterisk
  * dbpass = asterisk_password
- * dbsock = /var/lib/mysql/mysql.sock
+ *
  * \endcode
  * 
  * \subsection sccp_config_rt_mysql5 MySQL 5.0
@@ -367,15 +388,36 @@
  * mysql -p asterisk < conf/mysql-v5.sql
  * \endcode
  *
- * /etc/asterisk/res_mysql.conf:
+ * Up till Asterisk 1.6
+ *
+ * /etc/asterisk/res_mysql.conf or /etc/asterisk/res_config_mysql.conf:
+ * \code
+ * [general]						; use general in extconfig.conf and the database name
+ * ;dbhost = 127.0.0.1
+ * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
+ *
+ * [asterisk]
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * \endcode
+ * 
+ * Fromg Asterisk 10 and up
+ *
+ * /etc/asterisk/res_config_mysql.conf:
  * \code
  * [general]
  * ;dbhost = 127.0.0.1
  * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
+ * requirements = warn					; This needs to be specified and cannot be left out
+ *
+ * [asterisk]
  * dbname = asterisk
  * dbuser = asterisk
  * dbpass = asterisk_password
- * dbsock = /var/lib/mysql/mysql.sock
+ *
  * \endcode
  * 
  * (To upgrade from a previous database version checkout trunk/conf/database_updates)
@@ -392,6 +434,8 @@
  * [general]
  * dbhost = 127.0.0.1
  * dbport = 5432
+ * 
+ * [asterisk]
  * dbname = asterisk
  * dbuser = asterisk
  * dbpass = asterisk_password
