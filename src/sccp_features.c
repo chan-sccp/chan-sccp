@@ -756,21 +756,51 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	/* If no calls were selected, add all calls to the conference, across all lines. */
 
 	if (FALSE == selectedFound) {
+#if 1
+                // all channels on this phone
+        	sccp_line_t *line = NULL;
+                uint8_t i = 0;
+		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+			if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
+				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
+                                        SCCP_LIST_LOCK(&line->channels);
+					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+                                                pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
+                                                if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
+                                                        sccp_conference_addParticipant(d->conference, channel);
+                                                        if (channel != d->active_channel) {
+                                                                pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+                                                                // drop from display
+                                                                int instance = sccp_device_find_index_for_line(d, l->name);
+                                                                sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+                                                        }
+                                                }
+					}
+					SCCP_LIST_UNLOCK(&line->channels);
+				        line = sccp_line_release(line);
+				}
+			}
+
+		}
+#else		
+                // only channels on this line
 		if (d->currentLine == l) {
                         SCCP_LIST_LOCK(&l->channels);
                         SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
                                 pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
-                                /* Make sure not to add the moderator channel (ourselves) twice. */
-                                sccp_conference_addParticipant(d->conference, channel);
-                                if (channel != d->active_channel) {
-                                        pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
-                                        // drop from display
-                                        int instance = sccp_device_find_index_for_line(d, l->name);
-                                        sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+                                if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
+                                        sccp_conference_addParticipant(d->conference, channel);
+                                        if (channel != d->active_channel) {
+                                                pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+                                                // drop from display
+                                                int instance = sccp_device_find_index_for_line(d, l->name);
+                                                sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+                                        }
                                 }
                         }
                         SCCP_LIST_UNLOCK(&l->channels);
                 }
+#endif
 	}
        	sccp_conference_addModerator(d->conference);
 #else
