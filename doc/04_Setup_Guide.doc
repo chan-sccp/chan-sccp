@@ -340,6 +340,46 @@
  *
  * \section sccp_config_rt How to use RealTime Database
  *
+ * \subsection sccp_config_rt_mysql MySQL
+ *
+ * Asterisk setup
+ *
+ * Up till Asterisk 1.6
+ *
+ * /etc/asterisk/res_mysql.conf or /etc/asterisk/res_config_mysql.conf:
+ * \code
+ * [general]						; use general in extconfig.conf and the database name
+ * ;dbhost = 10.11.12.13
+ * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination. 
+ * 							; dbsock is preferred when the database is on the local machine
+ * 							; The location of mysql.sock may vary from system to system (please check)
+ *
+ * [asterisk]
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * \endcode
+ * 
+ * From Asterisk 10 and up
+ *
+ * /etc/asterisk/res_config_mysql.conf:
+ * \code
+ * [general]
+ * ;dbhost = 10.11.12.13
+ * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination. 
+ * 							; dbsock is preferred when the database is on the local machine
+ * 							; The location of mysql.sock may vary from system to system (please check)
+ * requirements=warn					; Needs to be specified since asterisk 1.8, cannot be left out
+ *
+ * [asterisk]
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ *
+ * \endcode
+ *
  * \subsection sccp_config_rt_mysql4 MySQL 4.0
  *
  * Read trunk/conf/mysql-v4.sql into your mysql 4.0 database
@@ -348,38 +388,6 @@
  * \endcode
  *
  * (To upgrade from a previous database version checkout trunk/conf/database_updates)
- *  
- * Up till Asterisk 1.6
- *
- * /etc/asterisk/res_mysql.conf or /etc/asterisk/res_config_mysql.conf:
- * \code
- * [general]						; use general in extconfig.conf and the database name
- * ;dbhost = 127.0.0.1
- * ;dbport = 3306
- * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
- *
- * [asterisk]
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- * \endcode
- * 
- * Fromg Asterisk 10 and up
- *
- * /etc/asterisk/res_config_mysql.conf:
- * \code
- * [general]
- * ;dbhost = 127.0.0.1
- * ;dbport = 3306
- * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
- * requirements = warn					; This needs to be specified and cannot be left out
- *
- * [asterisk]
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- *
- * \endcode
  * 
  * \subsection sccp_config_rt_mysql5 MySQL 5.0
  *
@@ -388,59 +396,32 @@
  * mysql -p asterisk < conf/mysql-v5.sql
  * \endcode
  *
- * Up till Asterisk 1.6
- *
- * /etc/asterisk/res_mysql.conf or /etc/asterisk/res_config_mysql.conf:
- * \code
- * [general]						; use general in extconfig.conf and the database name
- * ;dbhost = 127.0.0.1
- * ;dbport = 3306
- * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
- *
- * [asterisk]
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- * \endcode
- * 
- * Fromg Asterisk 10 and up
- *
- * /etc/asterisk/res_config_mysql.conf:
- * \code
- * [general]
- * ;dbhost = 127.0.0.1
- * ;dbport = 3306
- * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination
- * requirements = warn					; This needs to be specified and cannot be left out
- *
- * [asterisk]
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- *
- * \endcode
- * 
  * (To upgrade from a previous database version checkout trunk/conf/database_updates)
  *  
  * \subsection sccp_config_rt_pg PostgreSQL
+ *
+ * Asterisk setup
+ *
+ * \code
+ * [general]
+ * ;dbhost=10.11.12.13
+ * ;dbport=5432
+ * dbsock = /tmp					; Either use dbsock or dbhost/dbport combination. 
+ * 							; dbsock is preferred when the database is on the local machine
+ * 							; The location of postgresql socket may vary from system to system (please check)
+ * requirements=warn					; Needs to be specified since asterisk 1.8, cannot be left out
+ *
+ * [asterisk]
+ * dbname=asterisk
+ * dbuser=asterisk
+ * dbpass=password
+ * \endcode
  *
  * Buttons are configured in a seperate table called buttonconfig:
  * \code
  * postgresql asterisk < conf/postgresql.sql
  * \endcode
  *
- * /etc/asterisk/res_pgsql.conf:
- * \code
- * [general]
- * dbhost = 127.0.0.1
- * dbport = 5432
- * 
- * [asterisk]
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- * \endcode
- * 
  * \subsection sccp_config_rt_sccp Chan_SCCP Configuration for Realtime
  *
  * Add the following lines to the sccp.conf file
