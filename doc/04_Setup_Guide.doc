@@ -59,9 +59,27 @@
  *
  * \subsection sccp_config_howto2 Sample config files
  * 
- * Make sure you pay attention to the context used in the config file. And check if this context exists in your dialplan.
+ * Make sure you pay attention to the CONTEXT used in the config file, it must match your dialplan. We have currently specified "sccp" as the default context, you will either
+ * have to add the sccp context to your dialplan in the correct locations or change the default sccp  context to something that matches your dialplan. 
+ *
  * Also check the deny/permit entries to make sure they cover your network/devices and check if the bindaddr is actually 
  * reachable from the addresses you have permitted to connect.
+ *
+ * When using hinted speeddials it is important to provide the necessary hints in your dialplan by simply adding something 
+ * like "exten => 98021,hint,SCCP/98021" in the 'default' context (or possibly "from-internal" for FreePBX users). You will have to use the same context when definining the speeddial button below. 
+ * You can also create these hints in a seperate context called hints for example
+ *
+ * \code
+ * [hints]
+ * exten => 98021,hint,SCCP/98021
+ * \endcode
+ * 
+ * That way you can refer to them in a button definition like (notice the context used to create hints in the dialplan, must match the context specified in the button definition)
+ * \code
+ * button = speeddial,Phone 2 Line 1, 98021, 98021@hints
+ * \endcode
+ *
+ * Monitoring non-SCCP devices is possible by reviewing the hint status in the Asterisk CLI using the "core show hints" command.  Anything that generates a hint can be monitored using the buttons.  The following states are recognized: .... Custom state processing (see Asterisk documentation for more information) is also possible using this methodology.
  *
  * (For more information about hints check \ref nf_hints here)
  *
@@ -105,7 +123,6 @@
  * video_cos = 5
  * echocancel = on
  * silencesuppression = off
- * trustphoneip = no
  * private = on
  * callanswerorder=oldestfirst
  * meetme = on
@@ -127,11 +144,11 @@
  * addon = 7914
  * devicetype = 7940
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  	; Add SpeedDial to Helpdesk (verify that you have the hint context correctly set [\ref nf_hints])
+ * button = speeddial,Helpdesk, 98112, 98112@hints  	; Add SpeedDial to Helpdesk (verify that you have the hints context correctly set [\ref nf_hints])
  * button = line, 98011					; Assign Line 98011 to Device
  * button = empty					; Assign an Empty Button
  * button = line, 98012					; Assign Line 98012 to Device
- * button = speeddial,Phone 2 Line 1, 98021, 98021@hint	; Add SpeedDial to Phone Number Two Line 1
+ * button = speeddial,Phone 2 Line 1, 98021, 98021@hints	; Add SpeedDial to Phone Number Two Line 1 (Notice the context needs to be the same as where the hint is defined in your dialplan)
  * cfwdall = off
  * type = device
  * keepalive = 60
@@ -149,7 +166,6 @@
  * deny=0.0.0.0/0.0.0.0
  * permit=192.168.1.5/255.255.255.255
  * dnd = on
- * trustphoneip = no
  * nat=on
  * directrtp=on
  * earlyrtp = none
@@ -231,15 +247,15 @@
  * description = Phone Number Two
  * devicetype = 7960
  * park = off
- * button = speeddial,Helpdesk, 98112, 98112@hint  		; Add SpeedDial to Helpdesk (without hint)
+ * button = speeddial,Helpdesk, 98112		  		; Add SpeedDial to Helpdesk (without hint)
  * button = line, 98021
  * button= feature,Private Call,privacy,callpresent		;set channel variable SKINNY_PRIVATE to 1 if feature is enabled
  * button= feature,DND Busy,DND,busy				;set dnd status to busy
  * button= feature,DND Silent,DND,silent				;set dnd status to silent
  * button= feature,Record calls,monitor				;record calls using automon (asterisk >= 1.6 only)
  * button= feature,call forward to *54,cfwdAll,*54			;forward all calls to *54
- * button = speeddial,Phone 1 Line 1, 98011, 98011@hint
- * button = speeddial,Phone 1 Line 2, 98012, 98012@hint
+ * button = speeddial,Phone 1 Line 1, 98011, 98011@hints
+ * button = speeddial,Phone 1 Line 2, 98012, 98012@hints
  * 
  * type = device
  * keepalive = 60
@@ -257,7 +273,6 @@
  * deny=0.0.0.0/0.0.0.0
  * permit=192.168.1.5/255.255.255.255
  * dnd = on
- * trustphoneip = no
  * nat=on
  * directrtp=on
  * earlyrtp = none
@@ -325,6 +340,46 @@
  *
  * \section sccp_config_rt How to use RealTime Database
  *
+ * \subsection sccp_config_rt_mysql MySQL
+ *
+ * Asterisk setup
+ *
+ * Up till Asterisk 1.6
+ *
+ * /etc/asterisk/res_mysql.conf or /etc/asterisk/res_config_mysql.conf:
+ * \code
+ * [general]						; use general in extconfig.conf and the database name
+ * ;dbhost = 10.11.12.13
+ * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination. 
+ * 							; dbsock is preferred when the database is on the local machine
+ * 							; The location of mysql.sock may vary from system to system (please check)
+ *
+ * [asterisk]
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ * \endcode
+ * 
+ * From Asterisk 10 and up
+ *
+ * /etc/asterisk/res_config_mysql.conf:
+ * \code
+ * [general]
+ * ;dbhost = 10.11.12.13
+ * ;dbport = 3306
+ * dbsock = /var/lib/mysql/mysql.sock			; Either use dbsock or dbhost/dbport combination. 
+ * 							; dbsock is preferred when the database is on the local machine
+ * 							; The location of mysql.sock may vary from system to system (please check)
+ * requirements=warn					; Needs to be specified since asterisk 1.8, cannot be left out
+ *
+ * [asterisk]
+ * dbname = asterisk
+ * dbuser = asterisk
+ * dbpass = asterisk_password
+ *
+ * \endcode
+ *
  * \subsection sccp_config_rt_mysql4 MySQL 4.0
  *
  * Read trunk/conf/mysql-v4.sql into your mysql 4.0 database
@@ -333,17 +388,6 @@
  * \endcode
  *
  * (To upgrade from a previous database version checkout trunk/conf/database_updates)
- *  
- * /etc/asterisk/res_mysql.conf:
- * \code
- * [general]
- * ;dbhost = 127.0.0.1
- * ;dbport = 3306
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- * dbsock = /var/lib/mysql/mysql.sock
- * \endcode
  * 
  * \subsection sccp_config_rt_mysql5 MySQL 5.0
  *
@@ -352,36 +396,32 @@
  * mysql -p asterisk < conf/mysql-v5.sql
  * \endcode
  *
- * /etc/asterisk/res_mysql.conf:
- * \code
- * [general]
- * ;dbhost = 127.0.0.1
- * ;dbport = 3306
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- * dbsock = /var/lib/mysql/mysql.sock
- * \endcode
- * 
  * (To upgrade from a previous database version checkout trunk/conf/database_updates)
  *  
  * \subsection sccp_config_rt_pg PostgreSQL
+ *
+ * Asterisk setup
+ *
+ * \code
+ * [general]
+ * ;dbhost=10.11.12.13
+ * ;dbport=5432
+ * dbsock = /tmp					; Either use dbsock or dbhost/dbport combination. 
+ * 							; dbsock is preferred when the database is on the local machine
+ * 							; The location of postgresql socket may vary from system to system (please check)
+ * requirements=warn					; Needs to be specified since asterisk 1.8, cannot be left out
+ *
+ * [asterisk]
+ * dbname=asterisk
+ * dbuser=asterisk
+ * dbpass=password
+ * \endcode
  *
  * Buttons are configured in a seperate table called buttonconfig:
  * \code
  * postgresql asterisk < conf/postgresql.sql
  * \endcode
  *
- * /etc/asterisk/res_pgsql.conf:
- * \code
- * [general]
- * dbhost = 127.0.0.1
- * dbport = 5432
- * dbname = asterisk
- * dbuser = asterisk
- * dbpass = asterisk_password
- * \endcode
- * 
  * \subsection sccp_config_rt_sccp Chan_SCCP Configuration for Realtime
  *
  * Add the following lines to the sccp.conf file
