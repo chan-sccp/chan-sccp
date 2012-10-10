@@ -326,12 +326,14 @@ int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p)
 
 /* Add job to queue */
 void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_t * newjob_p)
-{														/* remember that job prev and next point to NULL */
-
+{	
+	sccp_threadpool_job_t *oldFirstJob;
+														/* remember that job prev and next point to NULL */
 	newjob_p->next = NULL;
 	newjob_p->prev = NULL;
 
-	sccp_threadpool_job_t *oldFirstJob;
+	if (sccp_threadpool_shuttingdown || !tp_p || !tp_p->jobqueue || !tp_p->jobqueue->head)
+		return;
 
 	oldFirstJob = tp_p->jobqueue->head;
 
