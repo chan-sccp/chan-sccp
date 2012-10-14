@@ -129,15 +129,17 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	sccp_device_t *device;
 	char *deviceName = "";
 	uint32_t serverInstance = 0;
+	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
 
 	deviceName = sccp_strdupa(r->msg.RegisterTokenRequest.sId.deviceName);
-	serverInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
+	serverInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);		// should be named deviceInstance as in handle_register
+	deviceInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 
-//      sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
+        sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", deviceName, serverInstance, devicetype2str(deviceType), letohl(deviceType));
+ 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
 	// Search for already known devices -> Cleanup
 	device = sccp_device_find_byid(deviceName, TRUE);
@@ -187,7 +189,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 
 	if (!strcasecmp("true", GLOB(token_fallback))) {
 		/* we are the primary server */
-		if (letohl(serverInstance) == 0) {
+		if (serverInstance == 1) {				// need to check if it gets increased by changing xml.cnf member priority ?
 			sendAck = TRUE;
 		}
 	} else if (!strcasecmp("odd", GLOB(token_fallback))) {
@@ -199,14 +201,14 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	}
 
 	/* some test to detect active calls */
-//	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: unknown: %d, active call? %s\n", deviceName, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: serverInstance: %d, unknown: %d, active call? %s\n", deviceName, serverInstance, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
         device->registrationState = SKINNY_DEVICE_RS_TOKEN;
 	if (sendAck) {
 		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
 		sccp_session_tokenAck(s);
 	} else {
-		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverInstance=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), letohl(serverInstance), GLOB(token_backoff_time));
+		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverInstance=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), serverInstance, GLOB(token_backoff_time));
 		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 	}
 
@@ -235,8 +237,12 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo_t * r)
 {
 	sccp_device_t *device;
+	uint32_t deviceInstance = 0;
+	uint32_t deviceType = 0;
+	deviceInstance = letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
+	deviceType =letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_2 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, r->msg.SPCPRegisterTokenRequest.sId.lel_instance, devicetype2str(letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType)), letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType));
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_2 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
 	/* ip address range check */
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
@@ -274,8 +280,6 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 		s = sccp_session_reject(s, "Device not Accepted");
 		return;
 	}
-	uint32_t deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
-
 	s->protocolType = SPCP_PROTOCOL;
 //      s->device = sccp_device_retain(device);                                 //retained in session
 
@@ -323,11 +327,13 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	uint8_t protocolVer = letohl(r->msg.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
-
 	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
+	uint32_t deviceInstance = 0;
+	uint32_t deviceType = 0;
+	deviceInstance = letohl(r->msg.RegisterMessage.sId.lel_instance);
+	deviceType = letohl(r->msg.RegisterMessage.lel_deviceType);
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", r->msg.RegisterMessage.sId.deviceName, letohl(r->msg.RegisterMessage.sId.lel_instance), devicetype2str(letohl(r->msg.RegisterMessage.lel_deviceType)), letohl(r->msg.RegisterMessage.lel_deviceType), protocolVer, r->msg.RegisterMessage.loadInfo);
-
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", r->msg.RegisterMessage.sId.deviceName, deviceInstance, devicetype2str(deviceType), deviceType, protocolVer, r->msg.RegisterMessage.loadInfo);
 #ifdef CS_EXPERIMENTAL_NEWIP
 	socklen_t addrlen = 0;
 	struct sockaddr_storage *session_ss = { 0 };
@@ -434,7 +440,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		d->nat = 1;
 	}
 #endif
-	d->skinny_type = letohl(r->msg.RegisterMessage.lel_deviceType);
+	d->skinny_type = deviceType;
 
 //	d->session = s;
 	s->lastKeepAlive = time(0);
