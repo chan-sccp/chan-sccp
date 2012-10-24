@@ -273,7 +273,7 @@ softkeyset = softkeyset					; use softkeyset with name softkeyset
 [defaultline](!)					; default template for lines
 type = line						; specifies that this template is for lines will be inherited
 context = sccp						; default asterisk context
-incominglimit = 2					; more than 1 incoming call = call waiting.
+incominglimit = 2					; more than 2 incoming calls => device busy, returns busy signal.
 transfer = on						; per line transfer capability. on, off, 1, 0
 vmnum = 600						; speeddial for voicemail administration, just a number to dial
 meetme = on						; enable/disable conferencing via app_meetme (on/off)
@@ -337,7 +337,7 @@ cid_num = 98021						; caller id number
 accountcode=79021					; accountcode to ease billing
 callgroup=1						; We are in caller groups 1,3,4. Valid for this line
 pickupgroup=1						; We can do call pick-p for call group 1,3,4,5. Valid for this line
-incominglimit = 1					; more than 1 incoming call = call waiting. (overwrite template)
+incominglimit = 1					; more than 1 incoming call => device busy, returns busy signal.
 adhocnumber = 98012					; Adhoc Number or Private-line automatic ringdown (PLAR): 
 							; Adhoc/PLAR circuits have statically configured endpoints and do 
 							; not require the user dialing to connect calls. 
@@ -356,7 +356,7 @@ mailbox = 10031						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = NONTEMPL					; caller id name
 cid_num = 98031						; caller id number
 context = sccp						; default asterisk context
-incominglimit = 2					; more than 1 incoming call = call waiting.
+incominglimit = 2					; more than 2 incoming calls => device busy, returns busy signal.
 transfer = on						; per line transfer capability. on, off, 1, 0
 vmnum = 600						; speeddial for voicemail administration, just a number to dial
 meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_ROOM channel variable will
@@ -384,7 +384,7 @@ mailbox = 10099						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = Shared 99					; caller id name
 cid_num = 98099						; caller id number
 context = sccp						; default asterisk context
-incominglimit = 2					; more than 1 incoming call = call waiting.
+incominglimit = 2					; more than 2 incoming calls => device busy, returns busy signal.
 transfer = on						; per line transfer capability. on, off, 1, 0
 vmnum = 600						; speeddial for voicemail administration, just a number to dial
 meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_ROOM channel variable will
