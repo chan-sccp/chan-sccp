@@ -76,11 +76,17 @@ void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sc
  */
 void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
 {
+	char *deviceName = "";
 	uint32_t mid = letohl(r->lel_messageId);
 	char alarmName[101];
 	int reasonEnum;
 	char lastProtocolEventSent[101];
 	char lastProtocolEventReceived[101];
+
+	char neighborIpv4Address[15];
+	char neighborIpv6Address[41];
+	char neighborDeviceID[StationMaxNameSize];
+	char neighborPortID[StationMaxNameSize];
 
 	char *xmlData = sccp_strdupa((char *)&r->msg.RegisterMessage);
 	char *state;
@@ -88,6 +94,9 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 
 	for (line = strtok_r(xmlData, "\n", &state); line != NULL; line = strtok_r(NULL, "\n", &state)) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s\n", line);
+		if (sscanf(line, "<String name=\"%[a-zA-Z]\">", deviceName) == 1) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Device Name: %s\n", deviceName);
+		}
 		if (sscanf(line, "<Alarm Name=\"%[a-zA-Z]\">", alarmName) == 1) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Alarm Type: %s\n", alarmName);
 		}
@@ -100,9 +109,23 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 		if (sscanf(line, "<String name=\"LastProtocolEventReceived\">%[^<]</String>", lastProtocolEventReceived) == 1) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Last Event Received: %s\n", lastProtocolEventReceived);
 		}
+		
+		/* We might want to capture this information for later use (For example in a VideoAdvantage like project) */
+		if (sscanf(line, "<String name=\"NeighborIPv4Address\">%[^<]</String>", neighborIpv4Address) == 1) {
+        	    sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "neighborIpv4Address: %s\n", neighborIpv4Address);
+		}
+		if (sscanf(line, "<String name=\"NeighborIPv6Address\">%[^<]</String>", neighborIpv6Address) == 1) {
+        	    sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "neighborIpv6Address: %s\n", neighborIpv6Address);
+		}
+		if (sscanf(line, "<String name=\"NeighborDeviceID\">%[^<]</String>", neighborDeviceID) == 1) {
+        	    sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "neighborDeviceID: %s\n", neighborDeviceID);
+		}
+		if (sscanf(line, "<String name=\"NeighborPortID\">%[^<]</String>", neighborPortID) == 1) {
+        	    sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "neighborPortID: %s\n", neighborPortID);
+		}
 	}
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
+		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
 		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 	}
 }

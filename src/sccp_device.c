@@ -409,7 +409,8 @@ void sccp_device_addToGlobals(sccp_device_t * device)
 	}
 	device = sccp_device_retain(device);
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
+//	SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
+	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), device, list, description);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s) to Glob(devices)\n", device->id, device->config_type);
 }

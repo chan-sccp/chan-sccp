@@ -168,7 +168,8 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 
 	/* line was not created */
 	line = sccp_line_retain(line);
-	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
+//	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
+	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), line, list, cid_num);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", line->name);
 

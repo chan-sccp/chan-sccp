@@ -278,4 +278,5 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
 void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
 int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct sockaddr_storage *addr2, socklen_t len2);
+int sccp_strversioncmp(const char *s1, const char *s2);
 #endif

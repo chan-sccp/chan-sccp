@@ -881,7 +881,7 @@ void sccp_dev_dbclean()
 	while (entry) {
 		sscanf(entry->key, "/SCCP/%s", key);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
-		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "SKIGW", 5))) {
+		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) ||!strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
 
 			SCCP_RWLIST_RDLOCK(&GLOB(devices));
 			SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -2601,4 +2601,86 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 		/* unknown type, compare for sanity. */
 		return memcmp(addr1, addr2, len1);
 	}
+}
+
+int sccp_strversioncmp(const char *s1, const char *s2)
+{
+        static const char *digits = "0123456789";
+        int ret, lz1, lz2;
+        size_t p1, p2;
+
+        p1 = strcspn(s1, digits);
+        p2 = strcspn(s2, digits);
+        while (p1 == p2 && s1[p1] != '\0' && s2[p2] != '\0') {
+                /* Different prefix */
+                if ((ret = strncmp(s1, s2, p1)) != 0)
+                        return ret;
+
+                s1 += p1;
+                s2 += p2;
+
+                lz1 = lz2 = 0;
+                if (*s1 == '0')
+                        lz1 = 1;
+                if (*s2 == '0')
+                        lz2 = 1;
+                
+                if (lz1 > lz2)
+                        return -1;
+                else if (lz1 < lz2)
+                        return 1;
+                else if (lz1 == 1) {
+                        /*
+                         * If the common prefix for s1 and s2 consists only of zeros, then the
+                         * "longer" number has to compare less. Otherwise the comparison needs
+                         * to be numerical (just fallthrough). See
+                         */
+                        while (*s1 == '0' && *s2 == '0') {
+                                ++s1;
+                                ++s2;
+                        }
+
+                        p1 = strspn(s1, digits);
+                        p2 = strspn(s2, digits);
+
+                        /* Catch empty strings */
+                        if (p1 == 0 && p2 > 0)
+                                return 1;
+                        else if (p2 == 0 && p1 > 0)
+                                return -1;
+
+                        /* Prefixes are not same */
+                        if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
+                                if (p1 < p2)
+                                        return 1;
+                                else if (p1 > p2)
+                                        return -1;
+                        } else {
+                                if (p1 < p2)
+                                        ret = strncmp(s1, s2, p1);
+                                else if (p1 > p2)
+                                        ret = strncmp(s1, s2, p2);
+                                if (ret != 0)
+                                        return ret;
+                        }
+                }
+                
+                p1 = strspn(s1, digits);
+                p2 = strspn(s2, digits);
+                
+                if (p1 < p2)
+                        return -1;
+                else if (p1 > p2)
+                        return 1;
+                else if ((ret = strncmp(s1, s2, p1)) != 0)
+                        return ret;
+
+                /* Numbers are equal or not present, try with next ones. */
+                s1 += p1;
+                s2 += p2;
+                p1 = strcspn(s1, digits);
+                p2 = strcspn(s2, digits);
+        }
+
+        return strcmp(s1, s2);
 }
