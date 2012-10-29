@@ -193,10 +193,13 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue\n");
 	while (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sccp_threadpool_keepalive) {
 		pthread_testcancel();
-		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {
+
+		/* Wait for the Semaphore to be raised -> meaning there is Work in the Queue */
+		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {	
 			pbx_log(LOG_ERROR, "sccp_threadpool_thread_do(): Error while waiting for semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 			return;
 		}
+
 		if (sccp_threadpool_keepalive) {
 			/* Read job from queue and execute it */
 			void *(*func_buff) (void *arg) = NULL;
@@ -204,17 +207,17 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 			sccp_threadpool_job_t *job_p;
 
 			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
-			if ((job_p = sccp_threadpool_jobqueue_peek(tp_p))) {
+			if ((job_p = sccp_threadpool_jobqueue_peek(tp_p))) {					/* Check if there are any jobs that we can do */
 				func_buff = job_p->function;
 				arg_buff = job_p->arg;
-				sccp_threadpool_jobqueue_removelast(tp_p);
+				sccp_threadpool_jobqueue_removelast(tp_p);					/* Remove from jobqueue */
 			}
 			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
 
 			if (job_p) {
 				func_buff(arg_buff);								/* run function */
-				free(job_p);
-			}											/* DEALLOC job */
+				free(job_p);									/* DEALLOC job */
+			}											
 		} else {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue keepalive == 0. Exting...\n");
 			return;											/* EXIT thread */
@@ -222,7 +225,7 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 
 		if ((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL) {
 			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
-			sccp_threadpool_check_size(tp_p);
+			sccp_threadpool_check_size(tp_p);							/* Check Resizing */
 			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
 		}
 	}
