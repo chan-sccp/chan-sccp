@@ -190,9 +190,10 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
  * the sccp_threadpool is to be killed. In that manner we try to BYPASS sem_wait and end each thread. */
 void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 {
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue\n");
 	while (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sccp_threadpool_keepalive) {
 		pthread_testcancel();
-		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {							/* WAITING until there is work in the queue */
+		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {
 			pbx_log(LOG_ERROR, "sccp_threadpool_thread_do(): Error while waiting for semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
 			return;
 		}
@@ -203,13 +204,11 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 			sccp_threadpool_job_t *job_p;
 
 			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
-
 			if ((job_p = sccp_threadpool_jobqueue_peek(tp_p))) {
 				func_buff = job_p->function;
 				arg_buff = job_p->arg;
 				sccp_threadpool_jobqueue_removelast(tp_p);
 			}
-
 			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
 
 			if (job_p) {
@@ -217,6 +216,7 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 				free(job_p);
 			}											/* DEALLOC job */
 		} else {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue keepalive == 0. Exting...\n");
 			return;											/* EXIT thread */
 		}
 
@@ -226,6 +226,7 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
 		}
 	}
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue Exiting Thread...\n");
 	return;
 }
 
@@ -251,6 +252,7 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
 		sccp_threadpool_jobqueue_add(tp_p, newJob);
 		return 1;
 	} else {
+		pbx_log(LOG_ERROR, "sccp_threadpool_add_work(): Threadpool shutting down, denying new work\n");
 		return 0;
 	}
 }
@@ -332,29 +334,38 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 	newjob_p->next = NULL;
 	newjob_p->prev = NULL;
 
-	if (sccp_threadpool_shuttingdown || !tp_p || !tp_p->jobqueue || !tp_p->jobqueue->head)
+	if (sccp_threadpool_shuttingdown){
+		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) shutting down\n");
 		return;
+	}
+	if (!tp_p) {
+		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) no tp_p\n");
+		return;
+	}
+	if (!tp_p->jobqueue){
+		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) no tp_p->jobqueue\n");
+		return;
+	}
 
 	oldFirstJob = tp_p->jobqueue->head;
 
 	/* fix jobs' pointers */
 	switch (tp_p->jobqueue->jobsN) {
+		case 0:												/* if there are no jobs in queue */
+			tp_p->jobqueue->tail = newjob_p;
+			tp_p->jobqueue->head = newjob_p;
+			break;
 
-	case 0:													/* if there are no jobs in queue */
-		tp_p->jobqueue->tail = newjob_p;
-		tp_p->jobqueue->head = newjob_p;
-		break;
-
-	default:												/* if there are already jobs in queue */
-		oldFirstJob->prev = newjob_p;
-		newjob_p->next = oldFirstJob;
-		tp_p->jobqueue->head = newjob_p;
-
+		default:											/* if there are already jobs in queue */
+			oldFirstJob->prev = newjob_p;
+			newjob_p->next = oldFirstJob;
+			tp_p->jobqueue->head = newjob_p;
 	}
 
 	(tp_p->jobqueue->jobsN)++;										/* increment amount of jobs in queue */
-	if (tp_p->jobqueue->jobsN > tp_p->job_high_water_mark)
+	if (tp_p->jobqueue->jobsN > tp_p->job_high_water_mark) {
 		tp_p->job_high_water_mark = tp_p->jobqueue->jobsN;
+	}
 		
 	sem_post(tp_p->jobqueue->queueSem);
 
