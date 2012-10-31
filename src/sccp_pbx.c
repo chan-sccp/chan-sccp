@@ -113,6 +113,7 @@ FINAL:
 int sccp_pbx_call(sccp_channel_t *c, char *dest, int timeout)
 {
 	sccp_line_t *l;
+	sccp_channel_t *active_channel = NULL;
 
 	char *cid_name = NULL;
 	char *cid_number = NULL;
@@ -259,9 +260,10 @@ int sccp_pbx_call(sccp_channel_t *c, char *dest, int timeout)
 			continue;
 		}
 
-		if (sccp_channel_get_active_lock(linedevice->device)) {
-			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
+		if (( active_channel = sccp_channel_get_active(linedevice->device))) {
+			sccp_indicate(linedevice->device, active_channel, SCCP_CHANNELSTATE_CALLWAITING);
 			isRinging = TRUE;
+			active_channel = sccp_channel_release(active_channel);
 		} else {
 			if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 				hasDNDParticipant = TRUE;
