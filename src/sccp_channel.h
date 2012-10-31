@@ -24,9 +24,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);	
 inline sccp_channel_t *__sccp_channel_retain(sccp_channel_t * c, const char *filename, int lineno, const char *func);
 inline sccp_channel_t *__sccp_channel_release(sccp_channel_t * c, const char *filename, int lineno, const char *func);
 
-#    define sccp_channel_get_active_nolock sccp_channel_get_active						//temporary
-#    define sccp_channel_get_active_lock sccp_channel_get_active						//temporary
-#    define sccp_channel_get_active sccp_channel_get_active							//temporary
+//#    define sccp_channel_get_active_nolock sccp_channel_get_active						//temporary, removed -> could cause possible memory leak when refcount is not released properly
+//#    define sccp_channel_get_active_lock sccp_channel_get_active						//temporary
+//#    define sccp_channel_get_active sccp_channel_get_active							//temporary
 sccp_channel_t *sccp_channel_get_active(const sccp_device_t * d);
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
