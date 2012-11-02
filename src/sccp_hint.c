@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_hint.c
  * \brief 	SCCP Hint Class

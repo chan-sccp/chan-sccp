@@ -1,3 +1,4 @@
+
 /*!
  * \file 	chan_sccp.c
  * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
@@ -86,8 +87,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	if (!lineName) {
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
-	
-	
 
 	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
 
@@ -130,12 +129,14 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	}
 
 	uint8_t size = (capabilityLength < sizeof(my_sccp_channel->remoteCapabilities.audio)) ? capabilityLength : sizeof(my_sccp_channel->remoteCapabilities.audio);
+
 	memset(&my_sccp_channel->remoteCapabilities.audio, 0, sizeof(my_sccp_channel->remoteCapabilities.audio));
 	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
 
 	/** set requested codec as prefered codec */
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
-	if(requestedCodec != SKINNY_CODEC_NONE){
+	if (requestedCodec != SKINNY_CODEC_NONE) {
+
 		/** do not set write/read format, because we do not know the device capabilities on shared lines -MC */
 //              my_sccp_channel->rtp.audio.writeFormat = requestedCodec;
 //              my_sccp_channel->rtp.audio.writeState = SCCP_RTP_STATUS_REQUESTED;
@@ -143,8 +144,8 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
 	}
 //      sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "requested codec (%d)\n", my_sccp_channel->rtp.audio.writeFormat);
-	/** done */
 
+	/** done */
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
@@ -277,54 +278,53 @@ struct sccp_messageMap_cb {
 };
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
 
-
 static const struct sccp_messageMap_cb messagesCbMap[] = {
 	[KeepAliveMessage] = {sccp_handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
-	[OffHookMessage]={sccp_handle_offhook, TRUE},
-	[OnHookMessage]={sccp_handle_onhook, TRUE},
-	[SoftKeyEventMessage]={sccp_handle_soft_key_event, TRUE},
-	[OpenReceiveChannelAck]={sccp_handle_open_receive_channel_ack, TRUE},
-	[OpenMultiMediaReceiveChannelAckMessage]={sccp_handle_OpenMultiMediaReceiveAck, TRUE},
-	[StartMediaTransmissionAck]={sccp_handle_startmediatransmission_ack, TRUE},
-	[IpPortMessage]={NULL, TRUE},
-	[VersionReqMessage]={sccp_handle_version, TRUE},
-	[CapabilitiesResMessage]={sccp_handle_capabilities_res, TRUE},
-	[ButtonTemplateReqMessage]={sccp_handle_button_template_req, TRUE},
-	[SoftKeyTemplateReqMessage]={sccp_handle_soft_key_template_req, TRUE},
-	[SoftKeySetReqMessage]={sccp_handle_soft_key_set_req, TRUE},
-	[LineStatReqMessage]={sccp_handle_line_number, TRUE},
-	[SpeedDialStatReqMessage]={sccp_handle_speed_dial_stat_req, TRUE},
-	[StimulusMessage]={sccp_handle_stimulus, TRUE},
-	[HeadsetStatusMessage]={sccp_handle_headset, TRUE},
-	[TimeDateReqMessage]={sccp_handle_time_date_req, TRUE},
-	[KeypadButtonMessage]={sccp_handle_keypad_button, TRUE},
-	[ConnectionStatisticsRes]={sccp_handle_ConnectionStatistics, TRUE},
-	[ServerReqMessage]={sccp_handle_ServerResMessage, TRUE},
-	[ConfigStatReqMessage]={sccp_handle_ConfigStatMessage, TRUE},
-	[EnblocCallMessage]={sccp_handle_EnblocCallMessage, TRUE},
-	[RegisterAvailableLinesMessage]={sccp_handle_AvailableLines, TRUE},
-	[ForwardStatReqMessage]={sccp_handle_forward_stat_req, TRUE},
-	[FeatureStatReqMessage]={sccp_handle_feature_stat_req, TRUE},
-	[ServiceURLStatReqMessage]={sccp_handle_services_stat_req, TRUE},
-	[AccessoryStatusMessage]={sccp_handle_accessorystatus_message, TRUE},
-	[DialedPhoneBookMessage]={sccp_handle_dialedphonebook_message, TRUE},
-	[UpdateCapabilitiesMessage]={sccp_handle_updatecapabilities_message, TRUE},
-	[Unknown_0x004A_Message]={sccp_handle_unknown_message, TRUE},
-	[DisplayDynamicNotifyMessage]={sccp_handle_unknown_message, TRUE},
-	[DisplayDynamicPriNotifyMessage]={sccp_handle_unknown_message, TRUE},
-	[SpeedDialStatDynamicMessage]={sccp_handle_speed_dial_stat_req, TRUE},
-	[ExtensionDeviceCaps]={sccp_handle_unknown_message, TRUE},
-	[DeviceToUserDataVersion1Message]={sccp_handle_device_to_user, TRUE},
-	[DeviceToUserDataResponseVersion1Message]={sccp_handle_device_to_user_response, TRUE},
-	[RegisterTokenRequest]={sccp_handle_token_request, FALSE},
-	[UnregisterMessage]={sccp_handle_unregister, FALSE},
-	[RegisterMessage]={sccp_handle_register, FALSE},
-	[AlarmMessage]={sccp_handle_alarm, FALSE},
-	[XMLAlarmMessage]={sccp_handle_XMLAlarmMessage, FALSE},
-	[SPCPRegisterTokenRequest]={sccp_handle_SPCPTokenReq, FALSE},
-	[StartMultiMediaTransmissionAck]={sccp_handle_startmultimediatransmission_ack, TRUE},
-	[MediaTransmissionFailure]={sccp_handle_mediatransmissionfailure, TRUE},
-	[MiscellaneousCommandMessage]={sccp_handle_miscellaneousCommandMessage, TRUE},
+	[OffHookMessage] = {sccp_handle_offhook, TRUE},
+	[OnHookMessage] = {sccp_handle_onhook, TRUE},
+	[SoftKeyEventMessage] = {sccp_handle_soft_key_event, TRUE},
+	[OpenReceiveChannelAck] = {sccp_handle_open_receive_channel_ack, TRUE},
+	[OpenMultiMediaReceiveChannelAckMessage] = {sccp_handle_OpenMultiMediaReceiveAck, TRUE},
+	[StartMediaTransmissionAck] = {sccp_handle_startmediatransmission_ack, TRUE},
+	[IpPortMessage] = {NULL, TRUE},
+	[VersionReqMessage] = {sccp_handle_version, TRUE},
+	[CapabilitiesResMessage] = {sccp_handle_capabilities_res, TRUE},
+	[ButtonTemplateReqMessage] = {sccp_handle_button_template_req, TRUE},
+	[SoftKeyTemplateReqMessage] = {sccp_handle_soft_key_template_req, TRUE},
+	[SoftKeySetReqMessage] = {sccp_handle_soft_key_set_req, TRUE},
+	[LineStatReqMessage] = {sccp_handle_line_number, TRUE},
+	[SpeedDialStatReqMessage] = {sccp_handle_speed_dial_stat_req, TRUE},
+	[StimulusMessage] = {sccp_handle_stimulus, TRUE},
+	[HeadsetStatusMessage] = {sccp_handle_headset, TRUE},
+	[TimeDateReqMessage] = {sccp_handle_time_date_req, TRUE},
+	[KeypadButtonMessage] = {sccp_handle_keypad_button, TRUE},
+	[ConnectionStatisticsRes] = {sccp_handle_ConnectionStatistics, TRUE},
+	[ServerReqMessage] = {sccp_handle_ServerResMessage, TRUE},
+	[ConfigStatReqMessage] = {sccp_handle_ConfigStatMessage, TRUE},
+	[EnblocCallMessage] = {sccp_handle_EnblocCallMessage, TRUE},
+	[RegisterAvailableLinesMessage] = {sccp_handle_AvailableLines, TRUE},
+	[ForwardStatReqMessage] = {sccp_handle_forward_stat_req, TRUE},
+	[FeatureStatReqMessage] = {sccp_handle_feature_stat_req, TRUE},
+	[ServiceURLStatReqMessage] = {sccp_handle_services_stat_req, TRUE},
+	[AccessoryStatusMessage] = {sccp_handle_accessorystatus_message, TRUE},
+	[DialedPhoneBookMessage] = {sccp_handle_dialedphonebook_message, TRUE},
+	[UpdateCapabilitiesMessage] = {sccp_handle_updatecapabilities_message, TRUE},
+	[Unknown_0x004A_Message] = {sccp_handle_unknown_message, TRUE},
+	[DisplayDynamicNotifyMessage] = {sccp_handle_unknown_message, TRUE},
+	[DisplayDynamicPriNotifyMessage] = {sccp_handle_unknown_message, TRUE},
+	[SpeedDialStatDynamicMessage] = {sccp_handle_speed_dial_stat_req, TRUE},
+	[ExtensionDeviceCaps] = {sccp_handle_unknown_message, TRUE},
+	[DeviceToUserDataVersion1Message] = {sccp_handle_device_to_user, TRUE},
+	[DeviceToUserDataResponseVersion1Message] = {sccp_handle_device_to_user_response, TRUE},
+	[RegisterTokenRequest] = {sccp_handle_token_request, FALSE},
+	[UnregisterMessage] = {sccp_handle_unregister, FALSE},
+	[RegisterMessage] = {sccp_handle_register, FALSE},
+	[AlarmMessage] = {sccp_handle_alarm, FALSE},
+	[XMLAlarmMessage] = {sccp_handle_XMLAlarmMessage, FALSE},
+	[SPCPRegisterTokenRequest] = {sccp_handle_SPCPTokenReq, FALSE},
+	[StartMultiMediaTransmissionAck] = {sccp_handle_startmultimediatransmission_ack, TRUE},
+	[MediaTransmissionFailure] = {sccp_handle_mediatransmissionfailure, TRUE},
+	[MiscellaneousCommandMessage] = {sccp_handle_miscellaneousCommandMessage, TRUE},
 };
 
 /*!
@@ -337,7 +337,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 	const sccp_messageMap_cb_t *messageMap_cb = NULL;
 	uint32_t mid = 0;
 	sccp_device_t *device = NULL;
-	
+
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
 		if (r) {
@@ -678,6 +678,7 @@ boolean_t sccp_prePBXLoad()
 }
 
 #if DEBUG
+
 /* 
  * Segfault Handler
  * Copied from 	Author : Andrew Tridgell <junkcode@tridgell.net>
@@ -685,28 +686,28 @@ boolean_t sccp_prePBXLoad()
  */
 static int segv_handler(int sig)
 {
-        char cmd[100];
-        char progname[100];
-        char *p;
-        int n;
-        
-        n = readlink("/proc/self/exe",progname,sizeof(progname));
-        progname[n] = 0;
+	char cmd[100];
+	char progname[100];
+	char *p;
+	int n;
 
-        p = strrchr(progname, '/');
-        *p = 0;
+	n = readlink("/proc/self/exe", progname, sizeof(progname));
+	progname[n] = 0;
 
-        snprintf(cmd, sizeof(cmd), "chan-sccp-b_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1", (int)getpid(), p+1, (int)getpid());
-        system(cmd);
-        signal(SIGSEGV, SIG_DFL);
-        return 0;
+	p = strrchr(progname, '/');
+	*p = 0;
+
+	snprintf(cmd, sizeof(cmd), "chan-sccp-b_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1", (int)getpid(), p + 1, (int)getpid());
+	system(cmd);
+	signal(SIGSEGV, SIG_DFL);
+	return 0;
 }
 
-static void segv_init() __attribute__((constructor));
+static void segv_init() __attribute__ ((constructor));
 void segv_init(void)
 {
-        signal(SIGSEGV, (sighandler_t) segv_handler);
-        signal(SIGBUS, (sighandler_t) segv_handler);
+	signal(SIGSEGV, (sighandler_t) segv_handler);
+	signal(SIGBUS, (sighandler_t) segv_handler);
 }
 #endif
 
@@ -753,7 +754,7 @@ int sccp_preUnload(void)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
-//	pbx_config_destroy(GLOB(cfg));
+//      pbx_config_destroy(GLOB(cfg));
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);
 
@@ -768,11 +769,11 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
-//		sccp_device_release(d);			// released by sccp_dev_clean
+//              sccp_device_release(d);                 // released by sccp_dev_clean
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		d->realtime = TRUE;										/* use realtime, to fully clear the device configuration */
-//		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-		sccp_dev_clean(d, TRUE, 0);		// performs a device reset if it has a session
+//              sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
+		sccp_dev_clean(d, TRUE, 0);									// performs a device reset if it has a session
 	}
 	if (SCCP_RWLIST_EMPTY(&GLOB(devices)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
@@ -794,16 +795,15 @@ int sccp_preUnload(void)
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
 
-	usleep(500);	// wait for events to finalize
+	usleep(500);												// wait for events to finalize
 
-	
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_socket_stop_sessionthread(s);
-////		pthread_cancel(s->session_thread);
+////            pthread_cancel(s->session_thread);
 	}
 	if (SCCP_LIST_EMPTY(&GLOB(sessions)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
@@ -844,7 +844,7 @@ int sccp_preUnload(void)
 	sccp_refcount_destroy();
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));
-//	pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
+//      pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
 }
 
@@ -866,6 +866,7 @@ int sccp_reload(void)
 	}
 
 	sccp_config_file_status_t cfg = sccp_config_getConfig(TRUE);
+
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
 			pbx_log(LOG_NOTICE, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));

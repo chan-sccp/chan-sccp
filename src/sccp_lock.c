@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_lock.c
  * \brief 	SCCP Lock Class

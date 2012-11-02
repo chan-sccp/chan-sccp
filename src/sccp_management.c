@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_management.c
  * \brief 	SCCP Management Class

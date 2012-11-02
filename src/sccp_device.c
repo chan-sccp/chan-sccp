@@ -2339,3 +2339,4 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
+

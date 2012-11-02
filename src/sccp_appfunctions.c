@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_appfunctions.c
  * \brief 	SCCP application / dialplan functions Class
@@ -145,21 +146,21 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			switch (config->type) {
-			case LINE:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->button.line.name);
-				break;
-			case SPEEDDIAL:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.speeddial.ext);
-				break;
-			case SERVICE:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.service.url);
-				break;
-			case FEATURE:
-				snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.feature.options);
-				break;
-			case EMPTY:
-				snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_buttontype2str(config->type));
-				break;
+				case LINE:
+					snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->button.line.name);
+					break;
+				case SPEEDDIAL:
+					snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.speeddial.ext);
+					break;
+				case SERVICE:
+					snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.service.url);
+					break;
+				case FEATURE:
+					snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_buttontype2str(config->type), config->label, config->button.feature.options);
+					break;
+				case EMPTY:
+					snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_buttontype2str(config->type));
+					break;
 			}
 			if (first == 0) {
 				first = 1;
