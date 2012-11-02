@@ -1,4 +1,3 @@
-\
 /*!
  * \file 	astTrunk.c
  * \brief 	SCCP PBX Asterisk Wrapper Class

@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_conference.h
  * \brief 	SCCP Conference Header

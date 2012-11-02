@@ -1,3 +1,4 @@
+
 #ifndef _CLI_AMI_TABLE_INCLUDE
 #    define _CLI_AMI_TABLE_INCLUDE
 #    define RET_STRING(_a) #_a

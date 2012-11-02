@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_actions.c
  * \brief 	SCCP Actions Class

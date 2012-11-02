@@ -1,3 +1,4 @@
+
 # ltversion.m4 -- version numbers			-*- Autoconf -*-
 #
 #   Copyright (C) 2004 Free Software Foundation, Inc.

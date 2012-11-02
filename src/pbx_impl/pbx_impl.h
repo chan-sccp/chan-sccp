@@ -1,4 +1,3 @@
-
 /*!
  * \file        pbx_impl.h
  * \brief       SCCP PBX Asterisk Wrapper Header

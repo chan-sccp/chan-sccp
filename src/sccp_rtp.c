@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_rtp.c
  * \brief 	SCCP RTP Class

@@ -1,5 +1,6 @@
-# Copyright (C) 2004 Oren Ben-Kiki
-# This file is distributed under the same terms as the Automake macro files.
+
+# Copyright (C) 2004 Oren Ben-Kiki This file is distributed under the same
+# terms as the Automake macro files.
 
 # Generate automatic documentation using Doxygen. Goals and variables values
 # are controlled by the various DX_COND_??? conditionals set by autoconf.

@@ -1,4 +1,3 @@
-
 /*!
  * \file 	ast108.c
  * \brief 	SCCP PBX Asterisk Wrapper Class

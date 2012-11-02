@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_features.c
  * \brief 	SCCP Features Class

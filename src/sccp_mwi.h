@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_mwi.h
  * \brief 	SCCP Message Waiting Indicator Header

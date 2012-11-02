@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_line.h
  * \brief 	SCCP Line Header

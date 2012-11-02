@@ -1,3 +1,4 @@
+
 # lt~obsolete.m4 -- aclocal satisfying obsolete definitions.    -*-Autoconf-*-
 #
 #   Copyright (C) 2004, 2005, 2007 Free Software Foundation, Inc.

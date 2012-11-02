@@ -1,4 +1,3 @@
-
 /*!
  * \file 	ast110.h
  * \brief 	SCCP PBX Asterisk Header

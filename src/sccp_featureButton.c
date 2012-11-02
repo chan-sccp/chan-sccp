@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_featureButton.c
  * \brief 	SCCP FeatureButton Class

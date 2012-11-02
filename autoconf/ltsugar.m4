@@ -1,3 +1,4 @@
+
 # ltsugar.m4 -- libtool m4 base layer.                         -*-Autoconf-*-
 #
 # Copyright (C) 2004, 2005, 2007, 2008 Free Software Foundation, Inc.

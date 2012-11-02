@@ -1,4 +1,3 @@
-
 /*!
  * \file 	chan_sccp.c
  * \brief 	An implementation of Skinny Client Control Protocol (SCCP)

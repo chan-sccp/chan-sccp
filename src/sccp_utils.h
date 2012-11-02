@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_utils.h
  * \brief 	SCCP Utils Header

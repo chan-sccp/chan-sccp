@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_dllists.h
  * \brief 	SCCP Double Linked Lists Header

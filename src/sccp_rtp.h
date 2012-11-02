@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_rtp.h
  * \brief 	SCCP RTP Header

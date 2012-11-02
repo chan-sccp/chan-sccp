@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_protocol.h
  * \brief 	SCCP Protocol Header

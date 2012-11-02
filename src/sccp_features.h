@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_features.h
  * \brief 	SCCP Features Header

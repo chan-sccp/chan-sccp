@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_indicate.c
  * \brief 	SCCP Indicate Class

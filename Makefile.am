@@ -6,7 +6,6 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
-
 include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
 #EXTRA_DIST 			= .version tools conf

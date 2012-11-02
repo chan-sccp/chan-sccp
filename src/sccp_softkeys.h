@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_softkeys.h
  * \brief 	SCCP SoftKeys Header

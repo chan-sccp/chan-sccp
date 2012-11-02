@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_config.c
  * \brief 	SCCP Config Class

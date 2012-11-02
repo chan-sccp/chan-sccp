@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_config.h
  * \brief 	SCCP Config Header
