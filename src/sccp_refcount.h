@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_refcount.h
  * \brief 	SCCP RefCount Header

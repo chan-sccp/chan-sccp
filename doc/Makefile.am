@@ -6,7 +6,6 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
-
 EXTRA_DIST = doxygen.cfg doxygen-header  														\
 	01_Index.doc                            05_Features_V3.doc                  09_Developers_Guide.doc         13_Reporting_Issues_Problems.doc 	\
 	02_What_Is_Chan_SCCP.doc                06_New_Features.doc                 10_Sources_Explained.doc						\

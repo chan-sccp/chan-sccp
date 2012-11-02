@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_event.c
  * \brief 	SCCP Event Class

@@ -1,4 +1,3 @@
-
 /*!
  * \file 	common.h
  * \brief 	SCCP Common Include File

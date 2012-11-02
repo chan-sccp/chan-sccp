@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_lock.h
  * \brief 	SCCP Lock Header

@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_cli.c
  * \brief 	SCCP CLI Class

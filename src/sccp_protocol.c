@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_protocol.c
  * \brief 	SCCP Protocol implementation.

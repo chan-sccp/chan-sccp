@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_event.h
  * \brief 	SCCP Event Header

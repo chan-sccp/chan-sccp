@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_device.c
  * \brief 	SCCP Device Class

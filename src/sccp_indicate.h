@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_indicate.h
  * \brief 	SCCP Indicate Header

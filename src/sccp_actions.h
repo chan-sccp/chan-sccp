@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_actions.h
  * \brief 	SCCP Actions Header

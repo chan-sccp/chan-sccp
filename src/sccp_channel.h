@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_channel.h
  * \brief 	SCCP Channel Header

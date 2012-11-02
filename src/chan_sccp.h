@@ -1,4 +1,3 @@
-
 /*!
  * \file 	chan_sccp.h
  * \brief 	Chan SCCP Main Class

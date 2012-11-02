@@ -6,7 +6,6 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
-
 AUTOMAKE_OPTS		= gnu silent-rules
 csmod_LTLIBRARIES	= chan_sccp.la
 

@@ -1,3 +1,4 @@
+
 dnl FILE: acinclude.m4
 dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
 dnl CREATED BY: Created by Diederik de Groot

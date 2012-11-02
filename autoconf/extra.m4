@@ -1,3 +1,4 @@
+
 AC_DEFUN([CS_SETUP_DEFAULTS], [
 	ac_default_prefix=/usr
 	if test ${sysconfdir} = '${prefix}/etc'; then

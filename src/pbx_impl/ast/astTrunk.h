@@ -1,4 +1,3 @@
-
 /*!
  * \file 	astTrunk.h
  * \brief 	SCCP PBX Asterisk Header

@@ -6,7 +6,6 @@
 # DATE:     $Date: 2011-08-31 17:04:17 +0000 (Mi, 31. Aug 2011) $
 # REVISION: $Revision: 2728 $
 # NOTE: Process this file with automake to produce a makefile.in script.
-
 AUTOMAKE_OPTS		= gnu silent-rules
 
 bin_PROGRAMS 		= gen_sccpconf

@@ -1,4 +1,154 @@
+2012-10-31  ddegroot
+
+	* [r3791] src/sccp_channel.h, src/sccp_indicate.c, src/sccp_pbx.c:
+	  Removed temporary sccp_channel_get_active_nolock,
+	  sccp_channel_get_active_lock function, because they could lead to
+	  confusion and memory leaks in the refcount system
+
+	* [r3790] src/sccp_pbx.c: Found cause for channel refcount-release
+	  issue, whereby channels were never fully release upon hangup
+	  (->memory leak)
+
+2012-10-29  ddegroot
+
+	* [r3789] src/sccp_threadpool.c: Update comment on threadpool /
+	  jobqueue handling
+
+	* [r3788] src/sccp_event.c, src/sccp_softkeys.c,
+	  src/sccp_threadpool.c: While trying to find why DND Feature was
+	  not working correctly i found an issue in threadpool JobQueue Add
+	  function. All event handling was being denied because on first
+	  use of the threadpool there was no tp_p->jobqueue->head and this
+	  caused a return. Issue has been fixed
+
+2012-10-24  ddegroot
+
+	* [r3787] src/sccp_actions.c, src/sccp_device.c: Reverted
+	  sccp_actions.c XMLAlarmMessage Handler, Sorted Device by
+	  MacAddress
+
+	* [r3786] src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_dllists.h, src/sccp_line.c, src/sccp_utils.c,
+	  src/sccp_utils.h: Add devices/lines to Globals in a sorted
+	  fashion, makes sccp show devices / lines look a lot cleaner.
+
+	* [r3785] conf/sccp.conf.annotated: Update annotated sccp.conf
+	  sample regarding incominglimit (Bug: 3578314 / Alex Miby)
+
+2012-10-14  ddegroot
+
+	* [r3784] src/sccp_actions.c: Fix letohl in handle_tokenrequest
+	  (Philipp Teissier)
+
+2012-10-10  ddegroot
+
+	* [r3783] src/sccp_threadpool.c: Checking threadpool, before adding
+	  a new job
+
+2012-10-08  ddegroot
+
+	* [r3781] doc/04_Setup_Guide.doc: Update realtime documentation
+	  (Fabian Foerster)
+
+	* [r3780] src/sccp_features.c: Add both methods for conference line
+	  selection. Including a check if it is the active_line or has a
+	  status on hold
+
+	* [r3779] doc/04_Setup_Guide.doc: Update mysql/pgsql section in
+	  04_Setup_Guide.doc (Reported by Fabian Foerster)
+
+2012-10-07  ddegroot
+
+	* [r3778] src/sccp_features.c: Starting conference on all connected
+	  channels for this line (we need to add extra rules in case of
+	  shared line, otherwise we might be stealing channels)
+
+	* [r3777] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c: Updates to
+	  conference/sccp_conference10.c
+
+	* [r3776] src/conference/sccp_conference10.c: Merge
+	  sccp_conference10.c
+
+	* [r3775] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c: Updates for
+	  sccp_conference10.c
+
+2012-10-07  marcelloceschia
+
+	* [r3774] src/conference/sccp_conference10.c: add #if
+	  SCCP_CONFERENCE_USE_IMPART == 0 for join_thread
+
+	* [r3773] src/conference/sccp_conference10.c:
+
+2012-10-07  ddegroot
+
+	* [r3772] src/sccp_lock.h: Revert change in sccp_lock.h
+
+	* [r3771] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/depcomp, autoconf/extra.m4,
+	  autoconf/install-sh, autoconf/missing, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in, src/pbx_impl/ast/ast106.c,
+	  src/sccp_lock.h, src/sccp_refcount.c: Fixed rwlock/include issue
+	  on bigendian/sparc64/asterisk issue (Reported by Philippe
+	  Teissier)
+
+2012-10-07  marcelloceschia
+
+	* [r3769] src/conference/sccp_conference10.c:
+
+	* [r3768] src/sccp_features.c:
+
+	* [r3767] INSTALL, Makefile.in, aclocal.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/chan_sccp.c,
+	  src/conference/sccp_conference10.c, src/sccp_features.c,
+	  src/sccp_refcount.c, src/sccp_utils.c: asterisk 10 conference
+
+2012-10-06  marcelloceschia
+
+	* [r3765] src/sccp_utils.c: use SKINNY_CODEC_NONE
+
+	* [r3764] src/chan_sccp.c: use SKINNY_CODEC_NONE
+
+	* [r3763] src/conference/sccp_conference10.c, src/sccp_features.c:
+	  go on with conference on ast 10
+
+	* [r3762] src/chan_sccp.c: cleanup
+
+	* [r3761] src/pbx_impl/ast/ast110.c: use requested codec for
+	  inbound calls
+
+	* [r3760] src/chan_sccp.c, src/sccp_channel.c: use requested codec
+	  for inbound calls
+
 2012-10-02  ddegroot
+
+	* [r3759] src/conference/sccp_conference10.c: Make
+	  sccp_conference10.c compile correctly when sources are being
+	  build in a seperate folder
+
+	* [r3758] src/chan_sccp.c: Fix temporary double release of
+	  GLOB(hotline)->line
+
+	* [r3757] src/sccp_line.c: Removed unneccessary retain/release in
+	  sccp_line_clean
+
+	* [r3756] src/chan_sccp.c: Move closing descriptor back up to
+	  beginning of preUnload
+
+	* [r3755] Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/depcomp, autoconf/install-sh,
+	  autoconf/missing, configure, contrib/gen_sccpconf/Makefile.in,
+	  doc/Makefile.in, src/Makefile.in, src/config.h.in: Re-ran
+	  bootstrap.sh
+
+	* [r3754] ChangeLog: Updated ChangeLog
+
+	* [r3753] autoconf/asterisk.m4, autoconf/extra.m4, src/chan_sccp.h:
+	  Moved sizeof(long long) check from chan-sccp.h to
+	  autoconf/extra.m4
 
 	* [r3752] src/chan_sccp.c, src/sccp_device.c, src/sccp_line.c,
 	  src/sccp_line.h: Fix refcount warnings during module unload

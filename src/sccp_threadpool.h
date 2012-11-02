@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_threadpool.h
  * \brief 	SCCP Threadpool Header

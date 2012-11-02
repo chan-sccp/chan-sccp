@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_appfunctions.h
  * \brief       SCCP application / dialplan functions Class 

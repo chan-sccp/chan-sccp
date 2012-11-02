@@ -1,4 +1,3 @@
-
 /*!
  * \file 	sccp_channel.c
  * \brief 	SCCP Channel Class
