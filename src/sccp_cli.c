@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_cli.c
  * \brief 	SCCP CLI Class
@@ -187,21 +188,21 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	switch (completer) {
-	case SCCP_CLI_NULL_COMPLETER:
-		return NULL;
-		break;
-	case SCCP_CLI_DEVICE_COMPLETER:
-		return sccp_complete_device(line, word, pos, state);
-		break;
-	case SCCP_CLI_LINE_COMPLETER:
-		return sccp_complete_line(line, word, pos, state);
-		break;
-	case SCCP_CLI_CHANNEL_COMPLETER:
-		return sccp_complete_channel(line, word, pos, state);
-		break;
-	case SCCP_CLI_DEBUG_COMPLETER:
-		return sccp_complete_debug(line, word, pos, state);
-		break;
+		case SCCP_CLI_NULL_COMPLETER:
+			return NULL;
+			break;
+		case SCCP_CLI_DEVICE_COMPLETER:
+			return sccp_complete_device(line, word, pos, state);
+			break;
+		case SCCP_CLI_LINE_COMPLETER:
+			return sccp_complete_line(line, word, pos, state);
+			break;
+		case SCCP_CLI_CHANNEL_COMPLETER:
+			return sccp_complete_channel(line, word, pos, state);
+			break;
+		case SCCP_CLI_DEBUG_COMPLETER:
+			return sccp_complete_debug(line, word, pos, state);
+			break;
 	}
 	return NULL;
 }
@@ -610,7 +611,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Name,		s,	23,	buttonconfig->label)					\
 			CLI_AMI_TABLE_FIELD(Number,		s,	26,	buttonconfig->button.speeddial.ext)			\
 			CLI_AMI_TABLE_FIELD(Hint,		s,	27, 	buttonconfig->button.speeddial.hint)
-//		      CLI_AMI_TABLE_FIELD(HintStatus,	 s,      20,     ast_extension_state2str(ast_extension_state()))
+//                    CLI_AMI_TABLE_FIELD(HintStatus,    s,      20,     ast_extension_state2str(ast_extension_state()))
 #include "sccp_cli_table.h"
 
 		// FEATURES
@@ -666,6 +667,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 
 	sccp_call_statistics_type_t callstattype;
 	sccp_call_statistics_t *stats = NULL;
+
 #define CLI_AMI_TABLE_NAME CallStatistics
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Statistics
 #define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
@@ -683,7 +685,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(meanQual,		f,	8,	stats->mean_opinion_score_listening_quality)	\
 			CLI_AMI_TABLE_FIELD(maxQual,		f,	8,	stats->max_opinion_score_listening_quality)	\
 			CLI_AMI_TABLE_FIELD(rConceal,		f,	8,	stats->cumulative_concealement_ratio)		\
-			CLI_AMI_TABLE_FIELD(sConceal,		d,	8,	stats->concealed_seconds)				
+			CLI_AMI_TABLE_FIELD(sConceal,		d,	8,	stats->concealed_seconds)
 #include "sccp_cli_table.h"
 
 	sccp_device_release(d);
@@ -770,7 +772,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		memset(&cap_buf, 0, sizeof(cap_buf));
 
 		if (channel && channel->owner) {
-//			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), channel->owner->nativeformats);
+//                      pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), channel->owner->nativeformats);
 			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 		}
 
@@ -1169,13 +1171,11 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
+
 /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
-
-#define NUM_LOOPS 20
-#define NUM_OBJECTS 100
-
+#    define NUM_LOOPS 20
+#    define NUM_OBJECTS 100
 struct refcount_test {
 	int id;
 	int loop;
@@ -1183,56 +1183,56 @@ struct refcount_test {
 	char *test;
 } *object[NUM_OBJECTS];
 
-static void sccp_cli_refcount_test_destroy(struct refcount_test *obj) 
+static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
 {
 	sccp_log(0) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int)pthread_self());
 	sccp_free(object[obj->id]);
-	object[obj->id]=NULL;
+	object[obj->id] = NULL;
 	free(obj);
-	obj=NULL;
+	obj = NULL;
 };
 
-static void *sccp_cli_refcount_test_thread(void *data) 
+static void *sccp_cli_refcount_test_thread(void *data)
 {
-	boolean_t working = *(boolean_t *)data;
-	struct refcount_test *obj=NULL, *obj1=NULL;
+	boolean_t working = *(boolean_t *) data;
+	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int test, loop;
 	int random_object;
-	
+
 	if (working) {
 		// CORRECT
 		for (loop = 0; loop < NUM_LOOPS; loop++) {
-			for (test=0; test<NUM_OBJECTS; test++) {
-				random_object=rand() % NUM_OBJECTS;
+			for (test = 0; test < NUM_OBJECTS; test++) {
+				random_object = rand() % NUM_OBJECTS;
 				sccp_log(0) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int)pthread_self());
-				if ((obj = sccp_refcount_retain(object[random_object], __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+				if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 					usleep(random_object % 10);
-					if ((obj1 = sccp_refcount_retain(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+					if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 						usleep(random_object % 10);
-						obj1 = sccp_refcount_release(obj1, __FILE__,__LINE__,__PRETTY_FUNCTION__);
+						obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 					}
-					obj = sccp_refcount_release(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__);
+					obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
-			}		
+			}
 		}
 	} else {
 		// FALSE
 		for (loop = 0; loop < NUM_LOOPS; loop++) {
-			for (test=0; test<NUM_OBJECTS; test++) {
-				random_object=rand() % NUM_OBJECTS;
+			for (test = 0; test < NUM_OBJECTS; test++) {
+				random_object = rand() % NUM_OBJECTS;
 				sccp_log(0) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int)pthread_self());
-				if ((obj = sccp_refcount_retain(object[random_object], __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+				if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 					usleep(random_object % 10);
-					if ((obj = sccp_refcount_retain(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__))) {
+					if ((obj = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 						usleep(random_object % 10);
-						obj = sccp_refcount_release(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__);		// obj will be NULL after releasing
+						obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);	// obj will be NULL after releasing
 					}
-					obj = sccp_refcount_release(obj, __FILE__,__LINE__,__PRETTY_FUNCTION__);
+					obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
-			}		
+			}
 		}
 	}
-		
+
 	return NULL;
 }
 
@@ -1279,7 +1279,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 				r1->msg.OpenReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
 				r1->msg.OpenReceiveChannel.lel_rtptimeout = htolel(10);
 				sccp_dev_send(d, r1);
-//			      sleep(1);
+//                            sleep(1);
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
 				REQ(r2, OpenReceiveChannel);
 				r2->msg.OpenReceiveChannel.lel_conferenceId = htolel(channel->callid);
@@ -1335,35 +1335,36 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 	if (!strcasecmp(argv[3], "refcount")) {
 		int thread;
 		boolean_t working = TRUE;
-		int num_threads= (argc == 5) ? atoi(argv[4]) : 4;
-		if (argc == 6 && !strcmp(argv[5],"fail")) {
+		int num_threads = (argc == 5) ? atoi(argv[4]) : 4;
+
+		if (argc == 6 && !strcmp(argv[5], "fail")) {
 			working = FALSE;
 		}
 		pthread_t t;
-		int  test;
+		int test;
 		char id[23];
 
-		for (test=0; test<NUM_OBJECTS; test++) {
+		for (test = 0; test < NUM_OBJECTS; test++) {
 			snprintf(id, sizeof(id), "%d/%d", test, (unsigned int)pthread_self());
 			object[test] = (struct refcount_test *)sccp_refcount_object_alloc(sizeof(struct refcount_test), SCCP_REF_TEST, id, sccp_cli_refcount_test_destroy);
 			object[test]->id = test;
-			object[test]->threadid= (unsigned int)pthread_self();
-			object[test]->test= strdup(id);
+			object[test]->threadid = (unsigned int)pthread_self();
+			object[test]->test = strdup(id);
 			sccp_log(0) ("TEST: Created %d\n", object[test]->id);
-		}		
+		}
 		sccp_refcount_print_hashtable(fd);
 		sleep(3);
-	
-		for (thread=0; thread < num_threads; thread++) {
+
+		for (thread = 0; thread < num_threads; thread++) {
 			pbx_pthread_create(&t, NULL, sccp_cli_refcount_test_thread, &working);
 		}
 		pthread_join(t, NULL);
 		sleep(3);
 
-		for (test=0; test<NUM_OBJECTS; test++) {
+		for (test = 0; test < NUM_OBJECTS; test++) {
 			if (object[test]) {
 				sccp_log(0) ("TEST: Final Release %d, thread: %d\n", object[test]->id, (unsigned int)pthread_self());
-				sccp_refcount_release(object[test], __FILE__,__LINE__,__PRETTY_FUNCTION__);
+				sccp_refcount_release(object[test], __FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 		}
 		sleep(1);
@@ -1408,8 +1409,7 @@ static char cli_show_refcount_usage[] = "Usage: sccp show refcount [sortorder]\n
 CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refcount_usage, FALSE)
 #    undef CLI_COMPLETE
 #    undef CLI_COMMAND
-
-#endif	//defined(DEBUG) || defined(CS_EXPERIMENTAL)
+#endif										//defined(DEBUG) || defined(CS_EXPERIMENTAL)
 
 /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
 
@@ -1517,16 +1517,16 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
-			sscanf(argv[5], "%d", &timeout); 
+			sscanf(argv[5], "%d", &timeout);
 		}
-		sscanf(argv[4], "%d", &timeout); 
+		sscanf(argv[4], "%d", &timeout);
 	}
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, FALSE, beep);
-//		sccp_dev_set_message(d, messagetext, timeout, FALSE, beep);
+//              sccp_dev_set_message(d, messagetext, timeout, FALSE, beep);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
@@ -1896,6 +1896,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	}
 
 	sccp_config_file_status_t cfg = sccp_config_getConfig(TRUE);
+
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
 			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));

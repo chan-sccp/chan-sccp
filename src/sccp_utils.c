@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_utils.c
  * \brief 	SCCP Utils Class

@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_softkeys.c
  * \brief 	SCCP SoftKeys Class

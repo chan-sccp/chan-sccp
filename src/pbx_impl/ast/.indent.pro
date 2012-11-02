@@ -14,6 +14,7 @@
 	   at the character position just after the left
 	   parenthesis
 	*/
+-cli8
 
 /* comments */
 -lc500 	/* Max comment line length */
