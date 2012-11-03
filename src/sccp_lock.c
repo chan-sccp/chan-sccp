@@ -92,7 +92,7 @@
  * These locking rules need to be followed to the letter !
  *
  */
- 
+
 /*
  * \!section lock_deadlock Prevent Deadlocks
  * \!section lock_starvation Prevent Starvation

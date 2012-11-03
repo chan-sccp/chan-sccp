@@ -14,16 +14,15 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #ifndef CS_AST_HAS_EVENT
 #    define SCCP_MWI_CHECK_INTERVAL 30
 #endif
 void sccp_mwi_checkLine(sccp_line_t * line);
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
-void sccp_mwi_linecreatedEvent(const sccp_event_t *event);
-void sccp_mwi_deviceAttachedEvent(const sccp_event_t *event);
+void sccp_mwi_linecreatedEvent(const sccp_event_t * event);
+void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line);
-void sccp_mwi_lineStatusChangedEvent(const sccp_event_t *event);
+void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event);
 
 SCCP_LIST_HEAD(, sccp_mailbox_subscriber_list_t) sccp_mailbox_subscriptions;
 
@@ -233,7 +232,7 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
  * \lock
  * 	- device
  */
-void sccp_mwi_deviceAttachedEvent(const sccp_event_t *event)
+void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 {
 	if (!event)
 		return;
@@ -249,7 +248,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t *event)
 
 	device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
 	device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
-	sccp_mwi_setMWILineStatus(device, line);				/* set mwi-line-status */
+	sccp_mwi_setMWILineStatus(device, line);								/* set mwi-line-status */
 	device = sccp_device_release(device);
 }
 
@@ -260,7 +259,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t *event)
  * \lock
  * 	- see sccp_mwi_check()
  */
-void sccp_mwi_lineStatusChangedEvent(const sccp_event_t *event)
+void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 {
 	if (!event)
 		return;
@@ -281,7 +280,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t *event)
  * \warning
  * 	- line->mailboxes is not always locked
  */
-void sccp_mwi_linecreatedEvent(const sccp_event_t *event)
+void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 {
 	if (!event)
 		return;
@@ -336,9 +335,9 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 	if (!subscription) {
 		subscription = sccp_malloc(sizeof(sccp_mailbox_subscriber_list_t));
-		if (!subscription){
-		        pbx_log(LOG_ERROR, "Error allocating memory for sccp_mwi_addMailboxSubscription");
-                        return;
+		if (!subscription) {
+			pbx_log(LOG_ERROR, "Error allocating memory for sccp_mwi_addMailboxSubscription");
+			return;
 		}
 		memset(subscription, 0, sizeof(sccp_mailbox_subscriber_list_t));
 
@@ -383,8 +382,8 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	if (!mailboxLine) {
 		mailboxLine = sccp_malloc(sizeof(sccp_mailboxLine_t));
 		if (!mailboxLine) {
-		        pbx_log(LOG_ERROR, "Error allocating memory for mailboxLine");
-		        return;
+			pbx_log(LOG_ERROR, "Error allocating memory for mailboxLine");
+			return;
 		}
 		memset(mailboxLine, 0, sizeof(sccp_mailboxLine_t));
 
@@ -543,7 +542,7 @@ void sccp_mwi_check(sccp_device_t * device)
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
 				tmpDevice = sccp_channel_getDevice_retained(c);
-				if (tmpDevice == device) {			// We have a channel belonging to our device (no remote shared line channel)
+				if (tmpDevice == device) {							// We have a channel belonging to our device (no remote shared line channel)
 					if (c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) {
 						hasActiveChannel = TRUE;
 					}
@@ -567,8 +566,8 @@ void sccp_mwi_check(sccp_device_t * device)
 	if (hasActiveChannel && !hasRinginChannel && !device->mwioncall) {
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: we have an active channel, disable mwi light\n", DEV_ID_LOG(device));
 
-		if (device->mwilight & (1 << 0)) {				// Set the MWI light to off only if it is already on.
-			device->mwilight &= ~(1 << 0);				/* set mwi light for device to off */
+		if (device->mwilight & (1 << 0)) {								// Set the MWI light to off only if it is already on.
+			device->mwilight &= ~(1 << 0);								/* set mwi light for device to off */
 
 			REQ(r, SetLampMessage);
 			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
@@ -579,8 +578,8 @@ void sccp_mwi_check(sccp_device_t * device)
 		} else {
 			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: MWI already %s on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
 		}
-        	device = sccp_device_release(device);
-		return;								// <---- This return must be outside the inner if
+		device = sccp_device_release(device);
+		return;												// <---- This return must be outside the inner if
 	}
 
 	/* Note: We must return the function before this point unless we want to turn the MWI on during a call! */
@@ -589,14 +588,14 @@ void sccp_mwi_check(sccp_device_t * device)
 	device->voicemailStatistic.oldmsgs = newmsgs;
 
 	/* set mwi light */
-	mask = device->mwilight & ~(1 << 0);					/* status without mwi light for device (1<<0) */
+	mask = device->mwilight & ~(1 << 0);									/* status without mwi light for device (1<<0) */
 	status = (mask > 0) ? 1 : 0;
 
-	if ((device->mwilight & (1 << 0)) != status) {				/* status needs update */
+	if ((device->mwilight & (1 << 0)) != status) {								/* status needs update */
 		if (status) {
-			device->mwilight |= (1 << 0);				/* activate */
+			device->mwilight |= (1 << 0);								/* activate */
 		} else {
-			device->mwilight &= ~(1 << 0);				/* deactivate */
+			device->mwilight &= ~(1 << 0);								/* deactivate */
 		}
 
 		REQ(r, SetLampMessage);
@@ -637,37 +636,38 @@ void sccp_mwi_check(sccp_device_t * device)
 #include <asterisk/cli.h>
 int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
- 	sccp_line_t *line=NULL;
- 	sccp_mailboxLine_t *mailboxLine = NULL;
- 	char linebuf[30]="";
- 	int local_total=0;
- 
- 	#define CLI_AMI_TABLE_NAME MWI_Subscriptions
- 	#define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox_Subscriber
- 	#define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_mailbox_subscriptions
- 	#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_mailbox_subscriber_list_t
- 	#define CLI_AMI_TABLE_LIST_ITER_VAR subscription
- 	#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
- 	#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
- 	#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
- 	#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+	sccp_line_t *line = NULL;
+	sccp_mailboxLine_t *mailboxLine = NULL;
+	char linebuf[30] = "";
+	int local_total = 0;
+
+#define CLI_AMI_TABLE_NAME MWI_Subscriptions
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox_Subscriber
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_mailbox_subscriptions
+#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_mailbox_subscriber_list_t
+#define CLI_AMI_TABLE_LIST_ITER_VAR subscription
+#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
  		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {					\
  			line = mailboxLine->line;										\
  			sprintf(linebuf,"%s",line->name);									\
 /* 			if (line->name) {										*/	\
 /*				ast_join(linebuf, sizeof(linebuf), (const char * const *) line->name);			*/	\
 /* 			}												*/	\
- 		}	
- 
- 	#define CLI_AMI_TABLE_FIELDS 												\
+ 		}
+
+#define CLI_AMI_TABLE_FIELDS 												\
  		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
  		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
  		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
  		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
  		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
- 	#include "sccp_cli_table.h"
- 	
- 	if (s) *total=local_total;
+#include "sccp_cli_table.h"
 
-        return RESULT_SUCCESS;
+	if (s)
+		*total = local_total;
+
+	return RESULT_SUCCESS;
 }

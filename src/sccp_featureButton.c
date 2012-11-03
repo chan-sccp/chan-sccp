@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_featureButton.c
  * \brief 	SCCP FeatureButton Class
@@ -66,200 +67,200 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 			instance = config->instance;
 
 			switch (config->button.feature.id) {
-			case SCCP_FEATURE_PRIVACY:
-				if (!device->privacyFeature.enabled) {
+				case SCCP_FEATURE_PRIVACY:
+					if (!device->privacyFeature.enabled) {
+						config->button.feature.status = 0;
+					}
+
+					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
+					if (!strcasecmp(config->button.feature.options, "callpresent")) {
+						uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
+
+						sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
+						config->button.feature.status = (result) ? 1 : 0;
+					}
+					if (!strcasecmp(config->button.feature.options, "hint")) {
+						uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+
+						sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
+						config->button.feature.status = (result) ? 1 : 0;
+					}
+					break;
+				case SCCP_FEATURE_CFWDALL:
+
+					// This needs to default to FALSE so that the cfwd feature
+					// is not being enabled unless we can ask the lines for their state.
 					config->button.feature.status = 0;
-				}
 
-				sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
-				if (!strcasecmp(config->button.feature.options, "callpresent")) {
-					uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
+					/* get current state */
+					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
+						if (buttonconfig->type == LINE) {
 
-					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
-					config->button.feature.status = (result) ? 1 : 0;
-				}
-				if (!strcasecmp(config->button.feature.options, "hint")) {
-					uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+							// Check if line and line device exists and thus forward status on that device can be checked
+							if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))
+							    && (linedevice = sccp_linedevice_find(device, line))) {
 
-					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
-					config->button.feature.status = (result) ? 1 : 0;
-				}
-				break;
-			case SCCP_FEATURE_CFWDALL:
+								sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
-				// This needs to default to FALSE so that the cfwd feature
-				// is not being enabled unless we can ask the lines for their state.
-				config->button.feature.status = 0;
-
-				/* get current state */
-				SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
-					if (buttonconfig->type == LINE) {
-
-						// Check if line and line device exists and thus forward status on that device can be checked
-						if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))
-						    && (linedevice = sccp_linedevice_find(device, line))) {
-
-							sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
-
-							/* set this button active, only if all lines are fwd -requesting issue #3081549 */
-							// Upon finding the first existing line, we need to set the feature status
-							// to TRUE and subsequently AND that value with the forward status of each line.
-							if (FALSE == lineFound) {
-								lineFound = TRUE;
-								config->button.feature.status = 1;
+								/* set this button active, only if all lines are fwd -requesting issue #3081549 */
+								// Upon finding the first existing line, we need to set the feature status
+								// to TRUE and subsequently AND that value with the forward status of each line.
+								if (FALSE == lineFound) {
+									lineFound = TRUE;
+									config->button.feature.status = 1;
+								}
+								// Set status of feature by logical and to comply with requirement above.
+								config->button.feature.status &= ((linedevice->cfwdAll.enabled) ? 1 : 0);	// Logical and &= intended here.
+								linedevice = sccp_linedevice_release(linedevice);
+								line = sccp_line_release(line);
 							}
-							// Set status of feature by logical and to comply with requirement above.
-							config->button.feature.status &= ((linedevice->cfwdAll.enabled) ? 1 : 0);	// Logical and &= intended here.
-							linedevice = sccp_linedevice_release(linedevice);
-							line = sccp_line_release(line);
 						}
 					}
-				}
-				buttonconfig = NULL;
+					buttonconfig = NULL;
 
-				break;
+					break;
 
-			case SCCP_FEATURE_DND:
-				if (!strcasecmp(config->button.feature.options, "silent")) {
-					if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_SILENT)) {
-						config->button.feature.status = 1;
+				case SCCP_FEATURE_DND:
+					if (!strcasecmp(config->button.feature.options, "silent")) {
+						if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_SILENT)) {
+							config->button.feature.status = 1;
+						}
+					} else if (!strcasecmp(config->button.feature.options, "busy")) {
+						if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT)) {
+							config->button.feature.status = 1;
+						}
 					}
-				} else if (!strcasecmp(config->button.feature.options, "busy")) {
-					if ((device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT)) {
-						config->button.feature.status = 1;
+					break;
+				case SCCP_FEATURE_MONITOR:
+					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
+					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+
+					switch (device->monitorFeature.status) {
+
+						case 0:
+							config->button.feature.status = 0;
+							break;
+
+						case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
+							config->button.feature.status = 131586;
+							break;
+
+						case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
+							config->button.feature.status = 131843;
+							break;
+
+						case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
+							config->button.feature.status = 131589;
+							break;
 					}
-				}
-				break;
-			case SCCP_FEATURE_MONITOR:
-				sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
-				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 
-				switch(device->monitorFeature.status){
-				  
-				  case 0:
-				    config->button.feature.status = 0;
- 				    break;
-				    
-				  case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-				    config->button.feature.status = 131586;
- 				    break;
-				    
- 				  case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
-				    config->button.feature.status = 131843;
-				    break;
-
-				  case (SCCP_FEATURE_MONITOR_STATE_REQUESTED | SCCP_FEATURE_MONITOR_STATE_ACTIVE):
-				    config->button.feature.status = 131589;
-				    break;
- 				}
-
-				break;
+					break;
 
 #ifdef CS_DEVSTATE_FEATURE
 
 				/**
 				  Handling of custom devicestate toggle button feature
 				  */
-			case SCCP_FEATURE_DEVSTATE:
-				/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
-				   Note that this relies on the functionality of the asterisk custom devicestate module. */
+				case SCCP_FEATURE_DEVSTATE:
+					/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
+					   Note that this relies on the functionality of the asterisk custom devicestate module. */
 
-				if (PBX(feature_getFromDatabase) (devstate_db_family, config->button.feature.options, buf, sizeof(buf))) {
-					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
-					if (!strncmp("INUSE", buf, 254)) {
-						config->button.feature.status = 1;
-					} else {
-						config->button.feature.status = 0;
+					if (PBX(feature_getFromDatabase) (devstate_db_family, config->button.feature.options, buf, sizeof(buf))) {
+						sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
+						if (!strncmp("INUSE", buf, 254)) {
+							config->button.feature.status = 1;
+						} else {
+							config->button.feature.status = 0;
+						}
 					}
-				}
-				break;
+					break;
 
 #endif
 
-			case SCCP_FEATURE_HOLD:
-				buttonID = SKINNY_BUTTONTYPE_HOLD;
-				break;
+				case SCCP_FEATURE_HOLD:
+					buttonID = SKINNY_BUTTONTYPE_HOLD;
+					break;
 
-			case SCCP_FEATURE_TRANSFER:
-				buttonID = SKINNY_BUTTONTYPE_TRANSFER;
-				break;
+				case SCCP_FEATURE_TRANSFER:
+					buttonID = SKINNY_BUTTONTYPE_TRANSFER;
+					break;
 
-			case SCCP_FEATURE_MULTIBLINK:
-				buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
-				config->button.feature.status = device->priFeature.status;
-				break;
+				case SCCP_FEATURE_MULTIBLINK:
+					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+					config->button.feature.status = device->priFeature.status;
+					break;
 
-			case SCCP_FEATURE_MOBILITY:
-				buttonID = SKINNY_BUTTONTYPE_MOBILITY;
-				config->button.feature.status = device->mobFeature.status;
-				break;
+				case SCCP_FEATURE_MOBILITY:
+					buttonID = SKINNY_BUTTONTYPE_MOBILITY;
+					config->button.feature.status = device->mobFeature.status;
+					break;
 
-			case SCCP_FEATURE_CONFERENCE:
-				buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
-				break;
+				case SCCP_FEATURE_CONFERENCE:
+					buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
+					break;
 
-			case SCCP_FEATURE_TEST6:
-				buttonID = SKINNY_BUTTONTYPE_TEST6;
-				break;
+				case SCCP_FEATURE_TEST6:
+					buttonID = SKINNY_BUTTONTYPE_TEST6;
+					break;
 
-			case SCCP_FEATURE_TEST7:
-				buttonID = SKINNY_BUTTONTYPE_TEST7;
-				break;
+				case SCCP_FEATURE_TEST7:
+					buttonID = SKINNY_BUTTONTYPE_TEST7;
+					break;
 
-			case SCCP_FEATURE_TEST8:
-				buttonID = SKINNY_BUTTONTYPE_TEST8;
-				break;
+				case SCCP_FEATURE_TEST8:
+					buttonID = SKINNY_BUTTONTYPE_TEST8;
+					break;
 
-			case SCCP_FEATURE_TEST9:
-				buttonID = SKINNY_BUTTONTYPE_TEST9;
-				break;
+				case SCCP_FEATURE_TEST9:
+					buttonID = SKINNY_BUTTONTYPE_TEST9;
+					break;
 
-			case SCCP_FEATURE_TESTA:
-				buttonID = SKINNY_BUTTONTYPE_TESTA;
-				break;
+				case SCCP_FEATURE_TESTA:
+					buttonID = SKINNY_BUTTONTYPE_TESTA;
+					break;
 
-			case SCCP_FEATURE_TESTB:
-				buttonID = SKINNY_BUTTONTYPE_TESTB;
-				break;
+				case SCCP_FEATURE_TESTB:
+					buttonID = SKINNY_BUTTONTYPE_TESTB;
+					break;
 
-			case SCCP_FEATURE_TESTC:
-				buttonID = SKINNY_BUTTONTYPE_TESTC;
-				break;
+				case SCCP_FEATURE_TESTC:
+					buttonID = SKINNY_BUTTONTYPE_TESTC;
+					break;
 
-			case SCCP_FEATURE_TESTD:
-				buttonID = SKINNY_BUTTONTYPE_TESTD;
-				break;
+				case SCCP_FEATURE_TESTD:
+					buttonID = SKINNY_BUTTONTYPE_TESTD;
+					break;
 
-			case SCCP_FEATURE_TESTE:
-				buttonID = SKINNY_BUTTONTYPE_TESTE;
-				break;
+				case SCCP_FEATURE_TESTE:
+					buttonID = SKINNY_BUTTONTYPE_TESTE;
+					break;
 
-			case SCCP_FEATURE_TESTF:
-				buttonID = SKINNY_BUTTONTYPE_TESTF;
-				break;
+				case SCCP_FEATURE_TESTF:
+					buttonID = SKINNY_BUTTONTYPE_TESTF;
+					break;
 
-			case SCCP_FEATURE_TESTG:
-				buttonID = SKINNY_BUTTONTYPE_MESSAGES;
-				break;
+				case SCCP_FEATURE_TESTG:
+					buttonID = SKINNY_BUTTONTYPE_MESSAGES;
+					break;
 
-			case SCCP_FEATURE_TESTH:
-				buttonID = SKINNY_BUTTONTYPE_DIRECTORY;
-				break;
+				case SCCP_FEATURE_TESTH:
+					buttonID = SKINNY_BUTTONTYPE_DIRECTORY;
+					break;
 
-			case SCCP_FEATURE_TESTI:
-				buttonID = SKINNY_BUTTONTYPE_TESTI;
-				break;
+				case SCCP_FEATURE_TESTI:
+					buttonID = SKINNY_BUTTONTYPE_TESTI;
+					break;
 
-			case SCCP_FEATURE_TESTJ:
-				buttonID = SKINNY_BUTTONTYPE_APPLICATION;
-				break;
+				case SCCP_FEATURE_TESTJ:
+					buttonID = SKINNY_BUTTONTYPE_APPLICATION;
+					break;
 
-			case SCCP_FEATURE_PICKUP:
-				buttonID = SKINNY_STIMULUS_GROUPCALLPICKUP;
-				break;
+				case SCCP_FEATURE_PICKUP:
+					buttonID = SKINNY_STIMULUS_GROUPCALLPICKUP;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 
 			}
 

@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_device.c
  * \brief 	SCCP Device Class
@@ -80,10 +81,11 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 	}
 
 	if (sccp_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
-		// checking permithosts	
+		// checking permithosts 
 		struct ast_str *ha_buf = pbx_str_alloca(512);
+
 		sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
-		
+
 		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...\n", device->id, pbx_str_buffer(ha_buf));
 
 		struct ast_hostent ahp;
@@ -94,7 +96,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&device->permithosts, permithost, list) {
 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				for (i = 0; NULL != hp->h_addr_list[i]; i++) {	// walk resulting ip address
+				for (i = 0; NULL != hp->h_addr_list[i]; i++) {					// walk resulting ip address
 					if (sin.sin_addr.s_addr == (*(struct in_addr *)hp->h_addr_list[i]).s_addr) {
 						sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: permithost = %s match found.\n", device->id, permithost->name);
 						matchesACL = TRUE;
@@ -136,7 +138,7 @@ void sccp_device_pre_reload(void)
 		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		sccp_free_ha(d->ha);
 		d->ha = NULL;
-		if (!d->realtime)						/* don't want to reset hotline devices. */
+		if (!d->realtime)										/* don't want to reset hotline devices. */
 			d->pendingDelete = 1;
 		d->pendingUpdate = 0;
 		SCCP_LIST_LOCK(&d->buttonconfig);
@@ -254,7 +256,7 @@ void sccp_device_post_reload(void)
 sccp_device_t *sccp_device_create(const char *id)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
-	sccp_device_t *d = (sccp_device_t *)sccp_refcount_object_alloc(sizeof(sccp_device_t), SCCP_REF_DEVICE, id, __sccp_device_destroy);
+	sccp_device_t *d = (sccp_device_t *) sccp_refcount_object_alloc(sizeof(sccp_device_t), SCCP_REF_DEVICE, id, __sccp_device_destroy);
 
 	if (!d) {
 		sccp_log(0) (VERBOSE_PREFIX_3 "Unable to allocate memory for a device\n");
@@ -281,8 +283,8 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->postregistration_thread = AST_PTHREADT_STOP;
 
 	// set minimum protocol levels
-//	d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
-//	d->protocol = sccp_protocol_getDeviceProtocol(d, SCCP_PROTOCOL);
+//      d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
+//      d->protocol = sccp_protocol_getDeviceProtocol(d, SCCP_PROTOCOL);
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "Init MessageStack\n");
 
@@ -290,8 +292,9 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifndef SCCP_ATOMIC
 	pbx_mutex_init(&d->messageStackLock);
 	sccp_mutex_lock(&d->messageStackLock);
-#endif	
+#endif
 	uint8_t i;
+
 	for (i = 0; i < ARRAY_LEN(d->messageStack); i++) {
 		d->messageStack[i] = NULL;
 	}
@@ -326,7 +329,7 @@ sccp_device_t *sccp_device_create(const char *id)
 sccp_device_t *sccp_device_createAnonymous(const char *name)
 {
 	sccp_device_t *d = sccp_device_create(name);
-	
+
 	if (!d) {
 		pbx_log(LOG_ERROR, "SCCP: sccp_device_create(%s) failed", name);
 		return NULL;
@@ -336,7 +339,7 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
 	d->isAnonymous = TRUE;
 	d->checkACL = sccp_device_checkACLTrue;
 
-//	sccp_copy_string(d->id, name, sizeof(d->id));
+//      sccp_copy_string(d->id, name, sizeof(d->id));
 
 	return d;
 }
@@ -365,27 +368,27 @@ void sccp_device_setIndicationProtocol(sccp_device_t * device)
 //      case SKINNY_DEVICETYPE_CISCO7910:
 //      case SKINNY_DEVICETYPE_CISCO7940:
 //      case SKINNY_DEVICETYPE_CISCO7960:
-	case SKINNY_DEVICETYPE_CISCO7941:
-	case SKINNY_DEVICETYPE_CISCO7941GE:
-	case SKINNY_DEVICETYPE_CISCO7942:
-	case SKINNY_DEVICETYPE_CISCO7945:
+		case SKINNY_DEVICETYPE_CISCO7941:
+		case SKINNY_DEVICETYPE_CISCO7941GE:
+		case SKINNY_DEVICETYPE_CISCO7942:
+		case SKINNY_DEVICETYPE_CISCO7945:
 //      case SKINNY_DEVICETYPE_CISCO7920:
-	case SKINNY_DEVICETYPE_CISCO7921:
-	case SKINNY_DEVICETYPE_CISCO7925:
-	case SKINNY_DEVICETYPE_CISCO7985:
-	case SKINNY_DEVICETYPE_CISCO7961:
-	case SKINNY_DEVICETYPE_CISCO7961GE:
-	case SKINNY_DEVICETYPE_CISCO7962:
-	case SKINNY_DEVICETYPE_CISCO7965:
-	case SKINNY_DEVICETYPE_CISCO7970:
-	case SKINNY_DEVICETYPE_CISCO7971:
-	case SKINNY_DEVICETYPE_CISCO7975:
-	case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
-		device->indicate = &sccp_device_indication_newerDevices;
-		break;
-	default:
-		device->indicate = &sccp_device_indication_olderDevices;
-		break;
+		case SKINNY_DEVICETYPE_CISCO7921:
+		case SKINNY_DEVICETYPE_CISCO7925:
+		case SKINNY_DEVICETYPE_CISCO7985:
+		case SKINNY_DEVICETYPE_CISCO7961:
+		case SKINNY_DEVICETYPE_CISCO7961GE:
+		case SKINNY_DEVICETYPE_CISCO7962:
+		case SKINNY_DEVICETYPE_CISCO7965:
+		case SKINNY_DEVICETYPE_CISCO7970:
+		case SKINNY_DEVICETYPE_CISCO7971:
+		case SKINNY_DEVICETYPE_CISCO7975:
+		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
+			device->indicate = &sccp_device_indication_newerDevices;
+			break;
+		default:
+			device->indicate = &sccp_device_indication_olderDevices;
+			break;
 	}
 	return;
 }
@@ -404,11 +407,11 @@ void sccp_device_addToGlobals(sccp_device_t * device)
 {
 	if (!device) {
 		pbx_log(LOG_ERROR, "Adding null to the global device list is not allowed!\n");
-        	return;
+		return;
 	}
 	device = sccp_device_retain(device);
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-//	SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
+//      SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
 	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), device, list, id);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s) to Glob(devices)\n", device->id, device->config_type);
@@ -428,7 +431,7 @@ sccp_device_t *sccp_device_removeFromGlobals(sccp_device_t * device)
 {
 	if (!device) {
 		pbx_log(LOG_ERROR, "Removing null from the global device list is not allowed!\n");
-        	return NULL;
+		return NULL;
 	}
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
@@ -451,209 +454,209 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
 
 	switch (d->skinny_type) {
-	case SKINNY_DEVICETYPE_30SPPLUS:
-	case SKINNY_DEVICETYPE_30VIP:
-		for (i = 0; i < 4; i++)
+		case SKINNY_DEVICETYPE_30SPPLUS:
+		case SKINNY_DEVICETYPE_30VIP:
+			for (i = 0; i < 4; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			for (i = 0; i < 9; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			/* Column 2 */
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
+			for (i = 0; i < 9; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			break;
+		case SKINNY_DEVICETYPE_12SPPLUS:
+		case SKINNY_DEVICETYPE_12SP:
+		case SKINNY_DEVICETYPE_12:
 			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		for (i = 0; i < 9; i++)
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		/* Column 2 */
-		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-		(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
-		for (i = 0; i < 9; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		break;
-	case SKINNY_DEVICETYPE_12SPPLUS:
-	case SKINNY_DEVICETYPE_12SP:
-	case SKINNY_DEVICETYPE_12:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-		(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-		(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
-		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7902:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-		(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-		(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7912:
-	case SKINNY_DEVICETYPE_CISCO7911:
-	case SKINNY_DEVICETYPE_CISCO7906:
-	case SKINNY_DEVICETYPE_CISCO7905:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-		for (i = 0; i < 9; i++)
 			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7931:
-		for (i = 0; i < 20; i++) {
-			btn[i].type = SCCP_BUTTONTYPE_MULTI;
-		}
-		btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
-		btn[20].instance = 21;
-		btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
-		btn[21].instance = 22;
-		btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
-		btn[22].instance = 23;
-		btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
-		btn[23].instance = 24;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7935:
-	case SKINNY_DEVICETYPE_CISCO7936:
-	case SKINNY_DEVICETYPE_CISCO7937:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7910:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-		(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-		(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-		(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-		(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-		(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7940:
-	case SKINNY_DEVICETYPE_CISCO7941:
-	case SKINNY_DEVICETYPE_CISCO7941GE:
-	case SKINNY_DEVICETYPE_CISCO7942:
-	case SKINNY_DEVICETYPE_CISCO7945:
-		/* add text message support */
-		d->pushTextMessage = sccp_device_pushTextMessage;
-		d->pushURL = sccp_device_pushURL;
-
-		for (i = 0; i < 2 + sccp_addons_taps(d); i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7920:
-	case SKINNY_DEVICETYPE_CISCO7921:
-	case SKINNY_DEVICETYPE_CISCO7925:
-		for (i = 0; i < 6; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7985:
-		d->capabilities.video[0] = SKINNY_CODEC_H264;
-		d->capabilities.video[1] = SKINNY_CODEC_H263;
-#ifdef CS_SCCP_VIDEO
-		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
-#endif
-		for (i = 0; i < 1; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7960:
-	case SKINNY_DEVICETYPE_CISCO7961:
-	case SKINNY_DEVICETYPE_CISCO7961GE:
-	case SKINNY_DEVICETYPE_CISCO7962:
-	case SKINNY_DEVICETYPE_CISCO7965:
-		/* add text message support */
-		d->pushTextMessage = sccp_device_pushTextMessage;
-		d->pushURL = sccp_device_pushURL;
-
-		for (i = 0; i < 6 + sccp_addons_taps(d); i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO7970:
-	case SKINNY_DEVICETYPE_CISCO7971:
-	case SKINNY_DEVICETYPE_CISCO7975:
-	case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
-		/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
-		if (!strcasecmp(d->config_type, "nokia-icc")) {			// this is for nokia icc legacy support (Old releases) -FS
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		} else {
-			uint8_t addonsTaps = sccp_addons_taps(d);
-
-			for (i = 0; i < 8 + addonsTaps; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CALLPARK;
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7902:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7912:
+		case SKINNY_DEVICETYPE_CISCO7911:
+		case SKINNY_DEVICETYPE_CISCO7906:
+		case SKINNY_DEVICETYPE_CISCO7905:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			for (i = 0; i < 9; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7931:
+			for (i = 0; i < 20; i++) {
+				btn[i].type = SCCP_BUTTONTYPE_MULTI;
 			}
-
+			btn[20].type = SKINNY_BUTTONTYPE_MESSAGES;
+			btn[20].instance = 21;
+			btn[21].type = SKINNY_BUTTONTYPE_DIRECTORY;
+			btn[21].instance = 22;
+			btn[22].type = SKINNY_BUTTONTYPE_HEADSET;
+			btn[22].instance = 23;
+			btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
+			btn[23].instance = 24;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7935:
+		case SKINNY_DEVICETYPE_CISCO7936:
+		case SKINNY_DEVICETYPE_CISCO7937:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7910:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7940:
+		case SKINNY_DEVICETYPE_CISCO7941:
+		case SKINNY_DEVICETYPE_CISCO7941GE:
+		case SKINNY_DEVICETYPE_CISCO7942:
+		case SKINNY_DEVICETYPE_CISCO7945:
 			/* add text message support */
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
-		}
-		break;
-	case SKINNY_DEVICETYPE_NOKIA_ICC:
-		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		for (i = 0; i < 5; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		break;
-	case SKINNY_DEVICETYPE_ATA186:
-		//case SKINNY_DEVICETYPE_ATA188:
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		for (i = 0; i < 4; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-		break;
-	case SKINNY_DEVICETYPE_CISCO8941:
-	case SKINNY_DEVICETYPE_CISCO8945:
-		d->capabilities.video[0] = SKINNY_CODEC_H264;
-		d->capabilities.video[1] = SKINNY_CODEC_H263;
+
+			for (i = 0; i < 2 + sccp_addons_taps(d); i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7920:
+		case SKINNY_DEVICETYPE_CISCO7921:
+		case SKINNY_DEVICETYPE_CISCO7925:
+			for (i = 0; i < 6; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7985:
+			d->capabilities.video[0] = SKINNY_CODEC_H264;
+			d->capabilities.video[1] = SKINNY_CODEC_H263;
 #ifdef CS_SCCP_VIDEO
-		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
-		d->hasDisplayPrompt = sccp_device_falseResult;
-		for (i = 0; i < 4; i++)
+			for (i = 0; i < 1; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7960:
+		case SKINNY_DEVICETYPE_CISCO7961:
+		case SKINNY_DEVICETYPE_CISCO7961GE:
+		case SKINNY_DEVICETYPE_CISCO7962:
+		case SKINNY_DEVICETYPE_CISCO7965:
+			/* add text message support */
+			d->pushTextMessage = sccp_device_pushTextMessage;
+			d->pushURL = sccp_device_pushURL;
+
+			for (i = 0; i < 6 + sccp_addons_taps(d); i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7970:
+		case SKINNY_DEVICETYPE_CISCO7971:
+		case SKINNY_DEVICETYPE_CISCO7975:
+		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
+			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
+			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			} else {
+				uint8_t addonsTaps = sccp_addons_taps(d);
+
+				for (i = 0; i < 8 + addonsTaps; i++) {
+					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				}
+
+				/* add text message support */
+				d->pushTextMessage = sccp_device_pushTextMessage;
+				d->pushURL = sccp_device_pushURL;
+			}
+			break;
+		case SKINNY_DEVICETYPE_NOKIA_ICC:
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_SPA_521S:
-		for (i = 0; i < 1; i++)
+			break;
+		case SKINNY_DEVICETYPE_NOKIA_E_SERIES:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			for (i = 0; i < 5; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			break;
+		case SKINNY_DEVICETYPE_ATA186:
+			//case SKINNY_DEVICETYPE_ATA188:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			for (i = 0; i < 4; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			break;
+		case SKINNY_DEVICETYPE_CISCO8941:
+		case SKINNY_DEVICETYPE_CISCO8945:
+			d->capabilities.video[0] = SKINNY_CODEC_H264;
+			d->capabilities.video[1] = SKINNY_CODEC_H263;
+#ifdef CS_SCCP_VIDEO
+			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+#endif
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			for (i = 0; i < 4; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_SPA_521S:
+			for (i = 0; i < 1; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_SPA_525G2:
+			for (i = 0; i < 8; i++)
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			break;
+		case SKINNY_DEVICETYPE_CISCO6901:
+		case SKINNY_DEVICETYPE_CISCO6911:
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_SPA_525G2:
-		for (i = 0; i < 8; i++)
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO6901:
-	case SKINNY_DEVICETYPE_CISCO6911:
-		(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		break;
-	case SKINNY_DEVICETYPE_CISCO6921:
-		for (i = 0; i < 2; i++) {
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		}
-		d->hasDisplayPrompt = sccp_device_falseResult;
-		break;
-	case SKINNY_DEVICETYPE_CISCO6941:
-	case SKINNY_DEVICETYPE_CISCO6945:
-		for (i = 0; i < 4; i++) {
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		}
-		d->hasDisplayPrompt = sccp_device_falseResult;
-		break;
-	case SKINNY_DEVICETYPE_CISCO6961:
-		for (i = 0; i < 12; i++) {
-			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-		}
-		d->hasDisplayPrompt = sccp_device_falseResult;
-		break;
-	default:
-		/* at least one line */
-		(btn++)->type = SCCP_BUTTONTYPE_LINE;
-		break;
+			break;
+		case SKINNY_DEVICETYPE_CISCO6921:
+			for (i = 0; i < 2; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			break;
+		case SKINNY_DEVICETYPE_CISCO6941:
+		case SKINNY_DEVICETYPE_CISCO6945:
+			for (i = 0; i < 4; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			break;
+		case SKINNY_DEVICETYPE_CISCO6961:
+			for (i = 0; i < 12; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			break;
+		default:
+			/* at least one line */
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			break;
 	}
 	return;
 }
@@ -666,7 +669,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
  */
 sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
 {
-//	sccp_moo_t *r = sccp_malloc(sizeof(sccp_moo_t));
+//      sccp_moo_t *r = sccp_malloc(sizeof(sccp_moo_t));
 	sccp_moo_t *r = sccp_malloc(pkt_len + 12);
 
 	if (!r) {
@@ -691,6 +694,7 @@ sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
 	int result = -1;
+
 	if (d && d->session && r) {
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
 		result = sccp_session_send(d, r);
@@ -740,7 +744,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 			r->msg.SetLampMessage.lel_stimulusInstance = 0;
 			r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
-// 			d->mwilight &= ~(1 << 0);
+//                      d->mwilight &= ~(1 << 0);
 			sccp_dev_send(d, r);
 		}
 
@@ -771,11 +775,11 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 {
 	sccp_moo_t *r;
 
-	if (!d )
+	if (!d)
 		return;
 
 	if (!d->softkeysupport)
-		return;								/* the device does not support softkeys */
+		return;												/* the device does not support softkeys */
 
 	/*let's activate the transfer */
 	if (softKeySetIndex == KEYMODE_CONNECTED)
@@ -784,7 +788,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	REQ(r, SelectSoftKeysMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.SelectSoftKeysMessage.lel_lineInstance = htolel(line);
 	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(callid);
 	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(softKeySetIndex);
@@ -819,12 +823,12 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	REQ(r, SetRingerMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.SetRingerMessage.lel_ringMode = htolel(opt);
 	/* Note that for distinctive ringing to work with the higher protocol versions
 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);			/* always 1 */
+	r->msg.SetRingerMessage.lel_unknown1 = htolel(1);							/* always 1 */
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
@@ -846,7 +850,7 @@ void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
 	REQ(r, SetSpeakerModeMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.SetSpeakerModeMessage.lel_speakerMode = htolel(mode);
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send speaker mode %d\n", d->id, mode);
@@ -867,7 +871,7 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 	REQ(r, SetMicroModeMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.SetMicroModeMessage.lel_micMode = htolel(mode);
 	sccp_dev_send(d, r);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send microphone mode %d\n", d->id, mode);
@@ -897,7 +901,7 @@ void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * 
 	REQ(r, ActivateCallPlaneMessage);
 	if (!r)
 		return;
-		
+
 	if (status)
 		r->msg.ActivateCallPlaneMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(device, r);
@@ -935,6 +939,7 @@ void sccp_dev_deactivate_cplane(sccp_device_t * d)
 void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout)
 {
 	sccp_moo_t *r;
+
 	if (!d) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Null device for device starttone\n");
 		return;
@@ -943,7 +948,7 @@ void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uin
 	REQ(r, StartToneMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.StartToneMessage.lel_tone = htolel(tone);
 	r->msg.StartToneMessage.lel_toneTimeout = htolel(timeout);
 	r->msg.StartToneMessage.lel_lineInstance = htolel(line);
@@ -968,7 +973,7 @@ void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
 	REQ(r, StopToneMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.StopToneMessage.lel_lineInstance = htolel(line);
 	r->msg.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
@@ -1040,12 +1045,12 @@ void sccp_dev_clearprompt(const sccp_device_t * d, const uint8_t lineInstance, c
 	sccp_moo_t *r;
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	REQ(r, ClearPromptStatusMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
 	r->msg.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
 	sccp_dev_send(d, r);
@@ -1076,7 +1081,7 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineIns
 		return;
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
 }
@@ -1092,9 +1097,9 @@ void sccp_dev_cleardisplay(const sccp_device_t * d)
 {
 	if (!d)
 		return;
-		
+
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearDisplay);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
@@ -1123,7 +1128,7 @@ void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char
 		return;
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	if (!msg || sccp_strlen_zero(msg))
 		return;
@@ -1131,7 +1136,7 @@ void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char
 	REQ(r, DisplayTextMessage);
 	if (!r)
 		return;
-		
+
 	sccp_copy_string(r->msg.DisplayTextMessage.displayMessage, msg, sizeof(r->msg.DisplayTextMessage.displayMessage));
 
 	sccp_dev_send(d, r);
@@ -1148,7 +1153,7 @@ void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char
 void sccp_dev_cleardisplaynotify(const sccp_device_t * d)
 {
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearNotifyMessage);
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display notify message\n", d->id);
@@ -1174,9 +1179,9 @@ void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, uint
 #endif
 	if (!d || !d->session || !d->protocol || !d->skinny_type || !d->config_type)
 		return;
-		
+
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	if (!msg || sccp_strlen_zero(msg))
 		return;
@@ -1198,7 +1203,7 @@ void sccp_dev_cleardisplayprinotify(const sccp_device_t * d)
 		return;
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	sccp_dev_sendmsg(d, ClearPriNotifyMessage);
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
@@ -1226,7 +1231,7 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
 		return;
 
 	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk")))
-		return;								/* only for telecaster and new phones */
+		return;												/* only for telecaster and new phones */
 
 	if (!msg || sccp_strlen_zero(msg))
 		return;
@@ -1245,16 +1250,15 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \lock
  * 	- device->buttonconfig
  */
-void sccp_dev_speed_find_byindex(sccp_device_t *d, uint16_t instance, uint8_t type, sccp_speed_t *k)
+void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type, sccp_speed_t * k)
 {
 	sccp_buttonconfig_t *config;
 
 	if (!d || !d->session || instance == 0)
 		return;
-	
+
 	memset(k, 0, sizeof(sccp_speed_t));
 	sccp_copy_string(k->name, "unknown speeddial", sizeof(k->name));
-
 
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -1265,7 +1269,6 @@ void sccp_dev_speed_find_byindex(sccp_device_t *d, uint16_t instance, uint8_t ty
 			if (type == SCCP_BUTTONTYPE_HINT && sccp_strlen_zero(config->button.speeddial.hint))
 				continue;
 
-			
 			k->valid = TRUE;
 			k->instance = instance;
 			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
@@ -1315,7 +1318,7 @@ sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
 		return sccp_line_retain(d->currentLine);
 	}
-	return NULL;								// never reached
+	return NULL;												// never reached
 }
 
 /*!
@@ -1366,7 +1369,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 
 #ifndef SCCP_ATOMIC
 	sccp_mutex_lock(&d->messageStackLock);
-#endif	
+#endif
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 		if (d->messageStack[i] != NULL) {
 			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
@@ -1381,9 +1384,9 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	if (d->hasDisplayPrompt()) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 	}
-	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);				/* this is for redial softkey */
+	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);								/* this is for redial softkey */
 
-DONE:
+ DONE:
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
 
@@ -1463,17 +1466,17 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
 			sccp_handle_AvailableLines(device->session, device, NULL);
 			device->linesRegistered = TRUE;
- 		}
+		}
 	}
 	if ((linedevice = sccp_linedevice_find(device, l))) {
- 		device->protocol->sendCallforwardMessage(device, linedevice);
- 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
- 		sccp_linedevice_release(linedevice);
+		device->protocol->sendCallforwardMessage(device, linedevice);
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
+		sccp_linedevice_release(linedevice);
 	} else {
 		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
- 	}
- 
- 	//! \todo What to do with this lineStatusChanges in sccp_dev_forward_status
+	}
+
+	//! \todo What to do with this lineStatusChanges in sccp_dev_forward_status
 	/*
 	   if (l->cfwd_type == SCCP_CFWD_ALL){
 	   //sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
@@ -1632,12 +1635,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 	if ((d = sccp_device_retain(d))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
-		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);			/* set correct register state */
+		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);						/* set correct register state */
 		if (remove_from_global) {
 			sccp_device_removeFromGlobals(d);
 		}
 
-		d->mwilight = 0;							/* reset mwi light */
+		d->mwilight = 0;										/* reset mwi light */
 		d->linesRegistered = FALSE;
 		sprintf(family, "SCCP/%s", d->id);
 		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
@@ -1683,13 +1686,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 				sccp_line_removeDevice(line, d);
 				line = sccp_line_release(line);
 			}
-			config->instance = 0;						/* reset button configuration to rebuild template on register */
+			config->instance = 0;									/* reset button configuration to rebuild template on register */
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 		d->linesRegistered = FALSE;
 
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Unregister Device %s\n", d->id);
-		
 
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_DEVICE_UNREGISTERED;
@@ -1699,10 +1701,10 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		/* cleanup statistics */
 		memset(&d->configurationStatistic, 0, sizeof(d->configurationStatistic));
 
-		d->mwilight = 0;							/* cleanup mwi status */
+		d->mwilight = 0;										/* cleanup mwi status */
 		d->status.token = SCCP_TOKEN_STATE_NOTOKEN;
 		d->registrationTime = time(0);
-		
+
 		/* removing addons */
 		if (remove_from_global) {
 			sccp_addons_clear(d);
@@ -1718,12 +1720,12 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		if (d->session && d->session->device) {
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			usleep(10);
-//			sccp_session_lock(d->session);
-//			d->session->device = sccp_session_removeDevice(d->session);
+//                      sccp_session_lock(d->session);
+//                      d->session->device = sccp_session_removeDevice(d->session);
 			sccp_session_removeDevice(d->session);
 			d->session = NULL;
-//			d->session = NULL;
-//			sccp_session_unlock(d->session);
+//                      d->session = NULL;
+//                      sccp_session_unlock(d->session);
 		}
 
 		/* release line references, refcounted in btnList */
@@ -1738,7 +1740,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			sccp_free(d->buttonTemplate);
 			d->buttonTemplate = NULL;
 		}
-	#ifdef CS_DEVSTATE_FEATURE
+#ifdef CS_DEVSTATE_FEATURE
 		/* Unregister event subscriptions originating from devstate feature */
 		SCCP_LIST_LOCK(&d->devstateSpecifiers);
 		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
@@ -1749,11 +1751,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 
-	#endif
-// 		if (remove_from_global) {
-// 			sccp_device_destroy(d);
-// //			sccp_device_removeFromGlobals(d);
-// 		}
+#endif
+//              if (remove_from_global) {
+//                      sccp_device_destroy(d);
+// //                   sccp_device_removeFromGlobals(d);
+//              }
 		d = sccp_device_release(d);
 	}
 }
@@ -1782,7 +1784,7 @@ int __sccp_device_destroy(const void *ptr)
 	int i;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
-	sccp_mutex_lock(&d->lock);						// using real device lock while using refcount
+	sccp_mutex_lock(&d->lock);										// using real device lock while using refcount
 
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart */
@@ -1827,7 +1829,7 @@ int __sccp_device_destroy(const void *ptr)
 	/* cleanup message stack */
 #ifndef SCCP_ATOMIC
 	sccp_mutex_lock(&d->messageStackLock);
-#endif	
+#endif
 	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
 		if (d && d->messageStack && d->messageStack[i] != NULL) {
 			sccp_free(d->messageStack[i]);
@@ -1836,15 +1838,15 @@ int __sccp_device_destroy(const void *ptr)
 #ifndef SCCP_ATOMIC
 	sccp_mutex_unlock(&d->messageStackLock);
 	pbx_mutex_destroy(&d->messageStackLock);
-#endif	
+#endif
 
 	if (d->variables) {
 		pbx_variables_destroy(d->variables);
 		d->variables = NULL;
-	}	
+	}
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
-	sccp_mutex_unlock(&d->lock);						// using real device lock while using refcount
+	sccp_mutex_unlock(&d->lock);										// using real device lock while using refcount
 	pbx_mutex_destroy(&d->lock);
 	return 0;
 }
@@ -1868,6 +1870,7 @@ int __sccp_device_destroy(const void *ptr)
 int sccp_device_destroy(const void *ptr)
 {
 	sccp_device_t *d = (sccp_device_t *) ptr;
+
 	sccp_device_removeFromGlobals(d);
 	return 0;
 }
@@ -1965,7 +1968,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	REQ(r, Reset);
 	if (!r)
 		return 0;
-		
+
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
 	return 1;
@@ -2060,11 +2063,11 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 		return;
 
 	if (digit == '*') {
-		digit = 0xe;							/* See the definition of tone_list in chan_protocol.h for more info */
+		digit = 0xe;											/* See the definition of tone_list in chan_protocol.h for more info */
 	} else if (digit == '#') {
 		digit = 0xf;
 	} else if (digit == '0') {
-		digit = 0xa;							/* 0 is not 0 for cisco :-) */
+		digit = 0xa;											/* 0 is not 0 for cisco :-) */
 	} else {
 		digit -= '0';
 	}
@@ -2077,7 +2080,7 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 	REQ(r, KeypadButtonMessage);
 	if (!r)
 		return;
-		
+
 	r->msg.KeypadButtonMessage.lel_kpButton = htolel(digit);
 	r->msg.KeypadButtonMessage.lel_lineInstance = htolel(line);
 	r->msg.KeypadButtonMessage.lel_callReference = htolel(callid);
@@ -2114,35 +2117,39 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 {
 	char *newValue = NULL;
 	char *oldValue = NULL;
-	
+
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
 	newValue = strdup(message);
 #ifdef SCCP_ATOMIC
-#  ifdef SCCP_BUILTIN_CAS_PTR		// lock-less, atomic implementation
+#    ifdef SCCP_BUILTIN_CAS_PTR											// lock-less, atomic implementation
 	char *yieldedValue;
+
 	do {
+
 		/** already a message for this priority */
 		oldValue = device->messageStack[priority];
-		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
+		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);	// Atomic Swap In newmsgptr
 	} while (yieldedValue != oldValue);
-#  else
+#    else
 	// only the boolean compare and swap is available in boemc implementation
-	boolean_t yieldedValue=FALSE;
+	boolean_t yieldedValue = FALSE;
+
 	do {
+
 		/** already a message for this priority */
 		oldValue = device->messageStack[priority];
-		yieldedValue = AO_compare_and_swap((uintptr_t *)&device->messageStack[priority], (uintptr_t)oldValue, (uintptr_t)newValue);		// Atomic Swap using boemc atomic_ops
+		yieldedValue = AO_compare_and_swap((uintptr_t *) & device->messageStack[priority], (uintptr_t) oldValue, (uintptr_t) newValue);	// Atomic Swap using boemc atomic_ops
 	} while (!yieldedValue);
-#  endif	
+#    endif
 #else
 	sccp_mutex_lock(&device->messageStackLock);
 	oldValue = device->messageStack[priority];
 	device->messageStack[priority] = newValue;
 	sccp_mutex_unlock(&device->messageStackLock);
 #endif
-	
+
 	if (oldValue) {
 		sccp_free(oldValue);
 	}
@@ -2154,37 +2161,39 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
  */
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
-	
+
 	char *newValue = NULL;
 	char *oldValue = NULL;
 
 	if (ARRAY_LEN(device->messageStack) <= priority)
 		return;
 
-	sccp_log(DEBUGCAT_DEVICE)(VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
 #ifdef SCCP_ATOMIC
-#  ifdef SCCP_BUILTIN_CAS_PTR		// lock-less, atomic implementation
+#    ifdef SCCP_BUILTIN_CAS_PTR											// lock-less, atomic implementation
 	char *yieldedValue;
+
 	do {
 		oldValue = device->messageStack[priority];
-		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);		// Atomic Swap In newmsgptr
+		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);	// Atomic Swap In newmsgptr
 	} while (yieldedValue != oldValue);
-#  else
+#    else
 	// only the boolean compare and swap is available in boemc implementation
-	boolean_t yieldedValue=FALSE;
+	boolean_t yieldedValue = FALSE;
+
 	do {
 		oldValue = device->messageStack[priority];
-		yieldedValue = AO_compare_and_swap((uintptr_t *)&device->messageStack[priority], (uintptr_t)oldValue, (uintptr_t)newValue);		// Atomic Swap using boemc atomic_ops
+		yieldedValue = AO_compare_and_swap((uintptr_t *) & device->messageStack[priority], (uintptr_t) oldValue, (uintptr_t) newValue);	// Atomic Swap using boemc atomic_ops
 	} while (!yieldedValue);
-#  endif	
+#    endif
 #else
 	sccp_mutex_lock(&device->messageStackLock);
 	oldValue = device->messageStack[priority];
 	device->messageStack[priority] = newValue;
 	sccp_mutex_unlock(&device->messageStackLock);
 #endif
-	
+
 	if (oldValue) {
 		sccp_free(oldValue);
 		sccp_dev_check_displayprompt(device);
@@ -2224,85 +2233,85 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_EVENT | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 
 	switch (event->event.featureChanged.featureType) {
-	case SCCP_FEATURE_CFWDNONE:
-		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
-		break;
-	case SCCP_FEATURE_CFWDBUSY:
-	case SCCP_FEATURE_CFWDALL:
-		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-			if (config->type == LINE) {
-				if ((line = sccp_line_find_byname_wo(config->button.line.name, FALSE))) {
-					SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-						if (linedevice->device != device) {
-							continue;
-						}
-						linedevice = sccp_linedevice_retain(linedevice);
-
-						uint8_t instance = sccp_device_find_index_for_line(device, line->name);
-
-						sccp_dev_forward_status(line, instance, device);
-						switch (event->event.featureChanged.featureType) {
-						case SCCP_FEATURE_CFWDALL:
-							if (linedevice->cfwdAll.enabled) {
-								/* build disp message string */
-								if (s != tmp)
-									pbx_build_string(&s, &len, ", ");
-								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+		case SCCP_FEATURE_CFWDNONE:
+			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
+			break;
+		case SCCP_FEATURE_CFWDBUSY:
+		case SCCP_FEATURE_CFWDALL:
+			SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+				if (config->type == LINE) {
+					if ((line = sccp_line_find_byname_wo(config->button.line.name, FALSE))) {
+						SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
+							if (linedevice->device != device) {
+								continue;
 							}
-							break;
-						case SCCP_FEATURE_CFWDBUSY:
-							if (linedevice->cfwdBusy.enabled) {
-								/* build disp message string */
-								if (s != tmp)
-									pbx_build_string(&s, &len, ", ");
-								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
+							linedevice = sccp_linedevice_retain(linedevice);
+
+							uint8_t instance = sccp_device_find_index_for_line(device, line->name);
+
+							sccp_dev_forward_status(line, instance, device);
+							switch (event->event.featureChanged.featureType) {
+								case SCCP_FEATURE_CFWDALL:
+									if (linedevice->cfwdAll.enabled) {
+										/* build disp message string */
+										if (s != tmp)
+											pbx_build_string(&s, &len, ", ");
+										pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+									}
+									break;
+								case SCCP_FEATURE_CFWDBUSY:
+									if (linedevice->cfwdBusy.enabled) {
+										/* build disp message string */
+										if (s != tmp)
+											pbx_build_string(&s, &len, ", ");
+										pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
+									}
+									break;
+								default:
+									break;
 							}
-							break;
-						default:
-							break;
+							sccp_linedevice_release(linedevice);
 						}
-						sccp_linedevice_release(linedevice);
+						line = sccp_line_release(line);
 					}
-					line = sccp_line_release(line);
 				}
 			}
-		}
 
-		if (strlen(tmp) > 0) {
-			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
-		} else {
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
-		}
-
-		break;
-	case SCCP_FEATURE_DND:
-
-		if (!device->dndFeature.status) {
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
-		} else {
-			if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
-				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
+			if (strlen(tmp) > 0) {
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
 			} else {
-				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 			}
-		}
-		break;
-	case SCCP_FEATURE_PRIVACY:
-		if (TRUE == device->privacyFeature.status) {
-			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
-		} else {
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY);
-		}
-		break;
-	case SCCP_FEATURE_MONITOR:
-		if (TRUE == device->monitorFeature.status) {
-			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR, SKINNY_DISP_MONITOR);
-		} else {
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);
-		}
-		break;
-	default:
-		return;
+
+			break;
+		case SCCP_FEATURE_DND:
+
+			if (!device->dndFeature.status) {
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
+			} else {
+				if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
+					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
+				} else {
+					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
+				}
+			}
+			break;
+		case SCCP_FEATURE_PRIVACY:
+			if (TRUE == device->privacyFeature.status) {
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
+			} else {
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY);
+			}
+			break;
+		case SCCP_FEATURE_MONITOR:
+			if (TRUE == device->monitorFeature.status) {
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR, SKINNY_DISP_MONITOR);
+			} else {
+				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);
+			}
+			break;
+		default:
+			return;
 	}
 
 }
@@ -2339,4 +2348,3 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
-

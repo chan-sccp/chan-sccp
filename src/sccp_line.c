@@ -117,7 +117,7 @@ sccp_line_t *sccp_line_create(const char *name)
 	memset(l, 0, sizeof(sccp_line_t));
 	pbx_mutex_init(&l->lock);
 	sccp_copy_string(l->name, name, sizeof(l->name));
-	
+
 #if DEBUG
 	sccp_line_retain(l);
 #endif
@@ -160,20 +160,21 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 
 	if (l) {
 		pbx_log(LOG_NOTICE, "SCCP: line '%s' was already created by an other thread, cleaning up new line\n", line->name);
-//		sccp_free(line);		// this should never be (refcounted)
-		line = sccp_line_release(line);	// cleanup newly created line, to prevent doubles
+//              sccp_free(line);                // this should never be (refcounted)
+		line = sccp_line_release(line);									// cleanup newly created line, to prevent doubles
 		SCCP_RWLIST_UNLOCK(&GLOB(lines));
-		return l;			// return previous instance
+		return l;											// return previous instance
 	}
 
 	/* line was not created */
 	line = sccp_line_retain(line);
-//	SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
+//      SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
 	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), line, list, cid_num);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", line->name);
 
 	sccp_event_t event;
+
 	memset(&event, 0, sizeof(sccp_event_t));
 	event.type = SCCP_EVENT_LINE_CREATED;
 	event.event.lineCreated.line = sccp_line_retain(line);
@@ -195,6 +196,7 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 {
 	sccp_line_t *removed_line = NULL;
+
 	if (!line) {
 		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
 		return NULL;
@@ -206,6 +208,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 
 	/* not sure if we should fire an event like this ? */
+
 /*	
 	sccp_event_t event;
 	memset(&event, 0, sizeof(sccp_event_t));
@@ -213,7 +216,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	event.event.lineCreated.line = sccp_line_retain(line);
 	sccp_event_fire(&event);
 */
-	if(removed_line) {
+	if (removed_line) {
 		sccp_line_release(removed_line);
 	}
 
@@ -278,14 +281,14 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	if (!l)
 		return;
 
-//	SCCP_LIST_LOCK(&l->channels);
+//      SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
 		sccp_channel_retain(c);
 		sccp_channel_endcall(c);
 		sccp_channel_release(c);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-//	SCCP_LIST_UNLOCK(&l->channels);
+//      SCCP_LIST_UNLOCK(&l->channels);
 }
 
 /*!
@@ -317,7 +320,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 	//SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		sccp_line_removeDevice(linedevice->line, linedevice->device);
-	}	
+	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	//SCCP_LIST_UNLOCK(&l->devices);
 
@@ -348,10 +351,11 @@ int __sccp_line_destroy(const void *ptr)
 
 	// cleanup linedevices
 	sccp_linedevices_t *linedevice = NULL;
+
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		sccp_line_removeDevice(linedevice->line, linedevice->device);
-	}	
+	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 	if (SCCP_LIST_EMPTY(&l->devices))
@@ -362,6 +366,7 @@ int __sccp_line_destroy(const void *ptr)
 		sccp_free(l->trnsfvm);
 
 	sccp_mailbox_t *mailbox = NULL;
+
 	SCCP_LIST_LOCK(&l->mailboxes);
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
 		if (!mailbox)
@@ -380,10 +385,11 @@ int __sccp_line_destroy(const void *ptr)
 
 	// cleanup channels
 	sccp_channel_t *c = NULL;
+
 	SCCP_LIST_LOCK(&l->channels);
 	while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
 		sccp_channel_endcall(c);
-		sccp_channel_release(c);		// release channel retain in list
+		sccp_channel_release(c);									// release channel retain in list
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
 	if (SCCP_LIST_EMPTY(&l->channels))
@@ -438,7 +444,8 @@ int __sccp_lineDevice_destroy(const void *ptr)
 int sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
-	sccp_line_removeFromGlobals(l);		// final release
+
+	sccp_line_removeFromGlobals(l);										// final release
 	return 0;
 }
 
@@ -476,17 +483,17 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 	if (!l || !device)
 		return;
 
-//	SCCP_LIST_LOCK(&l->devices);
-//	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-//		if (linedevice->device == device)
-//			break;
-//	}
-//	SCCP_LIST_UNLOCK(&l->devices);
+//      SCCP_LIST_LOCK(&l->devices);
+//      SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+//              if (linedevice->device == device)
+//                      break;
+//      }
+//      SCCP_LIST_UNLOCK(&l->devices);
 //
-//	if (!linedevice) {
-//		pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
-//		return;
-//	}
+//      if (!linedevice) {
+//              pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
+//              return;
+//      }
 	if (!(linedevice = sccp_linedevice_find(device, l))) {
 		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
 		return;
@@ -503,17 +510,17 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
 		} else {
 			switch (type) {
-			case SCCP_CFWD_ALL:
-				linedevice->cfwdAll.enabled = 1;
-				sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
-				break;
-			case SCCP_CFWD_BUSY:
-				linedevice->cfwdBusy.enabled = 1;
-				sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
-				break;
-			default:
-				linedevice->cfwdAll.enabled = 0;
-				linedevice->cfwdBusy.enabled = 0;
+				case SCCP_CFWD_ALL:
+					linedevice->cfwdAll.enabled = 1;
+					sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
+					break;
+				case SCCP_CFWD_BUSY:
+					linedevice->cfwdBusy.enabled = 1;
+					sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
+					break;
+				default:
+					linedevice->cfwdAll.enabled = 0;
+					linedevice->cfwdBusy.enabled = 0;
 			}
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), l->name, number);
 		}
@@ -521,18 +528,18 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 	if (linedevice && linedevice->device) {
 		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
 		switch (type) {
-		case SCCP_CFWD_ALL:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
-			break;
-		case SCCP_CFWD_BUSY:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
-			break;
-		case SCCP_CFWD_NONE:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
-			break;
-		default:
-			sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
-			break;
+			case SCCP_CFWD_ALL:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+				break;
+			case SCCP_CFWD_BUSY:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
+				break;
+			case SCCP_CFWD_NONE:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
+				break;
+			default:
+				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
+				break;
 		}
 		sccp_dev_forward_status(l, linedevice->lineInstance, device);
 	}
@@ -562,7 +569,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: No line or device provided\n");
 		return;
 	}
-		
+
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
 		sccp_linedevice_release(linedevice);
@@ -577,12 +584,13 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	if (!(l = sccp_line_retain(l))) {
 		pbx_log(LOG_ERROR, "%s: sccp_line_addDevice: Line could not be retained\n", DEV_ID_LOG(device));
-		device = sccp_device_release(device);		
+		device = sccp_device_release(device);
 		return;
 	}
 	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
 	char ld_id[80];
+
 	snprintf(ld_id, sizeof(ld_id), "%s/%s", device->id, l->name);
 	linedevice = (sccp_linedevices_t *) sccp_refcount_object_alloc(sizeof(sccp_linedevices_t), SCCP_REF_LINEDEVICE, ld_id, __sccp_lineDevice_destroy);
 	memset(linedevice, 0, sizeof(sccp_linedevices_t));
@@ -715,14 +723,14 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 	if ((l = sccp_line_retain(l))) {
 		l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
-		if ((channel = sccp_channel_retain(channel))) {				// Add into list retained
+		if ((channel = sccp_channel_retain(channel))) {							// Add into list retained
 			sccp_channel_updateChannelDesignator(channel);
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", channel->callid, l->name);
 			if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST)
 				SCCP_LIST_INSERT_TAIL(&l->channels, channel, list);
 			else
 				SCCP_LIST_INSERT_HEAD(&l->channels, channel, list);
-		}		
+		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		l = sccp_line_release(l);
 	}
@@ -743,6 +751,7 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c)
 {
 	sccp_channel_t *channel;
+
 	if (!l || !c)
 		return;
 
@@ -751,8 +760,8 @@ void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c)
 		if ((channel = SCCP_LIST_REMOVE(&l->channels, c, list))) {
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", channel->callid, l->name);
 			l->statistic.numberOfActiveChannels--;
-			channel = sccp_channel_release(channel);			// Remove retain from list
-		}			
+			channel = sccp_channel_release(channel);						// Remove retain from list
+		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		l = sccp_line_release(l);
 	}
@@ -783,7 +792,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	stringp = multi;
 	while ((ext = strsep(&stringp, "&"))) {
 		if ((context = strchr(ext, '@'))) {
-			*context++ = '\0';					/* split ext@context */
+			*context++ = '\0';									/* split ext@context */
 			if (!pbx_context_find(context)) {
 				pbx_log(LOG_WARNING, "Context specified in regcontext=%s (sccp.conf) must exist\n", context);
 				continue;
@@ -791,7 +800,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 		} else {
 			context = GLOB(regcontext);
 		}
-		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP");	/* make sure the context exists */
+		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP");					/* make sure the context exists */
 		if (con) {
 			if (onoff) {
 				/* register */
@@ -810,7 +819,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 			} else {
 				/* un-register */
 
-				if (l->devices.size == 1) {			// only remove entry if it is the last one (shared line)
+				if (l->devices.size == 1) {							// only remove entry if it is the last one (shared line)
 					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
 						sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
