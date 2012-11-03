@@ -221,6 +221,45 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 }
 
 /*!
+ * \brief 	create a hotline
+ * 
+ * \lock
+ * 	- lines
+ */
+void *sccp_create_hotline(void)
+{
+	sccp_line_t *hotline;
+
+	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
+	if (!GLOB(hotline)) {
+		pbx_log(LOG_ERROR, "Error allocating memory for GLOB(hotline)");
+		return FALSE;
+	}
+	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
+
+	hotline = sccp_line_create("Hotline");
+#ifdef CS_SCCP_REALTIME
+	hotline->realtime = TRUE;
+#endif
+	hotline = sccp_line_addToGlobals(hotline);								// can return previous line on doubles
+	if (hotline) {
+		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
+		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
+		sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
+		sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
+		sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
+
+		//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
+		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
+
+		GLOB(hotline)->line = sccp_line_retain(hotline);
+	}
+	sccp_line_release(hotline);
+
+	return NULL;
+}
+
+/*!
  * \brief Kill all Channels of a specific Line
  * \param l SCCP Line
  * \note Should be Called with a lock on l->lock

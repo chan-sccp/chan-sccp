@@ -25,8 +25,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-void *sccp_create_hotline(void);
-
 /*!
  * \brief	Buffer for Jitterbuffer use
  */
@@ -508,38 +506,6 @@ int load_config(void)
 }
 
 /*!
- * \brief 	create a hotline
- * 
- * \lock
- * 	- lines
- */
-void *sccp_create_hotline(void)
-{
-	sccp_line_t *hotline;
-
-	hotline = sccp_line_create("Hotline");
-#ifdef CS_SCCP_REALTIME
-	hotline->realtime = TRUE;
-#endif
-
-//      sccp_copy_string(hotline->name, "Hotline", sizeof(hotline->name));
-	sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
-	sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
-	sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
-	sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
-	sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
-
-	//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
-	hotline = sccp_line_addToGlobals(hotline);								// can return previous line on doubles
-	if (hotline) {
-		GLOB(hotline)->line = sccp_line_retain(hotline);
-		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
-	}
-
-	return NULL;
-}
-
-/*!
  * \brief Add Callback Functon to PBX Scheduler
  * \param when number of seconds from this point in time as int
  * \param callback CallBack Function to be called when the time has passed
@@ -659,20 +625,7 @@ boolean_t sccp_prePBXLoad()
 	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-
-	if (sccp_config_getConfig(FALSE) > CONFIG_STATUS_FILE_OK) {
-		pbx_log(LOG_ERROR, "Error loading configfile !");
-		return FALSE;
-	}
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
-
-	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
-	if (!GLOB(hotline)) {
-		pbx_log(LOG_ERROR, "Error allocating memory for GLOB(hotline)");
-		return FALSE;
-	}
-	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
-
 	sccp_create_hotline();
 	return TRUE;
 }

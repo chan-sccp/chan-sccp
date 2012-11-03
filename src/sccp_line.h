@@ -27,6 +27,7 @@ void sccp_line_post_reload(void);
 sccp_line_t *sccp_line_create(const char *name);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line);
 sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line);
+void *sccp_create_hotline(void);
 void sccp_line_kill_channels(sccp_line_t * l);
 void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
 int sccp_line_destroy(const void *ptr);
