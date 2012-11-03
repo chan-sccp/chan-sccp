@@ -38,7 +38,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	}
 
 	if (PBX(rtp_audio_create)) {
-		rtpResult = (boolean_t) PBX(rtp_audio_create)((sccp_channel_t *)c);
+		rtpResult = (boolean_t) PBX(rtp_audio_create) ((sccp_channel_t *) c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
@@ -48,7 +48,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	}
 
 	device = sccp_channel_getDevice_retained(c);
-//	PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
+//      PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 	device = device ? sccp_device_release(device) : NULL;
 
 	return rtpResult;
@@ -71,7 +71,7 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 	}
 
 	if (PBX(rtp_video_create)) {
-		rtpResult = (boolean_t) PBX(rtp_video_create)((sccp_channel_t *)c);
+		rtpResult = (boolean_t) PBX(rtp_video_create) ((sccp_channel_t *) c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
 	}
@@ -153,6 +153,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 	if ((device = sccp_channel_getDevice_retained(c))) {
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
+
 /*		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
 			// return;
@@ -164,18 +165,10 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		if (PBX(rtp_setPeer)) {
 			PBX(rtp_setPeer) (rtp, new_peer, device->nat);
 		}
-
 		// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d",
-			DEV_ID_LOG(device), 
-			pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr),
-			ntohs(c->rtp.audio.phone_remote.sin_port)
-		);
-		sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n",
-			pbx_inet_ntoa(c->rtp.audio.phone.sin_addr),
-			ntohs(c->rtp.audio.phone.sin_port),
-			device->nat ? "yes" : "no"
-		);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d", DEV_ID_LOG(device), pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port)
+		    );
+		sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n", pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), device->nat ? "yes" : "no");
 
 		device = sccp_device_release(device);
 	}
@@ -258,6 +251,7 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 {
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
+
 	if (c && (d = sccp_channel_getDevice_retained(c))) {
 		if (c->line) {
 			l = c->line;
@@ -306,7 +300,7 @@ boolean_t sccp_rtp_getUs(const struct sccp_rtp * rtp, struct sockaddr_in * us)
 		return TRUE;
 	} else {
 		us = (struct sockaddr_in *)&rtp->phone_remote;
-//		return FALSE;
+//              return FALSE;
 		return TRUE;
 	}
 }

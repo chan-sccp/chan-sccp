@@ -15,6 +15,7 @@
 	   parenthesis
 	*/
 -cli8
+-lp
 
 /* comments */
 -lc500 	/* Max comment line length */

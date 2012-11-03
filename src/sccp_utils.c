@@ -45,7 +45,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	for (i = 0; i < rows; i++) {
 		memset(row, 0, sizeof(row));
 		sprintf(row, "%08X - ", cur);
-		if ((i == rows - 1) && (len % res > 0))				// FIXED after 354 -FS
+		if ((i == rows - 1) && (len % res > 0))								// FIXED after 354 -FS
 			cols = len % res;
 
 		memset(temp2, 0, sizeof(temp2));
@@ -167,7 +167,7 @@ int sccp_addons_taps(sccp_device_t * d)
 	int taps = 0;
 
 	if (!strcasecmp(d->config_type, "7914"))
-		return 28;							// on compatibility mode it returns 28 taps for a double 7914 addon
+		return 28;											// on compatibility mode it returns 28 taps for a double 7914 addon
 
 	SCCP_LIST_LOCK(&d->addons);
 	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
@@ -189,14 +189,15 @@ int sccp_addons_taps(sccp_device_t * d)
 void sccp_addons_clear(sccp_device_t * d)
 {
 	sccp_addon_t *addon;
+
 	if (!d)
 		return;
 
-// 	while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
+//      while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
 	while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
 		sccp_free(addon);
 	}
-	d->addons.first = NULL;										\
+	d->addons.first = NULL;
 	d->addons.last = NULL;
 }
 
@@ -219,6 +220,7 @@ char *sccp_addons_list(sccp_device_t * d)
 void sccp_safe_sleep(int ms)
 {
 	struct timeval start = pbx_tvnow();
+
 	usleep(1);
 	while (ast_tvdiff_ms(pbx_tvnow(), start) < ms) {
 		usleep(1);
@@ -244,7 +246,7 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 #endif
 {
 	sccp_device_t *d = NULL;
-	
+
 	if (sccp_strlen_zero(name)) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for device with name ''\n");
 		return NULL;
@@ -302,8 +304,7 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);
 			return NULL;
 		}
-
-//		sccp_copy_string(d->id, name, sizeof(d->id));
+//              sccp_copy_string(d->id, name, sizeof(d->id));
 
 		sccp_config_applyDeviceConfiguration(d, v);		/** load configuration and set defaults */
 
@@ -342,11 +343,11 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t useRealtime)
 {
 	sccp_line_t *l = NULL;
 
-//	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
+//      sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 	if (sccp_strlen_zero(name)) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
 		return NULL;
-	}	
+	}
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -363,15 +364,14 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t useRealtime)
 
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime)
-		l = sccp_line_find_realtime_byname(name);			/* already retained */
+		l = sccp_line_find_realtime_byname(name);							/* already retained */
 #endif
 
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
 		return NULL;
 	}
-
-//	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
+//      sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
 
 	return l;
 }
@@ -397,23 +397,23 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 	if (sccp_strlen_zero(GLOB(realtimelinetable)) || sccp_strlen_zero(name)) {
 		return NULL;
-	}	
-	
+	}
+
 	if (sccp_strlen_zero(name)) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
 		return NULL;
-	}	
+	}
 
 	if ((variable = pbx_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
 		v = variable;
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
 		pbx_log(LOG_NOTICE, "SCCP: creating realtime line '%s'\n", name);
-		l = sccp_line_create(name);						/* already retained */
+		l = sccp_line_create(name);									/* already retained */
 		sccp_config_applyLineConfiguration(l, variable);
-//		sccp_copy_string(l->name, name, sizeof(l->name));
+//              sccp_copy_string(l->name, name, sizeof(l->name));
 		l->realtime = TRUE;
-		l = sccp_line_addToGlobals(l);		// can return previous instance on doubles
+		l = sccp_line_addToGlobals(l);									// can return previous instance on doubles
 		pbx_variables_destroy(v);
 		if (!l) {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
@@ -548,11 +548,11 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-#if DEBUG	
+#if DEBUG
 		channel = __sccp_find_channel_on_line_byid(l, id, filename, lineno, func);
 #else
 		channel = sccp_find_channel_on_line_byid(l, id);
-#endif		
+#endif
 		if (channel)
 			break;
 	}
@@ -635,17 +635,17 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  * 	  - line->channels
  * 	- channel
  */
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t *d, uint32_t passthrupartyid)
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
 {
 	if (!d) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "SCCP: No device provided to look for %u\n", passthrupartyid);
 		return NULL;
-	}	
+	}
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
 	sccp_buttonconfig_t *buttonconfig = NULL;
 	boolean_t channelFound = FALSE;
-	
+
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
@@ -654,10 +654,10 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t *d, 
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-//					if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
-                                        sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
+//                                      if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
+					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
 					if (c->passthrupartyid == passthrupartyid) {
-					        sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
+						sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
 						c = sccp_channel_retain(c);
 						channelFound = TRUE;
 						break;
@@ -805,7 +805,7 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 {
 	if (!d)
 		return NULL;
-		
+
 	sccp_selectedchannel_t *sc = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
@@ -858,10 +858,10 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 	if (channel) {
 		if (channel->owner) {
 			pbx_setstate(channel->owner, state);
-//			pbx_cond_wait(&channel->astStateCond, &channel->lock);
+//                      pbx_cond_wait(&channel->astStateCond, &channel->lock);
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", channel->currentDeviceId, pbx_state2str(state), state, channel->callid);
 		}
-	}	
+	}
 }
 
 /*!
@@ -881,7 +881,7 @@ void sccp_dev_dbclean()
 	while (entry) {
 		sscanf(entry->key, "/SCCP/%s", key);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
-		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) ||!strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
+		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
 
 			SCCP_RWLIST_RDLOCK(&GLOB(devices));
 			SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -957,6 +957,7 @@ const char *callforward2longstr(uint32_t value)
 {
 	_ARR2STR(sccp_callforwardstates, callforwardstate, value, longtext);
 }
+
 const char *event2str(sccp_event_type_t event_type)
 {
 	_ARR2STR(sccp_event_types, event_type, event_type, text);
@@ -1052,15 +1053,16 @@ const char *featureType2str(uint32_t value)
 	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
 
-
 const char *debugcat_keys(void)
 {
-        _RETURNALLKEYS(sccp_debug_categories, key);
+	_RETURNALLKEYS(sccp_debug_categories, key);
 }
+
 uint32_t debugcat2int(const char *str)
 {
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
+
 const char *skinny_formatType2str(uint8_t value)
 {
 	_ARR2STR(skinny_formatTypes, id, value, text);
@@ -1174,7 +1176,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 	while ((this = strsep(&parse, ","))) {
 		all = strcasecmp(this, "all") ? 0 : 1;
 
-		if (all && !allowing) {						// disallowing all
+		if (all && !allowing) {										// disallowing all
 			memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
 			break;
 		}
@@ -1231,44 +1233,44 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 const char *array2str(uint8_t type, uint32_t value)
 {
 	switch (type) {
-	case SCCP_MESSAGE:
-		message2str(value);
-	case SCCP_ACCESSORY:
-		accessory2str(value);
-	case SCCP_ACCESSORY_STATE:
-		accessorystatus2str(value);
-	case SCCP_EXTENSION_STATE:
-		extensionstatus2str(value);
-	case SCCP_DNDMODE:
-		dndmode2str(value);
-	case SKINNY_TONE:
-		tone2str(value);
-	case SKINNY_ALARM:
-		alarm2str(value);
-	case SKINNY_DEVICETYPE:
-		devicetype2str(value);
-	case SKINNY_STIMULUS:
-		stimulus2str(value);
-	case SKINNY_BUTTONTYPE:
-		buttontype2str(value);
-	case SKINNY_LAMPMODE:
-		lampmode2str(value);
-	case SKINNY_STATION:
-		station2str(value);
-	case SKINNY_LBL:
-		label2str(value);
-	case SKINNY_CALLTYPE:
-		calltype2str(value);
-	case SKINNY_KEYMODE:
-		keymode2str(value);
-	case SKINNY_DEVICE_RS:
-		deviceregistrationstatus2str(value);
-	case SKINNY_DEVICE_STATE:
-		devicestatus2str(value);
-	case SKINNY_CODEC:
-		codec2str(value);
-	default:
-		return "array2str: Type Not Found";
+		case SCCP_MESSAGE:
+			message2str(value);
+		case SCCP_ACCESSORY:
+			accessory2str(value);
+		case SCCP_ACCESSORY_STATE:
+			accessorystatus2str(value);
+		case SCCP_EXTENSION_STATE:
+			extensionstatus2str(value);
+		case SCCP_DNDMODE:
+			dndmode2str(value);
+		case SKINNY_TONE:
+			tone2str(value);
+		case SKINNY_ALARM:
+			alarm2str(value);
+		case SKINNY_DEVICETYPE:
+			devicetype2str(value);
+		case SKINNY_STIMULUS:
+			stimulus2str(value);
+		case SKINNY_BUTTONTYPE:
+			buttontype2str(value);
+		case SKINNY_LAMPMODE:
+			lampmode2str(value);
+		case SKINNY_STATION:
+			station2str(value);
+		case SKINNY_LBL:
+			label2str(value);
+		case SKINNY_CALLTYPE:
+			calltype2str(value);
+		case SKINNY_KEYMODE:
+			keymode2str(value);
+		case SKINNY_DEVICE_RS:
+			deviceregistrationstatus2str(value);
+		case SKINNY_DEVICE_STATE:
+			devicestatus2str(value);
+		case SKINNY_CODEC:
+			codec2str(value);
+		default:
+			return "array2str: Type Not Found";
 	}
 }
 
@@ -1441,63 +1443,63 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state)
 {
 	switch (state) {
-	case SCCP_CHANNELSTATE_CALLWAITING:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_CALLTRANSFER:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_CALLPARK:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_PROCEED:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		return AST_DEVICE_INVALID;
-		break;
-	case SCCP_CHANNELSTATE_BUSY:
-		return AST_DEVICE_BUSY;
-		break;
-	case SCCP_CHANNELSTATE_RINGING:
-		return AST_DEVICE_RINGING;
-		break;
-	case SCCP_CHANNELSTATE_RINGOUT:
-		return AST_DEVICE_RINGINUSE;
-		break;
-	case SCCP_CHANNELSTATE_HOLD:
-		return AST_DEVICE_ONHOLD;
-		break;
-	case SCCP_CHANNELSTATE_PROGRESS:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_DIALING:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_CONNECTED:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_ONHOOK:
-		return AST_DEVICE_NOT_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_DOWN:
-		return AST_DEVICE_NOT_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_OFFHOOK:
-		return AST_DEVICE_INUSE;
-		break;
-	case SCCP_CHANNELSTATE_CONGESTION:
-		return AST_DEVICE_UNAVAILABLE;
-		break;
-	case SCCP_CHANNELSTATE_DND:
-		return AST_DEVICE_UNAVAILABLE;
-		break;
-	default:
-		return AST_DEVICE_UNKNOWN;
-		break;
+		case SCCP_CHANNELSTATE_CALLWAITING:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_CALLTRANSFER:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_CALLPARK:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_PROCEED:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+			return AST_DEVICE_INVALID;
+			break;
+		case SCCP_CHANNELSTATE_BUSY:
+			return AST_DEVICE_BUSY;
+			break;
+		case SCCP_CHANNELSTATE_RINGING:
+			return AST_DEVICE_RINGING;
+			break;
+		case SCCP_CHANNELSTATE_RINGOUT:
+			return AST_DEVICE_RINGINUSE;
+			break;
+		case SCCP_CHANNELSTATE_HOLD:
+			return AST_DEVICE_ONHOLD;
+			break;
+		case SCCP_CHANNELSTATE_PROGRESS:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_DIALING:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_CONNECTED:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_ONHOOK:
+			return AST_DEVICE_NOT_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_DOWN:
+			return AST_DEVICE_NOT_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_OFFHOOK:
+			return AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_CONGESTION:
+			return AST_DEVICE_UNAVAILABLE;
+			break;
+		case SCCP_CHANNELSTATE_DND:
+			return AST_DEVICE_UNAVAILABLE;
+			break;
+		default:
+			return AST_DEVICE_UNKNOWN;
+			break;
 	}
 }
 #    endif
@@ -1537,7 +1539,7 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
  * \lock
  * 	- device
  */
-void sccp_util_featureStorageBackend(const sccp_event_t *event)
+void sccp_util_featureStorageBackend(const sccp_event_t * event)
 {
 	char family[25];
 	char cfwdLineStore[60];
@@ -1553,94 +1555,94 @@ void sccp_util_featureStorageBackend(const sccp_event_t *event)
 	sprintf(family, "SCCP/%s", device->id);
 
 	switch (event->event.featureChanged.featureType) {
-	case SCCP_FEATURE_CFWDNONE:
-	case SCCP_FEATURE_CFWDBUSY:
-	case SCCP_FEATURE_CFWDALL:
-		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-			if (config->type == LINE) {
-				line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-				if (line) {
-					SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
-						if (lineDevice->device != device)
-							continue;
+		case SCCP_FEATURE_CFWDNONE:
+		case SCCP_FEATURE_CFWDBUSY:
+		case SCCP_FEATURE_CFWDALL:
+			SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+				if (config->type == LINE) {
+					line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+					if (line) {
+						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+							if (lineDevice->device != device)
+								continue;
 
-						uint8_t instance = sccp_device_find_index_for_line(device, line->name);
+							uint8_t instance = sccp_device_find_index_for_line(device, line->name);
 
-						sccp_dev_forward_status(line, instance, device);
-						sprintf(cfwdLineStore, "%s/%s", family, config->button.line.name);
-						switch (event->event.featureChanged.featureType) {
-						case SCCP_FEATURE_CFWDALL:
-							if (lineDevice->cfwdAll.enabled) {
-								PBX(feature_addToDatabase) (cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
-								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
-							} else {
-								PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
-								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							sccp_dev_forward_status(line, instance, device);
+							sprintf(cfwdLineStore, "%s/%s", family, config->button.line.name);
+							switch (event->event.featureChanged.featureType) {
+								case SCCP_FEATURE_CFWDALL:
+									if (lineDevice->cfwdAll.enabled) {
+										PBX(feature_addToDatabase) (cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
+										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+									} else {
+										PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
+										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
+									}
+									break;
+								case SCCP_FEATURE_CFWDBUSY:
+									if (lineDevice->cfwdBusy.enabled) {
+										PBX(feature_addToDatabase) (cfwdLineStore, "cfwdBusy", lineDevice->cfwdBusy.number);
+										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+									} else {
+										PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
+										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
+									}
+									break;
+								case SCCP_FEATURE_CFWDNONE:
+									PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
+									PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
+									sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
+								default:
+									break;
 							}
-							break;
-						case SCCP_FEATURE_CFWDBUSY:
-							if (lineDevice->cfwdBusy.enabled) {
-								PBX(feature_addToDatabase) (cfwdLineStore, "cfwdBusy", lineDevice->cfwdBusy.number);
-								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
-							} else {
-								PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
-								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
-							}
-							break;
-						case SCCP_FEATURE_CFWDNONE:
-							PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
-							PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
-						default:
-							break;
 						}
+						line = sccp_line_release(line);
 					}
-					line = sccp_line_release(line);
 				}
 			}
-		}
-		break;
-	case SCCP_FEATURE_DND:
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
-		if (device->dndFeature.previousStatus != device->dndFeature.status) {
-			if (!device->dndFeature.status) {
-				PBX(feature_removeFromDatabase) (family, "dnd");
-			} else {
-				if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
-					PBX(feature_addToDatabase) (family, "dnd", "silent");
+			break;
+		case SCCP_FEATURE_DND:
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
+			if (device->dndFeature.previousStatus != device->dndFeature.status) {
+				if (!device->dndFeature.status) {
+					PBX(feature_removeFromDatabase) (family, "dnd");
 				} else {
-					PBX(feature_addToDatabase) (family, "dnd", "reject");
+					if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
+						PBX(feature_addToDatabase) (family, "dnd", "silent");
+					} else {
+						PBX(feature_addToDatabase) (family, "dnd", "reject");
+					}
 				}
+				device->dndFeature.previousStatus = device->dndFeature.status;
 			}
-			device->dndFeature.previousStatus = device->dndFeature.status;
-		}
-		break;
-	case SCCP_FEATURE_PRIVACY:
-		if (device->privacyFeature.previousStatus != device->privacyFeature.status) {
-			if (!device->privacyFeature.status) {
-				PBX(feature_removeFromDatabase) (family, "privacy");
-			} else {
-				char data[256];
+			break;
+		case SCCP_FEATURE_PRIVACY:
+			if (device->privacyFeature.previousStatus != device->privacyFeature.status) {
+				if (!device->privacyFeature.status) {
+					PBX(feature_removeFromDatabase) (family, "privacy");
+				} else {
+					char data[256];
 
-				sprintf(data, "%d", device->privacyFeature.status);
-				PBX(feature_addToDatabase) (family, "privacy", data);
+					sprintf(data, "%d", device->privacyFeature.status);
+					PBX(feature_addToDatabase) (family, "privacy", data);
+				}
+				device->privacyFeature.status = device->privacyFeature.status;
 			}
-			device->privacyFeature.status = device->privacyFeature.status;
-		}
-		break;
-	case SCCP_FEATURE_MONITOR:
-		if (device->monitorFeature.previousStatus != device->monitorFeature.status) {
-			if (!device->monitorFeature.status) {
-				PBX(feature_removeFromDatabase) (family, "monitor");
-			} else {
-				PBX(feature_addToDatabase) (family, "monitor", "on");
+			break;
+		case SCCP_FEATURE_MONITOR:
+			if (device->monitorFeature.previousStatus != device->monitorFeature.status) {
+				if (!device->monitorFeature.status) {
+					PBX(feature_removeFromDatabase) (family, "monitor");
+				} else {
+					PBX(feature_addToDatabase) (family, "monitor", "on");
+				}
+				device->monitorFeature.previousStatus = device->monitorFeature.status;
 			}
-			device->monitorFeature.previousStatus = device->monitorFeature.status;
-		}
-		break;
-	default:
-		device = sccp_device_release(device);
-		return;
+			break;
+		default:
+			device = sccp_device_release(device);
+			return;
 	}
 	device = sccp_device_release(device);
 }
@@ -1667,89 +1669,89 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 
 	for (stringIterator = labelString; stringIterator < labelString + maxLength && !endDetected; stringIterator++) {
 		switch (state) {
-		case 0:							// parsing of main id
-			assert(i < sizeof(id.mainId));
-			switch (*stringIterator) {
-			case '\0':
-				endDetected = TRUE;
-				id.mainId[i] = '\0';
+			case 0:										// parsing of main id
+				assert(i < sizeof(id.mainId));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.mainId[i] = '\0';
+						break;
+					case '@':
+						id.mainId[i] = '\0';
+						i = 0;
+						state = 1;
+						break;
+					case '!':
+						id.mainId[i] = '\0';
+						i = 0;
+						state = 3;
+						break;
+					default:
+						id.mainId[i] = *stringIterator;
+						i++;
+						break;
+				}
 				break;
-			case '@':
-				id.mainId[i] = '\0';
-				i = 0;
-				state = 1;
-				break;
-			case '!':
-				id.mainId[i] = '\0';
-				i = 0;
-				state = 3;
-				break;
-			default:
-				id.mainId[i] = *stringIterator;
-				i++;
-				break;
-			}
-			break;
 
-		case 1:							// parsing of sub id number
-			assert(i < sizeof(id.subscriptionId.number));
-			switch (*stringIterator) {
-			case '\0':
-				endDetected = TRUE;
-				id.subscriptionId.number[i] = '\0';
+			case 1:										// parsing of sub id number
+				assert(i < sizeof(id.subscriptionId.number));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.subscriptionId.number[i] = '\0';
+						break;
+					case ':':
+						id.subscriptionId.number[i] = '\0';
+						i = 0;
+						state = 2;
+						break;
+					case '!':
+						id.subscriptionId.number[i] = '\0';
+						i = 0;
+						state = 3;
+						break;
+					default:
+						id.subscriptionId.number[i] = *stringIterator;
+						i++;
+						break;
+				}
 				break;
-			case ':':
-				id.subscriptionId.number[i] = '\0';
-				i = 0;
-				state = 2;
-				break;
-			case '!':
-				id.subscriptionId.number[i] = '\0';
-				i = 0;
-				state = 3;
-				break;
-			default:
-				id.subscriptionId.number[i] = *stringIterator;
-				i++;
-				break;
-			}
-			break;
 
-		case 2:							// parsing of sub id name
-			assert(i < sizeof(id.subscriptionId.name));
-			switch (*stringIterator) {
-			case '\0':
-				endDetected = TRUE;
-				id.subscriptionId.name[i] = '\0';
+			case 2:										// parsing of sub id name
+				assert(i < sizeof(id.subscriptionId.name));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.subscriptionId.name[i] = '\0';
+						break;
+					case '!':
+						id.subscriptionId.name[i] = '\0';
+						i = 0;
+						state = 3;
+						break;
+					default:
+						id.subscriptionId.name[i] = *stringIterator;
+						i++;
+						break;
+				}
 				break;
-			case '!':
-				id.subscriptionId.name[i] = '\0';
-				i = 0;
-				state = 3;
-				break;
-			default:
-				id.subscriptionId.name[i] = *stringIterator;
-				i++;
-				break;
-			}
-			break;
 
-		case 3:							// parsing of auxiliary parameter
-			assert(i < sizeof(id.subscriptionId.name));
-			switch (*stringIterator) {
-			case '\0':
-				endDetected = TRUE;
-				id.subscriptionId.aux[i] = '\0';
+			case 3:										// parsing of auxiliary parameter
+				assert(i < sizeof(id.subscriptionId.name));
+				switch (*stringIterator) {
+					case '\0':
+						endDetected = TRUE;
+						id.subscriptionId.aux[i] = '\0';
+						break;
+					default:
+						id.subscriptionId.aux[i] = *stringIterator;
+						i++;
+						break;
+				}
 				break;
-			default:
-				id.subscriptionId.aux[i] = *stringIterator;
-				i++;
-				break;
-			}
-			break;
 
-		default:
-			assert(FALSE);
+			default:
+				assert(FALSE);
 		}
 	}
 	return id;
@@ -1779,7 +1781,7 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	   which is not the default subscription id of the shared line denoting all devices,
 	   the phones are addressed individually. (-DD) */
 
-	filterPhones = FALSE;							/* set the default to call all phones */
+	filterPhones = FALSE;											/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
 	if (strlen(channel->subscriptionId.number) != 0) {
@@ -1792,7 +1794,7 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	if (FALSE == filterPhones) {
 		/* Accept phone for calling if all phones shall be called. */
 		result = TRUE;
-	} else if (0 != strlen(subscriptionIdNum)				/* We already know that we won't search for a trivial subscriptionId. */
+	} else if (0 != strlen(subscriptionIdNum)								/* We already know that we won't search for a trivial subscriptionId. */
 		   &&0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))) {	/* Do the match! */
 		result = FALSE;
 	}
@@ -1864,8 +1866,8 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_linedevices_t *ld = NULL;
 
-	SCCP_LIST_LOCK(&((sccp_line_t*)line)->devices);
-	SCCP_LIST_TRAVERSE(&((sccp_line_t*)line)->devices, linedevice, list) {
+	SCCP_LIST_LOCK(&((sccp_line_t *) line)->devices);
+	SCCP_LIST_TRAVERSE(&((sccp_line_t *) line)->devices, linedevice, list) {
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "linedevice %p for device %s line %s\n", linedevice, DEV_ID_LOG(linedevice->device), linedevice->line->name);
 		if (device == linedevice->device) {
 			ld = sccp_linedevice_retain(linedevice);
@@ -1873,8 +1875,8 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 			break;
 		}
 	}
-	SCCP_LIST_UNLOCK(&((sccp_line_t*)line)->devices);
-	
+	SCCP_LIST_UNLOCK(&((sccp_line_t *) line)->devices);
+
 	if (!ld) {
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
 	}
@@ -2152,7 +2154,7 @@ void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t
 		memcpy(&buffer[0], data, data_len);
 
 		memcpy(&r1->msg.UserToDeviceDataVersion1Message.data, &buffer[0], sizeof(buffer));
-		sccp_dev_send(d, r1);						//TODO missing retain
+		sccp_dev_send(d, r1);										//TODO missing retain
 	}
 	sccp_device_release(d);
 }
@@ -2198,14 +2200,14 @@ size_t sccp_strlen(const char *data)
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strequals(const char *data1,const char *data2)
+boolean_t sccp_strequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
- 	        return TRUE;
- 	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
- 	        return !strcmp(data1,data2);
-        }
-        return FALSE;
+		return TRUE;
+	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
+		return !strcmp(data1, data2);
+	}
+	return FALSE;
 }
 
 /*!
@@ -2219,14 +2221,14 @@ boolean_t sccp_strequals(const char *data1,const char *data2)
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strcaseequals(const char *data1,const char *data2)
+boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
- 	        return TRUE;
- 	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
- 	        return !strcasecmp(data1,data2);
-        }
-        return FALSE;
+		return TRUE;
+	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
+		return !strcasecmp(data1, data2);
+	}
+	return FALSE;
 }
 
 /*!
@@ -2245,13 +2247,12 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
 	/** check if we have a preference codec list */
-	if ( (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) 
-	  && (rLength != 0 && remotePeerCapabilities[0] != SKINNY_CODEC_NONE)) 
-	{
+	if ((pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE)
+	    && (rLength != 0 && remotePeerCapabilities[0] != SKINNY_CODEC_NONE)) {
 		/* using remote capabilities to */
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
 		return SKINNY_CODEC_NONE;
-	  
+
 	} else if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
 		return 0;
@@ -2327,7 +2328,7 @@ void sccp_free_ha(struct sccp_ha *ha)
 	}
 }
 
-#if 0										// contains an undefined problem, leading to segfault when used
+#if 0														// contains an undefined problem, leading to segfault when used
 void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to);
 
 /*! 
@@ -2370,20 +2371,20 @@ struct sccp_ha *sccp_duplicate_ha_list(struct sccp_ha *original)
 	struct sccp_ha *current, *prev = NULL;
 
 	while (start) {
-		current = sccp_duplicate_ha(start);				/* Create copy of this object */
+		current = sccp_duplicate_ha(start);								/* Create copy of this object */
 		if (prev) {
-			prev->next = current;					/* Link previous to this object */
+			prev->next = current;									/* Link previous to this object */
 		}
 
 		if (!ret) {
-			ret = current;						/* Save starting point */
+			ret = current;										/* Save starting point */
 		}
 
-		start = start->next;						/* Go to next object */
-		prev = current;							/* Save pointer to this object */
+		start = start->next;										/* Go to next object */
+		prev = current;											/* Save pointer to this object */
 	}
 
-	return ret;								/* Return start of list */
+	return ret;												/* Return start of list */
 }
 #endif
 
@@ -2457,11 +2458,11 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 
 	if (!(ha = sccp_calloc(1, sizeof(*ha)))) {
 		if (error) {
-			*error=1;
+			*error = 1;
 		}
 		return ret;
 	}
-	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
 	if (!(nm = strchr(tmp, '/'))) {
 		/* assume /32. Yes, htonl does not do anything for this particular mask
 		   but we better use it to show we remember about byte order */
@@ -2524,10 +2525,11 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 {
 	char str1[INET_ADDRSTRLEN];
 	char str2[INET_ADDRSTRLEN];
+
 	while (path) {
 		inet_ntop(AF_INET, &path->netaddr.s_addr, str1, INET_ADDRSTRLEN);
 		inet_ntop(AF_INET, &path->netmask.s_addr, str2, INET_ADDRSTRLEN);
-		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY==path->sense ? "deny" : "permit", str1, str2);
+		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", str1, str2);
 		path = path->next;
 	}
 }
@@ -2605,82 +2607,82 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 
 int sccp_strversioncmp(const char *s1, const char *s2)
 {
-        static const char *digits = "0123456789";
-        int ret, lz1, lz2;
-        size_t p1, p2;
+	static const char *digits = "0123456789";
+	int ret, lz1, lz2;
+	size_t p1, p2;
 
-        p1 = strcspn(s1, digits);
-        p2 = strcspn(s2, digits);
-        while (p1 == p2 && s1[p1] != '\0' && s2[p2] != '\0') {
-                /* Different prefix */
-                if ((ret = strncmp(s1, s2, p1)) != 0)
-                        return ret;
+	p1 = strcspn(s1, digits);
+	p2 = strcspn(s2, digits);
+	while (p1 == p2 && s1[p1] != '\0' && s2[p2] != '\0') {
+		/* Different prefix */
+		if ((ret = strncmp(s1, s2, p1)) != 0)
+			return ret;
 
-                s1 += p1;
-                s2 += p2;
+		s1 += p1;
+		s2 += p2;
 
-                lz1 = lz2 = 0;
-                if (*s1 == '0')
-                        lz1 = 1;
-                if (*s2 == '0')
-                        lz2 = 1;
-                
-                if (lz1 > lz2)
-                        return -1;
-                else if (lz1 < lz2)
-                        return 1;
-                else if (lz1 == 1) {
-                        /*
-                         * If the common prefix for s1 and s2 consists only of zeros, then the
-                         * "longer" number has to compare less. Otherwise the comparison needs
-                         * to be numerical (just fallthrough). See
-                         */
-                        while (*s1 == '0' && *s2 == '0') {
-                                ++s1;
-                                ++s2;
-                        }
+		lz1 = lz2 = 0;
+		if (*s1 == '0')
+			lz1 = 1;
+		if (*s2 == '0')
+			lz2 = 1;
 
-                        p1 = strspn(s1, digits);
-                        p2 = strspn(s2, digits);
+		if (lz1 > lz2)
+			return -1;
+		else if (lz1 < lz2)
+			return 1;
+		else if (lz1 == 1) {
+			/*
+			 * If the common prefix for s1 and s2 consists only of zeros, then the
+			 * "longer" number has to compare less. Otherwise the comparison needs
+			 * to be numerical (just fallthrough). See
+			 */
+			while (*s1 == '0' && *s2 == '0') {
+				++s1;
+				++s2;
+			}
 
-                        /* Catch empty strings */
-                        if (p1 == 0 && p2 > 0)
-                                return 1;
-                        else if (p2 == 0 && p1 > 0)
-                                return -1;
+			p1 = strspn(s1, digits);
+			p2 = strspn(s2, digits);
 
-                        /* Prefixes are not same */
-                        if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
-                                if (p1 < p2)
-                                        return 1;
-                                else if (p1 > p2)
-                                        return -1;
-                        } else {
-                                if (p1 < p2)
-                                        ret = strncmp(s1, s2, p1);
-                                else if (p1 > p2)
-                                        ret = strncmp(s1, s2, p2);
-                                if (ret != 0)
-                                        return ret;
-                        }
-                }
-                
-                p1 = strspn(s1, digits);
-                p2 = strspn(s2, digits);
-                
-                if (p1 < p2)
-                        return -1;
-                else if (p1 > p2)
-                        return 1;
-                else if ((ret = strncmp(s1, s2, p1)) != 0)
-                        return ret;
+			/* Catch empty strings */
+			if (p1 == 0 && p2 > 0)
+				return 1;
+			else if (p2 == 0 && p1 > 0)
+				return -1;
 
-                /* Numbers are equal or not present, try with next ones. */
-                s1 += p1;
-                s2 += p2;
-                p1 = strcspn(s1, digits);
-                p2 = strcspn(s2, digits);
-        }
+			/* Prefixes are not same */
+			if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
+				if (p1 < p2)
+					return 1;
+				else if (p1 > p2)
+					return -1;
+			} else {
+				if (p1 < p2)
+					ret = strncmp(s1, s2, p1);
+				else if (p1 > p2)
+					ret = strncmp(s1, s2, p2);
+				if (ret != 0)
+					return ret;
+			}
+		}
 
-        return strcmp(s1, s2);
+		p1 = strspn(s1, digits);
+		p2 = strspn(s2, digits);
+
+		if (p1 < p2)
+			return -1;
+		else if (p1 > p2)
+			return 1;
+		else if ((ret = strncmp(s1, s2, p1)) != 0)
+			return ret;
+
+		/* Numbers are equal or not present, try with next ones. */
+		s1 += p1;
+		s2 += p2;
+		p1 = strcspn(s1, digits);
+		p2 = strcspn(s2, digits);
+	}
+
+	return strcmp(s1, s2);
 }

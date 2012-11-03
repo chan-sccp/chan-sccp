@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_features.c
  * \brief 	SCCP Features Class
@@ -99,19 +100,20 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 			// we have a channel, checking if
 			if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-				  pbx_log(LOG_ERROR, "%s: 1\n", DEV_ID_LOG(device));
+					pbx_log(LOG_ERROR, "%s: 1\n", DEV_ID_LOG(device));
 					// if we have an outbound call, we can set callforward to dialed number -FS
-					if (c->dialedNumber && !sccp_strlen_zero(c->dialedNumber)) {	// checking if we have a number !
-					  pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
+					if (c->dialedNumber && !sccp_strlen_zero(c->dialedNumber)) {		// checking if we have a number !
+						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
 						// we are on call, so no tone has been played until now :)
 						//sccp_dev_starttone(device, SKINNY_TONE_ZIPZIP, instance, 0, 0);
 						sccp_channel_endcall(c);
 						goto EXIT;
 					}
-				} else if (c->owner && ast_bridged_channel(c->owner)) {	// check if we have an ast channel to get callerid from
+				} else if (c->owner && ast_bridged_channel(c->owner)) {				// check if we have an ast channel to get callerid from
 					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
+
 					pbx_log(LOG_ERROR, "%s: 3\n", DEV_ID_LOG(device));
 
 					if (PBX(get_callerid_name))
@@ -133,12 +135,12 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 					}
 				}
 			} else if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
-			  pbx_log(LOG_ERROR, "%s: 5\n", DEV_ID_LOG(device));
+				pbx_log(LOG_ERROR, "%s: 5\n", DEV_ID_LOG(device));
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
 				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-				c->ss_action = SCCP_SS_GETFORWARDEXTEN;		/* Simpleswitch will catch a number to be dialed */
-				c->ss_data = type;				/* this should be found in thread */
+				c->ss_action = SCCP_SS_GETFORWARDEXTEN;						/* Simpleswitch will catch a number to be dialed */
+				c->ss_data = type;								/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
 				goto EXIT;
@@ -151,8 +153,8 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 			/* see case for channel */
 		}
 	}
-	
-	if(!c){
+
+	if (!c) {
 		// if we where here there is no call in progress, so we should allocate a channel.
 		c = sccp_channel_allocate(l, device);
 		if (!c) {
@@ -160,24 +162,25 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 			goto EXIT;
 		}
 		sccp_channel_set_active(device, c);
-		
+
 		if (!sccp_pbx_channel_allocate(c)) {
 			pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
-			sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);	// implicitly retained device by sccp_action
+			sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);					// implicitly retained device by sccp_action
 			goto EXIT;
 		}
-		
+
 	} else {
-		if(c->state == SCCP_CHANNELSTATE_OFFHOOK){
-			
+		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
+
 			/** we just opened a channel for cfwd, switch ss_action = SCCP_SS_GETFORWARDEXTEN */
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
 
-		} else { 
+		} else {
 			// other call in progress, put on hold
 			int ret = sccp_channel_hold(c);
+
 			if (!ret) {
 				pbx_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
 				goto EXIT;
@@ -186,16 +189,12 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 		}
 	}
 
-	
-
-	c->ss_action = SCCP_SS_GETFORWARDEXTEN;					/* Simpleswitch will catch a number to be dialed */
-	c->ss_data = type;							/* this should be found in thread */
+	c->ss_action = SCCP_SS_GETFORWARDEXTEN;									/* Simpleswitch will catch a number to be dialed */
+	c->ss_data = type;											/* this should be found in thread */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, "Enter number to cfwd", 0);
-
-	
 
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
@@ -203,8 +202,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 		sccp_channel_openreceivechannel(c);
 	}
 
-
-EXIT:
+ EXIT:
 	linedevice = linedevice ? sccp_linedevice_release(linedevice) : NULL;
 	c = c ? sccp_channel_release(c) : NULL;
 }
@@ -239,8 +237,8 @@ void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_d
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-			c->ss_action = SCCP_SS_GETPICKUPEXTEN;			/* Simpleswitch will catch a number to be dialed */
-			c->ss_data = 0;						/* this should be found in thread */
+			c->ss_action = SCCP_SS_GETPICKUPEXTEN;							/* Simpleswitch will catch a number to be dialed */
+			c->ss_data = 0;										/* this should be found in thread */
 			// changing channelstate to GETDIGITS
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 			c = sccp_channel_release(c);
@@ -262,8 +260,8 @@ void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_d
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETPICKUPEXTEN;					/* Simpleswitch will catch a number to be dialed */
-	c->ss_data = 0;								/* not needed here */
+	c->ss_action = SCCP_SS_GETPICKUPEXTEN;									/* Simpleswitch will catch a number to be dialed */
+	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
@@ -339,15 +337,8 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 #    if ASTERISK_VERSION_NUMBER >= 10400
 							      "dialcontext   = %s\n"
 #    endif
-							      "pbx           = %s\n" "state         = %d\n" "--------------------------------------------\n", 
-							      pickupexten, 
-							      !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", 
-							      AST_STATE_RINGING, 
-							      AST_STATE_RING, 
-							      pbx_channel_macroexten(target) ? pbx_channel_macroexten(target) : "(NULL)", 
-							      pbx_channel_exten(target) ? pbx_channel_exten(target) : "(NULL)", 
-							      pbx_channel_macrocontext(target) ? pbx_channel_macrocontext(target) : "(NULL)",
-							      pbx_channel_context(target)? pbx_channel_context(target) : "(NULL)",
+							      "pbx           = %s\n" "state         = %d\n" "--------------------------------------------\n",
+							      pickupexten, !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, pbx_channel_macroexten(target) ? pbx_channel_macroexten(target) : "(NULL)", pbx_channel_exten(target) ? pbx_channel_exten(target) : "(NULL)", pbx_channel_macrocontext(target) ? pbx_channel_macrocontext(target) : "(NULL)", pbx_channel_context(target) ? pbx_channel_context(target) : "(NULL)",
 #    if ASTERISK_VERSION_NUMBER >= 10400
 							      pbx_channel_dialcontext(target) ? pbx_channel_dialcontext(target) : "(NULL)",
 #    endif
@@ -379,11 +370,11 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 
 			res = 0;
 			if (d->pickupmodeanswer) {
-				if ((res = ast_answer(c->owner))) {		// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+				if ((res = ast_answer(c->owner))) {						// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", PBX(getChannelName) (c));
 					res = -1;
-				} else if ((res = PBX(queue_control)(c->owner, AST_CONTROL_ANSWER))) {
+				} else if ((res = PBX(queue_control) (c->owner, AST_CONTROL_ANSWER))) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", PBX(getChannelName) (c));
 					res = -1;
 				}
@@ -406,10 +397,10 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 						sccp_dev_stoptone(d, instance, c->callid);
 						sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 
-//						d->active_channel = sccp_channel_release(d->active_channel);
+//                                              d->active_channel = sccp_channel_release(d->active_channel);
 						sccp_channel_set_active(d, NULL);
 
-						c->ringermode = SKINNY_STATION_OUTSIDERING;	// default ring
+						c->ringermode = SKINNY_STATION_OUTSIDERING;			// default ring
 						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 						if (ringermode && !sccp_strlen_zero(ringermode)) {
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
@@ -549,8 +540,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		}
 		sccp_channel_answer(d, c);
 		pbx_channel_unlock(target);
-//		PBX(requestHangup)(original);
-		PBX(forceHangup)(original, PBX_HARD_HANGUP);			//! \todo using pbx_hangup directly, requetsHangup should be fixed instead, but can't find right algorithm
+//              PBX(requestHangup)(original);
+		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using pbx_hangup directly, requetsHangup should be fixed instead, but can't find right algorithm
 		target = pbx_channel_unref(target);
 		c = sccp_channel_release(c);
 	} else {
@@ -641,14 +632,14 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 		else
 			lineInstance = 1;
 	}
-	
+
 	l = sccp_line_find_byid(d, lineInstance);
 
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with instance %d found.\n", d->id, lineInstance);
-		
+
 		//TODO workaround to solve the voicemail button issue with old hint style and speeddials before first line -MC
-		if(d->defaultLineInstance){
+		if (d->defaultLineInstance) {
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
 	}
@@ -656,7 +647,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line with defaultLineInstance %d found. Not Dialing Voicemail Extension.\n", d->id, d->defaultLineInstance);
 		return;
 	}
-	
+
 	if (!sccp_strlen_zero(l->vmnum)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
 		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
@@ -697,11 +688,11 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: TRANSVM to %s\n", d->id, l->trnsfvm);
-        PBX(setChannelCallForward)(c, l->trnsfvm);
+	PBX(setChannelCallForward) (c, l->trnsfvm);
 	instance = sccp_device_find_index_for_line(d, l->name);
 	sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 	pbx_setstate(c->owner, AST_STATE_BUSY);
-	PBX(queue_control)(c->owner, AST_CONTROL_BUSY);
+	PBX(queue_control) (c->owner, AST_CONTROL_BUSY);
 }
 
 /*!
@@ -735,6 +726,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		return;
 
 	uint8_t num = sccp_device_numberOfChannels(d);
+
 	pbx_log(LOG_NOTICE, "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
 	if (!d->conference) {
@@ -746,7 +738,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
 		selectedFound = TRUE;
 
-		if (NULL != selectedChannel->channel && selectedChannel->channel != c ) {
+		if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
 			sccp_conference_addParticipant(d->conference, selectedChannel->channel);
 		}
 	}
@@ -755,53 +747,56 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	/* If no calls were selected, add all calls to the conference, across all lines. */
 
 	if (FALSE == selectedFound) {
-#if 1
-                // all channels on this phone
-        	sccp_line_t *line = NULL;
-                uint8_t i = 0;
+#    if 1
+		// all channels on this phone
+		sccp_line_t *line = NULL;
+		uint8_t i = 0;
+
 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 			if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
 				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
-                                        SCCP_LIST_LOCK(&line->channels);
+					SCCP_LIST_LOCK(&line->channels);
 					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-                                                pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
-                                                if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
-                                                        sccp_conference_addParticipant(d->conference, channel);
-                                                        if (channel != d->active_channel) {
-                                                                pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
-                                                                // drop from display
-                                                                int instance = sccp_device_find_index_for_line(d, l->name);
-                                                                sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-                                                        }
-                                                }
+						pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
+						if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
+							sccp_conference_addParticipant(d->conference, channel);
+							if (channel != d->active_channel) {
+								pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+								// drop from display
+								int instance = sccp_device_find_index_for_line(d, l->name);
+
+								sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+							}
+						}
 					}
 					SCCP_LIST_UNLOCK(&line->channels);
-				        line = sccp_line_release(line);
+					line = sccp_line_release(line);
 				}
 			}
 
 		}
-#else		
-                // only channels on this line
+#    else
+		// only channels on this line
 		if (d->currentLine == l) {
-                        SCCP_LIST_LOCK(&l->channels);
-                        SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-                                pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
-                                if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
-                                        sccp_conference_addParticipant(d->conference, channel);
-                                        if (channel != d->active_channel) {
-                                                pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
-                                                // drop from display
-                                                int instance = sccp_device_find_index_for_line(d, l->name);
-                                                sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-                                        }
-                                }
-                        }
-                        SCCP_LIST_UNLOCK(&l->channels);
-                }
-#endif
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+				pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
+				if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
+					sccp_conference_addParticipant(d->conference, channel);
+					if (channel != d->active_channel) {
+						pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+						// drop from display
+						int instance = sccp_device_find_index_for_line(d, l->name);
+
+						sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+					}
+				}
+			}
+			SCCP_LIST_UNLOCK(&l->channels);
+		}
+#    endif
 	}
-       	sccp_conference_addModerator(d->conference);
+	sccp_conference_addModerator(d->conference);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -858,8 +853,8 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-			c->ss_action = SCCP_SS_GETMEETMEROOM;			/* Simpleswitch will catch a number to be dialed */
-			c->ss_data = 0;						/* this should be found in thread */
+			c->ss_action = SCCP_SS_GETMEETMEROOM;							/* Simpleswitch will catch a number to be dialed */
+			c->ss_data = 0;										/* this should be found in thread */
 			// changing channelstate to GETDIGITS
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 			c = sccp_channel_release(c);
@@ -879,8 +874,8 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETMEETMEROOM;					/* Simpleswitch will catch a number to be dialed */
-	c->ss_data = 0;								/* not needed here */
+	c->ss_action = SCCP_SS_GETMEETMEROOM;									/* Simpleswitch will catch a number to be dialed */
+	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
@@ -981,7 +976,7 @@ static void *sccp_feat_meetme_thread(void *data)
 	}
 	/* finish searching for meetme app */
 
-	if (!app) {								// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+	if (!app) {												// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
 		pbx_log(LOG_WARNING, "SCCP: No MeetMe application available!\n");
 		c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1012,16 +1007,15 @@ static void *sccp_feat_meetme_thread(void *data)
 		}
 
 		sccp_copy_string(context, pbx_channel_context(c->owner), sizeof(context));
-		
+
 		snprintf(ext, sizeof(ext), "sccp_meetme_temp_conference_%ud", eid);
 
 		if (!pbx_exists_extension(NULL, context, ext, 1, NULL)) {
 			pbx_add_extension(context, 1, ext, 1, NULL, NULL, app->appName, meetmeopts, NULL, "sccp_feat_meetme_thread");
 			pbx_log(LOG_WARNING, "SCCP: create extension exten => %s,%d,%s(%s)\n", ext, 1, app->appName, meetmeopts);
 		}
-
-//		sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
-		PBX(setChannelExten)(c, ext);
+//              sccp_copy_string(c->owner->exten, ext, sizeof(c->owner->exten));
+		PBX(setChannelExten) (c, ext);
 
 		c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1050,7 +1044,7 @@ static void *sccp_feat_meetme_thread(void *data)
 void sccp_feat_meetme_start(sccp_channel_t * c)
 {
 #if CS_EXPERIMENTAL
-	sccp_threadpool_add_work(GLOB(general_threadpool), (void*)sccp_feat_meetme_thread, (void *)c);
+	sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_feat_meetme_thread, (void *)c);
 #else
 	pthread_attr_t attr;
 	pthread_t t;
@@ -1061,7 +1055,7 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
 		pbx_log(LOG_WARNING, "SCCP: Cannot create a MeetMe thread (%s).\n", strerror(errno));
 	}
 	pthread_attr_destroy(&attr);
-#endif	
+#endif
 }
 
 /*!
@@ -1091,16 +1085,16 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-			c->ss_action = SCCP_SS_GETBARGEEXTEN;			/* Simpleswitch will catch a number to be dialed */
-			c->ss_data = 0;						/* this should be found in thread */
+			c->ss_action = SCCP_SS_GETBARGEEXTEN;							/* Simpleswitch will catch a number to be dialed */
+			c->ss_data = 0;										/* this should be found in thread */
 			// changing channelstate to GETDIGITS
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 			c = sccp_channel_release(c);
-			return ;
+			return;
 		} else if (!sccp_channel_hold(c)) {
 			/* there is an active call, let's put it on hold first */
 			c = sccp_channel_release(c);
-			return ;
+			return;
 		}
 		c = sccp_channel_release(c);
 	}
@@ -1112,8 +1106,8 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETBARGEEXTEN;					/* Simpleswitch will catch a number to be dialed */
-	c->ss_data = 0;								/* not needed here */
+	c->ss_action = SCCP_SS_GETBARGEEXTEN;									/* Simpleswitch will catch a number to be dialed */
+	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
@@ -1125,7 +1119,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 		pbx_log(LOG_WARNING, "%s: (handle_barge) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
-		return ;
+		return;
 	}
 
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
@@ -1189,8 +1183,8 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-			c->ss_action = SCCP_SS_GETCBARGEROOM;			/* Simpleswitch will catch a number to be dialed */
-			c->ss_data = 0;						/* this should be found in thread */
+			c->ss_action = SCCP_SS_GETCBARGEROOM;							/* Simpleswitch will catch a number to be dialed */
+			c->ss_data = 0;										/* this should be found in thread */
 			// changing channelstate to GETDIGITS
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 			c = sccp_channel_release(c);
@@ -1212,8 +1206,8 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETCBARGEROOM;					/* Simpleswitch will catch a number to be dialed */
-	c->ss_data = 0;								/* not needed here */
+	c->ss_action = SCCP_SS_GETCBARGEROOM;									/* Simpleswitch will catch a number to be dialed */
+	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
@@ -1320,16 +1314,16 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 		event.event.featureChanged.featureType = featureType;
 		sccp_event_fire(&event);
 
-// 		if (SCCP_FEATURE_MONITOR == featureType) {
-// 			/* Special case for monitor */
-// 			sccp_moo_t *r;
+//              if (SCCP_FEATURE_MONITOR == featureType) {
+//                      /* Special case for monitor */
+//                      sccp_moo_t *r;
 // 
-// 			REQ(r, SetLampMessage);
-// 			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-// 			r->msg.SetLampMessage.lel_stimulusInstance = 0;
-// 			r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0))) ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
-// 			sccp_dev_send(device, r);
-// 		}
+//                      REQ(r, SetLampMessage);
+//                      r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+//                      r->msg.SetLampMessage.lel_stimulusInstance = 0;
+//                      r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0))) ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
+//                      sccp_dev_send(device, r);
+//              }
 
 	}
 }
@@ -1348,29 +1342,29 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 
 	state = channel->state;
 	switch (state) {
-	case SCCP_CHANNELSTATE_CONNECTED:
-		/* We must update the status here. Not change it. (DD) */
-		/*
-		   if (device->monitorFeature.enabled && device->monitorFeature.status != channel->monitorEnabled) {
-		   sccp_feat_monitor(device, channel);
-		   }
-		 */
-		break;
-	case SCCP_CHANNELSTATE_DOWN:
-	case SCCP_CHANNELSTATE_ONHOOK:
-	case SCCP_CHANNELSTATE_BUSY:
-	case SCCP_CHANNELSTATE_CONGESTION:
-	case SCCP_CHANNELSTATE_INVALIDNUMBER:
-	case SCCP_CHANNELSTATE_ZOMBIE:
-		/* \todo: In the event a call is terminated,
-		   the channel monitor should be turned off (it implicitly is by ending the call),
-		   and the feature button should be reset to disabled state. */
-		device->monitorFeature.status = 0;
-		sccp_feat_changed(device, SCCP_FEATURE_MONITOR);
-		break;
+		case SCCP_CHANNELSTATE_CONNECTED:
+			/* We must update the status here. Not change it. (DD) */
+			/*
+			   if (device->monitorFeature.enabled && device->monitorFeature.status != channel->monitorEnabled) {
+			   sccp_feat_monitor(device, channel);
+			   }
+			 */
+			break;
+		case SCCP_CHANNELSTATE_DOWN:
+		case SCCP_CHANNELSTATE_ONHOOK:
+		case SCCP_CHANNELSTATE_BUSY:
+		case SCCP_CHANNELSTATE_CONGESTION:
+		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+		case SCCP_CHANNELSTATE_ZOMBIE:
+			/* \todo: In the event a call is terminated,
+			   the channel monitor should be turned off (it implicitly is by ending the call),
+			   and the feature button should be reset to disabled state. */
+			device->monitorFeature.status = 0;
+			sccp_feat_changed(device, SCCP_FEATURE_MONITOR);
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 }
@@ -1380,6 +1374,7 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 /*!
  * \brief Check Monitor Condition
  */
+
 /*
 int checkMonCond(void *v)
 {
@@ -1391,6 +1386,7 @@ int checkMonCond(void *v)
 	return (c->monitor) ? 1 : 0;
 }
 */
+
 /*!
  * \brief Feature Monitor
  * \param device SCCP Device
@@ -1411,10 +1407,9 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_
 	if (result && featureExtension && channel) {
 		pbx_log(LOG_WARNING, "send digits %s\n", featureExtension);
 		result = TRUE;
-	}else{
+	} else {
 		result = FALSE;
-        }
-
+	}
 
 	if (featureExtension) {
 		sccp_free(featureExtension);

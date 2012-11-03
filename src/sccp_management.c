@@ -44,12 +44,13 @@ static char management_device_update_desc[] = "Description: restart a given devi
  * \brief Show Line Forward Description
  */
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Number: number to forward calls (optional)";
+
 /*!
  * \brief Fetch config MetaData
  */
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n" "  option: OptionName (if empty returns all options in sement).";
 
-void sccp_manager_eventListener(const sccp_event_t *event);
+void sccp_manager_eventListener(const sccp_event_t * event);
 
 static int sccp_manager_show_devices(struct mansession *s, const struct message *m);
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m);
@@ -113,6 +114,7 @@ int sccp_register_management(void)
 int sccp_unregister_management(void)
 {
 	int result = 0;
+
 #    if ASTERISK_VERSION_NUMBER < 11200
 	result = pbx_manager_unregister("SCCPListDevices");
 	result |= pbx_manager_unregister("SCCPDeviceRestart");
@@ -124,7 +126,7 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
 	result |= pbx_manager_unregister("SCCPConfigMetaData");
-#endif
+#    endif
 #    if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_unregister_hook(&sccp_manager_hook);
 #    endif
@@ -156,7 +158,7 @@ void sccp_manager_module_stop()
  *
  * Handles the manager events that need to be posted when an event happens
  */
-void sccp_manager_eventListener(const sccp_event_t *event)
+void sccp_manager_eventListener(const sccp_event_t * event)
 {
 	sccp_device_t *device = NULL;
 	sccp_linedevices_t *linedevice = NULL;
@@ -165,47 +167,37 @@ void sccp_manager_eventListener(const sccp_event_t *event)
 		return;
 
 	switch (event->type) {
-	case SCCP_EVENT_DEVICE_REGISTERED:
-		device = event->event.deviceRegistered.device;	// already retained in the event
-		manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "REGISTERED", device->id);
-		break;
+		case SCCP_EVENT_DEVICE_REGISTERED:
+			device = event->event.deviceRegistered.device;						// already retained in the event
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "REGISTERED", device->id);
+			break;
 
-	case SCCP_EVENT_DEVICE_UNREGISTERED:
-		device = event->event.deviceRegistered.device;	// already retained in the event
-		manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "UNREGISTERED", device->id);
-		break;
+		case SCCP_EVENT_DEVICE_UNREGISTERED:
+			device = event->event.deviceRegistered.device;						// already retained in the event
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "UNREGISTERED", device->id);
+			break;
 
-	case SCCP_EVENT_DEVICE_PREREGISTERED:
-		device = event->event.deviceRegistered.device;  // already retained in the event
-		manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "PREREGISTERED", device->id);
-		break;
+		case SCCP_EVENT_DEVICE_PREREGISTERED:
+			device = event->event.deviceRegistered.device;						// already retained in the event
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "PREREGISTERED", device->id);
+			break;
 
-	case SCCP_EVENT_DEVICE_ATTACHED:
-		device = event->event.deviceAttached.linedevice->device; // already retained in the event
-		linedevice = event->event.deviceAttached.linedevice;     // already retained in the event
-		manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", 
-			"ATTACHED", 
-			device->id, 
-			linedevice && linedevice->line ? linedevice->line->name : "(null)", 
-			linedevice && linedevice->line ? linedevice->line->label : "(null)", 
-			linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", 
-			linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
-		break;
+		case SCCP_EVENT_DEVICE_ATTACHED:
+			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
+			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
+			manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+				      "ATTACHED", device->id, linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+			break;
 
-	case SCCP_EVENT_DEVICE_DETACHED:
-		device = event->event.deviceAttached.linedevice->device; // already retained in the event
-		linedevice = event->event.deviceAttached.linedevice;     // already retained in the event
-		manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n", 
-			"DETACHED", 
-			device->id, 
-			linedevice && linedevice->line ? linedevice->line->name : "(null)", 
-			linedevice && linedevice->line ? linedevice->line->label : "(null)", 
-			linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", 
-			linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
-		break;
+		case SCCP_EVENT_DEVICE_DETACHED:
+			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
+			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
+			manager_event(EVENT_FLAG_CALL, "PeerStatus", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+				      "DETACHED", device->id, linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
@@ -254,7 +246,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 
 	// Send final confirmation 
 	astman_append(s, "Event: SCCPListDevicesComplete\r\n" "EventList: Complete\r\n" "ListItems: %d\r\n" "\r\n", total);
-	
+
 	return 0;
 }
 
@@ -444,7 +436,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 	}
 
 	if (!forwardType) {
-		astman_send_error(s, m, "Forwardtype is not optional [all | busy]");	/* NoAnswer to be added later on */
+		astman_send_error(s, m, "Forwardtype is not optional [all | busy]");				/* NoAnswer to be added later on */
 		line = sccp_line_release(line);
 		d = sccp_device_release(d);
 		return 0;
@@ -664,21 +656,22 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
 	}
-	if (sccp_strcaseequals("on", hold)) {						/* check to see if enable hold */
+	if (sccp_strcaseequals("on", hold)) {									/* check to see if enable hold */
 		astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold(c);
 		retValStr = "Channel was put on hold";
-	} else if (sccp_strcaseequals("off", hold)) {					/* check to see if disable hold */
-		
+	} else if (sccp_strcaseequals("off", hold)) {								/* check to see if disable hold */
+
 		/** we need the device for resuming calls */
-		if(sccp_strlen_zero(deviceName)){
+		if (sccp_strlen_zero(deviceName)) {
 			astman_send_error(s, m, "To resume a channel, you need to specify the device that resumes call using Devicename variable\r\n");
 			c = sccp_channel_release(c);
 			return 0;
 		}
-		
+
 		astman_append(s, "remove channel '%s' from hold\n", channelId);
 		sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+
 		sccp_channel_resume(d, c, FALSE);
 		d = d ? sccp_device_release(d) : NULL;
 		retValStr = "Channel was resumed";
@@ -691,7 +684,6 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	c = sccp_channel_release(c);
 	return 0;
 }
-
 
 #    if HAVE_PBX_MANAGER_HOOK_H
 
@@ -709,9 +701,9 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 		int cr;								/* set if we have \r */
 
 		if (str[x] == '\r' && x + 1 < curlen && str[x + 1] == '\n')
-			cr = 2;							/* Found. Update length to include \r\n */
+			cr = 2;											/* Found. Update length to include \r\n */
 		else if (str[x] == '\n')
-			cr = 1;							/* also accept \n only */
+			cr = 1;											/* also accept \n only */
 		else
 			continue;
 		/* don't keep empty lines */
@@ -721,9 +713,9 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 			m->headers[m->hdrcount++] = str;
 		}
 		x += cr;
-		curlen -= x;							/* remaining size */
-		str += x;							/* update pointer */
-		x = -1;								/* reset loop */
+		curlen -= x;											/* remaining size */
+		str += x;											/* update pointer */
+		x = -1;												/* reset loop */
 	}
 }
 
@@ -747,6 +739,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
 
 			str = dupStr = sccp_strdupa(content); /** need a dup, because converter to message structure will modify the str */
+
 			sccp_asterisk_parseStrToAstMessage(str, &m); /** convert to message structure to use the astman_get_header function */
 			const char *channelName = astman_get_header(&m, "Channel");
 
@@ -758,7 +751,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 				channel = get_sccp_channel_from_pbx_channel(pbxBridge);
 			}
 
-			if (channel){
+			if (channel) {
 				if ((d = sccp_channel_getDevice_retained(channel))) {
 					if (strcasecmp("MonitorStart", event)) {
 						d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
@@ -767,7 +760,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					}
 					sccp_feat_changed(d, SCCP_FEATURE_MONITOR);
 					d = sccp_device_release(d);
-				}	
+				}
 				channel = sccp_channel_release(channel);
 			}
 		}

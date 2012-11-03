@@ -63,15 +63,15 @@ void sccp_softkey_post_reload(void)
 }
 #endif										/* CS_DYNAMIC_CONFIG */
 
-
-void sccp_softkey_clear(){
+void sccp_softkey_clear()
+{
 	sccp_softKeySetConfiguration_t *k;
 	uint8_t i;
-	
+
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
-			if(k->modes[i].ptr)
+			if (k->modes[i].ptr)
 				sccp_free(k->modes[i].ptr);
 		}
 		sccp_free(k);
@@ -178,16 +178,16 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
-	if (c) {								// Handle termination of dialling if in appropriate state.
+	if (c) {												// Handle termination of dialling if in appropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-		if(c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
+		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch(c);
-			
+
 		} else if (c->state == SCCP_CHANNELSTATE_DIALING) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch(c);
-		} 
+		}
 	}
 }
 
@@ -435,7 +435,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 		return;
 	}
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (Current Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d),dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (Current Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
 
 	if (!d->dndFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Feature disabled\n", DEV_ID_LOG(d));
@@ -460,24 +460,24 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 	} else {
 		/* for all other config us the toggle mode */
 		switch (d->dndFeature.status) {
-		case SCCP_DNDMODE_OFF:
-			d->dndFeature.status = SCCP_DNDMODE_REJECT;
-			break;
-		case SCCP_DNDMODE_REJECT:
-			d->dndFeature.status = SCCP_DNDMODE_SILENT;
-			break;
-		case SCCP_DNDMODE_SILENT:
-			d->dndFeature.status = SCCP_DNDMODE_OFF;
-			break;
-		default:
-			d->dndFeature.status = SCCP_DNDMODE_OFF;
-			break;
+			case SCCP_DNDMODE_OFF:
+				d->dndFeature.status = SCCP_DNDMODE_REJECT;
+				break;
+			case SCCP_DNDMODE_REJECT:
+				d->dndFeature.status = SCCP_DNDMODE_SILENT;
+				break;
+			case SCCP_DNDMODE_SILENT:
+				d->dndFeature.status = SCCP_DNDMODE_OFF;
+				break;
+			default:
+				d->dndFeature.status = SCCP_DNDMODE_OFF;
+				break;
 		}
 	}
 
-	sccp_feat_changed(d, SCCP_FEATURE_DND);					/* notify the modules the the DND-feature changed state */
-	sccp_dev_check_displayprompt(d);					/*! \todo we should use the feature changed event to check displayprompt */
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d),dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
+	sccp_feat_changed(d, SCCP_FEATURE_DND);									/* notify the modules the the DND-feature changed state */
+	sccp_dev_check_displayprompt(d);									/*! \todo we should use the feature changed event to check displayprompt */
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
 }
 
 /*!
@@ -544,7 +544,7 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		if (l)
 			ast_log(LOG_WARNING, "%s: (sccp_sk_answer) Pressed the answer key without any channel on line %s\n", d->id, l->name);
 		return;
-        }
+	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
 	if (c->owner)
 		pbx_channel_lock(c->owner);
@@ -631,8 +631,8 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		d->transferChannels.transferer = sccp_channel_retain(chan2);
 
 		sccp_channel_transfer_complete(chan2);
-		chan1=sccp_channel_release(chan1);
-		chan2=sccp_channel_release(chan2);
+		chan1 = sccp_channel_release(chan1);
+		chan2 = sccp_channel_release(chan2);
 	}
 	d = sccp_device_release(d);
 }
@@ -702,7 +702,7 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 {
 	sccp_line_t *line = NULL;
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name :"(NULL)", lineInstance, c ? c->callid : -1);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward All Pressed, line: %s, instance: %d, channel: %d\n", DEV_ID_LOG(d), l ? l->name : "(NULL)", lineInstance, c ? c->callid : -1);
 	if (!l && d) {
 
 		if (d->defaultLineInstance > 0) {
@@ -736,12 +736,13 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward Busy Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
 	} else {
 		line = sccp_line_retain(l);
-	}	
+	}
 
 	if (line) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_BUSY);
@@ -761,13 +762,14 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Call Forward NoAnswer Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
 	} else {
 		line = sccp_line_retain(l);
 	}
-		
+
 	if (line) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_NOANSWER);
 		line = sccp_line_release(line);
@@ -844,8 +846,8 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	}
 
 	c->privacy = (c->privacy) ? FALSE : TRUE;
-//	d->privacyFeature.status = c->privacy;		// should not be activeted on softkey
-//	sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
+//      d->privacyFeature.status = c->privacy;          // should not be activeted on softkey
+//      sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
 	} else {
@@ -911,6 +913,7 @@ void sccp_sk_join(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Barge Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
@@ -935,6 +938,7 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstan
 void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey cBarge Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
@@ -961,12 +965,13 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Meetme Pressed\n", DEV_ID_LOG(d));
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
 	} else {
 		line = sccp_line_retain(l);
-	}	
+	}
 	if (line) {
 		sccp_feat_handle_meetme(line, lineInstance, d);
 		line = sccp_line_release(line);
@@ -985,7 +990,7 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
-  
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Pickup Pressed\n", DEV_ID_LOG(d));
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
@@ -996,9 +1001,9 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		line = sccp_line_retain(l);
 	}
 	if (line) {
-		sccp_feat_handle_directpickup( line, lineInstance, d);
+		sccp_feat_handle_directpickup(line, lineInstance, d);
 		line = sccp_line_release(line);
-	} else{
+	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 	}
 #endif
@@ -1015,7 +1020,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_line_t *line = NULL;
-  
+
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Group Pickup Pressed\n", DEV_ID_LOG(d));
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
@@ -1028,7 +1033,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (line) {
 		sccp_feat_grouppickup(line, d);
 		line = sccp_line_release(line);
-	} else{
+	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 	}
 #endif
@@ -1068,7 +1073,7 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 		mask = (mask << 1);
 	}
 
-	if (status == 0)							//disable softkey
+	if (status == 0)											//disable softkey
 		mask = ~(validKeyMask & mask);
 	else
 		mask = validKeyMask | mask;
