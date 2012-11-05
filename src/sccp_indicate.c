@@ -229,9 +229,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			/* asterisk wants rtp open before AST_STATE_UP
 			 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
 			 */
-			if (d->earlyrtp) {
-				PBX(set_callstate) (c, AST_STATE_UP);
-			}
+//			if (d->earlyrtp) {
+//				PBX(set_callstate) (c, AST_STATE_UP);			// cause 1 second delay in sound -> should not be done here (Marcello)
+//			}
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			/* it will be emulated if the rtp audio stream is open */
@@ -335,8 +335,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			/* asterisk wants rtp open before AST_STATE_UP
 			 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
 			 */
-			if (d->earlyrtp)
-				PBX(set_callstate) (c, AST_STATE_UP);
+//			if (d->earlyrtp) {
+//				PBX(set_callstate) (c, AST_STATE_UP);			// cause 1 second delay in sound -> should not be done here (Marcello)
+//			}
 			break;
 		case SCCP_CHANNELSTATE_CALLPARK:
 			sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
