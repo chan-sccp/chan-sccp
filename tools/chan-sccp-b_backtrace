@@ -15,8 +15,16 @@ PID=$1
 TMPFILE=/tmp/gdb.$$
 cat << EOF  > $TMPFILE
 set height 0
+set pagination off
+print "Backtrace"
+bt
+print "Backtrace Full"
 bt full
+print "Thread Apply all & Backtrace Full"
 thread apply all bt full
+print "Generating Core File"
+run
+generate-core-file
 quit
 EOF
 gdb -batch -x $TMPFILE --pid $PID < /dev/null 2>&1
