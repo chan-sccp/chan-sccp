@@ -728,8 +728,8 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	}
 	line = channel->line;
 
-	ast_channel_tech_set(*pbx_channel, &sccp_tech);
-	ast_channel_tech_pvt_set(*pbx_channel, &channel);
+	ast_channel_tech_set((*pbx_channel), &sccp_tech);
+	ast_channel_tech_pvt_set((*pbx_channel), channel);
 	ast_channel_context_set(*pbx_channel, line->context);
 	ast_channel_exten_set(*pbx_channel, "");
 
