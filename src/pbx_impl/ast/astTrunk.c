@@ -782,7 +782,11 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		}
 		res = sccp_pbx_hangup(c);
 		c->owner = NULL;
-		ast_channel_tech_pvt_set(c->owner, NULL);
+		ast_channel_tech_pvt_set(ast_channel, NULL);
+		if (c->rtp.audio.rtp) {
+			sccp_rtp_stop(c);
+			sccp_rtp_destroy(c);
+		}
 		sccp_channel_release(c);
 	}
 //      ast_channel = ast_channel_unref(ast_channel);
