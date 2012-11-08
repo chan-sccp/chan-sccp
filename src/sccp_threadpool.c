@@ -163,7 +163,7 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 			sccp_thread_resize(tp_p, newsize);
 			pthread_create(&(tp_p->threads[tp_p->threadsN - 1]), NULL, (void *)sccp_threadpool_thread_do, (void *)tp_p);
 
-		} else if (tp_p->threadsN > THREADPOOL_MIN_SIZE && tp_p->jobqueue->jobsN > (tp_p->threadsN / 2)) {	/* increase */
+		} else if (tp_p->threadsN > THREADPOOL_MIN_SIZE && tp_p->jobqueue->jobsN > (tp_p->threadsN / 2)) {	/* decrease */
 			newsize = tp_p->threadsN - 1;
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Remove thread %d from threadpool %p\n", newsize, tp_p);
 			/* Send thread cancel message */
@@ -191,6 +191,7 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue\n");
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "\n");
 	while (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sccp_threadpool_keepalive) {
 		pthread_testcancel();
 
@@ -225,6 +226,7 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 
 		if ((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL) {
 			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "Resize Check\n");
 			sccp_threadpool_check_size(tp_p);							/* Check Resizing */
 			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
 		}
@@ -319,6 +321,7 @@ int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p)
 /* Initialise queue */
 int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p)
 {
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_init) tp_p: %p\n", tp_p);
 	tp_p->jobqueue = (sccp_threadpool_jobqueue *) malloc(sizeof(sccp_threadpool_jobqueue));			/* MALLOC job queue */
 	if (tp_p->jobqueue == NULL)
 		return -1;
@@ -352,6 +355,7 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 		return;
 	}
 
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_add) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
 	oldFirstJob = tp_p->jobqueue->head;
 
 	/* fix jobs' pointers */
@@ -384,6 +388,7 @@ int sccp_threadpool_jobqueue_removelast(sccp_threadpool_t * tp_p)
 {
 	sccp_threadpool_job_t *oldLastJob;
 
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_removelast) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
 	oldLastJob = tp_p->jobqueue->tail;
 
 	/* fix jobs' pointers */
@@ -415,6 +420,7 @@ int sccp_threadpool_jobqueue_removelast(sccp_threadpool_t * tp_p)
 /* Get first element from queue */
 sccp_threadpool_job_t *sccp_threadpool_jobqueue_peek(sccp_threadpool_t * tp_p)
 {
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_peek) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
 	if (tp_p && tp_p->jobqueue && tp_p->jobqueue->tail)
 		return tp_p->jobqueue->tail;
 	else
@@ -425,6 +431,7 @@ sccp_threadpool_job_t *sccp_threadpool_jobqueue_peek(sccp_threadpool_t * tp_p)
 void sccp_threadpool_jobqueue_empty(sccp_threadpool_t * tp_p)
 {
 	sccp_threadpool_job_t *curjob;
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_empty) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
 
 	curjob = tp_p->jobqueue->tail;
 
@@ -442,5 +449,6 @@ void sccp_threadpool_jobqueue_empty(sccp_threadpool_t * tp_p)
 
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 {
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
 	return tp_p->jobqueue->jobsN;
 }
