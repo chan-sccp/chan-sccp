@@ -1236,6 +1236,18 @@ static void *sccp_cli_refcount_test_thread(void *data)
 	return NULL;
 }
 
+static void *sccp_cli_threadpool_test_thread(void *data)
+{
+	int loop;
+//	int num_loops=rand();
+	int num_loops=10000;
+	sccp_log(0)(VERBOSE_PREFIX_4 "Running work: %d, loops: %d\n", (unsigned int)pthread_self(), num_loops);
+	for (loop = 0; loop < num_loops; loop++) {
+		sccp_log(0)(VERBOSE_PREFIX_4 "Working in thread: %d\n",(unsigned int)pthread_self());
+//		usleep(1);
+	}
+	return 0;
+}
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1370,6 +1382,15 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		sleep(1);
 		sccp_refcount_print_hashtable(fd);
 		return RESULT_SUCCESS;
+	}
+	if (!strcasecmp(argv[3], "threadpool")) {
+		int work;
+		int num_work = (argc == 5) ? atoi(argv[4]) : 4;
+		for (work = 0; work < num_work; work++) {
+			if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_cli_threadpool_test_thread, (void *)&work)) {
+				pbx_log(LOG_ERROR, "Could not add work to threadpool\n");
+			}
+		}
 	}
 	return RESULT_FAILURE;
 }
