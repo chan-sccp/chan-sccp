@@ -1763,9 +1763,6 @@ static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * 
 
 	struct ast_format tmp_format;
 	struct ast_format_cap *cap = ast_format_cap_alloc_nolock();
-	
-sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: set write format sccp: %d, ast: %d \n", codec, skinny_codec2pbx_codec(codec));
-
 
 	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
 	ast_format_cap_add(cap, &tmp_format);
@@ -1786,8 +1783,6 @@ static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * c
 
 	struct ast_format tmp_format;
 	struct ast_format_cap *cap = ast_format_cap_alloc_nolock();
-
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: set read format sccp: %d, ast: %d \n", codec, skinny_codec2pbx_codec(codec));
 	
 	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
 	ast_format_cap_add(cap, &tmp_format);
