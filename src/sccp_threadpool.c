@@ -32,15 +32,10 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 struct sccp_threadpool_t {
 	pthread_t *threads;							/*!< pointer to threads' ID   */
 	int threadsN;								/*!< amount of threads        */
-	sccp_threadpool_jobqueue *jobqueue;					/*!< pointer to the job queue */
+	SCCP_LIST_HEAD(, sccp_threadpool_job_t) jobs;
+	ast_cond_t work;
 	time_t last_size_check;							/*!< Time since last resize check */
 	int job_high_water_mark;						/*!< Highest number of jobs outstanding since last resize check */
-};
-
-/* Container for all things that each thread is going to need */
-struct thread_data {
-	sccp_mutex_t *mutex_p;
-	sccp_threadpool_t *tp_p;
 };
 
 /* 
@@ -84,7 +79,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread pool\n");
 		return NULL;
 	}
-	tp_p->threads = (pthread_t *) malloc(threadsN * sizeof(pthread_t));					/* MALLOC thread IDs */
+	tp_p->threads = (pthread_t *) malloc(THREADPOOL_MAX_SIZE * sizeof(pthread_t));					/* MALLOC thread IDs */
 	if (tp_p->threads == NULL) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread IDs\n");
 		sccp_free(tp_p);
@@ -100,20 +95,8 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 		return NULL;
 	}
 
-	/* Initialise semaphore */
-	tp_p->jobqueue->queueSem = (sem_t *) malloc(sizeof(sem_t));						/* MALLOC job queue semaphore */
-	if (tp_p->jobqueue->queueSem == NULL) {
-		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
-		sccp_free(tp_p->threads);
-		sccp_free(tp_p);
-		return NULL;
-	}
-	if (sem_init(tp_p->jobqueue->queueSem, 0, SEMAPHORE_LOCKED)) {						/* Create semaphore with no shared, initial value */
-		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Error creating unnamed semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
-		sccp_free(tp_p->threads);
-		sccp_free(tp_p);
-		return NULL;
-	}
+	/* Initialise Condition */
+	ast_cond_init(&(tp_p->work), NULL);
 
 	/* Make threads in pool */
 	int t;
@@ -125,7 +108,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-	for (t = 0; t < threadsN; t++) {
+	for (t = 0; t < tp_p->threadsN; t++) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Create thread %d in pool \n", t);
 
 		pbx_pthread_create(&(tp_p->threads[t]), &attr, (void *)sccp_threadpool_thread_do, (void *)tp_p);	/* MALLOCS INSIDE PTHREAD HERE */
@@ -136,28 +119,27 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 }
 
 /* resize threadpool */
-/*
 static void sccp_thread_resize(sccp_threadpool_t * tp_p, int threadsN)
 {
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Resizing threadpool to %d threads\n", threadsN);
-	pthread_t *tmpPtr = (pthread_t *)realloc(tp_p, threadsN * sizeof(pthread_t));		// REALLOC thread IDs
+	// Doesn't seem to work correctly, fixed pthread_array to THREADPOOL_MAX_SIZE for now
+/*	pthread_t *tmpPtr = (pthread_t *)realloc(tp_p, threadsN * sizeof(pthread_t));		// REALLOC thread IDs
 
 	if (tmpPtr == NULL) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread IDs\n");
 		return;
 	}
 	tp_p->threads = (pthread_t *) tmpPtr;
+*/	
 	tp_p->threadsN = threadsN;
 }
-*/
+
 /* check threadpool size (increase/decrease if necessary)*/
 static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 {
-	// escape resizing for now, until fixed
-	int t;
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %d\n", (unsigned int)pthread_self());
-	if (tp_p && tp_p->jobqueue) {
-/*		if (tp_p->jobqueue->jobsN > (tp_p->threadsN * 2) && tp_p->threadsN < THREADPOOL_MAX_SIZE) {	// increase
+	if (tp_p && !sccp_threadpool_shuttingdown) {
+		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %d\n", (unsigned int)pthread_self());
+		if (SCCP_LIST_GETSIZE(tp_p->jobs) > (tp_p->threadsN * 2) && tp_p->threadsN < THREADPOOL_MAX_SIZE) {	// increase
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Add new thread to threadpool %p\n", tp_p);
 			pthread_attr_t attr;
 
@@ -165,30 +147,23 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 			pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 			pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 			pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
-
 			sccp_thread_resize(tp_p, tp_p->threadsN + 1);
 			pthread_create(&(tp_p->threads[tp_p->threadsN - 1]), &attr, (void *)sccp_threadpool_thread_do, (void *)tp_p);
-			sleep(1);
-		} else if (tp_p->threadsN > THREADPOOL_MIN_SIZE && tp_p->jobqueue->jobsN > (tp_p->threadsN / 2)) {	// decrease
+		} else if (((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL*3) && 					// wait a little longer to decrease
+			  (tp_p->threadsN > THREADPOOL_MIN_SIZE && SCCP_LIST_GETSIZE(tp_p->jobs) < (tp_p->threadsN / 2))) {	// decrease
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Remove thread %d from threadpool %p\n", tp_p->threadsN - 1, tp_p);
 			// Send thread cancel message 
 			pthread_cancel(tp_p->threads[tp_p->threadsN - 2]);
 			// Wake up all threads
-			for (t = 0; t < (tp_p->threadsN); t++) {
-				if (sem_post(tp_p->jobqueue->queueSem)) {
-					pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not bypass sem_wait()\n");
-				}
-			}
+			ast_cond_broadcast(&(tp_p->work));
 			// Wait for threads to finish 
 			pthread_join(tp_p->threads[tp_p->threadsN - 2], NULL);
-//			pthread_attr_destroy(&attr);
 			sccp_thread_resize(tp_p, tp_p->threadsN - 1);
-
 		}
-*/		tp_p->last_size_check = time(0);
-		tp_p->job_high_water_mark = tp_p->jobqueue->jobsN;
+		tp_p->last_size_check = time(0);
+		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(tp_p->jobs);
+		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) threads: %d, job_high_water_mark: %d\n", tp_p->threadsN, tp_p->job_high_water_mark);
 	}
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) threads: %d, job_high_water_mark: %d\n", tp_p->threadsN, tp_p->job_high_water_mark);
 }
 
 /* What each individual thread is doing 
@@ -199,47 +174,50 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 {
 	uint threadid=(unsigned int)pthread_self();
+	int jobs=0;
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue\n");
-	while (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sccp_threadpool_keepalive) {
+	while (tp_p && sccp_threadpool_keepalive) {
 		pthread_testcancel();
-
-		/* Wait for the Semaphore to be raised -> meaning there is Work in the Queue */
-		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) tp_p: %p, jobqueue: %p, queueSem: %p, threadid: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->queueSem, threadid);
-		if (tp_p && tp_p->jobqueue && tp_p->jobqueue->queueSem && sem_wait(tp_p->jobqueue->queueSem)) {
-			pbx_log(LOG_ERROR, "sccp_threadpool_thread_do(): Error while waiting for semaphore (error: %s [%d]). Exiting\n", strerror(errno), errno);
-			return;
+		jobs = SCCP_LIST_GETSIZE(tp_p->jobs);
+		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) tp_p: %p, jobs: %d, threadid: %d\n", tp_p, jobs, threadid);
+		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
+		while (SCCP_LIST_GETSIZE(tp_p->jobs) == 0 && sccp_threadpool_keepalive) {
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Waiting for Semaphore. tp_p: %p, jobs: %d, threadid: %d\n", tp_p, jobs, threadid);
+			ast_cond_wait(&(tp_p->work),&(tp_p->jobs.lock));
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Let's work. tp_p: %p, jobs: %d, threadid: %d\n", tp_p, jobs, threadid);
 		}
-
-		if (sccp_threadpool_keepalive) {
+		if (!sccp_threadpool_keepalive && SCCP_LIST_GETSIZE(tp_p->jobs) == 0) {
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue keepalive == 0. Exting...\n");
+			SCCP_LIST_UNLOCK(&tp_p->jobs);								/* UNLOCK */
+			return;											/* EXIT thread */
+		}
+		{
 			/* Read job from queue and execute it */
 			void *(*func_buff) (void *arg) = NULL;
 			void *arg_buff = NULL;
-			sccp_threadpool_job_t *job_p;
+			sccp_threadpool_job_t *job;
 
-			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
-			if ((job_p = sccp_threadpool_jobqueue_peek(tp_p))) {					/* Check if there are any jobs that we can do */
-				func_buff = job_p->function;
-				arg_buff = job_p->arg;
-				sccp_threadpool_jobqueue_removelast(tp_p);					/* Remove from jobqueue */
+//			SCCP_LIST_LOCK(&(tp_p->jobs));
+			if ((job = SCCP_LIST_REMOVE_HEAD(&(tp_p->jobs), list))) {
+				func_buff = job->function;
+				arg_buff = job->arg;
 			}
-			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
+			SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) executing %p in threadid: %d\n", job_p, threadid);
-			if (job_p) {
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) executing %p in threadid: %d\n", job, threadid);
+			if (job) {
 				func_buff(arg_buff);								/* run function */
-				free(job_p);									/* DEALLOC job */
+				free(job);									/* DEALLOC job */
 			}
-		} else {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue keepalive == 0. Exting...\n");
-			return;											/* EXIT thread */
+
+			// check number of threads in threadpool
+			if ((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL) {
+				pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
+				sccp_threadpool_check_size(tp_p);							/* Check Resizing */
+				pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
+			}
 		}
 
-		if ((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL) {
-			pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
-			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "Resize Check\n");
-			sccp_threadpool_check_size(tp_p);							/* Check Resizing */
-			pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
-		}
 	}
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue Exiting Thread...\n");
 	return;
@@ -277,47 +255,29 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 {
 	int t;
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Destroying Threadpool %p with %d jobs\n", tp_p, tp_p->jobqueue->jobsN);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(tp_p->jobs));
 
+	// After this point, no new jobs can be added
+	SCCP_LIST_LOCK(&(tp_p->jobs));
 	sccp_threadpool_shuttingdown = 1;
-	// wake up jobs untill jobqueue is empty, before shutting down, to make sure all jobs have been processed
-	while (tp_p->jobqueue->jobsN > 0) {
-		for (t = 0; t < (tp_p->threadsN); t++) {
-			if (sem_post(tp_p->jobqueue->queueSem)) {
-				pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not bypass sem_wait()\n");
-			}
-		}
-	}
-
-	/* End each thread's infinite loop */
+	// shutdown is a kind of work too
 	sccp_threadpool_keepalive = 0;
+	SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-	/* Awake idle threads waiting at semaphore */
-	for (t = 0; t < (tp_p->threadsN); t++) {
-		if (sem_post(tp_p->jobqueue->queueSem)) {
-			pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not bypass sem_wait()\n");
-		}
-	}
+	// wake up jobs untill jobqueue is empty, before shutting down, to make sure all jobs have been processed
+	ast_cond_broadcast(&(tp_p->work));
 
-	/* Kill semaphore */
-	if (sem_destroy(tp_p->jobqueue->queueSem) != 0) {
-		pbx_log(LOG_ERROR, "sccp_threadpool_destroy(): Could not destroy semaphore (error: %s [%d])\n", strerror(errno), errno);
-	}
-
-	/* Wait for threads to finish */
+	/* Make sure / Wait for threads to finish */
 	for (t = 0; t < (tp_p->threadsN); t++) {
 		pthread_cancel(tp_p->threads[t]);
 		pthread_kill(tp_p->threads[t], SIGURG);
 		pthread_join(tp_p->threads[t], NULL);
 	}
 
-	sccp_threadpool_jobqueue_empty(tp_p);
-//	pthread_attr_destroy(&attr);
-
 	/* Dealloc */
+	ast_cond_destroy(&(tp_p->work));									/* Remove Condition */
+	SCCP_LIST_HEAD_DESTROY(&(tp_p->jobs));
 	free(tp_p->threads);											/* DEALLOC threads             */
-	free(tp_p->jobqueue->queueSem);										/* DEALLOC job queue semaphore */
-	free(tp_p->jobqueue);											/* DEALLOC job queue           */
 	free(tp_p);												/* DEALLOC thread pool         */
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Threadpool Ended\n");
 }
@@ -333,12 +293,7 @@ int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p)
 int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p)
 {
 	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_init) tp_p: %p\n", tp_p);
-	tp_p->jobqueue = (sccp_threadpool_jobqueue *) malloc(sizeof(sccp_threadpool_jobqueue));			/* MALLOC job queue */
-	if (tp_p->jobqueue == NULL)
-		return -1;
-	tp_p->jobqueue->tail = NULL;
-	tp_p->jobqueue->head = NULL;
-	tp_p->jobqueue->jobsN = 0;
+	SCCP_LIST_HEAD_INIT(&tp_p->jobs);
 	tp_p->last_size_check = time(0);
 	tp_p->job_high_water_mark = 0;
 	return 0;
@@ -347,119 +302,29 @@ int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p)
 /* Add job to queue */
 void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_t * newjob_p)
 {
-	sccp_threadpool_job_t *oldFirstJob;
-
-	/* remember that job prev and next point to NULL */
-	newjob_p->next = NULL;
-	newjob_p->prev = NULL;
-
-	if (sccp_threadpool_shuttingdown) {
-		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) shutting down\n");
-		return;
-	}
 	if (!tp_p) {
 		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) no tp_p\n");
 		return;
 	}
-	if (!tp_p->jobqueue) {
-		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) no tp_p->jobqueue\n");
+
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_add) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(tp_p->jobs));
+	SCCP_LIST_LOCK(&(tp_p->jobs));
+	if (sccp_threadpool_shuttingdown) {
+		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) shutting down\n");
+		SCCP_LIST_UNLOCK(&(tp_p->jobs));
 		return;
 	}
+	SCCP_LIST_INSERT_TAIL(&(tp_p->jobs), newjob_p, list);
+	SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_add) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
-	oldFirstJob = tp_p->jobqueue->head;
-
-	/* fix jobs' pointers */
-	switch (tp_p->jobqueue->jobsN) {
-		case 0:											/* if there are no jobs in queue */
-			tp_p->jobqueue->tail = newjob_p;
-			tp_p->jobqueue->head = newjob_p;
-			break;
-
-		default:											/* if there are already jobs in queue */
-			oldFirstJob->prev = newjob_p;
-			newjob_p->next = oldFirstJob;
-			tp_p->jobqueue->head = newjob_p;
+	if (SCCP_LIST_GETSIZE(tp_p->jobs) > tp_p->job_high_water_mark) {
+		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(tp_p->jobs);
 	}
-
-	(tp_p->jobqueue->jobsN)++;										/* increment amount of jobs in queue */
-	if (tp_p->jobqueue->jobsN > tp_p->job_high_water_mark) {
-		tp_p->job_high_water_mark = tp_p->jobqueue->jobsN;
-	}
-
-	sem_post(tp_p->jobqueue->queueSem);
-
-	int sval;
-
-	sem_getvalue(tp_p->jobqueue->queueSem, &sval);
-}
-
-/* Remove job from queue */
-int sccp_threadpool_jobqueue_removelast(sccp_threadpool_t * tp_p)
-{
-	sccp_threadpool_job_t *oldLastJob;
-
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_removelast) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
-	oldLastJob = tp_p->jobqueue->tail;
-
-	/* fix jobs' pointers */
-	switch (tp_p->jobqueue->jobsN) {
-
-		case 0:											/* if there are no jobs in queue */
-			return -1;
-			break;
-
-		case 1:											/* if there is only one job in queue */
-			tp_p->jobqueue->tail = NULL;
-			tp_p->jobqueue->head = NULL;
-			break;
-
-		default:											/* if there are more than one jobs in queue */
-			oldLastJob->prev->next = NULL;								/* the almost last item */
-			tp_p->jobqueue->tail = oldLastJob->prev;
-
-	}
-
-	(tp_p->jobqueue->jobsN)--;
-
-	int sval;
-
-	sem_getvalue(tp_p->jobqueue->queueSem, &sval);
-	return 0;
-}
-
-/* Get first element from queue */
-sccp_threadpool_job_t *sccp_threadpool_jobqueue_peek(sccp_threadpool_t * tp_p)
-{
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_peek) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
-	if (tp_p && tp_p->jobqueue && tp_p->jobqueue->tail)
-		return tp_p->jobqueue->tail;
-	else
-		return NULL;
-}
-
-/* Remove and deallocate all jobs in queue */
-void sccp_threadpool_jobqueue_empty(sccp_threadpool_t * tp_p)
-{
-	sccp_threadpool_job_t *curjob;
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_empty) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
-
-	curjob = tp_p->jobqueue->tail;
-
-	while (tp_p->jobqueue->jobsN) {
-		tp_p->jobqueue->tail = curjob->prev;
-		free(curjob);
-		curjob = tp_p->jobqueue->tail;
-		tp_p->jobqueue->jobsN--;
-	}
-
-	/* Fix head and tail */
-	tp_p->jobqueue->tail = NULL;
-	tp_p->jobqueue->head = NULL;
+	ast_cond_signal(&(tp_p->work));
 }
 
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 {
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobqueue: %p, head: %p, jobCount: %d\n", tp_p, tp_p->jobqueue, tp_p->jobqueue->head, tp_p->jobqueue->jobsN);
-	return tp_p->jobqueue->jobsN;
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(tp_p->jobs));
+	return SCCP_LIST_GETSIZE(tp_p->jobs);
 }

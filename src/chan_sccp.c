@@ -637,6 +637,7 @@ boolean_t sccp_prePBXLoad()
  * Copied from 	Author : Andrew Tridgell <junkcode@tridgell.net>
  * 		URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
  */
+/*
 static int segv_handler(int sig)
 {
 	char cmd[100];
@@ -662,6 +663,7 @@ void segv_init(void)
 	signal(SIGSEGV, (sighandler_t) segv_handler);
 	signal(SIGBUS, (sighandler_t) segv_handler);
 }
+*/
 #endif
 
 boolean_t sccp_postPBX_load()
@@ -669,7 +671,7 @@ boolean_t sccp_postPBX_load()
 	pbx_mutex_lock(&GLOB(lock));
 	GLOB(module_running) = TRUE;
 #if DEBUG
-	segv_init();
+//	segv_init();
 #endif
 	sccp_refcount_schedule_cleanup((const void *)0);
 	pbx_mutex_unlock(&GLOB(lock));
