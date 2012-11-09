@@ -43,7 +43,7 @@ AC_DEFUN([AST_GET_VERSION], [
 			pbx_ver=`echo ${pbx_ver} | sed 's/"//g'`
 
 			# process version number
-			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10"; do
+			for x in "1.2" "1.4" "1.6" "1.8" "1.10" "10" "11"; do
 				if test $version_found == 0; then
                                         if echo $pbx_ver|grep -q "$x"; then
                                                 if test ${#x} -gt 3; then		# 1.10
@@ -96,6 +96,7 @@ AC_DEFUN([AST_GET_VERSION], [
                                                         106) AC_DEFINE([ASTERISK_CONF_1_6], [1], [Defined ASTERISK_CONF_1_6]);;
                                                         108) AC_DEFINE([ASTERISK_CONF_1_8], [1], [Defined ASTERISK_CONF_1_8]);;
                                                         110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
+                                                        111) AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11]);;
                                                         *) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
                                                 esac 
 
