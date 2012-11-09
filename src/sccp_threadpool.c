@@ -150,7 +150,7 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 		for (t=0;t<amount;t++) {
 			tp_thread = SCCP_LIST_FIRST(&(tp_p->threads));
 			tp_thread->die=1;
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Killing thread %d in pool \n", t);
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending die signal to thread %d in pool \n", (unsigned int)tp_thread->thread);
 			// wake up all threads
 			ast_cond_broadcast(&(tp_p->work));
 		}
@@ -173,6 +173,7 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Remove thread %d from threadpool %p\n", SCCP_LIST_GETSIZE(tp_p->threads) - 1, tp_p);
 				// kill last thread only if it is not executed by itself
 				sccp_threadpool_shrink(tp_p,1);
+				tp_p->last_resize = time(0);
 			}
 			tp_p->last_size_check = time(0);
 			tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(tp_p->jobs);
