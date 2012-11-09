@@ -90,8 +90,7 @@ struct sccp_threadpool_job {
 //	pthread_cond_t work;
 //};
 
-typedef struct sccp_threadpool_t sccp_threadpool_t;
-typedef struct thread_data thread_data;
+typedef struct sccp_threadpool sccp_threadpool_t;
 
 /* =========================== FUNCTIONS ================================================ */
 
@@ -118,7 +117,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN);
  * \param threadpool to use
  * \return nothing
  */
-void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p);
+void sccp_threadpool_thread_do(void * p);
 
 /*!
  * \brief Add work to the job queue
