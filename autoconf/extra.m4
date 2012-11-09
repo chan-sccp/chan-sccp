@@ -923,16 +923,17 @@ AC_DEFUN([AX_COUNT_CPUS], [
     AC_MSG_CHECKING(the number of available CPUs)
     CPU_COUNT="0"
 
-    #On MacOS
-    if test -x /usr/sbin/sysctl -a `/sbin/sysctl -a 2>/dev/null| grep -c hw.cpu`; then
-        CPU_COUNT=`/usr/sbin/sysctl -n hw.ncpu`
+    if test -f /proc/cpuinfo; then
+        #On Linux
+        if test "x$CPU_COUNT" = "x0" -a -e /proc/cpuinfo; then
+            CPU_COUNT=`$EGREP -c '^processor' /proc/cpuinfo`
+        fi
+    else 
+        #On BSD/MacOS
+        if test -x /usr/sbin/sysctl -a `/sbin/sysctl -a 2>/dev/null| grep -c hw.cpu`; then
+            CPU_COUNT=`/usr/sbin/sysctl -n hw.ncpu`
+        fi
     fi
-
-    #On Linux
-    if test "x$CPU_COUNT" = "x0" -a -e /proc/cpuinfo; then
-        CPU_COUNT=`$EGREP -c '^processor' /proc/cpuinfo`
-    fi
-
     if test "x$CPU_COUNT" = "x0"; then
         CPU_COUNT="1"
         AC_MSG_RESULT( [unable to detect (assuming 1)] )
