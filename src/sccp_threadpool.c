@@ -179,12 +179,12 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 	while (tp_p && sccp_threadpool_keepalive) {
 		pthread_testcancel();
 		jobs = SCCP_LIST_GETSIZE(tp_p->jobs);
-		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) tp_p: %p, jobs: %d, threadid: %d\n", tp_p, jobs, threadid);
+		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) num_jobs: %d, threadid: %d, num_threads: %d\n", jobs, threadid, tp_p->threadsN);
 		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
 		while (SCCP_LIST_GETSIZE(tp_p->jobs) == 0 && sccp_threadpool_keepalive) {
-			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Waiting for Semaphore. tp_p: %p, jobs: %d, threadid: %d\n", tp_p, jobs, threadid);
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %d Waiting for New Work Condition\n", threadid);
 			ast_cond_wait(&(tp_p->work),&(tp_p->jobs.lock));
-			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Let's work. tp_p: %p, jobs: %d, threadid: %d\n", tp_p, jobs, threadid);
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Let's work. num_jobs: %d, threadid: %d, num_threads: %d\n", jobs, threadid, tp_p->threadsN);
 		}
 		if (!sccp_threadpool_keepalive && SCCP_LIST_GETSIZE(tp_p->jobs) == 0) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue keepalive == 0. Exting...\n");
@@ -197,7 +197,6 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 			void *arg_buff = NULL;
 			sccp_threadpool_job_t *job;
 
-//			SCCP_LIST_LOCK(&(tp_p->jobs));
 			if ((job = SCCP_LIST_REMOVE_HEAD(&(tp_p->jobs), list))) {
 				func_buff = job->function;
 				arg_buff = job->arg;
@@ -212,9 +211,9 @@ void sccp_threadpool_thread_do(sccp_threadpool_t * tp_p)
 
 			// check number of threads in threadpool
 			if ((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL) {
-				pbx_mutex_lock(&threadpool_mutex);							/* LOCK */
-				sccp_threadpool_check_size(tp_p);							/* Check Resizing */
-				pbx_mutex_unlock(&threadpool_mutex);							/* UNLOCK */
+				pbx_mutex_lock(&threadpool_mutex);						/* LOCK */
+				sccp_threadpool_check_size(tp_p);						/* Check Resizing */
+				pbx_mutex_unlock(&threadpool_mutex);						/* UNLOCK */
 			}
 		}
 
