@@ -326,16 +326,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 	if (frame->frametype == AST_FRAME_VOICE) {
 
 		if (!(ast_format_cap_iscompatible(ast_channel_nativeformats(ast), &frame->subclass.format))) {
-
-/*			ast_debug(1, "Oooh, format changed to %s\n", ast_getformatname(&fram->subclass.format));
-			ast_format_cap_set(ast_channel_nativeformats(ast), &fram->subclass.format);
-			ast_set_read_format(ast, ast_channel_readformat(ast));
-			ast_set_write_format(ast, ast_channel_writeformat(ast));
-*/
-#ifndef CS_EXPERIMENTAL_CODEC
 			sccp_wrapper_asterisk111_setReadFormat(c, c->rtp.audio.readFormat);
-#endif
-
 		}
 	}
 //
@@ -1770,13 +1761,20 @@ static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * 
 	if (!channel)
 		return FALSE;
 
-	struct ast_format fmt;
+	struct ast_format tmp_format;
+	struct ast_format_cap *cap = ast_format_cap_alloc_nolock();
+	
+sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: set write format sccp: %d, ast: %d \n", codec, skinny_codec2pbx_codec(codec));
 
-	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
-//      ast_set_write_format((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
-//      ast_channel_rawwriteformat_set((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
+
+	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
+	ast_format_cap_add(cap, &tmp_format);
+	ast_set_write_format_from_cap(channel->owner, cap);
+	ast_format_cap_destroy(cap);
+
+
 	if (0 != channel->rtp.audio.rtp)
-		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &fmt);
+		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &tmp_format);
 	return TRUE;
 }
 
@@ -1786,13 +1784,19 @@ static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * c
 	if (!channel)
 		return FALSE;
 
-	struct ast_format fmt;
+	struct ast_format tmp_format;
+	struct ast_format_cap *cap = ast_format_cap_alloc_nolock();
 
-	ast_format_set(&fmt, skinny_codec2pbx_codec(codec), 0);
-//      ast_set_read_format((PBX_CHANNEL_TYPE *)&channel->owner, &fmt);
-//      ast_channel_rawreadformat_set(&channel->owner, &fmt);
+	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: set read format sccp: %d, ast: %d \n", codec, skinny_codec2pbx_codec(codec));
+	
+	ast_format_set(&tmp_format, skinny_codec2pbx_codec(codec), 0);
+	ast_format_cap_add(cap, &tmp_format);
+	ast_set_read_format_from_cap(channel->owner, cap);
+	ast_format_cap_destroy(cap);
+
+
 	if (0 != channel->rtp.audio.rtp)
-		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &fmt);
+		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &tmp_format);
 	return TRUE;
 }
 
