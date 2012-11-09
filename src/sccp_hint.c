@@ -977,7 +977,11 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_ONHOOK:
 					case SCCP_CHANNELSTATE_RINGING:
-						state = hint->currentState;
+						if(d->allowRinginNotification){
+							state = hint->currentState;
+						}else{
+							state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+						}
 						break;
 					default:
 						state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
