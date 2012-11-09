@@ -1243,8 +1243,9 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	int num_loops=1000;
 	sccp_log(0)(VERBOSE_PREFIX_4 "Running work: %d, loops: %d\n", (unsigned int)pthread_self(), num_loops);
 	for (loop = 0; loop < num_loops; loop++) {
-		sccp_log(0)(VERBOSE_PREFIX_4 "Working in thread: %d\n",(unsigned int)pthread_self());
+		usleep(1);
 	}
+	sccp_log(0)(VERBOSE_PREFIX_4 "Thread: %d Done\n",(unsigned int)pthread_self());
 	return 0;
 }
 /*!
