@@ -888,6 +888,7 @@ struct sccp_device {
 	boolean_t dtmfmode;							/*!< DTMF Mode (0 inband - 1 outofband) */
 	boolean_t nat;								/*!< Network Address Translation Support (Boolean, default=on) */
 	boolean_t directrtp;							/*!< Direct RTP Support (Boolean, default=on) */
+	boolean_t allowRinginNotification;					/*!< allow ringin notification for hinted extensions (Boolean, default=on) */
 	boolean_t trustphoneip;							/*!< Trust Phone IP Support (Boolean, default=off) DEPRECATED */
 	boolean_t needcheckringback;						/*!< Need to Check Ring Back Support (Boolean, default=on) */
 

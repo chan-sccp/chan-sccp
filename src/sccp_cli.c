@@ -512,7 +512,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Audio COS", CLI_AMI_LIST_WIDTH, "%d", d->audio_cos);
 	CLI_AMI_OUTPUT_PARAM("Video TOS", CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
 	CLI_AMI_OUTPUT_PARAM("Video COS", CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
-	CLI_AMI_OUTPUT_BOOL("DND Feature enabled", CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
+	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled", CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
+	CLI_AMI_OUTPUT_YES_NO("Allow ringin notification (e)", CLI_AMI_LIST_WIDTH, d->allowRinginNotification);
 	CLI_AMI_OUTPUT_PARAM("DND Status", CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? dndmode2str(d->dndFeature.status) : "Disabled");
 	CLI_AMI_OUTPUT_BOOL("Can Transfer", CLI_AMI_LIST_WIDTH, d->transfer);
 	CLI_AMI_OUTPUT_BOOL("Can Park", CLI_AMI_LIST_WIDTH, d->park);
