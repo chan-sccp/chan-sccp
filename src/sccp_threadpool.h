@@ -14,20 +14,8 @@
 #ifndef SCCP_THREADPOOL_H_
 #  define SCCP_THREADPOOL_H_
 
-#  include <pthread.h>
-
-#  ifndef DARWIN								/* Normal implementation for named and unnamed semaphores */
-#    include <semaphore.h>
-#  else										/* Mac OSX does not implement sem_init and only supports named semaphores by default */
-#    include <mach/mach_init.h>
-#    include <mach/task.h>
-#    include <mach/semaphore.h>
-#    define sem_t 		semaphore_t					/* Remapping semaphore command to sync up with gnu implementation */
-#    define sem_init(s,p,c) 	semaphore_create(mach_task_self(),s,SYNC_POLICY_FIFO,c)
-#    define sem_wait(s) 	semaphore_wait(*s)
-#    define sem_post(s) 	semaphore_signal(*s)
-#    define sem_destroy(s) 	semaphore_destroy(mach_task_self(), *s)
-#  endif
+#    include <config.h>
+#    include "common.h"
 
 /* Description: 	Library providing a threading pool where you can add work on the fly. The number
  *              	of threads in the pool is adjustable when creating the pool. In most cases
@@ -86,20 +74,21 @@
 /* ================================= STRUCTURES ================================================ */
 
 /* Individual job */
-typedef struct sccp_threadpool_job_t {
+typedef struct sccp_threadpool_job sccp_threadpool_job_t;
+
+struct sccp_threadpool_job {
 	void *(*function) (void *arg);						/*!< function pointer         */
 	void *arg;								/*!< function's argument      */
-	struct sccp_threadpool_job_t *next;					/*!< pointer to next job      */
-	struct sccp_threadpool_job_t *prev;					/*!< pointer to previous job  */
-} sccp_threadpool_job_t;
-
+	SCCP_LIST_ENTRY(sccp_threadpool_job_t) list;
+};
+//typedef struct ast_rwlock_info ast_rwlock_t;
 /* Job queue as doubly linked list */
-typedef struct sccp_threadpool_jobqueue {
-	sccp_threadpool_job_t *head;						/*!< pointer to head of queue */
-	sccp_threadpool_job_t *tail;						/*!< pointer to tail of queue */
-	int jobsN;								/*!< amount of jobs in queue  */
-	sem_t *queueSem;							/*!< semaphore(this is probably just holding the same as jobsN) */
-} sccp_threadpool_jobqueue;
+//typedef struct sccp_threadpool_jobqueue sccp_threadpool_jobqueue_t;
+//struct sccp_threadpool_jobqueue {
+//	int jobsN;								/*!< amount of jobs in queue  */
+//	SCCP_RWLIST_HEAD(, sccp_threadpool_job_t) jobs;
+//	pthread_cond_t work;
+//};
 
 typedef struct sccp_threadpool_t sccp_threadpool_t;
 typedef struct thread_data thread_data;
