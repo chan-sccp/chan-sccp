@@ -158,7 +158,6 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_log ast_log
 #    define pbx_malloc ast_malloc
 #    define pbx_manager_register_xml ast_manager_register_xml
-#    define pbx_manager_register2 ast_manager_register2
 #    define pbx_manager_unregister ast_manager_unregister
 #    define pbx_matchmore_extension ast_matchmore_extension
 #    define pbx_moh_stop ast_moh_stop

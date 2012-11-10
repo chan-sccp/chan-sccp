@@ -2329,10 +2329,15 @@ static const struct ast_msg_tech sccp_msg_tech = {
 
 #endif
 
-static struct pbx_module * sccp_asterisk_asterisk111_get_pbx_module(void) {
-	return ast_module_info->self;
+/*!
+ * \brief pbx_manager_register
+ *
+ * \note this functions needs to be defined here, because it depends on the static declaration of ast_module_info->self
+ */
+int pbx_manager_register(const char *action, int authority, int (*func)(struct mansession *s, const struct message *m), const char *synopsis, const char *description) {
+	return ast_manager_register2(action,authority,func,ast_module_info->self,synopsis,description);
 }
-
+                                                
 #if defined(__cplusplus) || defined(c_plusplus)
 sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */	
@@ -2434,8 +2439,6 @@ sccp_pbx_cb sccp_pbx = {
 	moh_stop:			sccp_asterisk_moh_stop,
 	queue_control:			sccp_asterisk_queue_control,
 	queue_control_data:		sccp_asterisk_queue_control_data,
-
-	get_pbx_module			sccp_asterisk_asterisk111_get_pbx_module,
 	/* *INDENT-ON* */	
 };
 
@@ -2542,8 +2545,6 @@ struct sccp_pbx_cb sccp_pbx = {
 	.moh_stop			= sccp_asterisk_moh_stop,
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
-
-	.get_pbx_module			= sccp_asterisk_asterisk111_get_pbx_module,
 	/* *INDENT-ON* */
 };
 #endif
