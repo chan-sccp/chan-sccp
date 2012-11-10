@@ -32,7 +32,6 @@
  * sccp_threadpool      = threadpool
  * sccp_threadpool_t    = threadpool type
  * tp_p         	= threadpool pointer
- * sem          	= semaphore
  * xN           	= x can be any string. N stands for amount
  * 
  * */
@@ -50,27 +49,7 @@
  *                    	the queue serially(using lock) and executing each job
  *                    	until the queue is empty.
  * 
- * 
- *    Scheme:
- * 
- *    sccp_threadpool_                jobqueue____                      ______ 
- *    |               |               |           |       .----------->|_job0_| Newly added job
- *    |               |               |  head------------'             |_job1_|
- *    | jobqueue--------------------->|           |                    |_job2_|
- *    |               |               |  tail------------.             |__..__| 
- *    |_______________|               |___________|       '----------->|_jobn_| Job for thread to take
- * 
- * 
- *    job0________ 
- *    |           |
- *    | function---->
- *    |           |
- *    |   arg------->
- *    |           |                   job1________ 
- *    |  next------------------------>|           |
- *    |___________|                   |           |..
  */
-
 /* ================================= STRUCTURES ================================================ */
 
 /* Individual job */
@@ -81,14 +60,6 @@ struct sccp_threadpool_job {
 	void *arg;								/*!< function's argument      */
 	SCCP_LIST_ENTRY(sccp_threadpool_job_t) list;
 };
-//typedef struct ast_rwlock_info ast_rwlock_t;
-/* Job queue as doubly linked list */
-//typedef struct sccp_threadpool_jobqueue sccp_threadpool_jobqueue_t;
-//struct sccp_threadpool_jobqueue {
-//	int jobsN;								/*!< amount of jobs in queue  */
-//	SCCP_RWLIST_HEAD(, sccp_threadpool_job_t) jobs;
-//	pthread_cond_t work;
-//};
 
 typedef struct sccp_threadpool sccp_threadpool_t;
 
@@ -172,41 +143,6 @@ int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p);
  * \return nothing 
  */
 void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_t * newjob_p);
-
-/*!
- * \brief Remove last job from queue. 
- * 
- * This does not free allocated memory so be sure to have peeked()
- * before invoking this as else there will result lost memory pointers.
- * 
- * \param  pointer to threadpool
- * \return 0 on success,
- *         -1 if queue is empty
- */
-int sccp_threadpool_jobqueue_removelast(sccp_threadpool_t * tp_p);
-
-/*! 
- * \brief Get last job in queue (tail)
- * 
- * Gets the last job that is inside the queue. This will work even if the queue
- * is empty.
- * 
- * \param  pointer to threadpool structure
- * \return job a pointer to the last job in queue,
- *         a pointer to NULL if the queue is empty
- */
-sccp_threadpool_job_t *sccp_threadpool_jobqueue_peek(sccp_threadpool_t * tp_p);
-
-/*!
- * \brief Remove and deallocate all jobs in queue
- * 
- * This function will deallocate all jobs in the queue and set the
- * jobqueue to its initialization values, thus tail and head pointing
- * to NULL and amount of jobs equal to 0.
- * 
- * \param pointer to threadpool structure
- * */
-void sccp_threadpool_jobqueue_empty(sccp_threadpool_t * tp_p);
 
 /*!
  * \brief Return Number of Jobs in the Queue
