@@ -25,7 +25,7 @@
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
 
-#    define pbx_manager_register pbx_manager_register2
+#    define pbx_manager_register ast_manager_register2
 
 #ifndef CONFIG_STATUS_FILEMISSING
 #    define CONFIG_STATUS_FILEMISSING (void *)-2

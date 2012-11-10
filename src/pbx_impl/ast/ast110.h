@@ -18,7 +18,7 @@
 
 #    define pbx_channel_unref ast_channel_unref
 #    define sccp_sched_context_destroy sched_context_destroy
-#    define pbx_manager_register pbx_manager_register2
+#    define pbx_manager_register ast_manager_register2
 
 typedef struct ast_format_cap ast_format_t;
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
