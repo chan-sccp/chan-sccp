@@ -2374,6 +2374,10 @@ static const struct ast_msg_tech sccp_msg_tech = {
 
 #endif
 
+static struct pbx_module * sccp_asterisk_asterisk110_get_pbx_module(void) {
+	return ast_module_info->self;
+}
+
 static int sccp_asterisk_devicestate(void *data)
 {
 //      sccp_line_t *l = NULL;
@@ -2538,6 +2542,8 @@ sccp_pbx_cb sccp_pbx = {
 	moh_stop:			sccp_asterisk_moh_stop,
 	queue_control:			sccp_asterisk_queue_control,
 	queue_control_data:		sccp_asterisk_queue_control_data,
+	
+	get_pbx_module			sccp_asterisk_asterisk110_get_pbx_module,
 	/* *INDENT-ON* */
 };
 
@@ -2649,6 +2655,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
 	
+	.get_pbx_module			= sccp_asterisk_asterisk110_get_pbx_module,
 	/* *INDENT-ON* */
 };
 #endif
