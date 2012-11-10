@@ -73,8 +73,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    define pbx_channel_blocker(_a) ast_channel_blocker(_a)
 #    define pbx_channel_blockproc(_a) ast_channel_blockproc(_a)
 
-#    undef pbx_manager_register2
-#    define pbx_manager_register2(_a,_b,_c,_d,_e) ast_manager_register2(_a,_b,_c,PBX(get_pbx_module)(),_d,_e)
+int pbx_manager_register(const char *action, int authority, int (*func)(struct mansession *s, const struct message *m), const char *synopsis, const char *description);
 
 #    undef CS_AST_CHANNEL_PVT
 #    undef CS_AST_CHANNEL_PVT_TYPE
