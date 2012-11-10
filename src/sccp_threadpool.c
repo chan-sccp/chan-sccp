@@ -307,9 +307,10 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	if (SCCP_LIST_GETSIZE(tp_p->threads) != 0) {
 		struct timespec   ts;
 		struct timeval    tp;
+		int counter=0;
 		SCCP_LIST_LOCK(&(tp_p->threads));
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Waiting for threadpool to wind down. please stand by...\n");
-		while(SCCP_LIST_GETSIZE(tp_p->threads) != 0) {
+		while(SCCP_LIST_GETSIZE(tp_p->threads) != 0 && counter++ < THREADPOOL_MAX_SIZE) {
 			gettimeofday(&tp, NULL);
 			ts.tv_sec  = tp.tv_sec;
 			ts.tv_nsec = tp.tv_usec * 1000;
