@@ -86,7 +86,7 @@ int sccp_register_management(void)
 #        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
 #    endif
 
-#    if ASTERISK_VERSION_NUMBER < 11200
+//#    if ASTERISK_VERSION_NUMBER < 11200
 	result = pbx_manager_register2("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices (text format)", management_show_devices_desc);
 	result |= pbx_manager_register2("SCCPListLines", _MAN_FLAGS, sccp_manager_show_lines, "List SCCP lines (text format)", management_show_lines_desc);
 	result |= pbx_manager_register2("SCCPDeviceRestart", _MAN_FLAGS, sccp_manager_restart_device, "Restart a given device", management_restart_devices_desc);
@@ -98,7 +98,11 @@ int sccp_register_management(void)
 	result |= pbx_manager_register2("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", "");	//!< \todo add description for ami
 	result |= pbx_manager_register2("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", "");	//!< \todo add description for ami
 	result |= pbx_manager_register2("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata", management_fetch_config_metadata_desc);
-#    endif
+//#    else
+//	struct pbx_module *self = PBX(get_pbx_module)();
+//	sccp_log(0)("It already start to go wrong when asking for ast_module info->self: %p\n", self);
+//	result = ast_manager_register2("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, PBX(get_pbx_module)() ,"List SCCP devices (text format)", management_show_devices_desc);
+//#    endif
 #    undef _MAN_FLAGS
 
 #    if HAVE_PBX_MANAGER_HOOK_H

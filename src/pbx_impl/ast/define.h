@@ -13,7 +13,7 @@
 // type redefinitions
 #    define pbx_variable ast_variable
 #    define pbx_context ast_context
-
+#    define pbx_module ast_module
 // sccp redefinitions
 #    ifdef HAVE_LIBGC
 #        undef malloc
@@ -290,4 +290,5 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
 #    define pbx_channel_blocker(_a) (_a)->blocker
 #    define pbx_channel_blockproc(_a) (_a)->blockproc
+
 #endif

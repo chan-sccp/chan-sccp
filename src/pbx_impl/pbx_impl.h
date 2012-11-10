@@ -135,6 +135,8 @@ struct sccp_pbx_cb {
 	int(*const queue_control) (const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 	int(*const queue_control_data) (const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 
+	struct pbx_module * (*const get_pbx_module) (void);
+	
 	/* *INDENT-ON* */
 };
 

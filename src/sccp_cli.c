@@ -2534,7 +2534,7 @@ void sccp_register_cli(void)
 #    define _MAN_COM_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_COMMAND
 #    define _MAN_REP_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
 #endif
-#if ASTERISK_VERSION_NUMBER < 11200
+//#if ASTERISK_VERSION_NUMBER < 11200
 	pbx_manager_register2("SCCPShowGlobals", _MAN_REP_FLAGS, manager_show_globals, "show globals setting", ami_globals_usage);
 	pbx_manager_register2("SCCPShowDevices", _MAN_REP_FLAGS, manager_show_devices, "show devices", ami_devices_usage);
 	pbx_manager_register2("SCCPShowDevice", _MAN_REP_FLAGS, manager_show_device, "show device settings", ami_device_usage);
@@ -2546,7 +2546,7 @@ void sccp_register_cli(void)
 	pbx_manager_register2("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
 	pbx_manager_register2("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	pbx_manager_register2("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
-#endif
+//#endif
 }
 
 /*!
