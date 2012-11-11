@@ -63,8 +63,8 @@ struct sccp_hint_list {
 
 	struct pbx_event_sub *device_state_sub;
 
-	 SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;		/*!< Hint Type Subscribers Linked List Entry */
-	 SCCP_LIST_ENTRY(sccp_hint_list_t) list;				/*!< Hint Type Linked List Entry */
+	SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;		/*!< Hint Type Subscribers Linked List Entry */
+	SCCP_LIST_ENTRY(sccp_hint_list_t) list;					/*!< Hint Type Linked List Entry */
 };										/*!< SCCP Hint List Structure */
 
 /*!
