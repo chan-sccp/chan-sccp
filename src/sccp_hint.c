@@ -186,19 +186,41 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 
 	/*! \todo move pbx_event_subscribe to pbx_impl */
 #if ASTERISK_VERSION_GROUP < 108
-	hint->device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_devstate_cb, hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
+	hint->device_state_sub = pbx_event_subscribe
+		(
+			AST_EVENT_DEVICE_STATE_CHANGE, 
+			sccp_hint_devstate_cb, 
+			hint, 
+			AST_EVENT_IE_DEVICE, 
+			AST_EVENT_IE_PLTYPE_STR, 
+			hint->hint_dialplan, 
+			AST_EVENT_IE_END
+		);
 #else
-	hint->device_state_sub = pbx_event_subscribe(
-//                              AST_EVENT_DEVICE_STATE_CHANGE, 
-							    AST_EVENT_DEVICE_STATE, sccp_hint_devstate_cb, "sccp_devstate_subscription", hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
+	hint->device_state_sub = pbx_event_subscribe
+		(
+			/* AST_EVENT_DEVICE_STATE_CHANGE */ AST_EVENT_DEVICE_STATE, 
+			sccp_hint_devstate_cb, 
+			"sccp_devstate_subscription", 
+			hint, 
+			AST_EVENT_IE_DEVICE, 
+			AST_EVENT_IE_PLTYPE_STR, 
+			hint->hint_dialplan, 
+			AST_EVENT_IE_END
+		);
 #endif
 	/* get current state from pbx */
-	struct ast_event *event = ast_event_get_cached(AST_EVENT_DEVICE_STATE,
-						       AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan,
-						       AST_EVENT_IE_END);
+	struct ast_event *event = ast_event_get_cached
+		(
+			AST_EVENT_DEVICE_STATE,
+			AST_EVENT_IE_DEVICE, 
+			AST_EVENT_IE_PLTYPE_STR, 
+			hint->hint_dialplan,
+			AST_EVENT_IE_END
+		);
 
 	if (event) {
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "restore state for '%s', state %d\n", hint->hint_dialplan, ast_event_get_ie_uint(event, AST_EVENT_IE_STATE));
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "restored state for '%s', state %d\n", hint->hint_dialplan, ast_event_get_ie_uint(event, AST_EVENT_IE_STATE));
 	} else {
 
 		/** this workaround restores the state by using ast_device_state function, may be it is also possible in an other way */
@@ -207,7 +229,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	}
 
 	if (event) {
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "restore2 state for '%s', state %d\n", hint->hint_dialplan, ast_event_get_ie_uint(event, AST_EVENT_IE_STATE));
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "update %s's state %d\n", hint->hint_dialplan, ast_event_get_ie_uint(event, AST_EVENT_IE_STATE));
 		sccp_hint_devstate_cb(event, hint);
 		pbx_event_destroy(event);
 	}
@@ -882,7 +904,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "notify subscriber of %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null");
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "notify subscribers of %s's state %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null", hint->currentState ? channelstate2str(hint->currentState) : "NULL");
 
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list) {
@@ -893,7 +915,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		}
 		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
 			state = hint->currentState;
-
+			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "notify subscriber %s of %s's state %s\n", d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
