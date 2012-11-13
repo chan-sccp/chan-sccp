@@ -199,7 +199,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 #else
 	hint->device_state_sub = pbx_event_subscribe
 		(
-			/* AST_EVENT_DEVICE_STATE_CHANGE */ AST_EVENT_DEVICE_STATE, 
+			/* AST_EVENT_DEVICE_STATE_CHANGE */ AST_EVENT_DEVICE_STATE_CHANGE, 
 			sccp_hint_devstate_cb, 
 			"sccp_devstate_subscription", 
 			hint, 
@@ -592,6 +592,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 		lineState->state = state;
 		channel = sccp_channel_release(channel);
 	} else {
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: NOT CHANNEL\n", line->name);
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 		sccp_hint_checkForDND(lineState);
 	}													// if(channel)
