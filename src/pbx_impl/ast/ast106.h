@@ -18,9 +18,15 @@
 #    include "../../common.h"
 
 #    define sccp_sched_context_destroy sched_context_destroy
-#    define ast_channel_unref(c) ({ ao2_ref(c, -1); (struct ast_channel *) (NULL); })
+#if ASTERISK_VERSION_NUMBER > 10601
+#    define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
+#else
+#    define pbx_channel_unref(c) NULL
+#endif
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
+
+#define pbx_channel_name(x) x->name
 
 enum AST_CONNECTED_LINE_UPDATE_SOURCE {
 	/*! Update for unknown reason (May be interpreted to mean from answer) */

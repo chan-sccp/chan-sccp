@@ -21,6 +21,7 @@ typedef int ast_format_t;
 
 #    define NEWCONST								// old functions used without const
 #    define OLDCONST const							// new function used with const
+#define pbx_channel_name(x) x->name
 
 struct ast_hashtab {
 };

@@ -17,7 +17,11 @@
 #    include "../../config.h"
 #    include "../../common.h"
 
+
+#    define pbx_channel_unref ast_channel_unref
 #    define sccp_sched_context_destroy sched_context_destroy
+#    define pbx_manager_register ast_manager_register2
+#    define pbx_channel_name(x) x->name
 
 typedef int64_t ast_format_t;
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);

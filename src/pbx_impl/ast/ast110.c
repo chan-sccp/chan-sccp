@@ -2111,6 +2111,7 @@ sccp_pbx_cb sccp_pbx = {
 	checkhangup:sccp_wrapper_asterisk110_checkHangup,
 	hangup:NULL,
 	requestHangup:sccp_wrapper_asterisk_requestHangup,
+	forceHangup:sccp_wrapper_asterisk_forceHangup,
 	extension_status:sccp_wrapper_asterisk110_extensionStatus,
 
 	/** get channel by name */

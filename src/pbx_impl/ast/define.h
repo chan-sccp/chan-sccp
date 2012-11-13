@@ -260,4 +260,31 @@
 #    define pbx_hangup ast_hangup
 
 #    define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
+#    define pbx_clear_flag ast_clear_flag
+#    define pbx_set_flag ast_set_flag
+#    define pbx_test_flag ast_test_flag
+#    define pbx_set2_flag ast_set2_flag
+
+// Fixes for asterisk-trunk, need to sorted later
+#    define pbx_channel_flags(_a) _a                                    /* needed in asterisk trunk */
+#    define pbx_channel_uniqueid(_a) (_a)->uniqueid
+#    define pbx_channel_call_forward(_a) (_a)->call_forward
+#    define pbx_channel_appl(_a) (_a)->appl  
+#    define pbx_channel_state(_a) (_a)->_state
+#    define pbx_channel_pbx(_a) (_a)->pbx
+#    define pbx_channel_hangupcause(_a) (_a)->hangupcause
+#    define pbx_channel_set_hangupcause(_a,_b) (_a)->hangupcause = _b
+#    define pbx_channel_softhangup(_a) (_a)->_softhangup
+#    define pbx_channel_context(_a) (_a)->context
+#    define pbx_channel_nativeformats(_a) (_a)->nativeformats
+#    define pbx_channel_exten(_a) (_a)->exten   
+#    define pbx_channel_macroexten(_a) (_a)->macroexten
+#    define pbx_channel_macrocontext(_a) (_a)->macrocontext
+#    define pbx_channel_dialcontext(_a) (_a)->dialcontext
+#    define pbx_channel_callgroup(_a) (_a)->callgroup
+#    define pbx_channel_masq(_a) (_a)->masq
+#    define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
+#    define pbx_channel_blocker(_a) (_a)->blocker
+#    define pbx_channel_blockproc(_a) (_a)->blockproc
+
 #endif
