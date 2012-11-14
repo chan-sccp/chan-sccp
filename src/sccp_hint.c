@@ -914,6 +914,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			sccp_free(subscriber);
 			continue;
 		}
+		if (hint->currentState == hint->previousState) {
+			// nothing changed, skip
+			continue;
+		}
 		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
 			state = hint->currentState;
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "notify subscriber %s of %s's state %s\n", d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
@@ -1001,7 +1005,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 //                            } else {
 //                                    state = SCCP_CHANNELSTATE_ONHOOK;
 //                            }
-#ifndef CS_EXPERIMENTAL_
+/#ifndef CS_EXPERIMENTAL_
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_ONHOOK:
 					case SCCP_CHANNELSTATE_RINGING:
@@ -1075,22 +1079,21 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 					if (SKINNY_CALLTYPE_INBOUND == hint->callInfo.calltype) {
 						if (!sccp_strlen_zero(hint->callInfo.partyName)) {
-							sprintf(msg_buf, "%s -> %s", hint->callInfo.partyNumber, hint->exten);
+							sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyName);
 						} else {
-							sprintf(msg_buf, "%s -> %s", hint->callInfo.partyName, hint->exten);
+							sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyNumber);
 						}
 					} else {
 						if (!sccp_strlen_zero(hint->callInfo.partyName)) {
-							sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyNumber);
+							sprintf(msg_buf, "%s -> %s", hint->callInfo.partyName, hint->exten);
 						} else {
-							sprintf(msg_buf, "%s -> %s", hint->exten, hint->callInfo.partyName);
+							sprintf(msg_buf, "%s -> %s", hint->callInfo.partyNumber, hint->exten);
 						}
 					}
 					sccp_dev_displaynotify(d, msg_buf, 5);
 					// possibly use messageStack instead
 //                                      sccp_device_addMessageToStack((sccp_device_t *)d, 8, msg_buf);
 				}
-
 				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
 				} else {
