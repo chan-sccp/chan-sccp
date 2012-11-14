@@ -1049,7 +1049,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(d), subscriber->instance, hint->currentState);
 				} 
 #else
-				if (SCCP_CHANNELSTATE_RINGING == state) {
+				if (SCCP_CHANNELSTATE_RINGING == hint->currentState) {
 					char msg_buf[40];
 
 					if (SKINNY_CALLTYPE_INBOUND == hint->callInfo.calltype) {
@@ -1068,8 +1068,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_displaynotify(d, msg_buf, 5);
 					// possibly use messageStack instead
 //                                      sccp_device_addMessageToStack((sccp_device_t *)d, 8, msg_buf);
-#endif
 				}
+#endif
 				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
 				} else {
