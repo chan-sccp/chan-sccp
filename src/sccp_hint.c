@@ -1005,7 +1005,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 //                            } else {
 //                                    state = SCCP_CHANNELSTATE_ONHOOK;
 //                            }
-/#ifndef CS_EXPERIMENTAL_
+
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_ONHOOK:
 					case SCCP_CHANNELSTATE_RINGING:
@@ -1026,7 +1026,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				}
 
 				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-
+#ifndef CS_EXPERIMENTAL_
 				/* create CallInfoMessage */
 				REQ(r, CallInfoMessage);
 
@@ -1047,34 +1047,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
 					sccp_dev_send(d, r);
 					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "notify device: %s@%d state: %d\n", DEV_ID_LOG(d), subscriber->instance, hint->currentState);
-				} else {
-					sccp_free(r);
-				}
-
-				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
-					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
-				} else {
-					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
-				}
+				} 
 #else
-				switch (hint->currentState) {
-					case SCCP_CHANNELSTATE_ONHOOK:
-						break;
-					default:
-						state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-						break;
-				}
-
-				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
-					/* we send a congestion to the phone, so call will not be marked as missed call */
-					sccp_device_sendcallstate(d, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-					// remove from messageStack
-//                                      sccp_device_clearMessageFromStack((sccp_device_t *)d, 8);
-				}
-
-				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-
-				if (SCCP_CHANNELSTATE_RINGING == hint->currentState) {
+				if (SCCP_CHANNELSTATE_RINGING == state) {
 					char msg_buf[40];
 
 					if (SKINNY_CALLTYPE_INBOUND == hint->callInfo.calltype) {
@@ -1093,13 +1068,14 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_displaynotify(d, msg_buf, 5);
 					// possibly use messageStack instead
 //                                      sccp_device_addMessageToStack((sccp_device_t *)d, 8, msg_buf);
+#endif
 				}
 				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
 				} else {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
-#endif										// protocol version > 15
+
 			}
 			d = sccp_device_release(d);
 		}
