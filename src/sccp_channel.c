@@ -1294,7 +1294,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 	/** check if we have preferences from channel request */
 	preferredCodec = channel->preferences.audio[0];
-	pbx_log(LOG_ERROR, "SCCP: preferredCodec=%d\n", preferredCodec);
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: current preferredCodec=%d\n", preferredCodec);
 
 	// auto released if it was set before
 	sccp_channel_setDevice(channel, device);
