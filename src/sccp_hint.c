@@ -1026,7 +1026,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				}
 
 				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_COLLAPSED);
-#ifndef CS_EXPERIMENTAL_
+#if 1
 				/* create CallInfoMessage */
 				REQ(r, CallInfoMessage);
 
