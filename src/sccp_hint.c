@@ -995,7 +995,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				   We have to switch back to old hint style and send old state.
 				 */
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(d), state);
-#endif										// CS_DYNAMIC_SPEEDDIAL
+#endif	// CS_DYNAMIC_SPEEDDIAL
 				/*
 				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
 				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
@@ -1008,6 +1008,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_ONHOOK:
+						state = hint->currentState;
+						break;
 					case SCCP_CHANNELSTATE_RINGING:
 						if(d->allowRinginNotification){
 							state = hint->currentState;
