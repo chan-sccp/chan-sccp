@@ -419,7 +419,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	sccp_event_fire(&event);
 
 	/** notify state change to hint system (incl. asterisk ) */
-	sccp_hint_lineStatusChanged(l, d, c, c->previousChannelState, c->state);
+//	sccp_hint_lineStatusChanged(l, d, c, c->previousChannelState, c->state);
+	sccp_hint_lineStatusChanged(l, d, 1);
 
 	sccp_device_release(d);
 	sccp_line_release(l);

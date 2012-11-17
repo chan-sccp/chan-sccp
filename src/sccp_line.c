@@ -700,7 +700,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
 
-	sccp_hint_lineStatusChanged(l, device, NULL, SCCP_CHANNELSTATE_CONGESTION, SCCP_CHANNELSTATE_CONGESTION);
+//	sccp_hint_lineStatusChanged(l, device, NULL, SCCP_CHANNELSTATE_CONGESTION, SCCP_CHANNELSTATE_CONGESTION);
+//	sccp_hint_lineStatusChanged(l, device, -1);
 }
 
 /*!

@@ -786,7 +786,8 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	if (d->isAnonymous == TRUE) {
 		l = GLOB(hotline)->line;
 		sccp_line_addDevice(l, d, 1, NULL);
-		sccp_hint_lineStatusChanged(l, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
+//		sccp_hint_lineStatusChanged(l, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
+//		sccp_hint_lineStatusChanged(l, d, 1);
 	} else {
 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
@@ -797,7 +798,8 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 						if (btn[i].instance == buttonconfig->instance && buttonconfig->type == LINE) {
 							sccp_line_addDevice(l, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
-							sccp_hint_lineStatusChanged(l, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
+//							sccp_hint_lineStatusChanged(l, d, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
+//							sccp_hint_lineStatusChanged(l, d, 0);
 							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 								d->defaultLineInstance = buttonconfig->instance;
 								defaultLineSet = TRUE;
