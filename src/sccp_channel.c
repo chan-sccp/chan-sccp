@@ -2008,20 +2008,25 @@ void sccp_channel_transfer_locked(sccp_channel_t * channel)
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 		return;
 	}
-	if ((channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold_locked(channel))
+	if ((channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold_locked(channel)) {
 		return;
-	if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER)
+	}	
+	if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 		sccp_indicate_locked(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
-	sccp_channel_new = sccp_channel_newcall_locked(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
-	/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
-	if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
+	}	
+	if ((sccp_channel_new = sccp_channel_newcall_locked(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND))) {
+		/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
+		if (blindTransfer || (sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
 
-		//! \todo use pbx impl
-		pbx_builtin_setvar_helper(sccp_channel_new->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(channel->owner)->name);
-		pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", sccp_channel_new->owner->name);
+			//! \todo use pbx impl
+			pbx_builtin_setvar_helper(sccp_channel_new->owner, "BLINDTRANSFER", CS_AST_BRIDGED_CHANNEL(channel->owner)->name);
+			pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", sccp_channel_new->owner->name);
 
+		}
+		sccp_channel_unlock(sccp_channel_new);
+	} else {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_channel_transfer_locked) sccp_channel_newcall_locked returned no new channel. Transfer will fail\n");
 	}
-	sccp_channel_unlock(sccp_channel_new);
 }
 
 /*!
