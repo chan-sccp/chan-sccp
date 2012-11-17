@@ -83,8 +83,7 @@ int sccp_hint_state(char *context, char *exten, enum ast_extension_states state,
 
 sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
 
-#    define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b)
-void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device);
+void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, int attached);
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 
