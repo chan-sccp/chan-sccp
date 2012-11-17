@@ -1,4 +1,54 @@
+2012-11-17  ddegroot
+
+	* [r3828] src/sccp_channel.c: Check if sccp_channel_newcall_locked
+	  returns a new channel, prevent unlock issue if it does not
+
+2012-11-13  ddegroot
+
+	* [r3821] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.h, src/sccp_features.c: Backported V4.1
+	  requestHangup / forceHangup functions
+
+2012-10-24  ddegroot
+
+	* [r3785] conf/sccp.conf.annotated: Update annotated sccp.conf
+	  sample regarding incominglimit (Bug: 3578314 / Alex Miby)
+
+2012-10-08  ddegroot
+
+	* [r3782] doc/04_Setup_Guide.doc: Update realtime documentation
+	  (Fabian Foerster)
+
+2012-10-07  ddegroot
+
+	* [r3770] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/depcomp, autoconf/extra.m4,
+	  autoconf/install-sh, autoconf/missing, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in: Fix ULONG / %lu debug message
+	  error
+
+	* [r3766] Makefile.in, aclocal.m4, autoconf/config.sub,
+	  autoconf/depcomp, autoconf/extra.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/chan_sccp.h, src/common.h, src/config.h.in,
+	  src/sccp_socket.c: Fix compile error related to bswap_32 on
+	  bigendian machines (sparc / powerpc / mips) (bug reported by
+	  Philippe Teissier)
+
+2012-09-06  marcelloceschia
+
+	* [r3736] src/sccp_conference.c: remove if ASTERISK_VERSION_NUMBER
+	  >= 10602 do configure version issue
+
 2012-07-31  ddegroot
+
+	* [r3727] ChangeLog: Update Changelog
 
 	* [r3726] autoconf/asterisk.m4, configure: Copied V4.1
 	  autoconf/asterisk.m4
