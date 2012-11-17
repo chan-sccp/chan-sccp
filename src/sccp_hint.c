@@ -247,15 +247,23 @@ static void sccp_hint_devstate_cb(const pbx_event_t * event, void *data)
 
 	hint = (sccp_hint_list_t *) data;
 
+	// @MC: We need to know if the call is inbound or outbound. How can we set this correctly ?
+	// Setting to OUTBOUND for now
+	hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
+
 	deviceState = pbx_event_get_ie_uint(event, AST_EVENT_IE_STATE);
 #if CS_AST_HAS_EVENT_CIDNAME
 	const char *cidName;
 	const char *cidNumber;
+	skinny_calltype_t calltype;
 
 	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
 	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
+	calltype = pbx_event_get_ie_uint(event, AST_EVENT_IE_CEL_USERFIELD);
 	memset(hint->callInfo.partyName, 0, sizeof(hint->callInfo.partyName));
 	memset(hint->callInfo.partyNumber, 0, sizeof(hint->callInfo.partyNumber));
+	
+	hint->callInfo.calltype = calltype;		// updating calltype to passed calltype information
 
 	if (cidName) {
 		sccp_copy_string(hint->callInfo.partyName, cidName, sizeof(hint->callInfo.partyName));
@@ -371,7 +379,9 @@ void sccp_hint_lineAttach(struct sccp_hint_lineState *lineState) {
 				(
 					AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, AST_DEVICE_NOT_INUSE,
 #if CS_AST_HAS_EVENT_CIDNAME
-					AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+					AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
+					AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+					AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype,
 #endif
 					AST_EVENT_IE_END
 				);
@@ -395,7 +405,9 @@ void sccp_hint_lineDetach(struct sccp_hint_lineState *lineState) {
 				(
 					AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, AST_DEVICE_UNAVAILABLE,
 #if CS_AST_HAS_EVENT_CIDNAME
-					AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+					AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
+					AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+					AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype,
 #endif
 					AST_EVENT_IE_END
 				);
@@ -508,6 +520,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 			SCCP_LIST_UNLOCK(&line->channels);
 			if (channel && (channel = sccp_channel_retain(channel))) {
 				if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
+					lineState->callInfo.calltype = channel->calltype;
 					lineState->state = channel->state;
 
 					/* set cid name/numbe information according to the call direction */
@@ -773,7 +786,9 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "notify pbx to set state to %d for channel %s\n", newDeviceState, channelName);
 	event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState,
 #if CS_AST_HAS_EVENT_CIDNAME
-			      AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+			      AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
+			      AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber,
+			      AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype,
 #endif
 			      AST_EVENT_IE_END);
 	pbx_event_queue_and_cache(event);
