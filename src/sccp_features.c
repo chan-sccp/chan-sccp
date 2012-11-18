@@ -459,7 +459,7 @@ static  PBX_CHANNEL_TYPE * sccp_find_workChannelsRef( int(*const found_cb)(PBX_C
 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 	((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 
-	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+	for (; (remotePeer = ast_channel_iterator_next(iterator)); pbx_channel_unref(remotePeer)) {
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
@@ -555,7 +555,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 //		PBX(requestHangup)(original);
 //		pbx_hangup(original);
 		PBX(forceHangup) (original, PBX_HARD_HANGUP);
-		target = ast_channel_unref(target);
+		target = pbx_channel_unref(target);
 
 	} else {
                 sccp_log( DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");
