@@ -2178,7 +2178,6 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 				sccp_pbx_senddigit(channel, resp);
 				channel = sccp_channel_release(channel);
 				l = sccp_line_release(l);
-				d = sccp_device_release(d);
 				return;
 			}
 
