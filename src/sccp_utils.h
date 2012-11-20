@@ -118,6 +118,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mas
 const char *skinny_ringermode2str(uint8_t type);
 const char *array2str(uint8_t type, uint32_t value);
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t lenght);
+void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
 const char *sccp_channel_toString(sccp_channel_t * c);
 
 struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength);
