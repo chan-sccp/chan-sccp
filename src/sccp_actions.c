@@ -203,6 +203,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 		s = sccp_session_reject(s, "Crossover session not allowed");
+		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
 		device = sccp_device_release(device);
 		return;
 	}
@@ -329,6 +330,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
 		s = sccp_session_reject(s, "Crossover session not allowed");
+		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
 		device = sccp_device_release(device);
 		return;
 	}
