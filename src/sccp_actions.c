@@ -2581,8 +2581,10 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 			sccp_rtp_set_phone(channel, &channel->rtp.video, &sin);
 			channel->rtp.video.writeState |= SCCP_RTP_STATUS_ACTIVE;
 
-			if (channel->state == SCCP_CHANNELSTATE_CONNECTED)
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE)
+			    ) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
+			}
 		} else {
 			pbx_log(LOG_ERROR, "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
 		}
