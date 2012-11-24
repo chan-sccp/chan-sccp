@@ -838,8 +838,8 @@ sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, con
 	} else {
 		ha = sccp_append_ha("permit", value, ha, &error);
 	}
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Permit: %s\n", value);
 	
-//	*(void **)dest = ha;
 	if (!error)
 		*(struct sccp_ha **)dest = ha;
 	

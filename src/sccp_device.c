@@ -60,35 +60,39 @@ static boolean_t sccp_device_falseResult(void){
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
-static boolean_t sccp_device_checkACL(sccp_device_t *device){
-	
+static boolean_t sccp_device_checkACL(sccp_device_t * device)
+{
+
 	struct sockaddr_in sin;
 	boolean_t matchesACL = FALSE;
-	
+
 	/* get current socket information */
 	sccp_session_getSocketAddr(device, &sin);
-	
-	
+
 	/* no permit deny information */
-	if(!device->ha){
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections", device->id);
+	if (!device->ha) {
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections\n", device->id);
 		return TRUE;
 	}
-  
+
 	if (sccp_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
-	  
-		// checking permithosts	
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list. Checking permithost list...", device->id);
+		// checking permithosts 
+		struct ast_str *ha_buf = pbx_str_alloca(512);
+
+		sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
+
+		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...\n", device->id, pbx_str_buffer(ha_buf));
 
 		struct ast_hostent ahp;
 		struct hostent *hp;
 		sccp_hostname_t *permithost;
-		
-		uint8_t i=0;
+
+		uint8_t i = 0;
+
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&device->permithosts, permithost, list) {
 			if ((hp = pbx_gethostbyname(permithost->name, &ahp))) {
-				for(i=0; NULL != hp->h_addr_list[i]; i++ ) {	// walk resulting ip address
-					if (sin.sin_addr.s_addr == (*(struct in_addr*)hp->h_addr_list[i]).s_addr) {
+				for (i = 0; NULL != hp->h_addr_list[i]; i++) {					// walk resulting ip address
+					if (sin.sin_addr.s_addr == (*(struct in_addr *)hp->h_addr_list[i]).s_addr) {
 						sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: permithost = %s match found.\n", device->id, permithost->name);
 						matchesACL = TRUE;
 						continue;
@@ -99,10 +103,10 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device){
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
-	}else{
+	} else {
 		matchesACL = TRUE;
 	}
-  
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: checkACL returning %s\n", device->id, matchesACL ? "TRUE" : "FALSE");
 	return matchesACL;
 }
 
