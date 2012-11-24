@@ -3870,6 +3870,7 @@ static uint8_t skSet_InUseHint[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_PICKUP,
+	SKINNY_LBL_GPICKUP,
 	SKINNY_LBL_BARGE,
 };														/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
 
