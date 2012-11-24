@@ -553,10 +553,12 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_channel_unlock(c);
 		ast_channel_unlock(target);
 //		PBX(requestHangup)(original);
-//		pbx_hangup(original);
+#if ASTERISK_VERSION_NUMBER < 10800
+		pbx_hangup(original);
+#else
 		PBX(forceHangup) (original, PBX_HARD_HANGUP);
+#endif
 		target = pbx_channel_unref(target);
-
 	} else {
                 sccp_log( DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");
                 sccp_dev_displayprompt(d, 1, 0, "No channel for group pickup", 5);
