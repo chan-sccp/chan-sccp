@@ -533,11 +533,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		/* do pickup using pbx feature set */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Pickup channel %p using sccp channel %p (%p)\n", d->id, target, c, c->owner);
 
-//		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
-		c->state = SCCP_CHANNELSTATE_RINGING;
+//		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);							// why do we need to use indicate in this case (DdG) ?
 		if (PBX(feature_pickup) (c, target)) {
 			res = 0;
-			pbx_channel_set_hangupcause(original, AST_CAUSE_NORMAL_CLEARING);
+//			pbx_channel_set_hangupcause(original, AST_CAUSE_NORMAL_CLEARING);
+			pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);			// better hangup cause (DdG)
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 		} else {
 			res = 1;
