@@ -457,7 +457,11 @@ static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE * ast, void *data)
 	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), line->pickupgroup);
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) callgroup=%s, pickupgroup=%s, state %d\n", pbx_channel_name(ast), callgroup_buf ? pbx_str_buffer(callgroup_buf) : "", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "", pbx_channel_state(ast));
 
-	res = !pbx_channel_pbx(ast) && ((line->pickupgroup & pbx_channel_callgroup(ast)) || (line->pickupgroup == pbx_channel_callgroup(ast))) && ((pbx_channel_state(ast) & AST_STATE_RINGING) || (pbx_channel_state(ast) & AST_STATE_RING)) && !pbx_test_flag(pbx_channel_flags(ast), AST_FLAG_ZOMBIE) && !pbx_channel_masq(ast);
+	res = !pbx_channel_pbx(ast) && 
+		((line->pickupgroup & pbx_channel_callgroup(ast)) || (line->pickupgroup == pbx_channel_callgroup(ast))) && 
+		((pbx_channel_state(ast) == AST_STATE_RINGING) || (pbx_channel_state(ast) == AST_STATE_RING)) && 
+		!pbx_test_flag(pbx_channel_flags(ast), AST_FLAG_ZOMBIE) && 
+		!pbx_channel_masq(ast);
 
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) res %d\n", pbx_channel_name(ast), res);
 
@@ -529,7 +533,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		/* do pickup using pbx feature set */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Pickup channel %p using sccp channel %p (%p)\n", d->id, target, c, c->owner);
 
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
+//		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
+		c->state = SCCP_CHANNELSTATE_RINGING;
 		if (PBX(feature_pickup) (c, target)) {
 			res = 0;
 			pbx_channel_set_hangupcause(original, AST_CAUSE_NORMAL_CLEARING);
