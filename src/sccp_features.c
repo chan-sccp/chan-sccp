@@ -541,7 +541,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_channel_answer(d, c);
 		pbx_channel_unlock(target);
 //              PBX(requestHangup)(original);
-		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using pbx_hangup directly, requetsHangup should be fixed instead, but can't find right algorithm
+		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using forceHangup, requestHangup should be fixed instead, but can't find right algorithm
 		target = pbx_channel_unref(target);
 		c = sccp_channel_release(c);
 	} else {
