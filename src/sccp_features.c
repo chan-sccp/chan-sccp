@@ -443,7 +443,7 @@ static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE *c, void *data) {
 	
 	res = !c->pbx &&
 	((line->pickupgroup & c->callgroup) || (line->pickupgroup == c->callgroup) ) &&
- 	((c->_state & AST_STATE_RINGING) || (c->_state & AST_STATE_RING)) &&
+ 	((c->_state == AST_STATE_RINGING) || (c->_state == AST_STATE_RING)) &&
 	!pbx_test_flag(c, AST_FLAG_ZOMBIE) &&
 	!c->masq;
 	
