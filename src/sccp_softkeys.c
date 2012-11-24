@@ -1003,7 +1003,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	if (line) {
 		sccp_feat_handle_directpickup(line, lineInstance, d);
 		line = sccp_line_release(line);
-		if (c->scheduler.digittimeout)
+		if (c && c->scheduler.digittimeout)
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
@@ -1035,7 +1035,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (line) {
 		sccp_feat_grouppickup(line, d);
 		line = sccp_line_release(line);
-		if (c->scheduler.digittimeout)
+		if (c && c->scheduler.digittimeout)
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);

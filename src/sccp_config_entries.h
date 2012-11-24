@@ -304,7 +304,7 @@ static const SCCPConfigOption sccpSoftKeyConfigOptions[] = {
 	{"connconf",			S_OBJ_REF(modes[6]), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"conflist,endcall,join,hold",						""},
 	{"ringout",			S_OBJ_REF(modes[7]), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"endcall,transfer,cfwdall,idivert",					""},
 	{"offhookfeat",			S_OBJ_REF(modes[8]), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,endcall",							""},
-	{"onhint",			S_OBJ_REF(modes[9]), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"newcall,pickup,barge",							""},
+	{"onhint",			S_OBJ_REF(modes[9]), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,pickup,gpickup,barge",					""},
 	{"onstealable",			S_OBJ_REF(modes[10]), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt",			""},
 };
 /* *INDENT-ON* */
