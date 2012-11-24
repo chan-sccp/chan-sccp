@@ -2166,7 +2166,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_findChannelWithCallback(int (*c
 	PBX_CHANNEL_TYPE *remotePeer;
 
 	if (!lock) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "requesting channel search without lock, but no implementation for this (yet)\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "requesting channel search without intermediate locking, but no implementation for this (yet)\n");
 	}
 	remotePeer = ast_channel_search_locked(found_cb, data);
 	return remotePeer;
