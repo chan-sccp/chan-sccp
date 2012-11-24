@@ -236,7 +236,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"addon", 			D_OBJ_REF(addons),	 		TYPE_PARSER(sccp_config_parse_addons),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"One of 7914, 7915, 7916"},
 	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				""},
 	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},
-	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,				SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"allow ringin notification for hinted extensions (Boolean, default=on). experimental configuration param that may be removed in further version \n"},
+	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions (Boolean, default=no). experimental configuration param that may be removed in further version \n"},
 };
 
 /*!
