@@ -281,6 +281,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
+	d->registrationState = SKINNY_DEVICE_RS_NONE;
 
 	// set minimum protocol levels
 //      d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
