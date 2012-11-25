@@ -28,25 +28,12 @@ extern "C" {
 	struct sccp_conference {
 		ast_mutex_t lock;						/*!< mutex */
 		uint32_t id;							/*!< conference id */
-		sccp_conference_participant_t *moderator;			/*!< how initializes the conference */
 		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
+		int num_moderators;
+		int num_participants;
 		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
 		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
-
-        struct sccp_conference_goto_after {
-                char *accountcode;
-                char *exten;
-                char *context;
-                char *linkedid;
-                char *name;
-                struct ast_cdr *cdr; 
-                int amaflags;
-                int state;
-                format_t readformat;
-                format_t writeformat;
-                int priority;
-        };
 
 	struct sccp_conference_participant {
 		boolean_t pendingRemoval;					/*!< Pending Removal */
@@ -63,10 +50,9 @@ extern "C" {
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;						/*!< Running in this Thread */
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
-		unsigned int muted;						/*!< Participant is Muted */
+		boolean_t isModerator;
+		boolean_t isMuted;						/*!< Participant is Muted */
 
-		struct sccp_conference_goto_after goto_after;
-				
 		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
 
@@ -74,7 +60,7 @@ extern "C" {
 
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
 	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
-	void sccp_conference_addModerator(sccp_conference_t * conference);
+	void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_module_start(void);
