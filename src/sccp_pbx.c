@@ -261,8 +261,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		}
 
 		if ((active_channel = sccp_channel_get_active(linedevice->device))) {
-			sccp_indicate(linedevice->device, active_channel, SCCP_CHANNELSTATE_CALLWAITING);
-			isRinging = TRUE;
+                        sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
+                        isRinging = TRUE;
 			active_channel = sccp_channel_release(active_channel);
 		} else {
 			if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
