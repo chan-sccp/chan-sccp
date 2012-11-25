@@ -801,7 +801,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		}
 #    endif
 	}
-	sccp_conference_addModerator(d->conference);
+	sccp_conference_addModerator(d->conference, c);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
