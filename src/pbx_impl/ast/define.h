@@ -289,5 +289,6 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
 #    define pbx_channel_blocker(_a) (_a)->blocker
 #    define pbx_channel_blockproc(_a) (_a)->blockproc
+#    define pbx_fileexists ast_fileexists
 
 #endif

@@ -95,6 +95,7 @@
 #    ifdef ASTERISK_CONF_1_12
 #      	include "astTrunk.h"
 #    endif
+#    include <asterisk/file.h>
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
