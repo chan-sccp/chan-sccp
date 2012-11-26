@@ -30,9 +30,10 @@ extern "C" {
 		uint32_t id;							/*!< conference id */
 		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
 		int num_moderators;
-		int num_participants;
 		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
 		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
+		boolean_t finishing;						/*!< Indicates the conference is closing down */
+		boolean_t locked;						/*!< Indicates that no new participants are allowed */
 	};
 
 	struct sccp_conference_participant {
@@ -45,7 +46,6 @@ extern "C" {
 
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
-		PBX_CHANNEL_TYPE *origChannel;					/*!< the original asterisk channel to which we have to return after the conference */
 		PBX_CHANNEL_TYPE *conferenceBridgePeer;				/*!< the asterisk channel which joins the conference bridge */
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;						/*!< Running in this Thread */

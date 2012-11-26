@@ -766,10 +766,9 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 						if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
 							sccp_conference_addParticipant(d->conference, channel);
 							if (channel != d->active_channel) {
-								pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+								pbx_log(LOG_NOTICE, "%s: update moderator display %s.\n", DEV_ID_LOG(d), channel->owner->name);
 								// drop from display
 								int instance = sccp_device_find_index_for_line(d, l->name);
-
 								sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 							}
 						}
@@ -789,7 +788,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 				if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
 					sccp_conference_addParticipant(d->conference, channel);
 					if (channel != d->active_channel) {
-						pbx_log(LOG_NOTICE, "%s: sccp show cleanup moderator display by remove %s.\n", DEV_ID_LOG(d), channel->owner->name);
+						pbx_log(LOG_NOTICE, "%s: update moderator display %s.\n", DEV_ID_LOG(d), channel->owner->name);
 						// drop from display
 						int instance = sccp_device_find_index_for_line(d, l->name);
 
