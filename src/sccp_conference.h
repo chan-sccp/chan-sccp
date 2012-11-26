@@ -34,6 +34,9 @@ extern "C" {
 		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 		boolean_t finishing;						/*!< Indicates the conference is closing down */
 		boolean_t locked;						/*!< Indicates that no new participants are allowed */
+		PBX_CHANNEL_TYPE *playback_channel;
+		ast_mutex_t playback_lock;
+		pthread_t playbackThread;
 	};
 
 	struct sccp_conference_participant {
@@ -67,8 +70,8 @@ extern "C" {
 	void sccp_conference_end(sccp_conference_t * conference);
 	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * currentParticipantPeer);
 
-	void sccp_conference_readFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
-	void sccp_conference_writeFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
+//	void sccp_conference_readFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
+//	void sccp_conference_writeFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
 
 	/* conf list related */
 	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
