@@ -21,7 +21,7 @@ enum sccp_refcounted_types {
         SCCP_REF_EVENT,
         SCCP_REF_TEST,
 	SCCP_REF_CONFERENCE,
-	SCCP_REF_MODERATOR,
+	SCCP_REF_PARTICIPANT,
 };
 
 typedef struct refcount_object RefCountedObject;

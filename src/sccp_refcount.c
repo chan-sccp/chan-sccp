@@ -64,17 +64,18 @@ struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
 	sccp_debug_category_t debugcat;
-} obj_info[] =
-{
-	[SCCP_REF_DEVICE] = {
-	NULL, "device", DEBUGCAT_DEVICE},[SCCP_REF_LINE] = {
-	NULL, "line", DEBUGCAT_LINE},[SCCP_REF_CHANNEL] = {
-	NULL, "channel", DEBUGCAT_CHANNEL},[SCCP_REF_LINEDEVICE] = {
-	NULL, "linedevice", DEBUGCAT_LINE},[SCCP_REF_EVENT] = {
-	NULL, "event", DEBUGCAT_EVENT},[SCCP_REF_TEST] = {
-	NULL, "test", DEBUGCAT_HIGH},[SCCP_REF_CONFERENCE] = {
-	NULL, "conference", DEBUGCAT_HIGH},[SCCP_REF_MODERATOR] = {
-NULL, "moderator", DEBUGCAT_HIGH},};
+} obj_info[] = {
+        /* *INDENT-OFF* */
+	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
+	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
+	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
+	[SCCP_REF_LINEDEVICE] = {NULL, "linedevice", DEBUGCAT_LINE},
+	[SCCP_REF_EVENT] = {NULL, "event", DEBUGCAT_EVENT},
+	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
+	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
+	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
+        /* *INDENT-ON* */
+};
 
 #ifdef SCCP_ATOMIC
 #    define        	obj_lock	NULL
