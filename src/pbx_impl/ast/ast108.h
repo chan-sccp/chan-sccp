@@ -81,6 +81,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
+
 #    define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)			\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
 	{													\
@@ -88,13 +89,13 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 /*		static char *cli_ami_command[] = { CLI_COMMAND, NULL};					*/	\
 /*		static char *ami_command = AMI_COMMAND;							*/	\
 /*		cli_ami_command[0] = ami_command;							*/	\
-		static char *cli_ami_params[] = { CLI_AMI_PARAMS };						\
-		static char *arguments[ARRAY_LEN(cli_ami_params)];						\
+		char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
+		char *arguments[ARRAY_LEN(cli_ami_params)];						\
 		uint8_t x=0; 											\
 		uint8_t i=0; 											\
 		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {						\
 			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){				\
-				arguments[i++]=strdup(astman_get_header(m, cli_ami_params[x]));		\
+				arguments[i++]=sccp_strdupa(astman_get_header(m, cli_ami_params[x]));		\
 			} 											\
 		}												\
 		char idtext[256] = "";										\
@@ -109,25 +110,20 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		"ListItems: %d\r\n"										\
 		"%s"												\
 		"\r\n\r\n", total, idtext);  									\
-		for (x=0, i=0;x<ARRAY_LEN(cli_ami_params);x++) {						\
-			if(NULL != arguments[x] && strlen(arguments[x]) > 0){					\
-				sccp_free(arguments[i++]);							\
-			} 											\
-		}												\
 		return 0;											\
 	}													\
 														\
 	static char * cli_ ## _FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {	\
 		const char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
-		char command[80]="";										\
-		uint8_t completer;										\
+		static char command[80]="";									\
 		if (cmd == CLI_INIT) {										\
 		 	ast_join(command, sizeof(command), cli_command);					\
-			e->command = strdup(command);								\
+			e->command = command;									\
 			e->usage = _USAGE;									\
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
+        		uint8_t completer;									\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
 				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) - 1) || _COMPLETER_REPEAT ) {\
 					return sccp_exec_completer(cli_complete[completer], (char *)a->line, (char *)a->word, a->pos, a->n);\
@@ -138,25 +134,35 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		if (a->argc < (int)(ARRAY_LEN(cli_command)-1)) 							\
 			return CLI_SHOWUSAGE;									\
 														\
-		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, NULL, a->argc, (char **) a->argv)) {		\
+		static char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
+		struct message m = { 0 };									\
+		size_t hdrlen; 											\
+		uint8_t x;											\
+                for (x = 0; x < ARRAY_LEN(cli_ami_params) && x < a->argc; x++) {				\
+                        hdrlen = strlen(cli_ami_params[x]) + 2 + strlen(a->argv[x]) + 1;			\
+                        m.headers[m.hdrcount] = alloca(hdrlen);							\
+                        snprintf((char *) m.headers[m.hdrcount], hdrlen, "%s: %s", cli_ami_params[x], a->argv[x]);	\
+                        m.hdrcount++;                                        					\
+                }												\
+		switch (_CALLED_FUNCTION(a->fd, NULL, NULL, &m, a->argc, (char **) a->argv)) {			\
 			case RESULT_SUCCESS: return CLI_SUCCESS;						\
 			case RESULT_FAILURE: return CLI_FAILURE;						\
 			case RESULT_SHOWUSAGE: return CLI_SHOWUSAGE;						\
 			default: return CLI_FAILURE;								\
 		}												\
-	};
+	};													
 #    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
 		const char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
-		char command[80]="";										\
-		uint8_t completer;										\
+		static char command[80]="";									\
 		if (cmd == CLI_INIT) {										\
 		 	ast_join(command, sizeof(command), cli_command);					\
-			e->command = strdup(command);								\
+			e->command = command;								\
 			e->usage = _USAGE;									\
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
+                        uint8_t completer;									\
 			for (completer=0; completer<ARRAY_LEN(cli_complete); completer++) {			\
 				if ((unsigned)a->pos == (completer + ARRAY_LEN(cli_command) -1) || _COMPLETER_REPEAT ) {\
 					return sccp_exec_completer(cli_complete[completer], (char *)a->line, (char *)a->word, a->pos, a->n);\

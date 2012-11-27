@@ -81,6 +81,6 @@ void sccp_event_fire(const sccp_event_t * *event)
 #ifdef HAVE_LIBGC
 	*event = NULL;
 #else
-	sccp_free((void *)*event);
+	sccp_free(*event);
 #endif
 }
