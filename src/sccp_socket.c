@@ -220,6 +220,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	/* destroying mutex and cleaning the session */
 	sccp_mutex_destroy(&s->lock);
 	sccp_free(s);
+	s = NULL;
 }
 
 /*!
