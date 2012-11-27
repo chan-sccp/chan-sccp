@@ -588,28 +588,28 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
  */
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 {
+	if (!r) {
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Tried to non-existing packet.\n");
+		return -1;
+	}
+
 	ssize_t res=0;
-
 	uint32_t msgid = letohl(r->lel_messageId);
+	ssize_t bytesSent = 0;
+	ssize_t bufLen = (ssize_t) (letohl(r->length) + 8);
+	uint8_t *bufAddr = ((uint8_t *) r);
+	boolean_t finishSending = FALSE;
+	unsigned int try = 1;
+	unsigned int maxTries=500;
 
-	ssize_t bytesSent;
-
-	ssize_t bufLen;
-
-	uint8_t *bufAddr;
-
-	boolean_t finishSending;
-
-	unsigned int try, maxTries;;
-
-	if (!s || s->fds[0].fd <= 0 || s->fds[0].revents & POLLHUP) {
+	if (!s || s->session_stop || !s->fds || s->fds[0].fd <= 0 || s->fds[0].revents & POLLHUP) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		sccp_free(r);
 		r = NULL;
 		return -1;
 	}
-	sccp_session_lock(s);
 
+	sccp_session_lock(s);
 	//sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET)?r->length:SCCP_MAX_PACKET);
 
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage) {
@@ -620,13 +620,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		r->lel_reserved = 0;
 	}
 
-//	res = 0;
-	finishSending = 0;
-	try = 1;
-	maxTries = 500;
-	bytesSent = 0;
-	bufAddr = ((uint8_t *) r);
-	bufLen = (ssize_t) (letohl(r->length) + 8);
 	/* sccp_log((DEBUGCAT_SOCKET))(VERBOSE_PREFIX_3 "%s: Sending Packet Type %s (%d bytes)\n", s->device->id, message2str(letohl(r->lel_messageId)), letohl(r->length)); */
 	do {
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
