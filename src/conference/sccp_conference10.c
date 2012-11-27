@@ -117,6 +117,13 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
         
 	/** we return the pointer, so do not release conference (should be retained in d->conference or rather l->conference/c->conference. d->conference limits us to one conference per phone */
 	pbx_log(LOG_NOTICE, "SCCP: Conference %d created\n", conference->id);
+#        ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+	        sccp_device_t *d=sccp_channel_getDevice_retained(conferenceCreatorChannel);
+		manager_event(EVENT_FLAG_USER, "SCCPConfStart", "ConfId: %d\r\nSCCPDevice: %s\r\n", conference->id, DEV_ID_LOG(d));
+		d = d ? sccp_device_release(d) : NULL;
+	}
+#        endif
 	return conference;
 }
 
@@ -149,6 +156,12 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 		participant->isModerator=FALSE;
 		astChannel = CS_AST_BRIDGED_CHANNEL(participantChannel->owner);
 	}
+	if (hangupOtherEnd) {
+		pbx_log(LOG_NOTICE, "SCCP Conference: releaving Other End (PBX:%s).\n", astChannel->name);
+		astChannel->_softhangup = AST_SOFTHANGUP_UNBRIDGE;
+        	ast_clear_flag(astChannel, AST_FLAG_BLOCKING);
+	        PBX(queue_control_data) (astChannel, AST_CONTROL_UNHOLD, NULL, 0);
+        }
 	if (!(participant->conferenceBridgePeer = ast_channel_alloc(0, astChannel->_state, 0, 0, astChannel->accountcode, astChannel->exten, astChannel->context, astChannel->linkedid, astChannel->amaflags, "SCCP/CONFERENCE/%03X@%08X", participant->id, conference->id))) {
 		pbx_log(LOG_ERROR, "SCCP Conference: creating conferenceBridgePeer failed.\n");
 		return;
@@ -174,6 +187,7 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 		astChannel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
 	}
 	if (hangupOtherEnd) {
+		pbx_log(LOG_NOTICE, "SCCP Conference: destroying Other End (PBX:%s) (SCCP:%d).\n", participantChannel->owner->name, participantChannel->callid);
 		participantChannel->owner->_softhangup = AST_SOFTHANGUP_UNBRIDGE;
         	ast_clear_flag(participantChannel->owner, AST_FLAG_BLOCKING);
         	participantChannel->owner->bridge = NULL;
@@ -204,6 +218,18 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 		d = sccp_device_release(d);
 	}
 	pbx_log(LOG_NOTICE, "SCCP-Conference::%d: Participant %d (%p) joined the conference.\n", participant->conference->id, participant->id, participant);
+
+#        ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_CALL, "SCCPConfEnter", 
+		                               "ConfId: %d\r\nPartId: %d\r\nChannel: %s\r\nUniqueid: %s\r\n",
+		                               participant->conference->id,
+		                               participant->id,
+		                               PBX(getChannelName) (participant->channel),
+		                               PBX(getChannelUniqueID) (participant->channel)
+                              );
+	}
+#        endif
 
 	/** do not retain participant, because we added it to conferencelist */
 	return;
@@ -265,6 +291,17 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: hanging up Participant %d, bridgePeer: %s.\n", conference->id, participant->id, participant->conferenceBridgePeer->name);
+#        ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", 
+		                               "ConfId: %d\r\nPartId: %d\r\nChannel: %s\r\nUniqueid: %s\r\n",
+		                               conference->id,
+		                               participant->id,
+		                               PBX(getChannelName) (participant->channel),
+		                               PBX(getChannelUniqueID) (participant->channel)
+                              );
+	}
+#        endif
 	ast_clear_flag(participant->conferenceBridgePeer, AST_FLAG_BLOCKING);
 	ast_hangup(participant->conferenceBridgePeer);
 	participant = sccp_participant_release(participant);
@@ -371,6 +408,13 @@ void sccp_conference_end(sccp_conference_t * conference)
 	tmp_conference = sccp_conference_release(tmp_conference);
 	SCCP_LIST_UNLOCK(&conferences);
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: Conference Ended.\n", conference->id);
+
+#        ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_USER, "SCCPConfEnd", "ConfId: %d\r\n", conference->id);
+	}
+#        endif
+
 	conference = sccp_conference_release(conference);
 }
 
