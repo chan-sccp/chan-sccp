@@ -744,7 +744,11 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		selectedFound = TRUE;
 
 		if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
-			sccp_conference_addParticipant(d->conference, selectedChannel->channel);
+			if (selectedChannel->channel != d->active_channel) {
+				sccp_conference_addParticipant(d->conference, selectedChannel->channel, TRUE);
+			} else {
+				sccp_conference_addParticipant(d->conference, selectedChannel->channel, FALSE);
+			}
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
@@ -763,13 +767,18 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 					SCCP_LIST_LOCK(&line->channels);
 					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 						pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
-						if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
-							sccp_conference_addParticipant(d->conference, channel);
+						if (channel == c) {
+							sccp_conference_addParticipant(d->conference, channel, FALSE);
+						} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+							sccp_conference_addParticipant(d->conference, channel, TRUE);
 							if (channel != d->active_channel) {
-								pbx_log(LOG_NOTICE, "%s: update moderator display %s.\n", DEV_ID_LOG(d), channel->owner->name);
+								pbx_log(LOG_NOTICE, "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
 								// drop from display
 								int instance = sccp_device_find_index_for_line(d, l->name);
 								sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+//								PBX(requestHangup) (channel->owner);
+//								PBX(forceHangup) (channel->owner, PBX_HARD_HANGUP);
+//								channel->owner = pbx_channel_unref(channel->owner);
 							}
 						}
 					}
@@ -788,11 +797,13 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 				if (channel == c || channel->state == SCCP_CHANNELSTATE_HOLD) {
 					sccp_conference_addParticipant(d->conference, channel);
 					if (channel != d->active_channel) {
-						pbx_log(LOG_NOTICE, "%s: update moderator display %s.\n", DEV_ID_LOG(d), channel->owner->name);
+						pbx_log(LOG_NOTICE, "%s: update moderator display %s. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d), channel->owner->name);
 						// drop from display
 						int instance = sccp_device_find_index_for_line(d, l->name);
 
 						sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+//						PBX(requestHangup) (channel->owner);
+						PBX(forceHangup) (channel->owner, PBX_HARD_HANGUP);
 					}
 				}
 			}
