@@ -573,9 +573,7 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t)
  */
 int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
 {
-	sccp_session_t *s = sccp_session_find(device);
-
-	return sccp_session_send2(s, r);
+	return sccp_session_send2(sccp_session_find(device), r);
 }
 
 /*!
@@ -657,10 +655,23 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
  */
 sccp_session_t *sccp_session_find(const sccp_device_t * device)
 {
-	if (!device)
+	sccp_session_t *session = NULL;
+	boolean_t session_found=FALSE;
+	
+	if (!device || !device->session) {
 		return NULL;
+	}
+	
+	SCCP_RWLIST_RDLOCK(&GLOB(sessions));
+	SCCP_LIST_TRAVERSE(&GLOB(sessions), session, list) {	
+		if (session == device->session && device == session->device) {
+			session_found = TRUE;
+			break;
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
-	return device->session;
+	return session_found ? session : NULL;
 }
 
 

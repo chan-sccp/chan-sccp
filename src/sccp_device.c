@@ -177,8 +177,9 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf\n", d->id);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-	if (d->session)
+	if (d->session) {
 		pthread_cancel(d->session->session_thread);
+	}
 	d->pendingUpdate = 0;
 
 	if (d->pendingDelete) {
@@ -1602,12 +1603,17 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 	if (d->session) {
-		sccp_session_lock(d->session);
-		d->session->device = NULL;
-		sccp_session_unlock(d->session);
+		if (d->session->device) {
+			sccp_session_lock(d->session);
+			d->session->device = NULL;
+			sccp_session_unlock(d->session);
+		}
+		if (d->session->session_thread != AST_PTHREADT_NULL) {
+			pthread_cancel(d->session->session_thread);
+		}
+		d->session = NULL;
 	}
 
-	d->session = NULL;
 	if (d->buttonTemplate) {
 		sccp_free(d->buttonTemplate);
 		d->buttonTemplate = NULL;
