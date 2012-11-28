@@ -671,11 +671,15 @@ sccp_session_t *sccp_session_find(const sccp_device_t * device)
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
+	if (!session) {
+		pbx_log(LOG_WARNING, "SCCP: (sccp_session_find) Session could not be retrieved");
+	}
+
 	return session_found ? session : NULL;
 }
 
 
-static sccp_session_t *sccp_session_findSessionForDevice(const sccp_device_t * device)
+static sccp_session_t *sccp_session_find_unlocked(const sccp_device_t * device)
 {
 	sccp_session_t *session;
   
@@ -685,6 +689,10 @@ static sccp_session_t *sccp_session_findSessionForDevice(const sccp_device_t * d
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
+
+	if (!session) {
+		pbx_log(LOG_WARNING, "SCCP: (sccp_session_find_unlocked) Session could not be retrieved");
+	}
 	  
 	return session;
 }
@@ -799,7 +807,7 @@ struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type)
 
 void sccp_session_getSocketAddr(const sccp_device_t *device, struct sockaddr_in *sin)
 {
-	sccp_session_t *s = sccp_session_findSessionForDevice(device);
+	sccp_session_t *s = sccp_session_find_unlocked(device);
 
 	if (!s)
 		return;
