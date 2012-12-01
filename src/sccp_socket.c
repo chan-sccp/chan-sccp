@@ -85,19 +85,13 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session)
 
 	if (session->session_thread) {
 		session->session_stop = 1;
-		pthread_join(session->session_thread, NULL);
-		if (session && AST_PTHREADT_NULL != session->session_thread) {
-			usleep(((session->device) ? session->device->keepalive : GLOB(keepalive)) * 1.1);
-			if (session && AST_PTHREADT_NULL != session->session_thread) {
-				pthread_kill(session->session_thread, SIGURG);
-				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
-			}
+		if (pthread_cancel(session->session_thread) == ESRCH) {
+			pbx_log(LOG_WARNING, "Thread %p does not exist anymore!", (void *)session->session_thread);
+			session->session_thread = AST_PTHREADT_NULL;
 		}
-	} else {
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
-		sccp_session_close(session);
-		destroy_session(session, 0);
 	}
+	sccp_session_close(session);
+	destroy_session(session, 0);
 }
 
 /*!

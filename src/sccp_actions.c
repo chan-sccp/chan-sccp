@@ -432,7 +432,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		if (d->session && d->session != s) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration! Fixing up to new session\n", d->id);
 			if (d->session->device) {
-				d->session->device = sccp_session_removeDevice(s);
+				d->session->device = sccp_session_removeDevice(d->session);
 			}
 			d->session->device = sccp_session_addDevice(s, d);
 			d->registrationState = SKINNY_DEVICE_RS_FAILED;
