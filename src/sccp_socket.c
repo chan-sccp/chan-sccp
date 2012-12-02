@@ -83,11 +83,25 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session)
 		return;
 	}
 
-	if (session->session_thread) {
+	if (session->session_thread != AST_PTHREADT_NULL) {
 		session->session_stop = 1;
-		if (pthread_cancel(session->session_thread) == ESRCH) {
-			pbx_log(LOG_WARNING, "Thread %p does not exist anymore!", (void *)session->session_thread);
-			session->session_thread = AST_PTHREADT_NULL;
+		// using pthread_cancel for now
+		{
+			if (pthread_cancel(session->session_thread) == ESRCH) {
+				pbx_log(LOG_WARNING, "Thread %p does not exist anymore!\n", (void *)session->session_thread);
+			}
+			if (session->session_thread != AST_PTHREADT_NULL && pthread_join(session->session_thread, NULL)!=0) {
+				pbx_log(LOG_WARNING, "Thread %p could not be joined\n", (void *)session->session_thread);
+				session->session_thread = AST_PTHREADT_NULL;
+			}
+		}
+		/*
+		 * another option would be to use shutdown
+		 * instead. This would wake up any blocking IO including poll
+		 * session_stop would have to be set/get inside a lock and always be checked immediatly after returning from read/write/ioctl/poll
+		 */
+		{
+			// shutdown(s->fds[0].fd,SHUTDOWN_RDWR);
 		}
 	}
 	sccp_session_close(session);
