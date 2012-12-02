@@ -83,17 +83,30 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session)
 		return;
 	}
 
-	if (session->session_thread != AST_PTHREADT_NULL) {
+	if (session->session_thread) {
 		session->session_stop = 1;
-		// using pthread_cancel for now
+		// reverting to using pthread_join for now
 		{
-			if (pthread_cancel(session->session_thread) == ESRCH) {
-				pbx_log(LOG_WARNING, "Thread %p does not exist anymore!\n", (void *)session->session_thread);
+			pthread_join(session->session_thread, NULL);
+			if (session && AST_PTHREADT_NULL != session->session_thread) {
+				usleep(((session->device) ? session->device->keepalive : GLOB(keepalive)) * 1.1);
+				if (session && AST_PTHREADT_NULL != session->session_thread) {
+					pthread_kill(session->session_thread, SIGURG);
+					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
+				}
 			}
-			if (session->session_thread != AST_PTHREADT_NULL && pthread_join(session->session_thread, NULL)!=0) {
-				pbx_log(LOG_WARNING, "Thread %p could not be joined\n", (void *)session->session_thread);
-				session->session_thread = AST_PTHREADT_NULL;
-			}
+		}
+		/*
+		 * or nicer would have been to use pthread_cancel
+		 */
+		{
+//			if (pthread_cancel(session->session_thread) == ESRCH) {
+//				pbx_log(LOG_WARNING, "Thread %p does not exist anymore!\n", (void *)session->session_thread);
+//			}
+//			if (session->session_thread != AST_PTHREADT_NULL && pthread_join(session->session_thread, NULL)!=0) {
+//				pbx_log(LOG_WARNING, "Thread %p could not be joined\n", (void *)session->session_thread);
+//				session->session_thread = AST_PTHREADT_NULL;
+//			}
 		}
 		/*
 		 * another option would be to use shutdown
@@ -101,11 +114,14 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session)
 		 * session_stop would have to be set/get inside a lock and always be checked immediatly after returning from read/write/ioctl/poll
 		 */
 		{
-			// shutdown(s->fds[0].fd,SHUTDOWN_RDWR);
+//			shutdown(s->fds[0].fd,SHUTDOWN_RDWR);
 		}
+		 
+	} else {
+		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
+		sccp_session_close(session);
+		destroy_session(session, 0);
 	}
-	sccp_session_close(session);
-	destroy_session(session, 0);
 }
 
 /*!
