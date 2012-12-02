@@ -96,12 +96,11 @@ CREATE TABLE IF NOT EXISTS `buttonconfig` (
 -- View for merging device and button configuration
 --
 CREATE OR REPLACE
-ALGORITHM =
-MERGE
+ALGORITHM = MERGE
 VIEW sccpdeviceconfig AS
 	SELECT GROUP_CONCAT( CONCAT_WS( ',', buttonconfig.type, buttonconfig.name, buttonconfig.options )
 	ORDER BY instance ASC
-	SEPARATOR ';' ) AS button, sccpdevice . *
+	SEPARATOR ';' ) AS button, sccpdevice.*
 	FROM sccpdevice
 	LEFT JOIN buttonconfig ON ( buttonconfig.device = sccpdevice.name )
 GROUP BY sccpdevice.name;
