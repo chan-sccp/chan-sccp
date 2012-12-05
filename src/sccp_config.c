@@ -571,6 +571,10 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 			pbx_log(LOG_ERROR, "softkey default loading not implemented yet\n");
 			break;
 	}
+        if (!GLOB(cfg)) {
+		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+                return;
+        }
 
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
 	for (i = 0; i < arraySize; i++) {
@@ -2279,15 +2283,16 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t reload)
 	GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
 	if (CONFIG_STATUS_FILEMISSING == GLOB(cfg)) {
 		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
-		pbx_config_destroy(GLOB(cfg));
 		GLOB(cfg) = NULL;
 		return CONFIG_STATUS_FILE_NOT_FOUND;
 	} else if (CONFIG_STATUS_FILEUNCHANGED == GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting reload.\n", GLOB(config_file_name));
+		// ugly solution, original GLOB(cfg) is overwritten by CONFIG_STATUS_FILEUNCHANGED, which need to corrected before returning FILE_NOT_CHANGED
+		memset(&config_flags,0,sizeof(config_flags));
+        	GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
 		return CONFIG_STATUS_FILE_NOT_CHANGED;
 	} else if (CONFIG_STATUS_FILEINVALID == GLOB(cfg)) {
 		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
-		pbx_config_destroy(GLOB(cfg));
 		GLOB(cfg) = NULL;
 		return CONFIG_STATUS_FILE_INVALID;
 	} else if (GLOB(cfg) && ast_variable_browse(GLOB(cfg), "devices")) {					/* Warn user when old entries exist in sccp.conf */
