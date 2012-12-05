@@ -260,28 +260,32 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
                         config = sccpConfigSegment->config;
                         for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
                                 if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
-                                        printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
                                         
                                         if (config[sccp_option].name && strlen(config[sccp_option].name)!=0) {
                                                 switch (config_type){
                                                         case CONFIG_TYPE_ALL:
                                                                 break;	
                                                         case CONFIG_TYPE_DEFAULTS:
-                                                                if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) ) {
+                                                                if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) && strcmp(config[sccp_option].name,"type") ) {
                                                                         continue;
                                                                 }
                                                                 break;	
                                                         case CONFIG_TYPE_TEMPLATED:
-                                                                if ( (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0) ) {
+                                                                if ( (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0) && strcmp(config[sccp_option].name,"type")) {
                                                                         continue;
                                                                 }
                                                                 break;	
                                                         case CONFIG_TYPE_SHORT:		// SHORT
-                                                                if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue)==0)) ) {
+                                                                if ( (((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && ((!config[sccp_option].defaultValue || !strcmp(config[sccp_option].defaultValue, "(null)")) && strcmp(config[sccp_option].name,"type"))) ) {
+                                                                        printf("info:" "skipping name: %s, required = %s\n",
+                                                                                config[sccp_option].name, 
+                                                                                ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) ? "no" : "yes"
+                                                                        );
                                                                         continue;
                                                                 }
                                                                 break;	
                                                 }
+                                                printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
                                                 if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue)==0) {
                                                         snprintf(name_and_value, sizeof(name_and_value),"%s = %s", config[sccp_option].name, config[sccp_option].defaultValue);
                                                 } else {
