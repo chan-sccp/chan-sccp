@@ -1950,8 +1950,8 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	uint8_t device_count = 0;
 	uint8_t line_count = 0;
 
-	sccp_line_t *l;
-	sccp_device_t *d;
+	sccp_line_t *l = NULL;
+	sccp_device_t *d = NULL;
 
 	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
@@ -2052,33 +2052,34 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	/* reload realtime lines */
 	sccp_configurationchange_t res;
 
+	sccp_line_t *line = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		if ((l = sccp_line_retain(l))) {
-			if (l->realtime == TRUE && l != GLOB(hotline)->line) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", l->name);
-				v = pbx_load_realtime(GLOB(realtimelinetable), "name", l->name, NULL);
+		if ((line = sccp_line_retain(l))) {
+			if (line->realtime == TRUE && line != GLOB(hotline)->line) {
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", line->name);
+				v = pbx_load_realtime(GLOB(realtimelinetable), "name", line->name, NULL);
 #    ifdef CS_DYNAMIC_CONFIG
 				/* we did not find this line, mark it for deletion */
 				if (!v) {
-					sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelete=1\n", l->name);
-					l->pendingDelete = 1;
+					sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelete=1\n", line->name);
+					line->pendingDelete = 1;
 					continue;
 				}
 #    endif
 
-				res = sccp_config_applyLineConfiguration(l, v);
+				res = sccp_config_applyLineConfiguration(line, v);
 				/* check if we did some changes that needs a device update */
 #    ifdef CS_DYNAMIC_CONFIG
 				if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
-					l->pendingUpdate = 1;
+					line->pendingUpdate = 1;
 				} else {
-					l->pendingUpdate = 0;
+					line->pendingUpdate = 0;
 				}
 #    endif
 				pbx_variables_destroy(v);
 			}
-			sccp_line_release(l);
+			line = sccp_line_release(line);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
