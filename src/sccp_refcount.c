@@ -316,7 +316,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	if ((obj = find_obj(ptr))) {
 		do {
 			if (SCCP_LIVE_MARKER != obj->alive || obj->refcount <= 0) {
-				ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! refcount is 0 or below for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", filename, lineno, func, (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
+				ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! refcount is 0 or below for %s: %s (%p)-> obj is fading!\n", filename, lineno, func, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 				return NULL;
 			}
 			refcountval = obj->refcount;
@@ -341,7 +341,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	if ((obj = find_obj(ptr))) {
 		do {
 			if (SCCP_LIVE_MARKER != obj->alive || obj->refcount < 0) {
-				ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! refcount would go below 0 for %s: %s (%p)-> obj is fading! (refcountval = %d)\n", filename, lineno, func, (&obj_info[obj->type])->datatype, obj->identifier, obj, refcountval);
+				ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! refcount would go below 0 for %s: %s (%p)-> obj is fading!\n", filename, lineno, func, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 				return NULL;
 			}
 			refcountval = obj->refcount;
