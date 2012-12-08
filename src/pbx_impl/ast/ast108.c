@@ -785,7 +785,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_
 {
 	sccp_line_t *line = NULL;
 
-	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, channel->line->cid_num, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 
 	if ((*pbx_channel) == NULL) {
 		return FALSE;

@@ -685,6 +685,15 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
 	}
+
+	/* create/set linkid */
+	char linkedid[50];
+
+	sprintf(linkedid, "SCCP::%-10d", channel->callid);
+	if (PBX(setChannelLinkedId))
+		PBX(setChannelLinkedId) (channel, linkedid);
+	/* done */
+
 	channel->owner = (*pbx_channel);
 
 	return TRUE;
