@@ -256,7 +256,7 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 	}
 
  EXIT:
-	if ((GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
+	if (r && (GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(r->lel_messageId);
 
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? message2str(mid) : NULL, mid ? mid : 0, r ? r->length : 0);
