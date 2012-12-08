@@ -102,7 +102,7 @@ static void *sccp_event_processor(void *data)
 		}
 		sccp_event_release(event);
 	} else {
-		sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Could not retain event: %p, type: %s\n", event, event2str(event->type));
+		sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Could not retain event\n");
 	}
 	sccp_event_release(args->event);
 	sccp_free(data);
