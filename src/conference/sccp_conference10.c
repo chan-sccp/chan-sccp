@@ -116,7 +116,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 */
         
 	/** we return the pointer, so do not release conference (should be retained in d->conference or rather l->conference/c->conference. d->conference limits us to one conference per phone */
-	pbx_log(LOG_NOTICE, "SCCP: Conference %d created\n", conference->id);
+	pbx_log(LOG_NOTICE, "SCCP: Conference %d created\n", conferenceID);
 #        ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
 	        sccp_device_t *d=sccp_channel_getDevice_retained(conferenceCreatorChannel);
@@ -134,6 +134,11 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 {
 	PBX_CHANNEL_TYPE *astChannel = NULL;
 	sccp_conference_participant_t *participant;
+
+	if (!conference || !participantChannel) {
+		pbx_log(LOG_ERROR, "SCCP Conference: no conference / participantChannel provided.\n");
+	        return;
+	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
 
@@ -209,8 +214,8 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 	if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 		// \todo TODO: error handling
 	}
-	sccp_device_t *d = NULL;
 
+	sccp_device_t *d = NULL;
 	if ((d = sccp_channel_getDevice_retained(participant->channel))) {
 		sprintf(participant->channel->callInfo.callingPartyName, "Conference %d", participant->conference->id);
 		sprintf(participant->channel->callInfo.calledPartyName, "Conference %d", participant->conference->id);
