@@ -645,6 +645,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	const char *channelId = astman_get_header(m, "channelId");
 	const char *hold = astman_get_header(m, "hold");
 	const char *deviceName = astman_get_header(m, "Devicename");
+	const char *swap = astman_get_header(m, "SwapChannels");
 	char *retValStr;
 
 	c = sccp_channel_find_byid(atoi(channelId));
@@ -668,7 +669,11 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		astman_append(s, "remove channel '%s' from hold\n", channelId);
 		sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 
-		sccp_channel_resume(d, c, FALSE);
+		if (sccp_strcaseequals("yes", swap)) {
+			sccp_channel_resume(d, c, TRUE);
+		} else {
+			sccp_channel_resume(d, c, FALSE);
+		}
 		d = d ? sccp_device_release(d) : NULL;
 		retValStr = "Channel was resumed";
 	} else {
