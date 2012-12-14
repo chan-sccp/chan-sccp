@@ -34,9 +34,8 @@ extern "C" {
 		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 		boolean_t finishing;						/*!< Indicates the conference is closing down */
 		boolean_t locked;						/*!< Indicates that no new participants are allowed */
-		PBX_CHANNEL_TYPE *playback_channel;
+		PBX_CHANNEL_TYPE *playback_channel;				/*!< Channel to playback sound file on */
 		ast_mutex_t playback_lock;
-		pthread_t playbackThread;
 	};
 
 	struct sccp_conference_participant {
