@@ -3847,6 +3847,7 @@ static uint8_t skSet_DigitsFoll[] = {
 static uint8_t skSet_Connconf[] = {
 	SKINNY_LBL_HOLD,
 	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_CONFLIST,
 	SKINNY_LBL_JOIN,
 };														/*!< SKINNY SoftKeys Set "Connected with Conference" as INT */
 
