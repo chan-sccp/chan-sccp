@@ -50,12 +50,12 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 static void __sccp_conference_participant_destroy(sccp_conference_participant_t * participant)
 {
 
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying participant %d %p, conference %d %p\n", participant->id, participant, participant->conference->id, participant->conference);
+	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying participant %d %p\n", participant->id, participant);
 
-	if (participant->isModerator) {
+	if (participant->isModerator && participant->conference) {
 		participant->conference->num_moderators--;
 	}
-	participant->conference = sccp_conference_release(participant->conference);
+	participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
 	participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
 	ast_bridge_features_cleanup(&participant->features);
 	return;
@@ -124,7 +124,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 		d = d ? sccp_device_release(d) : NULL;
 	}
 #        endif
-	return conference;
+	return sccp_conference_retain(conference);
 }
 
 /*! 

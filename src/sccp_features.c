@@ -736,6 +736,10 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 
 	if (!d->conference) {
 		d->conference = sccp_conference_create(c);
+	} else {
+		pbx_log(LOG_NOTICE, "%s: There is already a conference running on this device.\n", DEV_ID_LOG(d));
+		d = sccp_device_release(d);
+		return;
 	}
 
 	/* if we have selected channels, add this to conference */
