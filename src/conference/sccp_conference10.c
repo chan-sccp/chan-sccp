@@ -42,6 +42,14 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 	if (!conference)
 		return;
 
+        if (conference->playback_channel) {
+		sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying conference playback channel %08x\n", conference->id);
+                struct ast_channel *underlying_channel = conference->playback_channel->tech->bridged_channel(conference->playback_channel, NULL);
+                ast_hangup(underlying_channel);
+                ast_hangup(conference->playback_channel);
+                conference->playback_channel = NULL;
+        }
+
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying conference %08x\n", conference->id);
 	ast_bridge_destroy(conference->bridge);
 	return;
@@ -102,19 +110,8 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	SCCP_LIST_UNLOCK(&conferences);
 
 	/* create playback channel */
-/*
-	PBX_CHANNEL_TYPE *astChannel = conferenceCreatorChannel->owner;
-	if (!(conference->playback_channel = ast_channel_alloc(0, astChannel->_state, 0, 0, astChannel->accountcode, astChannel->exten, astChannel->context, astChannel->linkedid, astChannel->amaflags, "SCCP/CONF_PLAYBACK/%08X", conference->id))) {
-		pbx_log(LOG_ERROR, "SCCP Conference: creating conferenceBridgePeer failed.\n");
-	}
-	conference->playback_channel->nativeformats = astChannel->nativeformats;
-	ast_set_write_format(conference->playback_channel, astChannel->writeformat);
-	conference->playback_channel->rawwriteformat = astChannel->rawwriteformat;
-        ast_string_field_set(conference->playback_channel, language, astChannel->language);
-        ast_channel_make_compatible(conference->playback_channel, astChannel);
-        conference->playbackThread = AST_PTHREADT_NULL;
-*/
-        
+	ast_mutex_init(&conference->playback_lock);
+
 	/** we return the pointer, so do not release conference (should be retained in d->conference or rather l->conference/c->conference. d->conference limits us to one conference per phone */
 	pbx_log(LOG_NOTICE, "SCCP: Conference %d created\n", conferenceID);
 #        ifdef CS_MANAGER_EVENTS
@@ -261,8 +258,8 @@ void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t
 		}
 		conference->num_moderators++;
 	}
-//	playback_sound_helper(conference, "conf-enteringno", -1);
-//	playback_sound_helper(conference, NULL, conference->id);
+	playback_sound_helper(conference, "conf-enteringno", -1);
+	playback_sound_helper(conference, NULL, conference->id);
 }
 
 /*!
@@ -281,8 +278,12 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 
 	/* if last moderator is leaving, end conference */
 	if (participant->isModerator && conference->num_moderators==1 && !conference->finishing) {
+        	playback_sound_helper(conference, "conf-leaderhasleft", -1);
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: Issue Conference End 1\n", conference->id);
 		sccp_conference_end(conference);
+	} else {
+        	playback_sound_helper(conference, NULL, participant->id);
+        	playback_sound_helper(conference, "conf-hasleft", -1);
 	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: hanging up Participant %d, bridgePeer: %s.\n", conference->id, participant->id, participant->conferenceBridgePeer->name);
@@ -305,6 +306,7 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: (sccp_conference_removeParticipant) Moderators: %d, Participants: %d, Finishing: %s\n", conference->id, conference->num_moderators, SCCP_LIST_GETSIZE(conference->participants), conference->finishing ? "YES" : "NO");
 	if (SCCP_LIST_GETSIZE(conference->participants) == 1 && !conference->finishing) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: No more conference participant, ending conference.\n");
+        	playback_sound_helper(conference, "conf-leaderhasleft", -1);
 		sccp_conference_end(conference);
 	}
 }
@@ -387,15 +389,6 @@ void sccp_conference_end(sccp_conference_t * conference)
 	}
 	SCCP_LIST_HEAD_DESTROY(&conference->participants);
 
-	// remove playback_channel
-/*
-	ast_mutex_lock(&conference->playback_lock);
-	if (conference->playback_channel) {
-	        ast_bridge_remove(conference->bridge, conference->playback_channel);
-	}
-	ast_mutex_unlock(&conference->playback_lock);
-*/
-
 	/* remove conference */
 	sccp_conference_t *tmp_conference = NULL;
 	SCCP_LIST_LOCK(&conferences);
@@ -409,52 +402,45 @@ void sccp_conference_end(sccp_conference_t * conference)
 		manager_event(EVENT_FLAG_USER, "SCCPConfEnd", "ConfId: %d\r\n", conference->id);
 	}
 #        endif
-
+	ast_mutex_destroy(&conference->playback_lock);
 	conference = sccp_conference_release(conference);
 }
 
-/*!
- */
-static void *sccp_conference_playback_thread(void *data)
-{
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: playback joining conference.\n");
-
-	sccp_conference_t *conference = (sccp_conference_t *) data;
-	if (conference->playback_channel) {
-                sccp_log(DEBUGCAT_CONFERENCE)("SCCP: Conference: playback %s entering conference: %d as %s\n", conference->playback_channel->name, conference->id, conference->playback_channel->name);
-
-#        if ASTERISK_VERSION_NUMBER < 11010
-                pbx_bridge_join(conference->bridge, conference->playback_channel, NULL, NULL);
-#        else
-                pbx_bridge_join(conference->bridge, conference->playback_channel, NULL, NULL, NULL);
-#        endif
-                sccp_log(DEBUGCAT_CONFERENCE)("SCCP: Conference: playback %s leaving conference:  %d\n", conference->playback_channel->name, conference->id);
-
-                sccp_log(DEBUGCAT_CONFERENCE)("SCCP: Conference: hanging up playback channel %s on  %d\n", conference->playback_channel->name, conference->id);
-        	ast_clear_flag(conference->playback_channel, AST_FLAG_BLOCKING);
-        	ast_hangup(conference->playback_channel);
-        } else {
-                pbx_log(LOG_ERROR, "SCCP Conference: playback channel does not exist.\n");
-        }
-	conference->playbackThread = AST_PTHREADT_NULL;
-	return NULL;
-}
-
 int playback_sound_helper(sccp_conference_t *conference, const char *filename, int say_number) {
+        PBX_CHANNEL_TYPE *underlying_channel;
+        ast_mutex_lock(&conference->playback_lock);
+
 	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "File %s does not exists in any format\n" , !sccp_strlen_zero(filename) ? filename : "<unknown>");
 		return 0;
 	}
-	
-	if (conference->playbackThread == AST_PTHREADT_NULL) {
-                sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_4 "CONFERENCE %d: Starting playback thread\n", conference->id);
-                if (pbx_pthread_create_background(&conference->playbackThread, NULL, sccp_conference_playback_thread, conference) < 0) {
-                        // \todo TODO: error handling
-                        return 0;
+
+        if (!(conference->playback_channel)) {
+                int cause;
+
+                if (!(conference->playback_channel = ast_request("Bridge", AST_FORMAT_SLINEAR, NULL, "", &cause))) {
+                        ast_mutex_unlock(&conference->playback_lock);
+                        return -1;
                 }
-                usleep(1000);
+
+                conference->playback_channel->bridge = conference->bridge;
+
+                if (ast_call(conference->playback_channel, "", 0)) {
+                        ast_hangup(conference->playback_channel);   
+                        conference->playback_channel = NULL;
+                        ast_mutex_unlock(&conference->playback_lock);
+                        return -1;
+                }
+
+                ast_debug(1, "Created a playback channel on conference '%d'\n", conference->id);
+
+                underlying_channel = conference->playback_channel->tech->bridged_channel(conference->playback_channel, NULL);
+        } else {
+                /* Channel was already available so we just need to add it back into the bridge */
+                underlying_channel = conference->playback_channel->tech->bridged_channel(conference->playback_channel, NULL);
+                ast_bridge_impart(conference->bridge, underlying_channel, NULL, NULL);
         }
-	ast_mutex_lock(&conference->playback_lock);
+
 	if (conference->playback_channel) {
                 if (!sccp_strlen_zero(filename)) {
                         sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_4 "CONFERENCE %d: Playing '%s'\n", conference->id, filename);
@@ -464,6 +450,9 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
                         ast_say_number(conference->playback_channel, say_number, "", conference->playback_channel->language, NULL);
                 }
         }
+
+        ast_debug(1, "Departing underlying channel '%s' from conference '%d'\n", underlying_channel->name, conference->id);
+        ast_bridge_depart(conference->bridge, underlying_channel);
 	ast_mutex_unlock(&conference->playback_lock);
 	return 1;	
 }
