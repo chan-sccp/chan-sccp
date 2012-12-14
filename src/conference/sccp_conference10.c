@@ -31,7 +31,7 @@ static int lastParticipantID = 0;
 
 SCCP_LIST_HEAD(, sccp_conference_t) conferences;								/*!< our list of conferences */
 static void *sccp_conference_thread(void *data);
-void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t moderator, boolean_t hangupOtherEnd);
+void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t moderator);
 int playback_sound_helper(sccp_conference_t *conference, const char *filename, int say_number);
 
 /*
@@ -130,7 +130,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 /*! 
  * \brief Generic Function to Add a new Participant to a conference. When moderator=TRUE this new participant will be a moderator
  */
-void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t moderator, boolean_t hangupOtherEnd)
+void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t moderator)
 {
 	PBX_CHANNEL_TYPE *astChannel = NULL;
 	sccp_conference_participant_t *participant;
@@ -163,12 +163,6 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                         participant->isModerator=FALSE;
                         astChannel = CS_AST_BRIDGED_CHANNEL(participantChannel->owner);
                 }
-                if (hangupOtherEnd) {
-                        pbx_log(LOG_NOTICE, "SCCP Conference: releaving Other End (PBX:%s).\n", astChannel->name);
-                        astChannel->_softhangup = AST_SOFTHANGUP_UNBRIDGE;
-                        ast_clear_flag(astChannel, AST_FLAG_BLOCKING);
-                        PBX(queue_control_data) (astChannel, AST_CONTROL_UNHOLD, NULL, 0);
-                }
                 if (!(participant->conferenceBridgePeer = ast_channel_alloc(0, astChannel->_state, 0, 0, astChannel->accountcode, astChannel->exten, astChannel->context, astChannel->linkedid, astChannel->amaflags, "SCCP/CONFERENCE/%03X@%08X", participant->id, conference->id))) {
                         pbx_log(LOG_ERROR, "SCCP Conference: creating conferenceBridgePeer failed.\n");
                         return;
@@ -177,12 +171,12 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                 participant->conferenceBridgePeer->readformat = astChannel->readformat;
 
                 pbx_channel_lock(astChannel);
-
                 /** break current bridge and swap participant->conferenceBridgePeer with astChannel */
                 if (pbx_channel_masquerade(participant->conferenceBridgePeer, astChannel)) {
                         pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
                         PBX(requestHangup) (participant->conferenceBridgePeer);
                         participant->conferenceBridgePeer = NULL;
+                        pbx_channel_unlock(astChannel);
                         return;
                 } else {
                         pbx_log(LOG_NOTICE, "SCCP Conference: masquerading conferenceBridgePeer %d (%p) into bridge.\n", participant->id, participant);
@@ -192,18 +186,7 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                         pbx_channel_unlock(participant->conferenceBridgePeer);
 
                         astChannel->hangupcause = AST_CAUSE_NORMAL_UNSPECIFIED;
-                }
-                if (hangupOtherEnd) {
-                        pbx_log(LOG_NOTICE, "SCCP Conference: destroying Other End (PBX:%s) (SCCP:%d).\n", participantChannel->owner->name, participantChannel->callid);
-                        participantChannel->owner->_softhangup = AST_SOFTHANGUP_UNBRIDGE;
-                        ast_clear_flag(participantChannel->owner, AST_FLAG_BLOCKING);
-                        participantChannel->owner->bridge = NULL;
-                        participantChannel->state = SCCP_CHANNELSTATE_DOWN;
-                        PBX(queue_control_data) (participantChannel->owner, AST_CONTROL_UNHOLD, NULL, 0);
-                        PBX(set_callstate)(participantChannel, AST_STATE_DOWN);
-                        PBX(forceHangup) (participantChannel->owner, PBX_SOFT_HANGUP);
-        //	        PBX(forceHangup) (participantChannel->owner, PBX_HARD_HANGUP);
-                        participantChannel->owner = pbx_channel_unref(participantChannel->owner);
+                        pbx_channel_unlock(astChannel);
                 }
 
                 /** add to participant list */
@@ -250,10 +233,10 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 /*!
  * \brief Add a simple participant to a conference
  */
-void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t hangupOtherEnd)
+void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel)
 {
 	if (!conference->locked) {
-		__sccp_conference_addParticipant(conference, participantChannel, FALSE, hangupOtherEnd);
+		__sccp_conference_addParticipant(conference, participantChannel, FALSE);
 	}
 }
 
@@ -264,7 +247,7 @@ void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t
 {
 	if (!conference->locked) {
 		pbx_log(LOG_NOTICE, "SCCP: Adding moderator %s to conference %d\n", moderatorChannel->owner->name, conference->id);
-		__sccp_conference_addParticipant(conference, moderatorChannel, TRUE, FALSE);					// add moderator
+		__sccp_conference_addParticipant(conference, moderatorChannel, TRUE);					// add moderator
 
 		/** update callinfo */
 		sccp_device_t *d = NULL;
