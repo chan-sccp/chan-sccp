@@ -2132,7 +2132,7 @@ void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t
 	int data_len, msgSize, hdr_len, padding;
 
 	data_len = strlen(data);
-	hdr_len = 40 - 1;
+	hdr_len = sizeof(r1->msg.UserToDeviceDataVersion1Message) - 3;
 	padding = ((data_len + hdr_len) % 4);
 	padding = (padding > 0) ? 4 - padding : 0;
 	msgSize = hdr_len + data_len + padding;
@@ -2146,7 +2146,7 @@ void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t
 	r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
 	r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(data_len);
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Message Data:\n%s\n", data);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Message Data:\%s\n", data);
 	if (data_len) {
 		char buffer[data_len + 2];
 
@@ -2154,7 +2154,7 @@ void sendUserToDeviceVersion1Message(sccp_device_t * d, uint32_t appID, uint32_t
 		memcpy(&buffer[0], data, data_len);
 
 		memcpy(&r1->msg.UserToDeviceDataVersion1Message.data, &buffer[0], sizeof(buffer));
-		sccp_dev_send(d, r1);										//TODO missing retain
+		sccp_dev_send(d, r1);
 	}
 	sccp_device_release(d);
 }

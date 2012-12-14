@@ -670,8 +670,8 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
  */
 sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
 {
-//      sccp_moo_t *r = sccp_malloc(sizeof(sccp_moo_t));
-	sccp_moo_t *r = sccp_malloc(pkt_len + 12);
+	sccp_moo_t *r = sccp_malloc(sizeof(sccp_moo_t));
+//	sccp_moo_t *r = sccp_malloc(pkt_len + 12);			// would be more accurate, i think DdG -> Produces issue when sending UserToDeviceDataVersion1Message
 
 	if (!r) {
 		pbx_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
