@@ -38,7 +38,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
 #ifdef CS_SCCP_CONFERENCE
-	sccp_conference_show_list(c->conference, c);
+//	sccp_conference_show_list(c->conference, c);
+	sccp_conference_show_list(d->conference, c);
 #else
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
