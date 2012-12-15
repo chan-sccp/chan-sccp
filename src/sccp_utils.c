@@ -408,7 +408,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		v = variable;
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
-		sccp_log (DEBUGCAT_LINE) (VERBOSE_PREFIX_4, "SCCP: creating realtime line '%s'\n", name);
+		sccp_log (DEBUGCAT_LINE) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 		l = sccp_line_create(name);									/* already retained */
 		sccp_config_applyLineConfiguration(l, variable);
 		l->realtime = TRUE;
