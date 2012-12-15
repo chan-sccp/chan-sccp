@@ -628,7 +628,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t *c
 		if (part->pendingRemoval)
 			continue;
 
-		if ((device = sccp_channel_getDevice_retained(part->channel)) && part->channel == channel && !device->conferencelist_active) {
+		if (part->channel && (device = sccp_channel_getDevice_retained(part->channel)) && part->channel == channel && !device->conferencelist_active) {
 			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: CONFLIST ACTIVED %d %d\n", channel->currentDeviceId, channel->callid, part->id);
 			device->conferencelist_active = TRUE;
 			device = sccp_device_release(device);
