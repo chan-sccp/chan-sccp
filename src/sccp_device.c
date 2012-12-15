@@ -255,7 +255,7 @@ void sccp_device_post_reload(void)
  */
 sccp_device_t *sccp_device_create(const char *id)
 {
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "DEVICE CREATE\n");
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: Create Device\n");
 	sccp_device_t *d = (sccp_device_t *) sccp_refcount_object_alloc(sizeof(sccp_device_t), SCCP_REF_DEVICE, id, __sccp_device_destroy);
 
 	if (!d) {
