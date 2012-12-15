@@ -435,7 +435,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference = sccp_conference_release(conference);
 }
 
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP > 108
 // Ugly replacement for pbx_request. Should me move to pbx_impl/ast/astTrunk.c
 static int alloc_playback_chan(sccp_conference_t *conference)
 {
@@ -456,7 +456,7 @@ static int alloc_playback_chan(sccp_conference_t *conference)
         }
         cap = ast_format_cap_destroy(cap);
 
-        ast_channel_internal_bridge_set(conference->playback_channel, conference->bridge);
+        pbx_channel_set_bridge(conference->playback_channel,conference->bridge);
 
         if (ast_call(conference->playback_channel, "", 0)) {
                 ast_hangup(conference->playback_channel);
@@ -483,7 +483,7 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
 #if ASTERISK_VERSION_GROUP < 108
                 int cause;
                 if (!(conference->playback_channel = pbx_request("Bridge", AST_FORMAT_SLINEAR, "", &cause))) {
-#elif ASTERISK_VERSION_GROUP < 112
+#elif ASTERISK_VERSION_GROUP < 110
                 int cause;
                 if (!(conference->playback_channel = pbx_request("Bridge", AST_FORMAT_SLINEAR, NULL, "", &cause))) {
 #else
@@ -508,7 +508,7 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
         } else {
                 /* Channel was already available so we just need to add it back into the bridge */
                 underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
-#if ASTERISK_VERSION_GROUP < 112
+#if ASTERISK_VERSION_GROUP < 110
                 pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL);
 #else
                 pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0);
