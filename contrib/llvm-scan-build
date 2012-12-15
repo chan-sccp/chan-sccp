@@ -3,5 +3,5 @@ make clean
 rm -rf config.cache scanbuild-output
 CC="clang"
 CFLAGS=" -g --coverage" 
-scan-build -disable-checker deadcode.DeadStores -o scanbuild-output ./configure --without-ccache --enable-debug --disable-optimization
+scan-build -disable-checker deadcode.DeadStores -o scanbuild-output ./configure --without-ccache --enable-debug --disable-optimization $*
 scan-build -disable-checker deadcode.DeadStores -o scanbuild-output make
