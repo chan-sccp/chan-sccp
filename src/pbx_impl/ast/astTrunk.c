@@ -755,9 +755,12 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 
 boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id)
 {
-	*pbxDstChannel = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "SCCP/%s-CONF/%08X/%08X", pbx_channel_name(pbxSrcChannel), conf_id, part_id);
+	(*pbxDstChannel0 = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "SCCPCONF/%03X-%03X", conf_id, part_id);
 	if (*pbxDstChannel == NULL)
 		return FALSE;
+		
+	(*pbxDstChannel)->writeformat = pbxSrcChannel->writeformat;
+	(*pbxDstChannel)->readformat = pbxSrcChannel->readformat;
 	return TRUE;
 }
 
