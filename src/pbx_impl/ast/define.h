@@ -110,7 +110,6 @@
 #    define pbx_channel_queue_connected_line_update ast_channel_queue_connected_line_update
 #    define pbx_channel_register ast_channel_register
 #    define pbx_channel_search_locked ast_channel_search_locked
-#    define pbx_channel_tech ast_channel_tech
 #    define pbx_channel_trylock ast_channel_trylock
 #    define pbx_channel_undefer_dtmf ast_channel_undefer_dtmf
 #    define pbx_channel_unregister ast_channel_unregister
@@ -248,6 +247,7 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_strdupa ast_strdupa
 #    define pbx_stream_and_wait ast_stream_and_wait
 #    define pbx_say_number ast_say_number
+#    define pbx_fileexists ast_fileexists
 #    define pbx_string_field_build ast_string_field_build
 #    define pbx_string_field_set ast_string_field_set
 #    define pbx_strip ast_strip
@@ -290,6 +290,9 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_setwhentohangup_tv(_a, _b) (_a)->whentohangup = _b
 #    define pbx_channel_blocker(_a) (_a)->blocker
 #    define pbx_channel_blockproc(_a) (_a)->blockproc
-#    define pbx_fileexists ast_fileexists
+#    define pbx_channel_tech(_a) (_a)->tech
+#    define pbx_channel_bridge(_a) (_a)->bridge
+#    define pbx_channel_set_bridge(_a,_b) (_a)->bridge = _b
+#    define pbx_channel_language(_a) (_a)->language
 
 #endif
