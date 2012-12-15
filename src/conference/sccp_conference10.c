@@ -42,6 +42,12 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 	if (!conference)
 		return;
 
+#        ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_USER, "SCCPConfEnd", "ConfId: %d\r\n", conference->id);
+	}
+#        endif
+
         if (conference->playback_channel) {
 		sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying conference playback channel %08x\n", conference->id);
                 PBX_CHANNEL_TYPE *underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
@@ -52,6 +58,8 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "Destroying conference %08x\n", conference->id);
 	pbx_bridge_destroy(conference->bridge);
+	SCCP_LIST_HEAD_DESTROY(&conference->participants);
+	pbx_mutex_destroy(&conference->playback_lock);
 	return;
 }
 
@@ -412,10 +420,6 @@ void sccp_conference_end(sccp_conference_t * conference)
 		}
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
-	while (!SCCP_RWLIST_EMPTY(&conference->participants)) {
-		usleep(100);
-	}
-	SCCP_LIST_HEAD_DESTROY(&conference->participants);
 
 	/* remove conference */
 	sccp_conference_t *tmp_conference = NULL;
@@ -425,12 +429,6 @@ void sccp_conference_end(sccp_conference_t * conference)
 	SCCP_LIST_UNLOCK(&conferences);
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference %d: Conference Ended.\n", conference->id);
 
-#        ifdef CS_MANAGER_EVENTS
-	if (GLOB(callevents)) {
-		manager_event(EVENT_FLAG_USER, "SCCPConfEnd", "ConfId: %d\r\n", conference->id);
-	}
-#        endif
-	pbx_mutex_destroy(&conference->playback_lock);
 	conference = sccp_conference_release(conference);
 }
 
