@@ -435,6 +435,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 }
 
 #if ASTERISK_VERSION_GROUP > 111
+// Ugly replacement for pbx_request. Should me move to pbx_impl/ast/astTrunk.c
 static int alloc_playback_chan(sccp_conference_t *conference)
 {
         int cause;
@@ -488,7 +489,7 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
 		if (!(alloc_playback_chan(conference))) {
 #endif
                         pbx_mutex_unlock(&conference->playback_lock);
-                        return -1;
+                        return 0;
                 }
 
                 pbx_channel_set_bridge(conference->playback_channel,conference->bridge);
@@ -497,7 +498,7 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
                         pbx_hangup(conference->playback_channel);   
                         conference->playback_channel = NULL;
                         pbx_mutex_unlock(&conference->playback_lock);
-                        return -1;
+                        return 0;
                 }
 
                 ast_debug(1, "Created a playback channel on conference '%d'\n", conference->id);
