@@ -58,10 +58,10 @@ void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sc
 {
 	uint32_t mid = letohl(r->lel_messageId);
 
-	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0)								// only show when debugging messages
+	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
-
-	sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+	}
 }
 
 /*!
@@ -164,7 +164,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	deviceInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
@@ -3504,7 +3504,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
 
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
 
 	sin.sin_family = AF_INET;
 	if (letohl(r->lel_reserved) < 17) {
