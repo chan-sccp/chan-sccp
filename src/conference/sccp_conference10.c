@@ -435,7 +435,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference = sccp_conference_release(conference);
 }
 
-#if ASTERISK_VERSION_GROUP > 111
+#if ASTERISK_VERSION_GROUP >= 112
 // Ugly replacement for pbx_request. Should me move to pbx_impl/ast/astTrunk.c
 static int alloc_playback_chan(sccp_conference_t *conference)
 {
