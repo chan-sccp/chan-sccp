@@ -144,6 +144,7 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
 
 	if (!participant) {
 		pbx_log(LOG_ERROR, "SCCP Conference: cannot alloc memory for new conference participant.\n");
+                participant = sccp_participant_release(participant);
 		return;
 	}
 
@@ -165,9 +166,11 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                 	// This makes it necessary to always check if participant->channel != NULL before using it.
                 	participant->channel = sccp_channel_retain(get_sccp_channel_from_pbx_channel(astChannel));
                 }
-                PBX(alloc_conferenceTempPBXChannel) (astChannel, &participant->conferenceBridgePeer, conference->id, participant->id);
-                if (!(participant->conferenceBridgePeer)) {
+                if (!(PBX(alloc_conferenceTempPBXChannel) (astChannel, &participant->conferenceBridgePeer, conference->id, participant->id))) {
                         pbx_log(LOG_ERROR, "SCCP Conference: creating conferenceBridgePeer failed.\n");
+                        participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
+                        participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
+                        participant = sccp_participant_release(participant);
                         return;
                 }
 
@@ -178,6 +181,9 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                         PBX(requestHangup) (participant->conferenceBridgePeer);
                         participant->conferenceBridgePeer = NULL;
                         pbx_channel_unlock(astChannel);
+                        participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
+                        participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
+                        participant = sccp_participant_release(participant);
                         return;
                 } else {
                         pbx_log(LOG_NOTICE, "SCCP Conference: masquerading conferenceBridgePeer %d (%p) into bridge.\n", participant->id, participant);
@@ -440,7 +446,11 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
         if (!(conference->playback_channel)) {
                 int cause;
 
+#if ASTERISK_VERSION_GROUP < 108
+                if (!(conference->playback_channel = pbx_request("Bridge", AST_FORMAT_SLINEAR, "", &cause))) {
+#else
                 if (!(conference->playback_channel = pbx_request("Bridge", AST_FORMAT_SLINEAR, NULL, "", &cause))) {
+#endif
                         pbx_mutex_unlock(&conference->playback_lock);
                         return -1;
                 }
