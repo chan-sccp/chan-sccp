@@ -33,6 +33,9 @@ SCCP_LIST_HEAD(, sccp_conference_t) conferences;								/*!< our list of confere
 static void *sccp_conference_thread(void *data);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t moderator);
 int playback_sound_helper(sccp_conference_t *conference, const char *filename, int say_number);
+sccp_conference_t *sccp_conference_findByID(uint32_t identifier);
+sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier);
+sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t *channel);
 
 /*
  * refcount destroy functions 
@@ -529,7 +532,37 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
 }
 
 /* conf list related */
-static sccp_conference_participant_t *sccp_conference_findParticipantByChannel(sccp_conference_t * conference, sccp_channel_t *channel) {
+sccp_conference_t *sccp_conference_findByID(uint32_t identifier) {
+        sccp_conference_t *conference = NULL;
+        if (identifier<0) {
+                return NULL;
+        }
+	SCCP_LIST_LOCK(&conferences);
+	SCCP_LIST_TRAVERSE(&conferences, conference, list) {
+	        if (conference->id == identifier) {
+	                break;
+                }
+	}
+	SCCP_LIST_UNLOCK(&conferences);
+	return sccp_conference_retain(conference);
+}
+
+sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier) {
+        sccp_conference_participant_t *participant = NULL;
+        if (!conference || identifier<0) {
+                return NULL;
+        }
+	SCCP_LIST_LOCK(&conference->participants);
+	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+	        if (participant->id == identifier) {
+	                break;
+                }
+	}
+	SCCP_LIST_UNLOCK(&conference->participants);
+	return sccp_participant_retain(participant);
+}
+
+sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t *channel) {
         sccp_conference_participant_t *participant = NULL;
         if (!conference || !channel) {
                 return NULL;
@@ -563,7 +596,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t *c
                 goto exit_function;
         }
 
-        if (!(participant = sccp_conference_findParticipantByChannel(conference, channel))) {
+        if (!(participant = sccp_conference_participant_findByChannel(conference, channel))) {
         	pbx_log(LOG_WARNING, "CONF-%d: Channel %s is not a participant in this conference\n", conference->id, pbx_channel_name(channel->owner));
                 goto exit_function;
         }
@@ -641,7 +674,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t *c
 	SCCP_LIST_UNLOCK(&conference->participants);
 
 	// SoftKeys
-#if 0
+#if CS_EXPERIMENTAL	
 	if (participant->isModerator) {
 		strcat(xmlStr, "<SoftKeyItem>\n");
 		strcat(xmlStr, "  <Name>Invite</Name>\n");
@@ -716,24 +749,68 @@ exit_function:
 
 void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID)
 {
+#if CS_EXPERIMENTAL
+	sccp_conference_t *conference = NULL;
+	sccp_conference_participant_t *participant = NULL;
+
+	if (d && d->dtu_softkey.transactionID == transactionID) {
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU SoftKey Button Press for CallID %d, Transaction %d, Conference %d, Participant:%d, Action %s\n", d->id, callReference, transactionID, conferenceID, participantID, d->dtu_softkey.action);
+
+		if (!(conference = sccp_conference_findByID(conferenceID))) {
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Conference not found\n", d->id);
+			goto EXIT;
+		}
+		if (!(participant = sccp_conference_participant_findByID(conference,participantID))) {
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Participant not found\n", d->id);
+			goto EXIT;
+		}
+		
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU Softkey Action %s\n", d->id, d->dtu_softkey.action);
+		if (!strcmp(d->dtu_softkey.action, "INVITE")) {
+			sccp_conference_show_list(conference, participant->channel);
+			sccp_conference_invite_participant(conference, participant->channel);
+		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
+                        d->conferencelist_active = FALSE;
+		} else if (!strcmp(d->dtu_softkey.action, "MUTE")) {
+			sccp_conference_toggle_mute_participant(conference, participant);
+		} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
+			if (participant->isModerator) {
+				sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Since wenn du we kick ourselves ? You've got issues!\n", d->id);
+			} else {
+				sccp_conference_kick_participant(conference, participant);
+			}
+		}
+	} else {
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: DTU TransactionID does not match or device not found (%d <> %d)\n", d->id, d->dtu_softkey.transactionID, transactionID);
+	}
+EXIT:
+	/* reset softkey state for next button press */
+	d->dtu_softkey.action = "";
+	d->dtu_softkey.appID = 0;
+	d->dtu_softkey.payload = 0;
+	d->dtu_softkey.transactionID = 0;
+	participant = participant ? sccp_participant_release(participant) : NULL;
+	conference = conference ? sccp_conference_release(conference) : NULL;
+#endif
 }
 
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
-        pbx_stream_and_wait(participant->channel->owner, "conf-kicked", "");
-        sccp_conference_removeParticipant(conference, participant);
+        ast_stopstream(participant->conferenceBridgePeer);
+        pbx_stream_and_wait(participant->conferenceBridgePeer, "conf-kicked", "");
+	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 }
 
 void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
         conference->isLocked = (!conference->isLocked ? 1 : 0);
-        pbx_stream_and_wait(participant->channel->owner, (conference->isLocked ? "conf-lockednow" : "conf-unlockednow"), "");
+        pbx_stream_and_wait(participant->conferenceBridgePeer, (conference->isLocked ? "conf-lockednow" : "conf-unlockednow"), "");
 }
 
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
         participant->isMuted = (!participant->isMuted ? 1 : 0);
-        pbx_stream_and_wait(participant->channel->owner, (participant->isMuted ? "conf-muted" : "conf-unmuted"), "");
+        pbx_stream_and_wait(participant->conferenceBridgePeer, (participant->isMuted ? "conf-muted" : "conf-unmuted"), "");
 }
 
 void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel)
