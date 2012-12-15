@@ -1,3 +1,96 @@
+2012-11-05  ddegroot
+
+	* [r3796] src/sccp_indicate.c: Fixed 1 second delay on pickup
+	  (Fixed by Marcello / Reported by Robert)
+
+2012-11-03  ddegroot
+
+	* [r3795] src/.indent.pro, src/conference/.indent.pro,
+	  src/pbx_impl/.indent.pro, src/pbx_impl/ast/.indent.pro,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_event.c,
+	  src/sccp_featureButton.c, src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_lock.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_protocol.c, src/sccp_refcount.c, src/sccp_rtp.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_threadpool.c,
+	  src/sccp_utils.c: Reindented code according to newly defined
+	  rules
+
+	* [r3794] src/chan_sccp.c, src/sccp_line.c, src/sccp_line.h: Fix
+	  retain/release of hotline during module unload/load
+
+2012-11-02  ddegroot
+
+	* [r3793] src/.indent.pro, src/Makefile.in, src/chan_sccp.c,
+	  src/conference/.indent.pro[ADD],
+	  src/conference/sccp_conference10.c, src/pbx_impl/.indent.pro,
+	  src/pbx_impl/ast/.indent.pro, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/pbx_impl.c, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_appfunctions.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_hint.c,
+	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_lock.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_protocol.c, src/sccp_refcount.c, src/sccp_rtp.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_threadpool.c,
+	  src/sccp_utils.c: Updated .indent.pro to also indent case
+	  statement within switch block. Reindented sources
+
+	* [r3792] AUTHORS, ChangeLog, INSTALL, LICENSE, Makefile.am,
+	  Makefile.in, NEWS, README, README.in, TODO,
+	  WARNING_USE_BRANCHES_V3.0.txt, WARNING_USE_BRANCHES_V4.0.txt,
+	  aclocal.m4, amdoxygen.am, autoconf/acinclude.m4,
+	  autoconf/acx_pthread.m4, autoconf/asterisk.m4,
+	  autoconf/check_atomics.m4, autoconf/config.guess,
+	  autoconf/config.sub, autoconf/depcomp, autoconf/extra.m4,
+	  autoconf/install-sh, autoconf/libtool.m4, autoconf/ltoptions.m4,
+	  autoconf/ltsugar.m4, autoconf/ltversion.m4,
+	  autoconf/lt~obsolete.m4, autoconf/missing, configure,
+	  contrib/gen_sccpconf/Makefile.am,
+	  contrib/gen_sccpconf/Makefile.in,
+	  contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h, doc/01_Index.doc,
+	  doc/02_What_Is_Chan_SCCP.doc,
+	  doc/03_Building_and_Installation_Guide.doc,
+	  doc/04_Setup_Guide.doc, doc/05_Features_V3.doc,
+	  doc/06_New_Features.doc, doc/07_Frequently_Asked_Questions.doc,
+	  doc/08_Supported_Operating_Systems.doc,
+	  doc/09_Developers_Guide.doc, doc/10_Sources_Explained.doc,
+	  doc/11_Consulted_Documentation.doc, doc/12_Licensing.doc,
+	  doc/13_Reporting_Issues_Problems.doc, doc/Makefile.am,
+	  doc/Makefile.in, doc/doxygen.cfg, src/Makefile.am,
+	  src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h, src/common.h,
+	  src/conference/sccp_conference10.c, src/config.h.in,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_appfunctions.c,
+	  src/sccp_appfunctions.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_cli_table.h,
+	  src/sccp_conference.c, src/sccp_conference.h, src/sccp_config.c,
+	  src/sccp_config.h, src/sccp_config_entries.h, src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_dllists.h, src/sccp_event.c,
+	  src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_lock.c,
+	  src/sccp_lock.h, src/sccp_management.c, src/sccp_management.h,
+	  src/sccp_mwi.c, src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.c, src/sccp_protocol.h, src/sccp_refcount.c,
+	  src/sccp_refcount.h, src/sccp_rtp.c, src/sccp_rtp.h,
+	  src/sccp_socket.c, src/sccp_socket.h, src/sccp_softkeys.c,
+	  src/sccp_softkeys.h, src/sccp_threadpool.c,
+	  src/sccp_threadpool.h, src/sccp_utils.c, src/sccp_utils.h: Update
+	  Sources from original repository
+
 2012-10-31  ddegroot
 
 	* [r3791] src/sccp_channel.h, src/sccp_indicate.c, src/sccp_pbx.c:
