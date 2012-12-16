@@ -781,28 +781,39 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 {
 	sccp_moo_t *r = NULL;
 
-	int dummy_len, msgSize, hdr_len, padding;
+// 	int dummy_len, msgSize, hdr_len, padding;
+// 
+// 	dummy_len = strlen(xmlData);
+// 	hdr_len = 40 - 1;
+// 	padding = ((dummy_len + hdr_len) % 4);
+// 	padding = (padding > 0) ? 4 - padding : 0;
+// 	msgSize = hdr_len + dummy_len + padding;
+	
+	
+	int msg_len = strlen(xmlData);
+	int hdr_len = sizeof(r->msg.UserToDeviceDataVersion1Message);
+	int padding = ((msg_len + hdr_len) % 4);
 
-	dummy_len = strlen(xmlData);
-	hdr_len = 40 - 1;
-	padding = ((dummy_len + hdr_len) % 4);
 	padding = (padding > 0) ? 4 - padding : 0;
-	msgSize = hdr_len + dummy_len + padding;
-
-	r = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
+// 	r = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len + padding);
+	
+	
+	r = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
 	r->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
 	r->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(1);
-	r->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
+	r->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(0x0002);
 	r->msg.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
-	r->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(dummy_len);
+	r->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
 
-	if (dummy_len) {
-		char buffer[dummy_len + 2];
+	if (msg_len) {
+// 		char buffer[dummy_len + 2];
 
-		memset(&buffer[0], 0, sizeof(buffer));
-		memcpy(&buffer[0], xmlData, dummy_len);
+// 		memset(&buffer[0], 0, sizeof(buffer));
+// 		memcpy(&buffer[0], xmlData, dummy_len);
 
-		memcpy(&r->msg.UserToDeviceDataVersion1Message.data, &buffer[0], sizeof(buffer));
+		memcpy(&r->msg.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
+		
+		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? (int)r->length : (int)SCCP_MAX_PACKET);
 		sccp_dev_send(device, r);
 	}
 }
