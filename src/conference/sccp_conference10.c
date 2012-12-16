@@ -175,14 +175,13 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                 	
                 	// We need to look up the bridgepeer and check if it is an SCCP Channel, before retaining it in participant->channel
                 	// This makes it necessary to always check if participant->channel != NULL before using it.
-                	participant->channel = sccp_channel_retain(get_sccp_channel_from_pbx_channel(astChannel));
+                	if ((participant->channel = get_sccp_channel_from_pbx_channel(astChannel))){
+                        	participant->channel = sccp_channel_retain(participant->channel);
+                	}
                 }
                 if (!(PBX(alloc_conferenceTempPBXChannel) (astChannel, &participant->conferenceBridgePeer, conference->id, participant->id))) {
                         pbx_log(LOG_ERROR, "SCCP Conference: creating conferenceBridgePeer failed.\n");
-                        participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
-                        participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
-                        participant = sccp_participant_release(participant);
-                        return;
+                        goto HANDLE_ERROR;
                 }
 
                 pbx_channel_lock(astChannel);
@@ -192,10 +191,7 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                         PBX(requestHangup) (participant->conferenceBridgePeer);
                         participant->conferenceBridgePeer = NULL;
                         pbx_channel_unlock(astChannel);
-                        participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
-                        participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
-                        participant = sccp_participant_release(participant);
-                        return;
+                        goto HANDLE_ERROR;
                 } else {
                         pbx_log(LOG_NOTICE, "SCCP Conference: masquerading conferenceBridgePeer %d (%p) into bridge.\n", participant->id, participant);
                         pbx_channel_lock(participant->conferenceBridgePeer);
@@ -253,12 +249,13 @@ void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_chann
                                       );
                 }
 #	        endif
-        } else {
-                participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
-                participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
-                participant = sccp_participant_release(participant);
+                goto EXIT;
         }
-	/** do not retain participant, because we added it to conferencelist */
+HANDLE_ERROR:
+        participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
+        participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
+        participant = sccp_participant_release(participant);
+EXIT:
 	return;
 }
 
@@ -435,40 +432,6 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference = sccp_conference_release(conference);
 }
 
-#if ASTERISK_VERSION_GROUP > 108
-// Ugly replacement for pbx_request. Should me move to pbx_impl/ast/astTrunk.c
-static int alloc_playback_chan(sccp_conference_t *conference)
-{
-        int cause;
-        struct ast_format_cap *cap;
-        struct ast_format tmpfmt;
- 
-        if (conference->playback_channel) {
-                return 1;
-        }
-        if (!(cap = ast_format_cap_alloc_nolock())) {
-                return 0;
-        }
-        ast_format_cap_add(cap, ast_format_set(&tmpfmt, AST_FORMAT_SLINEAR, 0));
-        if (!(conference->playback_channel = ast_request("Bridge", cap, NULL, "", &cause))) {
-                cap = ast_format_cap_destroy(cap);
-                return 0;
-        }
-        cap = ast_format_cap_destroy(cap);
-
-        pbx_channel_set_bridge(conference->playback_channel,conference->bridge);
-
-        if (ast_call(conference->playback_channel, "", 0)) {
-                ast_hangup(conference->playback_channel);
-                conference->playback_channel = NULL;
-                return 0;
-        }
-
-        sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "Created a playback channel to conference '%d'\n", conference->id);
-        return 1;
-}
-#endif
-
 int playback_sound_helper(sccp_conference_t *conference, const char *filename, int say_number) {
         PBX_CHANNEL_TYPE *underlying_channel;
         pbx_mutex_lock(&conference->playback_lock);
@@ -479,16 +442,7 @@ int playback_sound_helper(sccp_conference_t *conference, const char *filename, i
 	}
 
         if (!(conference->playback_channel)) {
-
-#if ASTERISK_VERSION_GROUP < 108
-                int cause;
-                if (!(conference->playback_channel = pbx_request("Bridge", AST_FORMAT_SLINEAR, "", &cause))) {
-#elif ASTERISK_VERSION_GROUP < 110
-                int cause;
-                if (!(conference->playback_channel = pbx_request("Bridge", AST_FORMAT_SLINEAR, NULL, "", &cause))) {
-#else
-		if (!(alloc_playback_chan(conference))) {
-#endif
+                if (!(conference->playback_channel = PBX(request_foreign_channel)("Bridge", AST_FORMAT_SLINEAR, NULL, ""))) {
                         pbx_mutex_unlock(&conference->playback_lock);
                         return 0;
                 }

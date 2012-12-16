@@ -2269,6 +2269,17 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 	return 0;
 }
 
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request_foreign_channel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data) 
+{
+	PBX_CHANNEL_TYPE *chan;
+	int cause;
+	if (!(chan = ast_request(type, format, data, &cause))) {
+		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d", cause);
+		return NULL;
+	}
+	return chan;
+}
+
 /*!
  * \brief Queue a control frame
  * \param pbx_channel PBX Channel
@@ -2483,6 +2494,8 @@ sccp_pbx_cb sccp_pbx = {
 	moh_stop:			sccp_asterisk_moh_stop,
 	queue_control:			sccp_asterisk_queue_control,
 	queue_control_data:		sccp_asterisk_queue_control_data,
+
+	request_foreign_channel			sccp_wrapper_asterisk16_request_foreign_channel,
 	/* *INDENT-ON* */
 };
 
@@ -2592,6 +2605,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.moh_stop			= sccp_asterisk_moh_stop,
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
+	
+	.request_foreign_channel	= sccp_wrapper_asterisk16_request_foreign_channel,
 	/* *INDENT-ON* */
 };
 #endif

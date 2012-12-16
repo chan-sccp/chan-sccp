@@ -134,6 +134,9 @@ struct sccp_pbx_cb {
 	void(*const moh_stop) (const PBX_CHANNEL_TYPE * pbx_channel);
 	int(*const queue_control) (const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 	int(*const queue_control_data) (const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
+
+	/* conference */
+	PBX_CHANNEL_TYPE *(*const request_foreign_channel) (const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
 	
 	/* *INDENT-ON* */
 };
