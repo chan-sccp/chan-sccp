@@ -1852,6 +1852,7 @@ static void sccp_wrapper_asterisk111_updateConnectedLine(const sccp_channel_t * 
 	struct ast_set_party_connected_line update_connected;
 
 	memset(&update_connected, 0, sizeof(update_connected));
+	ast_party_connected_line_init(&connected);
 
 	if (number) {
 		update_connected.id.number = 1;
@@ -1866,10 +1867,12 @@ static void sccp_wrapper_asterisk111_updateConnectedLine(const sccp_channel_t * 
 		connected.id.name.str = (char *)name;
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
-	connected.id.tag = NULL;
-	connected.source = reason;
-
-	ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
+	if (update_connected.id.number || update_connected.id.name) {
+		ast_set_party_id_all(&update_connected.priv);
+//		connected.id.tag = NULL;
+		connected.source = reason;
+		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
+	}
 }
 
 static int sccp_wrapper_asterisk111_sched_add(int when, sccp_sched_cb callback, const void *data)
@@ -2222,6 +2225,26 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 	return 0;
 }
 
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request_foreign_channel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data) 
+{
+	PBX_CHANNEL_TYPE *chan;
+        int cause;
+        struct ast_format_cap *cap;
+        struct ast_format tmpfmt;
+ 
+        if (!(cap = ast_format_cap_alloc_nolock())) {
+                return 0;
+        }
+        ast_format_cap_add(cap, ast_format_set(&tmpfmt, format, 0));
+        if (!(chan = ast_request(type, cap, NULL, "", &cause))) {
+		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d\n", cause);
+                cap = ast_format_cap_destroy(cap);
+                return NULL;
+        }
+        cap = ast_format_cap_destroy(cap);
+        return chan;
+}
+
 /*!
  * \brief Queue a control frame
  * \param pbx_channel PBX Channel
@@ -2442,6 +2465,8 @@ sccp_pbx_cb sccp_pbx = {
 	moh_stop:			sccp_asterisk_moh_stop,
 	queue_control:			sccp_asterisk_queue_control,
 	queue_control_data:		sccp_asterisk_queue_control_data,
+
+	request_foreign_channel		sccp_wrapper_asterisk111_request_foreign_channel,
 	/* *INDENT-ON* */	
 };
 
@@ -2548,6 +2573,9 @@ struct sccp_pbx_cb sccp_pbx = {
 	.moh_stop			= sccp_asterisk_moh_stop,
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
+
+	.request_foreign_channel	= sccp_wrapper_asterisk111_request_foreign_channel,
+	
 	/* *INDENT-ON* */
 };
 #endif

@@ -304,6 +304,7 @@ const char *pbx_inet_ntoa(struct in_addr ia);
 //#    define ast_format_type struct ast_format
 //#else
 #    define ast_format_type int
+#    define pbx_format_type int
 //#endif
 
 skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt);
