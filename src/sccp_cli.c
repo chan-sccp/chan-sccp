@@ -1187,10 +1187,8 @@ struct refcount_test {
 static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
 {
 	sccp_log(0) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int)pthread_self());
-	sccp_free(object[obj->id]);
-	object[obj->id] = NULL;
-	free(obj);
-	obj = NULL;
+	sccp_free(object[obj->id]->test);
+	object[obj->id]->test = NULL;
 };
 
 static void *sccp_cli_refcount_test_thread(void *data)
@@ -2082,7 +2080,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	} else if (argc != 3)
 		return RESULT_SHOWUSAGE;
 
-	pbx_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
+	pbx_cli(fd, VERBOSE_PREFIX_2 "%s: %s request sent to the device\n", argv[2], argv[1]);
 
 	d = sccp_device_find_byid(argv[2], FALSE);
 
@@ -2448,8 +2446,12 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 		pbx_log(LOG_WARNING, "%s: We need to have received a token request before we can acknowledge it\n", dev);
 		CLI_AMI_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
-		sccp_session_tokenAck(d->session);
+		if (d->session) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
+			sccp_session_tokenAck(d->session);
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Phone not connected to this server (no valid session)\n", dev);
+		}
 	}
 	sccp_device_release(d);
 	if (s)
