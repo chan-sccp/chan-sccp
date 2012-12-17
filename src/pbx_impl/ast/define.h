@@ -101,6 +101,8 @@
 #    define pbx_cause ast_cause
 #    define pbx_cdr_amaflags2int ast_cdr_amaflags2int
 #    define pbx_cdr_flags2str ast_cdr_flags2str
+#    define pbx_cdr_start ast_cdr_start
+#    define pbx_cdr_update ast_cdr_update
 #    define pbx_channel_defer_dtmf ast_channel_defer_dtmf
 #    define pbx_channel_get_by_name ast_channel_get_by_name
 #    define pbx_channel_iterator_all_new ast_channel_iterator_all_new
@@ -295,5 +297,5 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_bridge(_a) (_a)->bridge
 #    define pbx_channel_set_bridge(_a,_b) (_a)->bridge = _b
 #    define pbx_channel_language(_a) (_a)->language
-
+#    define pbx_channel_cdr(_a) (_a)->cdr
 #endif
