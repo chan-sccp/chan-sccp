@@ -61,8 +61,10 @@ extern "C" {
 /* prototype definition */
 
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
-	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
-	void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
+//	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
+//	void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
+	void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
+	void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_module_start(void);

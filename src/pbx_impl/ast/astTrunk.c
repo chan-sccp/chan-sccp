@@ -755,12 +755,20 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 
 boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id)
 {
-	(*pbxDstChannel) = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "SCCPCONF/%03X-%03X", conf_id, part_id);
-	if (*pbxDstChannel == NULL)
+	if (!pbxSrcChannel) {
+		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
+	}
 		
-	ast_set_read_format(*pbxDstChannel, ast_channel_readformat(pbxSrcChannel));
-	ast_set_write_format(*pbxDstChannel, ast_channel_writeformat(pbxSrcChannel));
+	(*pbxDstChannel) = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "SCCPCONF/%03X-%03X", conf_id, part_id);
+	if ((*pbxDstChannel) == NULL) {
+		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) create pbx channel failed\n");
+		return FALSE;
+	}
+		
+	ast_set_read_format((*pbxDstChannel), ast_channel_readformat(pbxSrcChannel));
+	ast_set_write_format((*pbxDstChannel), ast_channel_writeformat(pbxSrcChannel));
+	ast_channel_tech_pvt_set((*pbxDstChannel), pbxSrcChannel);
 	return TRUE;
 }
 
@@ -775,15 +783,11 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
-		c->owner = NULL;
-		ast_channel_tech_pvt_set(ast_channel, NULL);
-		if (c->rtp.audio.rtp) {
-			sccp_rtp_stop(c);
-			sccp_rtp_destroy(c);
+		if (0 == res) {
+			sccp_channel_release(c);
 		}
-		sccp_channel_release(c);
 	}
-//      ast_channel = ast_channel_unref(ast_channel);
+	ast_channel_tech_pvt_set(ast_channel, NULL);
 	ast_module_unref(ast_module_info->self);
 	return res;
 }
