@@ -37,7 +37,6 @@ struct sccp_pbx_cb {
 	/* *INDENT-OFF* */
 	/* channels */
 	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
-	boolean_t(*const alloc_conferenceTempPBXChannel) (PBX_CHANNEL_TYPE * channel, PBX_CHANNEL_TYPE ** pbx_channel, uint32_t conf_id, uint32_t part_id);
 	int (*const set_callstate) (const sccp_channel_t * pbx_channel, int state);
 	boolean_t(*const checkhangup) (const sccp_channel_t * channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
@@ -136,7 +135,9 @@ struct sccp_pbx_cb {
 	int(*const queue_control_data) (const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 
 	/* conference */
-	PBX_CHANNEL_TYPE *(*const request_foreign_channel) (const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
+	boolean_t(*const allocTempPBXChannel) (PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);
+	boolean_t(*const masqueradeHelper) (PBX_CHANNEL_TYPE *pbxChannel, PBX_CHANNEL_TYPE *pbxTmpchannel);
+	PBX_CHANNEL_TYPE *(*const requestForeignChannel) (const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
 	
 	/* *INDENT-ON* */
 };

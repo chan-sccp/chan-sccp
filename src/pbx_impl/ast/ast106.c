@@ -53,7 +53,6 @@ static int sccp_wrapper_asterisk16_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
-boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
@@ -699,13 +698,43 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_
 	return TRUE;
 }
 
-boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id)
+static boolean_t sccp_wrapper_asterisk16_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PBX_CHANNEL_TYPE * pbxTmpChannel)
+{
+	pbx_moh_stop(pbxChannel);
+	const char *context;
+	const char *exten;
+	int priority;
+
+	pbx_moh_stop(pbxChannel);
+	ast_channel_lock(pbxChannel);
+	context = ast_strdupa(pbxChannel->context);
+	exten = ast_strdupa(pbxChannel->exten);
+	priority = pbxChannel->priority;
+	pbx_channel_unlock(pbxChannel);
+
+	/* in older versions we need explicit locking, around the masqueration */
+	pbx_channel_lock(pbxChannel);
+	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
+		return FALSE;
+	}
+	pbx_channel_lock(pbxTmpChannel);
+	pbx_do_masquerade(pbxTmpChannel);
+	pbx_channel_unlock(pbxTmpChannel);
+	pbx_channel_set_hangupcause(pbxChannel, AST_CAUSE_NORMAL_UNSPECIFIED);
+	pbx_channel_unlock(pbxChannel);
+
+	/* when returning from bridge, the channel will continue at the next priority */
+	ast_explicit_goto(pbxTmpChannel, context, exten, priority + 1);
+	return TRUE;
+}
+
+static boolean_t sccp_wrapper_asterisk16_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel)
 {
 	if (!pbxSrcChannel) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
 	}
-	(*pbxDstChannel) = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->amaflags, "SCCPCONF/%03X-%03X", conf_id, part_id);
+	(*pbxDstChannel) = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->amaflags, "TMP/%s", pbxSrcChannel->name);
 	if ((*pbxDstChannel) == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) create pbx channel failed\n");
 		return FALSE;
@@ -715,6 +744,17 @@ boolean_t sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYP
 	(*pbxDstChannel)->readformat = pbxSrcChannel->readformat;
 	pbx_builtin_setvar_helper(*pbxDstChannel, "__" SCCP_AST_LINKEDID_HELPER, pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
 	return TRUE;
+}
+
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_requestForeignChannel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data) 
+{
+	PBX_CHANNEL_TYPE *chan;
+	int cause;
+	if (!(chan = ast_request(type, format, data, &cause))) {
+		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d", cause);
+		return NULL;
+	}
+	return chan;
 }
 
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
@@ -2275,17 +2315,6 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 	return 0;
 }
 
-static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request_foreign_channel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data) 
-{
-	PBX_CHANNEL_TYPE *chan;
-	int cause;
-	if (!(chan = ast_request(type, format, data, &cause))) {
-		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d", cause);
-		return NULL;
-	}
-	return chan;
-}
-
 /*!
  * \brief Queue a control frame
  * \param pbx_channel PBX Channel
@@ -2402,7 +2431,6 @@ static const struct ast_msg_tech sccp_msg_tech = {
 sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */
 	alloc_pbxChannel:		sccp_wrapper_asterisk16_allocPBXChannel,
-	alloc_conferenceTempPBXChannel:	sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel,
 	set_callstate:			sccp_wrapper_asterisk16_setCallState,
 	checkhangup:			sccp_wrapper_asterisk16_checkHangup,
 	hangup:				NULL,
@@ -2501,7 +2529,9 @@ sccp_pbx_cb sccp_pbx = {
 	queue_control:			sccp_asterisk_queue_control,
 	queue_control_data:		sccp_asterisk_queue_control_data,
 
-	request_foreign_channel			sccp_wrapper_asterisk16_request_foreign_channel,
+	allocTempPBXChannel:		sccp_wrapper_asterisk16_allocTempPBXChannel,
+	masqueradeHelper:		sccp_wrapper_asterisk16_masqueradeHelper,
+	requestForeignChannel:		sccp_wrapper_asterisk16_requestForeignChannel,
 	/* *INDENT-ON* */
 };
 
@@ -2516,7 +2546,6 @@ struct sccp_pbx_cb sccp_pbx = {
   
         /* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk16_allocPBXChannel,
-	.alloc_conferenceTempPBXChannel	= sccp_wrapper_asterisk16_alloc_conferenceTempPBXChannel,
 	
 	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
@@ -2612,7 +2641,9 @@ struct sccp_pbx_cb sccp_pbx = {
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
 	
-	.request_foreign_channel	= sccp_wrapper_asterisk16_request_foreign_channel,
+	.allocTempPBXChannel		= sccp_wrapper_asterisk16_allocTempPBXChannel,
+	.masqueradeHelper		= sccp_wrapper_asterisk16_masqueradeHelper,
+	.requestForeignChannel		= sccp_wrapper_asterisk16_requestForeignChannel,
 	/* *INDENT-ON* */
 };
 #endif
