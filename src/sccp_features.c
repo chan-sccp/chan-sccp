@@ -743,76 +743,81 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		return;
 	}
 
-	/* if we have selected channels, add this to conference */
-	SCCP_LIST_LOCK(&d->selectedChannels);
-	SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
-		selectedFound = TRUE;
+	if (d->conference) {
+		/* if we have selected channels, add this to conference */
+		SCCP_LIST_LOCK(&d->selectedChannels);
+		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
+			selectedFound = TRUE;
 
-		if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
-			sccp_conference_addParticipant(d->conference, selectedChannel->channel);
+			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
+				if (channel == c) {
+					sccp_conference_splitIntoModeratorAndParticipant(d->conference, channel);
+				} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+					sccp_conference_splitOffParticipant(d->conference, channel);
+				}
+			}
 		}
-	}
-	SCCP_LIST_UNLOCK(&d->selectedChannels);
+		SCCP_LIST_UNLOCK(&d->selectedChannels);
 
-	/* If no calls were selected, add all calls to the conference, across all lines. */
+		/* If no calls were selected, add all calls to the conference, across all lines. */
 
-	if (FALSE == selectedFound) {
+		if (FALSE == selectedFound) {
 #    if 1
-		// all channels on this phone
-		sccp_line_t *line = NULL;
-		uint8_t i = 0;
+			// all channels on this phone
+			sccp_line_t *line = NULL;
+			uint8_t i = 0;
 
-		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
-				if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
-					SCCP_LIST_LOCK(&line->channels);
-					SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-#if ASTERISK_VERSION_GROUP > 111
-						pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
-#else						
-						pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
-#endif						
-						if (channel == c) {
-							sccp_conference_addParticipant(d->conference, channel);
-						} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-							sccp_conference_addParticipant(d->conference, channel);
-							if (channel != d->active_channel) {
-								pbx_log(LOG_NOTICE, "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
-								// drop from display immediatly
-								int instance = sccp_device_find_index_for_line(d, l->name);
-								sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+				if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
+					if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
+						SCCP_LIST_LOCK(&line->channels);
+						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+							pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
+							if (channel == c) {
+								sccp_conference_splitIntoModeratorAndParticipant(d->conference, channel);
+							} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+								sccp_conference_splitOffParticipant(d->conference, channel);
+								if (channel != d->active_channel) {
+									pbx_log(LOG_NOTICE, "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
+									// drop from display immediatly
+									int instance = sccp_device_find_index_for_line(d, l->name);
+									sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+								}
 							}
 						}
+						SCCP_LIST_UNLOCK(&line->channels);
+						line = sccp_line_release(line);
 					}
-					SCCP_LIST_UNLOCK(&line->channels);
-					line = sccp_line_release(line);
 				}
-			}
 
-		}
+			}
 #    else
-		// only channels on this line
-		if (d->currentLine == l) {
-			SCCP_LIST_LOCK(&l->channels);
-			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-				pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), CS_AST_BRIDGED_CHANNEL(channel->owner)->name, channelstate2str(channel->state));
-				if (channel == c) {
-					sccp_conference_addParticipant(d->conference, channel);
-				} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-					sccp_conference_addParticipant(d->conference, channel);
-					if (channel != d->active_channel) {
-						pbx_log(LOG_NOTICE, "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
-						// drop from display immediatly
-						int instance = sccp_device_find_index_for_line(d, l->name);
-						sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			// only channels on this line
+			if (d->currentLine == l) {
+				SCCP_LIST_LOCK(&l->channels);
+				SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+					pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
+					if (channel == c) {
+						sccp_conference_addParticipant(d->conference, channel);
+					} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+						sccp_conference_addParticipant(d->conference, channel);
+						if (channel != d->active_channel) {
+							pbx_log(LOG_NOTICE, "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
+							// drop from display immediatly
+							int instance = sccp_device_find_index_for_line(d, l->name);
+							sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+						}
 					}
 				}
+				SCCP_LIST_UNLOCK(&l->channels);
 			}
-			SCCP_LIST_UNLOCK(&l->channels);
-		}
 #    endif
+		}
+//		sccp_conference_addModerator(d->conference, c);
+	} else {
+		sccp_dev_displayprompt(d, lineInstance, c->callid, "Error creating conf", 5);
+		pbx_log(LOG_NOTICE, "%s: conference could not be created\n", DEV_ID_LOG(d));
 	}
-	sccp_conference_addModerator(d->conference, c);
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);

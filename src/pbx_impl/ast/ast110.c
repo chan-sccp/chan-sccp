@@ -772,12 +772,19 @@ boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX
 
 boolean_t sccp_wrapper_asterisk110_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id)
 {
-	*pbxDstChannel = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->linkedid, pbxSrcChannel->amaflags, "SCCPCONF/%03X-%03X", conf_id, part_id);
-	if (*pbxDstChannel == NULL)
+	if (!pbxSrcChannel) {
+		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
+	}
+	(*pbxDstChannel) = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->linkedid, pbxSrcChannel->amaflags, "SCCPCONF/%03X-%03X", conf_id, part_id);
+	if ((*pbxDstChannel) == NULL) {
+		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) create pbx channel failed\n");
+		return FALSE;
+	}
 		
 	(*pbxDstChannel)->writeformat = pbxSrcChannel->writeformat;
 	(*pbxDstChannel)->readformat = pbxSrcChannel->readformat;
+	(*pbxDstChannel)->tech_pvt = pbxSrcChannel->tech_pvt;
 	return TRUE;
 }
 
@@ -792,7 +799,9 @@ int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
-		sccp_channel_release(c);
+		if (0 == res) {
+			sccp_channel_release(c);
+		}
 	}
 	ast_channel->tech_pvt = NULL;
 	ast_channel = ast_channel_unref(ast_channel);
