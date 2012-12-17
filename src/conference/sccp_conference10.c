@@ -169,63 +169,23 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 	return participant;
 }
 
-static int masquerade_helper(struct ast_channel *chan, struct ast_channel *tmpchan)
-{
-	pbx_moh_stop(chan);
-#    if ASTERISK_VERSION_GROUP > 110
-	/* Masquerade setup and execution must be done without any channel locks held */
-	if (pbx_channel_masquerade(tmpchan, chan)) {
-		return 0;
-	}
-	pbx_do_masquerade(tmpchan);
-
-	/* when returning from bridge, the channel will continue at the next priority */
-	ast_explicit_goto(tmpchan, pbx_channel_context(tmpchan), pbx_channel_exten(tmpchan), pbx_channel_priority(tmpchan) + 1);
-#    else
-	const char *context;
-	const char *exten;
-	int priority;
-
-	pbx_moh_stop(chan);
-	ast_channel_lock_both(chan, tmpchan);
-	context = ast_strdupa(chan->context);
-	exten = ast_strdupa(chan->exten);
-	priority = chan->priority;
-	pbx_channel_unlock(chan);
-	pbx_channel_unlock(tmpchan);
-
-	/* in older versions we need explicit locking, around the masqueration */
-	pbx_channel_lock(chan);
-	if (pbx_channel_masquerade(tmpchan, chan)) {
-		return 0;
-	}
-	pbx_channel_lock(tmpchan);
-	pbx_do_masquerade(tmpchan);
-	pbx_channel_unlock(tmpchan);
-	pbx_channel_set_hangupcause(chan, AST_CAUSE_NORMAL_UNSPECIFIED);
-	pbx_channel_unlock(chan);
-
-	/* when returning from bridge, the channel will continue at the next priority */
-	ast_explicit_goto(tmpchan, context, exten, priority + 1);
-#    endif
-	return 1;
-}
-
 /*!
  * \brief Create a new channel and masquerade the bridge peer into the conference
  */
 static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_channel, sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	if (participant) {
-		if (!(PBX(alloc_conferenceTempPBXChannel) (participant_ast_channel, &participant->conferenceBridgePeer, conference->id, participant->id))) {
+		if (!(PBX(allocTempPBXChannel) (participant_ast_channel, &participant->conferenceBridgePeer))) {
 			pbx_log(LOG_ERROR, "SCCP Conference: creating conferenceBridgePeer failed.\n");
 			return 0;
 		}
 
-		if (!masquerade_helper(participant_ast_channel, participant->conferenceBridgePeer)) {
+		if (!PBX(masqueradeHelper)(participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
 			PBX(requestHangup) (participant->conferenceBridgePeer);
+#if ASTERISK_VERSION_GROUP > 106
 			participant_ast_channel = ast_channel_unref(participant_ast_channel);
+#endif			
 			return 0;
 		}
 
@@ -529,7 +489,7 @@ int playback_sound_helper(sccp_conference_t * conference, const char *filename, 
 	}
 
 	if (!(conference->playback_channel)) {
-		if (!(conference->playback_channel = PBX(request_foreign_channel) ("Bridge", AST_FORMAT_SLINEAR, NULL, ""))) {
+		if (!(conference->playback_channel = PBX(requestForeignChannel) ("Bridge", AST_FORMAT_SLINEAR, NULL, ""))) {
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
 		}

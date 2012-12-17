@@ -46,7 +46,6 @@ static int sccp_wrapper_asterisk111_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONS
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
-boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 
@@ -753,14 +752,28 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	return TRUE;
 }
 
-boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel, uint32_t conf_id, uint32_t part_id)
+static boolean_t sccp_wrapper_asterisk111_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PBX_CHANNEL_TYPE * pbxTmpChannel)
+{
+	pbx_moh_stop(pbxChannel);
+	// Masquerade setup and execution must be done without any channel locks held 
+	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
+		return FALSE;
+	}
+	pbx_do_masquerade(pbxTmpChannel);
+
+	// when returning from bridge, the channel will continue at the next priority
+	ast_explicit_goto(pbxTmpChannel, pbx_channel_context(pbxTmpChannel), pbx_channel_exten(pbxTmpChannel), pbx_channel_priority(pbxTmpChannel) + 1);
+	return TRUE;
+}
+
+static boolean_t sccp_wrapper_asterisk111_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel)
 {
 	if (!pbxSrcChannel) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
 	}
 		
-	(*pbxDstChannel) = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "SCCPCONF/%03X-%03X", conf_id, part_id);
+	(*pbxDstChannel) = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "TMP/%s", ast_channel_name(pbxSrcChannel));
 	if ((*pbxDstChannel) == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) create pbx channel failed\n");
 		return FALSE;
@@ -775,6 +788,26 @@ boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TY
 	ast_channel_tech_pvt_set((*pbxDstChannel), pbxSrcChannel);
 	ast_channel_unlock(pbxSrcChannel);
 	return TRUE;
+}
+
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_requestForeignChannel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data) 
+{
+	PBX_CHANNEL_TYPE *chan;
+        int cause;
+        struct ast_format_cap *cap;
+        struct ast_format tmpfmt;
+ 
+        if (!(cap = ast_format_cap_alloc_nolock())) {
+                return 0;
+        }
+        ast_format_cap_add(cap, ast_format_set(&tmpfmt, format, 0));
+        if (!(chan = ast_request(type, cap, NULL, "", &cause))) {
+		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d\n", cause);
+                cap = ast_format_cap_destroy(cap);
+                return NULL;
+        }
+        cap = ast_format_cap_destroy(cap);
+        return chan;
 }
 
 int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
@@ -2234,25 +2267,6 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 	return 0;
 }
 
-static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request_foreign_channel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data) 
-{
-	PBX_CHANNEL_TYPE *chan;
-        int cause;
-        struct ast_format_cap *cap;
-        struct ast_format tmpfmt;
- 
-        if (!(cap = ast_format_cap_alloc_nolock())) {
-                return 0;
-        }
-        ast_format_cap_add(cap, ast_format_set(&tmpfmt, format, 0));
-        if (!(chan = ast_request(type, cap, NULL, "", &cause))) {
-		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d\n", cause);
-                cap = ast_format_cap_destroy(cap);
-                return NULL;
-        }
-        cap = ast_format_cap_destroy(cap);
-        return chan;
-}
 
 /*!
  * \brief Queue a control frame
@@ -2378,7 +2392,6 @@ sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */	
 
 	alloc_pbxChannel:		sccp_wrapper_asterisk111_allocPBXChannel,
-	alloc_conferenceTempPBXChannel:	sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel,
 	set_callstate:			sccp_wrapper_asterisk111_setCallState,
 	checkhangup:			sccp_wrapper_asterisk111_checkHangup,
 	hangup:				NULL,
@@ -2475,7 +2488,9 @@ sccp_pbx_cb sccp_pbx = {
 	queue_control:			sccp_asterisk_queue_control,
 	queue_control_data:		sccp_asterisk_queue_control_data,
 
-	request_foreign_channel		sccp_wrapper_asterisk111_request_foreign_channel,
+	allocTempPBXChannel:		sccp_wrapper_asterisk111_allocTempPBXChannel,
+	masqueradeHelper:		sccp_wrapper_asterisk111_masqueradeHelper,
+	requestForeignChannel:		sccp_wrapper_asterisk111_requestForeignChannel,
 	/* *INDENT-ON* */	
 };
 
@@ -2490,7 +2505,6 @@ struct sccp_pbx_cb sccp_pbx = {
 	 
 	/* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk111_allocPBXChannel,
-	.alloc_conferenceTempPBXChannel	= sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel,
 	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
@@ -2583,8 +2597,9 @@ struct sccp_pbx_cb sccp_pbx = {
 	.queue_control			= sccp_asterisk_queue_control,
 	.queue_control_data		= sccp_asterisk_queue_control_data,
 
-	.request_foreign_channel	= sccp_wrapper_asterisk111_request_foreign_channel,
-	
+	.allocTempPBXChannel		= sccp_wrapper_asterisk111_allocTempPBXChannel,
+	.masqueradeHelper		= sccp_wrapper_asterisk111_masqueradeHelper,
+	.requestForeignChannel		= sccp_wrapper_asterisk111_requestForeignChannel,
 	/* *INDENT-ON* */
 };
 #endif
