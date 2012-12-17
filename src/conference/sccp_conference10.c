@@ -87,14 +87,14 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChannel)
 {
 	sccp_conference_t *conference = NULL;
-	char conferenceIdentifier[CHANNEL_DESIGNATOR_SIZE];
+	char conferenceIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 	int conferenceID = ++lastConferenceID;
 	uint32_t bridgeCapabilities;
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_create called.\n");
 
 	/** create conference */
-	snprintf(conferenceIdentifier, CHANNEL_DESIGNATOR_SIZE, "SCCP/conference/%d", conferenceID);
+	snprintf(conferenceIdentifier, REFCOUNT_INDENTIFIER_SIZE, "SCCP/conf/%d", conferenceID);
 	conference = (sccp_conference_t *) sccp_refcount_object_alloc(sizeof(sccp_conference_t), SCCP_REF_CONFERENCE, conferenceIdentifier, __sccp_conference_destroy);
 	if (NULL == conference) {
 		pbx_log(LOG_ERROR, "SCCP: Conference: cannot alloc memory for new conference.\n");
@@ -143,16 +143,19 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_conference_t * conference, boolean_t moderator)
 {
 	sccp_conference_participant_t *participant = NULL;
+	int participantID = ++lastParticipantID;
+	char participantIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 
 	if (!conference) {
 		pbx_log(LOG_ERROR, "SCCP Conference: no conference / participantChannel provided.\n");
 		return NULL;
 	}
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_addParticipant called.\n");
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "Conference: sccp_conference_createParticipant called.\n");
 
 	/** create participant(moderator) */
-	participant = (sccp_conference_participant_t *) sccp_refcount_object_alloc(sizeof(sccp_conference_participant_t), SCCP_REF_PARTICIPANT, "sccp::participant", __sccp_conference_participant_destroy);
+	snprintf(participantIdentifier, REFCOUNT_INDENTIFIER_SIZE, "SCCP/conf/%d/part/%d", conference->id, participantID);
+	participant = (sccp_conference_participant_t *) sccp_refcount_object_alloc(sizeof(sccp_conference_participant_t), SCCP_REF_PARTICIPANT, participantIdentifier, __sccp_conference_participant_destroy);
 
 	if (!participant) {
 		pbx_log(LOG_ERROR, "SCCP Conference: cannot alloc memory for new conference participant.\n");
@@ -161,7 +164,7 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 	}
 
 	pbx_bridge_features_init(&participant->features);
-	participant->id = ++lastParticipantID;
+	participant->id = participantID;
 	participant->conference = sccp_conference_retain(conference);
 	participant->conferenceBridgePeer = NULL;
 	participant->isModerator = moderator;
@@ -180,12 +183,12 @@ static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_
 			return 0;
 		}
 
-		if (!PBX(masqueradeHelper)(participant_ast_channel, participant->conferenceBridgePeer)) {
+		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCP: Conference: failed to masquerade channel.\n");
 			PBX(requestHangup) (participant->conferenceBridgePeer);
-#if ASTERISK_VERSION_GROUP > 106
+#    if ASTERISK_VERSION_GROUP > 106
 			participant_ast_channel = ast_channel_unref(participant_ast_channel);
-#endif			
+#    endif
 			return 0;
 		}
 
@@ -254,26 +257,26 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 	if (!conference->isLocked) {
 		sccp_conference_participant_t *participant = sccp_conference_createParticipant(conference, FALSE);
 
-		PBX_CHANNEL_TYPE *participant_ast_channel = NULL;
+		if (participant) {
+			PBX_CHANNEL_TYPE *participant_ast_channel = NULL;
 
-		participant_ast_channel = CS_AST_BRIDGED_CHANNEL(channel->owner);
+			participant_ast_channel = CS_AST_BRIDGED_CHANNEL(channel->owner);
 
-		// if peer is sccp then retain peer_sccp_channel
-		if ((participant->channel = get_sccp_channel_from_pbx_channel(participant_ast_channel))) {
-			participant->channel = sccp_channel_retain(participant->channel);
-		}
-		if (sccp_conference_masqueradeChannel(participant_ast_channel, conference, participant)) {
-			sccp_conference_addParticipant_toList(conference, participant);
-			if (participant->channel) {
-				// re-assign channel->owner to new bridged channel
-				participant->channel->owner = participant->conferenceBridgePeer;
-				sccp_conference_update_callInfo(participant);
+			// if peer is sccp then retain peer_sccp_channel
+			participant->channel = get_sccp_channel_from_pbx_channel(participant_ast_channel);
+			if (sccp_conference_masqueradeChannel(participant_ast_channel, conference, participant)) {
+				sccp_conference_addParticipant_toList(conference, participant);
+				if (participant->channel) {
+					// re-assign channel->owner to new bridged channel
+					participant->channel->owner = participant->conferenceBridgePeer;
+					sccp_conference_update_callInfo(participant);
+				}
+			} else {
+				// Masq Error
+				participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
+				participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
+				participant = sccp_participant_release(participant);
 			}
-		} else {
-			// Masq Error
-			participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
-			participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
-			participant = sccp_participant_release(participant);
 		}
 	} else {
 		pbx_stream_and_wait(channel->owner, "conf-locked", "");
@@ -286,12 +289,11 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	if (!conference->isLocked) {
-		sccp_conference_participant_t *participant = sccp_conference_createParticipant(conference, FALSE);
 		sccp_conference_participant_t *moderator = sccp_conference_createParticipant(conference, TRUE);
 
 		pbx_log(LOG_NOTICE, "SCCP: Adding moderator %s and participant %s to conference %d\n", pbx_channel_name(channel->owner), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), conference->id);
 
-		if (moderator && participant) {
+		if (moderator) {
 			// handle participant first (channel->owner->bridge side)
 			sccp_conference_splitOffParticipant(conference, channel);
 
@@ -301,9 +303,7 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 			moderator_ast_channel = channel->owner;
 
 			// if peer is sccp then retain peer_sccp_channel
-			if ((moderator->channel = get_sccp_channel_from_pbx_channel(moderator_ast_channel))) {
-				moderator->channel = sccp_channel_retain(moderator->channel);
-			}
+			moderator->channel = get_sccp_channel_from_pbx_channel(moderator_ast_channel);
 			if (sccp_conference_masqueradeChannel(moderator_ast_channel, conference, moderator)) {
 				sccp_conference_addParticipant_toList(conference, moderator);
 				if (moderator->channel) {
@@ -394,22 +394,25 @@ static void *sccp_conference_thread(void *data)
 	/** cast data to conference_participant */
 	participant = (sccp_conference_participant_t *) data;
 
-#    	 ifdef CS_MANAGER_EVENTS
-	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering pbx_bridge_join: %s as %d\n", pbx_channel_name(participant->conferenceBridgePeer), participant->id);
-	if (GLOB(callevents)) {
-		manager_event(EVENT_FLAG_CALL, "SCCPConfEnter", "ConfId: %d\r\nPartId: %d\r\nChannel: %s\r\nUniqueid: %s\r\n", participant->conference->id, participant->id, participant->channel ? PBX(getChannelName) (participant->channel) : "NULL", participant->channel ? PBX(getChannelUniqueID) (participant->channel) : "NULL");
-	}
-#    	 endif
+	if ((participant = sccp_participant_retain(participant))) {
+		pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: entering pbx_bridge_join: %s as %d\n", pbx_channel_name(participant->conferenceBridgePeer), participant->id);
+#    ifdef CS_MANAGER_EVENTS
+		if (GLOB(callevents)) {
+			manager_event(EVENT_FLAG_CALL, "SCCPConfEnter", "ConfId: %d\r\nPartId: %d\r\nChannel: %s\r\nUniqueid: %s\r\n", participant->conference->id, participant->id, participant->channel ? PBX(getChannelName) (participant->channel) : "NULL", participant->channel ? PBX(getChannelUniqueID) (participant->channel) : "NULL");
+		}
+#    endif
 
 #    if ASTERISK_VERSION_NUMBER < 11010
-	pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features);
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features);
 #    else
-	pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL);
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL);
 #    endif
-	pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s as %d\n", pbx_channel_name(participant->conferenceBridgePeer), participant->id);
+		pbx_log(LOG_NOTICE, "SCCP: Conference: Join thread: leaving pbx_bridge_join: %s as %d\n", pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 
-	sccp_conference_removeParticipant(participant->conference, participant);
-	participant->joinThread = AST_PTHREADT_NULL;
+		sccp_conference_removeParticipant(participant->conference, participant);
+		participant->joinThread = AST_PTHREADT_NULL;
+		participant = sccp_participant_release(participant);
+	}
 
 	return NULL;
 }
@@ -748,8 +751,8 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "xml-message:\n%s\n", xmlStr);
 
 	if ((device = sccp_channel_getDevice_retained(channel))) {
-	        device->protocol->sendUserToDeviceDataVersionMessage(device, appID, conference->id, callReference, transactionID, xmlStr, 2);
-                device = sccp_device_release(device);
+		device->protocol->sendUserToDeviceDataVersionMessage(device, appID, conference->id, callReference, transactionID, xmlStr, 2);
+		device = sccp_device_release(device);
 	}
 
  exit_function:
