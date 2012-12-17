@@ -282,6 +282,7 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_context(_a) (_a)->context
 #    define pbx_channel_nativeformats(_a) (_a)->nativeformats
 #    define pbx_channel_exten(_a) (_a)->exten
+#    define pbx_channel_priority(_a) (_a)->priority
 #    define pbx_channel_macroexten(_a) (_a)->macroexten
 #    define pbx_channel_macrocontext(_a) (_a)->macrocontext
 #    define pbx_channel_dialcontext(_a) (_a)->dialcontext

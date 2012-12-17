@@ -171,15 +171,8 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 
 static int masquerade_helper(struct ast_channel *chan, struct ast_channel *tmpchan)
 {
-#    if ASTERISK_VERSION_GROUP > 110
 	pbx_moh_stop(chan);
-	ast_channel_lock_both(chan, tmpchan);
-	ast_channel_context_set(tmpchan, ast_channel_context(chan));
-	ast_channel_exten_set(tmpchan, ast_channel_exten(chan));
-	ast_channel_priority_set(tmpchan, ast_channel_priority(chan));
-	pbx_channel_unlock(chan);
-	pbx_channel_unlock(tmpchan);
-
+#    if ASTERISK_VERSION_GROUP > 110
 	/* Masquerade setup and execution must be done without any channel locks held */
 	if (pbx_channel_masquerade(tmpchan, chan)) {
 		return 0;
@@ -187,7 +180,7 @@ static int masquerade_helper(struct ast_channel *chan, struct ast_channel *tmpch
 	pbx_do_masquerade(tmpchan);
 
 	/* when returning from bridge, the channel will continue at the next priority */
-	ast_explicit_goto(tmpchan, ast_channel_context(tmpchan), ast_channel_exten(tmpchan), ast_channel_priority(tmpchan) + 1);
+	ast_explicit_goto(tmpchan, pbx_channel_context(tmpchan), pbx_channel_exten(tmpchan), pbx_channel_priority(tmpchan) + 1);
 #    else
 	const char *context;
 	const char *exten;
