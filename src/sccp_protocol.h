@@ -3917,7 +3917,7 @@ typedef struct {
 	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
 	void (*const sendCallforwardMessage) (const sccp_device_t * device, const void *linedevice);
-	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, const void *xmlData, uint8_t priority);
+	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendOpenReceiveChannel) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);

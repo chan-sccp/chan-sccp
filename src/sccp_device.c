@@ -2326,7 +2326,7 @@ static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, cons
 
 	sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"%s\"/></CiscoIPPhoneExecute>", url);
 
-	device->protocol->sendUserToDeviceDataVersionMessage(device, xmlData, priority);
+	device->protocol->sendUserToDeviceDataVersionMessage(device, 0,0,1,1, xmlData, priority);
 	if (SKINNY_TONE_SILENCE != tone) {
 		sccp_dev_starttone(device, tone, 0, 0, 0);
 	}
@@ -2342,7 +2342,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
 
 	sprintf(xmlData, "<CiscoIPPhoneText><Title>%s</Title><Text>%s</Text></CiscoIPPhoneText>", from ? from : "", messageText);
 
-	device->protocol->sendUserToDeviceDataVersionMessage(device, xmlData, priority);
+	device->protocol->sendUserToDeviceDataVersionMessage(device, 0,0,1,1, xmlData, priority);
 
 	if (SKINNY_TONE_SILENCE != tone) {
 		sccp_dev_starttone(device, tone, 0, 0, 0);

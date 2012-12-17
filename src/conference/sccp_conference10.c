@@ -794,7 +794,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 	strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
 	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "xml-message:\n%s\n", xmlStr);
 
-	sendUserToDeviceVersion1Message(sccp_channel_getDevice_retained(channel), appID, conference->id, callReference, transactionID, xmlStr);
+	if ((device = sccp_channel_getDevice_retained(channel))) {
+	        device->protocol->sendUserToDeviceDataVersionMessage(device, appID, conference->id, callReference, transactionID, xmlStr, 2);
+                device = sccp_device_release(device);
+	}
 
  exit_function:
 	participant = participant ? sccp_participant_release(participant) : NULL;

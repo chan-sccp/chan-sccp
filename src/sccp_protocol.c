@@ -777,7 +777,7 @@ static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t * device, co
 /*!
  * \brief Send User To Device Message (V1)
  */
-static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t * device, const void *xmlData, uint8_t priority)
+static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority)
 {
 	sccp_moo_t *r = NULL;
 	
@@ -788,8 +788,10 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 	padding = (padding > 0) ? 4 - padding : 0;
 	
 	r = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
-	r->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
-	r->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(1);
+	r->msg.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
+	r->msg.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
+	r->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
+	r->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
 	r->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(0x0002);
 	r->msg.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
 	r->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
