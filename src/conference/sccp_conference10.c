@@ -377,9 +377,8 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 
 	/* if last moderator is leaving, end conference */
 	if (participant->isModerator && conference->num_moderators == 1 && !conference->finishing) {
-		playback_sound_helper(conference, "conf-leaderhasleft", -1);
 		sccp_conference_end(conference);
-	} else {
+	} else if (!participant->isModerator && !conference->finishing) {
 		playback_sound_helper(conference, NULL, participant->id);
 		playback_sound_helper(conference, "conf-hasleft", -1);
 	}
@@ -392,7 +391,6 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	/* Conference end if the number of participants == 1 */
 	if (SCCP_LIST_GETSIZE(conference->participants) == 1 && !conference->finishing) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: There are no conference participants left, Ending conference.\n", conference->id);
-		playback_sound_helper(conference, "conf-leaderhasleft", -1);
 		sccp_conference_end(conference);
 	}
 }
@@ -468,6 +466,8 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference->finishing = TRUE;
 	SCCP_LIST_UNLOCK(&conferences);
 
+	playback_sound_helper(conference, "conf-leaderhasleft", -1);
+
 	/* remove remaining participants / moderators */
 	SCCP_LIST_LOCK(&conference->participants);
 	if (SCCP_LIST_GETSIZE(conference->participants) > 0) {
@@ -531,6 +531,15 @@ int playback_sound_helper(sccp_conference_t * conference, const char *filename, 
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Created Playback Channel\n", conference->id);
 
 		underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
+		
+		// Update CDR to prevent nasty ast warning when hanging up this channel (confbridge does not set the cdr correctly)
+		pbx_cdr_start(pbx_channel_cdr(conference->playback_channel));
+#    if ASTERISK_VERSION_GROUP < 110
+		conference->playback_channel->cdr->answer = ast_tvnow();
+		underlying_channel->cdr->answer = ast_tvnow();
+#    endif
+		pbx_cdr_update(conference->playback_channel);
+
 	} else {
 		/* Channel was already available so we just need to add it back into the bridge */
 		underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
