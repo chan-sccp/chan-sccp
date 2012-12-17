@@ -766,9 +766,14 @@ boolean_t sccp_wrapper_asterisk111_alloc_conferenceTempPBXChannel(PBX_CHANNEL_TY
 		return FALSE;
 	}
 		
+	ast_channel_lock(pbxSrcChannel);
+	ast_channel_context_set((*pbxDstChannel), ast_channel_context(pbxSrcChannel));
+	ast_channel_exten_set((*pbxDstChannel), ast_channel_exten(pbxSrcChannel));
+	ast_channel_priority_set((*pbxDstChannel), ast_channel_priority(pbxSrcChannel));
 	ast_set_read_format((*pbxDstChannel), ast_channel_readformat(pbxSrcChannel));
 	ast_set_write_format((*pbxDstChannel), ast_channel_writeformat(pbxSrcChannel));
 	ast_channel_tech_pvt_set((*pbxDstChannel), pbxSrcChannel);
+	ast_channel_unlock(pbxSrcChannel);
 	return TRUE;
 }
 

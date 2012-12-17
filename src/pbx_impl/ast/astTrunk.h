@@ -42,6 +42,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    undef pbx_channel_context
 #    undef pbx_channel_nativeformats
 #    undef pbx_channel_exten
+#    undef pbx_channel_priority
 #    undef pbx_channel_macroexten
 #    undef pbx_channel_macrocontext
 #    undef pbx_channel_dialcontext
@@ -68,6 +69,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    define pbx_channel_context(_a) ast_channel_context(_a)
 #    define pbx_channel_nativeformats(_a) ast_channel_nativeformats(_a)
 #    define pbx_channel_exten(_a) ast_channel_exten(_a)
+#    define pbx_channel_priority(_a) ast_channel_priority(_a)
 #    define pbx_channel_macroexten(_a) ast_channel_macroexten(_a)
 #    define pbx_channel_macrocontext(_a) ast_channel_macrocontext(_a)
 #    define pbx_channel_dialcontext(_a) ast_channel_dialcontext(_a)
