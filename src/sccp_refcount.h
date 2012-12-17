@@ -13,6 +13,7 @@
 
 #include <setjmp.h>
 
+#define REFCOUNT_INDENTIFIER_SIZE 25
 enum sccp_refcounted_types {
         SCCP_REF_DEVICE = 1,
         SCCP_REF_LINE,

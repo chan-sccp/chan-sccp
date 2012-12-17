@@ -89,7 +89,7 @@ struct refcount_object {
 #endif
 	volatile CAS32_TYPE refcount;
 	enum sccp_refcounted_types type;
-	char identifier[25];
+	char identifier[REFCOUNT_INDENTIFIER_SIZE];
 	int alive;
 	size_t len;
 	 SCCP_RWLIST_ENTRY(RefCountedObject) list;
