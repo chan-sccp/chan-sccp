@@ -528,6 +528,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(pbx_channel_state(br)));
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
+//				pbx_indicate(c->owner, AST_CONTROL_REDIRECTING);	// hangling should be implemented in pbx_impl like connectedline
 				pbx_indicate(br, AST_CONTROL_CONNECTED_LINE);
 			} else {
 				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
