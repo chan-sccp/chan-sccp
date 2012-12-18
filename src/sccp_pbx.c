@@ -402,6 +402,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 			/* No need to lock because c->line->channels is already locked. */
 			sccp_channel_endcall(channel);
+			channel->parentChannel = sccp_channel_release(channel->parentChannel);		// release from sccp_channel_forward_retain
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
@@ -550,7 +551,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				res = -1;
 			}
 		}
-		c->parentChannel = sccp_channel_release(c->parentChannel);					// release parentChannel, freeing reference
+		c->parentChannel = sccp_channel_release(c->parentChannel);					// release parentChannel from sccp_channel_forward_retain
 		// FINISH
 	} else {
 		sccp_device_t *d = NULL;
