@@ -133,6 +133,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	sccp_channel_t *channel;
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	struct sccp_private_channel_data *private_data;
+	int callid;
 
 	/* If there is no current line, then we can't make a call in, or out. */
 	if (!l) {
@@ -144,8 +145,14 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 		pbx_log(LOG_ERROR, "SCCP: Tried to open channel on device %s without a session\n", device->id);
 		return NULL;
 	}
+	sccp_mutex_lock(&callCountLock);
+	callid = callCount++;
+	/* callcount limit should be reset at his upper limit :) */
+	if (callCount == 0xFFFFFFFF)
+		callCount = 1;
+	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
+	sccp_mutex_unlock(&callCountLock);
 
-	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/UNDEF-UNDEF");
 	channel = (sccp_channel_t *) sccp_refcount_object_alloc(sizeof(sccp_channel_t), SCCP_REF_CHANNEL, designator, __sccp_channel_destroy);
 	if (!channel) {
 		/* error allocating memory */
@@ -188,14 +195,8 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	/* by default we allow callerid presentation */
 	channel->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
 
-	/* callcount limit should be reset at his upper limit :) */
-	if (callCount == 0xFFFFFFFF)
-		callCount = 1;
-
-	sccp_mutex_lock(&callCountLock);
-	channel->callid = callCount++;
-	channel->passthrupartyid = channel->callid ^ 0xFFFFFFFF;
-	sccp_mutex_unlock(&callCountLock);
+	channel->callid = callid;
+	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 
 	channel->line = l;
 	channel->peerIsSCCP = 0;
@@ -2209,6 +2210,14 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Incoming: %s Forwarded By: %s Forwarded To: %s", sccp_channel_parent->callInfo.callingPartyName, lineDevice->line->cid_name, dialedNumber);
 
+	/* Copy Channel Capabilities From Predecessor */
+	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
+	memcpy(&sccp_forwarding_channel->remoteCapabilities.audio, sccp_channel_parent->remoteCapabilities.audio, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
+	memset(&sccp_forwarding_channel->preferences.audio, 0, sizeof(sccp_forwarding_channel->preferences.audio));
+	memcpy(&sccp_forwarding_channel->preferences.audio, sccp_channel_parent->preferences.audio, sizeof(sccp_channel_parent->preferences.audio));
+	sccp_forwarding_channel->rtp.audio.readFormat = sccp_channel_parent->rtp.audio.readFormat;
+	sccp_forwarding_channel->rtp.audio.writeFormat = sccp_channel_parent->rtp.audio.writeFormat;
+
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel)) {
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, sccp_forwarding_channel->line->name);
@@ -2218,6 +2227,10 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		res = -1;
 		goto EXIT_FUNC;
 	}
+	/* Update rtp setting to match predecessor */
+	PBX(rtp_setReadFormat) (sccp_forwarding_channel, sccp_channel_parent->rtp.audio.readFormat);
+	PBX(rtp_setWriteFormat) (sccp_forwarding_channel, sccp_channel_parent->rtp.audio.writeFormat);
+	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
 	/* setting callerid */
 //      char fwd_from_name[254];
@@ -2265,7 +2278,8 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		goto EXIT_FUNC;
 	}
  EXIT_FUNC:
-	sccp_forwarding_channel = sccp_channel_release(sccp_forwarding_channel);
+ 	// should not be released, we are returning a newly created channel, masqueration and subsequent hangup will release it later on
+//	sccp_forwarding_channel = sccp_channel_release(sccp_forwarding_channel);
 	return res;
 }
 

@@ -2216,10 +2216,13 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			// we dial when helper says it's time to dial !
 			if (sccp_pbx_helper(channel) == SCCP_EXTENSION_EXACTMATCH) {
 				// we would hear last keypad stroke before starting all
-				sccp_safe_sleep(100);
-				// we dialout if helper says it's time to dial
-				sccp_pbx_softswitch(channel);
-				channel = sccp_channel_release(channel);
+				sccp_channel_t *ss_channel = NULL;
+				if ((ss_channel =sccp_channel_retain(channel))) {
+					sccp_safe_sleep(100);
+					// we dialout if helper says it's time to dial
+					sccp_pbx_softswitch(ss_channel);			// channel will be released by hangup
+				}
+				channel = sccp_channel_release(channel);			// release our of retained channel;
 				l = sccp_line_release(l);
 				return;
 			}
