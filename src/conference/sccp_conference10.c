@@ -32,7 +32,8 @@ static int lastParticipantID = 0;
 SCCP_LIST_HEAD(, sccp_conference_t) conferences;								/*!< our list of conferences */
 static void *sccp_conference_thread(void *data);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel, boolean_t moderator);
-int playback_sound_helper(sccp_conference_t * conference, const char *filename, int say_number);
+int playback_to_channel(PBX_CHANNEL_TYPE *pbx_channel, const char *filename, int say_number);
+int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
 sccp_conference_t *sccp_conference_findByID(uint32_t identifier);
 sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier);
 sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel);
@@ -304,7 +305,7 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Conference is locked. Participant Denied.\n", conference->id);
-		pbx_stream_and_wait(channel->owner, "conf-locked", "");
+		playback_to_channel(channel->owner, "conf-locked", -1);
 	}
 }
 
@@ -346,8 +347,8 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 					d = sccp_device_release(d);
 				}
 				conference->num_moderators++;
-				playback_sound_helper(conference, "conf-enteringno", -1);
-				playback_sound_helper(conference, NULL, conference->id);
+				playback_to_conference(conference, "conf-enteringno", -1);
+				playback_to_conference(conference, NULL, conference->id);
 			} else {
 				// Masq Error
 				moderator->channel = moderator->channel ? sccp_channel_release(moderator->channel) : NULL;
@@ -358,7 +359,7 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Conference is locked. Participant Denied.\n", conference->id);
-		pbx_stream_and_wait(channel->owner, "conf-locked", "");
+		playback_to_channel(channel->owner, "conf-locked", -1);
 	}
 }
 
@@ -379,8 +380,8 @@ void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conf
 	if (participant->isModerator && conference->num_moderators == 1 && !conference->finishing) {
 		sccp_conference_end(conference);
 	} else if (!participant->isModerator && !conference->finishing) {
-		playback_sound_helper(conference, NULL, participant->id);
-		playback_sound_helper(conference, "conf-hasleft", -1);
+		playback_to_conference(conference, NULL, participant->id);
+		playback_to_conference(conference, "conf-hasleft", -1);
 	}
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
@@ -466,7 +467,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference->finishing = TRUE;
 	SCCP_LIST_UNLOCK(&conferences);
 
-	playback_sound_helper(conference, "conf-leaderhasleft", -1);
+	playback_to_conference(conference, "conf-leaderhasleft", -1);
 
 	/* remove remaining participants / moderators */
 	SCCP_LIST_LOCK(&conference->participants);
@@ -498,13 +499,58 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference = sccp_conference_release(conference);
 }
 
+static int stream_and_wait(PBX_CHANNEL_TYPE *playback_channel, const char *filename, int say_number) 
+{
+	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
+		pbx_log(LOG_WARNING, "File %s does not exists in any format\n", !sccp_strlen_zero(filename) ? filename : "<unknown>");
+		return 0;
+	}
+	if (playback_channel) {
+		if (!sccp_strlen_zero(filename)) {
+			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Playing '%s' to Conference\n", filename);
+			pbx_stream_and_wait(playback_channel, filename, "");
+		} else if (say_number >= 0) {
+			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Saying '%d' to Conference\n", say_number);
+			pbx_say_number(playback_channel, say_number, "", pbx_channel_language(playback_channel), NULL);
+		}
+	}
+	return 1;
+}
+
+int playback_to_channel(PBX_CHANNEL_TYPE *pbx_channel, const char *filename, int say_number) 
+{
+	int res=0;
+	
+	// we have an audio issue here. Playback is stuttering, i guess because of the other rtp stream.
+/*	PBX_CHANNEL_TYPE *other = CS_AST_BRIDGED_CHANNEL(pbx_channel);
+	if (other) {
+		if (ast_autoservice_start(other)) {
+			return 0;
+		}
+		ast_autoservice_ignore(other, AST_FRAME_DTMF_BEGIN);
+		ast_autoservice_ignore(other, AST_FRAME_DTMF_END);
+        }*/
+	if (!stream_and_wait(pbx_channel, filename, say_number)) {
+                ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
+	} else {
+		res = 1;
+	}
+/*        if (other) {
+        	if (ast_autoservice_stop(other)) {
+		       	res = 0;
+		}
+        }*/
+	return res;
+}
+
 /*!
  * \brief This function is used to playback either a file or number sequence to all conference participants. Used for announcing
  * The playback channel is created once, and imparted on the conference when necessary on follow-up calls
  */
-int playback_sound_helper(sccp_conference_t * conference, const char *filename, int say_number)
+int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number)
 {
 	PBX_CHANNEL_TYPE *underlying_channel;
+	int res=0;
 
 	pbx_mutex_lock(&conference->playback_lock);
 
@@ -522,7 +568,7 @@ int playback_sound_helper(sccp_conference_t * conference, const char *filename, 
 		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
 
 		if (ast_call(conference->playback_channel, "", 0)) {
-			pbx_hangup(conference->playback_channel);
+		pbx_hangup(conference->playback_channel);
 			conference->playback_channel = NULL;
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
@@ -551,20 +597,15 @@ int playback_sound_helper(sccp_conference_t * conference, const char *filename, 
 #    endif
 	}
 
-	if (conference->playback_channel) {
-		if (!sccp_strlen_zero(filename)) {
-			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playing '%s' to Conference\n", conference->id, filename);
-			pbx_stream_and_wait(conference->playback_channel, filename, "");
-		} else if (say_number >= 0) {
-			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Saying '%d' to Conference\n", conference->id, say_number);
-			pbx_say_number(conference->playback_channel, say_number, "", pbx_channel_language(conference->playback_channel), NULL);
-		}
+	if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
+                ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
+	} else {
+		res = 1;
 	}
-
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Detaching '%s' from Conference\n", conference->id, pbx_channel_name(underlying_channel));
 	pbx_bridge_depart(conference->bridge, underlying_channel);
 	pbx_mutex_unlock(&conference->playback_lock);
-	return 1;
+	return res;
 }
 
 /* conf list related */
@@ -841,20 +882,21 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	ast_stopstream(participant->conferenceBridgePeer);
-	pbx_stream_and_wait(participant->conferenceBridgePeer, "conf-kicked", "");
+	playback_to_channel(participant->conferenceBridgePeer, "conf-kicked", -1);
 	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 }
 
 void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	conference->isLocked = (!conference->isLocked ? 1 : 0);
-	pbx_stream_and_wait(participant->conferenceBridgePeer, (conference->isLocked ? "conf-lockednow" : "conf-unlockednow"), "");
+	playback_to_channel(participant->conferenceBridgePeer, (conference->isLocked ? "conf-lockednow" : "conf-unlockednow"), -1);
 }
 
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	participant->isMuted = (!participant->isMuted ? 1 : 0);
-	pbx_stream_and_wait(participant->conferenceBridgePeer, (participant->isMuted ? "conf-muted" : "conf-unmuted"), "");
+	playback_to_channel(participant->conferenceBridgePeer, (participant->isMuted ? "conf-muted" : "conf-unmuted"), -1);
+	
 }
 
 void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel)
