@@ -1096,13 +1096,15 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	}
 
 	/* end all call forwarded channels (our children) */
-	sccp_channel_t *parent;
+	/* should not be necessary here. Should have been handled in sccp_pbx_softswitch / sccp_pbx_answer / sccp_pbx_hangup already */
+	sccp_channel_t *c;
 	SCCP_LIST_LOCK(&channel->line->channels);
-	SCCP_LIST_TRAVERSE(&channel->line->channels, parent, list) {
-		if (parent->parentChannel == channel) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwardimg Channel %s-%08X\n", DEV_ID_LOG(d), parent->line->name, parent->callid);
-			/* No need to lock because sccp_channel->line->channels is already locked. */
-			sccp_channel_endcall(parent);
+	SCCP_LIST_TRAVERSE(&channel->line->channels, c, list) {
+		if (c->parentChannel == channel) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel %s-%08X\n", DEV_ID_LOG(d), c->line->name, c->callid);
+			// No need to lock because sccp_channel->line->channels is already locked. 
+			sccp_channel_endcall(c);
+			c->parentChannel = sccp_channel_release(c->parentChannel);		// release from sccp_channel_forward retain
 		}
 	}
 	SCCP_LIST_UNLOCK(&channel->line->channels);
@@ -1339,6 +1341,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			/* No need to lock because sccp_channel->line->channels is already locked. */
 			sccp_channel_endcall(sccp_channel_2);
 			channel->answered_elsewhere = TRUE;
+			sccp_channel_2->parentChannel = sccp_channel_release(sccp_channel_2->parentChannel); // release from sccp_channel_forward_retain
 		}
 	}
 	SCCP_LIST_UNLOCK(&channel->line->channels);
