@@ -1095,21 +1095,21 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		return;
 	}
 
+	/* end all call forwarded channels (our children) */
+	sccp_channel_t *parent;
+	SCCP_LIST_LOCK(&channel->line->channels);
+	SCCP_LIST_TRAVERSE(&channel->line->channels, parent, list) {
+		if (parent->parentChannel == channel) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwardimg Channel %s-%08X\n", DEV_ID_LOG(d), parent->line->name, parent->callid);
+			/* No need to lock because sccp_channel->line->channels is already locked. */
+			sccp_channel_endcall(parent);
+		}
+	}
+	SCCP_LIST_UNLOCK(&channel->line->channels);
+
 	/* this is a station active endcall or onhook */
 	if ((d = sccp_channel_getDevice_retained(channel))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
-
-		/* end all call forward channels (our childs) */
-		sccp_channel_t *x;
-
-		SCCP_LIST_LOCK(&channel->line->channels);
-		SCCP_LIST_TRAVERSE(&channel->line->channels, x, list) {
-			if (x->parentChannel == channel) {
-				/* No need to lock because sccp_channel->line->channels is already locked. */
-				sccp_channel_endcall(x);
-			}
-		}
-		SCCP_LIST_UNLOCK(&channel->line->channels);
 
 		/**
 		 *	workaround to fix issue with 7960 and protocol version != 6
@@ -1136,16 +1136,17 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		if (channel->owner) {
 			PBX(requestHangup) (channel->owner);
 		} else {
-			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
 		}
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 		d = sccp_device_release(d);
 	} else {
-		pbx_log(LOG_WARNING, "No device to handle hangup for.\n");
+		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "SCCP: Ending call %d on line %s (%s)\n", channel->callid, channel->line->name, sccp_indicate2str(channel->state));
+		
 		if (channel->owner) {
 			PBX(requestHangup) (channel->owner);
 		} else {
-			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
 		}
 	}
 }
@@ -2198,6 +2199,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	if (!sccp_forwarding_channel) {
 		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel\n", lineDevice->device->id);
+
 		return -1;
 	}
 
