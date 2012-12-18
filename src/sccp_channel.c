@@ -2197,7 +2197,6 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 
 	sccp_copy_string(dialedNumber, fwdNumber, sizeof(dialedNumber));
-
 	sccp_forwarding_channel = sccp_channel_allocate(sccp_channel_parent->line, NULL);
 
 	if (!sccp_forwarding_channel) {
@@ -2273,6 +2272,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x is dialing number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		PBX(set_callstate) (sccp_forwarding_channel, AST_STATE_RING);
+		pbx_channel_call_forward_set(sccp_forwarding_channel->owner, dialedNumber);
 		if (pbx_pbx_start(sccp_forwarding_channel->owner)) {
 			pbx_log(LOG_WARNING, "%s: invalide number\n", "SCCP");
 		}
