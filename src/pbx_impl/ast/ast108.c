@@ -563,8 +563,8 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 #ifdef CS_AST_CONTROL_INCOMPLETE
 #    ifdef CS_EXPERIMENTAL
 		case AST_CONTROL_REDIRECTING:									/*!< Indication of Redirecting */
-			sccp_log("SCCP: Call is being forwarded\n");
-//              sccp_wrapper_asterisk18_update_redirecting(c, data, datalen)
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: Call is being forwarded\n");
+// 	                sccp_wrapper_asterisk18_update_redirecting(c, data, datalen)
 			break;
 #    endif
 		case AST_CONTROL_INCOMPLETE:									/*!< Indication that the extension dialed is incomplete */
