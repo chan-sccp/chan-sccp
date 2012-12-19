@@ -36,6 +36,7 @@ extern "C" {
 		boolean_t isLocked;						/*!< Indicates that no new participants are allowed */
 		PBX_CHANNEL_TYPE *playback_channel;				/*!< Channel to playback sound file on */
 		ast_mutex_t playback_lock;
+		char playback_language[SCCP_MAX_LANGUAGE];			/*!< Language to be used during playback */
 	};
 
 	struct sccp_conference_participant {
