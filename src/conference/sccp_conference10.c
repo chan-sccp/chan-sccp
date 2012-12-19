@@ -515,7 +515,6 @@ static int stream_and_wait(PBX_CHANNEL_TYPE *playback_channel, const char *filen
 		if (!sccp_strlen_zero(filename)) {
 			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Playing '%s' to Conference\n", filename);
 			pbx_stream_and_wait(playback_channel, filename, "");
-//		        pbx_streamfile(playback_channel, filename, pbx_channel_language(playback_channel));
 		} else if (say_number >= 0) {
 			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Saying '%d' to Conference\n", say_number);
 			pbx_say_number(playback_channel, say_number, "", pbx_channel_language(playback_channel), NULL);
@@ -562,7 +561,13 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 			return 0;
 		}
 		if (!sccp_strlen_zero(conference->playback_language)) {
+#    if ASTERISK_VERSION_GROUP < 112
 			pbx_string_field_set(conference->playback_channel, language, conference->playback_language);
+#    else
+			// Don't know how to set language under asterisk-trunk
+			// returning: dereferencing pointer to incomplete type
+			// pbx_string_field_set(conference->playback_channel, language, conference->playback_language);
+#    endif
 		}
 		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
 
