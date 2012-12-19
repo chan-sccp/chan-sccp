@@ -710,7 +710,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			continue;
 
 		if (part->channel && part->channel == channel) {
-			if (device = sccp_channel_getDevice_retained(part->channel))) {
+			if ((device = sccp_channel_getDevice_retained(part->channel))) {
 				if (!device->conferencelist_active) {
 					sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: %s: CONFLIST ACTIVED %d %d\n", conference->id, channel->currentDeviceId, channel->callid, part->id);
 					device->conferencelist_active = TRUE;
