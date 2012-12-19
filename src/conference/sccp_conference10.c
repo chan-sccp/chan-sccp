@@ -151,15 +151,16 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	/** we return the pointer, so do not release conference (should be retained in d->conference or rather l->conference/c->conference. d->conference limits us to one conference per phone */
 #    ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
-		sccp_device_t *d = sccp_channel_getDevice_retained(conferenceCreatorChannel);
-
-		manager_event(EVENT_FLAG_USER, "SCCPConfStart", 
+		sccp_device_t *d = NULL;
+		if ((d = sccp_channel_getDevice_retained(conferenceCreatorChannel))) {
+			manager_event(EVENT_FLAG_USER, "SCCPConfStart", 
 						"ConfId: %d\r\n"
 						"SCCPDevice: %s\r\n", 
 						conferenceID, 
 						DEV_ID_LOG(d)
-				);
-		d = d ? sccp_device_release(d) : NULL;
+					);
+			d = sccp_device_release(d);
+		}
 	}
 #    endif
 	return sccp_conference_retain(conference);
@@ -251,7 +252,6 @@ static void sccp_conference_addParticipant_toList(sccp_conference_t * conference
 static void sccp_conference_update_callInfo(sccp_conference_participant_t * participant)
 {
 	sccp_device_t *d = NULL;
-
 	if (participant->channel && (d = sccp_channel_getDevice_retained(participant->channel))) {
 		// update callInfo for SCCP Channels
 		switch (participant->channel->calltype) {
@@ -345,7 +345,6 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 				sccp_copy_string(conference->playback_language, pbx_channel_language(moderator->conferenceBridgePeer), sizeof(conference->playback_language));
 				// update callinfo
 				sccp_device_t *d = NULL;
-
 				if ((d = sccp_channel_getDevice_retained(channel))) {
 					sprintf(channel->callInfo.callingPartyName, "Conference %d", conference->id);
 					sprintf(channel->callInfo.calledPartyName, "Conference %d", conference->id);
@@ -710,10 +709,14 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		if (part->pendingRemoval)
 			continue;
 
-		if (part->channel && (device = sccp_channel_getDevice_retained(part->channel)) && part->channel == channel && !device->conferencelist_active) {
-			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: %s: CONFLIST ACTIVED %d %d\n", conference->id, channel->currentDeviceId, channel->callid, part->id);
-			device->conferencelist_active = TRUE;
-			device = sccp_device_release(device);
+		if (part->channel && part->channel == channel) {
+			if (device = sccp_channel_getDevice_retained(part->channel))) {
+				if (!device->conferencelist_active) {
+					sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: %s: CONFLIST ACTIVED %d %d\n", conference->id, channel->currentDeviceId, channel->callid, part->id);
+					device->conferencelist_active = TRUE;
+				}
+				device = sccp_device_release(device);
+			}
 		}
 		strcat(xmlStr, "<MenuItem>\n");
 
