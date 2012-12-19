@@ -550,8 +550,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
 				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
 				pbx_queue_hangup(astForwardedChannel);
-//				sccp_channel_endcall(c);
-				sccp_channel_endcall(c->parentChannel);
+				sccp_channel_endcall(c);
 				res = -1;
 			}
 		}
