@@ -126,6 +126,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	conference->isLocked = FALSE;
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 
+//	bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;
 	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;
 #    ifdef CS_SCCP_VIDEO
@@ -341,6 +342,7 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 					moderator->channel->owner = moderator->conferenceBridgePeer;
 					sccp_conference_update_callInfo(moderator);
 				}
+				sccp_copy_string(conference->playback_language, pbx_channel_language(moderator->conferenceBridgePeer), sizeof(conference->playback_language));
 				// update callinfo
 				sccp_device_t *d = NULL;
 
@@ -514,6 +516,7 @@ static int stream_and_wait(PBX_CHANNEL_TYPE *playback_channel, const char *filen
 		if (!sccp_strlen_zero(filename)) {
 			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Playing '%s' to Conference\n", filename);
 			pbx_stream_and_wait(playback_channel, filename, "");
+//		        pbx_streamfile(playback_channel, filename, pbx_channel_language(playback_channel));
 		} else if (say_number >= 0) {
 			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Saying '%d' to Conference\n", say_number);
 			pbx_say_number(playback_channel, say_number, "", pbx_channel_language(playback_channel), NULL);
@@ -559,7 +562,9 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
 		}
-
+		if (!sccp_strlen_zero(conference->playback_language)) {
+			pbx_string_field_set(conference->playback_channel, language, conference->playback_language);
+		}
 		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
 
 		if (ast_call(conference->playback_channel, "", 0)) {
