@@ -50,6 +50,7 @@ extern "C" {
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
 		PBX_CHANNEL_TYPE *conferenceBridgePeer;				/*!< the asterisk channel which joins the conference bridge */
+		struct ast_bridge_channel *bridge_channel;			/*!< Adterisk Conference Bridge Channel */
 		struct ast_bridge_features features;				/*!< Enabled features information */
 		pthread_t joinThread;						/*!< Running in this Thread */
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
