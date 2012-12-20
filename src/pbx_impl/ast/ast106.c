@@ -2427,9 +2427,9 @@ static const struct ast_msg_tech sccp_msg_tech = {
 
 #endif
 
-boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *language){
+boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *newLanguage){
 	
-	ast_channel_language_set(pbxChannel, language);
+	ast_string_field_set(pbxChannel, language, newLanguage);
 	return TRUE;
 }
 
