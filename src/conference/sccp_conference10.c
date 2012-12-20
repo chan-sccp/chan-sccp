@@ -582,16 +582,12 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
 		}
+		
+		/** set channel language */
 		if (!sccp_strlen_zero(conference->playback_language)) {
-#    if ASTERISK_VERSION_GROUP < 112
-			pbx_string_field_set(conference->playback_channel, language, conference->playback_language);
-#    else
-			// Don't know how to set language under asterisk-trunk
-			// returning: dereferencing pointer to incomplete type
-// 			pbx_string_field_set(conference->playback_channel, language, conference->playback_language);
-			PBX(set_language)(conference->playback_channel, conference->playback_language);	//TODO: use pbx wrapper to set language
-#    endif
+			PBX(set_language)(conference->playback_channel, conference->playback_language);
 		}
+		
 		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
 
 		if (ast_call(conference->playback_channel, "", 0)) {
