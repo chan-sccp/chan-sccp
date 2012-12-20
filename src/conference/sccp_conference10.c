@@ -589,7 +589,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 			// Don't know how to set language under asterisk-trunk
 			// returning: dereferencing pointer to incomplete type
 // 			pbx_string_field_set(conference->playback_channel, language, conference->playback_language);
-			ast_channel_language_set(conference->playback_channel, conference->playback_language);	//TODO: use pbx wrapper to set language
+			PBX(set_language)(conference->playback_channel, conference->playback_language);	//TODO: use pbx wrapper to set language
 #    endif
 		}
 		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
