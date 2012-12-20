@@ -2137,9 +2137,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		sccp_source_remote_channel = sccp_channel_release(sccp_source_remote_channel);
 	} else {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: %s Transfer, callerid exchange need to be implemented\n", CS_AST_CHANNEL_PVT_TYPE(pbx_source_remote_channel));
-		if (CS_AST_CHANNEL_PVT_CMP_TYPE(pbx_source_remote_channel, "SIP")) {
-//              sccp_log(DEBUGCAT_CHANNEL)(VERBOSE_PREFIX_3 "SCCP: %s Transfer, cid_num '%s', cid_name '%s'\n", CS_AST_CHANNEL_PVT_TYPE(pbx_source_remote_channel), pbx_source_remote_channel->cid_num, pbx_source_remote_channel->cid_name);
-		}
+//#if ASTERISK_VERSION_GROUP > 106
+//		pbx_indicate(pbx_source_remote_channel, AST_CONTROL_CONNECTED_LINE);
+//#endif		
 	}
 	sccp_channel_display_callInfo(sccp_destination_local_channel);
 //      sccp_channel_display_callInfo(sccp_source_remote_channel);
