@@ -121,10 +121,9 @@ void sccp_refcount_destroy(void)
 	ast_rwlock_wrlock(&objectslock);
 	for (x = 0; x < SCCP_HASH_PRIME; x++) {
 		if (objects[x]) {
-			pbx_log(LOG_NOTICE, "SCCP: (Refcount) (Just cleaning up memory references that got left behind accidentally. Prevent Memory Leaking.)\n");
 			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
 			while ((obj = SCCP_RWLIST_REMOVE_HEAD(&(objects[x])->refCountedObjects, list))) {
-				pbx_log(LOG_NOTICE, "Forcing Destroy on [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int)obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int)obj->len);
+				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int)obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int)obj->len);
 				if ((&obj_info[obj->type])->destructor)
 					(&obj_info[obj->type])->destructor(obj->data);
 #ifndef SCCP_ATOMIC
