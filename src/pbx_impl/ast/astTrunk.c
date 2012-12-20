@@ -825,7 +825,8 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_channel_release(c);
 		}
 	}
-	ast_channel_tech_pvt_set(ast_channel, NULL);
+	
+	ast_channel = ast_channel_unref(ast_channel);
 	ast_module_unref(ast_module_info->self);
 	return res;
 }
@@ -1263,6 +1264,11 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 		c->owner = newchan;
 		oldchan = ast_channel_unref(oldchan);
 	}
+	
+	if (!sccp_strlen_zero(c->line->language)){
+		ast_channel_language_set(newchan, c->line->language);
+	}
+	
 	c = sccp_channel_release(c);
 
 	return 0;
@@ -1815,8 +1821,9 @@ static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * 
 	ast_format_cap_destroy(cap);
 
 
-	if (0 != channel->rtp.audio.rtp)
+	if (NULL != channel->rtp.audio.rtp){
 		ast_rtp_instance_set_write_format(channel->rtp.audio.rtp, &tmp_format);
+	}
 	return TRUE;
 }
 
@@ -1835,8 +1842,9 @@ static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * c
 	ast_format_cap_destroy(cap);
 
 
-	if (0 != channel->rtp.audio.rtp)
+	if (NULL != channel->rtp.audio.rtp){
 		ast_rtp_instance_set_read_format(channel->rtp.audio.rtp, &tmp_format);
+	}
 	return TRUE;
 }
 
@@ -2386,6 +2394,13 @@ static const struct ast_msg_tech sccp_msg_tech = {
 int pbx_manager_register(const char *action, int authority, int (*func)(struct mansession *s, const struct message *m), const char *synopsis, const char *description) {
 	return ast_manager_register2(action,authority,func,ast_module_info->self,synopsis,description);
 }
+
+boolean_t sccp_wrapper_asterisk111_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *language){
+	
+	ast_channel_language_set(pbxChannel, language);
+	return TRUE;
+}
+
                                                 
 #if defined(__cplusplus) || defined(c_plusplus)
 sccp_pbx_cb sccp_pbx = {
@@ -2491,6 +2506,8 @@ sccp_pbx_cb sccp_pbx = {
 	allocTempPBXChannel:		sccp_wrapper_asterisk111_allocTempPBXChannel,
 	masqueradeHelper:		sccp_wrapper_asterisk111_masqueradeHelper,
 	requestForeignChannel:		sccp_wrapper_asterisk111_requestForeignChannel,
+	
+	set_language:			sccp_wrapper_asterisk111_setLanguage,
 	/* *INDENT-ON* */	
 };
 
@@ -2600,6 +2617,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.allocTempPBXChannel		= sccp_wrapper_asterisk111_allocTempPBXChannel,
 	.masqueradeHelper		= sccp_wrapper_asterisk111_masqueradeHelper,
 	.requestForeignChannel		= sccp_wrapper_asterisk111_requestForeignChannel,
+	
+	.set_language			= sccp_wrapper_asterisk111_setLanguage,
 	/* *INDENT-ON* */
 };
 #endif
