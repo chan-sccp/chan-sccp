@@ -2768,9 +2768,9 @@ static int sccp_asterisk_devicestate(void *data)
 }
 
 
-boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *language){
+boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *newLanguage){
 	
-	ast_channel_language_set(pbxChannel, language);
+	ast_string_field_set(pbxChannel, language, newLanguage);
 	return TRUE;
 }
 
