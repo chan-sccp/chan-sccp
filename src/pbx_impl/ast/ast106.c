@@ -2427,6 +2427,13 @@ static const struct ast_msg_tech sccp_msg_tech = {
 
 #endif
 
+boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *language){
+	
+	ast_channel_language_set(pbxChannel, language);
+	return TRUE;
+}
+
+
 #if defined(__cplusplus) || defined(c_plusplus)
 sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */
@@ -2532,6 +2539,8 @@ sccp_pbx_cb sccp_pbx = {
 	allocTempPBXChannel:		sccp_wrapper_asterisk16_allocTempPBXChannel,
 	masqueradeHelper:		sccp_wrapper_asterisk16_masqueradeHelper,
 	requestForeignChannel:		sccp_wrapper_asterisk16_requestForeignChannel,
+	
+	set_language:			sccp_wrapper_asterisk_setLanguage,
 	/* *INDENT-ON* */
 };
 
@@ -2644,6 +2653,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.allocTempPBXChannel		= sccp_wrapper_asterisk16_allocTempPBXChannel,
 	.masqueradeHelper		= sccp_wrapper_asterisk16_masqueradeHelper,
 	.requestForeignChannel		= sccp_wrapper_asterisk16_requestForeignChannel,
+	
+	.set_language			= sccp_wrapper_asterisk_setLanguage,
 	/* *INDENT-ON* */
 };
 #endif

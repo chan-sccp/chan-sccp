@@ -29,6 +29,9 @@ extern "C" {
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
+
+#undef HAVE_PBX_MESSAGE_H
+
 struct sched_context *sched = 0;
 struct io_context *io = 0;
 
@@ -2764,6 +2767,13 @@ static int sccp_asterisk_devicestate(void *data)
 	return res;
 }
 
+
+boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *language){
+	
+	ast_channel_language_set(pbxChannel, language);
+	return TRUE;
+}
+
 #if defined(__cplusplus) || defined(c_plusplus)
 sccp_pbx_cb sccp_pbx = {
 	/* *INDENT-OFF* */
@@ -2869,6 +2879,8 @@ sccp_pbx_cb sccp_pbx = {
 	allocTempPBXChannel:		sccp_wrapper_asterisk18_allocTempPBXChannel,
 	masqueradeHelper:		sccp_wrapper_asterisk18_masqueradeHelper,
 	requestForeignChannel:		sccp_wrapper_asterisk18_requestForeignChannel,
+	
+	set_language:			sccp_wrapper_asterisk_setLanguage,
 	/* *INDENT-ON* */
 };
 #else
@@ -2979,6 +2991,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.allocTempPBXChannel		= sccp_wrapper_asterisk18_allocTempPBXChannel,
 	.masqueradeHelper		= sccp_wrapper_asterisk18_masqueradeHelper,
 	.requestForeignChannel		= sccp_wrapper_asterisk18_requestForeignChannel,
+	
+	.set_language			= sccp_wrapper_asterisk_setLanguage,
 	/* *INDENT-ON* */
 };
 #endif
@@ -3027,6 +3041,8 @@ static int load_module(void)
 		pbx_log(LOG_WARNING, "Unable to register message interface\n");
 	}
 #endif
+
+// 	ast_enable_distributed_devstate();
 
 	//ast_rtp_glue_register(&sccp_rtp);
 	sccp_register_management();
