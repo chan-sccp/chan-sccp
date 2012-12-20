@@ -231,6 +231,10 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 ], [CS_AST_DEBUG_THREADS],
                                 ['DEBUG_THREADS' available]
                         )
+			dnl Trick to compile against asterisk 1.6.2 to fix AST_MUTEX_DEFINE_STATIC issue, cause by #include order
+                        if [ test ${ASTERISK_VER_GROUP} == 106 ]; then
+                                AC_DEFINE(DEBUG_THREADS,1,[Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against asterisk 1.6.2])
+                        fi
 		],,[
 	               	$HEADER_INCLUDE
 		]
@@ -245,7 +249,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					struct ast_jb_conf test_jbconf;
 					test_jbconf.target_extra = (long)1;
 				], 
-				[CS_AST_JB_TARGETEXTRA],['DEBUG_THREADS' available]
+				[CS_AST_JB_TARGETEXTRA],['CS_AST_JB_TARGETEXTRA' available]
 			)						
 		],,[ 
 	               	$HEADER_INCLUDE
