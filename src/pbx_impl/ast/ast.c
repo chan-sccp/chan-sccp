@@ -429,7 +429,7 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 {
 	sccp_channel_t *c = NULL;
 
-	if (CS_AST_CHANNEL_PVT_CMP_TYPE(pbx_channel, "SCCP")) {
+	if (pbx_channel && CS_AST_CHANNEL_PVT(pbx_channel) && CS_AST_CHANNEL_PVT_CMP_TYPE(pbx_channel, "SCCP")) {
 		if ((c = CS_AST_CHANNEL_PVT(pbx_channel))) {
 #if DEBUG
 			return sccp_refcount_retain(c, filename, lineno, func);
