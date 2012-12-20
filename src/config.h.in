@@ -194,7 +194,7 @@
 /* 'struct ast_channel_tech' available */
 #undef CS_AST_HAS_TECH_PVT
 
-/* 'DEBUG_THREADS' available */
+/* 'CS_AST_JB_TARGETEXTRA' available */
 #undef CS_AST_JB_TARGETEXTRA
 
 /* Asterisk Lock Track Support */
@@ -310,6 +310,10 @@
 
 /* No Extra debugging. */
 #undef DEBUG
+
+/* Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against
+   asterisk 1.6.2 */
+#undef DEBUG_THREADS
 
 /* Enable extra garbage collection debugging. */
 #undef GC_DEBUG
@@ -943,11 +947,6 @@
 # ifndef WORDS_BIGENDIAN
 #  undef WORDS_BIGENDIAN
 # endif
-#endif
-
-/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
