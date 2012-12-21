@@ -866,11 +866,7 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * 
 	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
 	sccp_session_send2(s, r1);										// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
-	if (d) {
-		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);
-	}
-//      pthread_cancel(s->session_thread);
-	sccp_socket_stop_sessionthread(s);
+	sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
 }
 
 /*!
@@ -898,7 +894,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
 //              pthread_cancel(s->session_thread);
-		sccp_socket_stop_sessionthread(s);
+		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
 
@@ -911,7 +907,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
 //              pthread_cancel(s->session_thread);
-		sccp_socket_stop_sessionthread(s);
+		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
 

@@ -1030,11 +1030,12 @@ struct sccp_session {
 	struct in_addr ourip;							/*!< Our IP is for rtp use */
 	time_t lastKeepAlive;							/*!< Last KeepAlive Time */
 	struct pollfd fds[1];							/*!< File Descriptor */
+	sccp_mutex_t write_lock;						/*!< Prevent multiple threads writing to the socket at the same time */
 	sccp_device_t *device;							/*!< Associated Device */
 	SCCP_RWLIST_ENTRY(sccp_session_t) list;					/*!< Linked List Entry for this Session */
 	boolean_t needcheckringback;						/*!< Need Check Ring Back. (0/1) default 1 */
 	pthread_t session_thread;						/*!< Session Thread */
-	uint8_t session_stop;							/*!< Signal Session Stop */
+	volatile uint8_t session_stop;							/*!< Signal Session Stop */
 	uint8_t protocolType;
 };										/*!< SCCP Session Structure */
 

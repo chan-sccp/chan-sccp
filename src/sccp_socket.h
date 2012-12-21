@@ -29,5 +29,5 @@ void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features);
 void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features);
 struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type);
 void sccp_session_getSocketAddr(const sccp_device_t * device, struct sockaddr_in *sin);
-void sccp_socket_stop_sessionthread(sccp_session_t *session);
+void sccp_socket_stop_sessionthread(sccp_session_t *session, uint8_t newRegistrationState);
 #endif
