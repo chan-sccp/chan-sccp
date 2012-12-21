@@ -145,7 +145,8 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #ifdef SCCP_ATOMIC
 #  ifdef SCCP_BUILTIN_CAS32
         #define CAS32(_a,_b,_c, _d) __sync_val_compare_and_swap(_a, _b, _c)
-        #define CAS32_TYPE size_t
+//        #define CAS32_TYPE size_t
+        #define CAS32_TYPE int
 #  else
         #define CAS32(_a,_b,_c, _d) AO_compare_and_swap(_a, _b, _c)
         #define CAS32_TYPE int
