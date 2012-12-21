@@ -549,7 +549,7 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
     		fi 
     		if test "x$CC" = "xclang"; then
-    			CFLAGS_saved="{$CFLAGS_saved} -fcatch-undefined-behavior "
+    			CFLAGS_saved="${CFLAGS_saved} -fcatch-undefined-behavior "
     		fi
 	else
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
