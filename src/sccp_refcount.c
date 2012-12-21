@@ -129,7 +129,7 @@ void sccp_refcount_destroy(void)
 #ifndef SCCP_ATOMIC
 				ast_mutex_destroy(&obj->lock);
 #endif
-				memset(obj, 0, sizeof(obj));
+				memset(obj, 0, sizeof(RefCountedObject));
 				sccp_free(obj);
 				obj = NULL;
 			}
@@ -261,7 +261,7 @@ static inline void remove_obj(const void *ptr)
 		sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (release) Destroying %p at hash: %d\n", obj, hash);
 		if ((&obj_info[obj->type])->destructor)
 			(&obj_info[obj->type])->destructor(ptr);
-		memset(obj, 0, sizeof(obj));
+		memset(obj, 0, sizeof(RefCountedObject));
 		sccp_free(obj);
 		obj = NULL;
 	}
