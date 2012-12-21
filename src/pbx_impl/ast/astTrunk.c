@@ -1261,8 +1261,7 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 		return -1;
 	}
 	if (c->owner != oldchan) {
-		newchan = ast_channel_ref(newchan);
-		c->owner = newchan;
+		c->owner = ast_channel_ref(newchan);
 		oldchan = ast_channel_unref(oldchan);
 	}
 	

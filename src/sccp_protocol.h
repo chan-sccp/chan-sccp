@@ -775,12 +775,12 @@ static const struct skinny_device_registrationstate {
 	const char *const text;
 } skinny_device_registrationstates[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_DEVICE_RS_FAILED, "Failed"},
-	{SKINNY_DEVICE_RS_TIMEOUT, "Time Out"},
-	{SKINNY_DEVICE_RS_NONE, "None"},
-	{SKINNY_DEVICE_RS_TOKEN, "Token"},
-	{SKINNY_DEVICE_RS_PROGRESS, "Progress"},
-	{SKINNY_DEVICE_RS_OK, "OK"}, 
+	{SKINNY_DEVICE_RS_FAILED,	"Failed"	},
+	{SKINNY_DEVICE_RS_TIMEOUT,	"Time Out"	},
+	{SKINNY_DEVICE_RS_NONE,		"None"		},
+	{SKINNY_DEVICE_RS_TOKEN,	"Token"		},
+	{SKINNY_DEVICE_RS_PROGRESS,	"Progress"	},
+	{SKINNY_DEVICE_RS_OK,		"OK"		}, 
 	/* *INDENT-ON* */
 };
 
@@ -788,11 +788,11 @@ static const struct skinny_device_registrationstate {
  * \brief SCCP Device State (ENUM)
  */
 typedef enum {
-	SCCP_DEVICESTATE_ONHOOK = 0,
-	SCCP_DEVICESTATE_OFFHOOK = 1,
-	SCCP_DEVICESTATE_UNAVAILABLE = 2,
-	SCCP_DEVICESTATE_DND = 3,
-	SCCP_DEVICESTATE_FWDALL = 4
+	SCCP_DEVICESTATE_ONHOOK 	= 0,
+	SCCP_DEVICESTATE_OFFHOOK	= 1,
+	SCCP_DEVICESTATE_UNAVAILABLE	= 2,
+	SCCP_DEVICESTATE_DND		= 3,
+	SCCP_DEVICESTATE_FWDALL		= 4
 } sccp_devicestate_t;												/*!< Internal Chan_SCCP Device State */
 
 /*!
@@ -803,11 +803,11 @@ static const struct skinny_device_state {
 	const char *const text;
 } skinny_device_states[] = {
 	/* *INDENT-OFF* */
-	{SCCP_DEVICESTATE_ONHOOK, "On Hook"},
-	{SCCP_DEVICESTATE_OFFHOOK, "Off Hook"},
-	{SCCP_DEVICESTATE_UNAVAILABLE, "Unavailable"},
-	{SCCP_DEVICESTATE_DND, "Do Not Disturb"}, 
-	{SCCP_DEVICESTATE_FWDALL, "Forward All"},
+	{SCCP_DEVICESTATE_ONHOOK,	"On Hook"	},
+	{SCCP_DEVICESTATE_OFFHOOK,	"Off Hook"	},
+	{SCCP_DEVICESTATE_UNAVAILABLE,	"Unavailable"	},
+	{SCCP_DEVICESTATE_DND,		"Do Not Disturb"}, 
+	{SCCP_DEVICESTATE_FWDALL,	"Forward All"	},
 	/* *INDENT-ON* */
 };
 
@@ -853,38 +853,38 @@ static const struct skinny_stimulus {
 	const char *const text;
 } skinny_stimuly[] = {
 	/* *INDENT-OFF* */
-	{SKINNY_STIMULUS_LASTNUMBERREDIAL, "Last Number Redial"},
-	{SKINNY_STIMULUS_SPEEDDIAL, "SpeedDial"},
-	{SKINNY_STIMULUS_HOLD, "Hold"},
-	{SKINNY_STIMULUS_TRANSFER, "Transfer"},
-	{SKINNY_STIMULUS_FORWARDALL, "Forward All"},
-	{SKINNY_STIMULUS_FORWARDBUSY, "Forward Busy"},
-	{SKINNY_STIMULUS_FORWARDNOANSWER, "Forward No Answer"},
-	{SKINNY_STIMULUS_DISPLAY, "Display"},
-	{SKINNY_STIMULUS_LINE, "Line"},
-	{SKINNY_STIMULUS_T120CHAT, "T120 Chat"},
-	{SKINNY_STIMULUS_T120WHITEBOARD, "T120 Whiteboard"},
-	{SKINNY_STIMULUS_T120APPLICATIONSHARING, "T120 Application Sharing"},
-	{SKINNY_STIMULUS_T120FILETRANSFER, "T120 File Transfer"},
-	{SKINNY_STIMULUS_VIDEO, "Video"},
-	{SKINNY_STIMULUS_VOICEMAIL, "VoiceMail"},
-	{SKINNY_STIMULUS_AUTOANSWERRELEASE, "Auto Answer Release"},
-	{SKINNY_STIMULUS_AUTOANSWER, "Auto Answer"},
-	{SKINNY_STIMULUS_SELECT, "Select"},
-	{SKINNY_STIMULUS_DEV_FEATURE, "DevFeature"},
-	{SKINNY_STIMULUS_SERVICEURL, "ServiceURL"},
-	{SKINNY_STIMULUS_BLF, "Busy Lamp Field"},
-	{SKINNY_STIMULUS_MALICIOUSCALL, "Malicious Call"},
-	{SKINNY_STIMULUS_GENERICAPPB1, "Generic App B1"},
-	{SKINNY_STIMULUS_GENERICAPPB2, "Generic App B2"},
-	{SKINNY_STIMULUS_GENERICAPPB3, "Generic App B3"},
-	{SKINNY_STIMULUS_GENERICAPPB4, "Generic App B4"},
-	{SKINNY_STIMULUS_GENERICAPPB5, "Generic App B5"},
-	{SKINNY_STIMULUS_MEETMECONFERENCE, "Meet Me Conference"},
-	{SKINNY_STIMULUS_CONFERENCE, "Conference"},
-	{SKINNY_STIMULUS_CALLPARK, "Call Park"},
-	{SKINNY_STIMULUS_CALLPICKUP, "Call Pickup"}, 
-	{SKINNY_STIMULUS_GROUPCALLPICKUP, "Group Call Pickup"},
+	{SKINNY_STIMULUS_LASTNUMBERREDIAL, 	"Last Number Redial"	},
+	{SKINNY_STIMULUS_SPEEDDIAL, 		"SpeedDial"		},
+	{SKINNY_STIMULUS_HOLD, 			"Hold"			},
+	{SKINNY_STIMULUS_TRANSFER, 		"Transfer"		},
+	{SKINNY_STIMULUS_FORWARDALL, 		"Forward All"		},
+	{SKINNY_STIMULUS_FORWARDBUSY, 		"Forward Busy"		},
+	{SKINNY_STIMULUS_FORWARDNOANSWER,	"Forward No Answer"	},
+	{SKINNY_STIMULUS_DISPLAY,		"Display"		},
+	{SKINNY_STIMULUS_LINE,			"Line"			},
+	{SKINNY_STIMULUS_T120CHAT,		"T120 Chat"		},
+	{SKINNY_STIMULUS_T120WHITEBOARD,	"T120 Whiteboard"	},
+	{SKINNY_STIMULUS_T120APPLICATIONSHARING,"T120 Application Sharing"},
+	{SKINNY_STIMULUS_T120FILETRANSFER,	"T120 File Transfer"	},
+	{SKINNY_STIMULUS_VIDEO,			"Video"			},
+	{SKINNY_STIMULUS_VOICEMAIL,		"VoiceMail"		},
+	{SKINNY_STIMULUS_AUTOANSWERRELEASE,	"Auto Answer Release"	},
+	{SKINNY_STIMULUS_AUTOANSWER,		"Auto Answer"		},
+	{SKINNY_STIMULUS_SELECT,		"Select"		},
+	{SKINNY_STIMULUS_DEV_FEATURE,		"DevFeature"		},
+	{SKINNY_STIMULUS_SERVICEURL,		"ServiceURL"		},
+	{SKINNY_STIMULUS_BLF,			"Busy Lamp Field"	},
+	{SKINNY_STIMULUS_MALICIOUSCALL,		"Malicious Call"	},
+	{SKINNY_STIMULUS_GENERICAPPB1,		"Generic App B1"	},
+	{SKINNY_STIMULUS_GENERICAPPB2,		"Generic App B2"	},
+	{SKINNY_STIMULUS_GENERICAPPB3,		"Generic App B3"	},
+	{SKINNY_STIMULUS_GENERICAPPB4,		"Generic App B4"	},
+	{SKINNY_STIMULUS_GENERICAPPB5,		"Generic App B5"	},
+	{SKINNY_STIMULUS_MEETMECONFERENCE,	"Meet Me Conference"	},
+	{SKINNY_STIMULUS_CONFERENCE,		"Conference"		},
+	{SKINNY_STIMULUS_CALLPARK,		"Call Park"		},
+	{SKINNY_STIMULUS_CALLPICKUP,		"Call Pickup"		}, 
+	{SKINNY_STIMULUS_GROUPCALLPICKUP,	"Group Call Pickup"	},
 	/* *INDENT-ON* */
 };
 
@@ -993,7 +993,7 @@ static const struct skinny_buttontype {
 };
 
 /* unregister */
-#    define SKINNY_UNREGISTERSTATUS_OK		0
+#    define SKINNY_UNREGISTERSTATUS_OK			0
 #    define SKINNY_UNREGISTERSTATUS_ERROR		1
 #    define SKINNY_UNREGISTERSTATUS_NAK 		2							/*!< we have an active channel */
 
@@ -1001,11 +1001,11 @@ static const struct skinny_buttontype {
  * \brief Skinny Lamp Mode (ENUM) 
  */
 typedef enum {
-	SKINNY_LAMP_OFF = 1,											/*!< Lamp Off, 0% Duty */
-	SKINNY_LAMP_ON = 2,											/*!< Lamp On, 100% Duty */
-	SKINNY_LAMP_WINK = 3,											/*!< Lamp slow blink, ~90% Duty */
-	SKINNY_LAMP_FLASH = 4,											/*!< Lamp very fast blink, ~70% Duty */
-	SKINNY_LAMP_BLINK = 5											/*!< Lamp slow blink, ~50% Duty */
+	SKINNY_LAMP_OFF 				= 1,							/*!< Lamp Off, 0% Duty */
+	SKINNY_LAMP_ON 					= 2,							/*!< Lamp On, 100% Duty */
+	SKINNY_LAMP_WINK 				= 3,							/*!< Lamp slow blink, ~90% Duty */
+	SKINNY_LAMP_FLASH 				= 4,							/*!< Lamp very fast blink, ~70% Duty */
+	SKINNY_LAMP_BLINK 				= 5							/*!< Lamp slow blink, ~50% Duty */
 } sccp_lampMode_t;
 
 /*!
@@ -1026,16 +1026,16 @@ static const struct skinny_lampmode {
 
 /* media silence suppression */
 #    define SKINNY_MEDIA_SILENCESUPPRESSION_OFF 	0
-#    define SKINNY_MEDIA_SILENCESUPPRESSION_ON	1
+#    define SKINNY_MEDIA_SILENCESUPPRESSION_ON		1
 
 /* media echo cancel */
-#    define SKINNY_MEDIA_ECHOCANCELLATION_OFF	0
-#    define SKINNY_MEDIA_ECHOCANCELLATION_ON	1
+#    define SKINNY_MEDIA_ECHOCANCELLATION_OFF		0
+#    define SKINNY_MEDIA_ECHOCANCELLATION_ON		1
 
 /* G723 bitrate */
 #    define SKINNY_MEDIA_G723BRATE_NONE 		0
-#    define SKINNY_MEDIA_G723BRATE_5_3		1
-#    define SKINNY_MEDIA_G723BRATE_6_4		2
+#    define SKINNY_MEDIA_G723BRATE_5_3			1
+#    define SKINNY_MEDIA_G723BRATE_6_4			2
 
 /* device reset and restart */
 #    define SKINNY_DEVICE_RESET 			1
@@ -1043,15 +1043,15 @@ static const struct skinny_lampmode {
 
 /* statistic processing */
 #    define SKINNY_STATSPROCESSING_CLEAR		0
-#    define SKINNY_STATSPROCESSING_DONOTCLEAR	1
+#    define SKINNY_STATSPROCESSING_DONOTCLEAR		1
 
 /* ringer types */
 #    define SKINNY_STATION_RINGOFF			1
-#    define SKINNY_STATION_INSIDERING		2
-#    define SKINNY_STATION_OUTSIDERING		3
-#    define SKINNY_STATION_FEATURERING		4
-#    define SKINNY_STATION_SILENTRING		5
-#    define SKINNY_STATION_URGENTRING		6
+#    define SKINNY_STATION_INSIDERING			2
+#    define SKINNY_STATION_OUTSIDERING			3
+#    define SKINNY_STATION_FEATURERING			4
+#    define SKINNY_STATION_SILENTRING			5
+#    define SKINNY_STATION_URGENTRING			6
 
 /*!
  * \brief Skinny Station Structure
@@ -1071,16 +1071,16 @@ static const struct skinny_station {
 };
 
 /* speaker status */
-#    define SKINNY_STATIONSPEAKER_ON		1
-#    define SKINNY_STATIONSPEAKER_OFF		2
+#    define SKINNY_STATIONSPEAKER_ON			1
+#    define SKINNY_STATIONSPEAKER_OFF			2
 
 /* mic status */
 #    define SKINNY_STATIONMIC_ON			1
 #    define SKINNY_STATIONMIC_OFF			2
 
 /* headset status */
-#    define SKINNY_STATIONHEADSET_ON		1
-#    define SKINNY_STATIONHEADSET_OFF		2
+#    define SKINNY_STATIONHEADSET_ON			1
+#    define SKINNY_STATIONHEADSET_OFF			2
 
 /*!
  * \brief Skinny Codecs (ENUM) 
@@ -1337,6 +1337,7 @@ typedef enum {
 	AuditParticipantResMessage = 0x0040,
 	DeviceToUserDataVersion1Message = 0x0041,
 	DeviceToUserDataResponseVersion1Message = 0x0042,
+	MwiNotificationMessage = 0x004C,
 
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage = 0x0048,
@@ -1439,6 +1440,7 @@ typedef enum {
 	UserToDeviceDataVersion1Message = 0x013F,
 
 	/* sent by us */
+	VideoDisplayCommandMessage = 0x0140,
 	Unknown_0x0141_Message = 0x0141,
 	DisplayDynamicNotifyMessage = 0x0143,
 	DisplayDynamicPriNotifyMessage = 0x0144,
@@ -1454,6 +1456,7 @@ typedef enum {
 	Unknown_0x0153_Message = 0x0153,
 	StartMediaTransmissionAck = 0x0154,
 	StartMultiMediaTransmissionAck = 0x0155,
+	CallHistoryInfoMessage = 0x0156,
 	ExtensionDeviceCaps = 0x0159,
 	XMLAlarmMessage = 0x015A,
 
@@ -1621,6 +1624,7 @@ static const struct sccp_messagetype {
 	{Unknown_0x0153_Message, "Undefined 0x0153 Message"},
 	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge"},
+	{CallHistoryInfoMessage, "Call History Info"},
 	{ExtensionDeviceCaps, "Extension Device Capabilities Message"},
 	{XMLAlarmMessage, "XML-AlarmMessage"},
 	
@@ -3632,6 +3636,14 @@ typedef union {
 		uint32_t lel_features;
 	} SPCPRegisterTokenReject;
 
+	struct {
+		uint32_t lel_unknown;
+	} ExtensionDeviceCaps;
+	
+	struct {
+		uint32_t lel_unknown;
+	} CallHistoryInfoMessage;
+
 } sccp_data_t;									/*!< SCCP Data Structure */
 
 /*!
@@ -3910,7 +3922,7 @@ typedef struct {
 	const uint8_t version;
 
 	/* protocol callbacks */
-	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel);
+	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance);
 	void (*const sendDialedNumber) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendRegisterAck) (const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
 	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message);
