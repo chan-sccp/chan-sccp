@@ -636,7 +636,7 @@ sccp_conference_t *sccp_conference_findByID(uint32_t identifier)
 {
 	sccp_conference_t *conference = NULL;
 
-	if (identifier < 0) {
+	if (identifier == 0) {
 		return NULL;
 	}
 	SCCP_LIST_LOCK(&conferences);
@@ -653,7 +653,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_confere
 {
 	sccp_conference_participant_t *participant = NULL;
 
-	if (!conference || identifier < 0) {
+	if (!conference || identifier == 0) {
 		return NULL;
 	}
 	SCCP_LIST_LOCK(&conference->participants);
