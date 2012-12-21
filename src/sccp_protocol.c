@@ -19,12 +19,12 @@
 /*!
  * \brief Send CallInfoMessage (V3)
  */
-static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
 	sccp_moo_t *r;
-	uint8_t instance = 0;
+// 	uint8_t instance = 0;
 
-	instance = sccp_device_find_index_for_line(device, channel->line->name);
+// 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 
 	REQ(r, CallInfoMessage);
 
@@ -82,7 +82,7 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 /*!
  * \brief Send CallInfoMessage (V7)
  */
-static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
 	sccp_moo_t *r;
 	unsigned int dataSize = 12;
@@ -90,9 +90,9 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 	int data_len[dataSize];
 	unsigned int i = 0;
 	int dummy_len = 0;
-	uint8_t instance = 0;							/* line instance on device */
+// 	uint8_t instance = 0;							/* line instance on device */
 
-	instance = sccp_device_find_index_for_line(device, channel->line->name);
+// 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 	memset(data, 0, sizeof(data));
 
 	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
@@ -158,7 +158,7 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 /*!
  * \brief Send CallInfoMessage (V16)
  */
-static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
 	sccp_moo_t *r;
 	unsigned int dataSize = 16;
@@ -166,9 +166,9 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 	int data_len[dataSize];
 	unsigned int i = 0;
 	int dummy_len = 0;
-	uint8_t instance = 0;							/* line instance on device */
+// 	uint8_t instance = 0;							/* line instance on device */
 
-	instance = sccp_device_find_index_for_line(device, channel->line->name);
+// 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 	memset(data, 0, sizeof(data));
 
 	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
@@ -841,6 +841,9 @@ static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
 	&(sccp_deviceProtocol_t) {"SCCP", 19, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17},
 	&(sccp_deviceProtocol_t) {"SCCP", 20, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
+				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17},
+	NULL,
+	&(sccp_deviceProtocol_t) {"SCCP", 22, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17},
 };
 

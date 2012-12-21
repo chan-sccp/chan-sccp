@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `allow` varchar(255) DEFAULT NULL,
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 
 --
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
   `setvar` varchar(50) default NULL,
   `name` varchar(45) NOT NULL default '',
   PRIMARY KEY  (`name`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 --
 -- Table with button-configuration for device
@@ -87,8 +87,11 @@ CREATE TABLE IF NOT EXISTS `buttonconfig` (
   `name` varchar(36) default NULL,
   `options` varchar(100) default NULL,
   PRIMARY KEY  (`device`,`instance`),
-  KEY `device` (`device`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+  KEY `device` (`device`),
+  
+  FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=INNODB DEFAULT CHARSET=latin1;
+
 
 
 

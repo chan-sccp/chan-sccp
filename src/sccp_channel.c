@@ -476,10 +476,14 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
  */
 void sccp_channel_send_callinfo(sccp_device_t * device, sccp_channel_t * channel)
 {
+	uint8_t instance = 0;
+	
 	if (device && channel && channel->callid) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), (channel) ? channel->callid : 0);
-		if (device->protocol && device->protocol->sendCallInfo)
-			device->protocol->sendCallInfo(device, channel);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
+		if (device->protocol && device->protocol->sendCallInfo){
+			instance = sccp_device_find_index_for_line(device, channel->line->name);
+			device->protocol->sendCallInfo(device, channel, instance);
+		}
 	}
 }
 
