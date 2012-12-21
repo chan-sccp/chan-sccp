@@ -59,7 +59,6 @@ static int sccp_sockect_getOurAddressfor(struct in_addr *them, struct in_addr *u
 		return -1;
 	}
 	sin.sin_family = AF_INET;
-//      sin.sin_port = htons(GLOB(ourport));
 	sin.sin_port = GLOB(bindaddr.sin_port);
 	sin.sin_addr = *them;
 	if (connect(s, (struct sockaddr *)&sin, sizeof(sin))) {
@@ -75,53 +74,27 @@ static int sccp_sockect_getOurAddressfor(struct in_addr *them, struct in_addr *u
 	return 0;
 }
 
-void sccp_socket_stop_sessionthread(sccp_session_t * session)
+void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistrationState) 
 {
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Closing session\n", DEV_ID_LOG(session->device));
-	if (!session) {
-		pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
-		return;
-	}
+        sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "%s: Stopping Session Thread\n", DEV_ID_LOG(session->device));
+        if (!session) { 
+                pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
+                return;
+        }
 
-	if (session->session_thread) {
-		session->session_stop = 1;
-		// reverting to using pthread_join for now
-		{
-			pthread_join(session->session_thread, NULL);
-			if (session && AST_PTHREADT_NULL != session->session_thread) {
-				usleep(((session->device) ? session->device->keepalive : GLOB(keepalive)) * 1.1);
-				if (session && AST_PTHREADT_NULL != session->session_thread) {
-					pthread_kill(session->session_thread, SIGURG);
-					sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: sent cancel to thread -> will call destroy session\n", DEV_ID_LOG(session->device));
-				}
-			}
-		}
-		/*
-		 * or nicer would have been to use pthread_cancel
-		 */
-		{
-//			if (pthread_cancel(session->session_thread) == ESRCH) {
-//				pbx_log(LOG_WARNING, "Thread %p does not exist anymore!\n", (void *)session->session_thread);
-//			}
-//			if (session->session_thread != AST_PTHREADT_NULL && pthread_join(session->session_thread, NULL)!=0) {
-//				pbx_log(LOG_WARNING, "Thread %p could not be joined\n", (void *)session->session_thread);
-//				session->session_thread = AST_PTHREADT_NULL;
-//			}
-		}
-		/*
-		 * another option would be to use shutdown
-		 * instead. This would wake up any blocking IO including poll
-		 * session_stop would have to be set/get inside a lock and always be checked immediatly after returning from read/write/ioctl/poll
-		 */
-		{
-//			shutdown(s->fds[0].fd,SHUTDOWN_RDWR);
-		}
-		 
-	} else {
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
-		sccp_session_close(session);
-		destroy_session(session, 0);
-	}
+        if (!session->session_stop) {
+                session->session_stop = 1;
+		if (session->device)
+			session->device->registrationState = newRegistrationState;
+                if (AST_PTHREADT_NULL != session->session_thread) {
+                        shutdown(session->fds[0].fd,SHUT_RD);          // this will also wake up poll
+								// which is waiting for a read event and close down the thread nicely
+                } else {
+                        sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
+                        sccp_session_close(session);
+                        destroy_session(session, 0);
+                }
+        }
 }
 
 /*!
@@ -131,58 +104,54 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session)
  * \lock
  * 	- session
  */
-static void sccp_read_data(sccp_session_t * s)
+static int sccp_read_data(sccp_session_t * s)
 {
-	int bytesAvailable;
+        if (s->session_stop) {
+                return 0;
+        }
 
-	int16_t length, readlen;
-
-	char *input, *newptr;
-
-	if (ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1) {
-		if (errno == EAGAIN) {
-			pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
-		} else {
-			pbx_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s. closing connection\n", strerror(errno));
-			sccp_socket_stop_sessionthread(s);
-		}
-		return;
-	}
-
-	length = (int16_t) bytesAvailable;
-
-	input = sccp_malloc(length + 1);
-	if (!input) {
-		pbx_log(LOG_WARNING, "SCCP: unable to allocate %d bytes for skinny a packet\n", length + 1);
-		sccp_free(input);
-		return;
-	}
-
-	readlen = read(s->fds[0].fd, input, length);
-	if (readlen <= 0) {
-		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
-			pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
-		} else {
-			/* probably a CLOSE_WAIT (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
-			sccp_log(DEBUGCAT_CORE) ("SCCP: device closed connection or network unreachable. closing connection. %d\n", s->fds[0].revents);
-			sccp_socket_stop_sessionthread(s);
-		}
-		sccp_free(input);
-		return;
-	}
-
-	newptr = sccp_realloc(s->buffer, (uint32_t) (s->buffer_size + readlen));
-	if (newptr) {
-		s->buffer = newptr;
-		memcpy(s->buffer + s->buffer_size, input, readlen);
-		s->buffer_size += readlen;
-	} else {
-		pbx_log(LOG_WARNING, "SCCP: unable to reallocate %d bytes for skinny a packet\n", s->buffer_size + readlen);
-		sccp_free(s->buffer);
-		s->buffer_size = 0;
-	}
-
-	sccp_free(input);
+        int bytesAvailable = 0;
+        int16_t readlen = 0;
+        char input[SCCP_MAX_PACKET];
+//        char *newptr;
+ 
+        /* implements a kind of non-blocking socket read on a blocking socket. Only reading as much as is available on the socket, without dissecting the packet. */
+        if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1)) {
+                if (errno == EAGAIN) {
+                        pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
+                } else {
+                        pbx_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s. closing connection\n", strerror(errno));
+                        sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                }
+                return 0;
+        } else {
+                readlen = read(s->fds[0].fd, input, (int16_t) bytesAvailable);
+                if (readlen <= 0) {
+                        if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
+                                pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
+                        } else {        /* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
+                                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: device closed connection or network unreachable. closing connection.\n", DEV_ID_LOG(s->device));
+                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                        }
+                        return 0;
+                } else {
+			/* move s->buffer content to the beginning */
+			memcpy(s->buffer + s->buffer_size, input, readlen);
+			s->buffer_size += readlen;
+/*
+                        newptr = sccp_realloc(s->buffer, (uint32_t) (s->buffer_size + readlen));
+                        if (newptr) {
+                                s->buffer = newptr;
+                                memcpy(s->buffer + s->buffer_size, input, readlen);
+                                s->buffer_size += readlen;
+                        } else {
+                                pbx_log(LOG_WARNING, "SCCP: unable to reallocate %d bytes for an sccp packet\n", s->buffer_size + readlen);
+                                sccp_free(s->buffer);
+                                s->buffer_size = 0;
+                        }*/
+                }
+        }
+        return readlen;
 }
 
 /*!
@@ -376,10 +345,12 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	sccp_session_lock(s);
 	if (s->fds[0].fd > 0) {
 		close(s->fds[0].fd);
+		s->fds[0].fd = -1;
 	}
 	/* freeing buffers */
-	if (s->buffer)
+	if (s->buffer) {
 		sccp_free(s->buffer);
+	}
 	sccp_session_unlock(s);
 
 	/* destroying mutex and cleaning the session */
@@ -401,8 +372,8 @@ void sccp_socket_device_thread_exit(void *session)
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
 
-//      s->session_thread = AST_PTHREADT_NULL;
 	sccp_session_close(s);
+	s->session_thread = AST_PTHREADT_NULL;
 	destroy_session(s, 10);
 }
 
@@ -415,87 +386,93 @@ void sccp_socket_device_thread_exit(void *session)
  */
 void *sccp_socket_device_thread(void *session)
 {
-	sccp_session_t *s = (sccp_session_t *) session;
-	uint8_t keepaliveAdditionalTimePercent = 10;
-	int res;
-	double maxWaitTime;
-	int pollTimeout;
-	sccp_moo_t *m;
+        sccp_session_t *s = (sccp_session_t *) session;
+        uint8_t keepaliveAdditionalTimePercent = 10;   
+        int res;
+        double maxWaitTime;
+        int pollTimeout;   
+        sccp_moo_t *m;     
 
-	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
+        pthread_cleanup_push(sccp_socket_device_thread_exit, session);
 
-	/* we increase additionalTime for wireless/slower devices */
-	if (s->device && (s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)) {
-		keepaliveAdditionalTimePercent += 10;
-	}
+        /* we increase additionalTime for wireless/slower devices */
+        if (s->device && (      
+                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
+                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
+                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 ||
+                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 ||
+                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 ||
+                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)  
+                        ) {
+                keepaliveAdditionalTimePercent += 10;
+        }
 
-	while (!s->session_stop) {
-		/* create cancellation point */
-		pthread_testcancel();
-
+        while (s->fds[0].fd > 0 && !s->session_stop) {
+                /* create cancellation point */
+                pthread_testcancel();
 #ifdef CS_DYNAMIC_CONFIG
-		if (s->device) {
-			pbx_mutex_lock(&GLOB(lock));
-			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE)))
-				sccp_device_check_update(s->device);
-			pbx_mutex_unlock(&GLOB(lock));
-		}
+                if (s->device) {
+                        pbx_mutex_lock(&GLOB(lock));
+                        if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
+                                sccp_device_check_update(s->device);
+			}
+                        pbx_mutex_unlock(&GLOB(lock));
+                }
 #endif
-		if (s->fds[0].fd > 0) {
-			/* calculate poll timout using keepalive interval */
-			maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
-			maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
-			pollTimeout = maxWaitTime * 1000;
+                /* calculate poll timout using keepalive interval */
+                maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
+                maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
+                pollTimeout = maxWaitTime * 1000;
 
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
+                sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
 
-			res = sccp_socket_poll(s->fds, 1, pollTimeout);
-			if (res > 0) {										/* poll data processing */
-				/* we have new data -> continue */
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-				sccp_read_data(s);
-				while ((m = sccp_process_data(s))) {
-					if (!sccp_handle_message(m, s)) {
-						if (s->device && s->device->registrationState)
-							s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-						s->session_stop = 1;
-						sccp_free(m);
-						break;
-					}
-					sccp_free(m);
-					s->lastKeepAlive = time(0);
-				}
-			} else if (res == 0) {									/* poll timeout */
-				if (((int)time(0) > ((int)s->lastKeepAlive + (int)maxWaitTime))) {
-					ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
-					if (s->device && s->device->registrationState)
-						s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-					s->session_stop = 1;
-					break;
-				}
-			} else {										/* poll error */
-				if (!s->session_stop) {
-					pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-					if (s->device && s->device->registrationState)
-						s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
-					s->session_stop = 1;
-				}
+                pthread_testcancel();									/* poll is also a cancellation point */
+                res = sccp_socket_poll(s->fds, 1, pollTimeout);
+                pthread_testcancel();
+                pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+                if (res > 0) {                                                                          /* poll data processing */
+                        if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {                /* POLLIN | POLLPRI*/
+                                /* we have new data -> continue */
+                                sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
+                                if (sccp_read_data(s)>8) {                                                      /* size of header*/   
+                                        while ((m = sccp_process_data(s))) {
+                                                if (!sccp_handle_message(m, s)) {
+                                                        if (s->device) {
+                                                        	sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+                                                        }
+                                                        sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                                                        sccp_free(m);
+                                                        break;
+                                                }
+                                                sccp_free(m);
+                                                s->lastKeepAlive = time(0);
+                                        }
+                                }
+                        } else {                                                                        /* POLLHUP / POLLERR */
+                                pbx_log(LOG_NOTICE,  "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
+                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                                break;
+                        }
+                } else {                                                                                /* poll timeout */
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
+			if (((int)time(0) > ((int)s->lastKeepAlive + (int)maxWaitTime))) {
+				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
+                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
-		} else {											/* session is gone */
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session is Gone\n", DEV_ID_LOG(s->device));
-			if (s->device && s->device->registrationState)
-				s->device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-			s->session_stop = 1;
-			break;
-		}
-	}
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: exiting thread\n", DEV_ID_LOG(s->device));
+                        if ((errno != EAGAIN) && (errno != EINTR)) {
+                                pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                                break;
+                        }
+                }
+                pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+        }
+        sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
 
-	pthread_cleanup_pop(1);
+        pthread_cleanup_pop(1);
 
-	return NULL;
+        return NULL;
 }
 
 /*!
@@ -521,26 +498,19 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
 		return;
 	}
-#ifndef CS_EXPERIMENTAL
-	/* retaining old non-blocking implementation. I don't see a reason to use non-blocking if we are using a thread per session, why would that bring us anything */
-	int dummy = 1;
-
-	if (ioctl(new_socket, FIONBIO, &dummy) < 0) {
-		pbx_log(LOG_ERROR, "Couldn't set socket to non-blocking\n");
-		close(new_socket);
-		return;
-	}
-#endif
-
-	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
+	}
+	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+	}
+	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+	}
 #if defined(linux)
-	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
+	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
+	}	
 #endif
 
 	s = sccp_malloc(sizeof(struct sccp_session));
@@ -551,7 +521,7 @@ static void sccp_accept_connection(void)
 	sccp_session_addToGlobals(s);
 
 	sccp_session_lock(s);
-	s->fds[0].events = POLLIN | POLLPRI;
+	s->fds[0].events = POLLIN | POLLPRI | POLLHUP | POLLERR;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
 
@@ -573,6 +543,8 @@ static void sccp_accept_connection(void)
 	s->protocolType = SCCP_PROTOCOL;
 
 	s->lastKeepAlive = time(0);
+	s->buffer = calloc(1,SCCP_MAX_PACKET * 2);		// maximum buffer size has to be more than one maximum packet
+	s->buffer_size = 0;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
@@ -605,55 +577,41 @@ static void sccp_accept_connection(void)
  */
 static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 {
-	uint32_t packSize;
+	uint32_t packSize = 0;
+	sccp_moo_t *msg = NULL;
 
-	void *newptr = NULL;
-
-	sccp_moo_t *m;
-
-	/* Notice: If the buffer length read so far
-	   is smaller than the length field + some data of at least on byte,
-	   we need and must not parse the packet length yet . (-DD) */
-	if (s->buffer_size <= 4)
-		return NULL;
+	if (s->buffer_size <= 4) {
+		return NULL;											/* Not enough data to even read the packet lenght */
+	}
 
 	memcpy(&packSize, s->buffer, 4);
 	packSize = letohl(packSize);
-
 	packSize += 8;
 
-	if (s->buffer_size < 0 || (packSize) > (uint32_t) s->buffer_size)
+	if (s->buffer_size < 0 || (packSize) > (uint32_t) s->buffer_size) {
 		return NULL;											/* Not enough data, yet. */
+	} else {
+		/* copy the first full message we can find out of s->buffer */
+		msg = sccp_malloc((packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));			/* Only malloc what we need */
+		if (!msg) {
+			pbx_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
+			return NULL;
+		}
+		memset(msg, 0, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));	
+		memcpy(msg, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));
+		msg->length = letohl(msg->length);
 
-	m = sccp_malloc(SCCP_MAX_PACKET);
-	if (!m) {
-		pbx_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for skinny packet\n", SCCP_MAX_PACKET);
-		return NULL;
+		if (packSize > SCCP_MAX_PACKET) {
+			pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(msg->lel_messageId), SCCP_MAX_PACKET, packSize);
+		}	
+
+		/* move s->buffer content to the beginning */
+		s->buffer_size -= packSize;
+		memmove(s->buffer, (s->buffer + packSize), s->buffer_size);
+
+		/* return the message */
+		return msg;
 	}
-
-	memset(m, 0, SCCP_MAX_PACKET);
-
-	memcpy(m, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));
-	m->length = letohl(m->length);
-	s->buffer_size -= packSize;
-
-	if (packSize > SCCP_MAX_PACKET)
-		pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(m->lel_messageId), SCCP_MAX_PACKET, packSize);
-
-	if (s->buffer_size) {
-		newptr = sccp_malloc(s->buffer_size);
-		if (newptr)
-			memcpy(newptr, (s->buffer + packSize), s->buffer_size);
-		else
-			pbx_log(LOG_WARNING, "SCCP: unable to allocate %d bytes for packets buffer\n", s->buffer_size);
-	}
-
-	if (s->buffer)
-		sccp_free(s->buffer);
-
-	s->buffer = newptr;
-
-	return m;
 }
 
 /*!
@@ -695,13 +653,10 @@ void *sccp_socket_thread(void *ignore)
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s) -- ignoring.\n", res, errno, strerror(errno));
 			} else {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
-//                      usleep(10000);
-//                      return NULL;
 			}
 
 		} else if (res == 0) {
 			// poll timeout
-			//pbx_log(LOG_WARNING, "SCCP: Poll TimeOut\n");
 		} else {
 			if (GLOB(module_running)) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
@@ -728,8 +683,9 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t)
 
 	sccp_moo_t *r = sccp_build_packet(t, 0);
 
-	if (r)
+	if (r) {
 		sccp_session_send(device, r);
+	}	
 }
 
 /*!
@@ -741,8 +697,11 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t)
 int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
 {
 	sccp_session_t *s = sccp_session_findByDevice(device);
-
-	return sccp_session_send2(s, r);
+	if (s && !s->session_stop) {
+		return sccp_session_send2(s, r);
+	} else {
+		return -1;
+	}	
 }
 
 /*!
@@ -756,80 +715,83 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
  */
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 {
-	ssize_t res = 0;
-	uint32_t msgid = letohl(r->lel_messageId);
-	ssize_t bytesSent;
-	ssize_t bufLen;
-	uint8_t *bufAddr;
-	unsigned int try, maxTries;;
+        ssize_t res = 0;
+        uint32_t msgid = letohl(r->lel_messageId);
+        ssize_t bytesSent;
+        ssize_t bufLen;  
+        uint8_t *bufAddr;
+        unsigned int try, maxTries;;
 
-	if (!s || s->fds[0].fd <= 0 || s->fds[0].revents & POLLHUP || s->session_stop) {
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
-		sccp_free(r);
-		r = NULL;
-		if (s) {
-			ast_log(LOG_WARNING, "%s. closing connection\n", DEV_ID_LOG(s->device));
-			if (s->device && s->device->registrationState)
-				s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
-			s->session_stop = 1;
-//                        pthread_cancel(s->session_thread);
-//                        s->session_thread = AST_PTHREADT_NULL;
-			sccp_socket_stop_sessionthread(s);
-		}
-		return -1;
-	}
+        if (s && s->session_stop) {
+                return -1;
+        }
 
-	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
-		r->lel_reserved = 0;
-	} else if (s->device && s->device->inuseprotocolversion >= 17) {
-		r->lel_reserved = htolel(0x11);									// we should always send 0x11
-	} else {
-		r->lel_reserved = 0;
-	}
+        if (!s || s->fds[0].fd <= 0) {
+                sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
+                if (s) {
+                        sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                }
+                sccp_free(r);
+                r = NULL; 
+                return -1;
+        }
 
-	try = 0;
-	maxTries = 500;
-	bytesSent = 0;
-	bufAddr = ((uint8_t *) r);
-	bufLen = (ssize_t) (letohl(r->length) + 8);
-	do {
-		try++;
-		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
-		if (res < 0) {
-			if (errno != EINTR && errno != EAGAIN) {
-				pbx_log(LOG_WARNING, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int)res, strerror(errno), errno, (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length));
-				sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
-				if (s) {
-					ast_log(LOG_WARNING, "%s. closing connection", DEV_ID_LOG(s->device));
-					if (s->device && s->device->registrationState)
-						s->device->registrationState = SKINNY_DEVICE_RS_FAILED;
-					s->session_stop = 1;
-//                                        pthread_cancel(s->session_thread);
-//                                        s->session_thread = AST_PTHREADT_NULL;
-					sccp_socket_stop_sessionthread(s);
-				}
-				break;
-			}
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_4 "%s: EAGAIN / EINTR: %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d. Try: %d/%d\n", DEV_ID_LOG(s->device), (int)res, strerror(errno), errno, (int)bytesSent, (int)bufLen, message2str(letohl(r->lel_messageId)), letohl(r->length), try, maxTries);
-			if (errno == 11) {									// resource temporarily unavailable
-				usleep(200);									// back off somewhat longer to give the network buffer some time
-			} else {
-				usleep(50);									// back off a little
-			}
-			continue;
-		}
-		bytesSent += res;
-	} while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && s->fds[0].fd > 0);
+        if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
+                r->lel_reserved = 0;
+        } else if (s->device && s->device->inuseprotocolversion >= 17) {
+                r->lel_reserved = htolel(0x11);                                                                 // we should always send 0x11
+        } else {
+                r->lel_reserved = 0;
+        }
 
-	sccp_free(r);
-	r = NULL;
+        try = 0;
+        maxTries = 500;                                                                                         // arbitrairy number of tries
+        bytesSent = 0;
+        bufAddr = ((uint8_t *) r);
+        bufLen = (ssize_t) (letohl(r->length) + 8);
+        do {
+                try++;
+                ast_mutex_lock(&s->write_lock);                                                                 // prevent two threads writing at the same time. That should happen in a synchronized way
+                res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
+                ast_mutex_unlock(&s->write_lock);
+                if (res < 0) {
+                        if (errno == EINTR || errno == EAGAIN) {
+/*                                sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_4 
+                                                "%s: EAGAIN / EINTR: %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d. Try: %d/%d\n",
+                                                DEV_ID_LOG(s->device), 
+                                                (int)res, strerror(errno), errno,
+                                                (int)bytesSent, (int)bufLen, 
+                                                message2str(letohl(r->lel_messageId)), letohl(r->length),
+                                                try, maxTries
+                                        );*/
+                                usleep(200);                                                                    // back off to give network/other threads some time
+                                continue;
+                        }
+                        pbx_log(LOG_ERROR, 
+                                        "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", 
+                                        DEV_ID_LOG(s->device), 
+                                        (int)res, strerror(errno), errno, 
+                                        (int)bytesSent, (int)bufLen, 
+                                        message2str(letohl(r->lel_messageId)), letohl(r->length)
+                                );
+                        if (s) {
+                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+                        }
+                        res = -1;
+                        break;
+                }
+                bytesSent += res;
+        } while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && s->fds[0].fd > 0);
 
-	if (bytesSent < bufLen) {
-		ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
-		return -1;
-	}
+        sccp_free(r);
+        r = NULL;
 
-	return res;
+        if (bytesSent < bufLen) {
+                ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int)bytesSent, (int)bufLen);
+                res = -1;
+        }
+
+        return res;
 }
 
 /*!
@@ -878,7 +840,7 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 	sccp_session_send2(session, r);
 
 	/* if we reject the connection during accept connection, thread is not ready */
-	sccp_socket_stop_sessionthread(session);
+	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
 	return NULL;
 }
 
@@ -893,7 +855,7 @@ sccp_session_t *sccp_session_crossdevice_cleanup(sccp_session_t * session, sccp_
 	sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
 
 	/* if we reject the connection during accept connection, thread is not ready */
-	sccp_socket_stop_sessionthread(session);
+	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_NONE);
 
 	return NULL;
 }
@@ -910,9 +872,6 @@ void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
 	REQ(r, RegisterTokenReject);
 	r->msg.RegisterTokenReject.lel_tokenRejWaitTime = htolel(backoff_time);
 	sccp_session_send2(session, r);
-
-////    session->device = sccp_device_release(session->device);
-//      session->device = sccp_session_removeDevice(session);   // don't release the session->device after teoken request.
 }
 
 /*!
@@ -965,8 +924,9 @@ struct in_addr *sccp_session_getINaddr(sccp_device_t * device, int type)
 {
 	sccp_session_t *s = sccp_session_findByDevice(device);
 
-	if (!s)
+	if (!s) {
 		return NULL;
+	}	
 
 	switch (type) {
 		case AF_INET:
@@ -983,8 +943,9 @@ void sccp_session_getSocketAddr(const sccp_device_t * device, struct sockaddr_in
 {
 	sccp_session_t *s = sccp_session_findSessionForDevice(device);
 
-	if (!s)
+	if (!s) {
 		return;
+	}
 
 	memcpy(sin, &s->sin, sizeof(struct sockaddr_in));
 }
