@@ -1551,8 +1551,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, channel->callid);
 	}
 
-	if (d->conference_channel == channel) {
-		d->conference_channel = sccp_channel_release(d->conference_channel);
+	if (channel->conference) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
 	}
 
@@ -1677,9 +1676,14 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		if (d->transferChannels.transferer == channel) {
 			d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);
 		}
-		if (d->conference_channel == channel)
-			d->conference_channel = sccp_channel_release(d->conference_channel);
-
+#    ifdef CS_SCCP_CONFERENCE
+		if (d->conference && d->conference == channel->conference) {
+			d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		}
+		if (channel->conference) {
+			channel->conference = sccp_refcount_release(channel->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		}
+#    endif
 		if (channel->privacy) {
 			channel->privacy = FALSE;
 			d->privacyFeature.status = FALSE;

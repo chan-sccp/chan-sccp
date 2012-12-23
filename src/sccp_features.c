@@ -37,12 +37,18 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
+	if (d) {
 #ifdef CS_SCCP_CONFERENCE
-//	sccp_conference_show_list(c->conference, c);
-	sccp_conference_show_list(d->conference, c);
+		if (!d->allow_conference) {
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+			return;
+		}
+		sccp_conference_show_list(d->conference, c);
 #else
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
+	}
 }
 
 /*!
@@ -730,6 +736,13 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 
 	if (!(d = sccp_device_retain(d)) || !c)
 		return;
+		
+	if (!d->allow_conference) {
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+		d = sccp_device_release(d);
+		return;
+	}	
 
 	uint8_t num = sccp_device_numberOfChannels(d);
 
@@ -818,12 +831,12 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 		sccp_dev_displayprompt(d, lineInstance, c->callid, "Error creating conf", 5);
 		pbx_log(LOG_NOTICE, "%s: conference could not be created\n", DEV_ID_LOG(d));
 	}
+	d = d ? sccp_device_release(d) : NULL;
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 #endif
-	d = sccp_device_release(d);
 }
 
 /*!
@@ -837,7 +850,55 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
  */
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
+#ifdef CS_SCCP_CONFERENCE
+//	sccp_channel_t *channel = NULL;
+	if (!c)
+		return;		
+
+	if ((d = sccp_device_retain(d))) {
+		if (!d->allow_conference) {
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+		} else {	
+			if (!d->conference) {
+				pbx_log(LOG_NOTICE, "%s: There is currently no active conference on this device. Start Conference First.\n", DEV_ID_LOG(d));
+				sccp_dev_displayprompt(d, lineInstance, c->callid, "No Running Conference", 5);
+			} else {
+				if (d->active_channel) {
+					pbx_log(LOG_NOTICE, "%s: Adding participant '%d' to conference %d.\n", DEV_ID_LOG(d), d->active_channel->callid, d->conference->id);
+					sccp_conference_splitOffParticipant(d->conference, d->active_channel);
+					// Resume the conference channel
+					sccp_channel_t *channel = NULL;
+					sccp_line_t *line = NULL;
+					uint8_t i = 0;
+					for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+						if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
+							if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
+								SCCP_LIST_LOCK(&line->channels);
+								SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
+									if (channel->conference == d->conference) {
+										sccp_channel_resume(d, channel, FALSE);
+									}
+								}
+								SCCP_LIST_UNLOCK(&line->channels);
+								line = sccp_line_release(line);
+							}
+						}
+
+					}
+				} else {
+					pbx_log(LOG_NOTICE, "%s: No active channel on device to join to the conference.\n", DEV_ID_LOG(d));
+					sccp_dev_displayprompt(d, lineInstance, c->callid, "No Active Channel", 5);
+				}
+			}
+		}
+		d = sccp_device_release(d);
+	}
+#else
+	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+#endif
 }
 
 /*!

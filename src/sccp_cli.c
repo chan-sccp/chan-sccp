@@ -24,11 +24,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
-#ifdef CS_IPV6
-#    define CLI_AMI_LIST_WIDTH 46
-#else
-#    define CLI_AMI_LIST_WIDTH 21
-#endif
 
 /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
 
@@ -185,7 +180,7 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	return ret;
 }
 
-static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
+char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	switch (completer) {
 		case SCCP_CLI_NULL_COMPLETER:
@@ -199,6 +194,9 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 			break;
 		case SCCP_CLI_CHANNEL_COMPLETER:
 			return sccp_complete_channel(line, word, pos, state);
+			break;
+		case SCCP_CLI_CONFERENCE_COMPLETER:
+			return sccp_complete_conference(line, word, pos, state);
 			break;
 		case SCCP_CLI_DEBUG_COMPLETER:
 			return sccp_complete_debug(line, word, pos, state);
@@ -1042,8 +1040,12 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		l = sccp_line_retain(l);											\
 		SCCP_LIST_LOCK(&l->channels);											\
 		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {								\
-			snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);				\
-			d = sccp_channel_getDevice_retained(channel);
+			d = sccp_channel_getDevice_retained(channel);								\
+			if (channel->conference_id) {										\
+				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
+			} else {												\
+				snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);			\
+			}
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
 			if (d)													\
@@ -1173,6 +1175,47 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
+
+/* ---------------------------------------------------------------------------------------------CONFERENCE FUNCTIONS- */
+static char cli_conferences_usage[] = "Usage: sccp show conferences\n" "       Lists running SCCP conferences.\n";
+static char ami_conferences_usage[] = "Usage: SCCPShowConferences\n" "Lists running SCCP conferences.\n\n" "PARAMS: None\n";
+
+#define CLI_COMMAND "sccp", "show", "conferences"
+#define AMI_COMMAND "SCCPShowConferences"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS ""
+CLI_AMI_ENTRY(show_conferences, sccp_cli_show_conferences, "List running SCCP Conferences", cli_conferences_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+
+static char cli_conference_usage[] = "Usage: sccp show conference\n" "       Lists running SCCP conference.\n";
+static char ami_conference_usage[] = "Usage: SCCPShowConference\n" "Lists running SCCP conference.\n\n" "PARAMS: ConferenceId\n";
+
+#define CLI_COMMAND "sccp", "show", "conference"
+#define AMI_COMMAND "SCCPShowConference"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS ""
+CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conference", cli_conference_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+
+static char cli_conference_end_usage[] = "Usage: sccp conference end [conference_id]\n" "	Conference end [conference_id].\n";
+static char ami_conference_end_usage[] = "Usage: SCCPConfEnd [conference id]\n" "End Conference.\n\n" "PARAMS: ConferenceId\n";
+
+#define CLI_COMMAND "sccp", "conference", "end"
+#define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
+#define AMI_COMMAND "SCCPConfEnd"
+#define CLI_AMI_PARAMS "ConferenceId"
+CLI_AMI_ENTRY(conference_end, sccp_cli_conference_end, "Conference End", cli_conference_end_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+
 
 /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
 #    define NUM_LOOPS 20
@@ -2514,7 +2557,10 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_test_message, "Test message."),
 	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 #endif
-	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement.")
+	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
+	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
+	AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
+	AST_CLI_DEFINE(cli_conference_end, "End Conference.")
 };
 
 /*!
@@ -2547,7 +2593,11 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
 	pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
+	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
+	pbx_manager_register("SCCPShowConference", _MAN_REP_FLAGS, manager_show_conference, "show conference", ami_conference_usage);
+	pbx_manager_register("SCCPConfEnd", _MAN_REP_FLAGS, manager_conference_end, "end conference", ami_conference_end_usage);
 }
+
 
 /*!
  * unregister CLI functions from asterisk
@@ -2572,4 +2622,7 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowSoftkeySets");
 	pbx_manager_unregister("SCCPMessageDevices");
 	pbx_manager_unregister("SCCPTokenAck");
+	pbx_manager_unregister("SCCPShowConferences");
+	pbx_manager_unregister("SCCPShowConference");
+	pbx_manager_unregister("SCCPConfEnd");
 }

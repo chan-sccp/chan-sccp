@@ -784,7 +784,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 
 	/*let's activate the transfer */
 	if (softKeySetIndex == KEYMODE_CONNECTED)
-		softKeySetIndex = (( /* d->conference && */ d->conference_channel) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
+		softKeySetIndex = (( d->conference) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
 
 	REQ(r, SelectSoftKeysMessage);
 	if (!r)

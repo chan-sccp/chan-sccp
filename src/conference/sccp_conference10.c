@@ -95,8 +95,12 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 				);
 	}
 #    endif
+	if (participant->channel) {
+		participant->channel->conference_id = 0;
+		participant->channel->conference_participant_id = 0;
+		participant->channel = sccp_channel_release(participant->channel);
+	}	
 	participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
-	participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
 	return;
 }
 
@@ -203,6 +207,8 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 }
 
 
+/* Using a bit of a trick to get at the ast_bridge_channel, there is no remote function provided by asterisk */
+/* should we use asterisk ref / unref for the bridge_channel reference */
 static void sccp_conference_connect_bridge_channels_to_participants(sccp_conference_t *conference)
 {
         struct ast_bridge_channel *bridge_channel = NULL;
@@ -210,12 +216,13 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 
         AST_LIST_TRAVERSE(&conference->bridge->channels, bridge_channel, entry) {
         	participant = sccp_conference_participant_findByPBXChannel(conference, bridge_channel->chan);
+        	if (conference->mute_on_entry)
+		       	participant->features.mute = 1;
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
         	participant->bridge_channel = bridge_channel;
         }
 }
  
-
 /*!
  * \brief Create a new channel and masquerade the bridge peer into the conference
  */
@@ -293,6 +300,13 @@ static void sccp_conference_update_callInfo(sccp_conference_participant_t * part
 	}
 }
 
+/* has to be moved to pbx_impl */
+void pbx_builtin_setvar_int_helper (PBX_CHANNEL_TYPE *channel,const char *var_name, int intvalue) {
+	char valuestr[8]="";
+	snprintf(valuestr,8,"%d",intvalue);
+	pbx_builtin_setvar_helper(channel, var_name, valuestr);
+		
+}
 
 /*!
  * \brief Take the channel bridge peer and add it to the conference (used for the channels on hold)
@@ -309,6 +323,12 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 
 			participant_ast_channel = CS_AST_BRIDGED_CHANNEL(channel->owner);
 
+			sccp_device_t *d = NULL;
+			if ((d = sccp_channel_getDevice_retained(channel))) {
+				//! \todo We need to get the from a channel which is on hold. Need to figure this out.
+//				participant->playback_announcements = d->conf_play_part_announce;
+				participant->playback_announcements = TRUE;
+			}	
 			// if peer is sccp then retain peer_sccp_channel
 			participant->channel = get_sccp_channel_from_pbx_channel(participant_ast_channel);
 			if (sccp_conference_masqueradeChannel(participant_ast_channel, conference, participant)) {
@@ -316,14 +336,20 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 				if (participant->channel) {
 					// re-assign channel->owner to new bridged channel
 					participant->channel->owner = participant->conferenceBridgePeer;
+					participant->channel->conference = sccp_conference_retain(conference);
+					participant->channel->conference_id = conference->id;
+					participant->channel->conference_participant_id = participant->id;
 					sccp_conference_update_callInfo(participant);
 				}
+				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
+				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_PARTICIPANT_ID", participant->id);
 			} else {
 				// Masq Error
 				participant->channel = participant->channel ? sccp_channel_release(participant->channel) : NULL;
 				participant->conference = participant->conference ? sccp_conference_release(participant->conference) : NULL;
 				participant = sccp_participant_release(participant);
 			}
+			d = d ? sccp_device_release(d) : NULL;
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Conference is locked. Participant Denied.\n", conference->id);
@@ -331,11 +357,36 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 	}
 }
 
+// Added to resume after using the "JOIN" Button.
+/*
+void sccp_conference_resume(sccp_conference_t * conference) {
+	sccp_conference_participant_t *participant = NULL;
+	sccp_device_t *d = NULL;
+
+	if (!conference) {
+		return;
+	}
+	SCCP_LIST_LOCK(&conference->participants);
+	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+		if (ast_test_flag(participant->conferenceBridgePeer, AST_FLAG_MOH)) {
+			if (participant->channel && (d = sccp_channel_getDevice_retained(participant->channel))) {
+				sccp_channel_resume(d, participant->channel, FALSE);
+				d = sccp_device_release(d);
+			} else {
+				PBX(queue_control) (participant->conferenceBridgePeer, AST_CONTROL_UNHOLD);
+			}
+		}
+		
+	}
+	SCCP_LIST_UNLOCK(&conference->participants);
+}
+*/
 /*!
  * \brief Add both the channel->owner and the brige peer to the conference
  */
 void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
+	sccp_device_t *d = NULL;
 	if (!conference->isLocked) {
 		sccp_conference_participant_t *moderator = sccp_conference_createParticipant(conference, TRUE);
 
@@ -351,37 +402,42 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 
 			// if peer is sccp then retain peer_sccp_channel
 			moderator->channel = get_sccp_channel_from_pbx_channel(moderator_ast_channel);
-			if (sccp_conference_masqueradeChannel(moderator_ast_channel, conference, moderator)) {
-				sccp_conference_addParticipant_toList(conference, moderator);
-				if (moderator->channel) {
-					// re-assign channel->owner to newly bridged channel
-					moderator->channel->owner = moderator->conferenceBridgePeer;
-					sccp_conference_update_callInfo(moderator);
-				}
-				sccp_copy_string(conference->playback_language, pbx_channel_language(moderator->conferenceBridgePeer), sizeof(conference->playback_language));
-				// update callinfo
-				sccp_device_t *d = NULL;
-				if ((d = sccp_channel_getDevice_retained(channel))) {
+			// update callinfo
+			if ((d = sccp_channel_getDevice_retained(channel))) {
+				conference->mute_on_entry = d->conf_mute_on_entry;
+				conference->playback_announcements = d->conf_play_general_announce;
+				moderator->playback_announcements = d->conf_play_part_announce;
+				if (sccp_conference_masqueradeChannel(moderator_ast_channel, conference, moderator)) {
+					sccp_conference_addParticipant_toList(conference, moderator);
+					if (moderator->channel) {
+						// re-assign channel->owner to newly bridged channel
+						moderator->channel->owner = moderator->conferenceBridgePeer;
+						moderator->channel->conference = sccp_conference_retain(conference);
+						moderator->channel->conference_id = conference->id;
+						moderator->channel->conference_participant_id = moderator->id;
+						sccp_conference_update_callInfo(moderator);
+					}
+					sccp_copy_string(conference->playback_language, pbx_channel_language(moderator->conferenceBridgePeer), sizeof(conference->playback_language));
 					sprintf(channel->callInfo.callingPartyName, "Conference %d", conference->id);
 					sprintf(channel->callInfo.calledPartyName, "Conference %d", conference->id);
 					sccp_channel_send_callinfo(d, channel);
 					sccp_dev_set_keyset(d, 0, channel->callid, KEYMODE_CONNCONF);
-					d = sccp_device_release(d);
+					conference->num_moderators++;
+					playback_to_conference(conference, "conf-enteringno", -1);
+					playback_to_conference(conference, NULL, conference->id);
+					sccp_conference_connect_bridge_channels_to_participants(conference);
+//					sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Moderator Bridge_channel %p, ChannelName %s\n", conference->id, moderator->bridge_channel, moderator->bridge_channel ? moderator->bridge_channel->chan->name : "NULL");
+					pbx_builtin_setvar_int_helper(moderator->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
+					pbx_builtin_setvar_int_helper(moderator->conferenceBridgePeer, "__SCCP_CONFERENCE_PARTICIPANT_ID", moderator->id);
+				} else {
+					// Masq Error
+					moderator->channel = moderator->channel ? sccp_channel_release(moderator->channel) : NULL;
+					moderator->conference = moderator->conference ? sccp_conference_release(moderator->conference) : NULL;
+					moderator = sccp_participant_release(moderator);
 				}
-				conference->num_moderators++;
-				playback_to_conference(conference, "conf-enteringno", -1);
-				playback_to_conference(conference, NULL, conference->id);
-//				usleep(1000);
-				sccp_conference_connect_bridge_channels_to_participants(conference);
-//				sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Moderator Bridge_channel %p, ChannelName %s\n", conference->id, moderator->bridge_channel, moderator->bridge_channel ? moderator->bridge_channel->chan->name : "NULL");
-			} else {
-				// Masq Error
-				moderator->channel = moderator->channel ? sccp_channel_release(moderator->channel) : NULL;
-				moderator->conference = moderator->conference ? sccp_conference_release(moderator->conference) : NULL;
-				moderator = sccp_participant_release(moderator);
+				d = sccp_device_release(d);
 			}
 		}
-
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Conference is locked. Participant Denied.\n", conference->id);
 		pbx_stream_and_wait(channel->owner, "conf-locked", "");
@@ -546,10 +602,14 @@ static int stream_and_wait(PBX_CHANNEL_TYPE *playback_channel, const char *filen
 int playback_to_channel(sccp_conference_participant_t *participant, const char *filename, int say_number) 
 {
 	int res=0;
+	if (!participant->playback_announcements) {
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback for participant %d suppressed\n", participant->conference->id, participant->id);
+		return 1;
+	}
 	if (participant->bridge_channel){
-	        participant->bridge_channel->suspended = 1;
+		participant->bridge_channel->suspended = 1;
 		ast_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
-	        if (stream_and_wait(participant->bridge_channel->chan, filename, say_number)) {
+		if (stream_and_wait(participant->bridge_channel->chan, filename, say_number)) {
 			res = 1;
 		} else {
 			pbx_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
@@ -557,7 +617,6 @@ int playback_to_channel(sccp_conference_participant_t *participant, const char *
 		participant->bridge_channel->suspended = 0;
 		ast_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
 	}
-                                                                        	
 	return res;
 }
 
@@ -569,6 +628,11 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 {
 	PBX_CHANNEL_TYPE *underlying_channel;
 	int res=0;
+
+	if (!conference->playback_announcements) {
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback on conference suppressed\n", conference->id);
+		return 1;
+	}
 
 	pbx_mutex_lock(&conference->playback_lock);
 
@@ -582,16 +646,13 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
 		}
-		
-		/** set channel language */
 		if (!sccp_strlen_zero(conference->playback_language)) {
 			PBX(set_language)(conference->playback_channel, conference->playback_language);
 		}
-		
 		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
 
 		if (ast_call(conference->playback_channel, "", 0)) {
-		pbx_hangup(conference->playback_channel);
+			pbx_hangup(conference->playback_channel);
 			conference->playback_channel = NULL;
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
@@ -612,7 +673,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	} else {
 		/* Channel was already available so we just need to add it back into the bridge */
 		underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
-			sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
+		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
 #    if ASTERISK_VERSION_GROUP < 110
 		pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL);
 #    else
@@ -621,7 +682,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	}
 
 	if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
-                ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
+		ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
 	} else {
 		res = 1;
 	}
@@ -642,11 +703,12 @@ sccp_conference_t *sccp_conference_findByID(uint32_t identifier)
 	SCCP_LIST_LOCK(&conferences);
 	SCCP_LIST_TRAVERSE(&conferences, conference, list) {
 		if (conference->id == identifier) {
+			conference = sccp_conference_retain(conference);	
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&conferences);
-	return sccp_conference_retain(conference);
+	return conference;
 }
 
 sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier)
@@ -659,11 +721,12 @@ sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_confere
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->id == identifier) {
+			participant = sccp_participant_retain(participant);
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
-	return sccp_participant_retain(participant);
+	return participant;
 }
 
 sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel)
@@ -676,11 +739,12 @@ sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_co
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->channel == channel) {
+			participant = sccp_participant_retain(participant);
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
-	return sccp_participant_retain(participant);
+	return participant;
 }
 
 sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE *channel)
@@ -693,11 +757,12 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
 	SCCP_LIST_LOCK(&conference->participants);
 	SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 		if (participant->conferenceBridgePeer == channel) {
+			participant = sccp_participant_retain(participant);
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&conference->participants);
-	return sccp_participant_retain(participant);
+	return participant;
 }
 
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * c)
@@ -946,6 +1011,7 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+	participant->pendingRemoval = TRUE;	
 	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 	stream_and_wait(participant->conferenceBridgePeer, "conf-kicked", -1);
 	sccp_conference_update_conflist(conference);
@@ -960,14 +1026,29 @@ void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp
 
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+	sccp_device_t *d = NULL;
 	if (!participant->isMuted) {	
 		participant->isMuted = 1;
 		participant->features.mute = 1;
 		playback_to_channel(participant, "conf-muted", -1);
+		if (participant->channel) {
+			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+				sccp_dev_set_message(d, "muted", 5, FALSE, FALSE);
+				d = sccp_device_release(d);
+			}
+		}
 	} else {
 		participant->isMuted = 0;
 		participant->features.mute = 0;
 		playback_to_channel(participant, "conf-unmuted", -1);
+		if (participant->channel) {
+			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
+				sccp_dev_set_message(d, "unmuted", 5, FALSE, FALSE);
+				d = sccp_device_release(d);
+			}
+		}
 	}
 	sccp_conference_update_conflist(conference);
 }
@@ -985,5 +1066,189 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_cha
 }
 
 #endif
+
+/* CLI Functions */
+#include <asterisk/cli.h>
+/*!
+ * \brief Complete Conference
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ * 	- lines
+ */
+char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+{
+	sccp_conference_t *conference = NULL;
+	int wordlen = strlen(word), which = 0;
+	char *ret = NULL;
+	char tmpname[20];
+
+	SCCP_LIST_LOCK(&conferences);
+	SCCP_LIST_TRAVERSE(&conferences, conference, list) {
+		snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%d", conference->id);
+		if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
+			ret = strdup(tmpname);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&conferences);
+	return ret;
+}
+
+/*!
+ * \brief List Conferences
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	int local_total = 0;
+	sccp_conference_t *conference = NULL;
+	
+	// table definition
+	#define CLI_AMI_TABLE_NAME Conferences
+	#define CLI_AMI_TABLE_PER_ENTRY_NAME Conference
+
+//	#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_conference_t
+	#define CLI_AMI_TABLE_LIST_ITER_HEAD &conferences
+	#define CLI_AMI_TABLE_LIST_ITER_VAR conference
+	#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+	#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+	#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+
+	#define CLI_AMI_TABLE_FIELDS 																\
+		CLI_AMI_TABLE_FIELD(Id,			d,	3,	conference->id)										\
+		CLI_AMI_TABLE_FIELD(Participants,	d,	12,	conference->participants.size)								\
+		CLI_AMI_TABLE_FIELD(Moderator,		d,	12,	conference->num_moderators)								\
+		CLI_AMI_TABLE_FIELD(Announce,		s,	12,	conference->playback_announcements ? "Yes" : "No")					\
+		CLI_AMI_TABLE_FIELD(MuteOnEntry,	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\
+
+	#include "sccp_cli_table.h"
+
+	if (s)
+		*total = local_total;
+
+	return RESULT_SUCCESS;
+}
+
+/*!
+ * \brief Show Conference Participants
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	sccp_conference_t *conference = NULL;
+	int local_total = 0;
+	int confid = 0;
+	if (argc < 4 || argc > 5 || sccp_strlen_zero(argv[3])) {
+		pbx_log(LOG_WARNING, "At least ConferenceId needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "At least ConferenceId needs to be supplied\n %s", "");
+		return RESULT_FAILURE;
+	}
+	if (!sccp_strIsNumeric(argv[3]) || (confid = atoi(argv[3])) <= 0) {
+		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
+		return RESULT_FAILURE;
+	}
+	
+	if ((conference = sccp_conference_findByID(confid))) {
+		sccp_conference_participant_t *participant = NULL;
+		if (!s) {
+			CLI_AMI_OUTPUT(fd, s, "\n--- SCCP conference ----------------------------------------------------------------------------------\n");
+		} else {
+			astman_send_listack(s, m, argv[0], "start");
+			CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
+		}
+		CLI_AMI_OUTPUT_PARAM("ConfId", CLI_AMI_LIST_WIDTH, "%d", conference->id);
+		#define CLI_AMI_TABLE_NAME Participants
+		#define CLI_AMI_TABLE_PER_ENTRY_NAME Participant
+		#define CLI_AMI_TABLE_LIST_ITER_HEAD &conference->participants
+		#define CLI_AMI_TABLE_LIST_ITER_VAR participant
+		#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+		#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+		#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+		#define CLI_AMI_TABLE_FIELDS 												\
+			CLI_AMI_TABLE_FIELD(Id,			d,	3,	participant->id)					\
+			CLI_AMI_TABLE_FIELD(ChannelName,	s,	20,	participant->conferenceBridgePeer ? participant->conferenceBridgePeer->name : "NULL")		\
+			CLI_AMI_TABLE_FIELD(Moderator,		s,	11,	participant->isModerator ? "Yes" : "No")		\
+			CLI_AMI_TABLE_FIELD(Muted,		s,	5,	participant->isMuted ? "Yes" : "No")			\
+			CLI_AMI_TABLE_FIELD(Announce,		s,	8,	participant->playback_announcements ? "Yes" : "No")	\
+
+		#include "sccp_cli_table.h"
+		conference = sccp_conference_release(conference);		
+	} else {
+		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
+		return RESULT_FAILURE;
+	}		
+	if (s)
+		*total = local_total;
+
+	return RESULT_SUCCESS;
+}
+
+/*!
+ * \brief Conference End
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+int sccp_cli_conference_end(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	int confid = 0;
+	int local_total = 0;
+	sccp_conference_t *conference = NULL;
+	
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Ending Conference, %d, %s,%s,%s,%s\n", argc, argv[0], argv[1], argv[2], argv[3]);
+
+	if (argc < 4 || argc > 5)
+		return RESULT_SHOWUSAGE;
+
+	if (sccp_strlen_zero(argv[3]))
+		return RESULT_SHOWUSAGE;
+
+	if (!sccp_strIsNumeric(argv[3]) || (confid = atoi(argv[3])) <= 0) {
+		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
+		return RESULT_FAILURE;
+	}
+	if ((conference = sccp_conference_findByID(confid))) {
+		sccp_conference_end(conference);
+		conference = sccp_conference_release(conference);
+	} else {
+		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
+		return RESULT_FAILURE;
+	}
+	if (s)
+		*total = local_total;
+	return RESULT_SUCCESS;
+	return RESULT_FAILURE;
+}
+
+
+/* To implement */
+//sccp conference mute conf_id/participant_id
+//sccp conference kick conf_id/particiapnt_id
+
+
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

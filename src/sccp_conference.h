@@ -21,7 +21,7 @@ extern "C" {
 #        include "asterisk/bridging.h"
 #        include "asterisk/bridging_features.h"
 
-	typedef struct sccp_conference sccp_conference_t;			/*!< SCCP Conference Structure */
+//	typedef struct sccp_conference sccp_conference_t;			/*!< SCCP Conference Structure */
 	typedef struct sccp_conference_participant sccp_conference_participant_t;	/*!< SCCP Conference Participant Structure */
 
 /* structures */
@@ -37,15 +37,17 @@ extern "C" {
 		PBX_CHANNEL_TYPE *playback_channel;				/*!< Channel to playback sound file on */
 		ast_mutex_t playback_lock;
 		char playback_language[SCCP_MAX_LANGUAGE];			/*!< Language to be used during playback */
+		boolean_t mute_on_entry;					/*!< Mute new participant when they enter the conference */
+		boolean_t playback_announcements;				/*!< general hear announcements */
 	};
 
 	struct sccp_conference_participant {
 		boolean_t pendingRemoval;					/*!< Pending Removal */
 
 		/* removal handling via cond_wait */
-		ast_mutex_t cond_lock;						/*!< Pthread Condition Mutex */
-		boolean_t removed;						/*!< Condition */
-		ast_cond_t removed_cond_signal;					/*!< Pthread Condition Signal */
+//		ast_mutex_t cond_lock;						/*!< Pthread Condition Mutex */
+//		boolean_t removed;						/*!< Condition */
+//		ast_cond_t removed_cond_signal;					/*!< Pthread Condition Signal */
 
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
@@ -56,6 +58,7 @@ extern "C" {
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
 		boolean_t isModerator;
 		boolean_t isMuted;						/*!< Participant is Muted */
+		boolean_t playback_announcements;				/*!< Does the Participant want to hear announcements */
 
 		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
 	};
@@ -66,6 +69,7 @@ extern "C" {
 //	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
 //	void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
+	void sccp_conference_resume(sccp_conference_t * conference);
 	void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
@@ -85,6 +89,12 @@ extern "C" {
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
+	/* cli functions */
+	char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state);
+	int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
+	int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
+	int sccp_cli_conference_end(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
+	
 #       if defined(__cplusplus) || defined(c_plusplus)
 }
 #       endif

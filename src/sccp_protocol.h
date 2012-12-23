@@ -3836,6 +3836,7 @@ static uint8_t skSet_Conntrans[] = {
 	SKINNY_LBL_TRANSFER,
 #    ifdef CS_SCCP_CONFERENCE
 	SKINNY_LBL_CONFRN,
+	SKINNY_LBL_JOIN,
 #    endif
 #    ifdef CS_SCCP_PARK
 	SKINNY_LBL_PARK,

@@ -284,8 +284,9 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 /*!
  * \brief SCCP Conference Structure
  */
-	struct sccp_conference;
-
+#ifdef CS_SCCP_CONFERENCE
+	typedef struct sccp_conference sccp_conference_t;
+#endif	
 /*!
  * \brief SCCP Private Channel Data Structure
  */
@@ -864,7 +865,6 @@ struct sccp_device {
 	unsigned int video_tos;							/*!< video stream type_of_service (TOS) (VRTP) */
 	unsigned int audio_cos;							/*!< audio stream class_of_service (COS) (VRTP) */
 	unsigned int video_cos;							/*!< video stream class_of_service (COS) (VRTP) */
-	uint32_t conferenceid;							/*!< Conference ID */
 	boolean_t meetme;							/*!< Meetme on/off */
 	char meetmeopts[SCCP_MAX_CONTEXT];					/*!< Meetme Options to be Used */
 
@@ -874,7 +874,6 @@ struct sccp_device {
 	uint32_t mwilight;							/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
 
 	boolean_t transfer;							/*!< Transfer Support (Boolean, default=on) */
-	//unsigned int conference: 1;                                   /*!< Conference Support (Boolean, default=on) */
 	boolean_t park;								/*!< Park Support (Boolean, default=on) */
 	boolean_t cfwdall;							/*!< Call Forward All Support (Boolean, default=on) */
 	boolean_t cfwdbusy;							/*!< Call Forward on Busy Support (Boolean, default=on) */
@@ -900,7 +899,6 @@ struct sccp_device {
 		sccp_channel_t *transferer;					/*!< SCCP Channel that transfers transferee  */
 	} transferChannels;
 	
-	sccp_channel_t *conference_channel;					/*!< SCCP Channel which is going to be Conferenced */
 	sccp_line_t *currentLine;						/*!< Current Line */
 	sccp_session_t *session;						/*!< Current Session */
 	SCCP_RWLIST_ENTRY(sccp_device_t) list;					/*!< Global Device Linked List */
@@ -966,7 +964,6 @@ struct sccp_device {
 	} scheduleTasks;
 
 	char videoSink[MAXHOSTNAMELEN];						/*!< sink to send video */
-	struct sccp_conference *conference;					/*!< conference we are part of */
 
 	btnlist *buttonTemplate;
 
@@ -975,7 +972,6 @@ struct sccp_device {
 #    endif
 
 #    ifdef CS_SCCP_CONFERENCE
-	boolean_t conferencelist_active;
 #    endif
 	struct {
 		char *action;
@@ -998,6 +994,15 @@ struct sccp_device {
 	sccp_mutex_t messageStackLock;						/*!< Message Stack Lock */
 #endif	
 	sccp_call_statistics_t call_statistics[2];				/*!< Call statistics */
+#ifdef CS_SCCP_CONFERENCE
+	sccp_conference_t *conference;						/*!< conference we are part of // to be removed in favor of conference_id */
+	uint32_t conference_id;							/*!< Conference ID */
+	boolean_t conferencelist_active;					/*!< ConfList is being displayed on this device */
+	boolean_t allow_conference;						/*!< Allow use of conference */
+	boolean_t conf_play_general_announce;					/*!< Playback General Announcements (Entering/Leaving)*/
+	boolean_t conf_play_part_announce;					/*!< Playback Personal Announcements (You have been Kicked/You are muted)*/
+	boolean_t conf_mute_on_entry;						/*!< Mute participants when they enter */
+#endif		
 };
 
 // Number of additional keys per addon -FS
@@ -1139,7 +1144,11 @@ struct sccp_channel {
 	/* feature sets */
 //              boolean_t monitorEnabled;                                       /*!< Monitor Enabled Feature */
 
-	struct sccp_conference *conference;					/*!< are we part of a conference? */
+#ifdef CS_SCCP_CONFERENCE
+	sccp_conference_t *conference;						/*!< are we part of a conference? // to be removed instead of conference_id */
+	uint32_t conference_id;							/*!< Conference ID (might be safer to use instead of conference)*/
+	uint32_t conference_participant_id;					/*!< Conference Participant ID */
+#endif	
 	sccp_channel_t *parentChannel;						/*!< if we are a cfwd channel, our parent is this */
 
 	struct subscriptionId subscriptionId;
