@@ -2191,6 +2191,18 @@ boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 	return FALSE;
 }
 
+int sccp_strIsNumeric (const char *s) 
+{
+     if (*s) {
+          char c;
+          while ((c=*s++)) {
+                if (!isdigit(c)) return 0;
+          }
+          return 1;
+      }
+      return 0;
+}
+
 /*!
  * \brief Find the best codec match Between Preferences, Capabilities and RemotePeerCapabilities
  * 
