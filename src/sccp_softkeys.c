@@ -85,11 +85,7 @@ void sccp_softkey_clear()
 static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_NEWCALL, sccp_sk_newcall, FALSE},
 	{SKINNY_LBL_REDIAL, sccp_sk_redial, FALSE},
-#ifdef CS_SCCP_CONFERENCE
-	{SKINNY_LBL_CONFRN, sccp_sk_conference, TRUE},
-#endif
 	{SKINNY_LBL_MEETME, sccp_sk_meetme, TRUE},
-	{SKINNY_LBL_JOIN, sccp_sk_join, TRUE},
 	{SKINNY_LBL_BARGE, sccp_sk_barge, TRUE},
 	{SKINNY_LBL_CBARGE, sccp_sk_cbarge, TRUE},
 	{SKINNY_LBL_HOLD, sccp_sk_hold, TRUE},
@@ -102,9 +98,6 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_ENDCALL, sccp_sk_endcall, TRUE},
 	{SKINNY_LBL_RESUME, sccp_sk_resume, TRUE},
 	{SKINNY_LBL_ANSWER, sccp_sk_answer, TRUE},
-#ifdef CS_SCCP_PARK
-	{SKINNY_LBL_PARK, sccp_sk_park, TRUE},
-#endif
 
 	{SKINNY_LBL_TRNSFVM, sccp_sk_trnsfvm, TRUE},
 	{SKINNY_LBL_IDIVERT, sccp_sk_trnsfvm, TRUE},
@@ -112,18 +105,22 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_DIRTRFR, sccp_sk_dirtrfr, TRUE},
 	{SKINNY_LBL_SELECT, sccp_sk_select, TRUE},
 	{SKINNY_LBL_PRIVATE, sccp_sk_private, TRUE},
+	{SKINNY_LBL_MONITOR, sccp_feat_monitor, TRUE},
+	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE},
+	{SKINNY_LBL_DIAL, sccp_sk_dial, TRUE},
+	{SKINNY_LBL_VIDEO_MODE, sccp_sk_videomode, TRUE},
+#ifdef CS_SCCP_PARK
+	{SKINNY_LBL_PARK, sccp_sk_park, TRUE},
+#endif
 #ifdef CS_SCCP_PICKUP
 	{SKINNY_LBL_PICKUP, sccp_sk_pickup, FALSE},
 	{SKINNY_LBL_GPICKUP, sccp_sk_gpickup, FALSE},
 #endif
-	{SKINNY_LBL_MONITOR, sccp_feat_monitor, TRUE},
-	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE},
 #ifdef CS_SCCP_CONFERENCE
+	{SKINNY_LBL_CONFRN, sccp_sk_conference, TRUE},
+	{SKINNY_LBL_JOIN, sccp_sk_join, TRUE},
 	{SKINNY_LBL_CONFLIST, sccp_sk_conflist, TRUE},
 #endif
-	{SKINNY_LBL_DIAL, sccp_sk_dial, TRUE},
-	{SKINNY_LBL_VIDEO_MODE, sccp_sk_videomode, TRUE},
-
 };
 
 /*!

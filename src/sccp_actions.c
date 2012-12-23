@@ -1732,6 +1732,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_device_t * d, sc
 				break;
 #ifdef CS_SCCP_CONFERENCE
 			case SKINNY_LBL_CONFRN:
+			case SKINNY_LBL_JOIN:
 			case SKINNY_LBL_CONFLIST:
 				if (d->allow_conference) {	
 					r1->msg.SoftKeyTemplateResMessage.definition[i].softKeyLabel[0] = 128;
