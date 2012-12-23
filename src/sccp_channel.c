@@ -1190,7 +1190,11 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	}
 
 	/* look if we have a call to put on hold */
-	if ((channel = sccp_channel_get_active(device)) && (NULL == channel->conference)) {
+	if ((channel = sccp_channel_get_active(device))
+#if CS_SCCP_CONFERENCE
+							&& (NULL == channel->conference)
+#endif
+			) {
 		/* there is an active call, let's put it on hold first */
 		int ret = sccp_channel_hold(channel);
 
@@ -1551,9 +1555,11 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, channel->callid);
 	}
 
+#ifdef CS_SCCP_CONFERENCE
 	if (channel->conference) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
 	}
+#endif	
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 

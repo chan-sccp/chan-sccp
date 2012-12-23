@@ -784,7 +784,11 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 
 	/*let's activate the transfer */
 	if (softKeySetIndex == KEYMODE_CONNECTED)
-		softKeySetIndex = (( d->conference) ? KEYMODE_CONNCONF : (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
+		softKeySetIndex = (
+#if CS_SCCP_CONFERENCE
+					( d->conference) ? KEYMODE_CONNCONF : 
+#endif
+						(d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED);
 
 	REQ(r, SelectSoftKeysMessage);
 	if (!r)
@@ -804,6 +808,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_REDIAL, FALSE);
 	}
 	
+#if CS_SCCP_CONFERENCE
 	if(d->allow_conference){
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, TRUE);
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFLIST, TRUE);
@@ -813,6 +818,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFLIST, FALSE);
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_JOIN, FALSE);
 	}
+#endif
 	
 	//r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	r->msg.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
