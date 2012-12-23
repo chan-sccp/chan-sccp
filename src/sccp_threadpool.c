@@ -63,7 +63,7 @@ struct sccp_threadpool {
  * sem  	        = semaphore
  * xN           	= x can be any string. N stands for amount
  * */
-static int sccp_threadpool_shuttingdown = 0;
+static volatile int sccp_threadpool_shuttingdown = 0;
 
 /* Initialise thread pool */
 sccp_threadpool_t *sccp_threadpool_init(int threadsN)
