@@ -85,7 +85,7 @@ void sccp_softkey_clear()
 static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_NEWCALL, sccp_sk_newcall, FALSE},
 	{SKINNY_LBL_REDIAL, sccp_sk_redial, FALSE},
-#ifdef CS_CONFERENCE
+#ifdef CS_SCCP_CONFERENCE
 	{SKINNY_LBL_CONFRN, sccp_sk_conference, TRUE},
 #endif
 	{SKINNY_LBL_MEETME, sccp_sk_meetme, TRUE},
@@ -118,7 +118,7 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 #endif
 	{SKINNY_LBL_MONITOR, sccp_feat_monitor, TRUE},
 	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE},
-#ifdef CS_CONFERENCE
+#ifdef CS_SCCP_CONFERENCE
 	{SKINNY_LBL_CONFLIST, sccp_sk_conflist, TRUE},
 #endif
 	{SKINNY_LBL_DIAL, sccp_sk_dial, TRUE},
