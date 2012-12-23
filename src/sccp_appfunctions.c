@@ -136,8 +136,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		snprintf(buf, len, "%d", d->active_channel->callid);
 	} else if (!strcasecmp(colname, "transfer_channel")) {
 		snprintf(buf, len, "%d", d->transferChannels.transferee->callid);
-	} else if (!strcasecmp(colname, "conference_channel")) {
-		snprintf(buf, len, "%d", d->conference_channel->callid);
+#ifdef CS_SCCP_CONFERENCE
+	} else if (!strcasecmp(colname, "conference_id")) {
+		snprintf(buf, len, "%d", d->conference->id);
+#endif		
 	} else if (!strcasecmp(colname, "current_line")) {
 		sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", len);
 	} else if (!strcasecmp(colname, "button_config")) {
