@@ -1211,9 +1211,12 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
 
-static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE * ast, const char *dest, int timeout)
+static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE *ast, const char *dest, int timeout)
 {
 	sccp_channel_t *c = NULL;
+	struct varshead *headp;
+	struct ast_var_t *current;
+	
 	int res = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
@@ -1227,11 +1230,25 @@ static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE * ast, const char *des
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
 		pbx_log(LOG_WARNING, "SCCP: Asterisk request to call %s on channel: %s, but we don't have this channel!\n", dest, pbx_channel_name(ast));
 		return -1;
-	} else {
-		res = sccp_pbx_call(c, (char *)dest, timeout);
-		c = sccp_channel_release(c);
-		return res;
+	} 
+	
+	/* Check whether there is MaxCallBR variables */
+	headp = ast_channel_varshead(ast);
+	//ast_log(LOG_NOTICE, "SCCP: search for varibles!\n");
+		
+	AST_LIST_TRAVERSE(headp, current, entries) {
+		//ast_log(LOG_NOTICE, "var: name: %s, value: %s\n", ast_var_name(current), ast_var_value(current));
+		if( !strcasecmp(ast_var_name(current), "__MaxCallBR") ){
+			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+		} else if( !strcasecmp(ast_var_name(current), "MaxCallBR") ){
+			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+		}
 	}
+		
+	res = sccp_pbx_call(c, (char *)dest, timeout);
+	c = sccp_channel_release(c);
+	return res;
+	
 }
 
 static int sccp_wrapper_asterisk111_answer(PBX_CHANNEL_TYPE * chan)
