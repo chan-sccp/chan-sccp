@@ -158,7 +158,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	void *ptr = NULL;
 	int hash;
 
-	if (!(obj = malloc(size + sizeof(*obj)))) {
+	if (!(obj = calloc(1, size + sizeof(*obj)))) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
 		return NULL;
 	}
