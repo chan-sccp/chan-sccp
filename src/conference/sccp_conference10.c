@@ -1065,8 +1065,6 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_cha
 {
 }
 
-#endif
-
 /* CLI Functions */
 #include <asterisk/cli.h>
 /*!
@@ -1249,6 +1247,6 @@ int sccp_cli_conference_end(int fd, int *total, struct mansession *s, const stru
 //sccp conference mute conf_id/participant_id
 //sccp conference kick conf_id/participant_id
 
-
+#endif
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
