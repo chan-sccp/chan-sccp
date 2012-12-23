@@ -806,8 +806,12 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	
 	if(d->allow_conference){
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, TRUE);
+		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFLIST, TRUE);
+		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_JOIN, TRUE);
 	}else{
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, FALSE);
+		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFLIST, FALSE);
+		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_JOIN, FALSE);
 	}
 	
 	//r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
