@@ -1391,7 +1391,7 @@ static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * ast, char *dest, int 
 	} 
 	
 	/* Check whether there is MaxCallBR variables */
-	headp = ast_channel_varshead(ast);
+	headp = &ast->varshead;
 	//ast_log(LOG_NOTICE, "SCCP: search for varibles!\n");
 		
 	AST_LIST_TRAVERSE(headp, current, entries) {
