@@ -1367,6 +1367,8 @@ static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * chan
 static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
 {
 	sccp_channel_t *c = NULL;
+	struct varshead		*headp;
+	struct ast_var_t	*current;
 	int res = 0;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
@@ -1380,18 +1382,31 @@ static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int 
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
 		pbx_log(LOG_WARNING, "SCCP: Asterisk request to call %s on channel: %s, but we don't have this channel!\n", dest, pbx_channel_name(ast));
 		return -1;
-	} else {
-		char *cid_name = NULL;
-		char *cid_number = NULL;
-
-		sccp_wrapper_asterisk16_callerid_name(c, &cid_name);
-		sccp_wrapper_asterisk16_callerid_number(c, &cid_number);
-
-		sccp_channel_set_callingparty(c, cid_name, cid_number);
-
-		if (cid_name) {
-			free(cid_name);
+	} 
+	
+	/* Check whether there is MaxCallBR variables */
+	headp = &ast->varshead;
+	//ast_log(LOG_NOTICE, "SCCP: search for varibles!\n");
+		
+	AST_LIST_TRAVERSE(headp, current, entries) {
+		//ast_log(LOG_NOTICE, "var: name: %s, value: %s\n", ast_var_name(current), ast_var_value(current));
+		if( !strcasecmp(ast_var_name(current), "__MaxCallBR") ){
+			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
+		} else if( !strcasecmp(ast_var_name(current), "MaxCallBR") ){
+			sccp_asterisk_pbx_fktChannelWrite(ast, "CHANNEL", "MaxCallBR", ast_var_value(current));
 		}
+	}
+	char *cid_name = NULL;
+	char *cid_number = NULL;
+
+	sccp_wrapper_asterisk16_callerid_name(c, &cid_name);
+	sccp_wrapper_asterisk16_callerid_number(c, &cid_number);
+
+	sccp_channel_set_callingparty(c, cid_name, cid_number);
+
+	if (cid_name) {
+		free(cid_name);
+	}
 
 		if (cid_number) {
 			free(cid_number);
@@ -1400,7 +1415,7 @@ static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int 
 		res = sccp_pbx_call(c, dest, timeout);
 		c = sccp_channel_release(c);
 		return res;
-	}
+	
 }
 
 static int sccp_wrapper_asterisk16_answer(PBX_CHANNEL_TYPE * chan)
