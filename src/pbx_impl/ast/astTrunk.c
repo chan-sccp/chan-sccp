@@ -157,13 +157,13 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
  *
  * \todo check bitwise operator (not sure) - DdG 
  */
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
+int skinny_codecs2pbx_codec_pref(skinny_codec_t *skinny_codecs, struct ast_codec_pref *astCodecPref)
 {
-	struct ast_format *dst = NULL;
-	uint32_t codec = skinny_codecs2pbx_codecs(skinny_codecs);		// convert to bitfield
+	struct ast_format dst;
+	uint32_t codec = skinny_codecs2pbx_codecs(skinny_codecs);					// convert to bitfield
 
-	dst = ast_format_from_old_bitfield(dst, codec);								// convert bitfield to ast_format
-	return ast_codec_pref_append(astCodecPref, dst);							// return ast_codec_pref
+	ast_format_from_old_bitfield(&dst, codec);
+	return ast_codec_pref_append(astCodecPref, &dst );						// return ast_codec_pref
 }
 
 static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
