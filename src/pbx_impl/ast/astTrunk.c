@@ -583,6 +583,9 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame)
 {
 	sccp_channel_t *c = NULL;
+#ifdef CS_SCCP_VIDEO
+	sccp_device_t *device;
+#endif
 	int res = 0;
 
 //      if (!(c = get_sccp_channel_from_pbx_channel(ast))) {            // not following the refcount rules... channel is already retained
@@ -608,7 +611,13 @@ static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 		case AST_FRAME_IMAGE:
 		case AST_FRAME_VIDEO:
 #ifdef CS_SCCP_VIDEO
-			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && c->getDevice(c)
+#if DEBUG
+			device = c->getDevice_retained(c, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+#else
+			device = c->getDevice_retained(c);
+#endif
+			
+			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && device
 			    && c->state != SCCP_CHANNELSTATE_HOLD) {
 //                      int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
 				int codec = pbx_codec2skinny_codec((frame->frametype == AST_FRAME_VIDEO));
@@ -623,6 +632,8 @@ static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 			if (c->rtp.video.rtp && (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) != 0) {
 				res = ast_rtp_instance_write(c->rtp.video.rtp, frame);
 			}
+			
+			device = device ? sccp_device_release(device) : NULL;
 #endif
 			break;
 		case AST_FRAME_TEXT:
