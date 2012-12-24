@@ -321,8 +321,9 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	if (s->device && s->device->session && s->device->session != s) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy CrossDevice Session %s\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_session_removeFromGlobals(s->device->session);
-		if (s->device->session->device)
+		if (s->device->session && s->device->session->device){
 			s->device->session->device = sccp_session_removeDevice(s->device->session);
+		}
 	}
 
 	found_in_list = sccp_session_removeFromGlobals(s);
