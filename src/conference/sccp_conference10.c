@@ -168,7 +168,8 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 		}
 	}
 #    endif
-	return sccp_conference_retain(conference);
+	conference = sccp_conference_retain(conference);		// return retained
+	return conference;
 }
 
 /*! 
