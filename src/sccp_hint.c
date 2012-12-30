@@ -1190,13 +1190,14 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		/* set initial state */
 		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 
-		sccp_line_t *line = sccp_line_find_byname(lineName);
-
-		if (!line) {
-			pbx_log(LOG_WARNING, "SCCP: (sccp_hint_create) Error adding hint (SCCP) for line: %s. The line does not exist!\n", hint_dialplan);
-		} else {
+		sccp_line_t *line = NULL;
+		
+		if ((line =sccp_line_find_byname(lineName))) {
 			sccp_hint_hintStatusUpdate(hint);
-		}
+			line = sccp_line_release(line);
+		} else {
+			pbx_log(LOG_WARNING, "SCCP: (sccp_hint_create) Error adding hint (SCCP) for line: %s. The line does not exist!\n", hint_dialplan);
+		}	
 	}
 
 	return hint;
