@@ -1,3 +1,4 @@
+
 /*!
  * \file 	sccp_hint.h
  * \brief 	SCCP Hint Header
@@ -10,8 +11,8 @@
  * $Revision: 2130 $  
  */
 
-#ifndef SCCP_HINT_H_
-#    define SCCP_HINT_H_
+#    ifndef SCCP_HINT_H_
+#define SCCP_HINT_H_
 
 typedef enum { ASTERISK = 0, INTERNAL = 1 } sccp_hinttype_t;
 
@@ -56,15 +57,33 @@ struct sccp_hint_list {
 	 * \brief Call Information Structure
 	 */
 	struct {
-		char partyNumber[StationMaxNameSize];				/*!< Calling Party Name */
-		char partyName[StationMaxNameSize];				/*!< Called Party Name */
+		char callingPartyName[StationMaxNameSize];			/*!< Calling Party Name */
+		char calledPartyName[StationMaxNameSize];			/*!< Called Party Name */
+		char callingParty[StationMaxNameSize];				/*!< Calling Party Number */
+		char calledParty[StationMaxNameSize];				/*!< Called Party Number */
 		skinny_calltype_t calltype;					/*!< Skinny Call Type */
 	} callInfo;								/*!< Call Information Structure */
 
-	struct pbx_event_sub *device_state_sub;
+	/*!
+	 * \brief SCCP Hint Type Structure
+	 */
+	union sccp_hint_type {
+		struct {
+			char lineName[SCCP_MAX_EXTENSION];			/*!< Line Name */
+		} internal;							/*!< Hint Type Internal Structure */
 
-	SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;		/*!< Hint Type Subscribers Linked List Entry */
-	SCCP_LIST_ENTRY(sccp_hint_list_t) list;					/*!< Hint Type Linked List Entry */
+		struct {
+			int hintid;						/*!< Hint ID */
+#ifndef AST_EVENT_IE_CIDNAME
+			pthread_t notificationThread;				/*!< Notification Thread */
+#else
+			struct pbx_event_sub *device_state_sub;
+#endif
+		} asterisk;							/*!< Hint Type Asterisk Structure */
+	} type;									/*!< Hint Type Structure */
+
+	 SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;		/*!< Hint Type Subscribers Linked List Entry */
+	 SCCP_LIST_ENTRY(sccp_hint_list_t) list;				/*!< Hint Type Linked List Entry */
 };										/*!< SCCP Hint List Structure */
 
 /*!
@@ -75,16 +94,16 @@ struct sccp_hint_list {
  * \param data Asterisk Data
  * \return Status as int
  */
-#    if ASTERISK_VERSION_NUMBER >= 11000
+#if ASTERISK_VERSION_NUMBER >= 11001
 int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
-#    else
+#else
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
-#    endif
+#endif
 
-sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
-
-void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, int attached);
+#define sccp_hint_lineStatusChanged(a,b,c,d,e) sccp_hint_lineStatusChangedDebug(a,b,c,d,e, __FILE__, __LINE__)
+void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *callerFile, int callerLine);
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
+sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
 
-#endif										/* SCCP_HINT_H_ */
+#    endif										/* SCCP_HINT_H_ */

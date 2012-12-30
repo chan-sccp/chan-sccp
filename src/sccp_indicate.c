@@ -415,12 +415,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	event.type = SCCP_EVENT_LINESTATUS_CHANGED;
 	event.event.lineStatusChanged.line = sccp_line_retain(l);
 	event.event.lineStatusChanged.device = sccp_device_retain(device);
-	event.event.lineStatusChanged.state = state;
+	event.event.lineStatusChanged.state = c->state;
 	sccp_event_fire(&event);
 
 	/** notify state change to hint system (incl. asterisk ) */
+//	sccp_hint_lineStatusChanged(l, d, 1);
 //	sccp_hint_lineStatusChanged(l, d, c, c->previousChannelState, c->state);
-	sccp_hint_lineStatusChanged(l, d, 1);
 
 	sccp_device_release(d);
 	sccp_line_release(l);
