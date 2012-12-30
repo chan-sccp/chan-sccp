@@ -55,7 +55,7 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 //static int sccp_wrapper_asterisk18_setOption(PBX_CHANNEL_TYPE *ast, int option, void *data, int datalen);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
-static int sccp_asterisk_devicestate(void *data);
+static int sccp_wrapper_asterisk18_devicestate(void *data);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -69,7 +69,7 @@ static struct ast_channel_tech sccp_tech = {
 	capabilities:		AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
 	properties:		AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	requester:		sccp_wrapper_asterisk18_request,
-	devicestate:		sccp_asterisk_devicestate,
+	devicestate:		sccp_wrapper_asterisk18_devicestate,
 	send_digit_begin:	sccp_wrapper_recvdigit_begin,
 	send_digit_end:		sccp_wrapper_recvdigit_end,
 	call:			sccp_wrapper_asterisk18_call,
@@ -111,7 +111,7 @@ const struct ast_channel_tech sccp_tech = {
 	.capabilities 		= AST_FORMAT_SLINEAR16 | AST_FORMAT_SLINEAR | AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
 	.properties 		= AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester 		= sccp_wrapper_asterisk18_request,
-	.devicestate 		= sccp_asterisk_devicestate,
+	.devicestate 		= sccp_wrapper_asterisk18_devicestate,
 	.call 			= sccp_wrapper_asterisk18_call,
 	.hangup 		= sccp_wrapper_asterisk18_hangup,
 	.answer 		= sccp_wrapper_asterisk18_answer,
@@ -147,6 +147,81 @@ const struct ast_channel_tech sccp_tech = {
 	/* *INDENT-ON* */
 };
 #endif
+
+/*
+static int sccp_asterisk_devicestate(void *data)
+{
+//      sccp_line_t *l = NULL;
+	int res = AST_DEVICE_UNKNOWN;
+	char *lineName = (char *)data;
+	char *deviceId = NULL;
+	sccp_channelState_t state;
+
+//      pbx_log(LOG_WARNING, "asterisk requests state for '%s'\n", (char *)lineName);
+
+	// exclude options 
+	if ((deviceId = strchr(lineName, '@'))) {
+		*deviceId = '\0';
+		deviceId++;
+	}
+
+	state = sccp_hint_getLinestate(lineName, deviceId);
+	switch (state) {
+		case SCCP_CHANNELSTATE_DOWN:
+		case SCCP_CHANNELSTATE_ONHOOK:
+			res = AST_DEVICE_NOT_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_RINGING:
+			res = AST_DEVICE_RINGING;
+			break;
+		case SCCP_CHANNELSTATE_HOLD:
+			res = AST_DEVICE_ONHOLD;
+			break;
+		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+			res = AST_DEVICE_ONHOLD;
+			break;
+		case SCCP_CHANNELSTATE_BUSY:
+			res = AST_DEVICE_BUSY;
+			break;
+		case SCCP_CHANNELSTATE_DND:
+			res = AST_DEVICE_BUSY;
+			break;
+		case SCCP_CHANNELSTATE_CONGESTION:
+		case SCCP_CHANNELSTATE_ZOMBIE:
+		case SCCP_CHANNELSTATE_SPEEDDIAL:
+		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+			res = AST_DEVICE_UNAVAILABLE;
+			break;
+
+		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
+		case SCCP_CHANNELSTATE_OFFHOOK:
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_CONNECTED:
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_DIALING:
+		case SCCP_CHANNELSTATE_DIGITSFOLL:
+		case SCCP_CHANNELSTATE_PROGRESS:
+		case SCCP_CHANNELSTATE_BLINDTRANSFER:
+		case SCCP_CHANNELSTATE_CALLWAITING:
+		case SCCP_CHANNELSTATE_CALLTRANSFER:
+		case SCCP_CHANNELSTATE_CALLCONFERENCE:
+		case SCCP_CHANNELSTATE_CALLPARK:
+		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+			res = AST_DEVICE_INUSE;
+			break;
+	}
+
+//      pbx_log(LOG_WARNING, "asterisk requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
+
+	return res;
+}
+*/
+
+static int sccp_wrapper_asterisk18_devicestate(void *data)
+{
+	return sccp_devicestate((void *)data);
+}
 
 /*!
  * \brief Convert an array of skinny_codecs (enum) to ast_codec_prefs
@@ -2715,73 +2790,6 @@ static const struct ast_msg_tech sccp_msg_tech = {
 #    endif
 #endif
 
-static int sccp_asterisk_devicestate(void *data)
-{
-//      sccp_line_t *l = NULL;
-	int res = AST_DEVICE_UNKNOWN;
-	char *lineName = (char *)data;
-	char *deviceId = NULL;
-	sccp_channelState_t state;
-
-//      pbx_log(LOG_WARNING, "asterisk requests state for '%s'\n", (char *)lineName);
-
-	/* exclude options */
-	if ((deviceId = strchr(lineName, '@'))) {
-		*deviceId = '\0';
-		deviceId++;
-	}
-
-	state = sccp_hint_getLinestate(lineName, deviceId);
-	switch (state) {
-		case SCCP_CHANNELSTATE_DOWN:
-		case SCCP_CHANNELSTATE_ONHOOK:
-			res = AST_DEVICE_NOT_INUSE;
-			break;
-		case SCCP_CHANNELSTATE_RINGING:
-			res = AST_DEVICE_RINGING;
-			break;
-		case SCCP_CHANNELSTATE_HOLD:
-			res = AST_DEVICE_ONHOLD;
-			break;
-		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-			res = AST_DEVICE_ONHOLD;
-			break;
-		case SCCP_CHANNELSTATE_BUSY:
-			res = AST_DEVICE_BUSY;
-			break;
-		case SCCP_CHANNELSTATE_DND:
-			res = AST_DEVICE_BUSY;
-			break;
-		case SCCP_CHANNELSTATE_CONGESTION:
-		case SCCP_CHANNELSTATE_ZOMBIE:
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
-		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-			res = AST_DEVICE_UNAVAILABLE;
-			break;
-
-		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
-		case SCCP_CHANNELSTATE_OFFHOOK:
-		case SCCP_CHANNELSTATE_GETDIGITS:
-		case SCCP_CHANNELSTATE_RINGOUT:
-		case SCCP_CHANNELSTATE_CONNECTED:
-		case SCCP_CHANNELSTATE_PROCEED:
-		case SCCP_CHANNELSTATE_DIALING:
-		case SCCP_CHANNELSTATE_DIGITSFOLL:
-		case SCCP_CHANNELSTATE_PROGRESS:
-		case SCCP_CHANNELSTATE_BLINDTRANSFER:
-		case SCCP_CHANNELSTATE_CALLWAITING:
-		case SCCP_CHANNELSTATE_CALLTRANSFER:
-		case SCCP_CHANNELSTATE_CALLCONFERENCE:
-		case SCCP_CHANNELSTATE_CALLPARK:
-		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-			res = AST_DEVICE_INUSE;
-			break;
-	}
-
-//      pbx_log(LOG_WARNING, "asterisk requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
-
-	return res;
-}
 
 
 boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE *pbxChannel, const char *newLanguage){

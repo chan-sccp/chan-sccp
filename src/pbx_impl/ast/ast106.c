@@ -56,6 +56,7 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+static int sccp_wrapper_asterisk16_devicestate(void *data);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -69,7 +70,7 @@ static struct ast_channel_tech sccp_tech = {
 	capabilities:		AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_SLINEAR16 | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A | AST_FORMAT_H264 | AST_FORMAT_H263_PLUS,
 	properties:		AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	requester:		sccp_wrapper_asterisk16_request,
-	devicestate:		sccp_devicestate,
+	devicestate:		sccp_wrapper_asterisk16_devicestate,
 	send_digit_begin:	sccp_wrapper_recvdigit_begin,
 	send_digit_end:		sccp_wrapper_recvdigit_end,
 	call:			sccp_wrapper_asterisk16_call,
@@ -111,7 +112,7 @@ const struct ast_channel_tech sccp_tech = {
 	.capabilities 		= AST_FORMAT_SLINEAR16 | AST_FORMAT_SLINEAR | AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
 	.properties 		= AST_CHAN_TP_WANTSJITTER | AST_CHAN_TP_CREATESJITTER,
 	.requester 		= sccp_wrapper_asterisk16_request,
-	.devicestate 		= sccp_devicestate,
+	.devicestate 		= sccp_wrapper_asterisk16_devicestate,
 	.call 			= sccp_wrapper_asterisk16_call,
 	.hangup 		= sccp_wrapper_asterisk16_hangup,
 	.answer 		= sccp_wrapper_asterisk16_answer,
@@ -149,6 +150,11 @@ const struct ast_channel_tech sccp_tech = {
 };
 
 #endif
+
+static int sccp_wrapper_asterisk16_devicestate(void *data)
+{
+	return sccp_devicestate((void *)data);
+}
 
 /*!
  * \brief Convert an array of skinny_codecs (enum) to ast_codec_prefs
