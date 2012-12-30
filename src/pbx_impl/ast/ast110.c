@@ -209,7 +209,7 @@ static int sccp_asterisk_devicestate(void *data)
 }
 */
 
-static int sccp_wrapper_asterisk110_devicestate(const char *data)
+static int sccp_wrapper_asterisk110_devicestate(void *data)
 {
 	return sccp_devicestate((void *)data);
 }
