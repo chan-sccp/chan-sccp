@@ -87,8 +87,8 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
 		if (session->device)
 			session->device->registrationState = newRegistrationState;
                 if (AST_PTHREADT_NULL != session->session_thread) {
-                        shutdown(session->fds[0].fd,SHUT_RD);          // this will also wake up poll
-								// which is waiting for a read event and close down the thread nicely
+                        shutdown(session->fds[0].fd,SHUT_RD);          		// this will also wake up poll
+										// which is waiting for a read event and close down the thread nicely
                 } else {
                         sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
                         sccp_session_close(session);
@@ -113,7 +113,6 @@ static int sccp_read_data(sccp_session_t * s)
         int bytesAvailable = 0;
         int16_t readlen = 0;
         char input[SCCP_MAX_PACKET];
-//        char *newptr;
  
         /* implements a kind of non-blocking socket read on a blocking socket. Only reading as much as is available on the socket, without dissecting the packet. */
         if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1)) {
@@ -129,26 +128,14 @@ static int sccp_read_data(sccp_session_t * s)
                 if (readlen <= 0) {
                         if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
                                 pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
-                        } else {        /* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
+                        } else {        					/* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
                                 sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: device closed connection or network unreachable. closing connection.\n", DEV_ID_LOG(s->device));
                                 sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
                         }
                         return 0;
-                } else {
-			/* move s->buffer content to the beginning */
+                } else {							/* move s->buffer content to the beginning */
 			memcpy(s->buffer + s->buffer_size, input, readlen);
 			s->buffer_size += readlen;
-/*
-                        newptr = sccp_realloc(s->buffer, (uint32_t) (s->buffer_size + readlen));
-                        if (newptr) {
-                                s->buffer = newptr;
-                                memcpy(s->buffer + s->buffer_size, input, readlen);
-                                s->buffer_size += readlen;
-                        } else {
-                                pbx_log(LOG_WARNING, "SCCP: unable to reallocate %d bytes for an sccp packet\n", s->buffer_size + readlen);
-                                sccp_free(s->buffer);
-                                s->buffer_size = 0;
-                        }*/
                 }
         }
         return readlen;
@@ -370,9 +357,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 void sccp_socket_device_thread_exit(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
-
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
-
 	sccp_session_close(s);
 	s->session_thread = AST_PTHREADT_NULL;
 	destroy_session(s, 10);
@@ -435,7 +420,7 @@ void *sccp_socket_device_thread(void *session)
                         if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {                /* POLLIN | POLLPRI*/
                                 /* we have new data -> continue */
                                 sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-                                if (sccp_read_data(s)>8) {                                                      /* size of header*/   
+                                if (sccp_read_data(s)>8) {                                              /* size of header*/   
                                         while ((m = sccp_process_data(s))) {
                                                 if (!sccp_handle_message(m, s)) {
                                                         if (s->device) {
@@ -544,7 +529,7 @@ static void sccp_accept_connection(void)
 	s->protocolType = SCCP_PROTOCOL;
 
 	s->lastKeepAlive = time(0);
-	s->buffer = calloc(1,SCCP_MAX_PACKET * 2);		// maximum buffer size has to be more than one maximum packet
+	s->buffer = calloc(1,SCCP_MAX_PACKET * 2);				// maximum buffer size has to be more than one maximum packet
 	s->buffer_size = 0;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
