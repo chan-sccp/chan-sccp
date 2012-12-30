@@ -802,7 +802,9 @@ void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
  * 
  * \called_from_asterisk
  */
-#if ASTERISK_VERSION_NUMBER >= 11001
+#if ASTERISK_VERSION_NUMBER >= 11200
+int sccp_hint_state(char *context, char *exten, struct ast_state_cb_info *info, void *data)
+#elif ASTERISK_VERSION_NUMBER >= 11001 
 int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data)
 #else
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data)
@@ -811,6 +813,17 @@ int sccp_hint_state(char *context, char *exten, enum ast_extension_states state,
 	sccp_hint_list_t *hint = NULL;
 
 	hint = data;
+#if ASTERISK_VERSION_NUMBER >= 11200
+	enum ast_extension_states state = info->exten_state;
+	/* other available info */
+	/*
+	info->reason;
+        info->device_state_info;
+        info->presence_state;
+        info->presence_subtype;
+        info->presence_message;
+        */
+#endif
 
 	if (state == -1 || !hint) {
 		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_state) Got new hint, but no hint param\n");
@@ -1147,8 +1160,13 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 
 			int state = ast_extension_state(NULL, hint_context, hint_exten);
 
+#if ASTERISK_VERSION_NUMBER >= 11200
+			struct ast_state_cb_info *info = {0};
+			info->exten_state = state;
+			sccp_hint_state(hint_context, hint_exten, info, hint);
+#else
 			sccp_hint_state(hint_context, hint_exten, state, hint);
-
+#endif
 		} else {
 			/* error */
 			sccp_free(hint);
