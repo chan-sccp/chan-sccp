@@ -2803,6 +2803,7 @@ int sccp_config_generate(char *filename, int configType)
 					}
 				} else {
 					pbx_log(LOG_ERROR, "Error creating new variable structure for %s='%s'\n", config[sccp_option].name, config[sccp_option].defaultValue);
+					fclose(f);
 					return 2;
 				}
 			}
