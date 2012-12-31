@@ -69,7 +69,7 @@ void sccp_hint_unSubscribeHint(const sccp_device_t * device, const char *hintStr
 void sccp_hint_eventListener(const sccp_event_t * event);
 void sccp_hint_deviceRegistered(const sccp_device_t * device);
 void sccp_hint_deviceUnRegistered(const char *deviceName);
-void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
+void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force);
 void sccp_hint_hintStatusUpdate(sccp_hint_list_t * hint);
 void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint);
 void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint);
@@ -302,7 +302,7 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t * hint)
                         sccp_hint_notificationForSingleLine(hint);
                 }
                 /* notify asterisk */
-                sccp_hint_notifySubscribers(hint);
+                sccp_hint_notifySubscribers(hint, FALSE);
                 sccp_hint_notifyAsterisk(line, hint->currentState);		// will this not also callback for all subscribers ?
 		
 		//hint->previousState = hint->currentState;
@@ -568,7 +568,7 @@ DONE:
  *
  * \todo Check if the actual device still exists while going throughthe hint->subscribers and not pointing at rubish
  */
-void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
+void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 {
 	sccp_device_t *d;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
@@ -586,7 +586,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) Notify subscriber %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null");
 
-	if (hint->currentState == hint->previousState) {
+	if (!force && hint->currentState == hint->previousState) {
 		// nothing changed, skip
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) Old State '%s', New State '%s'. No Change -> Skipping.\n", channelstate2str(hint->previousState), channelstate2str(hint->currentState));
 		return;
@@ -960,7 +960,7 @@ int sccp_hint_state(char *context, char *exten, enum ast_extension_states state,
 
 	/* push to subscribers */
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_state) Notifying Subscribers for %s\n", hint->hint_dialplan);
-	sccp_hint_notifySubscribers(hint);										//! \todo check if called twice per notification
+	sccp_hint_notifySubscribers(hint, FALSE);										//! \todo check if called twice per notification
 
 /*#ifndef AST_EVENT_IE_CIDNAME
 	if (state == AST_EXTENSION_INUSE || state == AST_EXTENSION_BUSY) {
@@ -1096,7 +1096,10 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	// Is this necessary here ?
 //	sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
 
-	sccp_hint_notifySubscribers(hint);
+	sccp_hint_notifySubscribers(hint, TRUE);
+
+//	updating current speeddials
+	
 }
 
 /*!
