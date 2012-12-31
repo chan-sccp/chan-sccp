@@ -2378,13 +2378,18 @@ static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE * ast, const char *text)
 	sccp_device_t *d = NULL;
 	uint8_t instance;
 
+	if (!ast) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No PBX CHANNEL to send text to\n");
+		return -1;
+	}
+
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No DEVICE/ SCCP CHANNEL to send text to (%s)\n", d->id, ast->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP CHANNEL to send text to (%s)\n", ast->name);
 		return -1;
 	}
 
 	if (!(d = sccp_channel_getDevice_retained(c))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No DEVICE/ SCCP CHANNEL to send text to (%s)\n", d->id, ast->name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP DEVICE to send text to (%s)\n", ast->name);
 		c = sccp_channel_release(c);
 		return -1;
 	}
