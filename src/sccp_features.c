@@ -746,7 +746,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 
 	uint8_t num = sccp_device_numberOfChannels(d);
 
-	pbx_log(LOG_NOTICE, "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
+	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
 	if (!d->conference) {
 		d->conference = sccp_conference_create(c);
@@ -784,7 +784,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 					if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
 						SCCP_LIST_LOCK(&line->channels);
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-							pbx_log(LOG_NOTICE, "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
+							sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
 							if (channel == c) {
 								// Resume call on hold before moving it in to the conference, to bind the remote channels device
 								sccp_channel_resume(d, channel, FALSE);
@@ -792,7 +792,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 							} else 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
 								sccp_conference_splitOffParticipant(d->conference, channel);
 								if (channel != d->active_channel) {
-									pbx_log(LOG_NOTICE, "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
+									sccp_log(((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE) + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3  "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
 									// drop from display immediatly
 									int instance = sccp_device_find_index_for_line(d, l->name);
 									sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -814,7 +814,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 #else
 	/* sorry but this is private code -FS */
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: conference not enabled\n", DEV_ID_LOG(d));
 #endif
 }
 
