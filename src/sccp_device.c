@@ -1800,6 +1800,10 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_buttonconfig_t *config = NULL;
 	sccp_hostname_t *permithost = NULL;
 	int i;
+	if (!d) {
+		pbx_log(LOG_ERROR, "SCCP: Trying to destroy non-existend device\n");
+		return -1;
+	}
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
 	sccp_mutex_lock(&d->lock);										// using real device lock while using refcount
