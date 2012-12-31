@@ -225,21 +225,18 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 {
 	assert(session);
 	assert(device);
-	sccp_session_lock(session);
 	if (session->device != device) {
-		// release previously retained device
+		sccp_session_lock(session);
 		if (session->device) {
 			sccp_device_t *remdevice = sccp_device_retain(session->device);
 
 			sccp_session_removeDevice(session);
 			remdevice = sccp_device_release(remdevice);
 		}
-		// retain new device
-		if ((session->device = sccp_device_retain(device))) {
+		if ((session->device = sccp_device_retain(device)))
 			session->device->session = session;
-		}
+		sccp_session_unlock(session);
 	}
-	sccp_session_unlock(session);
 	return session->device;
 }
 
@@ -252,9 +249,12 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 	assert(session);
 	assert(session->device);
 	if (session->device) {
+		if (session->device->session && session->device->session != session) {
+			// cleanup previous/crossover session
+			sccp_session_removeFromGlobals(session->device->session);
+		}
 		sccp_session_lock(session);
 		session->device->registrationState = SKINNY_DEVICE_RS_NONE;
-		sccp_session_removeFromGlobals(session->device->session);
 		session->device->session = NULL;
 		session->device = sccp_device_release(session->device);
 		sccp_session_unlock(session);
@@ -307,15 +307,6 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 
 	if (!s)
 		return;
-
-	/* cleanup crossdevice session */
-/*	if (s->device && s->device->session && s->device->session != s) {
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy CrossDevice Session %s\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr));
-		sccp_session_removeFromGlobals(s->device->session);
-		if (s->device->session && s->device->session->device){
-			s->device->session->device = sccp_session_removeDevice(s->device->session);
-		}
-	}*/
 
 	found_in_list = sccp_session_removeFromGlobals(s);
 
