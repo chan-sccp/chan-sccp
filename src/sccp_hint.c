@@ -775,9 +775,9 @@ void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 						if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))) {
 							sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", DEV_ID_LOG(d), d->dndFeature.status ? "on" : "off", line->name);
 							if (d->dndFeature.status == SCCP_DNDMODE_REJECT) {
-								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_CHANNELSTATE_DND);
+								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_CHANNELSTATE_DOWN, SCCP_CHANNELSTATE_DND);
 							} else {
-								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_DEVICESTATE_DND, SCCP_DEVICESTATE_ONHOOK);
+								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_CHANNELSTATE_DND, SCCP_CHANNELSTATE_DOWN);
 							}
 							line = sccp_line_release(line);						
 						}
