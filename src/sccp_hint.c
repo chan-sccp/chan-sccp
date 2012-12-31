@@ -1096,9 +1096,7 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	// Is this necessary here ?
 //	sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
 
-	// Don't see how this is necessary, we are creating and subscribing to a hint, why notify the subscribers here
-//	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Notify hint subscribers\n", DEV_ID_LOG(device));
-//	sccp_hint_notifySubscribers(hint);
+	sccp_hint_notifySubscribers(hint);
 }
 
 /*!
