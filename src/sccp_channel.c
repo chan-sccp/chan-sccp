@@ -1658,9 +1658,14 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	sccp_device_t *d;
 	sccp_selectedchannel_t *sccp_selected_channel;
 
+	if (!channel) {
+		pbx_log(LOG_ERROR, "SCCP:No channel provided to clean\n");
+		return;
+	}
+
 	d = sccp_channel_getDevice_retained(channel);
 //      l = channel->line;
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Cleaning channel %08x\n", channel->callid);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %08x\n", channel->callid);
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (channel->owner) {
