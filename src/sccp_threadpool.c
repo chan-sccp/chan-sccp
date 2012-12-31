@@ -185,12 +185,16 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 
 void sccp_threadpool_thread_end(void *p) {
 	sccp_threadpool_thread_t *tp_thread = (sccp_threadpool_thread_t *)p;
+	sccp_threadpool_thread_t *res = NULL;
 	sccp_threadpool_t *tp_p = tp_thread->tp_p;
+
 	SCCP_LIST_LOCK(&(tp_p->threads));
-	SCCP_LIST_REMOVE(&(tp_p->threads), tp_thread, list);
+	res = SCCP_LIST_REMOVE(&(tp_p->threads), tp_thread, list);
 	SCCP_LIST_UNLOCK(&(tp_p->threads));
+
 	ast_cond_signal(&(tp_p->exit));
-	free(tp_thread);
+	if (res)
+		free(res);
 }
 
 /* What each individual thread is doing */
