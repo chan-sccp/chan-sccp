@@ -264,11 +264,9 @@ void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, scc
 		if (strlen(line->name) == strlen(hint->type.internal.lineName)
 		    && !strcmp(line->name, hint->type.internal.lineName)) {
 
-		    	// what to do in case of shared line ??
-		    	if (hint->currentState != state) {	
-			    	hint->currentState = state;
-
+		    	if (hint->currentState != state && hint->previousState != state) {	
 				/* update hint */
+			    	hint->currentState = state;
 				sccp_hint_hintStatusUpdate(hint);
 			}
 		}
@@ -306,8 +304,9 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t * hint)
                 /* notify asterisk */
                 sccp_hint_notifySubscribers(hint);
                 sccp_hint_notifyAsterisk(line, hint->currentState);		// will this not also callback for all subscribers ?
+		
+		//hint->previousState = hint->currentState;
 
-        	hint->previousState = hint->currentState;
                 sccp_line_release(line);
         } else {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_hintStatusUpdate) Could not find line associated to this hint\n");	
@@ -585,24 +584,28 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) Notify subscriber of %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null");
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) Notify subscriber %s\n", (hint->hint_dialplan) ? hint->hint_dialplan : "null");
 
+	if (hint->currentState == hint->previousState) {
+		// nothing changed, skip
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) Old State '%s', New State '%s'. No Change -> Skipping.\n", channelstate2str(hint->previousState), channelstate2str(hint->currentState));
+		return;
+	}
+	
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list) {
 		if (!subscriber->device) {
 			SCCP_LIST_REMOVE_CURRENT(list);
+			pbx_log(LOG_ERROR, "SCCP: (sccp_hint_notifySubscribers) Subscriber Device is NULL. Removing and Skipping.\n");
 			sccp_free(subscriber);
 			continue;
 		}
-		if (hint->currentState == hint->previousState) {
-			// nothing changed, skip
-			continue;
-		}
-		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
+		if (subscriber->device && (d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
 			state = hint->currentState;
-			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber of %s's state %s\n", DEV_ID_LOG(d), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
+			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of state %s\n", DEV_ID_LOG(d), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
 			sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
 #ifdef CS_DYNAMIC_SPEEDDIAL
+			sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
 			if (subscriber->device->inuseprotocolversion >= 15) {
 				REQ(r, FeatureStatDynamicMessage);
 				if (!r) {
@@ -610,7 +613,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					d = sccp_device_release(d);
 					return;
 				}
-				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
+#if 0	//V4.0
 				r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
 				r->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 				
@@ -652,7 +655,65 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
 				sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
 				sccp_dev_send(subscriber->device, r);
+#else	//V4.1
+				r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
+				r->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+				switch (hint->currentState) {
+					case SCCP_CHANNELSTATE_ONHOOK:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
+						break;
 
+					case SCCP_CHANNELSTATE_DOWN:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
+						break;
+
+					case SCCP_CHANNELSTATE_RINGING:
+						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
+							if (strlen(hint->callInfo.calledPartyName) > 0) {
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
+							} else if (strlen(hint->callInfo.calledParty) > 0) {
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledParty, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
+							} else {
+								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+							}
+						} else {
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						}
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING);	/* ringin */
+						break;
+
+					case SCCP_CHANNELSTATE_DND:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_DND);	/* dnd */
+						break;
+
+					case SCCP_CHANNELSTATE_CONGESTION:
+						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* device/line not found */
+						break;
+
+					default:
+						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
+							if (strlen(hint->callInfo.calledPartyName) > 0) {
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
+							} else if (strlen(hint->callInfo.calledParty) > 0) {
+								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledParty, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
+							} else {
+								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+							}
+						} else {
+							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+						}
+						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
+						break;
+				}
+
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: '%s\n", DEV_ID_LOG(d), displayMessage);
+				sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
+				sccp_dev_send(d, r);
+#endif
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
 			} else 
 #endif										// CS_DYNAMIC_SPEEDDIAL
@@ -710,11 +771,14 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
 			}
+			d = sccp_device_release(d);
+		} else {
+			sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) No subscriber->device to send hint update to.\n");
 		}
-		d = sccp_device_release(d);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END
 	SCCP_LIST_UNLOCK(&hint->subscribers);
+	hint->previousState = hint->currentState;
 }
 
 /*!
@@ -1015,7 +1079,7 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	}
 
 	/* add subscribing device */
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) create new subscriber\n", DEV_ID_LOG(device));
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Create new subscriber\n", DEV_ID_LOG(device));
 	sccp_hint_SubscribingDevice_t *subscriber;
 
 	subscriber = sccp_malloc(sizeof(sccp_hint_SubscribingDevice_t));
@@ -1029,11 +1093,12 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	}
 
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
+	// Is this necessary here ?
+//	sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
 
-	sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);
-
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Notify hint subscribers\n", DEV_ID_LOG(device));
-	sccp_hint_notifySubscribers(hint);
+	// Don't see how this is necessary, we are creating and subscribing to a hint, why notify the subscribers here
+//	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Notify hint subscribers\n", DEV_ID_LOG(device));
+//	sccp_hint_notifySubscribers(hint);
 }
 
 /*!
