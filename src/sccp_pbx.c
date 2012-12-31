@@ -382,12 +382,10 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	}
 #    endif									// CS_SCCP_CONFERENCE
 
-	if (c) {
-		if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-			if (d && SKINNY_DEVICE_RS_OK == d->registrationState)
-				sccp_channel_closereceivechannel(c);
-			sccp_rtp_destroy(c);
-		}
+	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
+		if (d && SKINNY_DEVICE_RS_OK == d->registrationState)
+			sccp_channel_closereceivechannel(c);
+		sccp_rtp_destroy(c);
 	}
 	// removing scheduled dialing
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);

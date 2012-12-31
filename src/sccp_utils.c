@@ -1114,7 +1114,7 @@ void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_
  */
 void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
-	skinny_codec_t *old_skinny_codec_prefs;
+	skinny_codec_t *old_skinny_codec_prefs = {0};
 	int x, y = 0;
 
 	if (ARRAY_LEN(skinny_codec_prefs))
