@@ -415,6 +415,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 
 	if (d) {
+		if (d->session && d->session != s) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration! Fixing up to new session\n", d->id);
+			sccp_socket_stop_sessionthread(d->session, SKINNY_DEVICE_RS_FAILED);
+//			d->session->device->registrationState = SKINNY_DEVICE_RS_FAILED;
+//			s->device = sccp_session_addDevice(s, d);
+		}
+
 		if (!s->device || s->device != d) {
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", d->id, s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
 			s->device = sccp_session_addDevice(s, d);						// replace retained in session (already connected via tokenReq before)
@@ -429,14 +436,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			return;
 		}
 
-		if (d->session && d->session != s) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration! Fixing up to new session\n", d->id);
-			if (d->session->device) {
-				d->session->device = sccp_session_removeDevice(d->session);
-			}
-			d->session->device = sccp_session_addDevice(s, d);
-			d->registrationState = SKINNY_DEVICE_RS_FAILED;
-		}
 	} else {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", r->msg.RegisterMessage.sId.deviceName);
 		s = sccp_session_reject(s, "Device Unknown");
