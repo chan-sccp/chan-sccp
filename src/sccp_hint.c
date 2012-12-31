@@ -151,15 +151,15 @@ void sccp_hint_eventListener(const sccp_event_t * event)
 			break;
 		case SCCP_EVENT_DEVICE_ATTACHED:
 			// update initial state to onhook when the line is registered on a device	
-			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device, NULL, SCCP_CHANNELSTATE_ZOMBIE, SCCP_CHANNELSTATE_ONHOOK);
+			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device, NULL, SCCP_CHANNELSTATE_ONHOOK);
 			break;
 		case SCCP_EVENT_DEVICE_DETACHED:
 			// switch line status for this particulat device to zombie
-			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device, NULL, 0, SCCP_CHANNELSTATE_ZOMBIE);
+			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device, NULL, SCCP_CHANNELSTATE_ZOMBIE);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			// update hint status for every line-state change (sccp_indication)
-			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.device, NULL, 0, event->event.lineStatusChanged.state);
+			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.device, NULL, event->event.lineStatusChanged.state);
 			break;
 		case SCCP_EVENT_FEATURE_CHANGED:
 			// update hint status when a feature changes
@@ -251,11 +251,11 @@ void sccp_hint_deviceUnRegistered(const char *deviceName)
  * 	  - see sccp_hint_hintStatusUpdate()
  * 	  - see sccp_hint_notifySubscribers()
  */
-void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t previousState, sccp_channelState_t state, char *file, int callerLine)
+void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, sccp_channel_t * channel, sccp_channelState_t state)
 {
 	sccp_hint_list_t *hint = NULL;
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "SCCP: (sccp_hint_lineStatusChanged): from %s:%d\n", file, callerLine);
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "SCCP: (sccp_hint_lineStatusChanged): to new state: %s(%d)\n", channelstate2str(state), state);
 	if (!line)
 		return;
 
@@ -265,15 +265,12 @@ void sccp_hint_lineStatusChangedDebug(sccp_line_t * line, sccp_device_t * device
 		    && !strcmp(line->name, hint->type.internal.lineName)) {
 
 		    	// what to do in case of shared line ??
-		    	if (state != 0) {	
+		    	if (hint->currentState != state) {	
 			    	hint->currentState = state;
-			}
-		    	if (previousState != 0) {
-				hint->previousState = previousState;
-		    	}
 
-			/* update hint */
-			sccp_hint_hintStatusUpdate(hint);
+				/* update hint */
+				sccp_hint_hintStatusUpdate(hint);
+			}
 		}
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
@@ -775,9 +772,9 @@ void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 						if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))) {
 							sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", DEV_ID_LOG(d), d->dndFeature.status ? "on" : "off", line->name);
 							if (d->dndFeature.status == SCCP_DNDMODE_REJECT) {
-								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_CHANNELSTATE_DOWN, SCCP_CHANNELSTATE_DND);
+								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_CHANNELSTATE_DND);
 							} else {
-								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_CHANNELSTATE_DND, SCCP_CHANNELSTATE_DOWN);
+								sccp_hint_lineStatusChanged(line, d, NULL, SCCP_CHANNELSTATE_DOWN);
 							}
 							line = sccp_line_release(line);						
 						}
