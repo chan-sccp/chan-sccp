@@ -3430,6 +3430,7 @@ typedef union {
 		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
 
 		videoParameter_t videoParameter;				/*!< Video Parameter */
+		uint32_t lel_dummy[16];
 	} OpenMultiMediaChannelMessage_v17;					/*!< Open Multi Media Channel Message Structure */
 
 	/*!
