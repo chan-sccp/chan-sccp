@@ -1598,7 +1598,7 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	d->state = SCCP_DEVICESTATE_ONHOOK;
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s is Onhook\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
 	/* checking for registerd lines */
 	uint8_t numberOfLines = 0;
