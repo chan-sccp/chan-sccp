@@ -159,6 +159,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 int sccp_devicestate(void *data)
 {
 	sccp_line_t *l = NULL;
+	sccp_channel_t *channel = NULL;
 	int res = AST_DEVICE_UNKNOWN;
 	char *lineName = (char *) data, *options = NULL;
 
@@ -177,18 +178,29 @@ int sccp_devicestate(void *data)
 			res = AST_DEVICE_BUSY;
 		} else if (!SCCP_RWLIST_GETSIZE(l->channels)) {
 			res = AST_DEVICE_NOT_INUSE;
+#if !(!defined(CS_AST_DEVICE_RINGING) && !defined(CS_AST_DEVICE_RINGINUSE) && !defined(CS_AST_DEVICE_ONHOLD))	// if none of these is available, skip
+		} else if (l->channels.size > 0) {
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+				switch (channel->state) {
 #ifdef CS_AST_DEVICE_RINGING
-		} else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING)) {
-#ifdef CS_AST_DEVICE_RINGINUSE
-			if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))
-				res = AST_DEVICE_RINGINUSE;
-			else
+					case SCCP_CHANNELSTATE_RINGING:
+						res = AST_DEVICE_RINGING;
+						break;
 #endif
-				res = AST_DEVICE_RINGING;
+#ifdef CS_AST_DEVICE_RINGINUSE
+					case SCCP_CHANNELSTATE_CONNECTED:
+						res = AST_DEVICE_RINGINUSE;
+						break;
 #endif
 #ifdef CS_AST_DEVICE_ONHOLD
-		} else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD)) {
-			res = AST_DEVICE_ONHOLD;
+					case SCCP_CHANNELSTATE_HOLD:	
+						res = AST_DEVICE_ONHOLD;
+						break;
+#endif
+				}
+			}	
+			SCCP_LIST_UNLOCK(&l->channels);
 #endif
 		} else {
 			res = AST_DEVICE_INUSE;
