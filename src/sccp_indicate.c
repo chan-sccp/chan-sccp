@@ -418,10 +418,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	event.event.lineStatusChanged.state = c->state;
 	sccp_event_fire(&event);
 
-	/** notify state change to hint system (incl. asterisk ) */
-//	sccp_hint_lineStatusChanged(l, d, 1);
-//	sccp_hint_lineStatusChanged(l, d, c, c->previousChannelState, c->state);
-
 	sccp_device_release(d);
 	sccp_line_release(l);
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n", d->id, sccp_indicate2str(state), l->name, c->callid);

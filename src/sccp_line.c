@@ -698,9 +698,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	SCCP_LIST_UNLOCK(&l->devices);
-
-//	sccp_hint_lineStatusChanged(l, device, -1);
-//	sccp_hint_lineStatusChanged(l, device, NULL, SCCP_CHANNELSTATE_CONGESTION, SCCP_CHANNELSTATE_CONGESTION);
 }
 
 /*!
@@ -839,4 +836,50 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 			pbx_log(LOG_ERROR, "SCCP: context '%s' does not exist and could not be created\n", context);
 		}
 	}
+}
+
+/*!
+ * \brief check the DND status for single/shared lines
+ * On shared line we will return dnd status if all devices in dnd only.
+ * single line signaling dnd if device is set to dnd
+ * 
+ * \param line  SCCP Line (locked)
+ */
+sccp_channelState_t sccp_line_getDNDChannelState(sccp_line_t * line)
+{
+	sccp_linedevices_t *lineDevice = NULL;
+	sccp_channelState_t state = SCCP_CHANNELSTATE_CONGESTION;
+
+	if (!line) {
+		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_getDNDState) Either no hint or line provided\n");
+		return state;
+	}
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->id);
+	if (line->devices.size > 1) {
+		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
+		boolean_t allDevicesInDND = TRUE;
+
+		SCCP_LIST_LOCK(&line->devices);
+		SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+			if (lineDevice->device->dndFeature.status != SCCP_DNDMODE_REJECT) {
+				allDevicesInDND = FALSE;
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&line->devices);
+
+		if (allDevicesInDND) {
+			state = SCCP_CHANNELSTATE_DND;
+		}
+
+	} else {
+		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
+
+		if (lineDevice) {
+			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
+				state = SCCP_CHANNELSTATE_DND;
+			}
+		}
+	}													// if(line->devices.size > 1)
+	return state;
 }

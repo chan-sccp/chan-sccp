@@ -1493,16 +1493,6 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	} else {
 		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
 	}
-
-	//! \todo What to do with this lineStatusChanges in sccp_dev_forward_status
-	/*
-	   if (l->cfwd_type == SCCP_CFWD_ALL){
-	   //sccp_hint_notify_linestate(l,device, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
-	   sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_ONHOOK, SCCP_DEVICESTATE_FWDALL);
-	   }else{
-	   sccp_hint_lineStatusChanged(l, device, NULL, SCCP_DEVICESTATE_FWDALL, SCCP_DEVICESTATE_ONHOOK);
-	   }
-	 */
 }
 
 /*!
