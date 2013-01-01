@@ -387,7 +387,6 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 				sccp_copy_string(hint->callInfo.calledPartyName, "", sizeof(hint->callInfo.calledPartyName));
 			}
 		}
-		line = sccp_line_release(line);
 	} else {
 		sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.callingPartyName));
 		sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_TEMP_FAIL, sizeof(hint->callInfo.calledPartyName));
@@ -569,7 +568,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 				break;
 		}
-		sccp_channel_release(channel);
+		channel = sccp_channel_release(channel);
 	} else {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notificationForSingleLine) No Active Channel for this hint\n", line ? line->name : "NULL");
 		sccp_hint_checkForDND(hint, line);
@@ -590,9 +589,9 @@ DONE:
  */
 void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_moo_t *r;
+	sccp_moo_t *r = NULL;
 	uint32_t state;												/* used to fall back to old behavior */
 	sccp_speed_t k;
 
