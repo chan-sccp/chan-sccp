@@ -1,9 +1,9 @@
 
 /*!
- * \file 	sccp_refcount.c
- * \brief 	SCCP Refcount Class
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \file        sccp_refcount.c
+ * \brief       SCCP Refcount Class
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  * 
  * $Date$
  * $Revision$  
@@ -37,7 +37,7 @@
  *
  * - Rule 4: When releasing an object the pointer we had toward the object should be nullified immediatly, either of these solutions is possible:
  *   \code
- *   d = sccp_device_release(d);		// sccp_release always returns NULL
+ *   d = sccp_device_release(d);                // sccp_release always returns NULL
  *   \endcode
  *   or 
  *   \code
@@ -64,7 +64,8 @@ struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
 	sccp_debug_category_t debugcat;
-} obj_info[] = {
+} obj_info[] =
+{
         /* *INDENT-OFF* */
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
@@ -78,9 +79,9 @@ struct sccp_refcount_obj_info {
 };
 
 #ifdef SCCP_ATOMIC
-#    define        	obj_lock	NULL
+#define        	obj_lock	NULL
 #else
-#    define		obj_lock	&obj->lock
+#define		obj_lock	&obj->lock
 #endif
 
 struct refcount_object {
@@ -92,15 +93,15 @@ struct refcount_object {
 	char identifier[REFCOUNT_INDENTIFIER_SIZE];
 	int alive;
 	size_t len;
-	 SCCP_RWLIST_ENTRY(RefCountedObject) list;
+	SCCP_RWLIST_ENTRY (RefCountedObject) list;
 	unsigned char data[0];
 };
 
 //AST_RWLOCK_DEFINE_STATIC_NOTRACKING(objectslock);                             // general lock to modify hash table entries
-ast_rwlock_t objectslock;							// general lock to modify hash table entries
+ast_rwlock_t objectslock;											// general lock to modify hash table entries
 static struct refcount_objentry {
-	SCCP_RWLIST_HEAD(, RefCountedObject) refCountedObjects;			//!< one rwlock per hash table entry, used to modify list
-} *objects[SCCP_HASH_PRIME];							//!< objects hash table
+	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects;						//!< one rwlock per hash table entry, used to modify list
+} *objects[SCCP_HASH_PRIME];											//!< objects hash table
 
 void sccp_refcount_init(void)
 {
@@ -123,7 +124,7 @@ void sccp_refcount_destroy(void)
 		if (objects[x]) {
 			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
 			while ((obj = SCCP_RWLIST_REMOVE_HEAD(&(objects[x])->refCountedObjects, list))) {
-				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int)obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int)obj->len);
+				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
 				if ((&obj_info[obj->type])->destructor)
 					(&obj_info[obj->type])->destructor(obj->data);
 #ifndef SCCP_ATOMIC
@@ -230,7 +231,7 @@ static inline RefCountedObject *find_obj(const void *ptr)
 		}
 		SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 	}
-//        sccp_log(DEBUGCAT_REFCOUNT)(VERBOSE_PREFIX_1 "SCCP: (find_obj) Found %p at hash: %d\n", obj, hash);
+	//        sccp_log(DEBUGCAT_REFCOUNT)(VERBOSE_PREFIX_1 "SCCP: (find_obj) Found %p at hash: %d\n", obj, hash);
 	return found ? obj : NULL;
 }
 
@@ -286,7 +287,7 @@ void sccp_refcount_print_hashtable(int fd)
 				} else {
 					pbx_cli(fd, "| [%3d] ", x);
 				}
-				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int)obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int)obj->len);
+				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
 				prev = x;
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
@@ -321,8 +322,10 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 			}
 			refcountval = obj->refcount;
 			newrefcountval = refcountval + 1;
-		} while (obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval, obj_lock) != refcountval);	// atomic inc if not zero
-		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))
+		}
+		while (obj->refcount && CAS32((&obj->refcount), refcountval, newrefcountval, obj_lock) != refcountval);	// atomic inc if not zero
+		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)))
+		    == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))
 			ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		return obj->data;
 	} else {
@@ -346,8 +349,9 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 			}
 			refcountval = obj->refcount;
 			newrefcountval = refcountval - 1;
-		} while (!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval, obj_lock) != refcountval);	// atomic dec but not below zero
-//                if (obj->refcount == 0) {     // racecondition ?
+		}
+		while (!(obj->refcount < 0) && CAS32((&obj->refcount), refcountval, newrefcountval, obj_lock) != refcountval);	// atomic dec but not below zero
+		//                if (obj->refcount == 0) {     // racecondition ?
 		if (newrefcountval == 0) {
 			obj->alive = 0;
 			sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s) (release) Finalizing %p (%p)\n", filename, lineno, func, obj, ptr);
