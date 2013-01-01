@@ -37,4 +37,5 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel);
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c);
+sccp_channelState_t sccp_line_getDNDChannelState(sccp_line_t * line);
 #endif										/* __SCCP_LINE_H */

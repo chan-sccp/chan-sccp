@@ -169,20 +169,16 @@ int sccp_devicestate(void *data)
 	}
 
 	if ((l = sccp_line_find_byname(lineName))) {
-		if (SCCP_LIST_FIRST(&l->devices) == NULL)
+		if (SCCP_LIST_FIRST(&l->devices) == NULL) {
 			res = AST_DEVICE_UNAVAILABLE;
-
-		//! \todo handle dnd on device
-		//      else if ((l->device->dnd && l->device->dndmode == SCCP_DNDMODE_REJECT)
-		//                      || (l->dnd && (l->dndmode == SCCP_DNDMODE_REJECT
-		//                                      || (l->dndmode == SCCP_DNDMODE_USERDEFINED && l->dnd == SCCP_DNDMODE_REJECT) )) )
-		//              res = AST_DEVICE_BUSY;
-		else if (l->incominglimit && SCCP_RWLIST_GETSIZE(l->channels) == l->incominglimit)
+		} else if (SCCP_CHANNELSTATE_DND == sccp_line_getDNDChannelState(l)) {
+			res = AST_DEVICE_BUSY;		
+		} else if (l->incominglimit && SCCP_RWLIST_GETSIZE(l->channels) == l->incominglimit) {
 			res = AST_DEVICE_BUSY;
-		else if (!SCCP_RWLIST_GETSIZE(l->channels))
+		} else if (!SCCP_RWLIST_GETSIZE(l->channels)) {
 			res = AST_DEVICE_NOT_INUSE;
 #ifdef CS_AST_DEVICE_RINGING
-		else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))
+		} else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING)) {
 #ifdef CS_AST_DEVICE_RINGINUSE
 			if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))
 				res = AST_DEVICE_RINGINUSE;
@@ -191,12 +187,12 @@ int sccp_devicestate(void *data)
 				res = AST_DEVICE_RINGING;
 #endif
 #ifdef CS_AST_DEVICE_ONHOLD
-		else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))
+		} else if (sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD)) {
 			res = AST_DEVICE_ONHOLD;
 #endif
-		else
+		} else {
 			res = AST_DEVICE_INUSE;
-
+		}
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked for the device state (%d) of the line %s\n", res, (char *) data);
 		l = sccp_line_release(l);
 	} else {
