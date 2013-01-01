@@ -59,8 +59,9 @@ struct sccp_hint_list {
 	struct {
 		char callingPartyName[StationMaxNameSize];							/*!< Calling Party Name */
 		char calledPartyName[StationMaxNameSize];							/*!< Called Party Name */
-		char callingParty[StationMaxNameSize];								/*!< Calling Party Number */
-		char calledParty[StationMaxNameSize];								/*!< Called Party Number */
+		char callingPartyNumber[StationMaxNameSize];							/*!< Calling Party Number */
+		char calledPartyNumber[StationMaxNameSize];							/*!< Called Party Number */
+		int presentation;										/*!< Should callerinfo be shown */
 		skinny_calltype_t calltype;									/*!< Skinny Call Type */
 	} callInfo;												/*!< Call Information Structure */
 
