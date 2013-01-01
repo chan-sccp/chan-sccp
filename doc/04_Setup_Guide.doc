@@ -449,7 +449,7 @@
  * or for postgresql:
  * \code
  * [settings]
- * sccpdevice => pgsql,asterisk,sccpdevices
+ * sccpdevice => pgsql,asterisk,sccpdeviceconfig
  * sccpline => pgsql,asterisk,sccplines
  * \endcode
  *
@@ -458,8 +458,8 @@
  * Connect to the dabase
  * 
  * \code
- * insert into sccpdevices (type,description,tzoffset,dtmfmode,mwilamp,mwioncall,pickupexten,pickupmodeanswer,privacy,name) values ("7975","My 1st Phone",0,"on","on","on","on","on","full","SEP010102030404");
- * insert into sccplines (id,pin,label,description,context,incominglimit,transfer,mailbox,vmnum,cid_name,cid_num,trnsfvm,secondairy_dialtone_digits,secondairy_dialtone_tone,musicclass,language,accountcode,audio_tos,audio_cos,video_tos,video_cos,echocancel,silencesuppression,callgroup,pickupgroup,amaflags,setvar,name) VALUES(121,212,"Line 121","Line 121",internal,2,on,121,88121,"My Name",121,89121,10,"0x22","default","en",121,"0xB8",6,"0x88",5,"on","off","1,3-5","3-5","","",121);
+ * insert into sccpdevices (type,description,tzoffset,dtmfmode,mwilamp,mwioncall,pickupexten,pickupmodeanswer,privacy,name) values ("7975","My 1st Phone",0,"outofband","on","on","on","on","full","SEP010102030404");
+ * insert into sccplines (id,pin,label,description,context,incominglimit,transfer,mailbox,vmnum,cid_name,cid_num,trnsfvm,secondary_dialtone_digits,secondary_dialtone_tone,musicclass,language,accountcode,audio_tos,audio_cos,video_tos,video_cos,echocancel,silencesuppression,callgroup,pickupgroup,amaflags,setvar,name) VALUES(121,212,"Line 121","Line 121",internal,2,on,121,88121,"My Name",121,89121,10,"0x22","default","en",121,"0xB8",6,"0x88",5,"on","off","1,3-5","3-5","","",121);
  * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",1,"line",121,);
  * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",2,"speeddial","friend","122,122@hints");
  * insert into buttonconfig (device,instance,type,name,options) VALUES("SEP010102030404",3,"feature","dnd","busy");
