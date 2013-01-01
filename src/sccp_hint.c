@@ -1212,9 +1212,11 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 			int state = pbx_extension_state(NULL, hint_context, hint_exten);
 
 #if ASTERISK_VERSION_NUMBER >= 11200
-			struct ast_state_cb_info *info = { 0 };
-			info->exten_state = state;
-			sccp_hint_state(hint_context, hint_exten, info, hint);
+			struct ast_state_cb_info info;
+			memset(&info, 0, sizeof(struct ast_state_cb_info));
+			
+			info.exten_state = state;
+			sccp_hint_state(hint_context, hint_exten, &info, hint);
 #else
 			sccp_hint_state(hint_context, hint_exten, state, hint);
 #endif
