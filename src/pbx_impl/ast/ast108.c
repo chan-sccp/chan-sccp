@@ -603,23 +603,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 				sccp_asterisk_moh_stop(ast);
 				pbx_clear_flag(ast, AST_FLAG_MOH);
 			}
-			/*
-			   ast_rtp_instance_make_compatible(c->owner, c->rtp.audio.rtp, PBX_CHANNEL_TYPE *peer)
-			   ast_channel_make_compatible(PBX_CHANNEL_TYPE *chan, PBX_CHANNEL_TYPE *peer)
-			 */
-
-/*
-		struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
-		((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
-		PBX_CHANNEL_TYPE *remotePeer;
-		for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
-			if (pbx_find_channel_by_linkid(remotePeer, (void *)ast->linkedid)) {
-				ast_channel_make_compatible(ast, remotePeer);
-				break;
-			}
-		}
-		ast_channel_iterator_destroy(iterator);
-*/ res = 0;
+ 			res = 0;
 			break;
 
 		case AST_CONTROL_CONNECTED_LINE:
@@ -636,7 +620,9 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 				res = 0;
 			} else
 #endif
+			{	
 				res = -1;
+			}	
 			break;
 #ifdef CS_AST_CONTROL_INCOMPLETE
 #    ifdef CS_EXPERIMENTAL
