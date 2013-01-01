@@ -851,6 +851,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 //      sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
+		c->callInfo.presentation = 0;
 	} else {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
 	}
