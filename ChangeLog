@@ -1,3 +1,852 @@
+2013-01-01  ddegroot
+
+	* [r4006] conf/postgres.sql: Documentation/SQL corrections
+	  (Reported by Nikola)
+
+	* [r4005] doc/04_Setup_Guide.doc: Documentation corrections
+	  (Reported by Nikola)
+
+	* [r4004] src/sccp_actions.c, src/sccp_hint.c: Reduce hint logging
+	  when debug level = core to 'no output'
+
+	* [r4003] src/sccp_hint.c, src/sccp_hint.h: Added
+	  hint->callInfo.presentation. Renamed hint->callInfo.callingParty
+	  to hint->callInfo.callingPartyNumber and
+	  int->callInfo.calledParty to int->callInfo.calledPartyNumber
+
+	* [r4002] src/chan_sccp.c, src/sccp_hint.c: Revised
+	  sccp_devicestate to correct refcount issue during hint state
+	  check
+
+	* [r4001] src/sccp_hint.c: Fixed callinitiator speeddial hint
+	  display when calling a singleLine
+
+	* [r4000] src/sccp_hint.c: Fix hint display on callreceiving
+	  speeddial. Still need to check the callinitiating speeddial
+	  update.
+
+	* [r3999] src/sccp_hint.c: channel release in sccp_hint.c
+
+	* [r3998] src/chan_sccp.c, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_device.c, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_line.h: Added
+	  sccp_line_getDNDChannelState to sccp_line. sccp_devicestate now
+	  takes DND into account. Cleanup of sccp_hint.c. Updated doxygen
+	  comments for sccp_hint
+
+	* [r3997] conf/sccp.conf.annotated: Added conference options to
+	  sccp.conf.annotated
+
+	* [r3996] doc/doxygen.cfg: Added doxygen commandaliases
+
+	* [r3995] src/chan_sccp.c, src/chan_sccp.h,
+	  src/conference/sccp_conference10.c, src/sccp_refcount.c:
+	  Reindented files
+
+	* [r3994] src/.indent.pro, src/conference/.indent.pro,
+	  src/pbx_impl/.indent.pro, src/pbx_impl/ast/.indent.pro: Updated
+	  indent definitions. Added type defintioins to .indent.pro for
+	  common types that should be nicely aligned in structures
+
+2012-12-31  ddegroot
+
+	* [r3993] src/sccp_hint.c: Removed non-functional code from
+	  sccp_hint.c
+
+	* [r3992] src/sccp_hint.c: Added force option to notifySubscriber
+	  to force update on first registration
+
+	* [r3991] src/sccp_hint.c: notifySubscribers when subscribing to a
+	  a hint
+
+	* [r3990] src/sccp_device.c, src/sccp_pbx.c, src/sccp_utils.c: Fix
+	  Possible null pointer dereference / redundant null pointer
+	  dereference check
+
+	* [r3989] src/sccp_channel.c: Null Pointer Deref before starting
+	  channel_clean
+
+	* [r3988] src/sccp_config.c: Close file before returning
+
+	* [r3987] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Null
+	  Pointer Deref checks in sendHTML
+
+	* [r3986] src/sccp_socket.c: Fix 2 fur crossover session (Reported
+	  by MC)
+
+	* [r3985] src/sccp_actions.c, src/sccp_socket.c: Fix fur crossover
+	  session (Reported by MC)
+
+	* [r3984] src/sccp_features.c: Demoted some of the pbx_log message
+	  to sccp_log during conference creation.
+
+	* [r3983] src/sccp_threadpool.c: Use return value from
+	  SCCP_LIST_REMOVE in sccp_threadpool_thread_end
+
+	* [r3982] src/sccp_hint.c: Skipping notifySubscribers if nothing
+	  changed. Added V4.1 callInfo setting for dynamic speeddial.
+
+	* [r3981] src/sccp_channel.c, src/sccp_hint.c, src/sccp_hint.h:
+	  Removed previousState from sccp_hint_lineStatusChanged
+
+2012-12-31  marcelloceschia
+
+	* [r3980] src/sccp_protocol.h: OpenMultiMediaChannelMessage_v17
+	  needs more bytes (Invalid SCCP message! : ID :131: readByte(16)
+	  underrun, length = 4)
+
+2012-12-31  ddegroot
+
+	* [r3979] src/sccp_hint.c: Fixed
+	  sccp_hint_handleFeatureChangeEvent, it was using the wrong
+	  paramater type for sccp_hint_lineStatusChanged
+
+2012-12-30  ddegroot
+
+	* [r3978] src/sccp_socket.c: Comments removed
+
+	* [r3977] src/sccp_hint.c: refcount correction when using the pbx
+	  hint system
+
+	* [r3976] src/pbx_impl/ast/ast110.c, src/sccp_hint.c,
+	  src/sccp_hint.h: Make sccp_hint.c compile against asterisk-10 and
+	  asterisk-trunk again
+
+	* [r3975] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  Preliminary Sync pbx_impl in regards to sccp_devicestate
+
+	* [r3974] src/sccp_channel.c, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_line.c: backport of sccp_hint.c
+	  from V4.0
+
+2012-12-24  ddegroot
+
+	* [r3973] src/conference/sccp_conference10.c, src/sccp_features.c:
+	  Binding device into the channel, which is on hold, before moving
+	  it into the conference
+
+2012-12-24  marcelloceschia
+
+	* [r3972] src/pbx_impl/ast/astTrunk.c: fixes core with asterisk
+	  11/trunk
+
+	* [r3971] src/sccp_socket.c: fixes issue when s->device->session is
+	  null
+
+	* [r3970] src/pbx_impl/ast/astTrunk.c: fixes asterisk 11/trunk
+	  compile issue when using --enable-video
+
+2012-12-23  ddegroot
+
+	* [r3969] src/sccp_features.c: Switching sccp_feat_join to
+	  experimental mode until fully working and tested
+
+	* [r3968] src/chan_sccp.h, src/conference/sccp_conference10.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_device.c: Fix
+	  compile issue when running without --enable-conference
+
+	* [r3967] src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_softkeys.c: Only show conf/conflist/join button if
+	  enabled in the device configuration
+
+2012-12-23  marcelloceschia
+
+	* [r3966] src/sccp_device.c: deactivate conference button
+
+2012-12-23  ddegroot
+
+	* [r3965] src/conference/sccp_conference10.c: Fix conference
+	  compilation under asterisk-11 (pbx_channel_name)
+
+2012-12-23  marcelloceschia
+
+	* [r3964] src/sccp_device.c: deactivate conference button
+
+2012-12-23  ddegroot
+
+	* [r3963] src/sccp_actions.c, src/sccp_softkeys.c: Only show
+	  conf/conflist button if enabled in the device configuration
+
+	* [r3962] src/sccp_softkeys.c: Remove conf/conflist button, if not
+	  enabled using --enable-conference
+
+	* [r3961] src/chan_sccp.h, src/conference/sccp_conference10.c,
+	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_cli.h, src/sccp_conference.h, src/sccp_config_entries.h,
+	  src/sccp_device.c, src/sccp_features.c, src/sccp_pbx.c,
+	  src/sccp_protocol.h: conference: added sccp.conf options and
+	  cli/ami commands
+
+	* [r3960] src/sccp_utils.c, src/sccp_utils.h: Needed a way to check
+	  if a string is nummeric -> added sccp_strIsNumeric
+
+2012-12-23  marcelloceschia
+
+	* [r3959] src/pbx_impl/ast/ast106.c: extend maxBitRate from calling
+	  channel (port from ast108)
+
+2012-12-23  ddegroot
+
+	* [r3958] src/sccp_refcount.c, src/sccp_threadpool.c: Fix/Cleanups
+	  for issues found by clang
+
+2012-12-23  marcelloceschia
+
+	* [r3957] src/pbx_impl/ast/ast110.c: extend maxBitRate from calling
+	  channel (port from ast108)
+
+	* [r3956] src/pbx_impl/ast/ast108.c: fixes asterisk 1.8 issue with
+	  ast_channel_varshead
+
+	* [r3955] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/astTrunk.c:
+	  extend maxBitRate from calling channel
+
+2012-12-22  marcelloceschia
+
+	* [r3954] autoconf/extra.m4: fixes issue with clang >= 3.2
+
+2012-12-21  marcelloceschia
+
+	* [r3953] autoconf/extra.m4: fixes clang depricated cflag
+	  -fcatch-undefined-behavior
+
+	* [r3952] src/sccp_refcount.c: fixes clang warning
+
+	* [r3951] src/sccp_utils.c: fixes clang warning
+
+	* [r3950] src/sccp_utils.c: fixes clang warning
+
+2012-12-21  ddegroot
+
+	* [r3949] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
+	  src/sccp_socket.c, src/sccp_socket.h: Large Rewrite/Revision of
+	  Socket Handling Code (See mailinglist: chan-sccp-b socket
+	  handling / network handlingchan-sccp-b socket handling / network
+	  handling)
+
+	* [r3948] src/sccp_lock.h: Fix clang warning about using unsigned
+	  size_t for refcount. replace CAS32_TYPE with int instead
+
+	* [r3947] src/conference/sccp_conference10.c: Fix clang warning
+	  about indentifier in conference
+
+	* [r3946] autoconf/extra.m4, configure: Fix compile with CC=clang
+
+2012-12-21  marcelloceschia
+
+	* [r3945] Makefile.in, aclocal.m4, conf/mysql-v5.sql, configure,
+	  doc/Makefile.in, src/Makefile.in, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_channel.c, src/sccp_protocol.c, src/sccp_protocol.h:
+	  move instance to function argument
+
+	* [r3944] src/pbx_impl/ast/astTrunk.c: fixes issue with asterisk >=
+	  11
+
+2012-12-20  ddegroot
+
+	* [r3943] src/pbx_impl/ast/ast110.c: Small correction to
+	  PBX(setLanguage) for older asterisk versions
+
+	* [r3942] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c:
+	  Small correction to PBX(setLanguage) for older asterisk versions
+
+2012-12-20  marcelloceschia
+
+	* [r3941] src/conference/sccp_conference10.c: set language for
+	  playback_channel using pbx impl
+
+	* [r3940] src/conference/sccp_conference10.c: set language for
+	  playback_channel using pbx impl
+
+	* [r3939] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/pbx_impl.h: setLanguage impl
+
+	* [r3938] src/conference/sccp_conference10.c: set language for
+	  playback_channel in asterisk > 10
+
+2012-12-20  ddegroot
+
+	* [r3937] src/sccp_refcount.c: Explained Refcount Forced Destroy a
+	  little better.
+
+	* [r3936] src/sccp_refcount.c: Explained Refcount Forced Destroy a
+	  little better.
+
+	* [r3935] src/sccp_channel.c: Removed bad transfer foreignchannel
+	  code. Added a possible solution by issuing a connected line
+	  update (like call_forward)
+
+	* [r3934] src/pbx_impl/ast/ast.c: Check for channel->tech wenn
+	  using get_sccp_channel_from_pbx_channel
+
+	* [r3933] aclocal.m4, autoconf/asterisk.m4, configure,
+	  src/config.h.in: Added a little fix to compile against
+	  asterisk-1.6.2.x without having DEBUG_THREADS. Issue is cause by
+	  the include order in which pbx_impl includes asterisk header
+	  files. (Bug Reported by: Leonid & Philippe)
+
+2012-12-19  ddegroot
+
+	* [r3932] src/sccp_pbx.c: Reverted back to previous behaviour for
+	  sccp_pbx_answer. I think i was trying to hangup the wrong
+	  channel, when the bridge could not be setup.
+
+	* [r3931] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h: Fixed participant->conferenceBridgePeer
+	  playback. Activated ConfList Menu Option. Added Refresh to the
+	  ConfList Menu. Activated Kick and Mute Buttons.
+
+	* [r3930] src/conference/sccp_conference10.c, src/sccp_pbx.c: Fixes
+	  to compile against asterisk-1.6.2 and asterisk-trunk
+
+	* [r3929] src/conference/sccp_conference10.c: Fixed device refcount
+	  in conference after using the conflist.
+
+	* [r3928] src/conference/sccp_conference10.c: Fixed device refcount
+	  in conference after using the conflist.
+
+	* [r3927] src/sccp_conference.h: Added copy of the moderators
+	  language to conference->playback_channel, so that announcements
+	  are played back in the moderators language
+
+	* [r3926] src/pbx_impl/ast/define.h: Added copy of the moderators
+	  language to conference->playback_channel, so that announcements
+	  are played back in the moderators language
+
+	* [r3925] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast108.c: Added copy of the moderators language
+	  to conference->playback_channel, so that announcements are played
+	  back in the moderators language
+
+	* [r3924] src/conference/sccp_conference10.c: Trying to fix the
+	  stream_and_wait issue when playing back to a single channel in a
+	  bridge, suspend seems to work, but unsuspend doesn't, needs a
+	  little more research i guess. Does not impact functionality for
+	  now.
+
+2012-12-18  ddegroot
+
+	* [r3923] src/conference/sccp_conference10.c: Update playback to
+	  stream. Stuttering sound issue still there during
+	  playback_to_channel.
+
+	* [r3922] src/sccp_pbx.c: Added comment about
+	  AST_CONTROL_REDIRECTING to be implemented sometime in pbx_impl,
+	  following same principal as update_connectedline
+
+	* [r3921] src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
+	  src/sccp_channel.c, src/sccp_pbx.c: Update redirecting
+	  information by using pbx_channel_call_forward_set in
+	  sccp_channel.c. Force update_connected_line during masqueration
+	  for forwarded line -> Resulting in redirection information on the
+	  caller display
+
+	* [r3920] src/sccp_pbx.h: Function sccp_pbx_update_connectedline
+	  not implemented in sccp_pbx.c anymore
+
+	* [r3919] src/sccp_channel.c, src/sccp_pbx.c: Clarify the
+	  channel->parentChannel release sequence.
+
+	* [r3918] src/sccp_channel.c: Fixed sccp_channel_endcall
+
+	* [r3917] src/sccp_pbx.c: During callforward when brigepeer cannot
+	  be found, we should end the call on the parentChannel instead of
+	  the current channel
+
+	* [r3916] src/sccp_actions.c, src/sccp_channel.c: Fix refcount on
+	  callforward. Matchup rtp capabilities during callforward.
+
+2012-12-17  ddegroot
+
+	* [r3915] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h: Speedup
+	  conference end by only playing announcements once. Suppress nasty
+	  CDR message by forcing the answertime to be set on Playback
+	  Bridge Channel
+
+	* [r3914] src/conference/sccp_conference10.c: Cleaned up,
+	  Synchronised and Reformatted the Debug/Log Message for
+	  conference.
+
+	* [r3913] src/conference/sccp_conference10.c, src/sccp_line.c,
+	  src/sccp_refcount.c, src/sccp_refcount.h: Fixed the conference
+	  refcount issues
+
+	* [r3912] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/pbx_impl.h: Generalized/Refactored masqueradeHelper
+	  and moved to pbx_impl. Renamed alloc_conferenceTempPBXChannel ->
+	  allocTempPBXChannel and request_foreign_channel ->
+	  requestForeignChannel in pbx_impl. Specialized masqueradeHelper
+	  in pbx_impl to be specific for the version used.
+
+	* [r3911] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h: Refined
+	  the masquerade helper by moving part of temp channel cloning to
+	  pbx_impl
+
+	* [r3910] src/conference/sccp_conference10.c, src/sccp_device.c,
+	  src/sccp_protocol.c, src/sccp_protocol.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Integrated both sendUserToDeviceVersion1Message
+	  implemetations into one function in sccp_protocol.c by added
+	  extra parameters for AppID, lineInstance, callReference and
+	  TransactionID
+
+	* [r3909] src/sccp_device.c: Reverted sccp_dev_buildpacket back to
+	  previous behaviour (mallocing only the exact space needed for an
+	  sccp message, instead of SCCP_MAX_PACKET)
+
+	* [r3908] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_conference.h, src/sccp_features.c: Refactored
+	  masqueration part of conference completely. The new version works
+	  under asterisk-1.8, asterisk-10 and asterisk-11. asterisk-1.6.2
+	  has not been checked/tested (but does compile and should follow
+	  asterisk-1.8)
+
+2012-12-16  marcelloceschia
+
+	* [r3907] src/sccp_protocol.c: remove debug lines
+
+	* [r3906] src/sccp_protocol.c: fixes
+	  UserToDeviceDataVersion1Message
+
+2012-12-16  ddegroot
+
+	* [r3905] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/pbx_impl.h: Moved
+	  asterisk version specific function for conference to pbx_impl.
+	  Fixed connected_line_update segfault for id.tag for
+	  asterisk-trunk in astTrunk.c
+
+	* [r3904] src/sccp_cli.c: Fix error when using sccp tokenAck on
+	  device without a session
+
+2012-12-15  ddegroot
+
+	* [r3903] src/conference/sccp_conference10.c: Make conference
+	  compile against asterisk-10.6.*
+
+	* [r3902] src/conference/sccp_conference10.c: Make conference
+	  compile against asterisk-10
+
+	* [r3901] src/sccp_actions.c: Reduce log level when handling empty
+	  d->softkeyDefinition
+
+	* [r3900] ChangeLog, autoconf/extra.m4, configure: Switching to
+	  std=gnu99 (with support for gnu89 inlining)
+
+	* [r3899] contrib/llvm-scan-build: Added optional parameters to the
+	  llvm-scan-build script
+
+	* [r3898] src/conference/sccp_conference10.c: Check part->channel
+	  to make sure we are dealing with an sccp phone when creating the
+	  conflist
+
+	* [r3897] src/sccp_device.c: Reduce debug log level on device
+	  create
+
+	* [r3896] src/sccp_actions.c: Removed some of the dump_packet debug
+	  where not necessary anymore
+
+	* [r3895] src/sccp_utils.c: Change debug log level for realtime
+	  when creating new line (1)
+
+	* [r3894] src/sccp_utils.c: Change debug log level for realtime
+	  when creating new line
+
+	* [r3893] src/sccp_features.c: Fixed sccp_features.c compile error
+	  when using asterisk 11.1
+
+	* [r3892] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast108.c: Added handling for conflist actions
+	  (Experimental).
+
+	* [r3891] src/sccp_refcount.h: Fixed missing newline in
+	  sccp_refcount.h
+
+	* [r3890] src/conference/sccp_conference10.c: Moved part of the
+	  conference cleanup to __sccp_conference_destroy
+
+	* [r3889] src/conference/sccp_conference10.c: Added comment to
+	  special asterisk-trunk addition 'alloc_playback_chan'
+
+	* [r3888] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/astTrunk.h,
+	  src/pbx_impl/ast/define.h: Make new conference implementation
+	  compile against asterisk-11.1 as well
+
+	* [r3887] src/conference/sccp_conference10.c: Made conference
+	  compatible to asterisk 1.6.2 again. Added corrected releases when
+	  returning error during addParticipant
+
+	* [r3886] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/define.h: Updated
+	  alloc_conferenceTempPBXChannel, added definitions to define.
+	  Replaced function calls in conference to use pbx_impl instead
+
+2012-12-14  ddegroot
+
+	* [r3885] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c, src/sccp_protocol.h:
+	  Added ConfList to conference implementation
+
+	* [r3884] src/sccp_device.c, src/sccp_utils.c: Temporary Revert
+	  sccp_build_packet to old behaviour to fix
+	  UserToDeviceDataVersion1Message.
+
+	* [r3883] src/conference/sccp_conference10.c: Added
+	  entering/leaving announcements to conference
+
+	* [r3882] src/sccp_conference.h: Added entering/leaving
+	  announcements to conference
+
+	* [r3881] src/conference/sccp_conference10.c, src/sccp_features.c,
+	  src/sccp_pbx.c: Retain conference in d->conference and release
+	  nicely upon pbx_hangup. Issue error message for now when a
+	  conference is started twice on one device.
+
+	* [r3880] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c: Fixed zombie/hangup
+	  issue when using conference. Channels should not be left over
+	  after finishing the conference anymore.
+
+2012-12-09  ddegroot
+
+	* [r3879] src/sccp_management.c: Allow empty number with AMI
+	  SCCPStartCall (jacob)
+
+	* [r3878] src/sccp_management.c: Add swap channels option (yes/no)
+	  when resuming to the AMI function SCCPHoldCall (jacob)
+
+2012-12-08  ddegroot
+
+	* [r3877] src/conference/sccp_conference10.c: Prevent null pointer
+	  dereference in __sccp_conference_addParticipant because retain
+	  could return null
+
+	* [r3876] src/chan_sccp.c: Prevent null pointer dereference in
+	  check_session_message_device when r==NULL
+
+	* [r3875] src/sccp_config.c: Prevent null pointer dereference in
+	  sccp_config.c during GLOB(lines) traversal, when line refcount
+	  would be 0 during release
+
+	* [r3874] src/conference/sccp_conference10.c: Prevent null pointer
+	  dereference in sccp_conference10.c
+
+	* [r3873] src/sccp_event.c: Prevent dereferencing null-pointer,
+	  during event retension failure
+
+	* [r3872] src/sccp_refcount.c: Removed uninitialized value from
+	  refcount debug log
+
+	* [r3871] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_channel.c: Replaced custom SCCP::? linkedid for asterisk
+	  1.8 and up by the asterisk generated one
+
+	* [r3870] src/sccp_channel.c: Prevent possible null pointer
+	  dereference when sccp_device_retain returns NULL in
+	  sccp_channel_set_active
+
+2012-12-05  ddegroot
+
+	* [r3869] src/sccp_config.c: Ugly solution to sccp reload problem
+	  when sccp.conf has not changed. config_load mixes ast_config
+	  struct with errors on its return, should have been byref, bu that
+	  is not the case. On FILEUNCHANGED we need to load the config
+	  files anyway but keep returning FILE_NOT_CHANGED, so that for
+	  other function GLOB(cfg) will atleast have valid data.
+
+	* [r3868] contrib/gen_sccpconf/gen_sccpconf.c: Fix missing type
+	  entries for devices and lines
+
+2012-12-02  ddegroot
+
+	* [r3867] src/sccp_socket.c: Reverted
+	  sccp_socket_stop_sessionthread to using pthread_join for now
+
+2012-12-02  marcelloceschia
+
+	* [r3866] conf/mysql-v5.sql: add FOREIGN KEY check for mysql5
+
+2012-12-02  ddegroot
+
+	* [r3865] src/sccp_socket.c: Updated
+	  sccp_socket_stop_sessionthread, to include pthread_join after
+	  pthread_cancel (solves sporadic issue in ioctl. Also added
+	  comment about using shutdown(s->fds[0].fd, SHUTDOWN_RDWR) instead
+	  of pthread_cancel.
+
+2012-12-01  ddegroot
+
+	* [r3864] src/sccp_actions.c, src/sccp_socket.c: Revised
+	  sccp_socket_stop_sessionthread
+
+2012-11-27  ddegroot
+
+	* [r3859] src/pbx_impl/ast/define.h: Added automatic x = NULL after
+	  sccp_free(x) in define.h.
+
+	* [r3856] src/conference/sccp_conference10.c: Added manager events
+	  to conference
+
+	* [r3855] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c: Trying to get rid of
+	  the unused moderator channel which was put on hold.
+
+2012-11-26  ddegroot
+
+	* [r3853] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c: Corrected module registration string
+
+	* [r3852] src/pbx_impl/ast/ast.h, src/pbx_impl/ast/define.h: Added
+	  fileexists / file.h to pbx_impl
+
+	* [r3851] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h: Started implementation of
+	  sccp_conference_playback_helper
+
+	* [r3850] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c, src/sccp_refcount.c,
+	  src/sccp_refcount.h: Fix conference refcount issue. Removed
+	  num_participants. Added conferece->finishing, conference->locked.
+	  Fix Module unload after creating a conference
+
+2012-11-25  ddegroot
+
+	* [r3849] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h, src/sccp_features.c: Cleaned up
+	  conference/sccp_conference10.c for further development. Multiple
+	  conference moderators are now possible. This is necessary to hand
+	  over a conference to another participant (this functionality has
+	  to be added later), it also simplifies the other functions,
+	  because all participants are dealt with in the same manner.
+
+	* [r3848] src/conference/sccp_conference10.c: Patched
+	  conference/sccp_conference10.c so that confernce works, and does
+	  not segfault on hangup. Moderator refcount is not released
+	  correctly yet and async_goto after conference end has been
+	  disabled. Module unload does not work after conference has been
+	  used. More work is necessary. Simple conferences do work. Visual
+	  feedback about confererence status has not been implemented yet.
+
+	* [r3847] src/sccp_device.c: Default registration state of a device
+	  is none instead of failed
+
+	* [r3846] src/sccp_pbx.c: Fixed second incoming call. Indication
+	  for callwaiting was being sent to the wrong channel.
+
+2012-11-24  ddegroot
+
+	* [r3845] src/sccp_config_entries.h, src/sccp_protocol.h,
+	  src/sccp_softkeys.c: Fix grouppickup softkey to cancel dial
+	  scheduler
+
+	* [r3844] src/sccp_features.c, src/sccp_softkeys.c: Fix grouppickup
+	  softkey retain instead of release. Added cancellation of
+	  scheduler.digittimeout (ticket #166). Removed indicate RINGING
+	  from grouppickup.
+
+	* [r3842] src/sccp_cli.c, src/sccp_features.c: Fix grouppickup to
+	  only pickup RINGING channels
+
+	* [r3840] src/pbx_impl/ast/ast106.c, src/sccp_features.c: Correct
+	  comment / debug statement about channel_locking during
+	  findChannelWithCallback (ast106)
+
+2012-11-24  marcelloceschia
+
+	* [r3838] src/sccp_config_entries.h: set allowRinginNotification
+	  default to no
+
+2012-11-23  marcelloceschia
+
+	* [r3837] src/sccp_actions.c: AST_STATE_UP with full checks in
+	  sccp_handle_OpenMultiMediaReceiveAck
+
+2012-11-21  marcelloceschia
+
+	* [r3836] src/sccp_actions.c: does this fix Crossover sessions?
+
+2012-11-18  marcelloceschia
+
+	* [r3834] src/sccp_actions.c: removed sccp_device_release(d),
+	  because it was not retained in this function
+
+2012-11-17  ddegroot
+
+	* [r3831] src/sccp_hint.c: Fixed hint->callInfo.calltype setting
+	  for hinthandling (protocolversion <15)
+
+	* [r3830] src/sccp_actions.c, src/sccp_channel.c, src/sccp_hint.c,
+	  src/sccp_hint.h, src/sccp_indicate.c, src/sccp_line.c: Update
+	  attachLine/detachLine event handling for hints
+
+2012-11-15  marcelloceschia
+
+	* [r3827] src/sccp_hint.c: fix hint when allowRinginNotification=no
+
+2012-11-14  ddegroot
+
+	* [r3826] src/sccp_hint.c: Renamed #if CS_EXPERIMENTAL_ to #if 1
+	  for now
+
+2012-11-14  marcelloceschia
+
+	* [r3825] src/sccp_hint.c: fix
+
+	* [r3824] src/sccp_hint.c: reduce the #ifndef CS_EXPERIMENTAL_
+	  block
+
+2012-11-14  ddegroot
+
+	* [r3823] src/sccp_hint.c: Skip updating hint information if
+	  hint->previousState and hint->currentState are the same
+
+	* [r3822] src/sccp_channel.c: Remove error status from
+	  preferredCodec debug line
+
+2012-11-13  marcelloceschia
+
+	* [r3820] src/sccp_hint.c: do not use AST_EVENT_DEVICE_STATE for
+	  hint subscribtion. Using AST_EVENT_DEVICE_STATE let us miss the
+	  cid info
+
+2012-11-11  ddegroot
+
+	* [r3819] src/sccp_hint.c: Cleaned up comment in sccp_hint.c
+
+2012-11-11  marcelloceschia
+
+	* [r3818] src/sccp_hint.c, src/sccp_hint.h: subscribe
+	  SCCP_EVENT_DEVICE_ATTACHED
+
+2012-11-11  ddegroot
+
+	* [r3817] src/sccp_hint.c: Added debuglogging to trace why hint
+	  processing does not work correctly in asterisk 11. Apparently we
+	  have to change sccp_hint to use ast_extension_state_add /
+	  ast_extension_state_del and ast_state_cb_info instead. We should
+	  move hint event handling to pbx_impl for be able to create a
+	  generic wrapper
+
+2012-11-10  ddegroot
+
+	* [r3816] src/sccp_threadpool.c: Prevent endless loop during
+	  threadpool_destroy while waiting for threads to end
+
+	* [r3815] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.h: (Fix Ast11) Replaced remote call to
+	  PBX(get_pbx_module) to retrieve static ast_module_info->self by
+	  implementing pbx_manager_register inside astTrunk.c instead
+
+	* [r3814] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast106.h,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast110.h,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/astTrunk.h,
+	  src/pbx_impl/ast/define.h, src/pbx_impl/pbx_impl.h,
+	  src/sccp_cli.c, src/sccp_management.c: (Ast11) Replaced remote
+	  call to PBX(get_pbx_module) to retrieve static
+	  ast_module_info->self by implementing pbx_manager_register inside
+	  astTrunk.c instead
+
+	* [r3813] src/sccp_cli.c: Reenable
+	  pbx_manager_register/pbx_manager_unregister calls for asterisk 11
+
+	* [r3812] src/sccp_threadpool.h: Removed non-existent static
+	  function definitions from sccp_threadpool.h
+
+	* [r3811] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.h, src/sccp_cli.c, src/sccp_management.c:
+	  Fixed manager_register functions by including a PBX callback
+	  function to retrieve the ast_module_info->self pointer which is
+	  only available astTrunk.c.
+
+2012-11-09  ddegroot
+
+	* [r3810] Makefile.in, autoconf/extra.m4, configure,
+	  doc/Makefile.in, src/Makefile.in: Update num_cpu retrieval in
+	  extra.m4
+
+	* [r3809] src/sccp_threadpool.c: Fix debug message. Fix last_resize
+	  update after first threadpool decrease to prevent multiple
+	  decreases in one loop
+
+2012-11-09  marcelloceschia
+
+	* [r3808] src/pbx_impl/ast/astTrunk.c: fixes asterisk > 10 codec
+	  issue
+
+	* [r3807] INSTALL, Makefile.in, aclocal.m4, autoconf/asterisk.m4,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/install-sh, autoconf/missing, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in, src/pbx_impl/ast/astTrunk.c:
+	  fixes asterisk > 10 codec issue
+
+2012-11-09  ddegroot
+
+	* [r3806] src/sccp_threadpool.c, src/sccp_threadpool.h: Replaced
+	  threadpool thread_array with double linked list. Added timedwait
+	  condition for thread_exit, to wait for threadpool winddown during
+	  threadpool shutdown. If threads do not stop in a timely fashion
+	  we kill the threadpool threads without waiting any further.
+
+	* [r3805] src/sccp_threadpool.c: Fix sccp_threadpool when reducing
+	  number of threads by skipping self
+
+2012-11-09  marcelloceschia
+
+	* [r3804] src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config_entries.h, src/sccp_hint.c: device option to
+	  prevent ringin notification for hints
+
+2012-11-09  ddegroot
+
+	* [r3803] src/sccp_cli.c, src/sccp_threadpool.c: Refine
+	  debuglogging for sccp_threadpool
+
+	* [r3802] src/chan_sccp.c, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_threadpool.c, src/sccp_threadpool.h: Major revision of
+	  sccp_threadpool. Using pthread_conditional signaling instead of
+	  semaphores, using sccp_dllist instead of locally implemented
+	  queue, not resizing pthread_array but using fixed sized array.
+	  Continue work without waiting for signal if more work is
+	  available.
+
+2012-11-08  ddegroot
+
+	* [r3801] src/sccp_cli.c, src/sccp_threadpool.c: Switched of
+	  threadpool resizing for now (While finding the solution for new
+	  thread creation)
+
+	* [r3800] src/sccp_threadpool.c: Added jobqueue debuglog entries
+
+2012-11-07  ddegroot
+
+	* [r3799] src/pbx_impl/ast/astTrunk.c: Fix hangup issue when using
+	  asterisk 11
+
+	* [r3798] tools/chan-sccp-b_backtrace: Add remarks before creating
+	  backtrace
+
+	* [r3797] src/pbx_impl/ast/astTrunk.c: Fix channel allocate for
+	  asterisk 11 and up
+
 2012-11-05  ddegroot
 
 	* [r3796] src/sccp_indicate.c: Fixed 1 second delay on pickup
@@ -795,2120 +1644,17 @@
 	* [r3614] Makefile.in, autoconf/acinclude.m4, configure,
 	  doc/Makefile.in, src/Makefile.in: Fix bad substitution error
 
-2012-07-09  marcelloceschia
-
-	* [r3613] localbuild[DEL]: del
-
 2012-07-08  marcelloceschia
 
 	* [r3612] src/pbx_impl/ast/ast108.c: merge
 
-	* [r3611] autoconf/asterisk.m4, configure,
-	  localbuild/asterisk-1.6.2.22/include/asterisk.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/DEADJOE[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/_private.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/abstract_jb.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/acl.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/adsi.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ael_structs.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/aes.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/aes_internal.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/agi.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/alaw.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/app.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ast_expr.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ast_version.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astdb.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astmm.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astobj.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astobj2.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astosp.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/audiohook.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/autoconfig.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/autoconfig.h.in[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/bridging.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/bridging_features.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/bridging_technology.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/build.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/buildinfo.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/buildopts.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/callerid.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/causes.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/cdr.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/channel.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/chanvars.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/cli.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/compat.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/compiler.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/config.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/crypto.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/datastore.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/devicestate.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dial.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dlinkedlists.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dns.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dnsmgr.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/doxyref.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dsp.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dundi.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/endian.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/enum.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/event.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/event_defs.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/extconf.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/features.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/file.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/frame.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/fskmodem.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/fskmodem_float.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/fskmodem_int.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/global_datastores.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/hashtab.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/heap.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/http.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/image.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/indications.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/inline_api.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/io.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/jabber.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/jingle.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/linkedlists.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/localtime.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/lock.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/logger.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/manager.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/md5.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/mod_format.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/module.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/monitor.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/musiconhold.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/netsock.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/network.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/options.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/paths.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/pbx.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/plc.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/poll-compat.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/privacy.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/pval.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/res_odbc.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/rtp.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/say.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/sched.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/select.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/sha1.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/slin.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/slinfactory.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/smdi.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/speech.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/srv.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/stringfields.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/strings.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/taskprocessor.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/tcptls.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/tdd.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/term.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/test.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/threadstorage.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/time.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/timing.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/transcap.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/translate.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/udptl.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ulaw.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/unaligned.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/utils.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/version.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/xml.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/xmldoc.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/jitterbuf.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/compat.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/sys/cdefs.h[DEL],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/sys/queue.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/_private.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/abstract_jb.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/acl.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/adsi.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ael_structs.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/agi.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/alaw.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/aoc.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/app.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ast_expr.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ast_version.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astdb.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astmm.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astobj.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astobj2.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astosp.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/audiohook.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/autochan.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/autoconfig.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/autoconfig.h.in[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/bridging.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/bridging_features.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/bridging_technology.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/build.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/buildinfo.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/buildopts.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/calendar.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/callerid.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/causes.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ccss.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/cdr.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/cel.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/channel.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/channelstate.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/chanvars.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/cli.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/compat.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/compiler.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/config.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/crypto.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/data.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/datastore.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/devicestate.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dial.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dlinkedlists.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dns.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dnsmgr.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/architecture.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/asterisk-git-howto.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/commits.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/licensing.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/mantisworkflow.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/releases.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/reviewboard.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxyref.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dsp.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dundi.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/endian.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/enum.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/event.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/event_defs.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/extconf.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/features.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/file.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/frame.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/frame_defs.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/framehook.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/fskmodem.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/fskmodem_float.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/fskmodem_int.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/global_datastores.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/hashtab.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/heap.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/http.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/image.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/indications.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/inline_api.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/io.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/jabber.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/jingle.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/linkedlists.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/localtime.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/lock.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/logger.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/manager.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/md5.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/mod_format.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/module.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/monitor.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/musiconhold.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/netsock.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/netsock2.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/network.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/optional_api.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/options.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/paths.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/pbx.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/pktccops.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/plc.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/poll-compat.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/privacy.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/pval.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/res_fax.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/res_odbc.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/res_srtp.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/rtp_engine.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/say.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/sched.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/security_events.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/security_events_defs.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/select.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/sha1.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/slin.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/slinfactory.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/smdi.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/speech.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/srv.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/stringfields.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/strings.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/stun.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/syslog.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/taskprocessor.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/tcptls.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/tdd.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/term.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/test.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/threadstorage.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/time.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/timing.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/transcap.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/translate.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/udptl.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ulaw.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/unaligned.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/utils.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/version.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/xml.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/xmldoc.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/jitterbuf.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/compat.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/sys/cdefs.h[DEL],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/sys/queue.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/_private.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/abstract_jb.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/acl.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/adsi.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ael_structs.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/agi.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/alaw.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/aoc.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/app.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ast_expr.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ast_version.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astdb.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astmm.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astobj.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astobj2.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astosp.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/audiohook.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/autochan.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/autoconfig.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/autoconfig.h.in[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/bridging.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/bridging_features.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/bridging_technology.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/build.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/buildinfo.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/buildopts.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/calendar.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/callerid.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/causes.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ccss.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/cdr.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/cel.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/channel.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/channelstate.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/chanvars.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/cli.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/compat.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/compiler.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/config.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/crypto.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/data.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/datastore.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/devicestate.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dial.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dlinkedlists.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dns.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dnsmgr.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/architecture.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/asterisk-git-howto.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/commits.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/licensing.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/mantisworkflow.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/releases.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/reviewboard.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxyref.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dsp.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dundi.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/endian.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/enum.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/event.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/event_defs.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/extconf.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/features.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/file.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/frame.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/frame_defs.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/framehook.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/fskmodem.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/fskmodem_float.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/fskmodem_int.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/global_datastores.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/hashtab.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/heap.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/http.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/image.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/indications.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/inline_api.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/io.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/jabber.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/jingle.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/linkedlists.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/localtime.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/lock.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/logger.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/manager.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/md5.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/mod_format.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/module.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/monitor.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/musiconhold.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/netsock.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/netsock2.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/network.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/optional_api.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/options.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/paths.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/pbx.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/pktccops.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/plc.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/poll-compat.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/privacy.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/pval.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/res_fax.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/res_odbc.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/res_srtp.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/rtp_engine.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/say.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/sched.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/security_events.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/security_events_defs.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/select.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/sha1.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/slin.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/slinfactory.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/smdi.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/speech.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/srv.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/stringfields.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/strings.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/stun.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/syslog.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/taskprocessor.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/tcptls.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/tdd.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/term.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/test.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/threadstorage.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/time.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/timing.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/transcap.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/translate.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/udptl.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ulaw.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/unaligned.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/utils.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/version.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/xml.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/xmldoc.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/jitterbuf.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/compat.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/sys/cdefs.h[DEL],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/sys/queue.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/_private.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/abstract_jb.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/acl.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/adsi.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/ael_structs.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/agi.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/alaw.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/aoc.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/app.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/ast_expr.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/ast_version.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/astdb.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/astmm.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/astobj.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/astobj2.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/astosp.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/audiohook.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/autochan.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/autoconfig.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/autoconfig.h.in[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/bridging.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/bridging_features.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/bridging_technology.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/build.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/buildinfo.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/buildopts.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/calendar.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/callerid.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/causes.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/ccss.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/cdr.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/cel.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/celt.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/channel.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/channelstate.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/chanvars.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/cli.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/compat.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/compiler.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/config.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/crypto.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/data.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/datastore.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/devicestate.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/dial.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/dlinkedlists.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/dns.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/dnsmgr.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/architecture.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/asterisk-git-howto.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/commits.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/licensing.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/mantisworkflow.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/releases.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/reviewboard.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxyref.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/dsp.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/dundi.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/endian.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/enum.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/event.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/event_defs.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/extconf.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/features.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/file.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/format.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/format_cap.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/format_pref.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/frame.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/frame_defs.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/framehook.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/fskmodem.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/fskmodem_float.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/fskmodem_int.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/global_datastores.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/hashtab.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/heap.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/http.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/image.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/indications.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/inline_api.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/io.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/jabber.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/jingle.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/linkedlists.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/localtime.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/lock.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/logger.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/manager.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/md5.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/message.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/mod_format.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/module.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/monitor.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/musiconhold.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/netsock.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/netsock2.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/network.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/optional_api.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/options.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/paths.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/pbx.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/pktccops.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/plc.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/poll-compat.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/privacy.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/pval.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/res_fax.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/res_odbc.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/res_srtp.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/rtp_engine.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/say.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/sched.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/security_events.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/security_events_defs.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/select.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/sha1.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/silk.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/slin.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/slinfactory.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/smdi.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/speech.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/srv.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/stringfields.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/strings.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/stun.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/syslog.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/taskprocessor.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/tcptls.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/tdd.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/term.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/test.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/threadstorage.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/time.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/timing.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/transcap.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/translate.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/udptl.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/ulaw.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/unaligned.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/utils.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/version.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/xml.h[DEL],
-	  localbuild/asterisk-10.2.1/include/asterisk/xmldoc.h[DEL],
-	  localbuild/asterisk-10.2.1/include/jitterbuf.h[DEL],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/compat.h[DEL],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/sys/cdefs.h[DEL],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/sys/queue.h[DEL],
-	  localbuild/asterisk-trunk/include/.svn/all-wcprops[DEL],
-	  localbuild/asterisk-trunk/include/.svn/dir-prop-base[DEL],
-	  localbuild/asterisk-trunk/include/.svn/entries[DEL],
-	  localbuild/asterisk-trunk/include/.svn/prop-base/asterisk.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/.svn/prop-base/jitterbuf.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/.svn/text-base/asterisk.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/.svn/text-base/jitterbuf.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/all-wcprops[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/dir-prop-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/entries[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/_private.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/abstract_jb.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/acl.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/adsi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ael_structs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/agi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/alaw.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/aoc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/app.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ast_expr.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ast_version.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astdb.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astmm.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astobj.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astobj2.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astosp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/audiohook.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/autochan.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/autoconfig.h.in.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/bridging.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/bridging_features.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/bridging_technology.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/buildinfo.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/calendar.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/callerid.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/causes.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ccss.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/cdr.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/cel.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/celt.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/channel.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/channel_internal.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/channelstate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/chanvars.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/cli.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/compat.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/compiler.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/config.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/config_options.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/crypto.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/data.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/datastore.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/devicestate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dial.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dlinkedlists.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dns.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dnsmgr.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/doxyref.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dsp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dundi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/endian.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/enum.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/event.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/event_defs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/extconf.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/features.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/file.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/format.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/format_cap.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/format_pref.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/frame.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/frame_defs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/framehook.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/fskmodem.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/fskmodem_float.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/fskmodem_int.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/global_datastores.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/hashtab.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/heap.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/http.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/http_websocket.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/image.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/indications.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/inline_api.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/io.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/jabber.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/jingle.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/linkedlists.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/localtime.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/lock.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/logger.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/manager.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/md5.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/message.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/mod_format.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/module.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/monitor.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/musiconhold.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/netsock.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/netsock2.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/network.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/optional_api.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/options.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/paths.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/pbx.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/pktccops.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/plc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/poll-compat.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/privacy.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/pval.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/res_fax.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/res_odbc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/res_srtp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/rtp_engine.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/say.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/sched.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/security_events.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/security_events_defs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/select.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/sha1.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/silk.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/sip_api.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/slin.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/slinfactory.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/smdi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/speech.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/srv.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/stringfields.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/strings.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/stun.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/syslog.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/taskprocessor.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/tcptls.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/tdd.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/term.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/test.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/threadstorage.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/time.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/timing.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/transcap.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/translate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/udptl.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ulaw.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/unaligned.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/utils.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/version.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/xml.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/xmldoc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/xmpp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/_private.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/abstract_jb.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/acl.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/adsi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ael_structs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/agi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/alaw.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/aoc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/app.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ast_expr.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ast_version.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astdb.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astmm.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astobj.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astobj2.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astosp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/audiohook.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/autochan.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/autoconfig.h.in.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/bridging.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/bridging_features.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/bridging_technology.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/buildinfo.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/calendar.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/callerid.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/causes.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ccss.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/cdr.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/cel.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/celt.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/channel.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/channel_internal.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/channelstate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/chanvars.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/cli.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/compat.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/compiler.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/config.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/config_options.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/crypto.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/data.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/datastore.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/devicestate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dial.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dlinkedlists.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dns.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dnsmgr.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/doxyref.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dsp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dundi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/endian.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/enum.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/event.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/event_defs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/extconf.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/features.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/file.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/format.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/format_cap.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/format_pref.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/frame.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/frame_defs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/framehook.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/fskmodem.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/fskmodem_float.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/fskmodem_int.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/global_datastores.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/hashtab.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/heap.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/http.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/http_websocket.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/image.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/indications.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/inline_api.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/io.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/jabber.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/jingle.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/linkedlists.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/localtime.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/lock.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/logger.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/manager.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/md5.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/message.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/mod_format.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/module.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/monitor.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/musiconhold.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/netsock.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/netsock2.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/network.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/optional_api.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/options.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/paths.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/pbx.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/pktccops.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/plc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/poll-compat.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/presencestate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/privacy.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/pval.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/res_fax.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/res_odbc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/res_srtp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/rtp_engine.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/say.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/sched.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/security_events.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/security_events_defs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/select.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/sha1.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/silk.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/sip_api.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/slin.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/slinfactory.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/smdi.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/speech.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/srv.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/stringfields.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/strings.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/stun.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/syslog.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/taskprocessor.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/tcptls.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/tdd.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/term.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/test.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/threadstorage.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/time.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/timing.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/transcap.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/translate.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/udptl.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ulaw.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/unaligned.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/utils.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/version.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/xml.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/xmldoc.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/xmpp.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/_private.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/abstract_jb.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/acl.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/adsi.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/ael_structs.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/agi.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/alaw.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/aoc.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/app.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/ast_expr.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/ast_version.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/astdb.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/astmm.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/astobj.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/astobj2.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/astosp.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/audiohook.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/autochan.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/autoconfig.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/autoconfig.h.in[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/bridging.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/bridging_features.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/bridging_technology.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/build.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/buildinfo.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/buildopts.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/calendar.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/callerid.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/causes.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/ccss.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/cdr.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/cel.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/celt.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/channel.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/channel_internal.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/channelstate.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/chanvars.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/cli.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/compat.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/compiler.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/config.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/config_options.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/crypto.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/data.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/datastore.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/devicestate.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/dial.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/dlinkedlists.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/dns.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/dnsmgr.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/all-wcprops[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/entries[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/architecture.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/asterisk-git-howto.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/commits.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/licensing.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/mantisworkflow.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/releases.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/reviewboard.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/architecture.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/asterisk-git-howto.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/commits.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/licensing.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/mantisworkflow.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/releases.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/reviewboard.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/architecture.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/asterisk-git-howto.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/commits.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/licensing.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/mantisworkflow.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/releases.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/reviewboard.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/doxyref.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/dsp.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/dundi.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/endian.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/enum.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/event.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/event_defs.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/extconf.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/features.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/file.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/format.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/format_cap.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/format_pref.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/frame.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/frame_defs.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/framehook.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/fskmodem.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/fskmodem_float.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/fskmodem_int.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/global_datastores.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/hashtab.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/heap.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/http.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/http_websocket.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/image.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/indications.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/inline_api.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/io.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/jabber.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/jingle.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/linkedlists.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/localtime.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/lock.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/logger.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/manager.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/md5.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/message.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/mod_format.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/module.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/monitor.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/musiconhold.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/netsock.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/netsock2.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/network.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/optional_api.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/options.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/paths.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/pbx.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/pktccops.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/plc.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/poll-compat.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/presencestate.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/privacy.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/pval.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/res_fax.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/res_odbc.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/res_srtp.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/rtp_engine.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/say.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/sched.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/security_events.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/security_events_defs.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/select.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/sha1.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/silk.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/sip_api.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/slin.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/slinfactory.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/smdi.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/speech.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/srv.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/stringfields.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/strings.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/stun.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/syslog.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/taskprocessor.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/tcptls.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/tdd.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/term.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/test.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/threadstorage.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/time.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/timing.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/transcap.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/translate.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/udptl.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/ulaw.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/unaligned.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/utils.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/version.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/xml.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/xmldoc.h[DEL],
-	  localbuild/asterisk-trunk/include/asterisk/xmpp.h[DEL],
-	  localbuild/asterisk-trunk/include/jitterbuf.h[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/all-wcprops[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/entries[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/prop-base/compat.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/text-base/compat.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/compat.h[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/all-wcprops[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/entries[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/prop-base/cdefs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/prop-base/queue.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/text-base/cdefs.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/text-base/queue.h.svn-base[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/cdefs.h[DEL],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/queue.h[DEL],
-	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/astTrunk.h,
-	  src/pbx_impl/ast/define.h, src/pbx_impl/pbx_impl.h,
-	  src/sccp_features.c: remove localbuild
+	* [r3611] autoconf/asterisk.m4, configure, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.h, src/sccp_features.c: remove localbuild
 
 	* [r3610] src/pbx_impl/ast/ast108.c: Fixed pbx_string_field_set
-
-	* [r3609] localbuild[ADD], localbuild/asterisk-1.6.2.22[ADD],
-	  localbuild/asterisk-1.6.2.22/include[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/DEADJOE[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/_private.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/abstract_jb.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/acl.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/adsi.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ael_structs.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/aes.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/aes_internal.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/agi.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/alaw.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/app.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ast_expr.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ast_version.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astdb.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astmm.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astobj.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astobj2.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/astosp.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/audiohook.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/autoconfig.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/autoconfig.h.in[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/bridging.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/bridging_features.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/bridging_technology.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/build.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/buildinfo.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/buildopts.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/callerid.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/causes.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/cdr.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/channel.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/chanvars.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/cli.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/compat.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/compiler.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/config.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/crypto.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/datastore.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/devicestate.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dial.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dlinkedlists.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dns.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dnsmgr.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/doxyref.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dsp.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/dundi.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/endian.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/enum.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/event.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/event_defs.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/extconf.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/features.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/file.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/frame.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/fskmodem.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/fskmodem_float.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/fskmodem_int.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/global_datastores.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/hashtab.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/heap.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/http.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/image.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/indications.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/inline_api.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/io.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/jabber.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/jingle.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/linkedlists.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/localtime.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/lock.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/logger.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/manager.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/md5.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/mod_format.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/module.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/monitor.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/musiconhold.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/netsock.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/network.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/options.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/paths.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/pbx.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/plc.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/poll-compat.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/privacy.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/pval.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/res_odbc.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/rtp.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/say.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/sched.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/select.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/sha1.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/slin.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/slinfactory.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/smdi.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/speech.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/srv.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/stringfields.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/strings.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/taskprocessor.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/tcptls.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/tdd.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/term.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/test.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/threadstorage.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/time.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/timing.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/transcap.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/translate.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/udptl.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/ulaw.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/unaligned.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/utils.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/version.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/xml.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/asterisk/xmldoc.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/jitterbuf.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat[ADD],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/compat.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/sys[ADD],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/sys/cdefs.h[ADD],
-	  localbuild/asterisk-1.6.2.22/include/solaris-compat/sys/queue.h[ADD],
-	  localbuild/asterisk-1.8.10.0[ADD],
-	  localbuild/asterisk-1.8.10.0/include[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/_private.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/abstract_jb.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/acl.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/adsi.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ael_structs.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/agi.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/alaw.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/aoc.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/app.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ast_expr.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ast_version.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astdb.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astmm.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astobj.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astobj2.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/astosp.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/audiohook.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/autochan.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/autoconfig.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/autoconfig.h.in[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/bridging.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/bridging_features.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/bridging_technology.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/build.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/buildinfo.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/buildopts.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/calendar.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/callerid.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/causes.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ccss.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/cdr.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/cel.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/channel.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/channelstate.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/chanvars.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/cli.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/compat.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/compiler.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/config.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/crypto.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/data.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/datastore.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/devicestate.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dial.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dlinkedlists.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dns.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dnsmgr.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/architecture.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/asterisk-git-howto.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/commits.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/licensing.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/mantisworkflow.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/releases.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxygen/reviewboard.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/doxyref.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dsp.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/dundi.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/endian.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/enum.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/event.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/event_defs.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/extconf.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/features.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/file.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/frame.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/frame_defs.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/framehook.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/fskmodem.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/fskmodem_float.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/fskmodem_int.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/global_datastores.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/hashtab.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/heap.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/http.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/image.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/indications.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/inline_api.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/io.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/jabber.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/jingle.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/linkedlists.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/localtime.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/lock.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/logger.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/manager.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/md5.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/mod_format.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/module.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/monitor.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/musiconhold.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/netsock.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/netsock2.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/network.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/optional_api.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/options.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/paths.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/pbx.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/pktccops.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/plc.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/poll-compat.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/privacy.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/pval.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/res_fax.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/res_odbc.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/res_srtp.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/rtp_engine.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/say.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/sched.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/security_events.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/security_events_defs.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/select.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/sha1.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/slin.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/slinfactory.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/smdi.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/speech.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/srv.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/stringfields.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/strings.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/stun.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/syslog.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/taskprocessor.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/tcptls.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/tdd.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/term.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/test.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/threadstorage.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/time.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/timing.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/transcap.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/translate.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/udptl.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/ulaw.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/unaligned.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/utils.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/version.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/xml.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/asterisk/xmldoc.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/jitterbuf.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat[ADD],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/compat.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/sys[ADD],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/sys/cdefs.h[ADD],
-	  localbuild/asterisk-1.8.10.0/include/solaris-compat/sys/queue.h[ADD],
-	  localbuild/asterisk-1.8.8.1[ADD],
-	  localbuild/asterisk-1.8.8.1/include[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/_private.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/abstract_jb.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/acl.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/adsi.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ael_structs.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/agi.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/alaw.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/aoc.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/app.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ast_expr.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ast_version.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astdb.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astmm.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astobj.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astobj2.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/astosp.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/audiohook.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/autochan.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/autoconfig.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/autoconfig.h.in[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/bridging.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/bridging_features.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/bridging_technology.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/build.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/buildinfo.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/buildopts.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/calendar.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/callerid.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/causes.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ccss.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/cdr.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/cel.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/channel.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/channelstate.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/chanvars.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/cli.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/compat.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/compiler.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/config.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/crypto.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/data.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/datastore.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/devicestate.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dial.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dlinkedlists.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dns.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dnsmgr.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/architecture.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/asterisk-git-howto.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/commits.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/licensing.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/mantisworkflow.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/releases.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxygen/reviewboard.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/doxyref.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dsp.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/dundi.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/endian.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/enum.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/event.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/event_defs.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/extconf.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/features.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/file.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/frame.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/frame_defs.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/framehook.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/fskmodem.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/fskmodem_float.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/fskmodem_int.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/global_datastores.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/hashtab.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/heap.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/http.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/image.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/indications.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/inline_api.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/io.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/jabber.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/jingle.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/linkedlists.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/localtime.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/lock.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/logger.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/manager.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/md5.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/mod_format.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/module.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/monitor.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/musiconhold.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/netsock.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/netsock2.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/network.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/optional_api.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/options.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/paths.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/pbx.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/pktccops.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/plc.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/poll-compat.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/privacy.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/pval.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/res_fax.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/res_odbc.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/res_srtp.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/rtp_engine.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/say.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/sched.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/security_events.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/security_events_defs.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/select.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/sha1.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/slin.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/slinfactory.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/smdi.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/speech.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/srv.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/stringfields.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/strings.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/stun.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/syslog.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/taskprocessor.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/tcptls.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/tdd.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/term.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/test.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/threadstorage.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/time.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/timing.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/transcap.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/translate.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/udptl.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/ulaw.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/unaligned.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/utils.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/version.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/xml.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/asterisk/xmldoc.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/jitterbuf.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat[ADD],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/compat.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/sys[ADD],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/sys/cdefs.h[ADD],
-	  localbuild/asterisk-1.8.8.1/include/solaris-compat/sys/queue.h[ADD],
-	  localbuild/asterisk-10.2.1[ADD],
-	  localbuild/asterisk-10.2.1/include[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/_private.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/abstract_jb.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/acl.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/adsi.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/ael_structs.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/agi.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/alaw.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/aoc.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/app.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/ast_expr.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/ast_version.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/astdb.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/astmm.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/astobj.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/astobj2.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/astosp.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/audiohook.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/autochan.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/autoconfig.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/autoconfig.h.in[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/bridging.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/bridging_features.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/bridging_technology.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/build.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/buildinfo.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/buildopts.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/calendar.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/callerid.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/causes.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/ccss.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/cdr.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/cel.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/celt.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/channel.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/channelstate.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/chanvars.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/cli.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/compat.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/compiler.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/config.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/crypto.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/data.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/datastore.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/devicestate.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/dial.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/dlinkedlists.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/dns.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/dnsmgr.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/architecture.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/asterisk-git-howto.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/commits.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/licensing.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/mantisworkflow.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/releases.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxygen/reviewboard.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/doxyref.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/dsp.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/dundi.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/endian.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/enum.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/event.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/event_defs.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/extconf.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/features.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/file.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/format.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/format_cap.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/format_pref.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/frame.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/frame_defs.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/framehook.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/fskmodem.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/fskmodem_float.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/fskmodem_int.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/global_datastores.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/hashtab.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/heap.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/http.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/image.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/indications.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/inline_api.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/io.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/jabber.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/jingle.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/linkedlists.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/localtime.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/lock.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/logger.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/manager.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/md5.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/message.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/mod_format.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/module.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/monitor.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/musiconhold.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/netsock.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/netsock2.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/network.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/optional_api.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/options.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/paths.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/pbx.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/pktccops.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/plc.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/poll-compat.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/privacy.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/pval.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/res_fax.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/res_odbc.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/res_srtp.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/rtp_engine.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/say.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/sched.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/security_events.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/security_events_defs.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/select.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/sha1.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/silk.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/slin.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/slinfactory.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/smdi.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/speech.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/srv.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/stringfields.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/strings.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/stun.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/syslog.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/taskprocessor.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/tcptls.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/tdd.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/term.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/test.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/threadstorage.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/time.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/timing.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/transcap.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/translate.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/udptl.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/ulaw.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/unaligned.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/utils.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/version.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/xml.h[ADD],
-	  localbuild/asterisk-10.2.1/include/asterisk/xmldoc.h[ADD],
-	  localbuild/asterisk-10.2.1/include/jitterbuf.h[ADD],
-	  localbuild/asterisk-10.2.1/include/solaris-compat[ADD],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/compat.h[ADD],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/sys[ADD],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/sys/cdefs.h[ADD],
-	  localbuild/asterisk-10.2.1/include/solaris-compat/sys/queue.h[ADD],
-	  localbuild/asterisk-trunk[ADD],
-	  localbuild/asterisk-trunk/include[ADD],
-	  localbuild/asterisk-trunk/include/.svn[ADD],
-	  localbuild/asterisk-trunk/include/.svn/all-wcprops[ADD],
-	  localbuild/asterisk-trunk/include/.svn/dir-prop-base[ADD],
-	  localbuild/asterisk-trunk/include/.svn/entries[ADD],
-	  localbuild/asterisk-trunk/include/.svn/prop-base[ADD],
-	  localbuild/asterisk-trunk/include/.svn/prop-base/asterisk.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/.svn/prop-base/jitterbuf.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/.svn/text-base[ADD],
-	  localbuild/asterisk-trunk/include/.svn/text-base/asterisk.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/.svn/text-base/jitterbuf.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk[ADD],
-	  localbuild/asterisk-trunk/include/asterisk.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/all-wcprops[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/dir-prop-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/entries[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/_private.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/abstract_jb.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/acl.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/adsi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ael_structs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/agi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/alaw.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/aoc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/app.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ast_expr.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ast_version.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astdb.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astmm.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astobj.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astobj2.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/astosp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/audiohook.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/autochan.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/autoconfig.h.in.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/bridging.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/bridging_features.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/bridging_technology.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/buildinfo.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/calendar.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/callerid.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/causes.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ccss.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/cdr.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/cel.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/celt.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/channel.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/channel_internal.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/channelstate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/chanvars.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/cli.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/compat.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/compiler.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/config.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/config_options.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/crypto.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/data.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/datastore.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/devicestate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dial.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dlinkedlists.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dns.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dnsmgr.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/doxyref.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dsp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/dundi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/endian.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/enum.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/event.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/event_defs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/extconf.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/features.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/file.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/format.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/format_cap.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/format_pref.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/frame.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/frame_defs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/framehook.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/fskmodem.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/fskmodem_float.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/fskmodem_int.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/global_datastores.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/hashtab.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/heap.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/http.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/http_websocket.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/image.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/indications.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/inline_api.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/io.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/jabber.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/jingle.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/linkedlists.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/localtime.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/lock.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/logger.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/manager.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/md5.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/message.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/mod_format.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/module.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/monitor.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/musiconhold.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/netsock.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/netsock2.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/network.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/optional_api.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/options.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/paths.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/pbx.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/pktccops.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/plc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/poll-compat.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/privacy.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/pval.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/res_fax.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/res_odbc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/res_srtp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/rtp_engine.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/say.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/sched.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/security_events.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/security_events_defs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/select.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/sha1.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/silk.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/sip_api.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/slin.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/slinfactory.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/smdi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/speech.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/srv.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/stringfields.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/strings.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/stun.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/syslog.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/taskprocessor.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/tcptls.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/tdd.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/term.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/test.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/threadstorage.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/time.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/timing.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/transcap.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/translate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/udptl.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/ulaw.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/unaligned.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/utils.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/version.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/xml.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/xmldoc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/prop-base/xmpp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/_private.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/abstract_jb.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/acl.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/adsi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ael_structs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/agi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/alaw.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/aoc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/app.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ast_expr.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ast_version.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astdb.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astmm.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astobj.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astobj2.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/astosp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/audiohook.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/autochan.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/autoconfig.h.in.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/bridging.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/bridging_features.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/bridging_technology.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/buildinfo.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/calendar.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/callerid.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/causes.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ccss.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/cdr.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/cel.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/celt.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/channel.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/channel_internal.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/channelstate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/chanvars.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/cli.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/compat.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/compiler.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/config.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/config_options.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/crypto.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/data.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/datastore.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/devicestate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dial.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dlinkedlists.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dns.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dnsmgr.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/doxyref.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dsp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/dundi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/endian.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/enum.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/event.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/event_defs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/extconf.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/features.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/file.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/format.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/format_cap.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/format_pref.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/frame.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/frame_defs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/framehook.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/fskmodem.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/fskmodem_float.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/fskmodem_int.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/global_datastores.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/hashtab.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/heap.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/http.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/http_websocket.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/image.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/indications.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/inline_api.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/io.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/jabber.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/jingle.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/linkedlists.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/localtime.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/lock.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/logger.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/manager.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/md5.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/message.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/mod_format.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/module.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/monitor.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/musiconhold.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/netsock.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/netsock2.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/network.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/optional_api.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/options.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/paths.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/pbx.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/pktccops.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/plc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/poll-compat.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/presencestate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/privacy.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/pval.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/res_fax.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/res_odbc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/res_srtp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/rtp_engine.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/say.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/sched.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/security_events.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/security_events_defs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/select.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/sha1.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/silk.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/sip_api.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/slin.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/slinfactory.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/smdi.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/speech.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/srv.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/stringfields.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/strings.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/stun.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/syslog.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/taskprocessor.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/tcptls.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/tdd.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/term.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/test.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/threadstorage.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/time.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/timing.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/transcap.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/translate.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/udptl.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/ulaw.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/unaligned.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/utils.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/version.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/xml.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/xmldoc.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/.svn/text-base/xmpp.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/_private.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/abstract_jb.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/acl.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/adsi.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/ael_structs.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/agi.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/alaw.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/aoc.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/app.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/ast_expr.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/ast_version.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/astdb.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/astmm.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/astobj.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/astobj2.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/astosp.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/audiohook.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/autochan.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/autoconfig.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/autoconfig.h.in[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/bridging.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/bridging_features.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/bridging_technology.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/build.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/buildinfo.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/buildopts.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/calendar.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/callerid.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/causes.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/ccss.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/cdr.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/cel.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/celt.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/channel.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/channel_internal.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/channelstate.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/chanvars.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/cli.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/compat.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/compiler.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/config.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/config_options.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/crypto.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/data.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/datastore.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/devicestate.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/dial.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/dlinkedlists.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/dns.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/dnsmgr.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/all-wcprops[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/entries[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/architecture.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/asterisk-git-howto.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/commits.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/licensing.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/mantisworkflow.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/releases.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/prop-base/reviewboard.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/architecture.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/asterisk-git-howto.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/commits.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/licensing.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/mantisworkflow.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/releases.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/.svn/text-base/reviewboard.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/architecture.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/asterisk-git-howto.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/commits.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/licensing.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/mantisworkflow.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/releases.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxygen/reviewboard.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/doxyref.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/dsp.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/dundi.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/endian.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/enum.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/event.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/event_defs.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/extconf.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/features.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/file.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/format.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/format_cap.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/format_pref.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/frame.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/frame_defs.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/framehook.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/fskmodem.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/fskmodem_float.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/fskmodem_int.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/global_datastores.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/hashtab.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/heap.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/http.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/http_websocket.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/image.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/indications.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/inline_api.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/io.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/jabber.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/jingle.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/linkedlists.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/localtime.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/lock.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/logger.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/manager.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/md5.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/message.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/mod_format.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/module.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/monitor.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/musiconhold.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/netsock.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/netsock2.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/network.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/optional_api.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/options.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/paths.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/pbx.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/pktccops.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/plc.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/poll-compat.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/presencestate.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/privacy.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/pval.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/res_fax.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/res_odbc.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/res_srtp.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/rtp_engine.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/say.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/sched.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/security_events.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/security_events_defs.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/select.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/sha1.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/silk.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/sip_api.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/slin.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/slinfactory.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/smdi.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/speech.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/srv.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/stringfields.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/strings.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/stun.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/syslog.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/taskprocessor.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/tcptls.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/tdd.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/term.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/test.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/threadstorage.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/time.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/timing.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/transcap.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/translate.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/udptl.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/ulaw.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/unaligned.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/utils.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/version.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/xml.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/xmldoc.h[ADD],
-	  localbuild/asterisk-trunk/include/asterisk/xmpp.h[ADD],
-	  localbuild/asterisk-trunk/include/jitterbuf.h[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/all-wcprops[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/entries[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/prop-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/prop-base/compat.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/text-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/.svn/text-base/compat.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/compat.h[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/all-wcprops[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/entries[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/prop-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/prop-base/cdefs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/prop-base/queue.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/text-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/text-base/cdefs.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/.svn/text-base/queue.h.svn-base[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/cdefs.h[ADD],
-	  localbuild/asterisk-trunk/include/solaris-compat/sys/queue.h[ADD]:
-	  Addd localbuild direcotory
 
 	* [r3608] autoconf/acinclude.m4, autoconf/asterisk.m4, configure:
 	  Update -with-asterisk find method. Added default include file for
