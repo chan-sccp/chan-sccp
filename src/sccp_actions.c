@@ -1131,7 +1131,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 		case SKINNY_BUTTONTYPE_LASTNUMBERREDIAL:							// We got a Redial Request
 			if (sccp_strlen_zero(d->lastNumber))
-				return;
+				goto func_exit;
 			channel = sccp_channel_get_active(d);
 			if (channel) {
 				if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
@@ -2053,14 +2053,14 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 				l = sccp_line_release(l);
 			}
 			if (!l) {
-				l = (channel) ? sccp_line_retain(channel->line) : NULL;
+				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
 			}
 		} else {
 			if (l) {
 				channel = sccp_find_channel_on_line_byid(l, callid);
 			} else {
 				channel = sccp_channel_find_byid(callid);
-				l = (channel) ? sccp_line_retain(channel->line) : NULL;
+				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
 			}
 		}
 	}
@@ -2079,14 +2079,12 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 
 	if (!channel) {
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
-		l = l ? sccp_line_release(l) : NULL;
-		return;
+		goto EXIT_FUNC;
 	}
 
 	if (!l) {
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no line specified! Exiting\n", DEV_ID_LOG(d));
-		channel = sccp_channel_release(channel);
-		return;
+		goto EXIT_FUNC;
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state);
@@ -2107,9 +2105,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		/* we have to unlock 'cause the senddigit lock the channel */
 		sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
 		sccp_pbx_senddigit(channel, resp);
-		channel = sccp_channel_release(channel);
-		l = sccp_line_release(l);
-		return;
+		goto EXIT_FUNC;
 	}
 
 	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS)) {
@@ -2181,9 +2177,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			if (channel->state == SCCP_CHANNELSTATE_DIALING && PBX(getChannelPbx) (channel)) {
 				/* we shouldn't start pbx another time */
 				sccp_pbx_senddigit(channel, resp);
-				channel = sccp_channel_release(channel);
-				l = sccp_line_release(l);
-				return;
+				goto EXIT_FUNC;
 			}
 
 			/* as we're not in overlapped mode we should add timeout again */
@@ -2197,43 +2191,36 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
 				channel->state = SCCP_CHANNELSTATE_OFFHOOK;
 				sccp_sk_gpickup(d, channel->line, lineInstance, channel);
-				channel = sccp_channel_release(channel);
-				l = sccp_line_release(l);
-				return;
+				goto EXIT_FUNC;
 			}
 #endif
 
-			if (GLOB(digittimeoutchar) == resp) {
+			if (GLOB(digittimeoutchar) == resp) {				// we dial on digit timeout char !
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Got digit timeout char '%c', dial immediately\n", GLOB(digittimeoutchar));
 				channel->dialedNumber[len] = '\0';
-
-				channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-				// we dial on digit timeout char !
-				sccp_pbx_softswitch(channel);
-				channel = sccp_channel_release(channel);
-				l = sccp_line_release(l);
-				return;
-			}
-			// we dial when helper says it's time to dial !
-			if (sccp_pbx_helper(channel) == SCCP_EXTENSION_EXACTMATCH) {
-				// we would hear last keypad stroke before starting all
-				sccp_channel_t *ss_channel = NULL;
-				if ((ss_channel =sccp_channel_retain(channel))) {
-					sccp_safe_sleep(100);
-					// we dialout if helper says it's time to dial
-					sccp_pbx_softswitch(ss_channel);			// channel will be released by hangup
+				if (channel->scheduler.digittimeout) {
+					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
 				}
-				channel = sccp_channel_release(channel);			// release our of retained channel;
-				l = sccp_line_release(l);
-				return;
+				sccp_safe_sleep(100);					// we would hear last keypad stroke before starting all
+				sccp_pbx_softswitch(channel);
+				goto EXIT_FUNC;
+			}
+			if (sccp_pbx_helper(channel) == SCCP_EXTENSION_EXACTMATCH) {	// we dial when helper says we have a match
+				if (channel->scheduler.digittimeout) {
+					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+				}
+				sccp_safe_sleep(100);					// we would hear last keypad stroke before starting all
+				sccp_pbx_softswitch(channel);				// channel will be released by hangup
+				goto EXIT_FUNC;
 			}
 		}
 	} else {
 		pbx_log(LOG_WARNING, "%s: keypad_button could not be handled correctly because of invalid state on line %s, channel: %d, state: %d\n", DEV_ID_LOG(d), l->name, channel->callid, channel->state);
 	}
 	sccp_handle_dialtone(channel);
-	l = sccp_line_release(l);
-	channel = sccp_channel_release(channel);
+EXIT_FUNC:
+	l = l ? sccp_line_release(l) : NULL;
+	channel = channel ? sccp_channel_release(channel) : NULL;
 }
 
 /*!
