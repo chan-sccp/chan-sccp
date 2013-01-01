@@ -315,8 +315,6 @@ void sccp_hint_hintStatusUpdate(sccp_hint_list_t * hint)
 		sccp_hint_notifySubscribers(hint, FALSE);
 		sccp_hint_notifyAsterisk(line, hint->currentState);						// will this not also callback for all subscribers ?
 
-		//hint->previousState = hint->currentState;
-
 		sccp_line_release(line);
 	} else {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_hintStatusUpdate) Could not find line associated to this hint\n");
@@ -646,21 +644,6 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
 						break;
 
-					case SCCP_CHANNELSTATE_RINGING:
-						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-							if (strlen(hint->callInfo.calledPartyName) > 0) {
-								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-							} else if (strlen(hint->callInfo.calledParty) > 0) {
-								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledParty, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-							} else {
-								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-							}
-						} else {
-							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
-						}
-						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING);	/* ringin */
-						break;
-
 					case SCCP_CHANNELSTATE_DND:
 						snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_DND);	/* dnd */
@@ -671,23 +654,51 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* device/line not found */
 						break;
 
+					case SCCP_CHANNELSTATE_RINGING:
 					default:
 						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-							if (strlen(hint->callInfo.calledPartyName) > 0) {
-								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledPartyName, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-							} else if (strlen(hint->callInfo.calledParty) > 0) {
-								snprintf(displayMessage, sizeof(displayMessage), "%s %s %s", hint->callInfo.calledParty, (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? "<-" : "->", k.name);
-							} else {
-								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+							switch(hint->callInfo.calltype)	{
+								case SKINNY_CALLTYPE_OUTBOUND:
+									if (strlen(hint->callInfo.calledPartyName) > 0) {
+										snprintf(displayMessage, sizeof(displayMessage), "%s <- %s", hint->callInfo.calledPartyName, k.name);
+									} else if (strlen(hint->callInfo.calledParty) > 0) {
+										snprintf(displayMessage, sizeof(displayMessage), "%s <- %s", hint->callInfo.calledParty, k.name);
+									} else {
+										snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+									}
+									break;
+								case SKINNY_CALLTYPE_INBOUND:
+									if (strlen(hint->callInfo.callingPartyName) > 0) {
+										snprintf(displayMessage, sizeof(displayMessage), "%s -> %s", hint->callInfo.callingPartyName, k.name);
+									} else if (strlen(hint->callInfo.callingParty) > 0) {
+										snprintf(displayMessage, sizeof(displayMessage), "%s -> %s", hint->callInfo.callingParty, k.name);
+									} else {
+										snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+									}
+									break;
+								//! \todo to be implemented
+/*								case SKINNY_CALLTYPE_FORWARD:
+									if (strlen(hint->callInfo.callingPartyName) > 0) {
+										snprintf(displayMessage, sizeof(displayMessage), "%s -> %s -> %s", hint->callInfo.callingPartyName, hint->callInfo.originalCalledPartyName, k.name);
+									} else if (strlen(hint->callInfo.callingParty) > 0) {
+										snprintf(displayMessage, sizeof(displayMessage), "%s -> %s -> %s", hint->callInfo.callingParty, hint->callInfo.originalCalledParty, k.name);
+									} else {
+										snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
+									}
+									break;*/
 							}
 						} else {
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 						}
-						r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
+						if (SCCP_CHANNELSTATE_RINGING == hint->currentState) {
+							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_ALERTING);	/* ringin */
+						} else {
+							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
+						}	
 						break;
 				}
 
-				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: '%s\n", DEV_ID_LOG(d), displayMessage);
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name for %s call to: '%s'\n", DEV_ID_LOG(d), calltype2str(hint->callInfo.calltype), displayMessage);
 				sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
 				sccp_dev_send(d, r);
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
@@ -1213,7 +1224,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
  */
 boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
-	if ((device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985)
+	if ((device->skinny_type == SKINNY_DEVICETYPE_CISCO7962 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985)
 	    && positionOnDevice <= 8)
 		return TRUE;
 
