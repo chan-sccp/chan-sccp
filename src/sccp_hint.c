@@ -699,7 +699,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 						break;
 				}
 
-				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name for %s call to: '%s'\n", DEV_ID_LOG(d), calltype2str(hint->callInfo.calltype), displayMessage);
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name for %s call to: '%s'\n", DEV_ID_LOG(d), hint->callInfo.calltype ? calltype2str(hint->callInfo.calltype) : "NULL", displayMessage);
 				sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
 				sccp_dev_send(d, r);
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
