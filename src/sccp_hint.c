@@ -334,7 +334,6 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 {
 	sccp_line_t *line = NULL;
 	sccp_channel_t *channel = NULL;
-	boolean_t dev_privacy = FALSE;
 	sccp_channelState_t state;
 
 	sccp_mutex_lock(&hint->lock);
@@ -343,29 +342,11 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 		memset(hint->callInfo.callingPartyNumber, 0, sizeof(hint->callInfo.callingPartyNumber));
 		memset(hint->callInfo.calledPartyName, 0, sizeof(hint->callInfo.calledPartyName));
 		memset(hint->callInfo.calledPartyNumber, 0, sizeof(hint->callInfo.calledPartyNumber));
-		hint->callInfo.presentation = 0;
+		hint->callInfo.presentation = 1;
 		hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSharedLine)\n");
 
-		if (line->devices.size > 0) {
-			sccp_device_t *device = NULL;
-			sccp_linedevices_t *lineDevice = NULL;
-			SCCP_LIST_LOCK(&line->devices);
-			lineDevice = SCCP_LIST_FIRST(&line->devices);
-			SCCP_LIST_UNLOCK(&line->devices);
-
-			if ((lineDevice = sccp_linedevice_retain(lineDevice))) {
-				if ((device = sccp_device_retain(lineDevice->device))) {
-					if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-						state = SCCP_CHANNELSTATE_DND;
-					}
-					dev_privacy = device->privacyFeature.enabled;
-					device = device ? sccp_device_release(device) : NULL;
-				}
-				lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
-			}
-		}	
 		if (line->channels.size > 0) {
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSharedLine) %s: number of active channels %d\n", line->name, line->statistic.numberOfActiveChannels);
 			if (line->channels.size == 1) {
@@ -373,21 +354,26 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 				channel = SCCP_LIST_FIRST(&line->channels);
 				SCCP_LIST_UNLOCK(&line->channels);
 				if (channel && (channel = sccp_channel_retain(channel))) {
-					state = (SCCP_CHANNELSTATE_DND==state) ? SCCP_CHANNELSTATE_DND : channel->state;
-					if (dev_privacy && channel->privacy) {
+					state = (SCCP_CHANNELSTATE_DND == sccp_line_getDNDChannelState(line)) ? SCCP_CHANNELSTATE_DND : channel->state;
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Privacy %s, Channel->Presentation: %s\n", channel->privacy ? "TRUE" : "FALSE", channel->callInfo.presentation ? "TRUE" : "FALSE");
+					if (channel->privacy || !channel->callInfo.presentation) {
 						sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Suppressing Presentation\n");
 						hint->callInfo.presentation = 0;
-					} else {
-						sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Allowing Presentation\n");
-						hint->callInfo.presentation = 1;
 					}
 					hint->callInfo.calltype = channel->calltype;
 					if (state != SCCP_CHANNELSTATE_ONHOOK && state != SCCP_CHANNELSTATE_DOWN) {
 						hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-						sccp_copy_string(hint->callInfo.callingPartyName, channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
-						sccp_copy_string(hint->callInfo.callingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingPartyNumber));
-						sccp_copy_string(hint->callInfo.calledPartyName, channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));	
-						sccp_copy_string(hint->callInfo.calledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(hint->callInfo.calledPartyNumber));
+						if (hint->callInfo.presentation) {
+							sccp_copy_string(hint->callInfo.callingPartyName, channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
+							sccp_copy_string(hint->callInfo.callingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingPartyNumber));
+							sccp_copy_string(hint->callInfo.calledPartyName, channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));	
+							sccp_copy_string(hint->callInfo.calledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(hint->callInfo.calledPartyNumber));
+						} else {	
+							sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyName));
+							sccp_copy_string(hint->callInfo.callingPartyNumber, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyNumber));
+							sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
+							sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
+						}
 					} else {
 						hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 						sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
@@ -441,7 +427,6 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 {
 	sccp_line_t *line = NULL;
 	sccp_channel_t *channel = NULL;
-	boolean_t dev_privacy = FALSE;
 	sccp_channelState_t state;
 
 	if (!hint)
@@ -464,39 +449,18 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 	memset(hint->callInfo.callingPartyNumber, 0, sizeof(hint->callInfo.callingPartyNumber));
 	memset(hint->callInfo.calledPartyName, 0, sizeof(hint->callInfo.calledPartyName));
 	memset(hint->callInfo.calledPartyNumber, 0, sizeof(hint->callInfo.calledPartyNumber));
-	hint->callInfo.presentation = 0;
+	hint->callInfo.presentation = 1;
 
-	if (line->devices.size > 0) {
-		sccp_device_t *device = NULL;
-		sccp_linedevices_t *lineDevice = NULL;
-		boolean_t dev_privacy = FALSE;
-		SCCP_LIST_LOCK(&line->devices);
-		lineDevice = SCCP_LIST_FIRST(&line->devices);
-		SCCP_LIST_UNLOCK(&line->devices);
-
-		if ((lineDevice = sccp_linedevice_retain(lineDevice))) {
-			if ((device = sccp_device_retain(lineDevice->device))) {
-				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-					state = SCCP_CHANNELSTATE_DND;
-				}
-				dev_privacy = device->privacyFeature.enabled;
-				device = device ? sccp_device_release(device) : NULL;
-			}
-			lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
-		}
-	}
 	SCCP_LIST_LOCK(&line->channels);
 	channel = SCCP_LIST_FIRST(&line->channels);
 	SCCP_LIST_UNLOCK(&line->channels);
 	if (channel && (channel = sccp_channel_retain(channel))) {
 		hint->callInfo.calltype = channel->calltype;
-		state = (SCCP_CHANNELSTATE_DND==state) ? SCCP_CHANNELSTATE_DND : channel->state;
-		if (dev_privacy && channel->privacy) {
+		state = (SCCP_CHANNELSTATE_DND == sccp_line_getDNDChannelState(line)) ? SCCP_CHANNELSTATE_DND : channel->state;
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Privacy %s, Channel->Presentation: %s\n", channel->privacy ? "TRUE" : "FALSE", channel->callInfo.presentation ? "TRUE" : "FALSE");
+		if (channel->privacy || !channel->callInfo.presentation) {
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Suppressing Presentation\n");
 			hint->callInfo.presentation = 0;
-		} else {
-			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Allowing Presentation\n");
-			hint->callInfo.presentation = 1;
 		}
 
 		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;					/* not a good idea to set this to channel->currentState -MC */
@@ -530,6 +494,8 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 				} else {
 					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.calledPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
+					sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
 				}
 				break;
 			case SCCP_CHANNELSTATE_RINGOUT:
@@ -543,6 +509,8 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 				} else {
 					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
+					sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
 				}
 				break;
 
@@ -557,6 +525,8 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 				} else {
 					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_CONNECTED, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_CONNECTED, sizeof(hint->callInfo.calledPartyName));
+					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
+					sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
 				}
 				break;
 
@@ -630,21 +600,6 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) Old State '%s', New State '%s'. No Change -> Skipping.\n", channelstate2str(hint->previousState), channelstate2str(hint->currentState));
 		return;
 	}
-/*
-  == SCCP: (sccp_hint_lineStatusChanged): to new state: OFFHOOK(1)
-       > SCCP: (sccp_hint_lineStatusUpdate) hint 98041@hints has changed, line 98041 has 1 device --> notify single line change
-       > SCCP: (sccp_hint_notificationForSingleLine)
-       > 98041: (sccp_hint_notificationForSingleLine) set singleLineState to (CALLREMOTEMULTILINE) 13
-       > SCCP: (sccp_hint_notifySubscribers) Notify subscriber SCCP/98041
-       > SEP0024C4446974: (sccp_hint_notifySubscribers) notify subscriber SCCP/98041 of state CALLREMOTEMULTILINE
-       > SEP0024C4446974: (sccp_hint_notifySubscribers) set display name for Outbound call to: '�<- 98041'
-       > SEP0024C4446974: (sccp_hint_notifySubscribers) notify device: SEP0024C4446974@3 state: 13(2)
-       > SEP001B535CD3D6: (sccp_hint_notifySubscribers) notify subscriber SCCP/98041 of state CALLREMOTEMULTILINE
-       > SEP001B535CD3D6: (sccp_hint_notifySubscribers) setting callingPartyName: '�       > SEP001B535CD3D6: (sccp_hint_notifySubscribers) setting calledPartyName: '�       > SEP001B535CD3D6: (sccp_hint_notifySubscribers) setting callingParty: ''
-       > SEP001B535CD3D6: (sccp_hint_notifySubscribers) setting calledParty: ''
-       > SEP001B535CD3D6: (sccp_hint_notifySubscribers) notify device: SEP001B535CD3D6@4 state: 13
-       > SCCP: (sccp_hint_notifyAsterisk) notify asterisk to set state to sccp channelstate CALLREMOTEMULTILINE (13) => asterisk: Device is in use (2) on cha
-*/                                                 
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&hint->subscribers, subscriber, list) {
 		if (!subscriber->device) {
@@ -703,9 +658,8 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 											snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 										}
 										break;
-									//! \todo to be implemented
-									case SKINNY_CALLTYPE_FORWARD:
-	/*									if (strlen(hint->callInfo.callingPartyName) > 0) {
+									case SKINNY_CALLTYPE_FORWARD:		//! \todo to be implemented
+/*										if (strlen(hint->callInfo.callingPartyName) > 0) {
 											snprintf(displayMessage, sizeof(displayMessage), "%s -> %s -> %s", hint->callInfo.callingPartyName, hint->callInfo.originalCalledPartyName, k.name);
 										} else if (strlen(hint->callInfo.callingParty) > 0) {
 											snprintf(displayMessage, sizeof(displayMessage), "%s -> %s -> %s", hint->callInfo.callingPartyNumber, hint->callInfo.originalCalledParty, k.name);
@@ -724,7 +678,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 										break;
 								}
 							} else {
-								snprintf(displayMessage, sizeof(displayMessage), "%s -> %s", SKINNY_DISP_PRIVATE, k.name);
+								snprintf(displayMessage, sizeof(displayMessage), "%s = %s", SKINNY_DISP_PRIVATE, k.name);
 							}
 						} else {
 							snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
@@ -775,20 +729,22 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 				}
 
 				/* set callInfo */
-				sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-				sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-//				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting callingPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingPartyName);
-//				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting calledPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledPartyName);
+				if (hint->callInfo.presentation) {
+					sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
+					sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
+//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting callingPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingPartyName);
+//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting calledPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledPartyName);
 
-				sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-				sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
-//				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting callingParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingParty);
-//				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting calledParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledParty);
+					sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
+					sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
+//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting callingParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingParty);
+//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting calledParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledParty);
 
-				r->msg.CallInfoMessage.lel_lineId = htolel(subscriber->instance);
-				r->msg.CallInfoMessage.lel_callRef = htolel(0);
-				r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
-				sccp_dev_send(subscriber->device, r);
+					r->msg.CallInfoMessage.lel_lineId = htolel(subscriber->instance);
+					r->msg.CallInfoMessage.lel_callRef = htolel(0);
+					r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
+					sccp_dev_send(subscriber->device, r);
+				}
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState);
 
 				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
