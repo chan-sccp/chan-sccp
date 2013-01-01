@@ -130,7 +130,6 @@ hotline_context=default
 hotline_extension=111
 
 ; New Device Template Method Analogous to standard Asterisk Templating Method
-
 [defaultdevice](!)					; default device template
 type = device						; specifies that this template is for a device, it will be inherited
 keepalive = 60						; set 0 to disable the keepalive check.
@@ -160,6 +159,10 @@ mwioncall = off						; Set the MWI on call.
 meetme = on						; enable/disable conferencing via app_meetme (on/off)
 meetmeopts = qxd					; options to send the app_meetme application (default "qd" = quiet,dynamic pin)
 							; Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation
+conf_allow = yes					; Allow the use of conference
+conf_play_general_announce = yes			; Playback General Announcements, like Entering/Leaving the conference
+conf_play_part_announce = yes				; Playback Personal/Participant Announcements, like you have been muted
+conf_mute_on_entry = no					; Mute new participants from the start
 setvar=testvar=value
 
 [7940](!,defaultdevice)					; add to default device template and create new template named 7940
