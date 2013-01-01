@@ -1150,9 +1150,9 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	sccp_copy_string(hint->hint_dialplan, hint_dialplan, sizeof(hint_dialplan));
 
 	/* check if we have an internal hint or have to use asterisk hint system */
-	if (strchr(hint_dialplan, '&') || strncasecmp(hint_dialplan, "SCCP", 4)) {
+	if (strchr(hint_dialplan, '&') || strncasecmp(hint_dialplan, "SCCP", 4)) {			// other channel hint
 		/* asterisk style hint system */
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_create) Configuring asterisk (no sccp features) hint %s for exten: %s and context: %s\n", hint_dialplan, hint_exten, hint_context);
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Configuring asterisk (no sccp features) hint %s for exten: %s and context: %s\n", hint_dialplan, hint_exten, hint_context);
 
 		hint->hintType = ASTERISK;
 		hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
@@ -1163,10 +1163,9 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		if (hint->type.asterisk.hintid > -1) {
 			//                      hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 			hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
-			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_create) Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
+			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
 
 			int state = pbx_extension_state(NULL, hint_context, hint_exten);
-
 #if ASTERISK_VERSION_NUMBER >= 11200
 			struct ast_state_cb_info info;
 			memset(&info, 0, sizeof(struct ast_state_cb_info));
@@ -1182,7 +1181,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 			pbx_log(LOG_ERROR, "SCCP: (sccp_hint_create) Error adding hint (ASTERISK) for extension %s@%s and device %s\n", hint_exten, hint_context, hint_dialplan);
 			return NULL;
 		}
-	} else {
+	} else {											// sccp channel hint
 		/* SCCP channels hint system. Push */
 		hint->hintType = INTERNAL;
 		char lineName[256];
