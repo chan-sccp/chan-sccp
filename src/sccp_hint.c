@@ -817,7 +817,7 @@ void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state)
 	if (!line)
 		return;
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyAsterisk) notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, pbxdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyAsterisk) notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, pbxdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
 #ifdef CS_NEW_DEVICESTATE
 	pbx_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
 #else
@@ -840,7 +840,7 @@ void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 	sccp_device_t *d;
 	sccp_line_t *line = NULL;
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_handleFeatureChangeEvent) featureType: %d\n", event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_handleFeatureChangeEvent) featureType: %d\n", event->event.featureChanged.featureType);
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_DND:
 			if ((d = sccp_device_retain(event->event.featureChanged.device))) {
