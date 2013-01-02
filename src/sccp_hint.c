@@ -201,7 +201,8 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
 
 	if ((d = sccp_device_retain((sccp_device_t *) device))) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "SCCP: (sccp_hint_deviceRegistered) device %s\n", DEV_ID_LOG(device));
-		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			positionOnDevice++;
 
 			if (config->type == SPEEDDIAL) {
@@ -211,6 +212,7 @@ void sccp_hint_deviceRegistered(const sccp_device_t * device)
 				sccp_hint_subscribeHint(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 			}
 		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
 		sccp_device_release(d);
 	}
 }
@@ -1080,7 +1082,8 @@ void sccp_hint_unSubscribeHint(const sccp_device_t * device, const char *hintStr
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_unSubscribeHint) Remove device %s from hint %s for exten: %s and context: %s\n", DEV_ID_LOG(device), hintStr, hint_exten, hint_context);
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
-		if (strlen(hint_exten) == strlen(hint->exten)
+		if (hint_exten && hint_context
+		    && strlen(hint_exten) == strlen(hint->exten)
 		    && strlen(hint_context) == strlen(hint->context)
 		    && !strcmp(hint_exten, hint->exten)
 		    && !strcmp(hint_context, hint->context)) {
