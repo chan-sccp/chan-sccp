@@ -704,9 +704,18 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
 				 */
 				switch (hint->currentState) {
+					case SCCP_CHANNELSTATE_HOLD:
+//						state = SCCP_CHANNELSTATE_HOLD;
+//						break;
 					case SCCP_CHANNELSTATE_ONHOOK:
+						state = SCCP_CHANNELSTATE_ONHOOK;
+						break;
 					case SCCP_CHANNELSTATE_RINGING:
-						state = hint->currentState;
+						if(d->allowRinginNotification){
+							state = hint->currentState;
+						}else{
+							state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+						}
 						break;
 					default:
 						state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
