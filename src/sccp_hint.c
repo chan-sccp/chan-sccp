@@ -102,7 +102,8 @@ void sccp_hint_module_stop()
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	while ((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
-		if (hint->hintType == ASTERISK) {
+//		if (hint->hintType == ASTERISK) {
+		if (hint->type.asterisk.hintid && hint->type.asterisk.hintid != -1) {
 			pbx_extension_state_del(hint->type.asterisk.hintid, NULL);
 		}
 		while ((subscriber = SCCP_LIST_REMOVE_HEAD(&hint->subscribers, list))) {
@@ -344,7 +345,7 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 		memset(hint->callInfo.callingPartyNumber, 0, sizeof(hint->callInfo.callingPartyNumber));
 		memset(hint->callInfo.calledPartyName, 0, sizeof(hint->callInfo.calledPartyName));
 		memset(hint->callInfo.calledPartyNumber, 0, sizeof(hint->callInfo.calledPartyNumber));
-		hint->callInfo.presentation = 1;
+		hint->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
 		hint->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSharedLine)\n");
@@ -357,15 +358,16 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 				SCCP_LIST_UNLOCK(&line->channels);
 				if (channel && (channel = sccp_channel_retain(channel))) {
 					state = (SCCP_CHANNELSTATE_DND == sccp_line_getDNDChannelState(line)) ? SCCP_CHANNELSTATE_DND : channel->state;
-					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Privacy %s, Channel->Presentation: %s\n", channel->privacy ? "TRUE" : "FALSE", channel->callInfo.presentation ? "TRUE" : "FALSE");
-					if (channel->privacy || !channel->callInfo.presentation) {
-						sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Suppressing Presentation\n");
-						hint->callInfo.presentation = 0;
+					sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSharedLine) Privacy %s, Channel->Presentation: %s\n", channel->privacy ? "TRUE" : "FALSE", channel->callInfo.presentation ? "ALLOWED" : "FORBIDDEN");
+					if (channel->privacy || CALLERID_PRESENCE_FORBIDDEN == channel->callInfo.presentation) {
+						sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSharedLine) Suppressing Presentation\n");
+						hint->callInfo.presentation = CALLERID_PRESENCE_FORBIDDEN;
 					}
 					hint->callInfo.calltype = channel->calltype;
 					if (state != SCCP_CHANNELSTATE_ONHOOK && state != SCCP_CHANNELSTATE_DOWN) {
 						hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-						if (hint->callInfo.presentation) {
+						sccp_hint_checkForDND(hint, line);
+						if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 							sccp_copy_string(hint->callInfo.callingPartyName, channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
 							sccp_copy_string(hint->callInfo.callingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingPartyNumber));
 							sccp_copy_string(hint->callInfo.calledPartyName, channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));	
@@ -392,6 +394,7 @@ void sccp_hint_notificationForSharedLine(sccp_hint_list_t * hint)
 				sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(hint->callInfo.calledPartyName));
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+				sccp_hint_checkForDND(hint, line);
 			}
 		} else {
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSharedLine) Number of channel on this shared line is zero\n");
@@ -451,7 +454,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 	memset(hint->callInfo.callingPartyNumber, 0, sizeof(hint->callInfo.callingPartyNumber));
 	memset(hint->callInfo.calledPartyName, 0, sizeof(hint->callInfo.calledPartyName));
 	memset(hint->callInfo.calledPartyNumber, 0, sizeof(hint->callInfo.calledPartyNumber));
-	hint->callInfo.presentation = 1;
+	hint->callInfo.presentation = CALLERID_PRESENCE_ALLOWED;
 
 	SCCP_LIST_LOCK(&line->channels);
 	channel = SCCP_LIST_FIRST(&line->channels);
@@ -459,13 +462,13 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 	if (channel && (channel = sccp_channel_retain(channel))) {
 		hint->callInfo.calltype = channel->calltype;
 		state = (SCCP_CHANNELSTATE_DND == sccp_line_getDNDChannelState(line)) ? SCCP_CHANNELSTATE_DND : channel->state;
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Privacy %s, Channel->Presentation: %s\n", channel->privacy ? "TRUE" : "FALSE", channel->callInfo.presentation ? "TRUE" : "FALSE");
-		if (channel->privacy || !channel->callInfo.presentation) {
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Privacy %s, Channel->Presentation: %s\n", channel->privacy ? "TRUE" : "FALSE", channel->callInfo.presentation ? "ALLOWED" : "FORBIDDEN");
+		if (channel->privacy || CALLERID_PRESENCE_FORBIDDEN == channel->callInfo.presentation) {
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notificationForSingleLine) Suppressing Presentation\n");
-			hint->callInfo.presentation = 0;
+			hint->callInfo.presentation = CALLERID_PRESENCE_FORBIDDEN;
 		}
 
-		hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;					/* not a good idea to set this to channel->currentState -MC */
+		sccp_hint_checkForDND(hint, line);
 		switch (state) {
 			case SCCP_CHANNELSTATE_SPEEDDIAL:
 				break;
@@ -474,61 +477,54 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 				hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 				break;
 			case SCCP_CHANNELSTATE_OFFHOOK:
+				hint->currentState = SCCP_CHANNELSTATE_DIALING;
 				sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_OFF_HOOK, sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_OFF_HOOK, sizeof(hint->callInfo.calledPartyName));
-				hint->currentState = SCCP_CHANNELSTATE_DIALING;
 				break;
 			case SCCP_CHANNELSTATE_DND:
+				hint->currentState = SCCP_CHANNELSTATE_DND;
 				sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
 				sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_DND, sizeof(hint->callInfo.calledPartyName));
-
-				hint->currentState = SCCP_CHANNELSTATE_DND;
 				break;
 			case SCCP_CHANNELSTATE_GETDIGITS:
 			case SCCP_CHANNELSTATE_DIALING:
 			case SCCP_CHANNELSTATE_DIGITSFOLL:
 				hint->currentState = SCCP_CHANNELSTATE_DIALING;
-				if (hint->callInfo.presentation) {
+				if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 					sccp_copy_string(hint->callInfo.callingPartyName, channel->dialedNumber, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.callingPartyNumber, channel->dialedNumber, sizeof(hint->callInfo.callingPartyNumber));
 					sccp_copy_string(hint->callInfo.calledPartyName, channel->dialedNumber, sizeof(hint->callInfo.calledPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyNumber, channel->dialedNumber, sizeof(hint->callInfo.calledPartyNumber));
 				} else {
 					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.callingPartyName));
-					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_LINE_IN_USE, sizeof(hint->callInfo.calledPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
-					sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
 				}
 				break;
 			case SCCP_CHANNELSTATE_RINGOUT:
 			case SCCP_CHANNELSTATE_RINGING:
 				hint->currentState = SCCP_CHANNELSTATE_RINGING;
-				if (hint->callInfo.presentation) {
+				if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 					sccp_copy_string(hint->callInfo.callingPartyName, channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.callingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingPartyNumber));
 					sccp_copy_string(hint->callInfo.calledPartyName, channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(hint->callInfo.calledPartyNumber));
 				} else {
 					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.callingPartyName));
-					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_RING_OUT, sizeof(hint->callInfo.calledPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
-					sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
 				}
 				break;
 
 			case SCCP_CHANNELSTATE_CONNECTED:
 			case SCCP_CHANNELSTATE_PROCEED:
 				hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
-				if (hint->callInfo.presentation) {
+				if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 					sccp_copy_string(hint->callInfo.callingPartyName, channel->callInfo.callingPartyName, sizeof(hint->callInfo.callingPartyName));
 					sccp_copy_string(hint->callInfo.callingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(hint->callInfo.callingPartyNumber));
 					sccp_copy_string(hint->callInfo.calledPartyName, channel->callInfo.calledPartyName, sizeof(hint->callInfo.calledPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(hint->callInfo.calledPartyNumber));
 				} else {
 					sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_CONNECTED, sizeof(hint->callInfo.callingPartyName));
-					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_CONNECTED, sizeof(hint->callInfo.calledPartyName));
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
-					sccp_copy_string(hint->callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyNumber));
 				}
 				break;
 
@@ -562,7 +558,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 		channel = sccp_channel_release(channel);
 	} else {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notificationForSingleLine) No Active Channel for this hint\n", line ? line->name : "NULL");
-		sccp_hint_checkForDND(hint, line);
+		hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 	}													// if(channel)
 DONE:
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notificationForSingleLine) set singleLineState to (%s) %d\n", line ? line->name : "NULL", channelstate2str(hint->currentState), hint->currentState);
@@ -649,7 +645,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 					case SCCP_CHANNELSTATE_RINGING:
 					default:
 						if (sccp_hint_isCIDavailabe(d, subscriber->positionOnDevice) == TRUE) {
-							if (hint->callInfo.presentation) {
+							if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 								switch(hint->callInfo.calltype)	{
 									case SKINNY_CALLTYPE_OUTBOUND:
 										if (strlen(hint->callInfo.calledPartyName) > 0) {
@@ -740,7 +736,7 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 				}
 
 				/* set callInfo */
-				if (hint->callInfo.presentation) {
+				if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 					sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName,	sizeof(r->msg.CallInfoMessage.callingPartyName));
 					sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName,	sizeof(r->msg.CallInfoMessage.calledPartyName));
 					sccp_copy_string(r->msg.CallInfoMessage.callingParty, 	hint->callInfo.callingPartyNumber,	sizeof(r->msg.CallInfoMessage.callingParty));
@@ -1205,6 +1201,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		sccp_line_t *line = NULL;
 
 		if ((line = sccp_line_find_byname(lineName))) {
+//			hint->type.asterisk.hintid = pbx_extension_state_add(hint_context, hint_exten, sccp_hint_state, hint);
 			sccp_hint_hintStatusUpdate(hint);
 			line = sccp_line_release(line);
 		} else {
@@ -1252,10 +1249,6 @@ static void sccp_hint_checkForDND(sccp_hint_list_t * hint, sccp_line_t * line)
 		hint->currentState = SCCP_CHANNELSTATE_DND;
 		sccp_copy_string(hint->callInfo.callingPartyName, SKINNY_DISP_DND, sizeof(hint->callInfo.callingPartyName));
 		sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_DND, sizeof(hint->callInfo.calledPartyName));
-	} else {
-		hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
-		sccp_copy_string(hint->callInfo.callingPartyName, "", sizeof(hint->callInfo.callingPartyName));
-		sccp_copy_string(hint->callInfo.calledPartyName, "", sizeof(hint->callInfo.calledPartyName));
 	}
 }
 
