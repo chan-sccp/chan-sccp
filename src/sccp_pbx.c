@@ -235,7 +235,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 					ast_channel_lock(c->owner);
 					sprintf(mask, "SCCP::%d", c->callid);
-					AST_LIST_TRAVERSE(&c->owner->varshead, variables, entries) {
+					AST_LIST_TRAVERSE(pbx_channel_varshead(c->owner), variables, entries) {
 						if ((var = ast_var_name(variables)) && (val = ast_var_value(variables)) && (!strcmp("LINKID", var)) && (strcmp(mask, val))) {
 							sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "SCCP: LINKID %s\n", val);
 							pbx_builtin_setvar_helper(c->owner, "__FORWARDER_FOR", val);
