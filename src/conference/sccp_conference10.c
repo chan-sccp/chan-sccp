@@ -983,7 +983,7 @@ EXIT:
 	/* reset softkey state for next button press */
 	if (d) {
 		if (d->dtu_softkey.action) {
-			d->dtu_softkey.action = "";
+			sccp_free(d->dtu_softkey.action);
 		}
 		d->dtu_softkey.appID = 0;
 		d->dtu_softkey.payload = 0;
