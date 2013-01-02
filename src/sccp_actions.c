@@ -3146,7 +3146,6 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			/* Set the appropriate devicestate, toggle it and write to the devstate astdb.. */
 			strncpy(buf, (config->button.feature.status) ? ("INUSE") : ("NOT_INUSE"), sizeof(buf));
 			res = PBX(feature_addToDatabase) (devstate_db_family, config->button.feature.options, buf);
-
 			pbx_devstate_changed(pbx_devstate_val(buf), "Custom:%s", config->button.feature.options);
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status ? "On" : "Off");
 			break;

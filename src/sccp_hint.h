@@ -95,9 +95,9 @@ struct sccp_hint_list {
  * \param data Asterisk Data
  * \return Status as int
  */
-#if ASTERISK_VERSION_NUMBER >= 11200
+#if ASTERISK_VERSION_GROUP >= 112
 int sccp_hint_state(char *context, char *exten, struct ast_state_cb_info *info, void *data);
-#elif ASTERISK_VERSION_NUMBER >= 11001
+#elif ASTERISK_VERSION_GROUP >= 110
 int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
 #else
 int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
