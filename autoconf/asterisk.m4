@@ -423,8 +423,16 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 			               	$HEADER_INCLUDE
 					#include <asterisk/devicestate.h>
 				], [
-					int test_devicestate_changed = ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", "test");
-				], [CS_NEW_DEVICESTATE],['ast_devstate_changed' available]
+					ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", "test");
+				], [CS_DEVICESTATE],['ast_devstate_changed' available]
+			)
+
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'cacheable ast_devstate_changed'...], [ac_cv_cacheable_ast_devstate_changed], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/devicestate.h>
+				], [
+					ast_devstate_changed(AST_DEVICE_UNKNOWN, AST_DEVSTATE_CACHABLE, "SCCP/%s", "test");
+				], [CS_CACHEABLE_DEVICESTATE],['cacheable ast_devstate_changed' available]
 			)
 			
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_device_ringing'...], [ac_cv_ast_device_ringing], [

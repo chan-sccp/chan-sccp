@@ -218,6 +218,9 @@
 /* 'AST_SCHED_DEL' available */
 #undef CS_AST_SCHED_DEL
 
+/* 'cacheable ast_devstate_changed' available */
+#undef CS_CACHEABLE_DEVICESTATE
+
 /* Found 'AST_FORMAT_SIREN7' in asterisk/frame.h */
 #undef CS_CODEC_G722_1_24K
 
@@ -226,6 +229,9 @@
 
 /* debug indications enabled */
 #undef CS_DEBUG_INDICATIONS
+
+/* 'ast_devstate_changed' available */
+#undef CS_DEVICESTATE
 
 /* devstate feature enabled */
 #undef CS_DEVSTATE_FEATURE
@@ -262,9 +268,6 @@
 
 /* Found 'const char * const *argv' in asterisk/cli.h */
 #undef CS_NEW_AST_CLI_CONST
-
-/* 'ast_devstate_changed' available */
-#undef CS_NEW_DEVICESTATE
 
 /* refcount liveobject debugging */
 #undef CS_REFCOUNT_LIVEOBJECTS
