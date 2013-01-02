@@ -977,14 +977,18 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			}
 		}
 	} else {
-		pbx_log(LOG_WARNING, "%s: DTU TransactionID does not match or device not found (%d <> %d)\n", DEV_ID_LOG(d), d->dtu_softkey.transactionID, transactionID);
+		pbx_log(LOG_WARNING, "%s: DTU TransactionID does not match or device not found (%d)\n", DEV_ID_LOG(d), transactionID);
 	}
 EXIT:
 	/* reset softkey state for next button press */
-	d->dtu_softkey.action = "";
-	d->dtu_softkey.appID = 0;
-	d->dtu_softkey.payload = 0;
-	d->dtu_softkey.transactionID = 0;
+	if (d) {
+		if (d->dtu_softkey.action) {
+			d->dtu_softkey.action = "";
+		}
+		d->dtu_softkey.appID = 0;
+		d->dtu_softkey.payload = 0;
+		d->dtu_softkey.transactionID = 0;
+	}
 	participant = participant ? sccp_participant_release(participant) : NULL;
 	conference = conference ? sccp_conference_release(conference) : NULL;
 }

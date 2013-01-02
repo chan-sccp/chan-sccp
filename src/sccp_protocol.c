@@ -22,9 +22,9 @@
 static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
 	sccp_moo_t *r;
-// 	uint8_t instance = 0;
-
-// 	instance = sccp_device_find_index_for_line(device, channel->line->name);
+	if (!channel) {
+		return;	
+	}	
 
 	REQ(r, CallInfoMessage);
 
@@ -85,14 +85,16 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
 	sccp_moo_t *r;
+
+	if (!channel) {
+		return;	
+	}	
+
 	unsigned int dataSize = 12;
 	const char *data[dataSize];
 	int data_len[dataSize];
 	unsigned int i = 0;
 	int dummy_len = 0;
-// 	uint8_t instance = 0;							/* line instance on device */
-
-// 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 	memset(data, 0, sizeof(data));
 
 	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
@@ -161,14 +163,15 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
 	sccp_moo_t *r;
+
+	if (!channel) {
+		return;	
+	}	
 	unsigned int dataSize = 16;
 	const char *data[dataSize];
 	int data_len[dataSize];
 	unsigned int i = 0;
 	int dummy_len = 0;
-// 	uint8_t instance = 0;							/* line instance on device */
-
-// 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 	memset(data, 0, sizeof(data));
 
 	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
