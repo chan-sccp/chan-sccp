@@ -612,8 +612,8 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 			state = hint->currentState;
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of state %s\n", DEV_ID_LOG(d), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
 			sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
+			
 #ifdef CS_DYNAMIC_SPEEDDIAL
-			sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
 			if (subscriber->device->inuseprotocolversion >= 15) {
 				REQ(r, FeatureStatDynamicMessage);
 				if (!r) {
@@ -730,19 +730,14 @@ void sccp_hint_notifySubscribers(sccp_hint_list_t * hint, boolean_t force)
 
 				/* set callInfo */
 				if (hint->callInfo.presentation) {
-					sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName, sizeof(r->msg.CallInfoMessage.callingPartyName));
-					sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName, sizeof(r->msg.CallInfoMessage.calledPartyName));
-//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting callingPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingPartyName);
-//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting calledPartyName: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledPartyName);
+					sccp_copy_string(r->msg.CallInfoMessage.callingPartyName, hint->callInfo.callingPartyName,	sizeof(r->msg.CallInfoMessage.callingPartyName));
+					sccp_copy_string(r->msg.CallInfoMessage.calledPartyName, hint->callInfo.calledPartyName,	sizeof(r->msg.CallInfoMessage.calledPartyName));
+					sccp_copy_string(r->msg.CallInfoMessage.callingParty, 	hint->callInfo.callingPartyNumber,	sizeof(r->msg.CallInfoMessage.callingParty));
+					sccp_copy_string(r->msg.CallInfoMessage.calledParty, 	hint->callInfo.calledPartyNumber,	sizeof(r->msg.CallInfoMessage.calledParty));
 
-					sccp_copy_string(r->msg.CallInfoMessage.callingParty, hint->callInfo.callingPartyNumber, sizeof(r->msg.CallInfoMessage.callingParty));
-					sccp_copy_string(r->msg.CallInfoMessage.calledParty, hint->callInfo.calledPartyNumber, sizeof(r->msg.CallInfoMessage.calledParty));
-//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting callingParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.callingParty);
-//					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting calledParty: '%s'\n", DEV_ID_LOG(d), r->msg.CallInfoMessage.calledParty);
-
-					r->msg.CallInfoMessage.lel_lineId = htolel(subscriber->instance);
-					r->msg.CallInfoMessage.lel_callRef = htolel(0);
-					r->msg.CallInfoMessage.lel_callType = htolel(hint->callInfo.calltype);
+					r->msg.CallInfoMessage.lel_lineId	= htolel(subscriber->instance);
+// 					r->msg.CallInfoMessage.lel_callRef	= htolel(0);
+					r->msg.CallInfoMessage.lel_callType	= htolel(hint->callInfo.calltype);
 					sccp_dev_send(subscriber->device, r);
 				}
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState);
