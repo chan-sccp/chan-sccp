@@ -1194,7 +1194,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 			pbx_log(LOG_ERROR, "SCCP: sccp_requestChannel returned Status Error for lineName: %s\n", lineName);
 			*cause = AST_CAUSE_UNALLOCATED;
 			goto EXITFUNC;
-	}
+	}	
 
 	if (!sccp_pbx_channel_allocate(channel)) {
 		//! \todo handle error in more detail, cleanup sccp channel
@@ -1213,6 +1213,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		}
 	}
 //      sccp_channel_release(channel);          // should be returning the newly created channel retain, according to the rules
+
+	/** workaround for asterisk console log flooded 
+	 channel.c:5080 ast_write: Codec mismatch on channel SCCP/xxx-0000002d setting write format to g722 from unknown native formats (nothing)
+	*/
+	skinny_codec_t codecs[] = {SKINNY_CODEC_WIDEBAND_256K};
+	sccp_wrapper_asterisk111_setNativeAudioFormats(channel, codecs, 1);
+	/** done */
 
  EXITFUNC:
 	if (lineName)
@@ -1240,7 +1247,7 @@ static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE *ast, const char *dest
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
 		pbx_log(LOG_WARNING, "SCCP: Asterisk request to call %s on channel: %s, but we don't have this channel!\n", dest, pbx_channel_name(ast));
 		return -1;
-	} 
+	}
 	
 	/* Check whether there is MaxCallBR variables */
 	headp = ast_channel_varshead(ast);
