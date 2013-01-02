@@ -2574,7 +2574,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		   a change even in a rig of multiple asterisk with distributed devstate. This is to enable toggling
 		   even then when otherwise the aggregate devicestate would obscure the change.
 		   However, we need to force distributed devstate even on single asterisk boxes so to get the desired events. (-DD) */
-#    ifdef CS_NEW_DEVICESTATE
+#    if defined(CS_DEVICESTATE) || defined(CS_CACHEABLE_DEVICESTATE)
 		ast_enable_distributed_devstate();
 		specifier->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, "devstate subscription", device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, buf, AST_EVENT_IE_END);
 #    endif

@@ -780,11 +780,7 @@ void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state)
 		return;
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyAsterisk) notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(state), state, pbxdevicestate2str(sccp_channelState2AstDeviceState(state)), sccp_channelState2AstDeviceState(state), line->name);
-#ifdef CS_NEW_DEVICESTATE
 	pbx_devstate_changed(sccp_channelState2AstDeviceState(state), "SCCP/%s", line->name);
-#else
-	pbx_device_state_changed("SCCP/%s", line->name);
-#endif														// CS_NEW_DEVICESTATE
 }
 
 /*!
@@ -830,7 +826,7 @@ void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 }
 
 /* ================================================================================================================================ PBX Hint EVENT Handler */
-#if ASTERISK_VERSION_NUMBER >= 11200
+#if ASTERISK_VERSION_GROUP >= 112
 /*!
  * \brief Asterisk Hint Wrapper
  * \param context Context as char
@@ -841,7 +837,7 @@ void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
  * \called_from_asterisk
  */
 int sccp_hint_state(char *context, char *exten, struct ast_state_cb_info *info, void *data)
-#elif ASTERISK_VERSION_NUMBER >= 11001
+#elif ASTERISK_VERSION_GROUP >= 110
 /*!
  * \brief Asterisk Hint Wrapper
  * \param context Context as char
@@ -867,7 +863,7 @@ int sccp_hint_state(char *context, char *exten, enum ast_extension_states state,
 {
 	sccp_hint_list_t *hint = (sccp_hint_list_t *) data;
 
-#if ASTERISK_VERSION_NUMBER >= 11200
+#if ASTERISK_VERSION_GROUP >= 112
 	enum ast_extension_states state = info->exten_state;
 
 	/* other available info in asterisk 11, could potentially be used to transmit callinfo to hinted speeddials */
@@ -1173,7 +1169,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
 
 			int state = pbx_extension_state(NULL, hint_context, hint_exten);
-#if ASTERISK_VERSION_NUMBER >= 11200
+#if ASTERISK_VERSION_GROUP >= 112
 			struct ast_state_cb_info info;
 			memset(&info, 0, sizeof(struct ast_state_cb_info));
 			

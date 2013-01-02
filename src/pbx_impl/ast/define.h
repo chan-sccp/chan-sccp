@@ -131,8 +131,18 @@
 #    define pbx_copy_string ast_copy_string
 #    define pbx_custom_function ast_custom_function
 #    define pbx_db_freetree ast_db_freetree
-#    define pbx_device_state_changed ast_device_state_changed
-#    define pbx_devstate_changed ast_devstate_changed
+
+#if CS_DEVICESTATE
+#    define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,_b,_c)
+#elif CS_CACHEABLE_DEVICESTATE
+#    define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,AST_DEVSTATE_CACHABLE,_b,_c)
+#else
+#    define pbx_devstate_changed(_a,_b,_c) ast_device_state_changed(_b,_c)
+#endif
+
+//#    define pbx_device_state_changed ast_device_state_changed
+//#    define pbx_devstate_changed ast_devstate_changed
+
 #    define pbx_devstate_val ast_devstate_val
 #    define pbx_digit_usecs ast_digit_usecs
 #    define pbx_do_masquerade ast_do_masquerade
