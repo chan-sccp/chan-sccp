@@ -1635,10 +1635,14 @@ static int sccp_wrapper_asterisk111_callerid_presence(const sccp_channel_t * cha
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
-	if (ast_channel_caller(pbx_chan)->id.number.valid) {
-		return ast_channel_caller(pbx_chan)->id.number.presentation;
-	}
-	return 0;
+//	if (ast_channel_caller(pbx_chan)->id.number.valid) {
+//		return ast_channel_caller(pbx_chan)->id.number.presentation;
+//	}
+//	return 0;
+	if ((ast_party_id_presentation(&pbx_chan->caller.id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED) {
+		return CALLERID_PRESENCE_ALLOWED;
+	}	
+	return CALLERID_PRESENCE_FORBIDDEN;
 }
 
 static int sccp_wrapper_asterisk111_rtp_stop(sccp_channel_t * channel)

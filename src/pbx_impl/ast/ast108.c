@@ -1915,10 +1915,14 @@ static int sccp_wrapper_asterisk18_callerid_presence(const sccp_channel_t * chan
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
-	if (pbx_chan->caller.id.number.valid) {
-		return pbx_chan->caller.id.number.presentation;
+//	if (pbx_chan->caller.id.number.presentation) {
+//		return pbx_chan->caller.id.number.presentation;
+//	}
+//	return 0;
+	if ((ast_party_id_presentation(&pbx_chan->caller.id) & AST_PRES_RESTRICTION) == AST_PRES_ALLOWED) {
+		return CALLERID_PRESENCE_ALLOWED;
 	}
-	return 0;
+	return CALLERID_PRESENCE_FORBIDDEN;
 }
 
 static int sccp_wrapper_asterisk18_rtp_stop(sccp_channel_t * channel)

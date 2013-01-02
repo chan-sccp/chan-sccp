@@ -194,9 +194,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	if (PBX(get_callerid_presence)) {
-		c->callInfo.presentation = PBX(get_callerid_presence) (c);
+		sccp_channel_set_calleridPresenceParameter(c, PBX(get_callerid_presence) (c));
 	}
-
 	sccp_channel_display_callInfo(c);
 
 	if (!c->ringermode) {

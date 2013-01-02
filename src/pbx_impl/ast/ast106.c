@@ -1367,7 +1367,11 @@ static int sccp_wrapper_asterisk16_callerid_presence(const sccp_channel_t * chan
 {
 	PBX_CHANNEL_TYPE *pbx_chan = channel->owner;
 
-	return pbx_chan->cid.cid_pres;
+//	return pbx_chan->cid.cid_pres;
+	if (pbx_chan->cid.cid_pres) {
+		return CALLERID_PRESENCE_ALLOWED;
+	}	
+	return CALLERID_PRESENCE_FORBIDDEN;
 }
 
 static int sccp_wrapper_asterisk16_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
