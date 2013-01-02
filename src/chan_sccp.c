@@ -176,6 +176,9 @@ int sccp_devicestate(void *data)
 			res = AST_DEVICE_BUSY;		
 		} else if (l->incominglimit && SCCP_RWLIST_GETSIZE(l->channels) == l->incominglimit) {
 			res = AST_DEVICE_BUSY;
+#ifdef CS_AST_DEVICE_RINGINUSE
+			res = AST_DEVICE_RINGINUSE;
+#endif
 		} else if (!SCCP_RWLIST_GETSIZE(l->channels)) {
 			res = AST_DEVICE_NOT_INUSE;
 #if !(!defined(CS_AST_DEVICE_RINGING) && !defined(CS_AST_DEVICE_RINGINUSE) && !defined(CS_AST_DEVICE_ONHOLD))	// if none of these is available, skip
@@ -188,16 +191,14 @@ int sccp_devicestate(void *data)
 						res = AST_DEVICE_RINGING;
 						break;
 #endif
-#ifdef CS_AST_DEVICE_RINGINUSE
-					case SCCP_CHANNELSTATE_CONNECTED:
-						res = AST_DEVICE_RINGINUSE;
-						break;
-#endif
 #ifdef CS_AST_DEVICE_ONHOLD
 					case SCCP_CHANNELSTATE_HOLD:	
 						res = AST_DEVICE_ONHOLD;
 						break;
 #endif
+					case SCCP_CHANNELSTATE_CONNECTED:
+						res = AST_DEVICE_INUSE;
+						break;
 				}
 			}	
 			SCCP_LIST_UNLOCK(&l->channels);
