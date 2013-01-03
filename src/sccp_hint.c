@@ -489,6 +489,7 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 			case SCCP_CHANNELSTATE_GETDIGITS:
 			case SCCP_CHANNELSTATE_DIALING:
 			case SCCP_CHANNELSTATE_DIGITSFOLL:
+			case SCCP_CHANNELSTATE_RINGOUT:
 				hint->currentState = SCCP_CHANNELSTATE_DIALING;
 				if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
 					sccp_copy_string(hint->callInfo.callingPartyName, channel->dialedNumber, sizeof(hint->callInfo.callingPartyName));
@@ -500,7 +501,6 @@ void sccp_hint_notificationForSingleLine(sccp_hint_list_t * hint)
 					sccp_copy_string(hint->callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(hint->callInfo.calledPartyName));	
 				}
 				break;
-			case SCCP_CHANNELSTATE_RINGOUT:
 			case SCCP_CHANNELSTATE_RINGING:
 				hint->currentState = SCCP_CHANNELSTATE_RINGING;
 				if (CALLERID_PRESENCE_ALLOWED == hint->callInfo.presentation) {
