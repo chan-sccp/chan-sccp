@@ -148,18 +148,12 @@ const struct ast_channel_tech sccp_tech = {
 };
 #endif
 
-/*
-static int sccp_asterisk_devicestate(void *data)
-{
-//      sccp_line_t *l = NULL;
+static int sccp_wrapper_asterisk18_devicestate(void *data)
 	int res = AST_DEVICE_UNKNOWN;
 	char *lineName = (char *)data;
 	char *deviceId = NULL;
 	sccp_channelState_t state;
 
-//      pbx_log(LOG_WARNING, "asterisk requests state for '%s'\n", (char *)lineName);
-
-	// exclude options 
 	if ((deviceId = strchr(lineName, '@'))) {
 		*deviceId = '\0';
 		deviceId++;
@@ -178,7 +172,7 @@ static int sccp_asterisk_devicestate(void *data)
 			res = AST_DEVICE_ONHOLD;
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-			res = AST_DEVICE_ONHOLD;
+			res = AST_DEVICE_INVALID;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			res = AST_DEVICE_BUSY;
@@ -193,17 +187,19 @@ static int sccp_asterisk_devicestate(void *data)
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
 
-		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
-		case SCCP_CHANNELSTATE_OFFHOOK:
-		case SCCP_CHANNELSTATE_GETDIGITS:
 		case SCCP_CHANNELSTATE_RINGOUT:
-		case SCCP_CHANNELSTATE_CONNECTED:
-		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 		case SCCP_CHANNELSTATE_PROGRESS:
-		case SCCP_CHANNELSTATE_BLINDTRANSFER:
 		case SCCP_CHANNELSTATE_CALLWAITING:
+			res = AST_DEVICE_RINGINUSE;
+			break;
+		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
+		case SCCP_CHANNELSTATE_OFFHOOK:
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_CONNECTED:
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_BLINDTRANSFER:
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
@@ -212,15 +208,8 @@ static int sccp_asterisk_devicestate(void *data)
 			break;
 	}
 
-//      pbx_log(LOG_WARNING, "asterisk requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
-
+        sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicetstate) PBX requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
 	return res;
-}
-*/
-
-static int sccp_wrapper_asterisk18_devicestate(void *data)
-{
-	return sccp_devicestate((void *)data);
 }
 
 /*!
