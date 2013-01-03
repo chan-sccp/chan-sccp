@@ -1289,23 +1289,24 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", ast_channel_name(newchan));
 	sccp_channel_t *c = NULL;
+	int res = 0;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(newchan))) {
 		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", ast_channel_name(oldchan), (void *)oldchan, ast_channel_name(newchan), (void *)newchan);
-		return -1;
+		res = -1;
+	} else {
+		if (c->owner != oldchan) {
+			ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
+			res = -1;
+		} else {
+			c->owner = newchan;
+			if (!sccp_strlen_zero(c->line->language)){
+				ast_channel_language_set(newchan, c->line->language);
+			}
+		}
+		c = sccp_channel_release(c);
 	}
-	if (c->owner != oldchan) {
-		c->owner = ast_channel_ref(newchan);
-		oldchan = ast_channel_unref(oldchan);
-	}
-	
-	if (!sccp_strlen_zero(c->line->language)){
-		ast_channel_language_set(newchan, c->line->language);
-	}
-	
-	c = sccp_channel_release(c);
-
-	return 0;
+	return res;
 }
 
 static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms)
