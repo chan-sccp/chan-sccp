@@ -103,7 +103,7 @@ void sccp_hint_module_stop()
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	while ((hint = SCCP_LIST_REMOVE_HEAD(&sccp_hint_subscriptions, list))) {
 //		if (hint->hintType == ASTERISK) {
-		if (hint->type.asterisk.hintid && hint->type.asterisk.hintid != -1) {
+		if (hint->type.asterisk.hintid > -1) {
 			pbx_extension_state_del(hint->type.asterisk.hintid, NULL);
 		}
 		while ((subscriber = SCCP_LIST_REMOVE_HEAD(&hint->subscribers, list))) {
@@ -1008,8 +1008,10 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	/* we have no hint, add a new one */
 	if (!hint) {
 		hint = sccp_hint_create(hint_exten, hint_context);
-		if (!hint)
+		if (!hint) {
+			pbx_log(LOG_ERROR, "%s: (sccp_hint_subscribeHint) Failed to create a new hint for exten: %s and context: %s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 			return;
+		}
 		SCCP_LIST_INSERT_HEAD(&sccp_hint_subscriptions, hint, list);
 	}
 	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
@@ -1195,9 +1197,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		sccp_copy_string(hint->type.internal.lineName, lineName, sizeof(hint->type.internal.lineName));
 
 		/* set initial state */
-		//              hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 		hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
-
 		sccp_line_t *line = NULL;
 
 		if ((line = sccp_line_find_byname(lineName))) {
@@ -1254,15 +1254,35 @@ static void sccp_hint_checkForDND(sccp_hint_list_t * hint, sccp_line_t * line)
 
 /* ======================================================================================================================== getlinestate / getdevicestate */
 /*!
- * \brief Temporary helper function to return devicestate in PBX format, using chan_sccp.c: sccp_devicestate for now
+ * \brief Helper function to return the current devicestate in SCCP format
  * 
  * \param linename Line Name as const char
  * \param deviceId Device ID as const char (not used at this moment)
  */
 sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId)
 {
-	sccp_channelState_t state = sccp_devicestate((char *) linename);
-
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_getLinestate) Returning LineState '%d'\n", state);
+	sccp_channelState_t state = SCCP_CHANNELSTATE_ZOMBIE;
+	sccp_hint_list_t *hint = NULL;
+    	sccp_line_t *line = NULL;
+    	
+    	if (!sccp_strlen_zero(linename)) {
+		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
+		SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
+			if (strlen(linename) == strlen(hint->type.internal.lineName)
+			    && !strcmp(linename, hint->type.internal.lineName)) {
+				state = hint->currentState;
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_getLinestate) ECHO hint exten '%s' context '%s'\n", hint->exten, hint->context);
+				if ((line = sccp_line_find_byname(linename))) {
+					if (SCCP_CHANNELSTATE_DND == sccp_line_getDNDChannelState(line)) {
+						state = SCCP_CHANNELSTATE_DND;
+					}
+					line = sccp_line_release(line);
+				}
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
+	}
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_getLinestate) Returning LineState %s(%d)\n", channelstate2str(state), state);
 	return state;
 }

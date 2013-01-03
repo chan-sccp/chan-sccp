@@ -1322,8 +1322,6 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
 sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_type_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
 
-int sccp_devicestate(void *data);
-
 int sccp_sched_free(void *ptr);
 
 typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */

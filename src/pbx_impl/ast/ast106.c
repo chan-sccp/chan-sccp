@@ -152,8 +152,71 @@ const struct ast_channel_tech sccp_tech = {
 #endif
 
 static int sccp_wrapper_asterisk16_devicestate(void *data)
-{
-	return sccp_devicestate((void *)data);
+	int res = AST_DEVICE_UNKNOWN;
+	char *lineName = (char *)data;
+	char *deviceId = NULL;
+	sccp_channelState_t state;
+
+	if ((deviceId = strchr(lineName, '@'))) {
+		*deviceId = '\0';
+		deviceId++;
+	}
+
+	state = sccp_hint_getLinestate(lineName, deviceId);
+	switch (state) {
+		case SCCP_CHANNELSTATE_DOWN:
+		case SCCP_CHANNELSTATE_ONHOOK:
+			res = AST_DEVICE_NOT_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_RINGING:
+#ifdef CS_AST_DEVICE_RINGING
+			res = AST_DEVICE_RINGING;
+			break;
+#endif
+		case SCCP_CHANNELSTATE_HOLD:
+			res = AST_DEVICE_INUSE;
+			break;
+		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+			res = AST_DEVICE_INVALID;
+			break;
+		case SCCP_CHANNELSTATE_BUSY:
+			res = AST_DEVICE_BUSY;
+			break;
+		case SCCP_CHANNELSTATE_DND:
+			res = AST_DEVICE_BUSY;
+			break;
+		case SCCP_CHANNELSTATE_CONGESTION:
+		case SCCP_CHANNELSTATE_ZOMBIE:
+		case SCCP_CHANNELSTATE_SPEEDDIAL:
+		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+			res = AST_DEVICE_UNAVAILABLE;
+			break;
+
+		case SCCP_CHANNELSTATE_RINGOUT:
+		case SCCP_CHANNELSTATE_DIALING:
+		case SCCP_CHANNELSTATE_DIGITSFOLL:
+		case SCCP_CHANNELSTATE_PROGRESS:
+#ifdef CS_AST_DEVICE_RINGING
+			res = AST_DEVICE_RINGING
+			break;
+#endif			
+		case SCCP_CHANNELSTATE_CALLWAITING:
+		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
+		case SCCP_CHANNELSTATE_OFFHOOK:
+		case SCCP_CHANNELSTATE_GETDIGITS:
+		case SCCP_CHANNELSTATE_CONNECTED:
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_BLINDTRANSFER:
+		case SCCP_CHANNELSTATE_CALLTRANSFER:
+		case SCCP_CHANNELSTATE_CALLCONFERENCE:
+		case SCCP_CHANNELSTATE_CALLPARK:
+		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+			res = AST_DEVICE_INUSE;
+			break;
+	}
+
+	sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicetstate) PBX  requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
+	return res;
 }
 
 /*!
