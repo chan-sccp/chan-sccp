@@ -149,6 +149,7 @@ const struct ast_channel_tech sccp_tech = {
 #endif
 
 static int sccp_wrapper_asterisk18_devicestate(void *data)
+{
 	int res = AST_DEVICE_UNKNOWN;
 	char *lineName = (char *)data;
 	char *deviceId = NULL;

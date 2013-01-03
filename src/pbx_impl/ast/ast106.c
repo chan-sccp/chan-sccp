@@ -152,6 +152,7 @@ const struct ast_channel_tech sccp_tech = {
 #endif
 
 static int sccp_wrapper_asterisk16_devicestate(void *data)
+{
 	int res = AST_DEVICE_UNKNOWN;
 	char *lineName = (char *)data;
 	char *deviceId = NULL;
@@ -197,7 +198,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 		case SCCP_CHANNELSTATE_PROGRESS:
 #ifdef CS_AST_DEVICE_RINGING
-			res = AST_DEVICE_RINGING
+			res = AST_DEVICE_RINGING;
 			break;
 #endif			
 		case SCCP_CHANNELSTATE_CALLWAITING:
