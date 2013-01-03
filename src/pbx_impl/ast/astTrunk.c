@@ -1303,6 +1303,11 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			if (!sccp_strlen_zero(c->line->language)){
 				ast_channel_language_set(newchan, c->line->language);
 			}
+			//! \todo force update of rtp_peer for directrtp
+			// sccp_wrapper_asterisk111_set_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
+
+			//! \todo update remote capabilities after fixup
+			
 		}
 		c = sccp_channel_release(c);
 	}
