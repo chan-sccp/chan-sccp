@@ -271,7 +271,7 @@ void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, scc
 {
 	sccp_hint_list_t *hint = NULL;
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "SCCP: (sccp_hint_lineStatusChanged): to new state: %s(%d)\n", channelstate2str(state), state);
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "SCCP: (sccp_hint_lineStatusChanged): state: %s(%d)\n", channelstate2str(state), state);
 	if (!line) {
 		return;
 	}
@@ -284,7 +284,7 @@ void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, scc
 		    && !strcmp(line->name, hint->type.internal.lineName)) {
 
 			if (hint->currentState != state && hint->previousState != state) {
-				/* update hint */
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "SCCP: (sccp_hint_lineStatusChanged): update to new state: %s(%d)\n", channelstate2str(state), state);
 				hint->currentState = state;
 				sccp_hint_hintStatusUpdate(hint);
 			}
@@ -993,28 +993,34 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 		hint_context = GLOB(context);
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_subscribeHint) Dialplan %s for exten: %s and context: %s\n", DEV_ID_LOG(device), hintStr, hint_exten, hint_context);
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Dialplan %s for exten: %s and context: %s\n", DEV_ID_LOG(device), hintStr, hint_exten, hint_context);
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
-		if (sccp_strlen(hint_exten) == sccp_strlen(hint->exten)
-		    && sccp_strlen(hint_context) == sccp_strlen(hint->context)
-		    && sccp_strequals(hint_exten, hint->exten)
-		    && sccp_strequals(hint_context, hint->context)) {
+		if (		
+			sccp_strlen(hint_exten) == sccp_strlen(hint->exten) &&
+		    	sccp_strlen(hint_context) == sccp_strlen(hint->context) &&
+		    	sccp_strequals(hint_exten, hint->exten) &&
+		    	sccp_strequals(hint_context, hint->context)
+		   ) {
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Hint found\n", DEV_ID_LOG(device));
 			break;
 		}
 	}
+	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
+
 	/* we have no hint, add a new one */
 	if (!hint) {
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Create new hint\n", DEV_ID_LOG(device));
 		hint = sccp_hint_create(hint_exten, hint_context);
 		if (!hint) {
 			pbx_log(LOG_ERROR, "%s: (sccp_hint_subscribeHint) Failed to create a new hint for exten: %s and context: %s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 			return;
 		}
+		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_hint_subscriptions, hint, list);
+		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 	}
-	SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
 
 	/* add subscribing device */
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_subscribeHint) Create new subscriber\n", DEV_ID_LOG(device));
@@ -1033,7 +1039,7 @@ void sccp_hint_subscribeHint(const sccp_device_t * device, const char *hintStr, 
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
 	SCCP_LIST_UNLOCK(&hint->subscribers);
-	//      sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);               // Is this necessary here ?
+//      sccp_dev_set_keyset(subscriber->device, subscriber->instance, 0, KEYMODE_ONHOOK);               	// Is this necessary here ?
 	sccp_hint_notifySubscribers(hint, TRUE);								// forcing update, event if channelstate remained the same
 }
 
@@ -1158,11 +1164,7 @@ sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		hint->hintType = ASTERISK;
 		hint->type.asterisk.notificationThread = AST_PTHREADT_NULL;
 		hint->type.asterisk.hintid = pbx_extension_state_add(hint_context, hint_exten, sccp_hint_state, hint);
-#if 0
-		hint->type.asterisk.device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_devicestate_cb, hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(hint->hint_dialplan), AST_EVENT_IE_END);
-#endif
 		if (hint->type.asterisk.hintid > -1) {
-			//                      hint->currentState = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 			hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Added hint (ASTERISK), extension %s@%s, device %s\n", hint_exten, hint_context, hint_dialplan);
 

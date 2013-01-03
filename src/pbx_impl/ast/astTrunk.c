@@ -181,7 +181,6 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 			res = AST_DEVICE_UNAVAILABLE;
 			break;
-
 		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
@@ -206,13 +205,6 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
         sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicetstate) PBX requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
 	return res;
 }
-
-/*
-static int sccp_wrapper_asterisk111_devicestate(const char *data)
-{
-	return sccp_devicestate((void *)data);
-}
-*/
 
 /*!
  * \brief Convert an array of skinny_codecs (enum) to ast_codec_prefs
