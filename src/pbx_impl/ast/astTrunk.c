@@ -1955,7 +1955,7 @@ static void sccp_wrapper_asterisk111_setCalleridName(const sccp_channel_t * chan
 {
 	if (name) {
 		ast_party_name_free(&ast_channel_caller(channel->owner)->id.name);
-		ast_channel_caller(channel->owner)->id.number.str = ast_strdup(name);
+		ast_channel_caller(channel->owner)->id.name.str = ast_strdup(name);
 		ast_channel_caller(channel->owner)->id.name.valid = 1;
 	}
 }
