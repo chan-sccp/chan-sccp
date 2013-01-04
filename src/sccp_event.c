@@ -70,7 +70,7 @@ void sccp_event_destroy(sccp_event_t * event)
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);
-			event->event.lineStatusChanged.device = sccp_device_release(event->event.lineStatusChanged.device);
+			event->event.lineStatusChanged.device = event->event.lineStatusChanged.device ? sccp_device_release(event->event.lineStatusChanged.device) : NULL;
 			break;
 
 		case SCCP_EVENT_LINE_CHANGED:
