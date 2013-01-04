@@ -2336,11 +2336,11 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		// fix newcall during softkeymode==INUSEHINT, whereby lineInstance returned is a speeddial
 		// and d->defaultLineInstance = 0. Can't find the location in sources where defaultLineInstance is supposed to be set.
 		// using this horrible solution for now. I would say defaultLineInstance should be set to the first LINE button during the build of the device, and updated during last use
-		if (!l) {
-			if (d->defaultLineInstance > 0) {
-				l = sccp_line_find_byid(d, d->defaultLineInstance);
-			}
-		}
+// 		if (!l) {
+// 			if (d->defaultLineInstance > 0) {
+// 				l = sccp_line_find_byid(d, d->defaultLineInstance);
+// 			}
+// 		}
 	}
 
 	if (l && callid)
