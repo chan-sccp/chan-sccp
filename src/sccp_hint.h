@@ -14,6 +14,7 @@
 #ifndef SCCP_HINT_H_
 #define SCCP_HINT_H_
 
+#ifndef CS_EXPERIMENTAL
 typedef enum { ASTERISK = 0, INTERNAL = 1 } sccp_hinttype_t;
 
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
@@ -108,4 +109,6 @@ void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
 
+#endif														/* !CS_EXPERIMENTAL */
 #endif														/* SCCP_HINT_H_ */
+

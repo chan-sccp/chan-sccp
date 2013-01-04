@@ -59,6 +59,7 @@
 #include "config.h"
 #include "common.h"
 
+#ifndef CS_EXPERIMENTAL
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 
 void sccp_hint_notifyAsterisk(sccp_line_t * line, sccp_channelState_t state);
@@ -1288,3 +1289,4 @@ sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *dev
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "(sccp_hint_getLinestate) Returning LineState %s(%d)\n", channelstate2str(state), state);
 	return state;
 }
+#endif														/* !CS_EXPERIMENTAL */

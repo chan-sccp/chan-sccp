@@ -13,60 +13,11 @@
 #ifndef SCCP_HINT_H_
 #    define SCCP_HINT_H_
 
+#ifdef CS_EXPERIMENTAL
 typedef enum { ASTERISK = 0, INTERNAL = 1 } sccp_hinttype_t;
 
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
-
-/*!
- *\brief SCCP Hint Subscribing Device Structure
- */
-struct sccp_hint_SubscribingDevice {
-
-	const sccp_device_t *device;						/*!< SCCP Device */
-	uint8_t instance;							/*!< Instance */
-	uint8_t positionOnDevice;						/*!< Instance */
-
-	 SCCP_LIST_ENTRY(sccp_hint_SubscribingDevice_t) list;			/*!< Hint Subscribing Device Linked List Entry */
-};										/*!< SCCP Hint Subscribing Device Structure */
-
-/*!
- * \brief SCCP Hint List Type Definition
- */
 typedef struct sccp_hint_list sccp_hint_list_t;
-
-/*!
- * \brief SCCP Hint List Structure
- *
- * we hold a mailbox event subscription in sccp_mailbox_subscription_t.
- * Each line that holds a subscription for this mailbox is listed in
- *
- */
-struct sccp_hint_list {
-	ast_mutex_t lock;							/*!< Asterisk Lock */
-
-	char exten[SCCP_MAX_EXTENSION];						/*!< Extension for Hint */
-	char context[SCCP_MAX_CONTEXT];						/*!< Context for Hint */
-	char hint_dialplan[256];						/*!< e.g. IAX2/station123 */
-
-	sccp_channelState_t currentState;					/*!< current State */
-	sccp_channelState_t previousState;					/*!< current State */
-	sccp_hinttype_t hintType;						/*!< Type of Hint */
-
-	/*!
-	 * \brief Call Information Structure
-	 */
-	struct {
-		char partyNumber[StationMaxNameSize];				/*!< Calling Party Name */
-		char partyName[StationMaxNameSize];				/*!< Called Party Name */
-		skinny_calltype_t calltype;					/*!< Skinny Call Type */
-	} callInfo;								/*!< Call Information Structure */
-
-	struct pbx_event_sub *device_state_sub;
-	int stateid;
-
-	SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;		/*!< Hint Type Subscribers Linked List Entry */
-	SCCP_LIST_ENTRY(sccp_hint_list_t) list;					/*!< Hint Type Linked List Entry */
-};										/*!< SCCP Hint List Structure */
 
 /*!
  * \brief Hint State for Device
@@ -88,4 +39,5 @@ sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *dev
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 
+#endif										/* CS_EXPERIMENTAL */
 #endif										/* SCCP_HINT_H_ */

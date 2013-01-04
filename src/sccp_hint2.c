@@ -32,8 +32,59 @@
 #include <config.h>
 #include "common.h"
 
+#ifdef CS_EXPERIMENTAL
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 
+/* ========================================================================================================================= struct definitions */
+/*!
+ *\brief SCCP Hint Subscribing Device Structure
+ */
+struct sccp_hint_SubscribingDevice {
+
+	const sccp_device_t *device;						/*!< SCCP Device */
+	uint8_t instance;							/*!< Instance */
+	uint8_t positionOnDevice;						/*!< Instance */
+
+	 SCCP_LIST_ENTRY(sccp_hint_SubscribingDevice_t) list;			/*!< Hint Subscribing Device Linked List Entry */
+};										/*!< SCCP Hint Subscribing Device Structure */
+
+/*!
+ * \brief SCCP Hint List Structure
+ * we hold a mailbox event subscription in sccp_mailbox_subscription_t.
+ * Each line that holds a subscription for this mailbox is listed in
+ */
+struct sccp_hint_list {
+	ast_mutex_t lock;							/*!< Asterisk Lock */
+
+	char exten[SCCP_MAX_EXTENSION];						/*!< Extension for Hint */
+	char context[SCCP_MAX_CONTEXT];						/*!< Context for Hint */
+	char hint_dialplan[256];						/*!< e.g. IAX2/station123 */
+
+	sccp_channelState_t currentState;					/*!< current State */
+	sccp_channelState_t previousState;					/*!< current State */
+	sccp_hinttype_t hintType;						/*!< Type of Hint */
+
+	/*!
+	 * \brief Call Information Structure
+	 */
+	struct {
+		char partyNumber[StationMaxNameSize];				/*!< Calling Party Name */
+		char partyName[StationMaxNameSize];				/*!< Called Party Name */
+		skinny_calltype_t calltype;					/*!< Skinny Call Type */
+	} callInfo;								/*!< Call Information Structure */
+
+	struct pbx_event_sub *device_state_sub;
+	int stateid;
+
+	SCCP_LIST_HEAD(, sccp_hint_SubscribingDevice_t) subscribers;		/*!< Hint Type Subscribers Linked List Entry */
+	SCCP_LIST_ENTRY(sccp_hint_list_t) list;					/*!< Hint Type Linked List Entry */
+};										/*!< SCCP Hint List Structure */
+
+/*!
+ * \brief SCCP Hint Line State
+ * 
+ * 
+ */
 struct sccp_hint_lineState {
 	sccp_line_t *line;
 	sccp_channelState_t state;
@@ -50,6 +101,7 @@ struct sccp_hint_lineState {
 	SCCP_LIST_ENTRY(struct sccp_hint_lineState) list;			/*!< Hint Type Linked List Entry */
 };
 
+/* ========================================================================================================================= pre-declarations */
 static void sccp_hint_eventListener(const sccp_event_t * event);
 static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState);
@@ -66,14 +118,13 @@ static void sccp_hint_lineStateEventListener(const sccp_event_t *event);
 
 /* @since 20120104 -MC */
 void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, sccp_channelState_t state);
-
 static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data);
 
 // SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
 SCCP_LIST_HEAD(, struct sccp_hint_lineState) lineStates;
-
 SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
 
+/* ========================================================================================================================= module start/stop */
 /*!
  * \brief starting hint-module
  */
@@ -150,8 +201,6 @@ static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, co
 }
 #endif
 
-
-
 /*!
  * \brief create a hint structure
  * \param hint_exten Hint Extension as char
@@ -217,7 +266,7 @@ static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_in
 	enum ast_extension_states extensionState;
 	char hintStr[AST_MAX_EXTENSION];
 	const char *cidName;
-	const char *cidNumber;
+//	const char *cidNumber;
 	
 	hint = (sccp_hint_list_t *) data;
 	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
@@ -226,17 +275,14 @@ static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_in
 	extensionState = info->exten_state;
 	
 	cidName		= hint->callInfo.partyName;
-	cidNumber	= hint->callInfo.partyNumber;
-	
+//	cidNumber	= hint->callInfo.partyNumber;
 	
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), hint->callInfo.partyName, hint->callInfo.partyNumber);
-	
 
 	if( ast_device_state(hintStr) == AST_DEVICE_UNAVAILABLE ) {
 		extensionState = AST_EXTENSION_UNAVAILABLE;
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "extensionState = AST_EXTENSION_UNAVAILABLE\n");
 	}
-	
 	
 	switch (extensionState) {
 		case AST_EXTENSION_REMOVED:
@@ -489,7 +535,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	sccp_device_t *device = NULL;
 	sccp_linedevices_t *lineDevice = NULL;
 	uint8_t state;
-	boolean_t dev_privacy = FALSE;
+//	boolean_t dev_privacy = FALSE;
 
 	/** clear cid information */
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
@@ -519,7 +565,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;
 				}
-				dev_privacy = device->privacyFeature.enabled;
+/*! \todo				dev_privacy = device->privacyFeature.enabled; */
 				device = device ? sccp_device_release(device) : NULL;
 			}
 			lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
@@ -710,10 +756,19 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	
 	/* workaround for cid update */
 	if(newDeviceState == AST_DEVICE_RINGING){
+#if CS_CACHEABLE_DEVICESTATE
+		ast_devstate_changed_literal(0, AST_DEVSTATE_CACHABLE, channelName);
+#else
 		ast_devstate_changed_literal(0, channelName);
+#endif		
+
 	}
 	
+#if CS_CACHEABLE_DEVICESTATE
+	ast_devstate_changed_literal(newDeviceState, AST_DEVSTATE_CACHABLE, channelName);
+#else
 	ast_devstate_changed_literal(newDeviceState, channelName);
+#endif
 }
 
 /*!
@@ -1096,3 +1151,4 @@ sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *dev
 //      pbx_log(LOG_WARNING, "LineState '%d'\n", state);
 	return state;
 }
+#endif														/* CS_EXPERIMENTAL */
