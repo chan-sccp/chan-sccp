@@ -1983,9 +1983,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 	
 	
 	REQ(r1, CallListStateUpdate);
-	//state = PBX(getExtensionState) (number, line->context);
-	state = SCCP_BLF_STATUS_ALERTING;
-	state = PBX(getExtensionState)(number, "context-marcello");
+	state = PBX(getExtensionState)(number, line->context);
 	
 	r1->msg.CallListStateUpdate.lel_NumberIndex		= htolel(r->msg.DialedPhoneBookMessage.lel_NumberIndex);
 	r1->msg.CallListStateUpdate.lel_lineinstance		= htolel(r->msg.DialedPhoneBookMessage.lel_lineinstance);
