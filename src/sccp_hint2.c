@@ -104,7 +104,7 @@ struct sccp_hint_list {
 
 /* ========================================================================================================================= pre-declarations */
 
-static void sccp_hint_eventListener(const sccp_event_t * event);
+
 static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState);
 static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState);
@@ -115,9 +115,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint);
 static void sccp_hint_deviceRegistered(const sccp_device_t * device);
 static void sccp_hint_deviceUnRegistered(const char *deviceName);
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice);
-static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
-static void sccp_hint_lineStateEventListener(const sccp_event_t *event);
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
+
+static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
+static void sccp_hint_eventListener(const sccp_event_t * event);
 
 /* @since 20120104 -MC */
 static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data);
@@ -245,10 +246,10 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	sccp_copy_string(hint->hint_dialplan, hint_dialplan, sizeof(hint_dialplan));
 
 	
-	hint->stateid = ast_extension_state_add(hint->context, hint->exten, sccp_hint_devstate_cb, hint);
+	hint->stateid = pbx_extension_state_add(hint->context, hint->exten, sccp_hint_devstate_cb, hint);
 	
 	struct ast_state_cb_info info;
-	info.exten_state = ast_devstate_to_extenstate( ast_device_state(hint->hint_dialplan) );
+	info.exten_state = pbx_extension_state(NULL, hint->context, hint->exten);
 	sccp_hint_devstate_cb(hint->context, hint->exten, &info, hint);
 
 	return hint;
@@ -912,7 +913,9 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
 	uint32_t state;								/* used to fall back to old behavior */
+#ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
+#endif
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	char displayMessage[80];
