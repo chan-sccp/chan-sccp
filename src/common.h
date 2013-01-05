@@ -80,11 +80,7 @@ extern "C" {
 #    include "sccp_features.h"
 #    include "sccp_utils.h"
 #    include "sccp_indicate.h"
-#ifdef CS_EXPERIMENTAL
-#    include "sccp_hint2.h"
-#else
 #    include "sccp_hint.h"
-#endif
 #    include "sccp_actions.h"
 #    include "sccp_featureButton.h"
 #    include "sccp_mwi.h"
