@@ -1453,7 +1453,7 @@ typedef enum {
 
 	/* received from phone */
 	DialedPhoneBookAckMessage = 0x0152,
-	Unknown_0x0153_Message = 0x0153,
+	CallListStateUpdate = 0x0153,
 	StartMediaTransmissionAck = 0x0154,
 	StartMultiMediaTransmissionAck = 0x0155,
 	CallHistoryInfoMessage = 0x0156,
@@ -1621,7 +1621,7 @@ static const struct sccp_messagetype {
 	{SpeedDialStatDynamicMessage, "SpeedDial Stat Dynamic Message"},
 	{CallInfoDynamicMessage, "Call Information Dynamic Message"},
 	{DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message"},
-	{Unknown_0x0153_Message, "Undefined 0x0153 Message"},
+	{CallListStateUpdate, "CallList Status Update Message"},
 	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge"},
 	{CallHistoryInfoMessage, "Call History Info"},
@@ -1962,6 +1962,13 @@ typedef union {
 		uint32_t lel_unknown;						/*!< \todo Unknown */
 		uint32_t lel_unknown2;						/*!< \todo Unknown2 */
 	} DialedPhoneBookAckMessage;						/*!< Dialed Phone Book Acknowledgement Structure */
+	
+	struct {
+		uint32_t lel_NumberIndex;					/*!< Number Index (this must be shifted 4 bits right) */
+		uint32_t lel_lineinstance;					/*!< Line Instance */
+		uint32_t lel_state;						/*!< Line Instance */
+		uint32_t lel_unknown[25];
+	} CallListStateUpdate;
 
 	struct {
 		uint32_t lel_appID;
