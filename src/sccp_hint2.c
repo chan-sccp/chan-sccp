@@ -746,10 +746,18 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	
 	/* workaround for cid update */
 	if(newDeviceState == AST_DEVICE_RINGING){
+#if CS_CACHEABLE_DEVICESTATE
+		ast_devstate_changed_literal(0, AST_DEVSTATE_CACHABLE, channelName);
+#else 
 		ast_devstate_changed_literal(0, channelName);
+#endif		
 	}
 	
+#if CS_CACHEABLE_DEVICESTATE
+	ast_devstate_changed_literal(newDeviceState, AST_DEVSTATE_CACHABLE, channelName);
+#else
 	ast_devstate_changed_literal(newDeviceState, channelName);
+#endif
 }
 
 /*!
