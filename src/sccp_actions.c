@@ -1942,28 +1942,58 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 {
 	/* this is from CCM7 dump */
 	sccp_moo_t *r1 = NULL;
+// 	sccp_BFLState_t state;
+	uint32_t state;
+	sccp_line_t *line;
 
 	uint32_t unknown1 = 0;							/* just 4 bits filled */
 	uint32_t index = 0;							/* just 28 bits used */
 	uint32_t unknown2 = 0;							/* all 32 bits used */
-	uint32_t instance = 0;							/* */
+	uint32_t lineInstance = 0;						/* */
+	char *number;
 
-	index = letohl(r->msg.DialedPhoneBookMessage.lel_NumberIndex);
-	unknown1 = (index | 0xFFFFFFF0) ^ 0xFFFFFFF0;
-	index = index >> 4;
+	index		= letohl(r->msg.DialedPhoneBookMessage.lel_NumberIndex);
+	unknown1	= (index | 0xFFFFFFF0) ^ 0xFFFFFFF0;
+	index		= index >> 4;
 
-	unknown2 = letohl(r->msg.DialedPhoneBookMessage.lel_unknown);						// i don't understand this :)
-	instance = letohl(r->msg.DialedPhoneBookMessage.lel_lineinstance);
+	unknown2 	= letohl(r->msg.DialedPhoneBookMessage.lel_unknown);	// i don't understand this :)
+	lineInstance	= letohl(r->msg.DialedPhoneBookMessage.lel_lineinstance);
+	
+	number		= r->msg.DialedPhoneBookMessage.phonenumber;
+	
+	
 
-	// Sending 0x152 Ack Message. Still have to find out the meaning for 0x153
+	// Sending 0x152 Ack Message.
 	REQ(r1, DialedPhoneBookAckMessage);
-	r1->msg.DialedPhoneBookAckMessage.lel_NumberIndex = r->msg.DialedPhoneBookMessage.lel_NumberIndex;
-	r1->msg.DialedPhoneBookAckMessage.lel_lineinstance = r->msg.DialedPhoneBookMessage.lel_lineinstance;
-	r1->msg.DialedPhoneBookAckMessage.lel_unknown = r->msg.DialedPhoneBookMessage.lel_unknown;
-	r1->msg.DialedPhoneBookAckMessage.lel_unknown2 = 0;
-	sccp_dev_send(s->device, r1);
+	r1->msg.DialedPhoneBookAckMessage.lel_NumberIndex	= r->msg.DialedPhoneBookMessage.lel_NumberIndex;
+	r1->msg.DialedPhoneBookAckMessage.lel_lineinstance	= r->msg.DialedPhoneBookMessage.lel_lineinstance;
+	r1->msg.DialedPhoneBookAckMessage.lel_unknown		= r->msg.DialedPhoneBookMessage.lel_unknown;
+	r1->msg.DialedPhoneBookAckMessage.lel_unknown2		= 0;
+	sccp_dev_send(d, r1);
+	
+	/* sometimes a phone sends an ' ' entry, I think we can ignore this one */
+	if(strlen(r->msg.DialedPhoneBookMessage.phonenumber) <= 1){
+	    return;
+	}
+	
+	line		= sccp_line_find_byid(d, lineInstance);
+	if(!line){
+	    return;
+	}
+	
+	
+	REQ(r1, CallListStateUpdate);
+	//state = PBX(getExtensionState) (number, line->context);
+	state = SCCP_BLF_STATUS_ALERTING;
+	state = PBX(getExtensionState)(number, "context-marcello");
+	
+	r1->msg.CallListStateUpdate.lel_NumberIndex		= htolel(r->msg.DialedPhoneBookMessage.lel_NumberIndex);
+	r1->msg.CallListStateUpdate.lel_lineinstance		= htolel(r->msg.DialedPhoneBookMessage.lel_lineinstance);
+	r1->msg.CallListStateUpdate.lel_state			= htolel(state);
+	sccp_dev_send(d, r1);
+	sccp_log(1) (VERBOSE_PREFIX_3 "%s: send CallListStateUpdate for extension '%s', state %d\n", DEV_ID_LOG(d), number, state);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, instance);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, lineInstance);
 }
 
 /*!
