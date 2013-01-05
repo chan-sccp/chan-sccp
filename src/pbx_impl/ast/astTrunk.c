@@ -2418,36 +2418,23 @@ static sccp_BLFState_t sccp_wrapper_asterisk111_getExtensionState(const char *ex
 
 	int state = ast_extension_state(NULL, context, extension);
 
-	if        (state & AST_EXTENSION_REMOVED			) {			/*! Extension Removed */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_REMOVED, returning SCCP_BLF_STATUS_UNKNOWN\n");
-		result = SCCP_BLF_STATUS_UNKNOWN;
-	} else if (state & AST_EXTENSION_DEACTIVATED			) {			/*! Extension Hint Removed */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_DEACTIVATED, returning SCCP_BLF_STATUS_UNKNOWN\n");
-		result = SCCP_BLF_STATUS_UNKNOWN;
-	} else if (state & AST_EXTENSION_NOT_INUSE			) {			/*! No Device Inuse or Busy */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_NOT_INUSE, returning SCCP_BLF_STATUS_UNKNOWN\n");
-		result = SCCP_BLF_STATUS_IDLE;
-	} else if (state & (AST_EXTENSION_INUSE & AST_EXTENSION_RINGING	) ) {			/*! InUse & Ringing */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_INUSE & AST_EXTENSION_RINGING, returning SCCP_BLF_STATUS_ALERTING\n");
-		result = SCCP_BLF_STATUS_ALERTING;
-	} else if (state & (AST_EXTENSION_INUSE & AST_EXTENSION_ONHOLD	) ) {			/*! InUse & OnHold */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_INUSE & AST_EXTENSION_ONHOLD, returning SCCP_BLF_STATUS_INUSE\n");
-		result = SCCP_BLF_STATUS_INUSE;
-	} else if (state & AST_EXTENSION_INUSE				) {			/*! InUse On One or More Devices */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_INUSE, returning SCCP_BLF_STATUS_INUSE\n");
-		result = SCCP_BLF_STATUS_INUSE;
-	} else if (state & AST_EXTENSION_BUSY				) {			/*! All Devices Busy */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_BUSY, returning SCCP_BLF_STATUS_INUSE\n");
-		result = SCCP_BLF_STATUS_INUSE;
-	} else if (state & AST_EXTENSION_UNAVAILABLE			) {			/*! All Devices Unavailable / UnRegistered */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_UNAVAILABLE, returning SCCP_BLF_STATUS_UNKNOWN\n");
-		result = SCCP_BLF_STATUS_UNKNOWN;
-	} else if (state & AST_EXTENSION_RINGING			) {			/*! All Devices Ringing */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_RINGING, returning SCCP_BLF_STATUS_ALERTING\n");
-		result = SCCP_BLF_STATUS_ALERTING;
-	} else if (state & AST_EXTENSION_ONHOLD				) {			/*! All Devices OnHold */
-		pbx_log(LOG_NOTICE, "SCCP: PBX(getExtensionState): AST_EXTENSION_ONHOLD, returning SCCP_BLF_STATUS_INUSE\n");
-		result = SCCP_BLF_STATUS_INUSE;
+	switch (state) {
+		case AST_EXTENSION_REMOVED:
+		case AST_EXTENSION_DEACTIVATED:
+		case AST_EXTENSION_UNAVAILABLE:
+			result = SCCP_BLF_STATUS_UNKNOWN;
+			break;
+		case AST_EXTENSION_NOT_INUSE:
+			result = SCCP_BLF_STATUS_IDLE;
+			break;
+		case AST_EXTENSION_INUSE:
+		case AST_EXTENSION_ONHOLD:
+		case AST_EXTENSION_BUSY:
+			result = SCCP_BLF_STATUS_INUSE;
+			break;
+		case AST_EXTENSION_RINGING:
+			result = SCCP_BLF_STATUS_ALERTING;
+			break;
 	}
         sccp_log(DEBUGCAT_HINT)(VERBOSE_PREFIX_4 "SCCP: (getExtensionState) extension: %s@%s, extension_state: '%s (%d)' -> blf state '%d'\n", extension, context, ast_extension_state2str(state), state, result);
 	return result;
