@@ -2407,6 +2407,43 @@ int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum 
 }
 
 /*!
+ * \brief
+ */
+static sccp_BLFState_t sccp_wrapper_asterisk111_getExtensionState(const char *extension, const char *context) {
+	sccp_BLFState_t result = SCCP_BLF_STATUS_UNKNOWN;
+	if (sccp_strlen_zero(extension) || sccp_strlen_zero(context)) {
+		pbx_log(LOG_ERROR, "SCCP: PBX(getExtensionState): Either extension:'%s' or context:;%s' provided is empty\n", extension, context);
+		return result;
+	}
+
+	int state = ast_extension_state(NULL, context, extension);
+
+	if        ((state & AST_EXTENSION_REMOVED			) == (AST_EXTENSION_REMOVED				) ) {	/*! Extension Removed */
+		result = SCCP_BLF_STATUS_UNKNOWN;
+	} else if ((state & AST_EXTENSION_DEACTIVATED			) == (AST_EXTENSION_DEACTIVATED				) ) {	/*! Extension Hint Removed */
+		result = SCCP_BLF_STATUS_UNKNOWN;
+	} else if ((state & AST_EXTENSION_NOT_INUSE			) == (AST_EXTENSION_NOT_INUSE				) ) {	/*! No Device Inuse or Busy */
+		result = SCCP_BLF_STATUS_IDLE;
+	} else if ((state & (AST_EXTENSION_INUSE|AST_EXTENSION_RINGING)	) == (AST_EXTENSION_INUSE | AST_EXTENSION_RINGING	) ) {	/*! InUse & Ringing */
+		result = SCCP_BLF_STATUS_ALERTING;
+	} else if ((state & (AST_EXTENSION_INUSE | AST_EXTENSION_ONHOLD)) == (AST_EXTENSION_INUSE | AST_EXTENSION_ONHOLD	) ) {	/*! InUse & OnHold */
+		result = SCCP_BLF_STATUS_INUSE;
+	} else if ((state & AST_EXTENSION_INUSE				) == (AST_EXTENSION_INUSE				) ) {	/*! InUse On One or More Devices */
+		result = SCCP_BLF_STATUS_INUSE;
+	} else if ((state & AST_EXTENSION_BUSY				) == (AST_EXTENSION_BUSY				) ) {	/*! All Devices Busy */
+		result = SCCP_BLF_STATUS_INUSE;
+	} else if ((state & AST_EXTENSION_UNAVAILABLE			) == (AST_EXTENSION_UNAVAILABLE				) ) {	/*! All Devices Unavailable / UnRegistered */
+		result = SCCP_BLF_STATUS_UNKNOWN;
+	} else if ((state & AST_EXTENSION_RINGING			) == (AST_EXTENSION_RINGING				) ) {	/*! All Devices Ringing */
+		result = SCCP_BLF_STATUS_ALERTING;
+	} else if ((state & AST_EXTENSION_ONHOLD			) == (AST_EXTENSION_ONHOLD				) ) {	/*! All Devices OnHold */
+		result = SCCP_BLF_STATUS_INUSE;
+	}
+        sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (getExtensionState) extension: %s@%s, extension_state: '%s (%d)' -> blf state '%d'\n", extension, context, ast_extension_state2str(state), state, result);
+	return result;
+}
+
+/*!
  * \brief using RTP Glue Engine
  */
 #if defined(__cplusplus) || defined(c_plusplus)
@@ -2614,6 +2651,8 @@ sccp_pbx_cb sccp_pbx = {
 	requestForeignChannel:		sccp_wrapper_asterisk111_requestForeignChannel,
 	
 	set_language:			sccp_wrapper_asterisk111_setLanguage,
+
+	getExtensionState		sccp_wrapper_asterisk111_getExtensionState,
 	/* *INDENT-ON* */	
 };
 
@@ -2725,6 +2764,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.requestForeignChannel		= sccp_wrapper_asterisk111_requestForeignChannel,
 	
 	.set_language			= sccp_wrapper_asterisk111_setLanguage,
+	
+	.getExtensionState		= sccp_wrapper_asterisk111_getExtensionState,
 	/* *INDENT-ON* */
 };
 #endif
