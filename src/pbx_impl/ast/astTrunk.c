@@ -2407,7 +2407,7 @@ int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum 
 }
 
 /*!
- * \brief
+ * \brief Get Hint Extension State and return the matching Busy Lamp Field State 
  */
 static sccp_BLFState_t sccp_wrapper_asterisk111_getExtensionState(const char *extension, const char *context) {
 	sccp_BLFState_t result = SCCP_BLF_STATUS_UNKNOWN;
