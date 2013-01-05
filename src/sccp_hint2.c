@@ -685,6 +685,9 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (!strncasecmp(channelName, hint->hint_dialplan, sizeof(channelName))) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s <==> %s \n", channelName, hint->hint_dialplan);
+/* TEST */
+			PBX(getExtensionState)(hint->exten, hint->context);
+/* TEST */
 			
 			sccp_copy_string(hint->callInfo.partyName, lineState->callInfo.partyName, sizeof(hint->callInfo.partyName));
 			sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
