@@ -169,7 +169,7 @@ typedef enum {
 	SCCP_BLF_STATUS_INUSE 		= 2,									/*!< in use */
 	SCCP_BLF_STATUS_DND 		= 3,									/*!< dnd */
 	SCCP_BLF_STATUS_ALERTING 	= 4									/*!< alerting */
-} sccp_BFLState_t;												/*!< blf states for dynamic speeddials */
+} sccp_BLFState_t;												/*!< blf states for dynamic speeddials */
 
 #    define SCCP_CFWD_NONE		0
 #    define SCCP_CFWD_ALL		1
