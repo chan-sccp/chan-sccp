@@ -139,8 +139,10 @@ struct sccp_pbx_cb {
 	boolean_t(*const masqueradeHelper) (PBX_CHANNEL_TYPE *pbxChannel, PBX_CHANNEL_TYPE *pbxTmpchannel);
 	PBX_CHANNEL_TYPE *(*const requestForeignChannel) (const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
 	
-	
 	boolean_t(*const set_language)(PBX_CHANNEL_TYPE *pbxChannel, const char *language);
+	
+	/* devicestate / extension state */
+	sccp_BLFState_t (*const getExtensionState)(const char *extension, const char *context);
 	/* *INDENT-ON* */
 };
 
