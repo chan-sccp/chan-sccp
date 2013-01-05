@@ -13,12 +13,6 @@
 #ifndef SCCP_HINT_H_
 #    define SCCP_HINT_H_
 
-#ifdef CS_EXPERIMENTAL
-typedef enum { ASTERISK = 0, INTERNAL = 1 } sccp_hinttype_t;
-
-typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
-typedef struct sccp_hint_list sccp_hint_list_t;
-
 /*!
  * \brief Hint State for Device
  * \param context Context as char
@@ -27,11 +21,11 @@ typedef struct sccp_hint_list sccp_hint_list_t;
  * \param data Asterisk Data
  * \return Status as int
  */
-#    if ASTERISK_VERSION_NUMBER >= 11000
-int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
-#    else
-int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
-#    endif
+// #    if ASTERISK_VERSION_NUMBER >= 11000
+// int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
+// #    else
+// int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
+// #    endif
 
 sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
 
@@ -39,5 +33,4 @@ sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *dev
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 
-#endif										/* CS_EXPERIMENTAL */
 #endif										/* SCCP_HINT_H_ */
