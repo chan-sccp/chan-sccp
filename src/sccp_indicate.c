@@ -136,7 +136,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_cleardisplaynotify(d);
 			sccp_dev_clearprompt(d, instance, c->callid);
 
-		/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
+			/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 			if (c->answered_elsewhere)
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 
@@ -244,8 +244,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_2 "%s: SCCP_CHANNELSTATE_PROGRESS\n", d->id);
 
 			if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {
-
-										/** this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app) */
+				/** this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app) */
 				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 //                      c->state = SCCP_CHANNELSTATE_CONNECTED;
 			} else {
@@ -276,7 +275,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, 0);
-//              sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+//			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 			break;
@@ -285,17 +284,17 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			if (!c->rtp.audio.rtp)
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 
-		/** In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
-		   the newer Cisco phone models don't seem to like this at all, resulting in
-		   crashes. Federico observed that also congestion is affected. We have to find a
-		   signalling replacement for the display promptif this is neccessary for some reason.(-DD) */
+			/** In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
+			   the newer Cisco phone models don't seem to like this at all, resulting in
+			   crashes. Federico observed that also congestion is affected. We have to find a
+			   signalling replacement for the display promptif this is neccessary for some reason.(-DD) */
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
 			break;
 		case SCCP_CHANNELSTATE_CALLWAITING:
-//              if (GLOB(callwaiting_tone)) {
-//                      sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
-//              }
+//			if (GLOB(callwaiting_tone)) {
+//				sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
+//			}
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING (%s)\n", DEV_ID_LOG(d), sccp_indicate2str(c->previousChannelState));
 			sccp_channel_callwaiting_tone_interval(c);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
@@ -346,9 +345,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 			sccp_dev_clearprompt(d, instance, c->callid);
 
-			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-
-																				/** send connected, so it is not listed as missed call */
+			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			//sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
@@ -359,18 +356,18 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			if (c->rtp.audio.rtp) {
 				sccp_channel_closereceivechannel(c);
 			}
-//              sccp_dev_starttone(d, SKINNY_TONE_NOSUCHNUMBERTONE, instance, c->callid, 10);
+// 			sccp_dev_starttone(d, SKINNY_TONE_NOSUCHNUMBERTONE, instance, c->callid, 10);
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 
-		/** 7936 does not like the skinny ivalid message callstate */
+			/** 7936 does not like the skinny ivalid message callstate */
 
-		/** In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
-		   the newer Cisco phone models don't seem to like this at all, resulting in
-		   crashes. Interestingly, the message imho does cause obvious effects anyway. (-DD) */
+			/** In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
+			   the newer Cisco phone models don't seem to like this at all, resulting in
+			   crashes. Interestingly, the message imho does cause obvious effects anyway. (-DD) */
 
-		/** if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
-		   sccp_channel_send_callinfo(d, c); 
-		 */
+			/** if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
+				sccp_channel_send_callinfo(d, c); 
+			 */
 			/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 
 			/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
@@ -389,10 +386,10 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_channel_send_callinfo(d, c);
 			//! \test if we can prevent resending keyset after it has been send once
 			//! remarked out for now.
-//              if (SCCP_CHANNELSTATE_DIGITSFOLL != c->previousChannelState) {
+//              	if (SCCP_CHANNELSTATE_DIGITSFOLL != c->previousChannelState) {
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			PBX(set_callstate) (c, AST_STATE_DIALING);
-//              }       
+//              	}
 			break;
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:								/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_BLINDTRANSFER (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
