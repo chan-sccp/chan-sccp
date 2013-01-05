@@ -2429,11 +2429,11 @@ static sccp_BLFState_t sccp_wrapper_asterisk111_getExtensionState(const char *ex
 			break;
 		case AST_EXTENSION_INUSE:
 		case AST_EXTENSION_ONHOLD:
-		case AST_EXTENSION_RINGING + AST_EXTENSION_INUSE:
 		case AST_EXTENSION_ONHOLD + AST_EXTENSION_INUSE:
 		case AST_EXTENSION_BUSY:
 			result = SCCP_BLF_STATUS_INUSE;
 			break;
+		case AST_EXTENSION_RINGING + AST_EXTENSION_INUSE:
 		case AST_EXTENSION_RINGING:
 			result = SCCP_BLF_STATUS_ALERTING;
 			break;
