@@ -2418,25 +2418,25 @@ static sccp_BLFState_t sccp_wrapper_asterisk111_getExtensionState(const char *ex
 
 	int state = ast_extension_state(NULL, context, extension);
 
-	if        ((state & AST_EXTENSION_REMOVED			) == (AST_EXTENSION_REMOVED				) ) {	/*! Extension Removed */
+	if        (state & AST_EXTENSION_REMOVED			) {			/*! Extension Removed */
 		result = SCCP_BLF_STATUS_UNKNOWN;
-	} else if ((state & AST_EXTENSION_DEACTIVATED			) == (AST_EXTENSION_DEACTIVATED				) ) {	/*! Extension Hint Removed */
+	} else if (state & AST_EXTENSION_DEACTIVATED			) {			/*! Extension Hint Removed */
 		result = SCCP_BLF_STATUS_UNKNOWN;
-	} else if ((state & AST_EXTENSION_NOT_INUSE			) == (AST_EXTENSION_NOT_INUSE				) ) {	/*! No Device Inuse or Busy */
+	} else if (state & AST_EXTENSION_NOT_INUSE			) {			/*! No Device Inuse or Busy */
 		result = SCCP_BLF_STATUS_IDLE;
-	} else if ((state & (AST_EXTENSION_INUSE|AST_EXTENSION_RINGING)	) == (AST_EXTENSION_INUSE | AST_EXTENSION_RINGING	) ) {	/*! InUse & Ringing */
+	} else if (state & (AST_EXTENSION_INUSE & AST_EXTENSION_RINGING	) ) {			/*! InUse & Ringing */
 		result = SCCP_BLF_STATUS_ALERTING;
-	} else if ((state & (AST_EXTENSION_INUSE | AST_EXTENSION_ONHOLD)) == (AST_EXTENSION_INUSE | AST_EXTENSION_ONHOLD	) ) {	/*! InUse & OnHold */
+	} else if (state & (AST_EXTENSION_INUSE & AST_EXTENSION_ONHOLD	) ) {			/*! InUse & OnHold */
 		result = SCCP_BLF_STATUS_INUSE;
-	} else if ((state & AST_EXTENSION_INUSE				) == (AST_EXTENSION_INUSE				) ) {	/*! InUse On One or More Devices */
+	} else if (state & AST_EXTENSION_INUSE				) {			/*! InUse On One or More Devices */
 		result = SCCP_BLF_STATUS_INUSE;
-	} else if ((state & AST_EXTENSION_BUSY				) == (AST_EXTENSION_BUSY				) ) {	/*! All Devices Busy */
+	} else if (state & AST_EXTENSION_BUSY				) {			/*! All Devices Busy */
 		result = SCCP_BLF_STATUS_INUSE;
-	} else if ((state & AST_EXTENSION_UNAVAILABLE			) == (AST_EXTENSION_UNAVAILABLE				) ) {	/*! All Devices Unavailable / UnRegistered */
+	} else if (state & AST_EXTENSION_UNAVAILABLE			) {			/*! All Devices Unavailable / UnRegistered */
 		result = SCCP_BLF_STATUS_UNKNOWN;
-	} else if ((state & AST_EXTENSION_RINGING			) == (AST_EXTENSION_RINGING				) ) {	/*! All Devices Ringing */
+	} else if (state & AST_EXTENSION_RINGING			) {			/*! All Devices Ringing */
 		result = SCCP_BLF_STATUS_ALERTING;
-	} else if ((state & AST_EXTENSION_ONHOLD			) == (AST_EXTENSION_ONHOLD				) ) {	/*! All Devices OnHold */
+	} else if (state & AST_EXTENSION_ONHOLD				) {			/*! All Devices OnHold */
 		result = SCCP_BLF_STATUS_INUSE;
 	}
         sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (getExtensionState) extension: %s@%s, extension_state: '%s (%d)' -> blf state '%d'\n", extension, context, ast_extension_state2str(state), state, result);

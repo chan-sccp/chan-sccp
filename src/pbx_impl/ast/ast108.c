@@ -209,7 +209,7 @@ static int sccp_wrapper_asterisk18_devicestate(void *data)
 			break;
 	}
 
-        sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicetstate) PBX requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
+        sccp_log((DEBUGCAT_HINT))(VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX requests state for '%s' - state %s\n", (char *)lineName, ast_devstate2str(res));
 	return res;
 }
 
