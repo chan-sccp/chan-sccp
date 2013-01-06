@@ -943,7 +943,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
 			if (!sccp_strlen_zero(shortenedNumber)) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to pickup exten '%s'\n", shortenedNumber);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
 				if (sccp_feat_directpickup(c, shortenedNumber)) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
@@ -1017,7 +1017,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 	/* set private variable */
 	if (pbx_channel && !pbx_check_hangup(pbx_channel)) {
-		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) set variable SKINNY_PRIVATE to: %s\n", c->privacy ? "1" : "0");
 		if (c->privacy) {
 
 			//pbx_channel->cid.cid_pres = AST_PRES_PROHIB_USER_NUMBER_NOT_SCREENED;
@@ -1028,10 +1028,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 		result |= c->privacy;
 		if (d->privacyFeature.enabled && result) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "1");
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) set variable SKINNY_PRIVATE to: %s\n", "1");
 			pbx_builtin_setvar_helper(pbx_channel, "SKINNY_PRIVATE", "1");
 		} else {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: set variable SKINNY_PRIVATE to: %s\n", "0");
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) set variable SKINNY_PRIVATE to: %s\n", "0");
 			pbx_builtin_setvar_helper(pbx_channel, "SKINNY_PRIVATE", "0");
 		}
 	}
