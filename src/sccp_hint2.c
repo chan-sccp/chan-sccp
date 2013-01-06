@@ -113,8 +113,14 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device);
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event);
 static void sccp_hint_eventListener(const sccp_event_t * event);
-static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data);
 static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
+
+
+#if ASTERISK_VERSION_GROUP >= 112
+int sccp_hint_devstate_cb(const char *context, const char *id, struct ast_state_cb_info *info, void *data);
+#else
+int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data);
+#endif
 /* ========================================================================================================================= List Declarations */
 SCCP_LIST_HEAD(, struct sccp_hint_lineState) lineStates;
 SCCP_LIST_HEAD(, sccp_hint_list_t) sccp_hint_subscriptions;
@@ -189,10 +195,13 @@ void sccp_hint_module_stop()
  * \param info state info
  * \param data private channel data (sccp_hint_list_t *hint)
  */
-static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data){
-	
+#if ASTERISK_VERSION_GROUP >= 112
+int sccp_hint_devstate_cb(const char *context, const char *id, struct ast_state_cb_info *info, void *data)
+#else
+int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data)
+#endif
+{
 	sccp_hint_list_t *hint;
-//	enum ast_extension_states extensionState;
 	int extensionState;
 	char hintStr[AST_MAX_EXTENSION];
 	const char *cidName;
@@ -201,8 +210,11 @@ static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_in
 	hint = (sccp_hint_list_t *) data;
 	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
 	
-	
+#if ASTERISK_VERSION_GROUP >= 112
 	extensionState = info->exten_state;
+#else
+	extensionState = state;
+#endif
 	
 	cidName		= hint->callInfo.partyName;
 	cidNumber	= hint->callInfo.partyNumber;
@@ -508,13 +520,15 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	sccp_copy_string(hint->context, hint_context, sizeof(hint->context));
 	sccp_copy_string(hint->hint_dialplan, hint_dialplan, sizeof(hint_dialplan));
 
-	
-	hint->stateid = pbx_extension_state_add(hint->context, hint->exten, sccp_hint_devstate_cb, hint);
-	
+
+#if ASTERISK_VERSION_GROUP >= 112
 	struct ast_state_cb_info info;
 	info.exten_state = pbx_extension_state(NULL, hint->context, hint->exten);
 	sccp_hint_devstate_cb(hint->context, hint->exten, &info, hint);
-
+#else
+	enum ast_extension_states state = pbx_extension_state(NULL, hint->context, hint->exten);
+	sccp_hint_devstate_cb(hint->context, hint->exten, state, hint);
+#endif
 	return hint;
 }
 
