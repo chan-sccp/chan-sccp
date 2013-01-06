@@ -192,7 +192,8 @@ void sccp_hint_module_stop()
 static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data){
 	
 	sccp_hint_list_t *hint;
-	enum ast_extension_states extensionState;
+//	enum ast_extension_states extensionState;
+	int extensionState;
 	char hintStr[AST_MAX_EXTENSION];
 	const char *cidName;
 	const char *cidNumber;
@@ -226,7 +227,16 @@ static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_in
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			break;
 		case AST_EXTENSION_INUSE:
-			hint->currentState = SCCP_CHANNELSTATE_CONNECTED;
+			// hint->currentState = SCCP_CHANNELSTATE_CONNECTED;
+
+			// DdG: This is not correct, it depend on the hint->previousState
+			// DdG: If the previous is ONHOOK/DOWN, the currentState should become SCCP_CHANNELSTATE_DIALING	
+			// DdG: Otherwise you go offhook, get a devstate_cb which would state we are Connected, although we are actually starting to dial
+			if (SCCP_CHANNELSTATE_ONHOOK == hint->previousState || SCCP_CHANNELSTATE_DOWN == hint->previousState) {
+				hint->currentState = SCCP_CHANNELSTATE_DIALING;	
+			} else {
+				hint->currentState = SCCP_CHANNELSTATE_CONNECTED;
+			}
 			break;
 		case AST_EXTENSION_BUSY:
 			if (cidName && !strcasecmp(cidName, "DND")) {
@@ -235,9 +245,11 @@ static int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_in
 				hint->currentState = SCCP_CHANNELSTATE_BUSY;
 			}
 			break;
+		case AST_EXTENSION_INUSE + AST_EXTENSION_RINGING:
 		case AST_EXTENSION_RINGING:
 			hint->currentState = SCCP_CHANNELSTATE_RINGING;
 			break;
+		case AST_EXTENSION_INUSE + AST_EXTENSION_ONHOLD:
 		case AST_EXTENSION_ONHOLD:
 			hint->currentState = SCCP_CHANNELSTATE_HOLD;
 			break;
@@ -812,7 +824,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (!strncasecmp(channelName, hint->hint_dialplan, sizeof(channelName))) {
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s <==> %s \n", channelName, hint->hint_dialplan);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyPBX) %s <==> %s \n", channelName, hint->hint_dialplan);
 			sccp_copy_string(hint->callInfo.partyName, lineState->callInfo.partyName, sizeof(hint->callInfo.partyName));
 			sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
 			break;
