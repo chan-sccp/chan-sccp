@@ -117,9 +117,11 @@ static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, co
 
 
 #if ASTERISK_VERSION_GROUP >= 112
-int sccp_hint_devstate_cb(const char *context, const char *id, struct ast_state_cb_info *info, void *data);
-#else
+int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data);
+#elif ASTERISK_VERSION_GROUP >= 110
 int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data);
+#else
+int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data);
 #endif
 /* ========================================================================================================================= List Declarations */
 SCCP_LIST_HEAD(, struct sccp_hint_lineState) lineStates;
@@ -196,16 +198,18 @@ void sccp_hint_module_stop()
  * \param data private channel data (sccp_hint_list_t *hint)
  */
 #if ASTERISK_VERSION_GROUP >= 112
-int sccp_hint_devstate_cb(const char *context, const char *id, struct ast_state_cb_info *info, void *data)
-#else
+int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data)
+#elif ASTERISK_VERSION_GROUP >= 110
 int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data)
+#else
+int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data)
 #endif
 {
 	sccp_hint_list_t *hint;
 	int extensionState;
 	char hintStr[AST_MAX_EXTENSION];
 	const char *cidName;
-	const char *cidNumber;
+//	const char *cidNumber;
 	
 	hint = (sccp_hint_list_t *) data;
 	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
@@ -217,7 +221,7 @@ int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extensio
 #endif
 	
 	cidName		= hint->callInfo.partyName;
-	cidNumber	= hint->callInfo.partyNumber;
+//	cidNumber	= hint->callInfo.partyNumber;
 	
 	
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "%s: (sccp_hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), hint->callInfo.partyName, hint->callInfo.partyNumber);
@@ -682,7 +686,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	sccp_device_t *device = NULL;
 	sccp_linedevices_t *lineDevice = NULL;
 	uint8_t state;
-	boolean_t dev_privacy = FALSE;
+//	boolean_t dev_privacy = FALSE;
 
 	/** clear cid information */
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
@@ -712,7 +716,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;
 				}
-				dev_privacy = device->privacyFeature.enabled;
+//				dev_privacy = device->privacyFeature.enabled;
 				device = device ? sccp_device_release(device) : NULL;
 			}
 			lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
@@ -754,16 +758,17 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 						case SKINNY_CALLTYPE_INBOUND:
 							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.callingPartyName, sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.callingPartyNumber, sizeof(lineState->callInfo.partyNumber));
-							sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "set partyName: %s \n", channel->callInfo.callingPartyName);
+							sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (callingParty)\n", line->name, channel->callInfo.callingPartyName);
 							break;
 						case SKINNY_CALLTYPE_OUTBOUND:
 							sccp_copy_string(lineState->callInfo.partyName, channel->callInfo.calledPartyName, sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, channel->callInfo.calledPartyNumber, sizeof(lineState->callInfo.partyNumber));
-							sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "set partyName: %s \n", channel->callInfo.calledPartyName);
+							sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: set speeddial partyName: '%s' (calledParty)\n", line->name, channel->callInfo.calledPartyName);
 							break;
 						case SKINNY_CALLTYPE_FORWARD:
 							sccp_copy_string(lineState->callInfo.partyName, "cfwd", sizeof(lineState->callInfo.partyName));
 							sccp_copy_string(lineState->callInfo.partyNumber, "cfwd", sizeof(lineState->callInfo.partyNumber));
+							sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
 							break;
 					}
 // 				}
