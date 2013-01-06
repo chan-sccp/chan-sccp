@@ -80,17 +80,18 @@ extern "C" {
 
 #define THREADPOOL_MIN_SIZE 2
 #define THREADPOOL_MAX_SIZE 10
-	//#    define THREADPOOL_RESIZE_INTERVAL 120
+//#    define THREADPOOL_RESIZE_INTERVAL 120
 #define THREADPOOL_RESIZE_INTERVAL 10
 
 #define CHANNEL_DESIGNATOR_SIZE 20
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 
-	/*! \todo I don't like the -1 returned value */
+/*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 
-	// changed debug parameter to match any DEBUGCATegories given on an sccp_log line
-#define sccp_log(_x) if ((sccp_globals->debug & (_x)) == _x)  ast_verbose
+// When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
+#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
+#define sccp_log(_x) if ((sccp_globals->debug & (_x)) == _x) sccp_log1
 
 #define GLOB(x) sccp_globals->x
 
@@ -317,17 +318,17 @@ typedef enum {
 	DEBUGCAT_SOCKET 	= 1 << 15,
 	DEBUGCAT_MWI 		= 1 << 16,
 	DEBUGCAT_EVENT 		= 1 << 17,
-	DEBUGCAT_ADV_FEATURE 	= 1 << 18,
-	DEBUGCAT_CONFERENCE 	= 1 << 19,
-	DEBUGCAT_BUTTONTEMPLATE = 1 << 20,
-	DEBUGCAT_SPEEDDIAL 	= 1 << 21,
-	DEBUGCAT_CODEC 		= 1 << 22,
-	DEBUGCAT_REALTIME 	= 1 << 23,
-	DEBUGCAT_LOCK 		= 1 << 24,
-	DEBUGCAT_REFCOUNT	= 1 << 25,
-	DEBUGCAT_MESSAGE 	= 1 << 26,
-	DEBUGCAT_NEWCODE 	= 1 << 27,
-	DEBUGCAT_THPOOL		= 1 << 28,
+	DEBUGCAT_CONFERENCE 	= 1 << 18,
+	DEBUGCAT_BUTTONTEMPLATE = 1 << 19,
+	DEBUGCAT_SPEEDDIAL 	= 1 << 20,
+	DEBUGCAT_CODEC 		= 1 << 21,
+	DEBUGCAT_REALTIME 	= 1 << 22,
+	DEBUGCAT_LOCK 		= 1 << 23,
+	DEBUGCAT_REFCOUNT	= 1 << 24,
+	DEBUGCAT_MESSAGE 	= 1 << 25,
+	DEBUGCAT_NEWCODE 	= 1 << 26,
+	DEBUGCAT_THPOOL		= 1 << 27,
+	DEBUGCAT_FILELINEFUNC	= 1 << 28,
 	DEBUGCAT_HIGH 		= 1 << 29,
 	/* *INDENT-ON* */
 } sccp_debug_category_t;											/*!< SCCP Debug Category Enum (saved in global_vars:debug = uint32_t) */
@@ -361,7 +362,6 @@ static const struct sccp_debug_category {
 	{"socket",  		DEBUGCAT_SOCKET, 	"socket debug level"},
 	{"mwi",  		DEBUGCAT_MWI, 		"mwi debug level"},
 	{"event",  		DEBUGCAT_EVENT, 	"event debug level"},
-	{"adv_feature",  	DEBUGCAT_ADV_FEATURE, 	"adv_feature debug level"},
 	{"conference",  	DEBUGCAT_CONFERENCE, 	"conference debug level"},
 	{"buttontemplate",  	DEBUGCAT_BUTTONTEMPLATE,"buttontemplate debug level"},
 	{"speeddial",  		DEBUGCAT_SPEEDDIAL, 	"speeddial debug level"},
@@ -372,6 +372,7 @@ static const struct sccp_debug_category {
 	{"message",  		DEBUGCAT_MESSAGE, 	"message debug level"},
 	{"newcode",  		DEBUGCAT_NEWCODE, 	"newcode debug level"}, 
 	{"threadpool", 		DEBUGCAT_THPOOL, 	"threadpool debug level"}, 
+	{"filelinefunc",	DEBUGCAT_FILELINEFUNC, 	"add line/file/function to debug output"},
 	{"high",  		DEBUGCAT_HIGH, 		"high debug level"},
 	/* *INDENT-ON* */
 };
