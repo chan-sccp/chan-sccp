@@ -613,12 +613,12 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 
 	if (name && strncmp(name, channel->callInfo.calledPartyName, StationMaxNameSize - 1)) {
 		sccp_copy_string(channel->callInfo.calledPartyName, name, sizeof(channel->callInfo.calledPartyNumber));
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set calledParty Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
 	}
 
 	if (number && strncmp(number, channel->callInfo.calledPartyNumber, StationMaxDirnumSize - 1)) {
 		sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set calledParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
 		channel->callInfo.calledParty_valid = 1;
 	}
 //	sccp_hint_lineStatusChanged(channel->line, NULL, channel->state);
