@@ -1022,11 +1022,11 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_ONHOOK:
-						state = hint->currentState;
+						state = SCCP_CHANNELSTATE_ONHOOK;
 						break;
 					case SCCP_CHANNELSTATE_RINGING:
 						if(d->allowRinginNotification){
-							state = hint->currentState;
+							state = SCCP_CHANNELSTATE_RINGING;
 						}else{
 							state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 						}
