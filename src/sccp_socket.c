@@ -305,12 +305,13 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	sccp_device_t *d = NULL;
 	boolean_t found_in_list = FALSE;
 
-	if (!s)
+	if (!s){
 		return;
+	}
 
 	found_in_list = sccp_session_removeFromGlobals(s);
 
-	if (!s || !found_in_list) {
+	if ( !found_in_list ) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Session could not be found in GLOB(session) %s\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr));
 	}
 
