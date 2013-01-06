@@ -562,8 +562,6 @@ void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *n
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.callingPartyNumber, channel->callid);
 		channel->callInfo.callingParty_valid = 1;
 	}
-//	sccp_hint_lineStatusChanged(channel->line, NULL, channel->state);
-	return;
 }
 
 /*!
@@ -621,7 +619,6 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
 		channel->callInfo.calledParty_valid = 1;
 	}
-//	sccp_hint_lineStatusChanged(channel->line, NULL, channel->state);
 }
 
 /*!
@@ -874,13 +871,13 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d), payloadType %d, tos %d\n", d->id, pbx_inet_ntoa(channel->rtp.video.phone_remote.sin_addr), ntohs(channel->rtp.video.phone_remote.sin_port), codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, payloadType, d->audio_tos);
 	d->protocol->sendStartMultiMediaTransmission(d, channel, payloadType, bitRate, sin);
 
-	sccp_moo_t *r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
-
-	r->msg.FlowControlCommandMessage.lel_conferenceID = htolel(channel->callid);
-	r->msg.FlowControlCommandMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
-	r->msg.FlowControlCommandMessage.lel_callReference = htolel(channel->callid);
-	r->msg.FlowControlCommandMessage.maxBitRate = htolel(bitRate);
-	sccp_dev_send(d, r);
+// 	sccp_moo_t *r = sccp_build_packet(FlowControlCommandMessage, sizeof(r->msg.FlowControlCommandMessage));
+// 
+// 	r->msg.FlowControlCommandMessage.lel_conferenceID = htolel(channel->callid);
+// 	r->msg.FlowControlCommandMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
+// 	r->msg.FlowControlCommandMessage.lel_callReference = htolel(channel->callid);
+// 	r->msg.FlowControlCommandMessage.maxBitRate = htolel(bitRate);
+// 	sccp_dev_send(d, r);
 	d = sccp_device_release(d);
 
 	PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
