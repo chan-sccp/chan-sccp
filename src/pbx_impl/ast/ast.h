@@ -38,9 +38,7 @@
 #    include <asterisk/callerid.h>
 #    include <asterisk/musiconhold.h>
 #    include <asterisk/astdb.h>
-#    ifdef CS_SCCP_PICKUP
 #        include <asterisk/features.h>
-#    endif
 #    ifdef HAVE_PBX_EVENT
 #        include <asterisk/event.h>
 #    endif

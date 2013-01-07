@@ -231,7 +231,9 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 {
 	char pref_buf[256];
 	struct ast_str *callgroup_buf = pbx_str_alloca(512);
+#ifdef CS_SCCP_PICKUP
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
+#endif
 	struct ast_str *ha_buf = pbx_str_alloca(512);
 	char *debugcategories;
 	int local_total = 0;
@@ -889,7 +891,9 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	sccp_linedevices_t *linedevice;
 	PBX_VARIABLE_TYPE *v = NULL;
 	struct ast_str *callgroup_buf = pbx_str_alloca(512);
+#ifdef CS_SCCP_PICKUP
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
+#endif
 	int local_total = 0;
 
 	const char *line;
