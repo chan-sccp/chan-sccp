@@ -106,7 +106,7 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
  */
 static int sccp_read_data(sccp_session_t * s)
 {
-        if (s->session_stop) {
+        if (!s || s->session_stop) {
                 return 0;
         }
 
