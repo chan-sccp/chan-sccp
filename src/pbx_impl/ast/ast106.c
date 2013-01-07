@@ -744,9 +744,10 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_
 		(*pbx_channel)->amaflags = line->amaflags;
 	if (line->callgroup)
 		(*pbx_channel)->callgroup = line->callgroup;
+#if CS_SCCP_PICKUP
 	if (line->pickupgroup)
 		(*pbx_channel)->pickupgroup = line->pickupgroup;
-
+#endif
 	(*pbx_channel)->priority = 1;
 	(*pbx_channel)->adsicpe = AST_ADSI_UNAVAILABLE;
 
