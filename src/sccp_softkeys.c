@@ -991,12 +991,12 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  */
 void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	sccp_line_t *line = NULL;
-
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Pickup Pressed\n", DEV_ID_LOG(d));
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native EXTENSION PICKUP was not compiled in\n");
 #else
+	sccp_line_t *line = NULL;
+
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
 	} else {
@@ -1023,12 +1023,12 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  */
 void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	sccp_line_t *line = NULL;
-
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Group Pickup Pressed\n", DEV_ID_LOG(d));
 #ifndef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #else
+	sccp_line_t *line = NULL;
+
 	if (!l && d) {
 		line = sccp_line_find_byid(d, 1);
 	} else {
