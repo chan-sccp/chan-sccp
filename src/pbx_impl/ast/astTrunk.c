@@ -818,7 +818,8 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 		ast_channel_zone_set((*pbx_channel), ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 	ast_module_ref(ast_module_info->self);
-	channel->owner = ast_channel_ref((*pbx_channel));
+//	channel->owner = ast_channel_ref((*pbx_channel));							/* DdG: if we don't unref on hangup, we should not be taking the reference either. It will hinder module unload ? */
+	channel->owner = (*pbx_channel);	
 
 	return TRUE;
 }
@@ -896,9 +897,9 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			sccp_channel_release(c);
 		}
 	}
-	
-	ast_channel_tech_pvt_set(ast_channel, NULL);
 
+	ast_channel_tech_pvt_set(ast_channel, NULL);
+//	c->owner = ast_channel_unref(c->owner);
 	ast_module_unref(ast_module_info->self);
 	return res;
 }
@@ -2197,6 +2198,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_findChannelWithCallback(int (*
 
 	}
 	ast_channel_iterator_destroy(iterator);
+
 	return remotePeer;
 }
 
@@ -2944,7 +2946,18 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 
-AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, "Skinny Client Control Protocol (SCCP). SCCP-Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",.load = load_module,.unload = unload_module,.reload = module_reload,.load_pri = AST_MODPRI_CHANNEL_DRIVER,.nonoptreq = "res_rtp_asterisk,chan_local",);
+AST_MODULE_INFO(
+		ASTERISK_GPL_KEY, 
+		AST_MODFLAG_LOAD_ORDER, 
+		"Skinny Client Control Protocol (SCCP). SCCP-Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')",
+		.load = load_module,
+		.unload = unload_module,
+		.reload = module_reload,
+		.load_pri = AST_MODPRI_CHANNEL_DRIVER,
+		.nonoptreq = "chan_local"
+		/* dependence on res_rtp_asterisk makes us unload to late */
+/*		.nonoptreq = "res_rtp_asterisk,chan_local"*/
+);
 #endif
 
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
