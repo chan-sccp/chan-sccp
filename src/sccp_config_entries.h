@@ -284,7 +284,9 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"accountcode", 		L_OBJ_REF(accountcode),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"accountcode for this line to make billing per call possible\n"},
 	{"amaflags", 			L_OBJ_REF(amaflags),			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,		 				SCCP_CONFIG_NOUPDATENEEDED,	 	NULL,				"sets the AMA flags stored in the CDR record for this line\n"},
 	{"callgroup", 			L_OBJ_REF(callgroup),			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,		 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the caller groups this line is a member of\n"},
+#ifdef CS_SCCP_PICKUP	
 	{"pickupgroup", 		L_OBJ_REF(pickupgroup),			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,		 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group\n"},
+#endif
 	{"trnsfvm", 			L_OBJ_REF(trnsfvm),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"extension to redirect the caller to for voice mail\n"},
 	{"secondary_dialtone_digits", 	L_OBJ_REF(secondary_dialtone_digits),	TYPE_PARSER(sccp_config_parse_secondaryDialtoneDigits),				SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,	 	"",				"digits to indicate an external line to user (secondary dialtone) (max 9 digits)\n"},
 	{"secondary_dialtone_tone", 	L_OBJ_REF(secondary_dialtone_tone),	TYPE_UINT,						 			SCCP_CONFIG_FLAG_NONE, 						SCCP_CONFIG_NOUPDATENEEDED, 		"0x22",				"outside dialtone frequency\n"},
