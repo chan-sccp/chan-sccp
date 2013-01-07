@@ -1370,14 +1370,14 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			break;
 
 		case SKINNY_STIMULUS_GROUPCALLPICKUP:								/*!< pickup feature button */
-
+#ifndef CS_SCCP_PICKUP	
+			sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
+#else
 			if (d->defaultLineInstance > 0) {
 				sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
-
 				/*! \todo use feature map or sccp_feat_handle_directpickup */
 				if ((l = sccp_line_find_byid(d, d->defaultLineInstance))) {
 					//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
-//                              sccp_channel_newcall(l, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
 					sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
 				}
 				goto func_exit;
@@ -1390,10 +1390,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			if (al) {
 				/*! \todo use feature map or sccp_feat_handle_directpickup */
 				//sccp_feat_handle_directpickup(l, 1, d);
-//                      sccp_channel_newcall(al, d, "*8", SKINNY_CALLTYPE_OUTBOUND);
 				sccp_channel_newcall(al, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND);
 			}
-
+#endif
 			break;
 
 		default:
