@@ -89,9 +89,9 @@ CREATE AGGREGATE textcat_column("text") (
 
 
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
-	SELECT 
-	
-		(SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM buttonconfig bc WHERE bc.device=sccpdevice.name) as button,
-		sccpdevice.*	
-	FROM sccpdevice
+        SELECT 
+
+                (SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device=sccp_device.name ORDER BY instance) bc ) as button,
+                sccpdevice.*
+        FROM sccpdevice
 ;
