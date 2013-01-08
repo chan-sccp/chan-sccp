@@ -229,7 +229,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	}
 
 	/* some test to detect active calls */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: serverInstance: %d, unknown: %d, active call? %s\n", deviceName, serverInstance, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
+	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverInstance: %d, unknown: %d, active call? %s\n", deviceName, serverInstance, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
 	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
 	if (sendAck) {
