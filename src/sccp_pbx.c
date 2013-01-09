@@ -342,7 +342,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 int sccp_pbx_hangup(sccp_channel_t * c)
 {
-	PBX_CHANNEL_TYPE *return_pbx_channel = NULL;	
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
 
