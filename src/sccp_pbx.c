@@ -342,6 +342,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 int sccp_pbx_hangup(sccp_channel_t * c)
 {
+	PBX_CHANNEL_TYPE *return_pbx_channel = NULL;	
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
 
@@ -368,7 +369,8 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
-	c->owner = NULL;
+	c->owner = NULL;			/*! \todo should either be removed or it should use ast_channel_unref instead */
+
 	l = sccp_line_retain(c->line);
 #    ifdef CS_SCCP_CONFERENCE
 	if (c->conference) {
