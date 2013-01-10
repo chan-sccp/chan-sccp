@@ -1156,6 +1156,8 @@ struct sccp_channel {
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*isMicrophoneEnabled) (void);
+
+	char linkedid[SCCP_MAX_EXTENSION];
 };														/*!< SCCP Channel Structure */
 
 /*!

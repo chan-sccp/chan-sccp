@@ -523,7 +523,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				pbx_channel_unlock(target);
 				return -1;
 			}
-
+#if ASTERISK_VERSION_GROUP >= 112
+			sccp_copy_string(c->linkedid, ast_channel_linkedid(target), sizeof(c->linkedid));
+#elif ASTERISK_VERSION_GROUP >= 108
+			sccp_copy_string(c->linkedid, target->linkedid, sizeof(c->linkedid));
+#endif
 			if (!sccp_pbx_channel_allocate(c)) {
 				pbx_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
@@ -552,9 +556,9 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		}
 		sccp_channel_answer(d, c);
 		pbx_channel_unlock(target);
-//              PBX(requestHangup)(original);
-		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using forceHangup, requestHangup should be fixed instead, but can't find right algorithm
-		target = pbx_channel_unref(target);
+//		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using forceHangup, requestHangup should be fixed instead, but can't find right algorithm
+		original = pbx_channel_unref(original);
+//		target = pbx_channel_ref(target);
 		c = sccp_channel_release(c);
 	} else {
 		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");

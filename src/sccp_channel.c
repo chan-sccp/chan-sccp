@@ -1809,6 +1809,13 @@ void sccp_channel_transfer(sccp_channel_t * channel)
 		d = sccp_device_release(d);
 		return;
 	}
+	/* exceptional case, we need to release half transfer before retaking, should never occur */
+	if (d->transferChannels.transferee && !d->transferChannels.transferer) {
+		sccp_channel_release(d->transferChannels.transferee);
+	}
+	if (!d->transferChannels.transferee && d->transferChannels.transferer) {
+		sccp_channel_release(d->transferChannels.transferer);
+	}
 
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {								/** channel to be transfered */
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
@@ -2230,6 +2237,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->ss_action = SCCP_SS_DIAL;							/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
 	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
+	sccp_copy_string(sccp_forwarding_channel->linkedid, PBX(getChannelLinkedId)((const sccp_channel_t *)sccp_channel_parent), sizeof(sccp_forwarding_channel->linkedid));
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
@@ -2284,7 +2292,6 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	/* \todo copy device line setvar variables from parent channel to forwarder->owner */
 
-	//PBX(set_callstate)(sccp_forwarding_channel, AST_STATE_OFFHOOK);
 	PBX(set_callstate) (sccp_forwarding_channel, AST_STATE_OFFHOOK);
 	if (!sccp_strlen_zero(dialedNumber)
 	    && PBX(checkhangup) (sccp_forwarding_channel)
