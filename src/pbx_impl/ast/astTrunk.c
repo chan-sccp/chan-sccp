@@ -1051,8 +1051,15 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 static boolean_t sccp_wrapper_asterisk111_pickupChannel(const sccp_channel_t * chan, PBX_CHANNEL_TYPE * target)
 {
 	boolean_t result;
+	PBX_CHANNEL_TYPE *ref;
 
+	ref = ast_channel_ref(chan->owner);
 	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
+	if (result){
+		((sccp_channel_t *)chan)->owner=ast_channel_ref(target);
+		ast_hangup(ref);
+	}
+	ref = ast_channel_unref(chan->owner);
 
 	return result;
 }

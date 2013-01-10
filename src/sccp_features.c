@@ -556,10 +556,12 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		}
 		sccp_channel_answer(d, c);
 		pbx_channel_unlock(target);
-//		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using forceHangup, requestHangup should be fixed instead, but can't find right algorithm
-		original = pbx_channel_unref(original);
-//		target = pbx_channel_ref(target);
-		c = sccp_channel_release(c);
+#if ASTERISK_VERSION_GROUP < 112										// moved to pbx_impl pickupChannel
+		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using forceHangup, requestHangup should be fixed instead, but can't find right algorithm
+#endif		
+//		pbx_log(LOG_NOTICE, "SCCP: !!!!! channel callid %d, owner->name %s, owner %p!!\n", c->callid, ast_channel_name(c->owner), c->owner);
+		target = pbx_channel_unref(target);								// releasing findChannelByCallback ast_channel_ref
+//		c = sccp_channel_release(c);									// We are loosing a reference somewhere
 	} else {
 		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");
 		sccp_dev_displayprompt(d, 1, 0, "No channel for group pickup", 5);
