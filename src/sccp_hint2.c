@@ -587,7 +587,7 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 
 	if ((line = sccp_line_retain(lineState->line))) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
-		if ((line->devices.size > 1 && line->channels.size > 1) || line->channels.size > 1) {
+		if ( line->channels.size > 1 ) {
 			/* line is currently shared between multiple device and has multiple concurrent calls active*/
 			sccp_hint_updateLineStateForSharedLine(lineState);
 		} else {
@@ -622,7 +622,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 	}
 
 	if (line->channels.size > 0) {
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) number of active channels %d\n", line->name, line->statistic.numberOfActiveChannels);
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) number of active channels %d\n", line->name, line->channels.size);
 		if (line->channels.size == 1) {
 			SCCP_LIST_LOCK(&line->channels);
 			channel = SCCP_LIST_FIRST(&line->channels);
