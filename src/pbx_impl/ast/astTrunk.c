@@ -524,7 +524,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
-						remotePeer = ast_channel_unref(remotePeer);
+//						remotePeer = ast_channel_unref(remotePeer);	// no reference taken, should not release
 						break;
 					}
 
@@ -775,8 +775,8 @@ static int sccp_wrapper_asterisk111_setNativeVideoFormats(const sccp_channel_t *
 boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
 	sccp_line_t *line = NULL;
-	
-	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, (channel->owner) ? ast_channel_linkedid(channel->owner) : NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+
+	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, !sccp_strlen_zero(channel->linkedid) ? channel->linkedid : NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 //	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 
 	if ((*pbx_channel) == NULL) {
@@ -819,8 +819,7 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 		ast_channel_zone_set((*pbx_channel), ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 	ast_module_ref(ast_module_info->self);
-//	channel->owner = ast_channel_ref((*pbx_channel));							/* DdG: if we don't unref on hangup, we should not be taking the reference either. It will hinder module unload ? */
-	channel->owner = (*pbx_channel);	
+	channel->owner = ast_channel_ref((*pbx_channel));							/* DdG: if we don't unref on hangup, we should not be taking the reference either. It will hinder module unload ? */
 
 	return TRUE;
 }
@@ -886,21 +885,26 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_requestForeignChannel(const ch
 int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	sccp_channel_t *c;
+	PBX_CHANNEL_TYPE *channel_owner = NULL;
 	int res = -1;
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
+		channel_owner = c->owner;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
+		c->owner = NULL;
 		if (0 == res) {
 			sccp_channel_release(c);
 		}
-	}
+	}	//after this moment c might have gone already
 
 	ast_channel_tech_pvt_set(ast_channel, NULL);
-//	c->owner = ast_channel_unref(c->owner);
+	if (channel_owner) {
+		channel_owner = ast_channel_unref(channel_owner);
+	}
 	ast_module_unref(ast_module_info->self);
 	return res;
 }
@@ -1258,6 +1262,9 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 			*cause = AST_CAUSE_UNALLOCATED;
 			goto EXITFUNC;
 	}	
+	if (requestor) {
+		sccp_copy_string(channel->linkedid, ast_channel_linkedid(requestor), sizeof(channel->linkedid));
+	}
 
 	if (!sccp_pbx_channel_allocate(channel)) {
 		//! \todo handle error in more detail, cleanup sccp channel
@@ -2084,7 +2091,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 
 	if (remotePeer) {
 		*pbx_channel = remotePeer;
-		remotePeer = ast_channel_unref(remotePeer);
+		remotePeer = ast_channel_unref(remotePeer);			//  should we be releasing th referenec here, it has not been taken explicitly.
 		return TRUE;
 	}
 	return FALSE;
