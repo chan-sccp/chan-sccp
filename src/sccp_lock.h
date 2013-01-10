@@ -143,6 +143,13 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #ifdef SCCP_ATOMIC
+#  ifdef SCCP_BUILTIN_INCR
+	#define ATOMIC_INCR(_a,_b) __sync_fetch_and_add(_a,_b)
+	#define ATOMIC_DECR(_a,_b) __sync_fetch_and_add(_a,-_b)
+#  else
+	#define ATOMIC_INCR(_a,_b) AO_fetch_and_add(_a,_b)
+	#define ATOMIC_DECR(_a,_b) AO_fetch_and_add(_a,-_b)
+#  endif
 #  ifdef SCCP_BUILTIN_CAS32
         #define CAS32(_a,_b,_c, _d) __sync_val_compare_and_swap(_a, _b, _c)
 //        #define CAS32_TYPE size_t
@@ -158,6 +165,16 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #endif
 #else
         #define CAS32_TYPE int
+	#define ATOMIC_INCR(_a,_b)				\
+	({							\
+                CAS32_TYPE res=0;				\
+                ast_mutex_lock(_d);				\
+                res = *_a;					\
+                *_a += 1;					\
+                ast_mutex_unlock(_d);				\
+                res;						\
+	})
+	#define ATOMIC_DECR(_a,_b) ATOMINCR(_a,-b)
         #define CAS32(_a,_b,_c, _d)				\
         ({							\
                 CAS32_TYPE res=0;				\
