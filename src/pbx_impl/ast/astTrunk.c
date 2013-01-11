@@ -793,6 +793,9 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	ast_channel_context_set(*pbx_channel, line->context);
 	ast_channel_exten_set(*pbx_channel, "");
 
+	ast_channel_callgroup_set(*pbx_channel, line->callgroup);				// needed for ast_pickup_call
+	ast_channel_pickupgroup_set(*pbx_channel, line->pickupgroup);
+
 	if (!sccp_strlen_zero(line->language))
 		ast_channel_language_set((*pbx_channel), line->language);
 
