@@ -452,9 +452,12 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 
 	/* we have no hint */
 	if (!hint) {
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_addSubscription4Device) create new hint for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 		hint = sccp_hint_create(hint_exten, hint_context);
-		if (!hint)
+		if (!hint) {
+			pbx_log(LOG_ERROR, "%s: (sccp_hint_addSubscription4Device) hint create failed for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 			return;
+		}
 
 		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_hint_subscriptions, hint, list);
@@ -467,7 +470,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 
 	subscriber = sccp_malloc(sizeof(sccp_hint_SubscribingDevice_t));
 	if (!subscriber) {
-		pbx_log(LOG_ERROR, "%s: (sccp_hint_addSubscription4Device) Memory Allocation Error while creating subscritber object\n", DEV_ID_LOG(device));
+		pbx_log(LOG_ERROR, "%s: (sccp_hint_addSubscription4Device) Memory Allocation Error while creating subscriber object\n", DEV_ID_LOG(device));
 		return;
 	}
 	memset(subscriber, 0, sizeof(sccp_hint_SubscribingDevice_t));
@@ -476,6 +479,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	subscriber->instance = instance;
 	subscriber->positionOnDevice = positionOnDevice;
 
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_addSubscription4Device) Adding subscription for hint %s@%s\n", DEV_ID_LOG(device), hint->exten, hint->context);
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
 
 	sccp_dev_set_keyset(device, subscriber->instance, 0, KEYMODE_ONHOOK);
@@ -841,7 +845,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 
 	enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN;
 	
-	
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (!strncasecmp(channelName, hint->hint_dialplan, sizeof(channelName))) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyPBX) %s <==> %s \n", channelName, hint->hint_dialplan);
@@ -884,12 +887,12 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 
+		case SCCP_CHANNELSTATE_PROCEED:
+		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 		case SCCP_CHANNELSTATE_OFFHOOK:
 		case SCCP_CHANNELSTATE_GETDIGITS:
-		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_CONNECTED:
-		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_DIALING:
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 		case SCCP_CHANNELSTATE_PROGRESS:
@@ -949,11 +952,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify subscribers of %s's state %s\n", hint->exten, (hint->hint_dialplan) ? hint->hint_dialplan : "null", hint->currentState ? channelstate2str(hint->currentState) : "NULL");
-
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscribers of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", hint->currentState ? channelstate2str(hint->currentState) : "NULL");
+	
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
-
 		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
 			state = hint->currentState;
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
@@ -1018,7 +1020,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_INUSE);	/* connected */
 							break;
 					}
-
 					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
 					sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
 					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
@@ -1084,7 +1085,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							r->msg.CallInfoMessage.callingParty, r->msg.CallInfoMessage.calledParty
 						);
 					
-					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s (sccp_hint_notifySubscribers) notify device: %s@%d state: %d\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState);
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState);
 					sccp_dev_send(d, r);
 				} 
 
@@ -1096,6 +1097,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 			}
 			d = sccp_device_release(d);
+		} else {
+			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) device not found/retained\n");
 		}
 	}
 	SCCP_LIST_UNLOCK(&hint->subscribers);
@@ -1103,12 +1106,49 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 /* ========================================================================================================================= Helper Functions */
 #ifdef CS_DYNAMIC_SPEEDDIAL
+/*
+ * model information should be moved to sccp_dev_build_buttontemplate, or some other place
+ */
 static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice)
 {
 #ifdef CS_DYNAMIC_SPEEDDIAL_CID
-	if ((device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || device->skinny_type == SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR)
-	    && positionOnDevice <= 8)
+	if (positionOnDevice <= 8 && (
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 || 
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7971 || 
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 || 
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7985 || 
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR
+		)) {
 		return TRUE;
+	}
+	if (positionOnDevice <= 6 && (
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7945 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7961 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7961GE ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7962 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7965
+		)) {
+		return TRUE;
+	}
+/*	if (positionOnDevice <= 4 && (
+//			device->skinny_type == SKINNY_DEVICETYPE_CISCO79??
+		)) {
+		return TRUE;
+	}*/
+	if (positionOnDevice <= 2 && (
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7911 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7912 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7931 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7935 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7936 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7937 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7941 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7941GE ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7942 ||
+			device->skinny_type == SKINNY_DEVICETYPE_CISCO7945
+		)) {
+		return TRUE;
+	}
 #endif
 
 	return FALSE;
