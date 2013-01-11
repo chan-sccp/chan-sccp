@@ -1568,6 +1568,12 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 
 	sccp_channel_set_active(d, channel);
 	sccp_channel_setDevice(channel, d);
+	
+#if ASTERISK_VERSION_GROUP
+	// update callgroup / pickupgroup
+	ast_channel_callgroup_set(channel->owner, l->callgroup);
+	ast_channel_pickupgroup_set(channel->owner, l->pickupgroup);
+#endif	
 
 	if (channel->owner)
 		PBX(queue_control) (channel->owner, AST_CONTROL_UNHOLD);

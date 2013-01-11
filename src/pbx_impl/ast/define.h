@@ -310,6 +310,9 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_channel_cdr(_a) (_a)->cdr
 #    define pbx_channel_call_forward_set(_a,_b) ast_string_field_set(_a, call_forward, _b);
 #    define pbx_channel_varshead(_a) &(_a)->varshead
+#    define pbx_channel_ref(_a) _a
+#    define pbx_channel_unref(_a) NULL
+#    define pbx_pickup_call ast_pickup_call
 
 #    define pbx_bridge_change_state ast_bridge_change_state
 
