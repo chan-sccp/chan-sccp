@@ -812,8 +812,9 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 		ast_channel_callgroup_set(*pbx_channel, line->callgroup);
 	}
 	
-#if CS_SCCP_PICKUP
+
 	ast_channel_callgroup_set(*pbx_channel, line->callgroup);						// needed for ast_pickup_call
+#if CS_SCCP_PICKUP
 	if (line->pickupgroup){
 		ast_channel_pickupgroup_set(*pbx_channel, line->pickupgroup);
 	}

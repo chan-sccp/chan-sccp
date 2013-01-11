@@ -1572,11 +1572,14 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 #if ASTERISK_VERSION_GROUP >= 112
 	// update callgroup / pickupgroup
 	ast_channel_callgroup_set(channel->owner, l->callgroup);
+#if CS_SCCP_PICKUP
 	ast_channel_pickupgroup_set(channel->owner, l->pickupgroup);
-#endif	
+#endif
+#endif	// ASTERISK_VERSION_GROUP >= 112
 
-	if (channel->owner)
+	if (channel->owner){
 		PBX(queue_control) (channel->owner, AST_CONTROL_UNHOLD);
+	}
 
 	//! \todo move this to openreceive- and startmediatransmission
 	sccp_channel_updateChannelCapability(channel);
