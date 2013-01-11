@@ -1458,7 +1458,14 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 	} else {
 		/* check Remote RINGING + gpickup */
 #ifdef CS_SCCP_PICKUP
-		l = sccp_line_find_byid(d, k->instance);
+		/*! \todo Fix Speeddial with ringing channel -> gpickup */
+		/* Does not work at this moment - DdG, either picking up the wrong channel or just failing misserably */
+//		l = sccp_line_find_byid(d, k->instance);
+/*		if (d->defaultLineInstance > 0) {
+			l = sccp_line_find_byid(d, d->defaultLineInstance);
+		} else {
+			l = sccp_dev_get_activeline(d);
+		}
 		if (l && l->pickupgroup && PBX(feature_pickup) && !sccp_strlen_zero(k->hint)) {
 			const char *hint_context;
 			const char *hint_extension;
@@ -1473,7 +1480,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 					return;
 				}
 			}
-		}
+		}*/
 #endif
 
 		// Pull up a channel
