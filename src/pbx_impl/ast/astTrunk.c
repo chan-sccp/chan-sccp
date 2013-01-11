@@ -793,25 +793,30 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	ast_channel_context_set(*pbx_channel, line->context);
 	ast_channel_exten_set(*pbx_channel, "");
 
-	ast_channel_callgroup_set(*pbx_channel, line->callgroup);				// needed for ast_pickup_call
-	ast_channel_pickupgroup_set(*pbx_channel, line->pickupgroup);
-
-	if (!sccp_strlen_zero(line->language))
+	if (!sccp_strlen_zero(line->language)){
 		ast_channel_language_set((*pbx_channel), line->language);
+	}
 
-	if (!sccp_strlen_zero(line->accountcode))
+	if (!sccp_strlen_zero(line->accountcode)){
 		ast_channel_accountcode_set((*pbx_channel), line->accountcode);
+	}
 
-	if (!sccp_strlen_zero(line->musicclass))
+	if (!sccp_strlen_zero(line->musicclass)){
 		ast_channel_musicclass_set((*pbx_channel), line->musicclass);
+	}
 
-	if (line->amaflags)
+	if (line->amaflags){
 		ast_channel_amaflags_set(*pbx_channel, line->amaflags);
-	if (line->callgroup)
+	}
+	if (line->callgroup){
 		ast_channel_callgroup_set(*pbx_channel, line->callgroup);
+	}
+	
 #if CS_SCCP_PICKUP
-	if (line->pickupgroup)
+	ast_channel_callgroup_set(*pbx_channel, line->callgroup);						// needed for ast_pickup_call
+	if (line->pickupgroup){
 		ast_channel_pickupgroup_set(*pbx_channel, line->pickupgroup);
+	}
 #endif		
 
 	ast_channel_priority_set((*pbx_channel), 1);
