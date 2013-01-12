@@ -235,33 +235,8 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 #ifdef CS_ADV_FEATURES
 	if (d->useRedialMenu) {
-		sccp_moo_t *r1 = NULL;
 		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
-
-		int dummy_len, msgSize, hdr_len, padding;
-
-		dummy_len = strlen(data);
-		hdr_len = 40 - 1;
-		padding = ((dummy_len + hdr_len) % 4);
-		padding = (padding > 0) ? 4 - padding : 0;
-		msgSize = hdr_len + dummy_len + padding;
-
-		r1 = sccp_build_packet(UserToDeviceDataVersion1Message, msgSize);
-		r1->msg.UserToDeviceDataVersion1Message.lel_callReference = htolel(1);
-		r1->msg.UserToDeviceDataVersion1Message.lel_transactionID = htolel(1);
-		r1->msg.UserToDeviceDataVersion1Message.lel_sequenceFlag = 0x0002;
-		r1->msg.UserToDeviceDataVersion1Message.lel_displayPriority = 0x0002;
-		r1->msg.UserToDeviceDataVersion1Message.lel_dataLength = htolel(dummy_len);
-
-		if (dummy_len) {
-			char buffer[dummy_len + 2];
-
-			memset(&buffer[0], 0, sizeof(buffer));
-			memcpy(&buffer[0], data, dummy_len);
-
-			memcpy(&r1->msg.UserToDeviceDataVersion1Message.data, &buffer[0], sizeof(buffer));
-			sccp_dev_send(d, r1);
-		}
+		d->protocol->sendUserToDeviceDataVersionMessage(d, 0, lineInstance, 0, 0, data, 0);
 		return;
 	}
 #endif
@@ -306,17 +281,22 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	char *adhocNumber = NULL;
 	sccp_speed_t k;
 	sccp_line_t *line = NULL;
+	
+	uint8_t instance = l ? sccp_device_find_index_for_line(d, l->name) : 0;	/*!< we use this instance, do determine if this should be a speeddial or a linerequest */
+	
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
-	if (!l) {
+	if (!l || instance != lineInstance ) {
 		/* handle dummy speeddial */
 		sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT, &k);
 		if (strlen(k.ext) > 0) {
 			adhocNumber = k.ext;
 		}
+		
+		line = l; 							/*!< use l as line to dialout */
 
 		/* use default line if it is set */
-		if (d && d->defaultLineInstance > 0) {
+		if (!line && d && d->defaultLineInstance > 0) {
 			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
