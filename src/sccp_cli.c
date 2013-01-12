@@ -515,14 +515,14 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Video TOS", CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
 	CLI_AMI_OUTPUT_PARAM("Video COS", CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
 	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled", CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
-	CLI_AMI_OUTPUT_YES_NO("Allow ringin notification (e)", CLI_AMI_LIST_WIDTH, d->allowRinginNotification);
 	CLI_AMI_OUTPUT_PARAM("DND Status", CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? dndmode2str(d->dndFeature.status) : "Disabled");
 	CLI_AMI_OUTPUT_BOOL("Can Transfer", CLI_AMI_LIST_WIDTH, d->transfer);
 	CLI_AMI_OUTPUT_BOOL("Can Park", CLI_AMI_LIST_WIDTH, d->park);
-	CLI_AMI_OUTPUT_BOOL("Private softkey", CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
 	CLI_AMI_OUTPUT_BOOL("Can CFWDALL", CLI_AMI_LIST_WIDTH, d->cfwdall);
 	CLI_AMI_OUTPUT_BOOL("Can CFWBUSY", CLI_AMI_LIST_WIDTH, d->cfwdbusy);
 	CLI_AMI_OUTPUT_BOOL("Can CFWNOANSWER", CLI_AMI_LIST_WIDTH, d->cfwdnoanswer);
+	CLI_AMI_OUTPUT_YES_NO("Allow ringin notification (e)", CLI_AMI_LIST_WIDTH, d->allowRinginNotification);
+	CLI_AMI_OUTPUT_BOOL("Private softkey", CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
 	CLI_AMI_OUTPUT_PARAM("Dtmf mode", CLI_AMI_LIST_WIDTH, "%s", (d->dtmfmode) ? "Out-of-Band" : "In-Band");
 	CLI_AMI_OUTPUT_PARAM("digit timeout", CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
 	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, d->nat);
