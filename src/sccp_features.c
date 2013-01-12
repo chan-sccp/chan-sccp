@@ -487,36 +487,33 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 	/* create channel for pickup */
 	if (!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) || pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
-		c = sccp_channel_allocate(l, d);
-		if (!c) {
+		if ((c = sccp_channel_allocate(l, d))) {
+			c = sccp_channel_retain(c);
+			PBX(alloc_pbxChannel) (c, &target);
+		} else {
 			pbx_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-			pbx_channel_unlock(target);
-			return -1;
-		}
-
-		if (!sccp_pbx_channel_allocate(c)) {
-			pbx_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-			pbx_channel_unlock(target);
 			c = sccp_channel_release(c);
 			return -1;
 		}
-		c->calltype = SKINNY_CALLTYPE_INBOUND;
+	} else {
+		target = c->owner;
 	}
-	target = c->owner;
-	pbx_channel_ref(target);
+	c->calltype = SKINNY_CALLTYPE_INBOUND;
+	d->state = SCCP_CHANNELSTATE_OFFHOOK;
 	c = ast_channel_tech_pvt(target);
 	res = pbx_pickup_call(target);
 	if (!res) {
 		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) pickup succeeded on callid: %d\n", c->callid);
 		pbx_hangup(target);
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
+		c->rtp.audio.rtp = NULL;							// somehow it is believed we already have c->rtp.audio.rtp ->causing segfault
 		sccp_channel_answer(d, c);
 	} else {
 		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) pickup failed (someone else might have picked it up already)\n");
 		sccp_dev_displayprompt(d, 1, 0, "pickup failed", 5);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 1, 0, 3);
 	}
-	pbx_channel_unref(target);
+	c = sccp_channel_release(c);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) end\n");
 	return res;
 }
