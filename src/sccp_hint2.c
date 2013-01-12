@@ -56,7 +56,7 @@ struct sccp_hint_SubscribingDevice {
 struct sccp_hint_lineState {
 	sccp_line_t *line;
 	sccp_channelState_t state;
-
+	
 	/*!
 	 * \brief Call Information Structure
 	 */
@@ -840,9 +840,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	char channelName[100];
 	sccp_hint_list_t *hint;
 	
-
 	sprintf(channelName, "SCCP/%s", lineState->line->name);
-
 	enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN;
 	
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -905,21 +903,13 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
 	}
-	
-	/* workaround for cid update */
-	if(newDeviceState == AST_DEVICE_RINGING){
-#if CS_CACHEABLE_DEVICESTATE
-		ast_devstate_changed_literal(0, AST_DEVSTATE_CACHABLE, channelName);
-#else 
-		ast_devstate_changed_literal(0, channelName);
-#endif		
+
+	// if pbx devicestate does not change, no need to inform asterisk */
+	if (hint && lineState->state == hint->currentState) {					
+		sccp_hint_notifySubscribers(hint);						/* shortcut to inform sccp subscribers */ 
+	} else {
+		pbx_devstate_changed_literal(newDeviceState, channelName);			/* come back via pbx callback and update subscribers */
 	}
-	
-#if CS_CACHEABLE_DEVICESTATE
-	ast_devstate_changed_literal(newDeviceState, AST_DEVSTATE_CACHABLE, channelName);
-#else
-	ast_devstate_changed_literal(newDeviceState, channelName);
-#endif
 }
 
 /* ========================================================================================================================= Subscriber Notify : Updates Speeddial*/
