@@ -134,7 +134,7 @@
 
 #if CS_DEVICESTATE
 #    define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,_b,_c)
-#    define pbx_devstate_changed_literal(_a,_b) ast_devstate_state_changed_literal(_a,_b)
+#    define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal(_a,_b)
 #elif CS_CACHEABLE_DEVICESTATE
 #    define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,AST_DEVSTATE_CACHABLE,_b,_c)
 #    define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal(_a,AST_DEVSTATE_CACHABLE,_b)
