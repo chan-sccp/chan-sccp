@@ -84,8 +84,9 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
 
         if (!session->session_stop) {
                 session->session_stop = 1;
-		if (session->device)
+		if (session->device){
 			session->device->registrationState = newRegistrationState;
+		}
                 if (AST_PTHREADT_NULL != session->session_thread) {
                         shutdown(session->fds[0].fd,SHUT_RD);          		// this will also wake up poll
 										// which is waiting for a read event and close down the thread nicely
@@ -354,9 +355,11 @@ void sccp_socket_device_thread_exit(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
-	sccp_session_close(s);
-	s->session_thread = AST_PTHREADT_NULL;
-	destroy_session(s, 10);
+// 	sccp_session_close(s);
+// 	s->session_thread = AST_PTHREADT_NULL;
+// 	destroy_session(s, 10);
+	
+	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_TIMEOUT);
 }
 
 /*!
