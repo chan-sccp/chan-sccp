@@ -371,93 +371,93 @@ void sccp_socket_device_thread_exit(void *session)
  */
 void *sccp_socket_device_thread(void *session)
 {
-        sccp_session_t *s = (sccp_session_t *) session;
-        uint8_t keepaliveAdditionalTimePercent = 10;   
-        int res;
-        double maxWaitTime;
-        int pollTimeout;   
-        sccp_moo_t *m;     
+	sccp_session_t *s = (sccp_session_t *) session;
+	uint8_t keepaliveAdditionalTimePercent = 10;   
+	int res;
+	double maxWaitTime;
+	int pollTimeout;   
+	sccp_moo_t *m;     
 
-        pthread_cleanup_push(sccp_socket_device_thread_exit, session);
+	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
 
-        /* we increase additionalTime for wireless/slower devices */
-        if (s->device && (      
-                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
-                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
-                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 ||
-                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 ||
-                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 ||
-                                s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)  
-                        ) {
-                keepaliveAdditionalTimePercent += 10;
-        }
+	/* we increase additionalTime for wireless/slower devices */
+	if (s->device && (      
+				s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7920 ||
+				s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7921 ||
+				s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7925 ||
+				s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7975 ||
+				s->device->skinny_type == SKINNY_DEVICETYPE_CISCO7970 ||
+				s->device->skinny_type == SKINNY_DEVICETYPE_CISCO6911)  
+			) {
+		keepaliveAdditionalTimePercent += 10;
+	}
 
-        while (s->fds[0].fd > 0 && !s->session_stop) {
+	while (s->fds[0].fd > 0 && !s->session_stop) {
                 /* create cancellation point */
                 pthread_testcancel();
 #ifdef CS_DYNAMIC_CONFIG
-                if (s->device) {
-                        pbx_mutex_lock(&GLOB(lock));
-                        if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
-                                sccp_device_check_update(s->device);
+		if (s->device) {
+			pbx_mutex_lock(&GLOB(lock));
+			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
+				sccp_device_check_update(s->device);
 			}
-                        pbx_mutex_unlock(&GLOB(lock));
-                }
+			pbx_mutex_unlock(&GLOB(lock));
+		}
 #endif
-                /* calculate poll timout using keepalive interval */
-                maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
-                maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
-                pollTimeout = maxWaitTime * 1000;
+		/* calculate poll timout using keepalive interval */
+		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
+		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
+		pollTimeout = maxWaitTime * 1000;
 
-                sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
 
-                pthread_testcancel();									/* poll is also a cancellation point */
-                res = sccp_socket_poll(s->fds, 1, pollTimeout);
+		pthread_testcancel();									/* poll is also a cancellation point */
+		res = sccp_socket_poll(s->fds, 1, pollTimeout);
                 pthread_testcancel();
-                pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-                if (res > 0) {                                                                          /* poll data processing */
-                        if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {                /* POLLIN | POLLPRI*/
-                                /* we have new data -> continue */
-                                sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-                                if (sccp_read_data(s)>8) {                                              /* size of header*/   
-                                        while ((m = sccp_process_data(s))) {
-                                                if (!sccp_handle_message(m, s)) {
-                                                        if (s->device) {
-                                                        	sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-                                                        }
-                                                        sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-                                                        sccp_free(m);
-                                                        break;
-                                                }
-                                                sccp_free(m);
-                                                s->lastKeepAlive = time(0);
-                                        }
-                                }
-                        } else {                                                                        /* POLLHUP / POLLERR */
-                                pbx_log(LOG_NOTICE,  "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
-                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-                                break;
-                        }
-                } else {                                                                                /* poll timeout */
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+		if (res > 0) {                                                                          /* poll data processing */
+			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {                /* POLLIN | POLLPRI*/
+				/* we have new data -> continue */
+				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
+				if (sccp_read_data(s)>8) {                                              /* size of header*/   
+					while ((m = sccp_process_data(s))) {
+						if (!sccp_handle_message(m, s)) {
+							if (s->device) {
+								sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+							}
+// 							sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+							sccp_free(m);
+							break;
+						}
+						sccp_free(m);
+						s->lastKeepAlive = time(0);
+					}
+				}
+			} else {                                                                        /* POLLHUP / POLLERR */
+				pbx_log(LOG_NOTICE,  "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
+// 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+				break;
+			}
+		} else {                                                                                /* poll timeout */
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
 			if (((int)time(0) > ((int)s->lastKeepAlive + (int)maxWaitTime))) {
 				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int)maxWaitTime, pollTimeout);
-                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
+//                                 sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
-                        if ((errno != EAGAIN) && (errno != EINTR)) {
-                                pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
-                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-                                break;
-                        }
-                }
-                pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+			if ((errno != EAGAIN) && (errno != EINTR)) {
+				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+// 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+				break;
+			}
+		}
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
         }
-        sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
+	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Exiting sccp_socket device thread\n", DEV_ID_LOG(s->device));
 
-        pthread_cleanup_pop(1);
+	pthread_cleanup_pop(1);
 
-        return NULL;
+	return NULL;
 }
 
 /*!
