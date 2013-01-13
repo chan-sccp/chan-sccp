@@ -998,8 +998,6 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 		sccp_dev_displaynotify(device, extstr, 10);
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(device), ast_channel_name(bridgedChannel), extout);
 		
-		
-		device = sccp_device_release(device);
 		res = PARK_RESULT_SUCCESS;
 	}
 	device = sccp_device_release(device);
