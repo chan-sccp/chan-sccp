@@ -522,7 +522,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					#endif
 					#include <asterisk/devicestate.h>
 				], [
-					int test_devicestate_changed = ast_devstate_changed(AST_DEVICE_UNKNOWN, "SCCP/%s", "test");
+					int test_devicestate_changed = ast_devstate_changed(AST_DEVICE_UNKNOWN, AST_DEVSTATE_CACHABLE, "SCCP/%s", "test");
 				], [CS_NEW_DEVICESTATE],['ast_devstate_changed' available]
 			)
 			
@@ -724,6 +724,15 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				], [
 					int test_control_transfer = (int)AST_CONTROL_TRANSFER;
 				], [CS_AST_CONTROL_TRANSFER], ['AST_CONTROL_TRANSFER' available]
+			)
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'AST_DEVSTATE_CACHABLE'...], [ac_cv_AST_DEVSTATE_CACHABLE], [
+				#if ASTERISK_VERSION_NUMBER >= 10400
+				#include <asterisk.h>
+				#endif
+				#include <asterisk/frame.h>
+				], [
+					enum ast_devstate_cache = (int)AST_DEVSTATE_CACHABLE;
+				], [CS_AST_DEVSTATE_CACHABLE], ['AST_DEVSTATE_CACHABLE' available]
 			)
 		],,[ 
 		#if ASTERISK_VERSION_NUMBER >= 10400

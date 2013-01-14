@@ -2949,7 +2949,14 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		strncpy(buf, (config->button.feature.status) ? ("INUSE") : ("NOT_INUSE"), sizeof(buf));
 		res = pbx_db_put(devstate_astdb_family, config->button.feature.options, buf);
 
-		ast_devstate_changed(ast_devstate_val(buf), "Custom:%s", config->button.feature.options);
+		ast_devstate_changed(
+			ast_devstate_val(buf), 
+#ifdef CS_AST_DEVSTATE_CACHABLE
+			AST_DEVSTATE_CACHABLE,
+#endif
+		       "Custom:%s", 
+		       config->button.feature.options
+		);
 		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature change: %s state: %d res: %d\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status, res);
 		break;
 
