@@ -255,6 +255,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;		/* indicates config value is changed or not */
 	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
 
+	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "SCCP: parsing onfig parameter %s='%s' in line %d\n", name, value, lineno);
+
 	short int int8num;
 	int int16num;
 	long int int32num;
