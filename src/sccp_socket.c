@@ -82,19 +82,15 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
                 return;
         }
 
-        if (!session->session_stop) {
-                session->session_stop = 1;
-		if (session->device)
-			session->device->registrationState = newRegistrationState;
-                if (AST_PTHREADT_NULL != session->session_thread) {
-                        shutdown(session->fds[0].fd,SHUT_RD);          		// this will also wake up poll
-										// which is waiting for a read event and close down the thread nicely
-                } else {
-                        sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: no thread -> just destroy session\n", DEV_ID_LOG(session->device));
-                        sccp_session_close(session);
-                        destroy_session(session, 0);
-                }
-        }
+
+	session->session_stop = 1;
+	if (session->device){
+		session->device->registrationState = newRegistrationState;
+	}
+	if (AST_PTHREADT_NULL != session->session_thread) {
+		shutdown(session->fds[0].fd, SHUT_RD);			// this will also wake up poll
+									// which is waiting for a read event and close down the thread nicely
+	}
 }
 
 /*!
@@ -115,7 +111,7 @@ static int sccp_read_data(sccp_session_t * s)
         char input[SCCP_MAX_PACKET];
  
         /* implements a kind of non-blocking socket read on a blocking socket. Only reading as much as is available on the socket, without dissecting the packet. */
-        if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1)) {
+        if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1) && bytesAvailable) {
                 if (errno == EAGAIN) {
                         pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
                 } else {
@@ -124,7 +120,7 @@ static int sccp_read_data(sccp_session_t * s)
                 }
                 return 0;
         } else {
-                readlen = read(s->fds[0].fd, input, (int16_t) bytesAvailable);
+                readlen = read(s->fds[0].fd, input, sizeof(input));
                 if (readlen <= 0) {
                         if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
                                 pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
@@ -275,9 +271,7 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
  */
 void sccp_session_close(sccp_session_t * s)
 {
-	if (!s)
-		return;
-
+  
 	sccp_session_lock(s);
 	s->session_stop = 1;
 	if (s->fds[0].fd > 0) {
@@ -376,6 +370,11 @@ void *sccp_socket_device_thread(void *session)
         sccp_moo_t *m;     
 
         pthread_cleanup_push(sccp_socket_device_thread_exit, session);
+	
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	
+	
 
         /* we increase additionalTime for wireless/slower devices */
         if (s->device && (      
@@ -480,9 +479,9 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
 		return;
 	}
-	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-	}
+// 	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+// 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
+// 	}
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
 	}
@@ -503,7 +502,7 @@ static void sccp_accept_connection(void)
 	sccp_session_addToGlobals(s);
 
 	sccp_session_lock(s);
-	s->fds[0].events = POLLIN | POLLPRI | POLLHUP | POLLERR;
+	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
 	s->fds[0].fd = new_socket;
 
@@ -542,8 +541,7 @@ static void sccp_accept_connection(void)
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	
 
 	pbx_pthread_create(&s->session_thread, &attr, sccp_socket_device_thread, s);
 	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
