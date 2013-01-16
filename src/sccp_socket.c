@@ -106,34 +106,22 @@ static int sccp_read_data(sccp_session_t * s)
                 return 0;
         }
 
-        int bytesAvailable = 0;
         int16_t readlen = 0;
         char input[SCCP_MAX_PACKET];
  
-        /* implements a kind of non-blocking socket read on a blocking socket. Only reading as much as is available on the socket, without dissecting the packet. */
-        if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1)) {
-                if (errno == EAGAIN) {
-                        pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
-                } else {
-                        pbx_log(LOG_WARNING, "SCCP: FIONREAD ioctl failed: %s. closing connection\n", strerror(errno));
-                        sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-                }
-                return 0;
-        } else {
-                readlen = read(s->fds[0].fd, input, sizeof(input));
-                if (readlen <= 0) {
-                        if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
-                                pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
-                        } else {        					/* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
-                                sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: device closed connection or network unreachable. closing connection.\n", DEV_ID_LOG(s->device));
-                                sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-                        }
-                        return 0;
-                } else {							/* move s->buffer content to the beginning */
-			memcpy(s->buffer + s->buffer_size, input, readlen);
-			s->buffer_size += readlen;
-                }
-        }
+        readlen = read(s->fds[0].fd, input, sizeof(input));
+	if (readlen <= 0) {
+		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
+			pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
+		} else {        					/* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: device closed connection or network unreachable. closing connection.\n", DEV_ID_LOG(s->device));
+			sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+		}
+		return 0;
+	} else {							/* move s->buffer content to the beginning */
+		memcpy(s->buffer + s->buffer_size, input, readlen);
+		s->buffer_size += readlen;
+	}
         return readlen;
 }
 
