@@ -378,7 +378,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 #if DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
-	        refcountval = ATOMIC_INCR((&obj->refcount),1);
+	        refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
         	newrefcountval = refcountval + 1;
 		
 		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) 
@@ -406,10 +406,10 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 #if DEBUG
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
-	        refcountval = ATOMIC_DECR((&obj->refcount),1);
+	        refcountval = ATOMIC_DECR((&obj->refcount), 1 ,&obj->lock);
         	newrefcountval = refcountval -1;
 		if (newrefcountval == 0) {
-			ATOMIC_DECR(&obj->alive,SCCP_LIVE_MARKER);	
+			ATOMIC_DECR(&obj->alive,SCCP_LIVE_MARKER, &obj->lock);	
 			sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s) (release) Finalizing %p (%p)\n", filename, lineno, func, obj, ptr);
 			remove_obj(ptr);
 		} else {
