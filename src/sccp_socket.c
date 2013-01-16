@@ -111,7 +111,7 @@ static int sccp_read_data(sccp_session_t * s)
         char input[SCCP_MAX_PACKET];
  
         /* implements a kind of non-blocking socket read on a blocking socket. Only reading as much as is available on the socket, without dissecting the packet. */
-        if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1) && bytesAvailable) {
+        if ((ioctl(s->fds[0].fd, FIONREAD, &bytesAvailable) == -1)) {
                 if (errno == EAGAIN) {
                         pbx_log(LOG_WARNING, "SCCP: FIONREAD Come back later (EAGAIN): %s\n", strerror(errno));
                 } else {
