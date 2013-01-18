@@ -227,10 +227,10 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "%s: (sccp_hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), hint->callInfo.partyName, hint->callInfo.partyNumber);
 	
 
-	if( ast_device_state(hintStr) == AST_DEVICE_UNAVAILABLE ) {
-		extensionState = AST_EXTENSION_UNAVAILABLE;
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_devstate_cb) extensionState = AST_EXTENSION_UNAVAILABLE\n", hint->exten);
-	}
+// 	if( ast_device_state(hintStr) == AST_DEVICE_UNAVAILABLE ) {
+// 		extensionState = AST_EXTENSION_UNAVAILABLE;
+// 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_devstate_cb) extensionState = AST_EXTENSION_UNAVAILABLE\n", hint->exten);
+// 	}
 	
 	
 	switch (extensionState) {
@@ -852,6 +852,8 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		}
 	}
 	
+	
+	
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(sccp_channelState2AstDeviceState(lineState->state)), sccp_channelState2AstDeviceState(lineState->state), lineState->line->name);
 
@@ -866,9 +868,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		case SCCP_CHANNELSTATE_HOLD:
 			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
-		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-			newDeviceState = AST_DEVICE_ONHOLD;
-			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
@@ -878,13 +877,10 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		case SCCP_CHANNELSTATE_CONGESTION:
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-			newDeviceState = AST_DEVICE_UNAVAILABLE;
-			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
-//                      event_signal_method = AST_EVENT_DEVICE_STATE;                                           // device unregister
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
-
+		case SCCP_CHANNELSTATE_INVALIDNUMBER:
 		case SCCP_CHANNELSTATE_PROCEED:
 		case SCCP_CHANNELSTATE_RINGOUT:
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
@@ -942,7 +938,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscribers of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", hint->currentState ? channelstate2str(hint->currentState) : "NULL");
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscribers of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState) );
 	
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
