@@ -61,7 +61,7 @@
 	<commonProfile>
 		<phonePassword></phonePassword>
 		<backgroundImageAccess>true</backgroundImageAccess>
-		<callLogBlfEnabled>2</callLogBlfEnabled>
+		<callLogBlfEnabled>3</callLogBlfEnabled>
 	</commonProfile>
 	
 	<loadInformation>SCCP70.8-5-4S</loadInformation>
