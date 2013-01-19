@@ -1,4 +1,290 @@
+2013-01-08  ddegroot
+
+	* [r4082] src/sccp_actions.c: Reducing logging for
+	  sccp_handle_token_request
+
+	* [r4081] conf/postgres.sql: update postgres.sql sccpdeviceconfig
+	  view. We need to sort by instance before handing the table over
+	  to the aggregate textcat_column
+
+	* [r4080] src/sccp_actions.c: Reduced default logging for
+	  sccp_handle_dialedphonebook_message to sccp_log((DEBUGCAT_HINT |
+	  DEBUGCAT_ACTION))
+
+	* [r4079] src/sccp_pbx.c: Reduce double wait time in case a number
+	  does not exist using PBX(extension_status(c)) instead of
+	  pbx_exists_extension which only match exact matches.
+
+2013-01-07  ddegroot
+
+	* [r4078] src/sccp_socket.c: Check session null pointer at the
+	  start of sccp_read_data
+
+	* [r4077] src/pbx_impl/ast/ast.h, src/pbx_impl/ast/astTrunk.c: Fix
+	  module unload gracefully (Reported by Derek Ivey. Cause by taking
+	  ast_channel_ref, while not releasing it during hangup and being
+	  dependent on res_rtp_asterisk making us unload very late.
+
+	* [r4076] src/sccp_hint2.c: Added IP_Communicator to
+	  checkCIDAvailable
+
+	* [r4075] src/sccp_pbx.c: Reduce double wait time in case a number
+	  does not exist. sccp_log line was checking again.
+
+	* [r4074] src/pbx_impl/ast/ast.h, src/sccp_cli.c: Fix compile when
+	  using --disable-pickup (Added check for CS_SCCP_PICKUP)
+
+	* [r4073] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Fix
+	  compile when using --disable-pickup (Added check for
+	  CS_SCCP_PICKUP)
+
+	* [r4072] src/sccp_actions.c, src/sccp_softkeys.c: Fix compile
+	  warnings when using --disable-pickup
+
+	* [r4071] src/sccp_config_entries.h: Fix compile when using
+	  --disable-pickup
+
+2013-01-06  ddegroot
+
+	* [r4070] src/Makefile.in, src/sccp_hint2.c: Make sccp_hint2.c
+	  compatible to all pbx versions. Suppress warnings.
+
+2013-01-06  marcelloceschia
+
+	* [r4069] src/sccp_hint2.c: sorry pavel, it was my fault
+
+2013-01-06  ddegroot
+
+	* [r4068] src/chan_sccp.h: Added DEBUGCAT_FILELINEFUNC, when you
+	  activate 'sccp debug filelinefunc' all debug lines start with the
+	  file/line/function information before the actual debug info.
+
+2013-01-06  marcelloceschia
+
+	* [r4067] src/sccp_hint2.c: make hint2 compatible with ast 1.8
+
+	* [r4066] src/sccp_channel.c: remove sccp_hint_lineStatusChanged
+
+	* [r4065] src/Makefile.am, src/Makefile.in, src/common.h: switch to
+	  hint2
+
+	* [r4064] src/sccp_hint2.c: use strict enum value
+
+	* [r4063] src/sccp_socket.c: cleanup
+
+2013-01-06  ddegroot
+
+	* [r4062] src/sccp_hint2.c: Update sccp_hint_devstate_cb, to fix
+	  extension_state for Ring&InUse and OnHold&InUse. Added correct
+	  handling for InUse when starting a new call (Dialing instead of
+	  Connected)
+
+	* [r4061] src/sccp_channel.c: Updated some of the debug lines, to
+	  know the origin
+
+	* [r4060] src/sccp_pbx.c: Updated some of the debug lines, to know
+	  the origin
+
+2013-01-05  ddegroot
+
+	* [r4059] src/sccp_hint2.c: Extended debugging to include function
+	  name and if possible either device->id or line->name
+
+	* [r4058] src/Makefile.am, src/Makefile.in, src/common.h: Revert
+	  accidental checkin of Makefile.am/common.h
+
+	* [r4057] src/Makefile.am, src/Makefile.in, src/common.h,
+	  src/sccp_hint2.c: Add segmentation to the sccp_hint2.c file /
+	  Reorder Functions / Move FeatureEventHandling to Dispatcher
+	  Segment / No/little code changes
+
+	* [r4056] src/sccp_actions.c: Added context output to debug output
+	  when pull phonebook information
+	  (sccp_handle_dialedphonebook_message)
+
+	* [r4055] src/Makefile.in, src/sccp_hint.c, src/sccp_hint.h:
+	  Reverted sccp_hint2 from common.h / Makefile.am
+
+	* [r4054] src/Makefile.am, src/common.h: Reverted sccp_hint2 from
+	  common.h / Makefile.am
+
+	* [r4053] src/sccp_indicate.c: Indent commented code
+
+	* [r4052] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  Replicated PBX(getExtensionState) to other ast_impl files
+
+	* [r4051] src/pbx_impl/ast/astTrunk.c: Ringing & Inuse should
+	  return Alerting
+
+	* [r4050] src/pbx_impl/ast/astTrunk.c, src/sccp_hint2.c: Forgot the
+	  two aggregated states
+
+2013-01-05  marcelloceschia
+
+	* [r4049] src/pbx_impl/ast/astTrunk.c: temp working version
+
+2013-01-05  ddegroot
+
+	* [r4048] src/pbx_impl/ast/astTrunk.c: Added pbx_log LOG_NOTICES
+	  for every extensionstate
+
+	* [r4047] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Update
+	  getExtensionState
+
+	* [r4046] src/sccp_channel.c, src/sccp_hint2.c,
+	  src/sccp_protocol.h: Update CS_DEVSTATE_CACHEABLE to
+	  sccp_hint2.c. Updated Comment in sccp_protocol.h
+
+2013-01-05  marcelloceschia
+
+	* [r4045] src/sccp_actions.c: add CallListStateUpdate
+
+	* [r4044] src/sccp_actions.c: add CallListStateUpdate
+
+	* [r4043] src/sccp_protocol.h: fixes spelling
+
+2013-01-05  ddegroot
+
+	* [r4042] src/pbx_impl/ast/astTrunk.c, src/pbx_impl/pbx_impl.h:
+	  Implementation of PBX(getExtensionState)
+
+2013-01-05  marcelloceschia
+
+	* [r4041] src/sccp_protocol.h: update 0x0153 message
+
+	* [r4040] src/sccp_hint2.c: cleanup
+
+	* [r4039] src/sccp_hint2.c, src/sccp_hint2.h: cleanup
+
+2013-01-05  ddegroot
+
+	* [r4038] src/Makefile.in: Temporary update for sccp_hint2.c
+
+2013-01-05  marcelloceschia
+
+	* [r4037] src/sccp_hint2.c: fixes issue with onhook
+
+2013-01-04  ddegroot
+
+	* [r4036] src/Makefile.am, src/Makefile.in, src/common.h,
+	  src/sccp_hint.c, src/sccp_hint.h, src/sccp_hint2.c,
+	  src/sccp_hint2.h: Added CS_EXPERIMENTAL around sccp_hint2.c, and
+	  included it into Makefile.am and common.h (for now)
+
+2013-01-04  marcelloceschia
+
+	* [r4035] src/sccp_actions.c: quck fix to solve issue with hinted
+	  speeddial on devices without dynamic speeddial
+
+	* [r4034] src/sccp_hint2.c: fixes issue with
+	  --disable-dynamic-speeddial
+
+	* [r4033] src/sccp_event.c: logic error fix
+
+	* [r4032] src/sccp_hint2.c[ADD], src/sccp_hint2.h[ADD]: just some
+	  tests
+
+2013-01-03  ddegroot
+
+	* [r4031] src/pbx_impl/ast/astTrunk.c: Fix CDR CallerID Name set
+	  instead of Number. Copy/Paste Error (Pavel Troller)
+
+	* [r4030] src/sccp_hint.c: Moved SCCP_CHANNELSTATE_RINGOUT to
+	  return DIALING state. (Thanks Pavel)
+
+	* [r4029] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c: Fix
+	  compile issue because of missing '{'
+
+	* [r4028] src/pbx_impl/ast/astTrunk.c, src/sccp_hint.c: Trying to
+	  fix hints with asterisk-11
+
+	* [r4027] src/chan_sccp.c, src/chan_sccp.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_hint.c: Switched to using sccp_hint_getLinestate to
+	  retrieve sccp_wrapper_asterisk_devicestate. Removed old
+	  chan_sccp.c: sccp_devicestate implementation
+
+	* [r4026] src/pbx_impl/ast/astTrunk.c: Add force update rtp_peer
+	  todo comment to fixup in astTrunk.c
+
+	* [r4025] src/pbx_impl/ast/astTrunk.c: Fix fixup for astTrunk.c
+	  which causes hangup issues during transfer (Reported by Pavel
+	  Troller)
+
+2013-01-02  ddegroot
+
+	* [r4024] src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/astTrunk.h,
+	  src/pbx_impl/ast/define.h, src/sccp_pbx.c: Add
+	  pbx_channel_varshead. Fix getting at presence in astTrunk.c
+
+	* [r4023] src/chan_sccp.c, src/sccp_hint.c: Fix hint to handle
+	  presentation/privacy correctly
+
+	* [r4022] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_channel.c, src/sccp_pbx.c: Fix privacy presentaion /
+	  presence parsing
+
+	* [r4021] src/pbx_impl/ast/define.h, src/sccp_actions.c,
+	  src/sccp_config.c, src/sccp_hint.c, src/sccp_hint.h: Update
+	  definition for pbx_devicestate_change to handle
+	  CS_CACHEABLE_DEVICESTATE besides CS_DEVICESTATE. Adapt other
+	  files to use this new mapping correctly. (Reported by Bob Brown)
+
+	* [r4020] INSTALL, Makefile.in, aclocal.m4, autoconf/asterisk.m4,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/extra.m4, autoconf/install-sh, autoconf/missing,
+	  configure, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in: Renamed CS_NEW_DEVICESTATE to
+	  CS_DEVICESTATE. Added CS_CACHEABLE_DEVICESTATE (has new cacheable
+	  option in asterisk-10-branch and asterisk-11-branche).
+
+	* [r4019] src/conference/sccp_conference10.c: dtu_softkey.action
+	  should be freed after use
+
+	* [r4018] src/conference/sccp_conference10.c, src/sccp_hint.c,
+	  src/sccp_pbx.c, src/sccp_protocol.c: Fixed possible null-pointer
+	  dereferences. Fixed un-initialized pointers
+
+2013-01-02  marcelloceschia
+
+	* [r4017] src/sccp_hint.c: check for allowRinginNotification
+
+	* [r4016] src/sccp_hint.c: nur kleine Änderungen
+
+	* [r4015] src/sccp_cli.c: change video support to yes/no
+
+	* [r4014] src/pbx_impl/ast/astTrunk.c: workaround for asterisk 11
+	  log flooding
+
 2013-01-01  ddegroot
+
+	* [r4013] src/sccp_hint.c: Ident hint debug line for NONE SCCP Hint
+
+	* [r4012] src/pbx_impl/ast/ast108.c, src/sccp_actions.c,
+	  src/sccp_pbx.c: Correct refcount on sccp_pbx_softswitch. Replaced
+	  return by goto EXIT_FUNC to make sure that correct release are
+	  made.
+
+	* [r4011] src/sccp_hint.c, src/sccp_softkeys.c: Fixed
+	  privacy/presentation for sccp_hint.c
+
+2013-01-01  marcelloceschia
+
+	* [r4010] src/sccp_hint.c: fixes nullpointer for asterisk 11
+
+	* [r4009] src/pbx_impl/ast/astTrunk.c: fixes video codec issue
+
+2013-01-01  ddegroot
+
+	* [r4008] src/pbx_impl/ast/astTrunk.c: Fix pbx_channel_name issue
+	  in sccp_pbx_sendtext for asterisk-trunk (Reported by Nikola)
+
+	* [r4007] ChangeLog: Update ChangeLog
 
 	* [r4006] conf/postgres.sql: Documentation/SQL corrections
 	  (Reported by Nikola)

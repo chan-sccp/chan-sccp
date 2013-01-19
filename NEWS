@@ -1,3 +1,12 @@
+Version: 4.1.0_DEV
+==================
+ - Updated audio/video/codec handling
+ - Reworked hint handling
+ - Updated refcount system
+ - Updated for asterisk devstate api change
+ - Compatible with multitute of asterisk versions from 1.6 up to trunk, using one code base
+ - new Conference implementation
+ - New sccp.conf handling system, using a flexible TABLE as the basis for all config parsing
 
 Version: 3.0_RC3
 ===================
@@ -44,3 +53,4 @@ Fixed/Improved:
  - Call parking
 
 Version: 3.0_PreRC3
+
