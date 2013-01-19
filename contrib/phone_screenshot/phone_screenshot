@@ -1,0 +1,79 @@
+#!/bin/bash
+usage()
+{
+cat << EOF
+usage: $0 options
+
+This script will collect a screenshot from a cisco sccp phone and save it to a png file.
+
+OPTIONS:
+   -h      Show this message
+   -i	   Ip-Address of the phone to pull the screenshot from
+   -u      Phone Username	(also requires password)
+   -p      Phone Password
+   -f	   Output File		(without an extension, defaults to screenshot)
+EOF
+}
+
+IPADDRESS=
+OUTPUTFILE=screenshot
+USERNAME=
+PASSWORD=
+while getopts “h:i:u:p:f:?” OPTION
+do
+     case $OPTION in
+         h)
+             usage
+             exit 1
+             ;;
+         i)
+             IPADDRESS=$OPTARG
+             ;;
+         u)
+             USERNAME=$OPTARG
+             ;;
+         p)
+             PASSWORD=$OPTARG
+             ;;
+         f)
+             OUTPUTFILE=$OPTARG
+             ;;
+         ?)
+             usage
+             exit
+             ;;
+     esac
+done
+
+if [[ -z $IPADDRESS ]] || [[ -z $OUTPUTFILE ]]
+then
+     usage
+     exit 1
+fi
+
+
+echo "Retrieving Screenshot from phone at $IPADDRESS..."
+if [[ ! -z $USERNAME ]]; then
+	if [[ ! -z $PASSWORD ]]; then
+		wget -q --user $USERNAME --password --progress=dot $PASSWORD http://$IPADDRESS/CGI/Screenshot >/dev/null
+	else 
+		usage
+		exit 1
+	fi
+else
+	wget -q http://$IPADDRESS/CGI/Screenshot >/dev/null
+fi
+
+#echo "Retrieving ModelInfo from phone at $IPADDRESS..."
+wget -q http://$IPADDRESS/DeviceInformationX >/dev/null
+modelnumber=`grep modelNumber DeviceInformationX`
+if [[ ! -z "`grep -e 7960 -e 7940 DeviceInformationX`" ]]; then
+	echo "Converting Screenshot to $OUTPUTFILE.png..."
+	./scr2img Screenshot $OUTPUTFILE.png
+else
+	echo "Saving Screenshot to $OUTPUTFILE.png..."
+	bmptopnm Screenshot 2>/dev/null|pnmtopng - >$OUTPUTFILE.png 2>/dev/null
+fi
+rm Screenshot
+rm DeviceInformationX
+
