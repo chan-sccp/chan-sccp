@@ -170,7 +170,7 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 		return NULL;
 	}
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Creating new conference-partcipant %d\n", conference->id, participantID);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Creating new conference-participant %d\n", conference->id, participantID);
 
 	/** create participant(moderator) */
 	snprintf(participantIdentifier, REFCOUNT_INDENTIFIER_SIZE, "SCCPCONF/%04d/PART/%04d", conference->id, participantID);
@@ -224,7 +224,6 @@ static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_
 #if ASTERISK_VERSION_GROUP > 106
 			participant_ast_channel = ast_channel_unref(participant_ast_channel);
 #endif
-			return 0;
 		}
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			PBX(requestHangup) (participant->conferenceBridgePeer);
@@ -415,7 +414,7 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 					playback_to_conference(conference, "conf-enteringno", -1);
 					playback_to_conference(conference, NULL, conference->id);
 					sccp_conference_connect_bridge_channels_to_participants(conference);
-					//                                      sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Moderator Bridge_channel %p, ChannelName %s\n", conference->id, moderator->bridge_channel, moderator->bridge_channel ? moderator->bridge_channel->chan->name : "NULL");
+//                                      sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Moderator Bridge_channel %p, ChannelName %s\n", conference->id, moderator->bridge_channel, moderator->bridge_channel ? moderator->bridge_channel->chan->name : "NULL");
 					pbx_builtin_setvar_int_helper(moderator->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
 					pbx_builtin_setvar_int_helper(moderator->conferenceBridgePeer, "__SCCP_CONFERENCE_PARTICIPANT_ID", moderator->id);
 				} else {
