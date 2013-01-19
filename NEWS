@@ -1,4 +1,9 @@
+Version: 3.1.4_STABLE
+============================
+ - Fixed compilation against asterisk after devstate api change
+
 Version: 3.1.3_STABLE
+============================
 Added Functionality:
  - Added support for 69xx phones
    - Fixed handle_openreceivechannel to cope with devices that do not send passthrupartyid
@@ -106,6 +111,7 @@ Fixed/Improved:
  - improved callerid passing during call forward
 
 Version: 3.0_RC1
+
 
 
 
