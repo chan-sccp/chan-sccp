@@ -1,0 +1,53 @@
+#!/usr/bin/perl
+# Convert a cip file back to a regular image
+
+use strict;
+use integer;
+use IO::File;
+use GD;
+use XML::Simple;
+
+die "Usage: $0 <screenshot in file> <out file.[png|gif|bmp]>\n"
+    unless @ARGV == 2;
+
+my ($file, $out) = @ARGV;
+
+my $xml = new XML::Simple;
+my $xml_data = $xml->XMLin($file);
+my $height = $xml_data->{Height};
+my $width = $xml_data->{Width};
+my $img_data = $xml_data->{Data};
+
+# Convert back to bits
+my @hex_data = split(//, $img_data);
+my @data;
+for (my $i = 0; $i < @hex_data; $i+=2)
+{
+    push @data, hex($hex_data[$i+1])%4;
+    push @data, hex($hex_data[$i+1])/4;
+    push @data, hex($hex_data[$i])%4;
+    push @data, hex($hex_data[$i])/4;
+}
+
+my $img = new GD::Image($width, $height);
+my @colors = ($img->colorAllocate(255, 255, 255),
+	      $img->colorAllocate(170, 170, 170),
+	      $img->colorAllocate(85, 85, 85),
+	      $img->colorAllocate(0, 0, 0));
+my $x;
+my $y;
+foreach (@data)
+{
+    $img->setPixel($x, $y, $colors[$_]);
+    $x++;
+    if ($x == $width)
+    {
+	$y++;
+	$x = 0;
+    }
+}
+
+$out =~ /\.([^\.]+)$/;
+my $out = new IO::File ">$out";
+eval("print \$out \$img->$1");
+$out->close;
