@@ -16,6 +16,8 @@
 #    include <config.h>
 #    include "../../common.h"
 
+#    define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
+#    define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })
 #    define sccp_sched_context_destroy sched_context_destroy
 #    define pbx_manager_register ast_manager_register2
 

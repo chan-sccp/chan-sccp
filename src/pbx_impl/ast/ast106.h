@@ -19,8 +19,10 @@
 #    define sccp_sched_context_destroy sched_context_destroy
 #if ASTERISK_VERSION_NUMBER > 10601
 #    define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
+#    define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })
 #else
 #    define pbx_channel_unref(c) NULL
+#    define pbx_channel_ref(c) NULL
 #endif
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
