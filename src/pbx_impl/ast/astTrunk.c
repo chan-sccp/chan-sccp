@@ -984,6 +984,8 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 	sccp_parkresult_t res = PARK_RESULT_FAIL;
 	PBX_CHANNEL_TYPE *bridgedChannel = NULL;
 	
+	memset(extstr, 0, sizeof(extstr));
+	
 	extstr[0] = 128;
 	extstr[1] = SKINNY_LBL_CALL_PARK_AT;
 
@@ -991,12 +993,11 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 	device 		= sccp_channel_getDevice_retained(hostChannel);
 	
 	
-	ast_channel_lock(hostChannel->owner);
-// 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "We are thread %d\n", pthread_self());
+	ast_channel_lock(hostChannel->owner); /* we have to lock our channel, otherwise asterisk crashes internally */
 	if (!ast_masq_park_call(bridgedChannel, hostChannel->owner, 0, &extout)) {
 		sprintf(&extstr[2], " %d", extout);
 
-		sccp_dev_displaynotify(device, extstr, 10);
+		sccp_dev_set_message(device, extstr, 10, FALSE, FALSE);
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(device), ast_channel_name(bridgedChannel), extout);
 		
 		res = PARK_RESULT_SUCCESS;
