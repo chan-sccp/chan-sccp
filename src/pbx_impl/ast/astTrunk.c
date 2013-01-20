@@ -991,7 +991,8 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 	device 		= sccp_channel_getDevice_retained(hostChannel);
 	
 	
-	
+	ast_channel_lock(hostChannel->owner);
+// 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "We are thread %d\n", pthread_self());
 	if (!ast_masq_park_call(bridgedChannel, hostChannel->owner, 0, &extout)) {
 		sprintf(&extstr[2], " %d", extout);
 
@@ -1000,6 +1001,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk111_park(const sccp_channel_t * ho
 		
 		res = PARK_RESULT_SUCCESS;
 	}
+	ast_channel_unlock(hostChannel->owner);
 	device = sccp_device_release(device);
 	return res;
 }
