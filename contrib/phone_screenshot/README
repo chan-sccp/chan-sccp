@@ -1,0 +1,23 @@
+phone_screenshot
+
+Setup:
+Before you can use phone_screenshot, you will need to set the
+<authenticationURL></authenticationURL> entry in the xml.cnf file to a valid webserver location. 
+
+The page pointed at by <authenticationURL> must return the value "AUTHORIZED" 
+(either by default or after checking the username/password combination). It
+could be as simple as a file containing the word "AUTHORIZED".
+
+After that has been done, and the phone has been reinitialized. You can run
+phone_screenshot like so:
+
+Usage:
+./phone_screenshot -i 123.123.123.123 -u cisco -p cisco -f screenshot
+whereby:
+ -i 	ip-address
+ -u	authentication username
+ -p	authentication passowrd
+ -f 	output filename without extension
+
+It will then contact the phone, request a screenshot, and convert the
+screenshot if necessary (for 7960/7940) and create the file screenshot.png.
