@@ -1069,7 +1069,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 
 	/*! \todo DdG: Extra wait time is incurred when checking pbx_exists_extension, when a wrong number is dialed. storing extension_exists status for sccp_log use */
-	int extension_exists;
+	int extension_exists = SCCP_EXTENSION_NOTEXISTS;
 	if (!sccp_strlen_zero(shortenedNumber) && !pbx_check_hangup(pbx_channel)
 /*	    	&& (extension_exists = pbx_exists_extension(pbx_channel, pbx_channel_context(pbx_channel), shortenedNumber, 1, l->cid_num)) */
 		&& ((extension_exists = PBX(extension_status(c)) != SCCP_EXTENSION_NOTEXISTS))
@@ -1108,7 +1108,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				c->callid, 
 				shortenedNumber, 
 				pbx_check_hangup(pbx_channel), 
-				extension_exists ? "TRUE" : "FALSE");
+				(extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
 		/* timeout and no extension match */
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 	}
