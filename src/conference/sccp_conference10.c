@@ -199,11 +199,12 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 	sccp_conference_participant_t *participant = NULL;
 
 	AST_LIST_TRAVERSE(&conference->bridge->channels, bridge_channel, entry) {
-		participant = sccp_conference_participant_findByPBXChannel(conference, bridge_channel->chan);
-		if (conference->mute_on_entry)
-			participant->features.mute = 1;
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
-		participant->bridge_channel = bridge_channel;
+		if ((participant = sccp_conference_participant_findByPBXChannel(conference, bridge_channel->chan))) {
+			if (conference->mute_on_entry)
+				participant->features.mute = 1;
+			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
+			participant->bridge_channel = bridge_channel;
+		}
 	}
 }
 
