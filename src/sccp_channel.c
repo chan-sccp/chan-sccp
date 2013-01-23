@@ -313,7 +313,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 		channel->rtp.audio.readFormat = sccp_utils_findBestCodec(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
 
 		if (channel->rtp.audio.readFormat == SKINNY_CODEC_NONE) {
-			channel->rtp.audio.readFormat = SKINNY_CODEC_G711_ULAW_64K;
+			channel->rtp.audio.readFormat = SKINNY_CODEC_WIDEBAND_256K;
 
 			char s1[512];
 
@@ -357,7 +357,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 		channel->rtp.audio.writeFormat = sccp_utils_findBestCodec(channel->preferences.audio, ARRAY_LEN(channel->preferences.audio), channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio), channel->remoteCapabilities.audio, ARRAY_LEN(channel->remoteCapabilities.audio));
 
 		if (channel->rtp.audio.writeFormat == SKINNY_CODEC_NONE) {
-			channel->rtp.audio.writeFormat = SKINNY_CODEC_G711_ULAW_64K;
+			channel->rtp.audio.writeFormat = SKINNY_CODEC_WIDEBAND_256K;
 
 			char s1[512];
 
@@ -1591,8 +1591,9 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);							// this will also reopen the RTP stream
 
 #ifdef CS_MANAGER_EVENTS
-	if (GLOB(callevents))
+	if (GLOB(callevents)){
 		manager_event(EVENT_FLAG_CALL, "Hold", "Status: Off\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID) (channel));
+	}
 #endif
 
 	/* state of channel is set down from the remoteDevices, so correct channel state */
