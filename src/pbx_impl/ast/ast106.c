@@ -52,7 +52,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 static int sccp_wrapper_asterisk16_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel);
-boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
@@ -709,7 +709,7 @@ static int sccp_wrapper_asterisk16_setNativeVideoFormats(const sccp_channel_t * 
 	return 1;
 }
 
-boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
+boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId)
 {
 	sccp_line_t *line = NULL;
 
