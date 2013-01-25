@@ -1157,7 +1157,7 @@ struct sccp_channel {
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*isMicrophoneEnabled) (void);
 
-	char linkedid[SCCP_MAX_EXTENSION];
+// 	char linkedid[SCCP_MAX_EXTENSION];
 };														/*!< SCCP Channel Structure */
 
 /*!

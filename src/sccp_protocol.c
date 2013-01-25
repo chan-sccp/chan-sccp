@@ -354,15 +354,17 @@ static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device,
 	sccp_moo_t *r;
 
 	int msg_len = strlen(message);
-	int hdr_len = sizeof(r->msg.DisplayDynamicNotifyMessage) - 3;
+	int hdr_len = sizeof(r->msg.DisplayDynamicNotifyMessage) - sizeof(r->msg.DisplayDynamicNotifyMessage.dummy);
 	int padding = ((msg_len + hdr_len) % 4);
 
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
+	
 	r = sccp_build_packet(DisplayDynamicNotifyMessage, hdr_len + msg_len + padding);
 	r->msg.DisplayDynamicNotifyMessage.lel_displayTimeout = htolel(timeout);
 	memcpy(&r->msg.DisplayDynamicNotifyMessage.dummy, message, msg_len);
 
 	sccp_dev_send(device, r);
+	pbx_log(LOG_NOTICE, "%s: Display notify timeout %d\n", device->id, timeout);
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
