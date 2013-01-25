@@ -1296,7 +1296,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 			goto EXITFUNC;
 	}
 
-	if (!sccp_pbx_channel_allocate(channel)) {
+	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL)) {
 		//! \todo handle error in more detail, cleanup sccp channel
 		pbx_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
