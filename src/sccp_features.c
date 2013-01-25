@@ -170,7 +170,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 		}
 		sccp_channel_set_active(device, c);
 
-		if (!sccp_pbx_channel_allocate(c)) {
+		if (!sccp_pbx_channel_allocate(c, NULL)) {
 			pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
 			sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);					// implicitly retained device by sccp_action
 			goto EXIT;
@@ -276,7 +276,7 @@ void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_d
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
+	if (!sccp_pbx_channel_allocate(c, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_directpickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -489,8 +489,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	if (!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) || pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
 		if ((c = sccp_channel_allocate(l, d))) {
 			c = sccp_channel_retain(c);
-			PBX(alloc_pbxChannel) (c, &target);
-//			c->previousChannelState=SCCP_CHANNELSTATE_DOWN;
+			PBX(alloc_pbxChannel) (c, &target, NULL);
 		} else {
 			pbx_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
 			c = sccp_channel_release(c);
@@ -599,7 +598,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 				return -1;
 			}
 
-			if (!sccp_pbx_channel_allocate(c)) {
+			if (!sccp_pbx_channel_allocate(c, NULL)) {
 				pbx_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				pbx_channel_unlock(target);
@@ -735,7 +734,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 
 	if (!sccp_strlen_zero(l->vmnum)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
-		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND);
+		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 	}
@@ -1018,7 +1017,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
+	if (!sccp_pbx_channel_allocate(c, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_meetme) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -1250,7 +1249,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
+	if (!sccp_pbx_channel_allocate(c, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_barge) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -1350,7 +1349,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c)) {
+	if (!sccp_pbx_channel_allocate(c, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_cbarge) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -1421,7 +1420,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 	} else {
 		// Pull up a channel
 		if (GLOB(hotline)->line) {
-			sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
+			sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		}
 	}
 }

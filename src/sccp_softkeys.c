@@ -260,10 +260,10 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	} else {
 		if (!l) {
 			l = sccp_dev_get_activeline(d);
-			sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
+			sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 			sccp_line_release(l);
 		} else {
-			sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND);
+			sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		}
 	}
 }
@@ -316,9 +316,9 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		}
 
 		if (adhocNumber)
-			sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND);
+			sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		else
-			sccp_channel_newcall(line, d, NULL, SKINNY_CALLTYPE_OUTBOUND);
+			sccp_channel_newcall(line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		line = sccp_line_release(line);
 	}
 }

@@ -50,7 +50,7 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel);
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype);
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedid);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_destroy(sccp_channel_t * c);
 
@@ -78,5 +78,11 @@ void sccp_channel_park(sccp_channel_t * c);
 
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
 int sccp_channel_callwaiting_tone_interval(sccp_channel_t * c);
+
+/**
+ * get linkedid from channel
+ * \remark result can be NULL
+ */
+const char * sccp_channel_getLinkedId(const sccp_channel_t *channel);
 
 #endif

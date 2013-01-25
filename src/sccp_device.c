@@ -1192,9 +1192,9 @@ void sccp_dev_cleardisplaynotify(const sccp_device_t * d)
 //void sccp_dev_displaynotify(sccp_device_t * d, char *msg, uint32_t timeout)
 void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
-#if DEBUG
+// #if DEBUG
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displaynotify '%s' (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout);
-#endif
+// #endif
 	if (!d || !d->session || !d->protocol || !d->skinny_type || !d->config_type)
 		return;
 

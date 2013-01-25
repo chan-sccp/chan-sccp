@@ -1174,7 +1174,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * 	  - see sccp_channel_set_active()
  * 	  - see sccp_indicate_nolock()
  */
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype)
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedId)
 {
 	/* handle outgoing calls */
 	sccp_channel_t *channel;
@@ -1226,7 +1226,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	}
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(channel)) {
+	if (!sccp_pbx_channel_allocate(channel, linkedId)) {
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", device->id, l->name);
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONGESTION);
 		return channel;
@@ -1819,11 +1819,11 @@ void sccp_channel_transfer(sccp_channel_t * channel)
 		return;
 	}
 	/* exceptional case, we need to release half transfer before retaking, should never occur */
-	if (d->transferChannels.transferee && !d->transferChannels.transferer) {
-		sccp_channel_release(d->transferChannels.transferee);
-	}
+// 	if (d->transferChannels.transferee && !d->transferChannels.transferer) {
+// 		d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+// 	}
 	if (!d->transferChannels.transferee && d->transferChannels.transferer) {
-		sccp_channel_release(d->transferChannels.transferer);
+		d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);
 	}
 
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {								/** channel to be transfered */
@@ -1846,7 +1846,7 @@ void sccp_channel_transfer(sccp_channel_t * channel)
 		if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 		}
-		if ((sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND))) {
+		if ((sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, sccp_channel_getLinkedId(channel) ))) {
 			/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 			if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
 				//! \todo use pbx impl
@@ -2246,7 +2246,6 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->ss_action = SCCP_SS_DIAL;							/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
 	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
-	sccp_copy_string(sccp_forwarding_channel->linkedid, PBX(getChannelLinkedId)((const sccp_channel_t *)sccp_channel_parent), sizeof(sccp_forwarding_channel->linkedid));
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
@@ -2261,7 +2260,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	sccp_forwarding_channel->rtp.audio.writeFormat = sccp_channel_parent->rtp.audio.writeFormat;
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel)) {
+	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, sccp_channel_getLinkedId(sccp_channel_parent) )) {
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, sccp_forwarding_channel->line->name);
 		sccp_line_removeChannel(sccp_forwarding_channel->line, sccp_forwarding_channel);
 		sccp_channel_clean(sccp_forwarding_channel);
@@ -2427,4 +2426,11 @@ int sccp_channel_callwaiting_tone_interval(sccp_channel_t * c)
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval)channel has been hungup or pickup up by another phone\n");
 	}
 	return 0;
+}
+
+const char * sccp_channel_getLinkedId(const sccp_channel_t *channel){
+	if(!PBX(getChannelLinkedId))
+		return NULL;
+	
+	return PBX(getChannelLinkedId)(channel);
 }
