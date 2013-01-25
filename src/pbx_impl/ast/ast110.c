@@ -46,7 +46,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 static int sccp_wrapper_asterisk110_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel);
-boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
+boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId);
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk110_devicestate(void *data);
@@ -784,11 +784,11 @@ static int sccp_wrapper_asterisk110_setNativeVideoFormats(const sccp_channel_t *
 	return 1;
 }
 
-boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
+boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId)
 {
 	sccp_line_t *line = NULL;
 
-	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, (channel->owner) ? channel->owner->linkedid : NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, linkedId, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 
 	if ((*pbx_channel) == NULL) {
 		return FALSE;
