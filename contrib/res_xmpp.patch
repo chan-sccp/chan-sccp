@@ -1,0 +1,79 @@
+Index: res/res_xmpp.c
+===================================================================
+--- res/res_xmpp.c	(Revision 380153)
++++ res/res_xmpp.c	(Arbeitskopie)
+@@ -1151,7 +1151,7 @@
+  * \return void
+  */
+ static void xmpp_pubsub_publish_device_state(struct ast_xmpp_client *client, const char *device,
+-					     const char *device_state, unsigned int cachable)
++					     const char *device_state, unsigned int cachable, const char *cidNumber, const char *cidName)
+ {
+ 	RAII_VAR(struct xmpp_config *, cfg, ao2_global_obj_ref(globals), ao2_cleanup);
+ 	iks *request, *state;
+@@ -1173,6 +1173,12 @@
+ 	state = iks_insert(request, "state");
+ 	iks_insert_attrib(state, "xmlns", "http://asterisk.org");
+ 	iks_insert_attrib(state, "eid", eid_str);
++	if(cidNumber && strlen(cidNumber) > 0){
++		iks_insert_attrib(state, "cidNumber", cidNumber);
++	}
++	if(cidName && strlen(cidName) > 0){
++		iks_insert_attrib(state, "cidName", cidName);
++	}
+ 	snprintf(cachable_str, sizeof(cachable_str), "%u", cachable);
+ 	iks_insert_attrib(state, "cachable", cachable_str);
+ 	iks_insert_cdata(state, device_state, strlen(device_state));
+@@ -1217,6 +1223,7 @@
+ {
+ 	struct ast_xmpp_client *client = data;
+ 	const char *device, *device_state;
++	const char *cidNumber, *cidName;
+ 	unsigned int cachable;
+ 
+ 	if (ast_eid_cmp(&ast_eid_default, ast_event_get_ie_raw(ast_event, AST_EVENT_IE_EID))) {
+@@ -1228,7 +1235,13 @@
+ 	device = ast_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
+ 	device_state = ast_devstate_str(ast_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE));
+ 	cachable = ast_event_get_ie_uint(ast_event, AST_EVENT_IE_CACHABLE);
+-	xmpp_pubsub_publish_device_state(client, device, device_state, cachable);
++	
++	cidName = ast_event_get_ie_str(ast_event, AST_EVENT_IE_CEL_CIDNAME);
++	cidNumber = ast_event_get_ie_str(ast_event, AST_EVENT_IE_CEL_CIDNUM);
++	
++	ast_debug(1, "send distributed event with cidname: %s, cidnum: %s\n", cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL");
++	
++	xmpp_pubsub_publish_device_state(client, device, device_state, cachable, cidNumber, cidName);
+ }
+ 
+ /*!
+@@ -1312,6 +1325,8 @@
+ static int xmpp_pubsub_handle_event(void *data, ikspak *pak)
+ {
+ 	char *item_id, *device_state, *context, *cachable_str;
++	const char *cidName = NULL; 
++	const char *cidNumber = NULL;
+ 	int oldmsgs, newmsgs;
+ 	iks *item, *item_content;
+ 	struct ast_eid pubsub_eid;
+@@ -1331,12 +1346,20 @@
+ 	}
+ 	if (!strcasecmp(iks_name(item_content), "state")) {
+ 		device_state = iks_find_cdata(item, "state");
++		
++		cidName = iks_find_attrib(item, "cidName");
++		cidNumber = iks_find_attrib(item, "cidNumber");
++		cidName = cidName ? cidName : "";
++		cidNumber = cidNumber ? cidNumber : "";
++		
+ 		if ((cachable_str = iks_find_cdata(item, "cachable"))) {
+ 			sscanf(cachable_str, "%30d", &cachable);
+ 		}
+ 		if (!(event = ast_event_new(AST_EVENT_DEVICE_STATE_CHANGE,
+ 					    AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, item_id, AST_EVENT_IE_STATE,
+ 					    AST_EVENT_IE_PLTYPE_UINT, ast_devstate_val(device_state), AST_EVENT_IE_EID,
++					    AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, cidName, 
++					    AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, cidNumber,
+ 					    AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
+ 					    AST_EVENT_IE_END))) {
+ 			return IKS_FILTER_EAT;
