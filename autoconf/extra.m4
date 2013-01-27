@@ -763,6 +763,14 @@ AC_DEFUN([CS_IPv6], [
 	AC_MSG_NOTICE([--enable-IPv6: ${ac_cv_ipv6}])
 ])
 
+AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
+	AC_ARG_ENABLE(distributed_devicestate, 
+	  AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)(experimental)]), 
+	  ac_cv_use_distributed_devicestate=$enableval, ac_cv_use_distributed_devicestate=no)
+	AS_IF([test "_${ac_cv_use_distributed_devicestate}" == "_yes"], [AC_DEFINE(distributed_devicestate, 1, [conference distributed devicestate])])
+	AC_MSG_NOTICE([--enable-distributed-devicestate: ${ac_cv_use_distributed_devicestate}])
+])
+
 AC_DEFUN([CS_DISABLE_DYNAMIC_CONFIG], [
 	AC_ARG_ENABLE(dynamic_config, 
 	  AC_HELP_STRING([--disable-dynamic-config], [disable sccp reload]), 
@@ -795,6 +803,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
 	CS_ENABLE_VIDEO
 	CS_ENABLE_VIDEOLAYER
+	CS_ENABLE_DISTRIBUTED_DEVSTATE
 	CS_IPv6
 	CS_DISABLE_DYNAMIC_CONFIG
 ])

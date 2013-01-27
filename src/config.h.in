@@ -269,6 +269,9 @@
 /* Found 'const char * const *argv' in asterisk/cli.h */
 #undef CS_NEW_AST_CLI_CONST
 
+/* 'ast_devstate_changed' available */
+#undef CS_NEW_DEVICESTATE_WITH_CACHE
+
 /* refcount liveobject debugging */
 #undef CS_REFCOUNT_LIVEOBJECTS
 
@@ -952,6 +955,11 @@
 # endif
 #endif
 
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
@@ -1015,6 +1023,9 @@
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
+
+/* conference distributed devicestate */
+#undef distributed_devicestate
 
 /* Define to a type to use for `error_t' if it is not otherwise available. */
 #undef error_t
