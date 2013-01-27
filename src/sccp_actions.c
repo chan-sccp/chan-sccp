@@ -2394,6 +2394,11 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 			sccp_dev_displayprompt(d, lineInstance, 0, buf, 7);
 			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
 			pbx_log(LOG_WARNING, "%s: Skip handling of Softkey %s (%d) line=%d callid=%d, because a channel is required, but not provided. Exiting\n", d->id, label2str(event), event, lineInstance, callid);
+			
+			/* disable callplane for this device */
+			sccp_device_sendcallstate(d, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			sccp_dev_set_cplane(l, lineInstance, d, 0);
+			sccp_dev_set_keyset(d, lineInstance, callid, KEYMODE_ONHOOK);
 			break;
 		}
 		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "ÜNDEF", c ? sccp_channel_toString(c) : "UNDEF");
