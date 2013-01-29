@@ -1489,6 +1489,9 @@ CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refc
 /*!
  * \brief Show Sessions
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -1556,6 +1559,9 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 /*!
  * \brief Message Devices
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -2466,6 +2472,9 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
 /*!
  * \brief Send Token Ack to device(s)
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int

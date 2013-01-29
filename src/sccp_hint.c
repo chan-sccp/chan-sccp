@@ -25,7 +25,6 @@
  sccp_hint_state[ label="sccp_hint_state" shape=rect style=rounded URL="\ref sccp_hint_state" fontsize=8];
  and[label="and" shape=circle fontsize=8]
  sccp_hint_list_t[ label="sccp_hint_list_t" shape=circle URL="\ref sccp_hint_list_t" fontsize=8];
- sccp_hint_remoteNotification_thread[ label="sccp_hint_remoteNotification_thread" shape=rect style=rounded  URL="\ref sccp_hint_remoteNotification_thread" fontsize=8];
  sccp_hint_notifySubscribers[ label="sccp_hint_notifySubscribers" shape=rect style=rounded URL="\ref sccp_hint_notifySubscribers" fontsize=8];
 
  lineStatusChanged[label="line status changed" shape=rect fontsize=8];
@@ -39,8 +38,6 @@
  asteriskEvent -> sccp_hint_state;
  sccp_hint_state -> and;
  and -> sccp_hint_list_t[label="update" fontsize=7];
- and -> sccp_hint_remoteNotification_thread;
- sccp_hint_remoteNotification_thread -> sccp_hint_list_t[label="update" fontsize=7];
 
  lineStatusChanged -> sccp_hint_lineStatusChanged;
  sccp_hint_lineStatusChanged -> sccp_hint_hintStatusUpdate;
@@ -255,10 +252,7 @@ void sccp_hint_deviceUnRegistered(const char *deviceName)
  * \brief Handle line status change
  * \param line          SCCP Line
  * \param device        SCCP Device
- * \param previousState Previous Channel State
  * \param state         New Channel State
- * \param file          Source File Name as char
- * \param callerLine    Source Line Number as int
  * 
  * \expects_ref
  *      - device

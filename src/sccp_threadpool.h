@@ -73,7 +73,7 @@ typedef struct sccp_threadpool sccp_threadpool_t;
  * Allocates memory for the threadpool, jobqueue, semaphore and fixes 
  * pointers in jobqueue.
  * 
- * \param  number of threads to be used
+ * \param threadsN number of threads to be used
  * \return threadpool struct on success,
  *         NULL on error
  */
@@ -85,7 +85,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN);
  * In principle this is an endless loop. The only time this loop gets interuppted is once
  * sccp_threadpool_destroy() is invoked.
  * 
- * \param threadpool to use
+ * \param p threadpool to use
  * \return nothing
  */
 void sccp_threadpool_thread_do(void * p);
@@ -99,9 +99,9 @@ void sccp_threadpool_thread_do(void * p);
  * 
  * ATTENTION: You have to cast both the function and argument to not get warnings.
  * 
- * \param  threadpool to where the work will be added to
- * \param  function to add as work
- * \param  argument to the above function
+ * \param tp_p threadpool to which the work will be added to
+ * \param function_p callback function to add as work
+ * \param arg_p argument to the above function
  * \return int
  */
 int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void *), void *arg_p);
@@ -112,12 +112,13 @@ int sccp_threadpool_add_work(sccp_threadpool_t * tp_p, void *(*function_p) (void
  * This will 'kill' the threadpool and free up memory. If threads are active when this
  * is called, they will finish what they are doing and then they will get destroyied.
  * 
- * \param threadpool a pointer to the threadpool structure you want to destroy
+ * \param tp_p threadpool a pointer to the threadpool structure you want to destroy
  */
 void sccp_threadpool_destroy(sccp_threadpool_t * tp_p);
 
 /*!
  * \brief Return number of currently allocate threads in the threadpool
+ * \param tp_p threadpool a pointer to the threadpool structure for which we would like to know the number of workers
  */
 int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
 
@@ -125,7 +126,7 @@ int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p);
 
 /*!
  * \brief Initialize queue
- * \param  pointer to threadpool
+ * \param tp_p pointer to threadpool
  * \return 0 on success,
  *        -1 on memory allocation error
  */
@@ -138,14 +139,15 @@ int sccp_threadpool_jobqueue_init(sccp_threadpool_t * tp_p);
  * before passed to this function or else other functions like sccp_threadpool_jobqueue_empty()
  * will be broken.
  * 
- * \param pointer to threadpool
- * \param pointer to the new job(MUST BE ALLOCATED)
+ * \param tp_p pointer to threadpool
+ * \param newjob_p pointer to the new job(MUST BE ALLOCATED)
  * \return nothing 
  */
 void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_t * newjob_p);
 
 /*!
  * \brief Return Number of Jobs in the Queue
+ * \param tp_p pointer to threadpool
  */
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p);
 

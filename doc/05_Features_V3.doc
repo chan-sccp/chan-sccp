@@ -468,7 +468,7 @@
  * Previous function name SetSCCPCodec(codec) is now deprecated in favour of SCCPSetCodec.
  *
  * \subsubsection nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty
- * Usage: SCCPSetCalledParty("name" <ext>)
+ * Usage: SCCPSetCalledParty("name" \<ext\>)
  * Sets the name and number of the called party before using the DIAL statement, only usefull when dialing an SCCP Channel.
  *
  * Previous function name SetCalledParty(codec) is now deprecated in favour of SCCPSetCalledParty.

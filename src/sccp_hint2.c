@@ -223,19 +223,32 @@ void sccp_hint_module_stop()
 
 
 /* ========================================================================================================================= PBX Callbacks */
-
 /*!
  * \brief asterisk callback for extension state changes (we subscribed with ast_extension_state_add)
- * \param context extension context
- * \param id ???
- * \param info state info
- * \param data private channel data (sccp_hint_list_t *hint)
  */
 #if ASTERISK_VERSION_GROUP >= 112
+/*!
+ * \param context extension context (char *)
+ * \param id extension (char *)
+ * \param info ast_state_cb_info
+ * \param data private channel data (sccp_hint_list_t *hint) as void pointer
+ */
 int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data)
 #elif ASTERISK_VERSION_GROUP >= 110
+/*!
+ * \param context extension context (const char *)
+ * \param id extension (const char *)
+ * \param state ast_extension_state (enum)
+ * \param data private channel data (sccp_hint_list_t *hint) as void pointer
+ */
 int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data)
 #else
+/*!
+ * \param context extension context (char *)
+ * \param id extension (char *)
+ * \param state ast_extension_state (enum)
+ * \param data private channel data (sccp_hint_list_t *hint) as void pointer
+ */
 int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data)
 #endif
 {
@@ -630,7 +643,7 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
 
 /*!
  * \brief Handle Hint Status Update
- * \param hint SCCP Hint Linked List Pointer
+ * \param lineState SCCP LineState
  */
 void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 {
@@ -655,7 +668,7 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 
 /*!
  * \brief set hint status for a line with more then one channel
- * \param hint	SCCP Hint Linked List Pointer
+ * \param lineState SCCP LineState
  */
 void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState)
 {
@@ -724,7 +737,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 
 /*!
  * \brief set hint status for a line with less or eq one channel
- * \param hint	SCCP Hint Linked List Pointer
+ * \param lineState SCCP LineState
  * 
  * \lock
  * 	- hint
@@ -879,8 +892,7 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 /* ========================================================================================================================= PBX Notify */
 /*!
  * \brief Notify Asterisk of Hint State Change
- * \param line	SCCP Line
- * \param state SCCP Channel State
+ * \param lineState SCCP LineState
  */
 void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {

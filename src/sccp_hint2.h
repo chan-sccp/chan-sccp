@@ -13,23 +13,7 @@
 #ifndef SCCP_HINT_H_
 #    define SCCP_HINT_H_
 
-/*!
- * \brief Hint State for Device
- * \param context Context as char
- * \param exten Extension as char
- * \param state State as Asterisk Extension State
- * \param data Asterisk Data
- * \return Status as int
- */
-// #    if ASTERISK_VERSION_NUMBER >= 11000
-// int sccp_hint_state(const char *context, const char *exten, enum ast_extension_states state, void *data);
-// #    else
-// int sccp_hint_state(char *context, char *exten, enum ast_extension_states state, void *data);
-// #    endif
-
 sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
-
-// void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device, sccp_channelState_t state);
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 

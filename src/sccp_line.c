@@ -737,7 +737,7 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
  * \brief Remove a Channel from a Line
  *
  * \param l SCCP Line
- * \param channel SCCP Channel
+ * \param c SCCP Channel
  * 
  * \warning
  * 	- line->channels is not always locked

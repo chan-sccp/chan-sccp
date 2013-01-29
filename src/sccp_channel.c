@@ -222,14 +222,22 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	return channel;
 }
 
+#if DEBUG
+/*!
+ * \brief Retrieve Device from Channels->Private Channel Data
+ * \param channel SCCP Channel
+ * \param filename Debug Filename
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Device
+ */
+sccp_device_t *__sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func)
+#else
 /*!
  * \brief Retrieve Device from Channels->Private Channel Data
  * \param channel SCCP Channel
  * \return SCCP Device
  */
-#if DEBUG
-sccp_device_t *__sccp_channel_getDevice_retained(const sccp_channel_t * channel, const char *filename, int lineno, const char *func)
-#else
 sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
 #endif
 {
@@ -1062,33 +1070,6 @@ void sccp_channel_stopmediatransmission(sccp_channel_t * channel)
 }
 
 /*!
- * \brief Callback function to destroy an SCCP channel
- * \param data Data cast to SCCP Channel
- * \return success as int
- *
- * \lock
- * 	- channel
- */
-
-/* no longer necessary when using refcounting */
-
-/*
-int sccp_channel_destroy_callback(const void *data)
-{
-	sccp_channel_t *channel = (sccp_channel_t *) data;
-	if (!channel) {
-		pbx_log(LOG_WARNING, "SCCP:sccp_channel_destroy_callback, No channel to destroy\n");
-		return 0;
-	}	
-		
-	channel = sccp_channel_retain(channel);
-	sccp_channel_destroy(channel);
-	channel = sccp_channel_release(channel);
-	return 0;
-}
-*/
-
-/*!
  * \brief Hangup this channel.
  * \param channel *retained* SCCP Channel
  *
@@ -1173,6 +1154,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \param device SCCP Device that owns this channel
  * \param dial Dialed Number as char
  * \param calltype Calltype as int
+ * \param linkedId PBX LinkedId which unites related calls under one specific Id.
  * \return a *retained* SCCP Channel or NULL if something is wrong
  *
  * \callgraph
