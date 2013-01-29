@@ -22,11 +22,8 @@ void start_rtp(sccp_channel_t * sub);
 void sccp_pbx_needcheckringback(sccp_device_t * d);
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit);
 void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits);
-//void sccp_pbx_update_connectedline(sccp_channel_t * channel, const void *data, size_t datalen);
 int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest);
 
-//int sccp_pbx_getCodecCapabilities(sccp_channel_t * channel, void **capabilities);
-//int sccp_pbx_getPeerCodecCapabilities(sccp_channel_t * channel, void **capabilities);
 int sccp_pbx_hangup(sccp_channel_t * c);
 int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout);
 int sccp_pbx_answer(sccp_channel_t * c);

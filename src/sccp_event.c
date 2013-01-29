@@ -143,7 +143,8 @@ void sccp_event_module_stop(void)
 /*!
  * \brief Subscribe to an Event
  * \param eventType SCCP Event Type
- * \param cb SCCP Event Call Back
+ * \param cb SCCP Event Call Back Function
+ * \param allowASyncExecution Handle Event Asynchronously (Boolean)
  * 
  * \warning
  * 	- sccp_event_listeners->subscriber is not always locked
@@ -178,6 +179,7 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
 /*!
  * \brief unSubscribe from an Event
  * \param eventType SCCP Event Type
+ * \param cb SCCP Event Call Back Function
  */
 void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 {

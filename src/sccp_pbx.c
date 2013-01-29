@@ -335,7 +335,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
  * \callgraph
  * \callergraph
  * 
- * \called_from_asterisk via pbx_impl\ast\ast....c:sccp_wrapper_asterisk.._hangup
+ * \called_from_asterisk via sccp_wrapper_asterisk.._hangup
  * 
  * \note sccp_channel should be retained in calling function
  */
@@ -472,7 +472,7 @@ void sccp_pbx_needcheckringback(sccp_device_t * d)
  * \brief Answer an Asterisk Channel
  * \note we have no bridged channel at this point
  *
- * \param c SCCCP channel
+ * \param channel SCCCP channel
  * \return Success as int
  *
  * \callgraph
@@ -586,6 +586,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 /*!
  * \brief Allocate an Asterisk Channel
  * \param c SCCP Channel
+ * \param linkedId PBX LinkedId which unites related calls under one particular id
  * \return 1 on Success as uint8_t
  *
  * \callgraph
@@ -811,7 +812,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 
 /*!
  * \brief Handle Soft Switch
- * \param c SCCP Channel as sccp_channel_t
+ * \param channel SCCP Channel as sccp_channel_t
  * \todo clarify Soft Switch Function
  *
  * \lock

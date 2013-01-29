@@ -520,8 +520,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 #else
 /*!
  * \brief Handle Group Pickup Feature
- * \param c PBX Channel
- * \param data Data
+ * \param ast PBX Channel
+ * \param data SCCP Line passed as void *pointer
  * \return Success as int
  *
  * \see static int find_channel_by_group(PBX_CHANNEL_TYPE *c, void *data) from features.c

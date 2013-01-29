@@ -229,9 +229,6 @@ void sccp_safe_sleep(int ms)
 
 /*!
  * \brief Find Device by ID
- * \param name Device ID (hostname)
- * \param useRealtime Use RealTime as Boolean
- * \return SCCP Device - can bee null if device is not found
  *
  * \callgraph
  * \callergraph
@@ -240,8 +237,21 @@ void sccp_safe_sleep(int ms)
  * 	- devices
  */
 #if DEBUG
+/*!
+ * \param name Device ID (hostname)
+ * \param useRealtime Use RealTime as Boolean
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Device - can bee null if device is not found
+ */
 sccp_device_t *__sccp_device_find_byid(const char *name, boolean_t useRealtime, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param name Device ID (hostname)
+ * \param useRealtime Use RealTime as Boolean
+ * \return SCCP Device - can bee null if device is not found
+ */
 sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 #endif
 {
@@ -277,15 +287,24 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 
 /*!
  * \brief Find Device via RealTime
- * \param name Device ID (hostname)
- * \return SCCP Device - can bee null if device is not found
  *
  * \callgraph
  * \callergraph
  */
 #    if DEBUG
+/*!
+ * \param name Device ID (hostname)
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Device - can bee null if device is not found
+ */
 sccp_device_t *__sccp_device_find_realtime(const char *name, const char *filename, int lineno, const char *func)
 #    else
+/*!
+ * \param name Device ID (hostname)
+ * \return SCCP Device - can bee null if device is not found
+ */
 sccp_device_t *sccp_device_find_realtime(const char *name)
 #    endif
 {
@@ -325,9 +344,6 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 
 /*!
  * \brief Find Line by Name
- * \param name Line Name
- * \param useRealtime Use Realtime as Boolean
- * \return SCCP Line
  *
  * \callgraph
  * \callergraph
@@ -336,8 +352,21 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
  * 	- lines
  */
 #if DEBUG
+/*!
+ * \param name Line Name
+ * \param useRealtime Use Realtime as Boolean
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line
+ */
 sccp_line_t *__sccp_line_find_byname_wo(const char *name, uint8_t useRealtime, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param name Line Name
+ * \param useRealtime Use Realtime as Boolean
+ * \return SCCP Line
+ */
 sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t useRealtime)
 #endif
 {
@@ -380,15 +409,24 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t useRealtime)
 
 /*!
  * \brief Find Line via Realtime
- * \param name Line Name
- * \return SCCP Line
  *
  * \callgraph
  * \callergraph
  */
 #    if DEBUG
+/*!
+ * \param name Line Name
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line
+ */
 sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func)
 #    else
+/*!
+ * \param name Line Name
+ * \return SCCP Line
+ */
 sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 #    endif
 {
@@ -427,9 +465,6 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 /*!
  * \brief Find Line by Instance on device
- * \param d SCCP Device
- * \param instance line instance as int
- * \return SCCP Line (can be null)
  *
  * \todo No ID Specified only instance, should this function be renamed ?
  *
@@ -441,8 +476,21 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * 	  - see sccp_line_find_byname_wo()
  */
 #if DEBUG
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line (can be null)
+ */
 sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \return SCCP Line (can be null)
+ */
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 #endif
 {
@@ -481,9 +529,6 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 
 /*!
  * \brief Find Channel by ID, using a specific line
- * \param l 	SCCP Line
- * \param id 	channel ID as int
- * \return *refcounted* SCCP Channel (can be null)
  *
  * \callgraph
  * \callergraph
@@ -494,8 +539,21 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
  * 	- channel
  */
 #if DEBUG
+/*!
+ * \param l 	SCCP Line
+ * \param id 	channel ID as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return *refcounted* SCCP Channel (can be null)
+ */
 sccp_channel_t *__sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param l 	SCCP Line
+ * \param id 	channel ID as int
+ * \return *refcounted* SCCP Channel (can be null)
+ */
 sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
 #endif
 {
@@ -523,8 +581,6 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
 
 /*!
  * \brief Find Line by ID
- * \param id ID as int
- * \return *refcounted* SCCP Channel (can be null)
  *
  * \callgraph
  * \callergraph
@@ -535,8 +591,19 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
  * 	- channel
  */
 #if DEBUG
+/*!
+ * \param id ID as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return *refcounted* SCCP Channel (can be null)
+ */
 sccp_channel_t *__sccp_channel_find_byid(uint32_t id, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param id ID as int
+ * \return *refcounted* SCCP Channel (can be null)
+ */
 sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 #endif
 {
@@ -577,8 +644,19 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  * 	- channel
  */
 #if DEBUG
+/*!
+ * \param passthrupartyid Party ID
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
+ */
 sccp_channel_t *__sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param passthrupartyid Party ID
+ * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
+ */
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 #endif
 {
@@ -678,8 +756,6 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 
 /*!
  * \brief Find Channel by State on Line
- * \param l SCCP Line
- * \param state State
  * \return *refcounted* SCCP Channel
  *
  * \callgraph
@@ -691,8 +767,21 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  * 	- channel
  */
 #if DEBUG
+/*!
+ * \param l SCCP Line
+ * \param state State
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return *refcounted* SCCP Channel
+ */
 sccp_channel_t *__sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param l SCCP Line
+ * \param state State
+ * \return *refcounted* SCCP Channel
+ */
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state)
 #endif
 {
@@ -719,9 +808,6 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 
 /*!
  * \brief Find Channel by State on Device
- * \param d SCCP Device
- * \param state State as int
- * \return *refcounted* SCCP Channel
  *
  * \callgraph
  * \callergraph
@@ -736,8 +822,21 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * 	- channel
  */
 #if DEBUG
+/*!
+ * \param d SCCP Device
+ * \param state State as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return *refcounted* SCCP Channel
+ */
 sccp_channel_t *__sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \param d SCCP Device
+ * \param state State as int
+ * \return *refcounted* SCCP Channel
+ */
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
 #endif
 {
@@ -1843,6 +1942,9 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
  * \brief Get Device Configuration
  * \param device SCCP Device
  * \param line SCCP Line
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
  * \return SCCP Line Devices
  *
  * \callgraph

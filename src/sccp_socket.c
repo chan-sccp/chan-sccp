@@ -127,7 +127,7 @@ static int sccp_read_data(sccp_session_t * s)
 
 /*!
  * \brief Find Session in Globals Lists
- * \param device SCCP Session
+ * \param s SCCP Session
  * \return boolean
  * 
  * \lock
@@ -151,7 +151,7 @@ static boolean_t sccp_session_findBySession(sccp_session_t * s)
 
 /*!
  * \brief Add a session to the global sccp_sessions list
- * \param device SCCP Session
+ * \param s SCCP Session
  * \return boolean
  * 
  * \lock
@@ -174,7 +174,7 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
 
 /*!
  * \brief Removes a session from the global sccp_sessions list
- * \param device SCCP Session
+ * \param s SCCP Session
  * \return boolean
  * 
  * \lock
@@ -815,6 +815,7 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 /*!
  * \brief Send a Reject Message to Device.
  * \param session SCCP Session Pointer
+ * \param device SCCP Device Pointer
  * \param message Message as char (reason of rejection)
  */
 sccp_session_t *sccp_session_crossdevice_cleanup(sccp_session_t * session, sccp_device_t * device, char *message)

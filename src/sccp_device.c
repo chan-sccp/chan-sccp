@@ -690,7 +690,6 @@ sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
  * \return Status as int
  *
  * \callgraph
- * \callergraph
  */
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 {
@@ -1263,7 +1262,8 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \param d SCCP Device
  * \param instance Instance as uint8_t
  * \param type Type as uint8_t
- * \return SCCP Speed
+ * \param k SCCP Speeddial (Returned by Ref)
+ * \return Void
  * 
  * \lock
  * 	- device->buttonconfig
