@@ -203,8 +203,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 	channel->maxBitRate = 15000;
 
-	if (device)
+	if (device){
 		sccp_channel_setDevice(channel, device);
+	}
 
 	sccp_line_addChannel(l, channel);
 
@@ -317,7 +318,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 
 			char s1[512];
 
-			pbx_log(LOG_NOTICE, "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
 		}
 		//PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
@@ -361,7 +362,7 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 
 			char s1[512];
 
-			pbx_log(LOG_NOTICE, "can not calculate writeFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
+			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "can not calculate writeFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
 		}
 		//PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
@@ -1309,6 +1310,11 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	if (preferredCodec != SKINNY_CODEC_NONE) {
 		skinny_codec_t tempCodecPreferences[ARRAY_LEN(channel->preferences.audio)];
 		uint8_t numFoundCodecs = 1;
+		
+		/** we did not allow this codec in device prefence list, so do not use this as primary preferred codec */
+		if(!sccp_utils_isCodecCompatible(preferredCodec, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)){
+			numFoundCodecs = 0;
+		}
 
 		/* save original preferences */
 		memcpy(&tempCodecPreferences, channel->preferences.audio, sizeof(channel->preferences.audio));
