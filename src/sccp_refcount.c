@@ -201,10 +201,10 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	SCCP_RWLIST_INSERT_HEAD(&(objects[hash])->refCountedObjects, obj, list);
 	SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 
-	sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (alloc_obj) Creating %p inside %p at hash: %d\n", ptr, obj, hash);
+	sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (alloc_obj) Creating new %s %s (%p) inside %p at hash: %d\n", (&obj_info[obj->type])->datatype, identifier, ptr, obj, hash);
 	obj->alive = SCCP_LIVE_MARKER;
 
-#if DEBUG
+#if CS_REFCOUNT_DEBUG
 	FILE *refo = fopen(REF_FILE, "a");	
         if (refo) {
         	fprintf(refo, "%p =1   %s:%d:%s (allocate new %s, len: %d, destructor: %p) [%p]\n", obj, __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, (int)obj->len, (&obj_info[type])->destructor, ptr);
@@ -216,6 +216,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	return ptr;
 }
 
+#if CS_REFCOUNT_DEBUG
 int __sccp_refcount_debug(void *ptr, RefCountedObject *obj, int delta, const char *file, int line, const char *func)
 {
         if (ptr == NULL) {
@@ -264,6 +265,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject *obj, int delta, const cha
         }
         return 0;
 }
+#endif
 
 static inline RefCountedObject *find_obj(const void *ptr, const char *filename, int lineno, const char *func)
 {
@@ -282,7 +284,9 @@ static inline RefCountedObject *find_obj(const void *ptr, const char *filename, 
 				if (SCCP_LIVE_MARKER == obj->alive) {
 					found = TRUE;
 				} else {
+#if CS_REFCOUNT_DEBUG
 					__sccp_refcount_debug((void *) ptr, obj, 0, filename, lineno, func);
+#endif					
 					sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (find_obj) %p Already declared dead (hash: %d)\n", obj, hash);
 				}
 				break;
@@ -375,7 +379,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	int newrefcountval;
 
 	if ((obj = find_obj(ptr, filename, lineno, func))) {
-#if DEBUG
+#if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
 	        refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
@@ -387,7 +391,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 		}
 		return obj->data;
 	} else {
-#if DEBUG
+#if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
 #endif		
 		ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF", (obj && obj->identifier) ? obj->identifier : "UNREF", obj);
@@ -403,7 +407,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	int newrefcountval;
 
 	if ((obj = find_obj(ptr, filename, lineno, func))) {
-#if DEBUG
+#if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
 	        refcountval = ATOMIC_DECR((&obj->refcount), 1 ,&obj->lock);
@@ -417,7 +421,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 	} else {
-#if DEBUG
+#if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, -1, filename, lineno, func);
 #endif		
 		ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF", (obj && obj->identifier) ? obj->identifier : "UNREF", obj);

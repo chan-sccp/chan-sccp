@@ -15,7 +15,9 @@
 #    define __SCCP_PBX_WRAPPER_H
 #    include "../../common.h"
 
+#if CS_REFCOUNT_DEBUG
 #define REF_DEBUG 1
+#endif
 
 #    if ASTERISK_VERSION_NUMBER >= 10400
 #        include <asterisk.h>

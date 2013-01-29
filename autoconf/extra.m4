@@ -578,6 +578,14 @@ AC_DEFUN([CS_ENABLE_DEBUG], [
 	AC_SUBST([strip_binaries])
 ])
 
+AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
+	AC_ARG_ENABLE(refcount_debug, 
+	  AC_HELP_STRING([--enable-refcount-debug], [enable refcount debug]), 
+	  ac_cv_refcount_debug=$enableval, ac_cv_refcount_debug=no)
+	AS_IF([test "_${ac_cv_refcount_debug}" == "_yes"], [AC_DEFINE(CS_REFCOUNT_DEBUG, 1, [refcount debug enabled])])
+	AC_MSG_NOTICE([--enable-refcount-debug: ${ac_cv_refcount_debug}])
+])
+
 AC_DEFUN([CS_DISABLE_PICKUP], [
 	AC_ARG_ENABLE(pickup, 
 	  AC_HELP_STRING([--disable-pickup], [disable pickup function]), 
@@ -701,14 +709,6 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_NEWIP], [
 	AC_MSG_NOTICE([--enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)])
 ])
 
-AC_DEFUN([CS_ENABLE_REFCOUNT_LIVEOBJECTS], [
-	AC_ARG_ENABLE(refcount-liveobjects, 
-	  AC_HELP_STRING([--enable-refcount-liveobjects], [enable keeping liveobjects for refcount debugging]), 
-	    ac_cv_refcount_liveobjects=$enableval, ac_cv_refcount_liveobjects=no)
-	AS_IF([test "_${ac_cv_refcount_liveobjects}" == "_yes"], [AC_DEFINE(CS_REFCOUNT_LIVEOBJECTS, 1, [refcount liveobject debugging])])
-	AC_MSG_NOTICE([--enable-refcount-liveobjects: ${ac_cv_refcount_liveobjects} (only for debugging)])
-])
-
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
 	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 
@@ -782,6 +782,7 @@ AC_DEFUN([CS_DISABLE_DYNAMIC_CONFIG], [
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_OPTIMIZATION
 	CS_ENABLE_DEBUG  
+	CS_ENABLE_REFCOUNT_DEBUG
 	CS_DISABLE_PICKUP
 	CS_DISABLE_PARK
 	CS_DISABLE_DIRTRFR
@@ -797,7 +798,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_EXPERIMENTAL_CODEC
 	CS_ENABLE_EXPERIMENTAL_RTP
 	CS_ENABLE_EXPERIMENTAL_NEWIP
-	CS_ENABLE_REFCOUNT_LIVEOBJECTS
 	CS_DISABLE_DEVSTATE_FEATURE
 	CS_DISABLE_DYNAMIC_SPEEDDIAL
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
