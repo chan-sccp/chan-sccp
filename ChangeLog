@@ -1,3 +1,41 @@
+2013-01-29  ddegroot
+
+	* [r4147] ChangeLog, INSTALL, Makefile.in, aclocal.m4,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/extra.m4, autoconf/install-sh, autoconf/missing,
+	  configure, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in, src/pbx_impl/ast/ast.h,
+	  src/sccp_channel.c, src/sccp_refcount.c: Removed configure option
+	  --enable-refcount-liveobjects (not in use any more). Added new
+	  configure option: --enable-refcount-debug to activate
+	  /tmp/sccp_ref /tmp/refs logging for refcount debug purposes,
+	  disabled by default (Issue reported by Bob)
+
+2013-01-29  marcelloceschia
+
+	* [r4146] src/sccp_channel.c: syntax
+
+	* [r4145] src/sccp_channel.c: syntax
+
+	* [r4144] src/sccp_channel.c: disable notice log when no
+	  preferences list for recalc codec is set, check for enabled codec
+	  do preferences codec move
+
+2013-01-28  marcelloceschia
+
+	* [r4143] src/sccp_hint2.c: experimental distributed device state
+	  section
+
+2013-01-27  marcelloceschia
+
+	* [r4142] src/sccp_actions.c: disable callplane when channel was
+	  not found
+
+	* [r4141] INSTALL, autoconf/config.guess, autoconf/config.sub,
+	  autoconf/depcomp, autoconf/extra.m4, autoconf/install-sh,
+	  autoconf/missing, configure, src/config.h.in: add configure
+	  option
+
 2013-01-26  marcelloceschia
 
 	* [r4140] contrib/res_xmpp.patch[ADD]: add res_xmpp.patch

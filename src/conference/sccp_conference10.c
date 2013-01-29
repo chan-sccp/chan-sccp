@@ -1116,7 +1116,7 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(Announce,		s,	12,	conference->playback_announcements ? "Yes" : "No")					\
 		CLI_AMI_TABLE_FIELD(MuteOnEntry,	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\
 
-#include "sccp_cli_table.h"
+#include <sccp_cli_table.h>
 
 	if (s)
 		*total = local_total;
@@ -1174,7 +1174,7 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 			CLI_AMI_TABLE_FIELD(Muted,		s,	5,	participant->isMuted ? "Yes" : "No")			\
 			CLI_AMI_TABLE_FIELD(Announce,		s,	8,	participant->playback_announcements ? "Yes" : "No")	\
 
-#include "sccp_cli_table.h"
+#include <sccp_cli_table.h>
 		conference = sccp_conference_release(conference);
 	} else {
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
