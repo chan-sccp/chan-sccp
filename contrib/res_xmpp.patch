@@ -1,7 +1,16 @@
 Index: res/res_xmpp.c
 ===================================================================
---- res/res_xmpp.c	(Revision 380153)
+--- res/res_xmpp.c	(Revision 380386)
 +++ res/res_xmpp.c	(Arbeitskopie)
+@@ -991,7 +991,7 @@
+ 	iks_insert_cdata(iks_insert(field_persist_items, "value"), "1", 1);
+ 	field_access_model = iks_insert(x, "field");
+ 	iks_insert_attrib(field_access_model, "var", "pubsub#access_model");
+-	iks_insert_cdata(iks_insert(field_access_model, "value"), "whitelist", 9);
++	iks_insert_cdata(iks_insert(field_access_model, "value"), "open", 4);
+ 	if (node_type && !strcasecmp(node_type, "leaf")) {
+ 		field_pubsub_collection = iks_insert(x, "field");
+ 		iks_insert_attrib(field_pubsub_collection, "var", "pubsub#collection");
 @@ -1151,7 +1151,7 @@
   * \return void
   */
@@ -56,7 +65,7 @@ Index: res/res_xmpp.c
  	int oldmsgs, newmsgs;
  	iks *item, *item_content;
  	struct ast_eid pubsub_eid;
-@@ -1331,12 +1346,20 @@
+@@ -1331,13 +1346,21 @@
  	}
  	if (!strcasecmp(iks_name(item_content), "state")) {
  		device_state = iks_find_cdata(item, "state");
@@ -70,10 +79,14 @@ Index: res/res_xmpp.c
  			sscanf(cachable_str, "%30d", &cachable);
  		}
  		if (!(event = ast_event_new(AST_EVENT_DEVICE_STATE_CHANGE,
- 					    AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, item_id, AST_EVENT_IE_STATE,
- 					    AST_EVENT_IE_PLTYPE_UINT, ast_devstate_val(device_state), AST_EVENT_IE_EID,
+-					    AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, item_id, AST_EVENT_IE_STATE,
+-					    AST_EVENT_IE_PLTYPE_UINT, ast_devstate_val(device_state), AST_EVENT_IE_EID,
+-					    AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
++					    AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, item_id, 
++					    AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, ast_devstate_val(device_state), 
++					    AST_EVENT_IE_EID, AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
 +					    AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, cidName, 
 +					    AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, cidNumber,
- 					    AST_EVENT_IE_PLTYPE_RAW, &pubsub_eid, sizeof(pubsub_eid),
  					    AST_EVENT_IE_END))) {
  			return IKS_FILTER_EAT;
+ 		}
