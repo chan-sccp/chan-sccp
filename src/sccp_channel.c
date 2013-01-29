@@ -1326,7 +1326,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		uint8_t numFoundCodecs = 1;
 		
 		/** we did not allow this codec in device prefence list, so do not use this as primary preferred codec */
-		if(!sccp_utils_isCodecCompatible(preferredCodec, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)){
+		if(!sccp_utils_isCodecCompatible(preferredCodec, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio)) ){
 			numFoundCodecs = 0;
 		}
 
