@@ -224,6 +224,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
  * \brief Convert an array of skinny_codecs (enum) to ast_codec_prefs
  *
  * \param skinny_codecs Array of Skinny Codecs
+ * \param astCodecPref Array of PBX Codec Preferences
  *
  * \return bit array fmt/Format of ast_format_type (int)
  *

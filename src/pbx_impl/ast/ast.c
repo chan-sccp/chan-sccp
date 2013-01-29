@@ -394,36 +394,28 @@ int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs)
 	return res_codec;
 }
 
+#if DEBUG
 /*!
  * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param ast_chan Asterisk Channel
+ *
+ * \param pbx_channel PBX Channel
+ * \param filename Debug Filename
+ * \param lineno Debug Line Number
+ * \param func Debug Function Name
  * \return SCCP Channel on Success or Null on Fail
- */
-
-/*
-sccp_channel_t *get_sccp_channel_from_pbx_channel(PBX_CHANNEL_TYPE * pbx_chan)
-{
-#ifndef CS_AST_HAS_TECH_PVT
-	if (!strncasecmp(ast_chan->type, "SCCP", 4)) {
-#else
-	if (!strncasecmp(ast_chan->tech->type, "SCCP", 4)) {
-#endif
-		return CS_AST_CHANNEL_PVT(ast_chan);
-	} else {
-		return NULL;
-	}
-}
-*/
-
-/*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param pbx_channel Asterisk Channel
- * \return SCCP Channel on Success or Null on Fail
+ *
  * \todo this code is not pbx independent
  */
-#if DEBUG
 sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel, const char *filename, int lineno, const char *func)
 #else
+/*!
+ * \brief Retrieve the SCCP Channel from an Asterisk Channel
+ *
+ * \param pbx_channel PBX Channel
+ * \return SCCP Channel on Success or Null on Fail
+ *
+ * \todo this code is not pbx independent
+ */
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel)
 #endif
 {
@@ -652,7 +644,7 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
  * \brief Turn on music on hold on a given channel 
  * \note replacement for ast_moh_start
  *
- * \param chan The channel structure that will get music on hold
+ * \param pbx_channel The channel structure that will get music on hold
  * \param mclass The class to use if the musicclass is not currently set on
  *               the channel structure.
  * \param interpclass The class to use if the musicclass is not currently set on

@@ -302,12 +302,8 @@ int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *inter
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data);
 const char *pbx_inet_ntoa(struct in_addr ia);
 
-//#if ASTERISK_VERSION_NUMBER >=10900
-//#    define ast_format_type struct ast_format
-//#else
 #    define ast_format_type int
 #    define pbx_format_type int
-//#endif
 
 skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt);
 ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
@@ -344,11 +340,6 @@ static void sccp_free_ptr(void *ptr)
 	sccp_free(ptr);
 }
 
-/*!
- * \brief Retrieve the SCCP Channel from an Asterisk Channel
- * \param ast_chan Asterisk Channel
- * \return SCCP Channel on Success or Null on Fail
- */
 #if DEBUG
 #define get_sccp_channel_from_pbx_channel(_x) __get_sccp_channel_from_pbx_channel(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel, const char *filename, int lineno, const char *func);

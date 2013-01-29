@@ -39,8 +39,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /*!
  * \brief Handle Alarm
- * \param s SCCP Session
- * \param d SCCP Device
+ * \param no_s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
  * \param r SCCP MOO
  */
 void sccp_handle_alarm(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
@@ -50,8 +50,8 @@ void sccp_handle_alarm(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t *
 
 /*!
  * \brief Handle Unknown Message
- * \param s SCCP Session
- * \param d SCCP Device
+ * \param no_s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
  * \param r SCCP Moo
  */
 void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
@@ -66,8 +66,8 @@ void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sc
 
 /*!
  * \brief Handle Unknown Message
- * \param s SCCP Session
- * \param d SCCP Device
+ * \param no_s SCCP Session = NULL
+ * \param no_d SCCP Device = NULL
  * \param r SCCP Moo
  */
 void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
@@ -142,7 +142,7 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param no_d SCCP Device = NULL
  * \param r SCCP Moo
  *
  * \callgraph
@@ -253,7 +253,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param no_d SCCP Device = NULL
  * \param r SCCP Moo
  *
  * \callgraph
@@ -2659,14 +2659,15 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", d->id, d->imageversion);
 }
 
+
+
+#define CALC_AVG(_newval, _mean, _numval) ( ( (_mean * (_numval) ) + _newval ) / (_numval + 1))
 /*!
  * \brief Handle Connection Statistics for Session
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
  */
-#define CALC_AVG(_newval, _mean, _numval) ( ( (_mean * (_numval) ) + _newval ) / (_numval + 1))
-
 void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 //      MOS LQK = Mean Opinion Score for listening Quality (5=Excellent -> 1=BAD)
