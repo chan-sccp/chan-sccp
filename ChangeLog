@@ -1,3 +1,210 @@
+2013-01-26  marcelloceschia
+
+	* [r4140] contrib/res_xmpp.patch[ADD]: add res_xmpp.patch
+
+2013-01-25  marcelloceschia
+
+	* [r4139] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: fixes compile issues with asterisk <
+	  11 do linkid changes
+
+	* [r4138] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: use linkedId for channel alloc
+
+	* [r4137] Makefile.in, aclocal.m4, autoconf/asterisk.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/chan_sccp.h, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_config_entries.h, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_management.c,
+	  src/sccp_pbx.c, src/sccp_pbx.h, src/sccp_protocol.c,
+	  src/sccp_softkeys.c: use linkedId for inbound, transfered and
+	  forwared calls
+
+2013-01-23  marcelloceschia
+
+	* [r4136] src/sccp_channel.c: do not use ulaw as fallback
+
+2013-01-20  marcelloceschia
+
+	* [r4135] src/pbx_impl/ast/astTrunk.c: display park position,
+	  closes #5
+
+	* [r4134] src/pbx_impl/ast/astTrunk.c: display park position
+
+2013-01-20  ddegroot
+
+	* [r4133] contrib/phone_screenshot/README[ADD]: Added readme file
+	  to phone_screenshot
+
+	* [r4132] src/conference/sccp_conference10.c: Check participant
+	  returned from sccp_conference_participant_findByPBXChannel before
+	  using it
+
+	* [r4131] src/sccp_pbx.c: Set initial value for extension_exists
+
+2013-01-20  marcelloceschia
+
+	* [r4130] src/pbx_impl/ast/astTrunk.c: this can resolve #5
+
+2013-01-19  ddegroot
+
+	* [r4129] contrib/phone_screenshot[ADD],
+	  contrib/phone_screenshot/phone_screenshot[ADD],
+	  contrib/phone_screenshot/scr2img[ADD]: Added screenshot get
+	  utility to contrib directory
+
+	* [r4128] src/conference/sccp_conference10.c: Fixed tiny debug log
+	  output spelling mistake
+
+	* [r4127] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/define.h: Redefined
+	  pbx_channel_ref/pbx_channel_unref for older asterisk version ->
+	  Fixing multiple warnings during compilation
+
+	* [r4126] ChangeLog, NEWS: Updated News/ChangeLog files to reflect
+	  current status of V4.1
+
+	* [r4125] conf/tftp/SEP0000000000.cnf.xml_797x_template: Update
+	  xml.cnf sample file with <callLogBlfEnabled>3</callLogBlfEnabled>
+
+2013-01-18  marcelloceschia
+
+	* [r4122] src/sccp_hint2.c: some test with hint2
+
+2013-01-16  ddegroot
+
+	* [r4118] src/sccp_socket.c: Removed FIONREAD before read, not
+	  being used anymore
+
+2013-01-16  marcelloceschia
+
+	* [r4117] src/sccp_socket.c: remove bytesAvailable
+
+	* [r4116] src/sccp_socket.c: fixes logic issue in read function
+
+2013-01-16  ddegroot
+
+	* [r4115] src/sccp_lock.h, src/sccp_refcount.c: Fixed
+	  sccp_refcount, when compiling with atomic functions
+
+2013-01-14  ddegroot
+
+	* [r4112] src/sccp_config.c: Added config parsing debug log line to
+	  sccp_config_object_setValue
+
+2013-01-13  marcelloceschia
+
+	* [r4111] src/sccp_socket.c: revert last changes
+
+	* [r4110] src/sccp_socket.c: fixes double socket cleanup
+
+	* [r4109] src/sccp_socket.c: use sccp_socket_stop_sessionthread in
+	  sccp_socket_device_thread_exit
+
+	* [r4108] src/pbx_impl/ast/astTrunk.c: remove double release device
+
+2013-01-12  marcelloceschia
+
+	* [r4107] src/pbx_impl/ast/astTrunk.c: reduce complexity of call
+	  parking in asterisk 11
+
+	* [r4106] src/sccp_softkeys.c: fix for RedialMenu, other way to
+	  handle speeddial button press
+
+	* [r4105] src/sccp_cli.c: resort output
+
+2013-01-12  ddegroot
+
+	* [r4104] src/pbx_impl/ast/ast108.h: Fix warning when compiling
+	  against asterisk-1.8
+
+	* [r4103] src/pbx_impl/ast/define.h: pbx_devstate_changed mapping
+	  to pbx call
+
+	* [r4102] src/pbx_impl/ast/define.h: pbx_devstate_changed mapping
+	  to pbx call
+
+	* [r4101] src/sccp_features.c: Fix rtp audio during grouppickup for
+	  asterisk-trunk (2)
+
+	* [r4100] src/sccp_channel.c, src/sccp_features.c: Fix rtp audio
+	  during grouppickup for asterisk-trunk
+
+	* [r4099] src/pbx_impl/ast/define.h, src/sccp_hint2.c: Added
+	  notifySubscribers shortcut to notifyPBX if devicestate is not
+	  changing and we do not need to notify asterisk
+
+2013-01-11  ddegroot
+
+	* [r4098] src/sccp_hint2.c: Added more models to
+	  sccp_hint_isCIDavailabe. Added/updated debug logging
+
+	* [r4097] src/sccp_actions.c: Comment out Remote RINGING + gpickup
+
+2013-01-11  marcelloceschia
+
+	* [r4096] src/pbx_impl/ast/astTrunk.c, src/sccp_channel.c: check
+	  for CS_SCCP_PICKUP
+
+	* [r4095] src/pbx_impl/ast/astTrunk.c: check for CS_SCCP_PICKUP
+
+2013-01-11  ddegroot
+
+	* [r4094] src/sccp_channel.c: Forgot the check the version number
+	  for ast_channel_callgroup_set
+
+	* [r4093] src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
+	  src/sccp_channel.c, src/sccp_features.c: Temporary fix gpickup
+	  for asterisk-11
+
+2013-01-11  marcelloceschia
+
+	* [r4092] src/pbx_impl/ast/astTrunk.c: apply ringinuse2busy.diff
+	  from pavel
+
+2013-01-10  ddegroot
+
+	* [r4091] src/pbx_impl/ast/astTrunk.c, src/sccp_features.c: Revert
+	  to old functionality
+
+	* [r4090] src/chan_sccp.h, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_channel.c, src/sccp_features.c: Pass along the linkedid.
+	  Fix grouppickup forceHangup.
+
+	* [r4089] src/sccp_cli.c: Added test message function for setting
+	  hint to specific value (testing SCCP/111#11)
+
+	* [r4088] src/sccp_lock.h, src/sccp_refcount.c: Revised
+	  sccp_refcount: replaced CAS32 with ATOMIC_INCR/ATOMIC_DECR. Added
+	  debug function which creates output in /tmp/sccp_refs when
+	  compiled with --enable-debug
+
+2013-01-10  marcelloceschia
+
+	* [r4087] src/sccp_hint2.c: use (line->channels.size > 1) to
+	  detemine shared line hint
+
+2013-01-09  ddegroot
+
+	* [r4086] src/sccp_pbx.c: Fix warning unused variable
+
+	* [r4085] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c: Set the linkedid on a newly
+	  allocated channel if we can find it in the channel->owner we are
+	  allocating for.
+
+	* [r4084] src/sccp_channel.c: Update sccp_channel_set_calledparty
+	  (Proposal)
+
+	* [r4083] src/sccp_pbx.c: Ran a couple of checks with
+	  (asterisks_astobj2) REF_DEBUG, and found the reason why
+	  ast_channel_unref during hangup would not work before. Added a
+	  remark to sccp_pbx.c to indicate this. Added a workaround for
+	  now.
+
 2013-01-08  ddegroot
 
 	* [r4082] src/sccp_actions.c: Reducing logging for

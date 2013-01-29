@@ -177,9 +177,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	sccp_mutex_init(&channel->lock);
 	sccp_mutex_lock(&channel->lock);
-#if DEBUG
-	channel = sccp_channel_retain(channel);
-#endif
 	pbx_cond_init(&channel->astStateCond, NULL);
 
 	/* this is for dialing scheduler */
@@ -222,9 +219,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
 	sccp_mutex_unlock(&channel->lock);
-#if DEBUG
-	sccp_channel_release(channel);
-#endif
 	return channel;
 }
 
