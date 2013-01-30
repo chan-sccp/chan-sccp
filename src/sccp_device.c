@@ -1565,19 +1565,16 @@ void *sccp_dev_postregistration(void *data)
 #    define ASTDB_RESULT_LEN 80
 #endif
 	char family[ASTDB_FAMILY_KEY_LEN];
-	char buffer[ASTDB_RESULT_LEN];
+	char buffer[ASTDB_RESULT_LEN] = {0};
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
 	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
 	sprintf(family, "SCCP/%s", d->id);
-	if (!PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer))) {
-		buffer[0] = '\0';
-	}
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: buffer='%s'\n", d->id, buffer);
-	if (sccp_config_parse_dnd(&d->dndFeature.status, sizeof(d->dndFeature.status), (const char *)buffer, SCCP_CONFIG_DEVICE_SEGMENT)) {
+	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+		sccp_config_parse_dnd(&d->dndFeature.status, sizeof(d->dndFeature.status), (const char *)buffer, SCCP_CONFIG_DEVICE_SEGMENT);
 		sccp_feat_changed(d, SCCP_FEATURE_DND);
 	}
-
+		
 	if (PBX(feature_getFromDatabase) (family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		d->privacyFeature.status = TRUE;
 		sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
