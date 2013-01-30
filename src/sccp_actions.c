@@ -1666,7 +1666,7 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_mo
 
 	uint8_t n = letohl(r->msg.CapabilitiesResMessage.lel_count);
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", d->id, n);
+	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", DEV_ID_LOG(d), n);
 	for (i = 0; i < n; i++) {
 		codec = letohl(r->msg.CapabilitiesResMessage.caps[i].lel_payloadCapability);
 		d->capabilities.audio[i] = codec;
@@ -1682,8 +1682,7 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	char cap_buf[512];
 
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "num of codecs %d\n", (int)ARRAY_LEN(d->capabilities.audio));
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: caps: %s\n", d->id, cap_buf);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_1 "%s: num of codecs %d, capabilities: %s\n", DEV_ID_LOG(d), (int)ARRAY_LEN(d->capabilities.audio), cap_buf);
 }
 
 /*!
