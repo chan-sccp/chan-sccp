@@ -4,6 +4,10 @@ ALTER TABLE `sccpdevice` ADD `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8" AFTER
 ALTER TABLE `sccpdevice` ADD `audio_cos` VARCHAR( 1 ) NULL DEFAULT "6" AFTER `audio_tos`;
 ALTER TABLE `sccpdevice` ADD `video_tos` VARCHAR( 11 ) NULL DEFAULT "0x88" AFTER `audio_cos`;
 ALTER TABLE `sccpdevice` ADD `video_cos` VARCHAR( 1 ) NULL DEFAULT "5" AFTER `video_tos`;
+ALTER TABLE `sccpdevice` ADD `conf_allow` varchar(3) default 'on' AFTER `video_cos`,
+ALTER TABLE `sccpdevice` ADD `conf_play_general_announce` varchar(3) default 'on' AFTER `conf_allow`,
+ALTER TABLE `sccpdevice` ADD `conf_play_part_announce` varchar(3) default 'on' AFTER `conf_play_general_announce`,   
+ALTER TABLE `sccpdevice` ADD `conf_mute_on_entry` varchar(3) default 'off' AFTER `conf_mute_on_entry`,
 ALTER TABLE `sccpdevice` REMOVE COLUMN `trustphoneip`;
 
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
