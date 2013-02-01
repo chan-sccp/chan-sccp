@@ -782,8 +782,9 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	struct pbx_context *con;
 	struct pbx_find_info q = {.stacklen = 0 };
 
-	if (sccp_strlen_zero(GLOB(regcontext)))
+	if (sccp_strlen_zero(GLOB(regcontext))) {
 		return;
+	}
 
 	sccp_copy_string(multi, S_OR(l->regexten, l->name), sizeof(multi));
 	stringp = multi;
@@ -806,6 +807,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 					sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
 				}
 
+				/* register extension + subscriptionId */
 /*				if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
 					snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
 					snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->name);
@@ -823,6 +825,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 					}
 				}
 
+				/* unregister extension + subscriptionId */
 /*				if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
 					snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
 //					if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
