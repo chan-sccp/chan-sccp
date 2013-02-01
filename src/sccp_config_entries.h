@@ -127,8 +127,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"amaflags", 			G_OBJ_REF(amaflags), 			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Sets the default AMA flag code stored in the CDR record\n"},
 	{"protocolversion", 		G_OBJ_REF(protocolversion), 		TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"20",				"skinny version protocol. (excluding 12-14)\n"},
 	{"callanswerorder", 		G_OBJ_REF(callanswerorder), 		TYPE_PARSER(sccp_config_parse_callanswerorder),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"oldestfirst",			"oldestfirst or lastestfirst\n"},
-	{"regcontext", 			G_OBJ_REF(regcontext), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccpregistration",		"SCCP Lines will we added to this context in asterisk for Dundi lookup purposes. \n"
-																																					"Don not set to a manually created context. The context will be autocreated. You can share the sip/iax context if you like.\n"},
+	{"regcontext", 			G_OBJ_REF(regcontext), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"",				"SCCP Lines will we added to this context in asterisk for Dundi lookup purposes. \n"
+																																					"Do not set to an already created/used context. The context will be autocreated. You can share the sip/iax regcontext if you like.\n"},
 #ifdef CS_SCCP_REALTIME
 	{"devicetable", 		G_OBJ_REF(realtimedevicetable), 	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccpdevice",			"datebasetable for devices\n"},
 	{"linetable", 			G_OBJ_REF(realtimelinetable), 		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccpline",			"datebasetable for lines\n"},
