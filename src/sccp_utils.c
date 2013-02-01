@@ -570,7 +570,7 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
 #else
 			c = sccp_channel_retain(c);
 #endif
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", c->currentDeviceId, c->callid);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel by callid: %u\n", c->currentDeviceId, c->callid);
 			break;
 		}
 	}
@@ -676,7 +676,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 #else
 				channel = sccp_channel_retain(channel);
 #endif
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%u)\n", channel->currentDeviceId, channel->callid);
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel for callid %u by passthrupartyid %d\n", channel->currentDeviceId, channel->callid, channel->passthrupartyid);
 				break;
 			}
 		}
@@ -797,7 +797,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 #else
 			channel = sccp_channel_retain(channel);
 #endif
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", channel->currentDeviceId, channel->callid);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel for callid %d by state %d\n", channel->currentDeviceId, channel->callid, channel->state);
 			break;
 		}
 	}
