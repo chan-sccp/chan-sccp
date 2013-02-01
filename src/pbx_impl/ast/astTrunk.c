@@ -2810,7 +2810,7 @@ static int load_module(void)
 	}
 #endif
 
-	//ast_rtp_glue_register(&sccp_rtp);
+	ast_rtp_glue_register(&sccp_rtp);
 	sccp_register_management();
 	sccp_register_cli();
 	sccp_register_dialplan_functions();

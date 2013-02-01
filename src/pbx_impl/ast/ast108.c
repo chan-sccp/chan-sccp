@@ -481,7 +481,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	res = (((c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: readStat: %d\n", DEV_ID_LOG(d), c->rtp.audio.readState);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: readState: %d\n", DEV_ID_LOG(d), c->rtp.audio.readState);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: res: %d\n", DEV_ID_LOG(d), res);
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: rtp?: %s\n", DEV_ID_LOG(d), (c->rtp.audio.rtp) ? "yes" : "no");
 
@@ -566,7 +566,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP:c->state: %d\n", c->state);
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT (AST_CONTROL_SRCUPDATE)\n");
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 			}
 			res = 0;
@@ -650,7 +650,11 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		 * -MC
 		 */
 			if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT\n");
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: force CONNECT (-1)\n");
+				if (c->rtp.audio.rtp) {
+					ast_rtp_instance_change_source(c->rtp.audio.rtp);
+					ast_rtp_instance_update_source(c->rtp.audio.rtp);
+				}
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 			}
 			res = -1;
@@ -1505,6 +1509,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk18_rtpBridge(PBX_CHANNEL_TYPE
 	/* \note temporarily marked out until we figure out how to get directrtp back on track - DdG */
 	sccp_channel_t *sc0, *sc1;
 
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "SCCP: Bridging chan %s and chan %s\n", c0->name, c1->name);
 	if ((sc0 = get_sccp_channel_from_pbx_channel(c0)) && (sc1 = get_sccp_channel_from_pbx_channel(c1))) {
 		// Switch off DTMF between SCCP phones
 		new_flags &= !AST_BRIDGE_DTMF_CHANNEL_0;
@@ -3095,7 +3100,7 @@ static int load_module(void)
 
 // 	ast_enable_distributed_devstate();
 
-	//ast_rtp_glue_register(&sccp_rtp);
+	ast_rtp_glue_register(&sccp_rtp);
 	sccp_register_management();
 	sccp_register_cli();
 	sccp_register_dialplan_functions();
