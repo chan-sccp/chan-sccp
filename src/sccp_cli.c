@@ -971,8 +971,8 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 												\
-		CLI_AMI_TABLE_FIELD(Device,		s,	15,	linedevice->device->id)					\
+#define CLI_AMI_TABLE_FIELDS 											\
+		CLI_AMI_TABLE_FIELD(Device,		s,	15,	linedevice->device->id)			\
 		CLI_AMI_TABLE_FIELD(CfwdType,		s,	8,	linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : ""))					\
 		CLI_AMI_TABLE_FIELD(CfwdNumber,		s,	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
 #include "sccp_cli_table.h"
@@ -982,9 +982,9 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_NAME Variables
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Variable
 #define CLI_AMI_TABLE_ITERATOR for(v = l->variables;v;v = v->next)
-#define CLI_AMI_TABLE_FIELDS 										\
-			CLI_AMI_TABLE_FIELD(Name,		s,	10,	v->name)				\
-			CLI_AMI_TABLE_FIELD(Value,		s,	17,	v->value)
+#define CLI_AMI_TABLE_FIELDS 											\
+			CLI_AMI_TABLE_FIELD(Name,		s,	15,	v->name)			\
+			CLI_AMI_TABLE_FIELD(Value,		s,	28,	v->value)
 #include "sccp_cli_table.h"
 	}
 	sccp_line_release(l);
