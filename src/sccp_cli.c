@@ -1223,6 +1223,7 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
 #    define NUM_LOOPS 20
 #    define NUM_OBJECTS 100
+#    ifdef CS_EXPERIMENTAL
 struct refcount_test {
 	int id;
 	int loop;
@@ -1280,7 +1281,6 @@ static void *sccp_cli_refcount_test_thread(void *data)
 
 	return NULL;
 }
-
 static void *sccp_cli_threadpool_test_thread(void *data)
 {
 	int loop;
@@ -1293,6 +1293,7 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	sccp_log(0)(VERBOSE_PREFIX_4 "Thread: %d Done\n",(unsigned int)pthread_self());
 	return 0;
 }
+#endif
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1310,6 +1311,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 	if (sccp_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
 
+#    ifdef CS_EXPERIMENTAL
 // OpenReceiveChannel TEST
 	if (!strcasecmp(argv[3], "openreceivechannel")) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
@@ -1357,7 +1359,6 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 // SpeedDialStatDynamicMessage = 0x0149,
-#    ifdef CS_EXPERIMENTAL
 	if (!strcasecmp(argv[3], "speeddialstatdynamic")) {
 		sccp_device_t *d = NULL;
 		sccp_buttonconfig_t *buttonconfig = NULL;
