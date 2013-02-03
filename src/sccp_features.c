@@ -182,7 +182,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 			/** we just opened a channel for cfwd, switch ss_action = SCCP_SS_GETFORWARDEXTEN */
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
+			sccp_dev_stoptone(device, linedevice->lineInstance, c->callid);
 
 		} else {
 			// other call in progress, put on hold
@@ -734,10 +734,12 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 
 	if (!sccp_strlen_zero(l->vmnum)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
-		sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		c = sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 	}
+	c = c ? sccp_channel_release(c) : NULL;
 	l = sccp_line_release(l);
 }
 
@@ -1416,13 +1418,14 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 			return;
 		}
 		sccp_pbx_senddigits(c, line->adhocNumber);
-		c = sccp_channel_release(c);
 	} else {
 		// Pull up a channel
 		if (GLOB(hotline)->line) {
-			sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			c = sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		}
 	}
+	
+	c = c ? sccp_channel_release(c) : NULL;
 }
 
 /*!

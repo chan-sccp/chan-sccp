@@ -2256,6 +2256,7 @@ CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregist
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
+	sccp_channel_t *channel = NULL;
 
 	sccp_line_t *line = NULL;
 
@@ -2287,9 +2288,12 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 	}
 
 	pbx_cli(fd, "Starting Call for Device: %s\n", argv[2]);
-	sccp_channel_newcall(line, d, argv[3], SKINNY_CALLTYPE_OUTBOUND, NULL);
+	channel = sccp_channel_newcall(line, d, argv[3], SKINNY_CALLTYPE_OUTBOUND, NULL);
+	
 	line = sccp_line_release(line);
 	d = sccp_device_release(d);
+	channel = channel ? sccp_channel_release(channel) : NULL;
+	
 	return RESULT_SUCCESS;
 }
 

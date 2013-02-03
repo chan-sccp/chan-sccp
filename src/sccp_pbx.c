@@ -439,7 +439,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 //      if (sccp_sched_add(0, sccp_channel_destroy_callback, c) < 0) {
 //              sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule destroy of channel %08X\n", c->callid);
 //      }
-	sccp_channel_destroy(c);
+
 
 	d = d ? sccp_device_release(d) : NULL;
 	l = l ? sccp_line_release(l) : NULL;
@@ -767,7 +767,7 @@ int sccp_pbx_sched_dial(const void *data)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
 		}
-		sccp_channel_release(c);
+		c = sccp_channel_release(c);
 	}
 	return 0;
 }
@@ -934,7 +934,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			}
 			sccp_channel_endcall(c);
 			goto EXIT_FUNC;										// leave simple switch without dial
-#        ifdef CS_SCCP_PICKUP
+#ifdef CS_SCCP_PICKUP
 		case SCCP_SS_GETPICKUPEXTEN:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);
 			// like we're dialing but we're not :)
@@ -954,7 +954,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_channel_endcall(c);
 			}
 			goto EXIT_FUNC;										// leave simpleswitch without dial
-#        endif									// CS_SCCP_PICKUP
+#endif									// CS_SCCP_PICKUP
 		case SCCP_SS_GETMEETMEROOM:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 			if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
@@ -1095,11 +1095,11 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				break;
 			default:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
-#        ifdef CS_MANAGER_EVENTS
+#ifdef CS_MANAGER_EVENTS
 				if (GLOB(callevents)) {
 					manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *)&c->callid : "(null)");
 				}
-#        endif
+#endif
 				break;
 		}
 	} else {

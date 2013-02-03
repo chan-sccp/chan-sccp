@@ -524,6 +524,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d;
 	sccp_line_t *line = NULL;
+	sccp_channel_t *channel = NULL;
 
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
@@ -551,10 +552,11 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *)number, SKINNY_CALLTYPE_OUTBOUND, NULL);
+	channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *)number, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	astman_send_ack(s, m, "Call Started");
 	line = sccp_line_release(line);
 	d = sccp_device_release(d);
+	channel = channel ? sccp_channel_release(channel) : NULL;
 	return 0;
 }
 

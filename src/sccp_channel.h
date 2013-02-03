@@ -52,7 +52,7 @@ void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedid);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_destroy(sccp_channel_t * c);
+// void sccp_channel_destroy(sccp_channel_t * c);
 
 //int sccp_channel_destroy_callback(const void *data);
 void sccp_channel_clean(sccp_channel_t * c);

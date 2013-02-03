@@ -167,7 +167,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	if (!private_data) {
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
-		sccp_channel_release(channel);
+		channel = sccp_channel_release(channel);
 		return NULL;
 	}
 	memset(private_data, 0, sizeof(struct sccp_private_channel_data));
@@ -450,17 +450,17 @@ sccp_channel_t *sccp_channel_get_active(const sccp_device_t * d)
 void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
 {
 	sccp_device_t *device = NULL;
+	
 	if ((device = sccp_device_retain(d))) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
 		if (device->active_channel) {
 			device->active_channel->line->statistic.numberOfActiveChannels--;
 			device->active_channel = sccp_channel_release(device->active_channel);
 		}
-		if (channel && (device->active_channel = sccp_channel_retain(channel))) {
+		if (channel) {
+			device->active_channel = sccp_channel_retain(channel);
 			sccp_channel_updateChannelDesignator(channel);
-			if (channel->line) {
-				sccp_dev_set_activeline(device, channel->line);
-			}
+			sccp_dev_set_activeline(device, channel->line);
 			device->active_channel->line->statistic.numberOfActiveChannels++;
 		}
 		device = sccp_device_release(device);
@@ -1367,7 +1367,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		} else {
 			sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 		}
-		sccp_linedevice_release(linedevice);
+		linedevice = sccp_linedevice_release(linedevice);
 	}
 
 	/* done */
@@ -1396,7 +1396,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 
 		sccp_indicate(non_const_device, channel, SCCP_CHANNELSTATE_CONNECTED);
-		sccp_device_release(non_const_device);
+		non_const_device = sccp_device_release(non_const_device);
 	}
 	l = l ? sccp_line_release(l) : NULL;
 }
@@ -1635,7 +1635,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Set calledPartyNumber '%s' calledPartyName '%s'\n", DEV_ID_LOG(d), channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName);
 			PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 		}
-		sccp_linedevice_release(linedevice);
+		linedevice = sccp_linedevice_release(linedevice);
 	}
 	/* */
 
@@ -1767,11 +1767,11 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
  * \lock
  * 	- channel
  */
-void sccp_channel_destroy(sccp_channel_t * channel)
-{
-	channel = sccp_channel_release(channel);
-	return;
-}
+// void sccp_channel_destroy(sccp_channel_t * channel)
+// {
+// 	channel = sccp_channel_release(channel);
+// 	return;
+// }
 
 /*!
  * \brief Handle Transfer Request (Pressing the Transfer Softkey)
@@ -2267,7 +2267,8 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", lineDevice->device->id, sccp_forwarding_channel->line->name);
 		sccp_line_removeChannel(sccp_forwarding_channel->line, sccp_forwarding_channel);
 		sccp_channel_clean(sccp_forwarding_channel);
-		sccp_channel_destroy(sccp_forwarding_channel);
+// 		sccp_channel_destroy(sccp_forwarding_channel);
+		
 		res = -1;
 		goto EXIT_FUNC;
 	}
@@ -2329,7 +2330,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
  EXIT_FUNC:
  	// should not be released, we are returning a newly created channel, masqueration and subsequent hangup will release it later on
-//	sccp_forwarding_channel = sccp_channel_release(sccp_forwarding_channel);
+	sccp_forwarding_channel = sccp_forwarding_channel ? sccp_channel_release(sccp_forwarding_channel) : NULL;
 	return res;
 }
 
@@ -2360,7 +2361,7 @@ void sccp_channel_park(sccp_channel_t * channel)
 		sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
 		sccp_dev_displaynotify(d, extstr, 10);
-		sccp_device_release(d);
+		d = sccp_device_release(d);
 	}
 }
 #endif
