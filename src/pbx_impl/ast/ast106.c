@@ -726,7 +726,7 @@ boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, PBX_
 	line = channel->line;
 
 	(*pbx_channel)->tech = &sccp_tech;
-	(*pbx_channel)->tech_pvt = channel;
+	(*pbx_channel)->tech_pvt = sccp_channel_retain(channel);
 
 	memset((*pbx_channel)->exten, 0, sizeof((*pbx_channel)->exten));
 
@@ -2153,7 +2153,7 @@ static const struct ast_pbx *sccp_wrapper_asterisk_get_channel_pbx(const sccp_ch
 static void sccp_wrapper_asterisk_set_channel_tech_pvt(const sccp_channel_t * channel)
 {
 	if (channel->owner) {
-		channel->owner->tech_pvt = (void *)channel;
+// 		channel->owner->tech_pvt = sccp_channel_retain((sccp_channel_t * )channel);
 	}
 }
 

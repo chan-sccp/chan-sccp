@@ -841,7 +841,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_
 	line = channel->line;
 
 	(*pbx_channel)->tech = &sccp_tech;
-	(*pbx_channel)->tech_pvt = channel;
+	(*pbx_channel)->tech_pvt = sccp_channel_retain(channel);
 
 	memset((*pbx_channel)->exten, 0, sizeof((*pbx_channel)->exten));
 
