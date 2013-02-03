@@ -558,7 +558,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 	} else {
 		sccp_device_t *d = NULL;
 
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Outgoing call has been answered %s on %s@%s-%08x\n", PBX(getChannelName) (c), c->line->name, c->currentDeviceId, c->callid);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered on %s@%s\n", c->currentDeviceId, PBX(getChannelName) (c), c->line->name, c->currentDeviceId);
 		sccp_channel_updateChannelCapability(c);
 
 		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
