@@ -444,7 +444,6 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 	return res;
 }
 
-#if ASTERISK_VERSION_GROUP >=112
 /*!
  * \brief Handle Group Pickup Feature
  * \param l SCCP Line
@@ -475,9 +474,10 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
 		return -1;
 	}
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) starting grouppickup\n", DEV_ID_LOG(d));
 
 	if (!l->pickupgroup) {
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
 		return -1;
 	}
 
@@ -486,158 +486,42 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	}
 
 	/* create channel for pickup */
-	if (!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) || pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
-		if ((c = sccp_channel_allocate(l, d))) {
-			c = sccp_channel_retain(c);
-			PBX(alloc_pbxChannel) (c, &target, NULL);
-		} else {
-			pbx_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-			c = sccp_channel_release(c);
-			return -1;
-		}
+	if ((c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) && !pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
+		target = c->owner;
 	} else {
+		/* emulate a new call so we end up in the same state as when a new call has been started */
+		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		target = c->owner;
 	}
+	/* prepare for call pickup */
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
-	c = ast_channel_tech_pvt(target);
+	c->answered_elsewhere=TRUE;
+	pbx_channel_set_hangupcause(target, AST_CAUSE_ANSWERED_ELSEWHERE);
+	c->state = SCCP_CHANNELSTATE_PROCEED;
+	
 	res = pbx_pickup_call(target);
 	if (!res) {
-		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) pickup succeeded on callid: %d\n", c->callid);
-		pbx_hangup(target);
-//		sccp_indicate(d, c, SCCP_CHANNELSTATE_OFFHOOK);
-		c->rtp.audio.rtp = NULL;							// somehow it is believed we already have c->rtp.audio.rtp ->causing segfault
-		sccp_channel_answer(d, c);
-//		d->state = SCCP_DEVICESTATE_OFFHOOK;
+		/* gpickup succeeded */
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
+		pbx_hangup(target);							/* target has been masqueraded out -> ZOMBIE*/
+		pbx_channel_set_hangupcause(target, AST_CAUSE_NORMAL_CLEARING);
+		
+		/* resume call */
+		/* this should not be necessary, need to figure this out why the channel is partially put on hold, when using gpickup & allready offhook */
+		sccp_channel_setDevice(c, d);
+		sccp_channel_resume(d,c,TRUE);
 	} else {
-		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) pickup failed (someone else might have picked it up already)\n");
+		/* call pickup failed, restore previous situation */	
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup failed (someone else might have picked it up already)\n", DEV_ID_LOG(d));
+		c->answered_elsewhere=FALSE;
+		pbx_channel_set_hangupcause(target, AST_CAUSE_CALL_REJECTED);
 		sccp_dev_displayprompt(d, 1, 0, "pickup failed", 5);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 1, 0, 3);
 	}
 	c = sccp_channel_release(c);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) end\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished (%d)\n", DEV_ID_LOG(d), res);
 	return res;
 }
-#else
-/*!
- * \brief Handle Group Pickup Feature
- * \param ast PBX Channel
- * \param data SCCP Line passed as void *pointer
- * \return Success as int
- *
- * \see static int find_channel_by_group(PBX_CHANNEL_TYPE *c, void *data) from features.c
- */
-static int pbx_find_channel_by_group(PBX_CHANNEL_TYPE * ast, void *data)
-{
-	sccp_line_t *line = data;
-	int res;
-
-	struct ast_str *callgroup_buf = pbx_str_alloca(256);
-	struct ast_str *pickupgroup_buf = pbx_str_alloca(256);
-
-	sccp_print_group(callgroup_buf, sizeof(callgroup_buf), pbx_channel_callgroup(ast));
-	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), line->pickupgroup);
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) callgroup=%s, pickupgroup=%s, state %d\n", pbx_channel_name(ast), callgroup_buf ? pbx_str_buffer(callgroup_buf) : "", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "", pbx_channel_state(ast));
-
-	res = !pbx_channel_pbx(ast) && 
-		((line->pickupgroup & pbx_channel_callgroup(ast)) || (line->pickupgroup == pbx_channel_callgroup(ast))) && 
-		((pbx_channel_state(ast) == AST_STATE_RINGING) || (pbx_channel_state(ast) == AST_STATE_RING)) && 
-		!pbx_test_flag(pbx_channel_flags(ast), AST_FLAG_ZOMBIE) && 
-		!pbx_channel_masq(ast);
-
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (pickup) res %d\n", pbx_channel_name(ast), res);
-
-	return res;
-}
-
-/*!
- * \brief Handle Group Pickup Feature
- * \param l SCCP Line
- * \param d SCCP Device
- * \return Success as int
- * 
- * \todo backport from trunk
- *
- * \lock
- * 	- asterisk channel
- * 	  - channel
- * 	    - see sccp_indicate_nolock()
- *	    - see sccp_device_find_index_for_line()
- *	    - see sccp_dev_stoptone()
- *	    - see sccp_dev_set_speaker()
- * 	    - device
- * 	    - see sccp_indicate_nolock()
- */
-int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
-{
-	int res = 0;
-	PBX_CHANNEL_TYPE *target = NULL;
-	PBX_CHANNEL_TYPE *original = NULL;
-	sccp_channel_t *c;
-
-	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
-		return -1;
-	}
-
-	if (!l->pickupgroup) {
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
-		return -1;
-	}
-
-	if (!PBX(feature_pickup)) {
-		pbx_log(LOG_ERROR, "%s: (grouppickup) Pickup feature not implemented\n", d->id);
-	}
-	target = PBX(findChannelByCallback) (pbx_find_channel_by_group, l, FALSE);
-	if (target) {
-		/* create channel for pickup */
-		if (!(c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) || pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
-			c = sccp_channel_allocate(l, d);
-			if (!c) {
-				pbx_log(LOG_ERROR, "%s: (grouppickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
-				pbx_channel_unlock(target);
-				return -1;
-			}
-
-			if (!sccp_pbx_channel_allocate(c, NULL)) {
-				pbx_log(LOG_WARNING, "%s: (grouppickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-				pbx_channel_unlock(target);
-				c = sccp_channel_release(c);
-				return res;
-			}
-			c->calltype = SKINNY_CALLTYPE_INBOUND;
-		}
-		/* done */
-
-		/* save original c->owner, to use after masquerade */
-		original = c->owner;
-		/* do pickup using pbx feature set */
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Pickup channel %p using sccp channel %p (%p)\n", d->id, target, c, c->owner);
-
-//		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);							// why do we need to use indicate in this case (DdG) ?
-		res = PBX(feature_pickup) (c, target);
-		pbx_channel_unlock(target);
-		if (!res) {
-			pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);			// better hangup cause (DdG)
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-		} else {
-			pbx_channel_set_hangupcause(original, AST_CAUSE_CALL_REJECTED);
-		}
-		sccp_channel_answer(d, c);
-		PBX(forceHangup) (original, PBX_HARD_HANGUP);							//! \todo using forceHangup, requestHangup should be fixed instead, but can't find right algorithm
-		target = pbx_channel_unref(target);
-//		c = sccp_channel_release(c);
-	} else {
-		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no channel to pickup\n");
-		sccp_dev_displayprompt(d, 1, 0, "No channel for group pickup", 5);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 1, 0, 3);
-	}
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) quit\n");
-	return res;
-}
-#endif		// ASTERISK_VERSION_GROUP
-
 #endif		// CS_SCCP_PICKUP
 
 /*!
