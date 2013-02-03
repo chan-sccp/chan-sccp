@@ -125,7 +125,10 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 #ifdef CS_SCCP_VIDEO
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_VIDEO;
 #endif
-	conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_SMART);
+	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be overly complex */
+	// conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_SMART);
+	conference->bridge = pbx_bridge_new(bridgeCapabilities, 0);
+	
 	conference->linkedid = PBX(getChannelLinkedId)(conferenceCreatorChannel);
 	/*
 	   pbx_bridge_set_internal_sample_rate(conference_bridge->bridge, auto);
