@@ -21,6 +21,7 @@ extern "C" {
 #include <asterisk/sched.h>
 #include <asterisk/netsock2.h>
 #include <asterisk/format.h>
+#include <asterisk/cel.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -2335,6 +2336,18 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRSET(macrocontext)
     DECLARE_PBX_CHANNEL_STRGET(call_forward)
 
+static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
+{
+	if (channel->owner) {
+	        if (!strcmp(channel->owner->linkedid, new_linkedid)) {
+	        	return;
+                }
+                ast_cel_check_retire_linkedid(channel->owner);
+                ast_string_field_set(channel->owner, linkedid, new_linkedid);
+                ast_cel_linkedid_ref(new_linkedid);
+	}
+};
+
 static void sccp_wrapper_asterisk_set_channel_name(const sccp_channel_t * channel, const char *new_name)
 {
 	if (channel->owner) {
@@ -2585,8 +2598,8 @@ sccp_pbx_cb sccp_pbx = {
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
 	getChannelByCallback:		NULL,
 
-	getChannelLinkedId:		sccp_wrapper_asterisk_get_linkedid,
-	setChannelLinkedId:		NULL,
+	getChannelLinkedId:		sccp_wrapper_asterisk_get_channel_linkedid,
+	setChannelLinkedId:		sccp_wrapper_asterisk_set_channel_linkedid,
 	getChannelName:			sccp_wrapper_asterisk_get_channel_name,
 	getChannelUniqueID:		sccp_wrapper_asterisk_get_channel_uniqueid,
 	getChannelExten:		sccp_wrapper_asterisk_get_channel_exten,
@@ -2696,7 +2709,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.getChannelByName 		= sccp_wrapper_asterisk110_getChannelByName,
 
 	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,
-	.setChannelLinkedId		= NULL,
+	.setChannelLinkedId		= sccp_wrapper_asterisk_set_channel_linkedid,
 	.getChannelName			= sccp_wrapper_asterisk_get_channel_name,
 	.setChannelName			= sccp_wrapper_asterisk_set_channel_name,
 	.getChannelUniqueID		= sccp_wrapper_asterisk_get_channel_uniqueid,
