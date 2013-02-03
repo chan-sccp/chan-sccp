@@ -2414,7 +2414,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 
 int sccp_channel_callwaiting_tone_interval(sccp_channel_t * c)
 {
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone ton channel %d\n", c ? c->callid : 0);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone on channel %d\n", c ? c->callid : 0);
 
 	if (!c || !c->line || !c->line->name) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid channel received to handle callwaiting tone\n");
