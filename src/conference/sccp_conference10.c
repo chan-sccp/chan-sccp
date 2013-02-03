@@ -117,19 +117,20 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	conference->id = conferenceID;
 	conference->finishing = FALSE;
 	conference->isLocked = FALSE;
+	conference->linkedid = PBX(getChannelLinkedId)(conferenceCreatorChannel);
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 
-	//      bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;
-	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;
-	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;
+//	bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;				/* bridge_multiplexed */
+	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;				/* bridge_softmix */
+	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;			/* bridge_softmix */
 #ifdef CS_SCCP_VIDEO
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_VIDEO;
 #endif
-	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be overly complex */
+	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be more complex then necessary*/
 	// conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_SMART);
+	// conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_DISSOLVE);
 	conference->bridge = pbx_bridge_new(bridgeCapabilities, 0);
-	
-	conference->linkedid = PBX(getChannelLinkedId)(conferenceCreatorChannel);
+
 	/*
 	   pbx_bridge_set_internal_sample_rate(conference_bridge->bridge, auto);
 	   pbx_bridge_set_mixing_interval(conference->bridge,40);
