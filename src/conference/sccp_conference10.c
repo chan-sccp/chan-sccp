@@ -345,6 +345,7 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 				participant = sccp_participant_release(participant);
 			}
 			d = d ? sccp_device_release(d) : NULL;
+			sccp_channel_release(channel);	/* release the moderator side */
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Conference is locked. Participant Denied.\n", conference->id);
