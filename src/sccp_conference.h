@@ -29,26 +29,22 @@ extern "C" {
 		ast_mutex_t lock;						/*!< mutex */
 		uint32_t id;							/*!< conference id */
 		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
-		int num_moderators;
-		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
-		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
+		int num_moderators;						/*!< Number of moderators for this conference */
 		boolean_t finishing;						/*!< Indicates the conference is closing down */
 		boolean_t isLocked;						/*!< Indicates that no new participants are allowed */
 		PBX_CHANNEL_TYPE *playback_channel;				/*!< Channel to playback sound file on */
-		ast_mutex_t playback_lock;
+		ast_mutex_t playback_lock;					/*!< Mutex Lock for playing back sound files */
 		char playback_language[SCCP_MAX_LANGUAGE];			/*!< Language to be used during playback */
 		boolean_t mute_on_entry;					/*!< Mute new participant when they enter the conference */
 		boolean_t playback_announcements;				/*!< general hear announcements */
+		const char *linkedid;						/*!< Conference LinkedId */
+
+		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
+		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
 		boolean_t pendingRemoval;					/*!< Pending Removal */
-
-		/* removal handling via cond_wait */
-//		ast_mutex_t cond_lock;						/*!< Pthread Condition Mutex */
-//		boolean_t removed;						/*!< Condition */
-//		ast_cond_t removed_cond_signal;					/*!< Pthread Condition Signal */
-
 		uint32_t id;							/*!< Numeric participant id. */
 		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
 		PBX_CHANNEL_TYPE *conferenceBridgePeer;				/*!< the asterisk channel which joins the conference bridge */
