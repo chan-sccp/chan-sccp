@@ -1440,7 +1440,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 	}
 	if (!strcasecmp(argv[3], "hint")) {
 		int state = (argc == 6) ? atoi(argv[5]) : 0;
-		ast_devstate_changed(state, "SCCP/%s", argv[4]);
+		pbx_devstate_changed(state, "SCCP/%s", argv[4]);
 		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[4], state);
 		return RESULT_SUCCESS;
 	}
