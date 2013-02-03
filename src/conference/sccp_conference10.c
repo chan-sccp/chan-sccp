@@ -39,6 +39,14 @@ sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_confere
 sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE * channel);
 
+/*!
+ * \brief
+ */
+void sccp_conference_module_start(void)
+{
+	SCCP_LIST_HEAD_INIT(&conferences);
+}
+
 /*
  * refcount destroy functions 
  */
@@ -353,30 +361,6 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 	}
 }
 
-// Added to resume after using the "JOIN" Button.
-/*
-   void sccp_conference_resume(sccp_conference_t * conference) {
-   sccp_conference_participant_t *participant = NULL;
-   sccp_device_t *d = NULL;
-
-   if (!conference) {
-   return;
-   }
-   SCCP_LIST_LOCK(&conference->participants);
-   SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
-   if (ast_test_flag(participant->conferenceBridgePeer, AST_FLAG_MOH)) {
-   if (participant->channel && (d = sccp_channel_getDevice_retained(participant->channel))) {
-   sccp_channel_resume(d, participant->channel, FALSE);
-   d = sccp_device_release(d);
-   } else {
-   PBX(queue_control) (participant->conferenceBridgePeer, AST_CONTROL_UNHOLD);
-   }
-   }
-
-   }
-   SCCP_LIST_UNLOCK(&conference->participants);
-   }
- */
 /*!
  * \brief Add both the channel->owner and the brige peer to the conference
  */
@@ -518,14 +502,6 @@ void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference,
 }
 
 /*!
- * \brief
- */
-void sccp_conference_module_start(void)
-{
-	SCCP_LIST_HEAD_INIT(&conferences);
-}
-
-/*!
  * \brief This function is called when the minimal number of occupants of a confernce is reached or when the last moderator hangs-up
  */
 void sccp_conference_end(sccp_conference_t * conference)
@@ -568,6 +544,41 @@ void sccp_conference_end(sccp_conference_t * conference)
 
 	conference = sccp_conference_release(conference);
 }
+
+void sccp_conference_hold(sccp_conference_t * conference) 
+{
+	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Putting conference on hold.\n", conference->id);
+}
+
+void sccp_conference_resume(sccp_conference_t * conference) 
+{
+	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Resuming conference.\n", conference->id);
+}
+
+// Added to resume after using the "JOIN" Button.
+/*
+   void sccp_conference_resume(sccp_conference_t * conference) {
+   sccp_conference_participant_t *participant = NULL;
+   sccp_device_t *d = NULL;
+
+   if (!conference) {
+   return;
+   }
+   SCCP_LIST_LOCK(&conference->participants);
+   SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+   if (ast_test_flag(participant->conferenceBridgePeer, AST_FLAG_MOH)) {
+   if (participant->channel && (d = sccp_channel_getDevice_retained(participant->channel))) {
+   sccp_channel_resume(d, participant->channel, FALSE);
+   d = sccp_device_release(d);
+   } else {
+   PBX(queue_control) (participant->conferenceBridgePeer, AST_CONTROL_UNHOLD);
+   }
+   }
+
+   }
+   SCCP_LIST_UNLOCK(&conference->participants);
+   }
+ */
 
 static int stream_and_wait(PBX_CHANNEL_TYPE * playback_channel, const char *filename, int say_number)
 {

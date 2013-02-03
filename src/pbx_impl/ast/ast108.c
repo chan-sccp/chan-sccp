@@ -878,7 +878,6 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_
 
 static boolean_t sccp_wrapper_asterisk18_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PBX_CHANNEL_TYPE * pbxTmpChannel)
 {
-	pbx_moh_stop(pbxChannel);
 	const char *context;
 	const char *exten;
 	int priority;

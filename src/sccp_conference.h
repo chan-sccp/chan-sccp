@@ -61,20 +61,17 @@ extern "C" {
 
 /* prototype definition */
 
+	void sccp_conference_module_start(void);
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
-//	void sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
-//	void sccp_conference_addModerator(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_resume(sccp_conference_t * conference);
 	void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
-	void sccp_conference_module_start(void);
 	void sccp_conference_end(sccp_conference_t * conference);
+	void sccp_conference_hold(sccp_conference_t * conference);
+	void sccp_conference_resume(sccp_conference_t * conference);
 	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * currentParticipantPeer);
-
-//	void sccp_conference_readFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
-//	void sccp_conference_writeFrame(PBX_FRAME_TYPE * frame, sccp_channel_t * channel);
 
 	/* conf list related */
 	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
