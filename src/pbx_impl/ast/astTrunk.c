@@ -792,7 +792,7 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 	line = channel->line;
 
 	ast_channel_tech_set((*pbx_channel), &sccp_tech);
-	ast_channel_tech_pvt_set((*pbx_channel), channel);
+	ast_channel_tech_pvt_set((*pbx_channel), sccp_channel_retain( channel) );
 	ast_channel_context_set(*pbx_channel, line->context);
 	ast_channel_exten_set(*pbx_channel, "");
 
@@ -909,11 +909,12 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		res = sccp_pbx_hangup(c);
 		c->owner = NULL;
 		if (0 == res) {
-			sccp_channel_release(c);
+			sccp_channel_release(c); //this only releases the get_sccp_channel_from_pbx_channel
 		}
 	}	//after this moment c might have gone already
 
 	ast_channel_tech_pvt_set(ast_channel, NULL);
+	c = c ? sccp_channel_release(c) : NULL;
 	if (channel_owner) {
 		channel_owner = ast_channel_unref(channel_owner);
 	}

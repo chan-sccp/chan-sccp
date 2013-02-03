@@ -843,6 +843,7 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		sccp_channel_release(c);
 	}
 	ast_channel->tech_pvt = NULL;
+	c = c ? sccp_channel_release(c) : NULL;
 	ast_channel = pbx_channel_unref(ast_channel);
 	return res;
 }

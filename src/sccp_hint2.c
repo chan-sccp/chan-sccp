@@ -967,7 +967,9 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	} else {
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 		pbx_event_t *event;
-		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE, 
+		event = pbx_event_new(
+// 				AST_EVENT_DEVICE_STATE_CHANGE,
+				AST_EVENT_DEVICE_STATE,
 				AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
 				AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState,
 				AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
@@ -1148,11 +1150,11 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							r->msg.CallInfoMessage.callingParty, r->msg.CallInfoMessage.calledParty
 						);
 					
-					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState);
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, state);
 					sccp_dev_send(d, r);
 				} 
 
-				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK) {
+				if (state == SCCP_CHANNELSTATE_ONHOOK) {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
 				} else {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);

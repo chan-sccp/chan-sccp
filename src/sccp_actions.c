@@ -1145,7 +1145,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 				}
 			} else {
 				if ((l = sccp_dev_get_activeline(d))) {
-					sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+					channel = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+					channel = channel ? sccp_channel_release(channel) : NULL;
 				}
 			}
 			break;
@@ -1186,10 +1187,14 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
 			}
 			if (!SCCP_RWLIST_GETSIZE(l->channels)) {
+				sccp_channel_t *tmpChannel = NULL;
+				
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 				sccp_dev_set_activeline(d, l);
 				sccp_dev_set_cplane(l, instance, d, 1);
-				sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				tmpChannel = tmpChannel ? sccp_channel_release(tmpChannel) : NULL;
+				
 			} else if ((sccp_channel_ringing = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
 				sccp_channel_answer(d, sccp_channel_ringing);
@@ -1378,7 +1383,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 				/*! \todo use feature map or sccp_feat_handle_directpickup */
 				if ((l = sccp_line_find_byid(d, d->defaultLineInstance))) {
 					//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
-					sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
+					channel = sccp_channel_newcall(l, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
+					channel = channel ? sccp_channel_release(channel) : NULL;
 				}
 				goto func_exit;
 			}
@@ -1390,7 +1396,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			if (al) {
 				/*! \todo use feature map or sccp_feat_handle_directpickup */
 				//sccp_feat_handle_directpickup(l, 1, d);
-				sccp_channel_newcall(al, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = sccp_channel_newcall(al, d, (char *)pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = channel ? sccp_channel_release(channel) : NULL;
 			}
 #endif
 			break;
@@ -1401,14 +1408,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	}
 
  func_exit:
-	if (channel)
-		sccp_channel_release(channel);
-
-	if (al)
-		sccp_line_release(al);
-
-	if (l)
-		sccp_line_release(l);
+	channel = channel ? sccp_channel_release(channel) : NULL;
+	al = al ? sccp_line_release(al) : NULL;
+	l = l ? sccp_line_release(l) : NULL;
 }
 
 /*!
@@ -1446,7 +1448,11 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			sccp_channel_hold(channel);
 
 			if ((l = sccp_dev_get_activeline(d))) {
-				sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			    
+				sccp_channel_t *tmpChannel = NULL;
+				tmpChannel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				tmpChannel = tmpChannel ? sccp_channel_release(tmpChannel) : NULL;
+				
 				l = sccp_line_release(l);
 			}
 			channel = sccp_channel_release(channel);
@@ -1491,7 +1497,8 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			l = sccp_dev_get_activeline(d);
 		}
 		if (l) {
-			sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			channel = channel ? sccp_channel_release(channel) : NULL;
 			l = sccp_line_release(l);
 		}
 	}
@@ -1545,7 +1552,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 //              if (channel->owner)
 //                      pbx_channel_unlock(channel->owner);
-		channel = sccp_channel_release(channel);
+
 	} else {
 		/* use default line if it is set */
 		if (d && d->defaultLineInstance > 0) {
@@ -1558,14 +1565,15 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 		if (l) {
 			if (!sccp_strlen_zero(l->adhocNumber)) {
-				sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 			} else {
 				/* make a new call with no number */
-				sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 			}
 			l = sccp_line_release(l);
 		}
 	}
+	channel = channel ? sccp_channel_release(channel) : NULL;
 }
 
 /*!
@@ -2085,14 +2093,14 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 				l = sccp_line_release(l);
 			}
 			if (!l) {
-				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
+				l = channel ? sccp_line_retain(channel->line) : NULL;
 			}
 		} else {
 			if (l) {
 				channel = sccp_find_channel_on_line_byid(l, callid);
 			} else {
 				channel = sccp_channel_find_byid(callid);
-				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
+				l = channel ? sccp_line_retain(channel->line) : NULL;
 			}
 		}
 	}
@@ -2383,7 +2391,6 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 		if (!softkeyMap_cb) {
 			pbx_log(LOG_WARNING, "Don't know how to handle keypress %d\n", event);
-			l = l ? sccp_line_release(l) : NULL;
 			break;
 		}
 		if (softkeyMap_cb->channelIsNecessary == TRUE && !c) {
@@ -2878,7 +2885,8 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 			// Pull up a channel
 			l = sccp_dev_get_activeline(d);
 			if (l) {
-				sccp_channel_newcall(l, d, r->msg.EnblocCallMessage.calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = sccp_channel_newcall(l, d, r->msg.EnblocCallMessage.calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = channel ? sccp_channel_release(channel) : NULL;
 				l = sccp_line_release(l);
 			}
 		}
