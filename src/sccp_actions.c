@@ -1531,7 +1531,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
 
-	/* checking for registerd lines */
+	/* checking for registered lines */
 	if (!d->configurationStatistic.numberOfLines) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", DEV_ID_LOG(s->device));
 		sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);

@@ -1277,16 +1277,18 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 	l = sccp_line_retain(channel->line);
 
-	/* channel was on hold, restore active -> inc. channelcount */
-	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-		channel->line->statistic.numberOfActiveChannels--;
-	}
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
 
 	if (!device) {
 		pbx_log(LOG_ERROR, "SCCP: Channel %d has no device\n", (channel ? channel->callid : 0));
 		if (l)
 			l = sccp_line_release(l);
 		return;
+	}
+
+	/* channel was on hold, restore active -> inc. channelcount */
+	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
+		channel->line->statistic.numberOfActiveChannels--;
 	}
 
 	/** check if we have preferences from channel request */
@@ -1334,7 +1336,6 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		sccp_channel_1 = sccp_channel_release(sccp_channel_1);
 	}
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer the channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
 
 	/* end callforwards */
 	sccp_channel_t *sccp_channel_2;
@@ -1386,7 +1387,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			pbx_clear_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH);
 		}
 #endif
-//              sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(channel->owner->_state), channel->owner->_state);
+                sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(pbx_channel_state(channel->owner)), pbx_channel_state(channel->owner));
 		PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);
 
 		if (channel->state != SCCP_CHANNELSTATE_OFFHOOK){
@@ -1398,6 +1399,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		sccp_indicate(non_const_device, channel, SCCP_CHANNELSTATE_CONNECTED);
 		non_const_device = sccp_device_release(non_const_device);
 	}
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answered channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
 	l = l ? sccp_line_release(l) : NULL;
 }
 
@@ -1430,7 +1432,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	}
 
 	if (!(d = sccp_channel_getDevice_retained(channel))) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has device attached to it\n", channel->callid);
+		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device attached to it\n", channel->callid);
 		return 0;
 	}
 
