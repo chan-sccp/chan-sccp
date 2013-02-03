@@ -20,6 +20,7 @@ extern "C" {
 #endif
 #include <asterisk/sched.h>
 #include <asterisk/netsock2.h>
+#include <asterisk/cel.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -2304,7 +2305,6 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRGET(exten)
     DECLARE_PBX_CHANNEL_STRSET(exten)
     DECLARE_PBX_CHANNEL_STRGET(linkedid)
-//DECLARE_PBX_CHANNEL_STRSET(linkedid)
     DECLARE_PBX_CHANNEL_STRGET(context)
     DECLARE_PBX_CHANNEL_STRSET(context)
     DECLARE_PBX_CHANNEL_STRGET(macroexten)
@@ -2313,6 +2313,18 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRSET(macrocontext)
     DECLARE_PBX_CHANNEL_STRGET(call_forward)
     DECLARE_PBX_CHANNEL_STRSET(call_forward)
+
+static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
+{
+	if (channel->owner) {
+	        if (!strcmp(ast_channel_linkedid(channel->owner), new_linkedid)) {
+	        	return;
+                }
+                ast_cel_check_retire_linkedid(channel->owner);
+                ast_channel_linkedid_set(channel->owner, new_linkedid);
+                ast_cel_linkedid_ref(new_linkedid);
+	}
+};
 
 static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
 {
@@ -2559,7 +2571,7 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelByCallback:		NULL,
 
 	getChannelLinkedId:		sccp_wrapper_asterisk_get_channel_linkedid,
-	setChannelLinkedId:		NULL,
+	setChannelLinkedId:		sccp_wrapper_asterisk_set_channel_linkedid,
 	getChannelName:			sccp_wrapper_asterisk_get_channel_name,
 	getChannelUniqueID:		sccp_wrapper_asterisk_get_channel_uniqueid,
 	getChannelExten:		sccp_wrapper_asterisk_get_channel_exten,
@@ -2669,7 +2681,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
 
 	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,
-	.setChannelLinkedId		= NULL,
+	.setChannelLinkedId		= sccp_wrapper_asterisk_set_channel_linkedid,
 	.getChannelName			= sccp_wrapper_asterisk_get_channel_name,
 	.setChannelName			= sccp_wrapper_asterisk_set_channel_name,
 	.getChannelUniqueID		= sccp_wrapper_asterisk_get_channel_uniqueid,
