@@ -380,7 +380,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio.rtp) {
 				sccp_channel_openreceivechannel(c);
 			}
-			PBX(set_callstate) (c, AST_STATE_DIALING);
+// 			PBX(set_callstate) (c, AST_STATE_DIALING);					/* do not send dialing state back to asterisk, this will prevent signalling connected state when pickup a parked call */
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 			sccp_channel_send_callinfo(d, c);
@@ -388,7 +388,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			//! remarked out for now.
 //              	if (SCCP_CHANNELSTATE_DIGITSFOLL != c->previousChannelState) {
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
-			PBX(set_callstate) (c, AST_STATE_DIALING);
+// 			PBX(set_callstate) (c, AST_STATE_DIALING);					/* do not send dialing state back to asterisk, this will prevent signalling connected state when pickup a parked call */
 //              	}
 			break;
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:								/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
