@@ -1441,6 +1441,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 		d = sccp_device_release(d);
 		return 0;
 	}
+	
 
 	/* put on hold an active call */
 	if (channel->state != SCCP_CHANNELSTATE_CONNECTED && channel->state != SCCP_CHANNELSTATE_PROCEED) {	// TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
@@ -1455,9 +1456,14 @@ int sccp_channel_hold(sccp_channel_t * channel)
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 
-	if (channel->owner)
-		PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
-
+	if (d->conference) {
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Putting conference on hold.\n", d->id);
+		sccp_conference_hold(d->conference);
+	} else {
+		if (channel->owner) {
+			PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
+		}	
+	}
 	sccp_rtp_stop(channel);
 	sccp_channel_set_active(d, NULL);
 	sccp_dev_set_activeline(d, NULL);
@@ -1554,12 +1560,6 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, channel->callid);
 	}
 
-#ifdef CS_SCCP_CONFERENCE
-	if (channel->conference) {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
-	}
-#endif	
-
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 
 	l = channel->line;
@@ -1575,10 +1575,18 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 #endif
 #endif	// ASTERISK_VERSION_GROUP >= 112
 
-	if (channel->owner){
-		PBX(queue_control) (channel->owner, AST_CONTROL_UNHOLD);
+#ifdef CS_SCCP_CONFERENCE
+	if (d->conference) {
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
+		sccp_conference_resume(d->conference);
+	} else {
+#endif	
+		if (channel->owner){
+			PBX(queue_control) (channel->owner, AST_CONTROL_UNHOLD);
+		}
+#ifdef CS_SCCP_CONFERENCE
 	}
-
+#endif
 	//! \todo move this to openreceive- and startmediatransmission
 	sccp_channel_updateChannelCapability(channel);
 //        sccp_rtp_createAudioServer(channel);
