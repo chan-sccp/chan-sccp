@@ -44,8 +44,9 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
  */
 static void __sccp_conference_destroy(sccp_conference_t * conference)
 {
-	if (!conference)
+	if (!conference) {
 		return;
+	}
 
 	if (conference->playback_channel) {
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference playback channel\n", conference->id);
@@ -125,7 +126,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_VIDEO;
 #endif
 	conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_SMART);
-
+	conference->linkedid = PBX(getChannelLinkedId)(conferenceCreatorChannel);
 	/*
 	   pbx_bridge_set_internal_sample_rate(conference_bridge->bridge, auto);
 	   pbx_bridge_set_mixing_interval(conference->bridge,40);
@@ -204,6 +205,7 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 				participant->features.mute = 1;
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
 			participant->bridge_channel = bridge_channel;
+			participant = sccp_participant_release(participant);
 		}
 	}
 }
@@ -327,6 +329,7 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 					participant->channel->conference = sccp_conference_retain(conference);
 					participant->channel->conference_id = conference->id;
 					participant->channel->conference_participant_id = participant->id;
+					PBX(setChannelLinkedId)(participant->channel, conference->linkedid);
 					sccp_conference_update_callInfo(participant);
 				}
 				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
@@ -404,6 +407,7 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 						moderator->channel->conference = sccp_conference_retain(conference);
 						moderator->channel->conference_id = conference->id;
 						moderator->channel->conference_participant_id = moderator->id;
+						PBX(setChannelLinkedId)(moderator->channel, conference->linkedid);
 						sccp_conference_update_callInfo(moderator);
 					}
 					sccp_copy_string(conference->playback_language, pbx_channel_language(moderator->conferenceBridgePeer), sizeof(conference->playback_language));
