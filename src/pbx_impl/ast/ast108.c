@@ -2641,6 +2641,11 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
+	if (!sccp_strequals(data, "http://") && !sccp_strequals(data, "file://") && !sccp_strequals(data, "ftp://")) {
+		pbx_log(LOG_NOTICE, "SCCP: Received a non valid URL\n");	
+		return -1;
+	}
+
 	struct ast_frame fr;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
