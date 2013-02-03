@@ -499,7 +499,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	pbx_channel_set_hangupcause(target, AST_CAUSE_ANSWERED_ELSEWHERE);
 	c->state = SCCP_CHANNELSTATE_PROCEED;
 	
-	res = pbx_pickup_call(target);
+	res = pbx_pickup_call(target);							/* Should be replaced with a PBX(feature_pickup) call */
 	if (!res) {
 		/* gpickup succeeded */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
