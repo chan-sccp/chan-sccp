@@ -20,7 +20,6 @@ extern "C" {
 #endif
 #include <asterisk/sched.h>
 #include <asterisk/netsock2.h>
-#include <asterisk/cel.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -552,38 +551,38 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
 				PBX_CHANNEL_TYPE *remotePeer;
 
-				for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
-					if (pbx_find_channel_by_linkid(remotePeer, (void *)ast_channel_linkedid(ast))) {
-						char buf[512];
-						sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
-
-						if (remoteSccpChannel) {
-							sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
-							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
-							uint8_t x, y, z;
-
-							z = 0;
-							for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
-								for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
-									if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
-										c->remoteCapabilities.audio[z++] = remoteSccpChannel->preferences.audio[x];
-										break;
-									}
-								}
-							}
-							remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
-						} else {
-							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
-							get_skinnyFormats(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-						}
-
-						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
-						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
-//						remotePeer = ast_channel_unref(remotePeer);	// no reference taken, should not release
-						break;
-					}
-
-				}
+// 				for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+// 					if (pbx_find_channel_by_linkid(remotePeer, (void *)ast_channel_linkedid(ast))) {
+// 						char buf[512];
+// 						sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
+// 
+// 						if (remoteSccpChannel) {
+// 							sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+// 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
+// 							uint8_t x, y, z;
+// 
+// 							z = 0;
+// 							for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
+// 								for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
+// 									if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
+// 										c->remoteCapabilities.audio[z++] = remoteSccpChannel->preferences.audio[x];
+// 										break;
+// 									}
+// 								}
+// 							}
+// 							remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
+// 						} else {
+// 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
+// 							get_skinnyFormats(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+// 						}
+// 
+// 						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+// 						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
+// //						remotePeer = ast_channel_unref(remotePeer);	// no reference taken, should not release
+// 						break;
+// 					}
+// 
+// 				}
 				ast_channel_iterator_destroy(iterator);
 			}
 			break;
@@ -898,7 +897,8 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 		ast_channel_zone_set((*pbx_channel), ast_get_indication_zone(line->language));			/* this will core asterisk on hangup */
 	}
 	ast_module_ref(ast_module_info->self);
-	channel->owner = ast_channel_ref((*pbx_channel));							/* DdG: if we don't unref on hangup, we should not be taking the reference either. It will hinder module unload ? */
+	channel->owner = *pbx_channel;
+// 	ast_channel_ref(channel->owner);							/* DdG: if we don't unref on hangup, we should not be taking the reference either. It will hinder module unload ? */
 
 	return TRUE;
 }
@@ -982,9 +982,10 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 
 	ast_channel_tech_pvt_set(ast_channel, NULL);
 	c = c ? sccp_channel_release(c) : NULL;
-	if (channel_owner) {
-		channel_owner = ast_channel_unref(channel_owner);
-	}
+	
+// 	if (channel_owner) {
+// 		channel_owner = ast_channel_unref(channel_owner);
+// 	}
 	ast_module_unref(ast_module_info->self);
 	return res;
 }
@@ -1090,13 +1091,14 @@ static boolean_t sccp_wrapper_asterisk111_pickupChannel(const sccp_channel_t * c
 	boolean_t result;
 	PBX_CHANNEL_TYPE *ref;
 
-	ref = ast_channel_ref(chan->owner);
+// 	ref = ast_channel_ref(chan->owner);
 	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
 	if (result){
-		((sccp_channel_t *)chan)->owner = ast_channel_ref(target);
+// 		((sccp_channel_t *)chan)->owner = ast_channel_ref(target);
+		((sccp_channel_t *)chan)->owner = target;
 		ast_hangup(ref);
 	}
-	ref = ast_channel_unref(chan->owner);
+// 	ref = ast_channel_unref(chan->owner);
 
 	return result;
 }
@@ -2250,6 +2252,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_findChannelWithCallback(int (*
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
+			ast_channel_unref(remotePeer);
 			break;
 		}
 
@@ -2372,6 +2375,7 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRGET(exten)
     DECLARE_PBX_CHANNEL_STRSET(exten)
     DECLARE_PBX_CHANNEL_STRGET(linkedid)
+//DECLARE_PBX_CHANNEL_STRSET(linkedid)
     DECLARE_PBX_CHANNEL_STRGET(context)
     DECLARE_PBX_CHANNEL_STRSET(context)
     DECLARE_PBX_CHANNEL_STRGET(macroexten)
@@ -2380,18 +2384,6 @@ DECLARE_PBX_CHANNEL_STRGET(name)
     DECLARE_PBX_CHANNEL_STRSET(macrocontext)
     DECLARE_PBX_CHANNEL_STRGET(call_forward)
     DECLARE_PBX_CHANNEL_STRSET(call_forward)
-
-static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
-{
-	if (channel->owner) {
-	        if (!strcmp(ast_channel_linkedid(channel->owner), new_linkedid)) {
-	        	return;
-                }
-                ast_cel_check_retire_linkedid(channel->owner);
-                ast_channel_linkedid_set(channel->owner, new_linkedid);
-                ast_cel_linkedid_ref(new_linkedid);
-	}
-};
 
 static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
 {
@@ -2420,10 +2412,6 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
-	if (!datalen || sccp_strlen_zero(data) || !(!strncmp(data, "http://", 7) || !strncmp(data, "file://", 7) || !strncmp(data, "ftp://",6))) {
-		pbx_log(LOG_NOTICE, "SCCP: Received a non valid URL\n");	
-		return -1;
-	}
 	struct ast_frame fr;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
@@ -2638,7 +2626,7 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelByCallback:		NULL,
 
 	getChannelLinkedId:		sccp_wrapper_asterisk_get_channel_linkedid,
-	setChannelLinkedId:		sccp_wrapper_asterisk_set_channel_linkedid,
+	setChannelLinkedId:		NULL,
 	getChannelName:			sccp_wrapper_asterisk_get_channel_name,
 	getChannelUniqueID:		sccp_wrapper_asterisk_get_channel_uniqueid,
 	getChannelExten:		sccp_wrapper_asterisk_get_channel_exten,
@@ -2748,7 +2736,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
 
 	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,
-	.setChannelLinkedId		= sccp_wrapper_asterisk_set_channel_linkedid,
+	.setChannelLinkedId		= NULL,
 	.getChannelName			= sccp_wrapper_asterisk_get_channel_name,
 	.setChannelName			= sccp_wrapper_asterisk_set_channel_name,
 	.getChannelUniqueID		= sccp_wrapper_asterisk_get_channel_uniqueid,
@@ -3044,6 +3032,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
+			ast_channel_unref(remotePeer);
 			break;
 		}
 
