@@ -1456,10 +1456,13 @@ int sccp_channel_hold(sccp_channel_t * channel)
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold the channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
 
+#ifdef CS_SCCP_CONFERENCE
 	if (d->conference) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Putting conference on hold.\n", d->id);
 		sccp_conference_hold(d->conference);
-	} else {
+	} else 
+#endif
+	{
 		if (channel->owner) {
 			PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
 		}	
