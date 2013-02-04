@@ -31,6 +31,7 @@ CREATE TABLE sccpdevice (
   conf_play_general_announce varchar(3) NULL default 'on',
   conf_play_part_announce varchar(3) NULL default 'on',   
   conf_mute_on_entry varchar(3) NULL default 'off',
+  conf_music_on_hold_class varchar(80) NULL default 'default',
   setvar varchar(100) default NULL,
   disallow varchar(15) default NULL,
   allow varchar(15) default NULL,

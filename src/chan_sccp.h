@@ -973,8 +973,6 @@ struct sccp_device {
 	boolean_t useRedialMenu;
 #endif
 
-#ifdef CS_SCCP_CONFERENCE
-#endif
 	struct {
 		char *action;
 		uint32_t appID;
@@ -1004,6 +1002,7 @@ struct sccp_device {
 	boolean_t conf_play_general_announce;									/*!< Playback General Announcements (Entering/Leaving) */
 	boolean_t conf_play_part_announce;									/*!< Playback Personal Announcements (You have been Kicked/You are muted) */
 	boolean_t conf_mute_on_entry;										/*!< Mute participants when they enter */
+	char conf_music_on_hold_class[SCCP_MAX_MUSICCLASS];							/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
 #endif
 };
 

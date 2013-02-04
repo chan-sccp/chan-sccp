@@ -18,10 +18,10 @@ context = sccp
 dateformat = D.M.Y					; M-D-Y in any order. Use M/D/YA (for 12h format)
 bindaddr = 0.0.0.0					; replace with the ip address of the asterisk server (RTP important param)
 port = 2000						; listen on port 2000 (Skinny, default)
-disallow=all						; First disallow all codecs
-allow=alaw						; Allow codecs in order of preference
-allow=ulaw						; 
-allow=g729						;
+disallow = all						; First disallow all codecs
+allow = alaw						; Allow codecs in order of preference
+allow = ulaw						; 
+allow = g729						;
 firstdigittimeout = 16					; dialing timeout for the 1st digit 
 digittimeout = 8					; more digits
 ;digittimeoutchar = #					; you can force the channel to dial with this char in the dialing state
@@ -33,13 +33,13 @@ remotehangup_tone = 0x32				; passive hangup notification. 0 for none
 transfer_tone = 0					; confirmation tone on transfer. Works only between SCCP devices
 callwaiting_tone = 0x2d					; sets to 0 to disable the callwaiting tone
 callwaiting_interval = 0				; Call waiting tone interval in seconds. Setting this to 0 = disables. Default is 0
-musicclass=default					; Sets the default music on hold class
-language=en						; Default language setting
-;callevents=no 						; generate manager events when phone 
+musicclass = default					; Sets the default music on hold class
+language = en						; Default language setting
+;callevents = no 						; generate manager events when phone 
 							; performs events (e.g. hold)
-;accountcode=skinny					; accountcode to ease billing
-deny=0.0.0.0/0.0.0.0					; Deny every address except for the only one allowed. 
-permit=192.168.1.0/255.255.255.0			; Accept class C 192.168.1.0
+;accountcode = skinny					; accountcode to ease billing
+deny = 0.0.0.0/0.0.0.0					; Deny every address except for the only one allowed. 
+permit = 192.168.1.0/255.255.255.0			; Accept class C 192.168.1.0
 							; You may have multiple rules for masking traffic.
 							; Rules are processed from the first to the last.
 							; This General rule is valid for all incoming connections. It's the 1st filter.
@@ -58,8 +58,8 @@ video_tos = 0x88					; sets the default video/rtp packets Type of Service (TOS) 
 video_cos = 5						; sets the default video/rtp packets Class of Service (COS)      (defaults to 5)
 echocancel = on						; sets the phone echocancel for all devices
 silencesuppression = off				; sets the silence suppression for all devices
-;callgroup=1,3-4					; We are in caller groups 1,3,4. Valid for all lines
-;pickupgroup=1,3-5					; We can do call pick-p for call group 1,3,4,5. Valid for all lines
+;callgroup = 1,3-4					; We are in caller groups 1,3,4. Valid for all lines
+;pickupgroup = 1,3-5					; We can do call pick-p for call group 1,3,4,5. Valid for all lines
 ;amaflags = 						; Sets the default AMA flag code stored in the CDR record
 ;earlyrtp = none					; valid options: none, offhook, dial, ringout. default is none.
 							; The audio strem will be open in the progress and connected state.
@@ -70,21 +70,21 @@ private = on						; permit the private function softkey
 ;cfwdall = off						; activate the callforward ALL stuff and softkeys
 ;cfwdbusy = off						; activate the callforward BUSY stuff and softkeys
 ;cfwdnoanswer = off					; activate the callforward NOANSWER stuff and softkeys
-;devicetable=sccpdevice					;datebasetable for devices
-;linetable=sccpline					;datebasetable for lines
-;nat=off						; Global NAT support (default Off)
-;directrtp=on						; This option allow devices to do direct RTP sessions (default Off)
-;allowoverlap=on 					; Enable overlap dialing support. (Default is off)
-callanswerorder=oldestfirst				; oldestfirst or lastestfirst
+;devicetable = sccpdevice					;datebasetable for devices
+;linetable = sccpline					;datebasetable for lines
+;nat = off						; Global NAT support (default Off)
+;directrtp = on						; This option allow devices to do direct RTP sessions (default Off)
+;allowoverlap = on 					; Enable overlap dialing support. (Default is off)
+callanswerorder = oldestfirst				; oldestfirst or lastestfirst
 meetme = on						; enable/disable conferencing via app_meetme (on/off)
 meetmeopts = qxd					; options to send the app_meetme application (default "qd" = quiet,dynamic pin)
 							; Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation
 regcontext = sccpregistration				; SCCP Lines will we added to this context in asterisk for Dundi lookup purposes
 
-fallback=false						; Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)
+fallback = false						; Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)
 							; Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)
-						        ; Value can be changed online via CLI/AMI command "fallback=[true/false]"
-backoff_time=60						; Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)
+						        ; Value can be changed online via CLI/AMI command "fallback = [true/false]"
+backoff_time = 60						; Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)
 
 ;------------------------------ JITTER BUFFER CONFIGURATION --------------------------
 jbenable = yes						; Enables the use of a jitterbuffer on the receiving side of a
@@ -125,9 +125,9 @@ jblog = no						; Enables jitterbuffer frame logging. Defaults to "no".
 ; to registered as a guest device. All such devices will register on a single shared line called "hotline".
 ; 
 ; For example:
-hotline_enabled=yes
-hotline_context=default
-hotline_extension=111
+hotline_enabled = yes
+hotline_context = default
+hotline_extension = 111
 
 ; New Device Template Method Analogous to standard Asterisk Templating Method
 [defaultdevice](!)					; default device template
@@ -146,11 +146,11 @@ pickupmodeanswer = on					; on = asterisk way, the call has been answered when p
 dtmfmode = inband					; inband or outofband. outofband is the native cisco dtmf tone play.
 							; Some phone model does not play dtmf tones while connected (bug?), so the default is inband
 imageversion = P00405000700				; useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)
-deny=0.0.0.0/0.0.0.0					; Same as general
-permit=192.168.1.0/255.255.255.0			; This device can register only using this ip address
+deny = 0.0.0.0/0.0.0.0					; Same as general
+permit = 192.168.1.0/255.255.255.0			; This device can register only using this ip address
 dndFeature = on						; allow/disallow usage of the dnd feature
-;nat=off							; Device NAT support (default Off)
-;directrtp=off 						; This option allow devices to do direct RTP sessions (default Off)								
+;nat = off							; Device NAT support (default Off)
+;directrtp = off 						; This option allow devices to do direct RTP sessions (default Off)								
 earlyrtp = none						; valid options: none, offhook, dial, ringout. default is none.
 							; The audio strem will be open in the progress and connected state.
 private = on						; permit the private function softkey for this device
@@ -163,7 +163,8 @@ conf_allow = yes					; Allow the use of conference
 conf_play_general_announce = yes			; Playback General Announcements, like Entering/Leaving the conference
 conf_play_part_announce = yes				; Playback Personal/Participant Announcements, like you have been muted
 conf_mute_on_entry = no					; Mute new participants from the start
-setvar=testvar=value
+conf_music_on_hold_class = default 			; Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played.
+setvar = testvar = value
 
 [7940](!,defaultdevice)					; add to default device template and create new template named 7940
 devicetype = 7940					; device type (see below)
@@ -212,13 +213,13 @@ description = Phone Number Two				; Give a description to the Phone (Displayed i
 							;   - Feature buttons have an on/off status represented on the device with a tick-box and can be used to set the device in a particular state. 
 							;     Option1 is the feature_name and option2 it's parameter. 
 							;     Currently Possible option1,option2 combinations:
-							;      - privacy,callpresent	= Make a private call, number is suppressed
-							;      - privacy,hint		= Make a private call, hint is suppressed
-							;      - cfwdall,number	= Forward all calls
-							;      - cfwbusy,number	= Forward on busy
-							;      - cfwnoaswer,number	= Forward on no-answer (not implemented yet)
-							;      - DND,busy		= Do-not-disturb, return Busy signal to Caller
-							;      - DND,silent		= Do-not-disturb, return nothing to caller
+							;      - privacy,callpresent	 =  Make a private call, number is suppressed
+							;      - privacy,hint		 =  Make a private call, hint is suppressed
+							;      - cfwdall,number	 =  Forward all calls
+							;      - cfwbusy,number	 =  Forward on busy
+							;      - cfwnoaswer,number	 =  Forward on no-answer (not implemented yet)
+							;      - DND,busy		 =  Do-not-disturb, return Busy signal to Caller
+							;      - DND,silent		 =  Do-not-disturb, return nothing to caller
 							; For example:
 button = line, 98021					; Line associated with this phone
 button = line, 98099@21: Phone2				; Assign Shared Line 98099 to Device
@@ -256,8 +257,8 @@ pickupcontext = sccp					; context where direct pickup search for extensions. if
 pickupmodeanswer = on					; on = asterisk way, the call has been answered when picked up
 dtmfmode = inband					; inband or outofband. outofband is the native cisco dtmf tone play.
 imageversion = P00405000700				; useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)
-deny=0.0.0.0/0.0.0.0					; Same as general
-permit=192.168.1.5/255.255.255.255			; This device can register only using this ip address
+deny = 0.0.0.0/0.0.0.0					; Same as general
+permit = 192.168.1.5/255.255.255.255			; This device can register only using this ip address
 dnd = on						; turn on the dnd softkey for this device. Valid values are "off", "on" (busy signal), "reject" (busy signal), "silent" (ringer = silent) or "user" (userdefined) to toggle on phone
 nat = on						; Device NAT support (default Off)
 directrtp = on						; This option allow devices to do direct RTP sessions (default Off)								
@@ -272,7 +273,7 @@ softkeyset = softkeyset					; use softkeyset with name softkeyset
 [defaultline](!)					; default template for lines
 type = line						; specifies that this template is for lines will be inherited
 context = sccp						; default asterisk context
-incominglimit = 2					; more than 2 incoming calls => device busy, returns busy signal.
+incominglimit = 2					; more than 2 incoming calls  = > device busy, returns busy signal.
 transfer = on						; per line transfer capability. on, off, 1, 0
 vmnum = 600						; speeddial for voicemail administration, just a number to dial
 meetme = on						; enable/disable conferencing via app_meetme (on/off)
@@ -283,8 +284,8 @@ meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_
 trnsfvm = 1000						; extension to redirect the caller (e.g for voicemail)
 secondary_dialtone_digits = 9				; digits for the secondary dialtone (max 9 digits)
 secondary_dialtone_tone = 0x22				; outside dialtone
-musicclass=default					; Sets the default music on hold class
-language=en						; Default language setting
+musicclass = default					; Sets the default music on hold class
+language = en						; Default language setting
 audio_tos = 0xB8					; sets the default audio/rtp packets Type of Service (TOS)       (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)
 							; Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none
 audio_cos = 6						; sets the default audio/rtp packets Class of Service (COS)      (defaults to 6)
@@ -301,15 +302,15 @@ description = Line 98011				; top diplay description
 mailbox = 10011						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = MY CID					; caller id name
 cid_num = 98011						; caller id number
-accountcode=79011					; accountcode to ease billing
-callgroup=1,3-4						; We are in caller groups 1,3,4. Valid for this line
-pickupgroup=1,3-5					; We can do call pick-p for call group 1,3,4,5. Valid for this line
+accountcode = 79011					; accountcode to ease billing
+callgroup = 1,3-4						; We are in caller groups 1,3,4. Valid for this line
+pickupgroup = 1,3-5					; We can do call pick-p for call group 1,3,4,5. Valid for this line
 ;amaflags = 						; Sets the default AMA flag code stored in the CDR record for this line
-meetme=on
-meetmeopts=qxd
+meetme = on
+meetmeopts = qxd
 regexten = 98011					; SCCP Lines will we added to the regcontext with this number for Dundi lookup purpose
 							; If regexten is not filled the line name (categoryname between []) will be used
-setvar=testvar2=my value
+setvar = testvar2 = my value
 
 [98012](defaultline)
 id = 1001						; future use
@@ -319,9 +320,9 @@ description = Line 98012				; top diplay description
 mailbox = 10012						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = MY LINE 2					; caller id name
 cid_num = 98012						; caller id number
-accountcode=79012					; accountcode to ease billing
-callgroup=1,4-9						; We are in caller groups 1,3,4. Valid for this line
-pickupgroup=1,3-9					; We can do call pick-p for call group 1,3,4,5. Valid for this line
+accountcode = 79012					; accountcode to ease billing
+callgroup = 1,4-9						; We are in caller groups 1,3,4. Valid for this line
+pickupgroup = 1,3-9					; We can do call pick-p for call group 1,3,4,5. Valid for this line
 echocancel = off					; sets the phone echocancel for this line (overwrite template)
 silencesuppression = on					; sets the silence suppression for this line (overwrite template)
 
@@ -333,10 +334,10 @@ description = Line 98021				; top diplay description
 mailbox = 10021						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = ME_ME_ME					; caller id name
 cid_num = 98021						; caller id number
-accountcode=79021					; accountcode to ease billing
-callgroup=1						; We are in caller groups 1,3,4. Valid for this line
-pickupgroup=1						; We can do call pick-p for call group 1,3,4,5. Valid for this line
-incominglimit = 1					; more than 1 incoming call => device busy, returns busy signal.
+accountcode = 79021					; accountcode to ease billing
+callgroup = 1						; We are in caller groups 1,3,4. Valid for this line
+pickupgroup = 1						; We can do call pick-p for call group 1,3,4,5. Valid for this line
+incominglimit = 1					; more than 1 incoming call  = > device busy, returns busy signal.
 adhocnumber = 98012					; Adhoc Number or Private-line automatic ringdown (PLAR): 
 							; Adhoc/PLAR circuits have statically configured endpoints and do 
 							; not require the user dialing to connect calls. 
@@ -355,7 +356,7 @@ mailbox = 10031						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = NONTEMPL					; caller id name
 cid_num = 98031						; caller id number
 context = sccp						; default asterisk context
-incominglimit = 2					; more than 2 incoming calls => device busy, returns busy signal.
+incominglimit = 2					; more than 2 incoming calls  = > device busy, returns busy signal.
 transfer = on						; per line transfer capability. on, off, 1, 0
 vmnum = 600						; speeddial for voicemail administration, just a number to dial
 meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_ROOM channel variable will
@@ -363,15 +364,15 @@ meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_
 trnsfvm = 1000						; extension to redirect the caller (e.g for voicemail)
 secondary_dialtone_digits = 9				; digits for the secondary dialtone (max 9 digits)
 secondary_dialtone_tone = 0x22				; outside dialtone
-musicclass=default					; Sets the default music on hold class
-language=en						; Default language setting
+musicclass = default					; Sets the default music on hold class
+language = en						; Default language setting
 echocancel = on						; sets the phone echocancel for this line
 silencesuppression = off				; sets the silence suppression for this line
-accountcode=79004					; accountcode to ease billing
-callgroup=2-4						; We are in caller groups 1,3,4. Valid for this line
-pickupgroup=2						; We can do call pick-p for call group 1,3,4,5. Valid for this line
+accountcode = 79004					; accountcode to ease billing
+callgroup = 2-4						; We are in caller groups 1,3,4. Valid for this line
+pickupgroup = 2						; We can do call pick-p for call group 1,3,4,5. Valid for this line
 ;amaflags = 						; Sets the default AMA flag code stored in the CDR record for this line
-setvar=testvar2=value
+setvar = testvar2 = value
 
 [98099]							; non templated sharedline
 type = line						; specifies that this template is for lines will be inherited
@@ -383,7 +384,7 @@ mailbox = 10099						; voicemail.conf (syntax: vmbox[@context][:folder])
 cid_name = Shared 99					; caller id name
 cid_num = 98099						; caller id number
 context = sccp						; default asterisk context
-incominglimit = 2					; more than 2 incoming calls => device busy, returns busy signal.
+incominglimit = 2					; more than 2 incoming calls  = > device busy, returns busy signal.
 transfer = on						; per line transfer capability. on, off, 1, 0
 vmnum = 600						; speeddial for voicemail administration, just a number to dial
 meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_ROOM channel variable will
@@ -391,17 +392,17 @@ meetmenum = 700						; this extension will receive meetme requests, SCCP_MEETME_
 trnsfvm = 1000						; extension to redirect the caller (e.g for voicemail)
 secondary_dialtone_digits = 9				; digits for the secondary dialtone (max 9 digits)
 secondary_dialtone_tone = 0x22				; outside dialtone
-musicclass=default					; Sets the default music on hold class
-language=en						; Default language setting
+musicclass = default					; Sets the default music on hold class
+language = en						; Default language setting
 echocancel = on						; sets the phone echocancel for this line
 silencesuppression = off				; sets the silence suppression for this line
-accountcode=79004					; accountcode to ease billing
-callgroup=2-4						; We are in caller groups 1,3,4. Valid for this line
-pickupgroup=2						; We can do call pick-p for call group 1,3,4,5. Valid for this line
+accountcode = 79004					; accountcode to ease billing
+callgroup = 2-4						; We are in caller groups 1,3,4. Valid for this line
+pickupgroup = 2						; We can do call pick-p for call group 1,3,4,5. Valid for this line
 ;amaflags = 						; Sets the default AMA flag code stored in the CDR record for this line
-defaultSubscriptionId_name=share			; Default name to be added to the extension (Shared Line Specific)
-defaultSubscriptionId_number=1				; Default number to be added to the extension (Shared Line Specific)
-setvar=testvar2=value
+defaultSubscriptionId_name = share			; Default name to be added to the extension (Shared Line Specific)
+defaultSubscriptionId_number = 1				; Default number to be added to the extension (Shared Line Specific)
+setvar = testvar2 = value
 
 
 ;-----------------------------------------------------------------------------------
@@ -414,7 +415,7 @@ setvar=testvar2=value
 ;idivert, resume, newcall, transfer, dirtrfr, answer, transvm, private, meetme, barge, cbarge, conf, back, join, empty, dial, vidmode
 
 [my_softkeyset]
-type=softkeyset
+type = softkeyset
 onhook          = redial,newcall,cfwdall,pickup,gpickup,dnd                       		; receiver on hook
 offhook         = redial,endcall,private,cfwdall,cfwdbusy,pickup,gpickup,meetme,barge           ; receiver off hook
 offhookfeat     = redial,endcall                                                                ; off hook with features
@@ -425,8 +426,8 @@ ringout         = empty,endcall,transfer,cfwdall,idivert                        
 connected       = hold,endcall,park,select,cfwdall,cfwdbusy,idivert,vidmode                     ; call connected
 onhold          = resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme        ; call on hold
 conntrans       = hold,endcall,transfer,conf,park,select,dirtrfr,meetme,cfwdall,cfwdbusy	; transferable connection
-connconf	= conflist,endcall,join,hold                                                    ; in conference
-onstealable	= redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt                             ; stealable call available on shared line
+connconf	 =  conflist,endcall,join,hold                                                    ; in conference
+onstealable	 =  redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt                             ; stealable call available on shared line
 
 
 
@@ -469,7 +470,7 @@ onstealable	= redial,newcall,cfwdall,pickup,gpickup,dnd,intrcpt                 
 ; cipc -- Cisco IP Communicator
 ; nokia-icc -- Nokias ICC Cisco client
 
-; addon types (a phone can have 2 addons maximum, in this case put 2 addon= lines)
+; addon types (a phone can have 2 addons maximum, in this case put 2 addon =  lines)
 7914    -- Cisco Unified IP Phone Expansion Module 7914 (14 buttons)
 7915-12 -- Cisco Unified IP Phone Expansion Module 7915 (6 real buttons = 12 virtual buttons)
 7915    -- Cisco Unified IP Phone Expansion Module 7915 (12 real buttons = 24 virtual buttons)

@@ -25,7 +25,6 @@
 #define sccp_participant_retain(x) 	(sccp_conference_participant_t *)sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 static int lastConferenceID = 99;
 static int lastParticipantID = 0;
 
@@ -38,6 +37,7 @@ sccp_conference_t *sccp_conference_findByID(uint32_t identifier);
 sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier);
 sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE * channel);
+void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start);
 
 /*!
  * \brief
@@ -79,7 +79,6 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 
 static void __sccp_conference_participant_destroy(sccp_conference_participant_t * participant)
 {
-
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying participant %d %p\n", participant->conference->id, participant->id, participant);
 
 	if (participant->isModerator && participant->conference) {
@@ -125,6 +124,7 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	conference->id = conferenceID;
 	conference->finishing = FALSE;
 	conference->isLocked = FALSE;
+	conference->isOnHold = FALSE;
 	conference->linkedid = PBX(getChannelLinkedId)(conferenceCreatorChannel);
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 
@@ -200,6 +200,7 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 	participant->conference = sccp_conference_retain(conference);
 	participant->conferenceBridgePeer = NULL;
 	participant->isModerator = moderator;
+	participant->onMusicOnHold = FALSE;
 
 	return participant;
 }
@@ -547,38 +548,45 @@ void sccp_conference_end(sccp_conference_t * conference)
 
 void sccp_conference_hold(sccp_conference_t * conference) 
 {
+	sccp_conference_participant_t *participant = NULL;	
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Putting conference on hold.\n", conference->id);
+	if (!conference) {
+		return;
+	}
+	
+	/* play music on hold to participants, if there is no moderator, currently active to the conference */
+	if (!conference->isOnHold && conference->num_moderators==1) {
+		SCCP_LIST_LOCK(&conference->participants);
+		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+			if (participant->isModerator == FALSE) {
+				sccp_conference_play_music_on_hold_to_participant (conference, participant, TRUE);
+			}
+		}	
+		SCCP_LIST_UNLOCK(&conference->participants);
+		conference->isOnHold=TRUE;
+	}
 }
 
 void sccp_conference_resume(sccp_conference_t * conference) 
 {
+	sccp_conference_participant_t *participant = NULL;	
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Resuming conference.\n", conference->id);
+	if (!conference) {
+		return;
+	}
+
+	/* stop play music on hold to participants. */
+	if (conference->isOnHold) {
+		SCCP_LIST_LOCK(&conference->participants);
+		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+			if (participant->isModerator == FALSE) {
+				sccp_conference_play_music_on_hold_to_participant (conference, participant, FALSE);
+			}
+		}	
+		SCCP_LIST_UNLOCK(&conference->participants);
+		conference->isOnHold=TRUE;
+	}
 }
-
-// Added to resume after using the "JOIN" Button.
-/*
-   void sccp_conference_resume(sccp_conference_t * conference) {
-   sccp_conference_participant_t *participant = NULL;
-   sccp_device_t *d = NULL;
-
-   if (!conference) {
-   return;
-   }
-   SCCP_LIST_LOCK(&conference->participants);
-   SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
-   if (ast_test_flag(participant->conferenceBridgePeer, AST_FLAG_MOH)) {
-   if (participant->channel && (d = sccp_channel_getDevice_retained(participant->channel))) {
-   sccp_channel_resume(d, participant->channel, FALSE);
-   d = sccp_device_release(d);
-   } else {
-   PBX(queue_control) (participant->conferenceBridgePeer, AST_CONTROL_UNHOLD);
-   }
-   }
-
-   }
-   SCCP_LIST_UNLOCK(&conference->participants);
-   }
- */
 
 static int stream_and_wait(PBX_CHANNEL_TYPE * playback_channel, const char *filename, int say_number)
 {
@@ -1033,27 +1041,61 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	sccp_device_t *d = NULL;
 
 	if (!participant->isMuted) {
-		participant->isMuted = 1;
-		participant->features.mute = 1;
-		playback_to_channel(participant, "conf-muted", -1);
 		if (participant->channel) {
 			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+				playback_to_channel(participant, "conf-muted", -1);
+				participant->isMuted = 1;
+				participant->features.mute = 1;
 				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 				sccp_dev_set_message(d, "muted", 5, FALSE, FALSE);
 				d = sccp_device_release(d);
 			}
 		}
 	} else {
-		participant->isMuted = 0;
-		participant->features.mute = 0;
-		playback_to_channel(participant, "conf-unmuted", -1);
 		if (participant->channel) {
 			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+				playback_to_channel(participant, "conf-unmuted", -1);
 				sccp_dev_set_microphone(d, SKINNY_STATIONMIC_ON);
 				sccp_dev_set_message(d, "unmuted", 5, FALSE, FALSE);
+				participant->isMuted = 0;
+				participant->features.mute = 0;
 				d = sccp_device_release(d);
 			}
 		}
+	}
+	sccp_conference_update_conflist(conference);
+}
+
+void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start)
+{
+	sccp_device_t *d = NULL;	
+	if (!participant->channel) {
+		return;	
+	}
+	if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+		if (start) {
+			if (participant->onMusicOnHold == FALSE) {
+				if (!sccp_strlen_zero(d->conf_music_on_hold_class)) {
+					ast_moh_start(participant->conferenceBridgePeer, d->conf_music_on_hold_class, NULL);
+					participant->onMusicOnHold = TRUE;
+				} else {
+					sccp_conference_toggle_mute_participant(conference, participant);
+				}
+			}		
+		} else {		
+			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
+				if (!sccp_strlen_zero(d->conf_music_on_hold_class)) {
+					if (!ast_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
+						ast_moh_stop(participant->conferenceBridgePeer);
+						ast_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
+						participant->onMusicOnHold = FALSE;
+					}
+				} else {
+					sccp_conference_toggle_mute_participant(conference, participant);
+				}
+			}	
+		}
+		d = sccp_device_release(d);
 	}
 	sccp_conference_update_conflist(conference);
 }
