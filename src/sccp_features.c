@@ -787,7 +787,7 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
  */
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
-#if CS_SCCP_CONFERENCE)
+#if CS_SCCP_CONFERENCE
 	if (!c)
 		return;		
 
