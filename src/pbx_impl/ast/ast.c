@@ -653,14 +653,22 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
  * \retval Zero on success
  * \retval non-zero on failure
  */
-int sccp_asterisk_moh_start(const PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char *interpclass)
+int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char *interpclass)
 {
-	return ast_moh_start((PBX_CHANNEL_TYPE *) pbx_channel, mclass, interpclass);
+	if (!ast_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
+		pbx_set_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
+		return ast_moh_start((PBX_CHANNEL_TYPE *) pbx_channel, mclass, interpclass);
+	} else {
+		return 0;
+	}
 }
 
-void sccp_asterisk_moh_stop(const PBX_CHANNEL_TYPE * pbx_channel)
+void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 {
-	ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
+	if (ast_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
+		pbx_clear_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
+		ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
+	} 
 }
 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;

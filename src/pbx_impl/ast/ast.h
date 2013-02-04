@@ -15,10 +15,6 @@
 #    define __SCCP_PBX_WRAPPER_H
 #    include "../../common.h"
 
-#if CS_REFCOUNT_DEBUG
-#define REF_DEBUG 1
-#endif
-
 #    if ASTERISK_VERSION_NUMBER >= 10400
 #        include <asterisk.h>
 #        include <asterisk/abstract_jb.h>
@@ -358,7 +354,7 @@ boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key);
 boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key);
 /***** end - database *****/
 
-int sccp_asterisk_moh_start(const PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass);
-void sccp_asterisk_moh_stop(const PBX_CHANNEL_TYPE * pbx_channel);
+int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass);
+void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel);
 #endif
 

@@ -1076,8 +1076,9 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
 		if (start) {
 			if (participant->onMusicOnHold == FALSE) {
 				if (!sccp_strlen_zero(d->conf_music_on_hold_class)) {
-					ast_moh_start(participant->conferenceBridgePeer, d->conf_music_on_hold_class, NULL);
+					PBX(moh_start)(participant->conferenceBridgePeer, d->conf_music_on_hold_class, NULL);
 					participant->onMusicOnHold = TRUE;
+//					pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
 				} else {
 					sccp_conference_toggle_mute_participant(conference, participant);
 				}
@@ -1086,7 +1087,8 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
 			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
 				if (!sccp_strlen_zero(d->conf_music_on_hold_class)) {
 					if (!ast_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
-						ast_moh_stop(participant->conferenceBridgePeer);
+						PBX(moh_stop)(participant->conferenceBridgePeer);
+//						pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
 						ast_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
 						participant->onMusicOnHold = FALSE;
 					}
