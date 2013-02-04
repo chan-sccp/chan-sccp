@@ -455,7 +455,7 @@ static void sccp_wrapper_asterisk111_connectedline(sccp_channel_t * channel, con
 
 
 
-static void sccp_wrapper_asterisk111_redeirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
+static void sccp_wrapper_asterisk111_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 
@@ -645,7 +645,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 		
 		case AST_CONTROL_REDIRECTING:
-			sccp_wrapper_asterisk111_redeirectedUpdate(c, data, datalen);
+			sccp_wrapper_asterisk111_redirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
 
 			res = 0;
