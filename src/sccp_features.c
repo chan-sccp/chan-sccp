@@ -770,9 +770,8 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 	}
 	d = d ? sccp_device_release(d) : NULL;
 #else
-	/* sorry but this is private code -FS */
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: conference not enabled\n", DEV_ID_LOG(d));
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
 }
 
@@ -795,22 +794,17 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 		if (!d->allow_conference) {
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
-		} else {	
-			if (d->conference <= 0) {
-				pbx_log(LOG_NOTICE, "%s: There is currently no active conference on this device. Start Conference First.\n", DEV_ID_LOG(d));
-				sccp_dev_displayprompt(d, lineInstance, c->callid, "No Running Conference", 5);
-			} else {
-				if (d->active_channel) {
-					pbx_log(LOG_NOTICE, "%s: Adding participant '%d' to conference %d.\n", DEV_ID_LOG(d), d->active_channel->callid, d->conference->id);
-					// Resume call on hold before moving it in to the conference, to bind the remote channels device
-					sccp_channel_resume(d, c, FALSE);
-					sccp_conference_splitOffParticipant(d->conference, d->active_channel);
-				} else {
-					pbx_log(LOG_NOTICE, "%s: No active channel on device to join to the conference.\n", DEV_ID_LOG(d));
-					sccp_dev_displayprompt(d, lineInstance, c->callid, "No Active Channel", 5);
-				}
-			}
-			// Resume conference does not work correctly, 1str Remote Party still onhold, needs to be solved.
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "conference not allowed", 5);
+		} else if (!d->conference) {
+			pbx_log(LOG_NOTICE, "%s: There is currently no active conference on this device. Start Conference First.\n", DEV_ID_LOG(d));
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "No Running Conference", 5);
+		} else if (!d->active_channel) {
+			pbx_log(LOG_NOTICE, "%s: No active channel on device to join to the conference.\n", DEV_ID_LOG(d));
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "No Active Channel", 5);
+		} else {
+			pbx_log(LOG_NOTICE, "%s: Adding participant '%d' to conference %d.\n", DEV_ID_LOG(d), d->active_channel->callid, d->conference->id);
+			sccp_conference_splitOffParticipant(d->conference, d->active_channel);
+			/* Resume conference */
 			sccp_channel_t *channel = NULL;
 			sccp_line_t *line = NULL;
 			uint8_t i = 0;
@@ -832,9 +826,8 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 		d = sccp_device_release(d);
 	}
 #else
-	/* sorry but this is private code -FS */
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
 }
 
