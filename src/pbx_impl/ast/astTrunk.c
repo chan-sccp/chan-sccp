@@ -579,21 +579,15 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 			/* when the bridged channel hold/unhold the call we are notified here */
 		case AST_CONTROL_HOLD:
-			if (!pbx_test_flag(pbx_channel_flags(ast), AST_FLAG_MOH)) {
-				sccp_asterisk_moh_start(ast, (const char *)data, c->musicclass);
-				pbx_set_flag(pbx_channel_flags(ast), AST_FLAG_MOH);
-			}
+			sccp_asterisk_moh_start(ast, (const char *)data, c->musicclass);
 			res = 0;
 			break;
 		case AST_CONTROL_UNHOLD:
-			if (pbx_test_flag(pbx_channel_flags(ast), AST_FLAG_MOH)) {
-				sccp_asterisk_moh_stop(ast);
-				pbx_clear_flag(pbx_channel_flags(ast), AST_FLAG_MOH);
-			}
+			sccp_asterisk_moh_stop(ast);
 
-			if (c->rtp.audio.rtp)
+			if (c->rtp.audio.rtp) {
 				ast_rtp_instance_update_source(c->rtp.audio.rtp);
-
+			}	
 			res = 0;
 			break;
 
@@ -1087,7 +1081,11 @@ static sccp_extension_status_t sccp_wrapper_asterisk111_extensionStatus(const sc
 	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel_context(pbx_channel), channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_matchmore = ast_matchmore_extension(pbx_channel, pbx_channel_context(pbx_channel), channel->dialedNumber, 1, channel->line->cid_num);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: extension helper says that:\n" "ignore pattern  : %d\n" "exten_exists    : %d\n" "exten_canmatch  : %d\n" "exten_matchmore : %d\n", ignore_pat, ext_exist, ext_canmatch, ext_matchmore);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "+=sccp extension matcher says==================+\n" 
+				   VERBOSE_PREFIX_2 "|ignore     |exists     |can match  |match more|\n"
+				   VERBOSE_PREFIX_2 "|%3s        |%3s        |%3s        |%3s       |\n"
+				   VERBOSE_PREFIX_2 "+==============================================+\n", ignore_pat ? "yes" : "no", ext_exist ? "yes" : "no", ext_canmatch ? "yes" : "no", ext_matchmore ? "yes" : "no"
+				);
 	if (ignore_pat) {
 		return SCCP_EXTENSION_NOTEXISTS;
 	} else if (ext_exist) {

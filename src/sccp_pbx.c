@@ -797,11 +797,11 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		if ((d = sccp_channel_getDevice_retained(c))) {
 			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))
 			    && ((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches more\n", c->dialedNumber);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches More\n", c->dialedNumber);
 				d = sccp_device_release(d);
 				return SCCP_EXTENSION_MATCHMORE;
 			}
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Match %s\n", c->dialedNumber, extensionStatus == SCCP_EXTENSION_EXACTMATCH ? "Exact" : "More");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Match %s\n", c->dialedNumber, extensionStatus == SCCP_EXTENSION_EXACTMATCH ? "Exactly" : "More");
 			d = sccp_device_release(d);
 		}
 		return extensionStatus;
