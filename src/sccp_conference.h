@@ -32,6 +32,7 @@ extern "C" {
 		int num_moderators;						/*!< Number of moderators for this conference */
 		boolean_t finishing;						/*!< Indicates the conference is closing down */
 		boolean_t isLocked;						/*!< Indicates that no new participants are allowed */
+		boolean_t isOnHold;
 		PBX_CHANNEL_TYPE *playback_channel;				/*!< Channel to playback sound file on */
 		ast_mutex_t playback_lock;					/*!< Mutex Lock for playing back sound files */
 		char playback_language[SCCP_MAX_LANGUAGE];			/*!< Language to be used during playback */
@@ -54,6 +55,7 @@ extern "C" {
 		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
 		boolean_t isModerator;
 		boolean_t isMuted;						/*!< Participant is Muted */
+		boolean_t onMusicOnHold;					/*!< Participant is listening to Music on Hold */
 		boolean_t playback_announcements;				/*!< Does the Participant want to hear announcements */
 
 		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
