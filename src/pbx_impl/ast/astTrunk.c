@@ -407,8 +407,9 @@ static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 {
 	const char *linkedId = (char *)data;
 
-	if (!data)
+	if (!linkedId) {
 		return 0;
+	}
 
 	return !pbx_channel_pbx(ast) && ast_channel_linkedid(ast) && (!strcasecmp(ast_channel_linkedid(ast), linkedId)) && !pbx_channel_masq(ast);
 }
@@ -456,27 +457,20 @@ static void sccp_wrapper_asterisk111_connectedline(sccp_channel_t * channel, con
 
 
 
-static void sccp_wrapper_asterisk111_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
+static void sccp_wrapper_asterisk111_redeirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 
 
-	const struct ast_party_redirecting *ast_redirecting;
-	
-	
-	
-	
 	struct ast_party_id redirecting_from = ast_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = ast_channel_redirecting_effective_to(ast);
-	struct ast_party_id redirecting_orig = ast_channel_redirecting_effective_orig(ast);
+
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>\n", pbx_channel_name(ast), 
 				  redirecting_from.name.valid ? redirecting_from.name.str : "", 
 				  redirecting_from.number.valid ? redirecting_from.number.str : ""
  				);
 
-	ast_redirecting = ast_channel_redirecting(ast);
-	
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 	  
 		if(redirecting_from.name.valid || redirecting_from.number.valid ){
@@ -544,6 +538,44 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				
+				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
+
+				((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
+				/*! \todo handle multiple remotePeers i.e. DIAL(SCCP/400&SIP/300), find smallest common codecs, what order to use ? */
+				PBX_CHANNEL_TYPE *remotePeer;
+				
+				for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
+					if (pbx_find_channel_by_linkid(remotePeer, (void *)ast_channel_linkedid(ast))) {
+						char buf[512];
+						sccp_channel_t *remoteSccpChannel = get_sccp_channel_from_pbx_channel(remotePeer);
+
+						if (remoteSccpChannel) {
+							sccp_multiple_codecs2str(buf, sizeof(buf) - 1, remoteSccpChannel->preferences.audio, ARRAY_LEN(remoteSccpChannel->preferences.audio));
+							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote preferences: %s\n", buf);
+							uint8_t x, y, z;
+
+							z = 0;
+							for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.audio[x] != 0; x++) {
+								for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.audio[y] != 0; y++) {
+									if (remoteSccpChannel->preferences.audio[x] == remoteSccpChannel->capabilities.audio[y]) {
+										c->remoteCapabilities.audio[z++] = remoteSccpChannel->preferences.audio[x];
+									}
+								}
+							}
+							remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
+						} else {
+							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
+							get_skinnyFormats(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+						}
+
+						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+						sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote caps: %s\n", buf);
+						ast_channel_unref(remotePeer);
+						break;
+					}
+				}
+				ast_channel_iterator_destroy(iterator);
 			}
 			break;
 		case AST_CONTROL_BUSY:
@@ -599,7 +631,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 		
 		case AST_CONTROL_REDIRECTING:
-			sccp_wrapper_asterisk111_redirectedUpdate(c, data, datalen);
+			sccp_wrapper_asterisk111_redeirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
 
 			res = 0;
@@ -945,49 +977,7 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 /*!
  * \brief Parking Thread Arguments Structure
  */
-struct parkingThreadArg {
-	PBX_CHANNEL_TYPE *bridgedChannel;
-	PBX_CHANNEL_TYPE *hostChannel;
-	const sccp_device_t *device;
-};
 
-/*!
-  * \brief Channel Park Thread
-  * This thread doing the park magic and sends an displaynotify with the park position to the initial device (@see struct parkingThreadArg)
-  * 
-  * \param data struct parkingThreadArg with host and bridged channel together with initial device
-  */
-static void *sccp_wrapper_asterisk111_park_thread(void *data)
-{
-	struct parkingThreadArg *arg;
-	PBX_FRAME_TYPE *f;
-
-	char extstr[20];
-	int ext;
-	int res;
-
-	arg = (struct parkingThreadArg *)data;
-
-	f = ast_read(arg->bridgedChannel);
-	if (f)
-		ast_frfree(f);
-
-	res = ast_park_call(arg->bridgedChannel, arg->hostChannel, 0, "", &ext);
-
-	if (!res) {
-		extstr[0] = 128;
-		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-		sprintf(&extstr[2], " %d", ext);
-
-		sccp_dev_displaynotify((sccp_device_t *) arg->device, extstr, 10);
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(arg->device), ast_channel_name(arg->bridgedChannel), ext);
-	}
-
-	ast_hangup(arg->hostChannel);
-	ast_free(arg);
-
-	return NULL;
-}
 
 /*!
  * \brief Park the bridge channel of hostChannel
@@ -2086,16 +2076,21 @@ static int sccp_wrapper_asterisk111_setCallState(const sccp_channel_t * channel,
 static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel)
 {
 
-	PBX_CHANNEL_TYPE *remotePeer;
+	PBX_CHANNEL_TYPE *remotePeer = NULL;
 // 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 // 
 // 	((struct ao2_iterator *)iterator)->flags |= AO2_ITERATOR_DONTLOCK;
 // 
-// 	for (; (remotePeer = ast_channel_iterator_next(iterator)); remotePeer = ast_channel_unref(remotePeer)) {
+// 	for (; (remotePeer = ast_channel_iterator_next(iterator)); ast_channel_unref(remotePeer)) {
 // 		if (pbx_find_channel_by_linkid(remotePeer, (void *)ast_channel_linkedid(channel->owner))) {
 // 			break;
 // 		}
 // 	}
+// 	
+// 	while(!(remotePeer = ast_channel_iterator_next(iterator) ){
+// 		ast_channel_unref(remotePeer);
+// 	}
+// 	
 // 	ast_channel_iterator_destroy(iterator);
 // 
 // 	if (remotePeer) {
@@ -2103,6 +2098,7 @@ static boolean_t sccp_asterisk_getRemoteChannel(const sccp_channel_t * channel, 
 // 		remotePeer = ast_channel_unref(remotePeer);			//  should we be releasing th referenec here, it has not been taken explicitly.
 // 		return TRUE;
 // 	}
+	*pbx_channel = remotePeer;
 	return FALSE;
 }
 
@@ -2198,7 +2194,7 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_findChannelWithCallback(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data, boolean_t lock)
 {
-	PBX_CHANNEL_TYPE *remotePeer;
+	PBX_CHANNEL_TYPE *remotePeer = NULL;
 
 // 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 // 
@@ -2995,7 +2991,7 @@ AST_MODULE_INFO(
 
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
 {
-	PBX_CHANNEL_TYPE *remotePeer;
+	PBX_CHANNEL_TYPE *remotePeer = NULL;
 
 // 	struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 // 
