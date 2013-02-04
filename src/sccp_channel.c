@@ -1582,14 +1582,14 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	if (d->conference) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
 		sccp_conference_resume(d->conference);
-	} else {
+	} else 
 #endif	
+	{	
 		if (channel->owner){
 			PBX(queue_control) (channel->owner, AST_CONTROL_UNHOLD);
 		}
-#ifdef CS_SCCP_CONFERENCE
 	}
-#endif
+
 	//! \todo move this to openreceive- and startmediatransmission
 	sccp_channel_updateChannelCapability(channel);
 //        sccp_rtp_createAudioServer(channel);
