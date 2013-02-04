@@ -1418,12 +1418,12 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 			ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
 		}
 	}
-//      sccp_channel_release(channel);          // should be returning the newly created channel retain, according to the rules
 
  EXITFUNC:
 	if (lineName)
 		sccp_free(lineName);
 	sccp_restart_monitor();
+	sccp_channel_release(channel);
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
 

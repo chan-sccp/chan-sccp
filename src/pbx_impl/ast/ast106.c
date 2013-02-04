@@ -1318,12 +1318,12 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_request(const char *type, int f
 	sccp_channel_set_callingparty(channel, requestor->cid.cid_name, requestor->cid.cid_num);
 	sccp_channel_set_originalCalledparty(channel, NULL, requestor->cid.cid_dnid);
 
-//      sccp_channel_release(channel);          // should be returning the newly created channel retain, according to the rules
 
  EXITFUNC:
 	if (lineName)
 		sccp_free(lineName);
 	sccp_restart_monitor();
+	sccp_channel_release(channel);
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
 
