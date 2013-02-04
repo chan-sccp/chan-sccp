@@ -454,6 +454,59 @@ static void sccp_wrapper_asterisk111_connectedline(sccp_channel_t * channel, con
 	sccp_channel_send_callinfo2(channel);
 }
 
+
+
+static void sccp_wrapper_asterisk111_redeirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
+{
+	PBX_CHANNEL_TYPE *ast = channel->owner;
+
+
+	const struct ast_party_redirecting *ast_redirecting;
+	
+	
+	
+	
+	struct ast_party_id redirecting_from = ast_channel_redirecting_effective_from(ast);
+	struct ast_party_id redirecting_to = ast_channel_redirecting_effective_to(ast);
+	struct ast_party_id redirecting_orig = ast_channel_redirecting_effective_orig(ast);
+
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>\n", pbx_channel_name(ast), 
+				  redirecting_from.name.valid ? redirecting_from.name.str : "", 
+				  redirecting_from.number.valid ? redirecting_from.number.str : ""
+ 				);
+
+	ast_redirecting = ast_channel_redirecting(ast);
+	
+	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
+	  
+		if(redirecting_from.name.valid || redirecting_from.number.valid ){
+			sccp_copy_string(channel->callInfo.originalCallingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCallingPartyNumber));
+			sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.originalCallingPartyName));
+		} 
+	  
+		if(redirecting_from.name.valid){
+// 			sccp_copy_string(channel->callInfo.callingPartyNumber, ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.callingPartyNumber));
+			sccp_copy_string(channel->callInfo.callingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
+		} 
+		
+		sccp_copy_string(channel->callInfo.callingPartyNumber, redirecting_from.number.valid ? redirecting_from.number.str : "", sizeof(channel->callInfo.callingPartyNumber));
+		
+	} else {
+		if(redirecting_to.name.valid || redirecting_to.number.valid ){
+			sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
+			sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.originalCalledPartyName));
+		} 
+		
+		if(redirecting_to.number.valid){
+			sccp_copy_string(channel->callInfo.calledPartyNumber, redirecting_to.number.str, sizeof(channel->callInfo.callingPartyNumber));
+		}
+		
+		sccp_copy_string(channel->callInfo.calledPartyName, redirecting_to.name.valid ? redirecting_to.name.str : "", sizeof(channel->callInfo.callingPartyNumber));
+	}
+
+	sccp_channel_send_callinfo2(channel);
+}
+
 static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
 {
 	sccp_channel_t *c = NULL;
@@ -559,8 +612,9 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			/* Source media has changed. */
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Source UPDATE request\n");
 
-			if (c->rtp.audio.rtp)
+			if (c->rtp.audio.rtp){
 				ast_rtp_instance_change_source(c->rtp.audio.rtp);
+			}
 			res = 0;
 			break;
 
@@ -586,6 +640,13 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_wrapper_asterisk111_connectedline(c, data, datalen);
+			sccp_indicate(d, c, c->state);
+
+			res = 0;
+			break;
+		
+		case AST_CONTROL_REDIRECTING:
+			sccp_wrapper_asterisk111_redeirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
 
 			res = 0;
@@ -760,6 +821,10 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 {
 	struct ast_format fmt;
 	int i;
+	
+#ifdef CS_EXPERIMENTAL_CODEC
+	length = 1;	//set only one codec
+#endif
 
 	ast_debug(10, "%s: set native Formats length: %d\n", (char *)channel->currentDeviceId, length);
 
@@ -768,6 +833,7 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 		ast_format_set(&fmt, skinny_codec2pbx_codec(codec[i]), 0);
 		ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
 	}
+
 	return 1;
 }
 
@@ -1027,7 +1093,7 @@ static boolean_t sccp_wrapper_asterisk111_pickupChannel(const sccp_channel_t * c
 	ref = ast_channel_ref(chan->owner);
 	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
 	if (result){
-		((sccp_channel_t *)chan)->owner=ast_channel_ref(target);
+		((sccp_channel_t *)chan)->owner = ast_channel_ref(target);
 		ast_hangup(ref);
 	}
 	ref = ast_channel_unref(chan->owner);
@@ -1262,7 +1328,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 			ast_channel_linkedid_set(channel->owner, ast_channel_linkedid(requestor));
 		}
 	}
-//      sccp_channel_release(channel);          // should be returning the newly created channel retain, according to the rules
+
 
 	/** workaround for asterisk console log flooded 
 	 channel.c:5080 ast_write: Codec mismatch on channel SCCP/xxx-0000002d setting write format to g722 from unknown native formats (nothing)
@@ -1272,9 +1338,11 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	/** done */
 
  EXITFUNC:
-	if (lineName)
+	if (lineName){
 		sccp_free(lineName);
+	}
 	sccp_restart_monitor();
+	sccp_channel_release(channel);
 	return (channel && channel->owner) ? channel->owner : NULL;
 }
 
@@ -1449,16 +1517,15 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_rtp_peer(PBX_CHANNE
 	*rtp = audioRTP->rtp;
 	if (!*rtp)
 		return AST_RTP_GLUE_RESULT_FORBID;
-#ifdef HAVE_PBX_RTP_ENGINE_H
+
 	ao2_ref(*rtp, +1);
-#endif
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( __PRETTY_FUNCTION__ ) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
-		return AST_RTP_GLUE_RESULT_FORBID;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( wrapper_asterisk111_get_rtp_peer ) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
 	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( __PRETTY_FUNCTION__ ) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", pbx_channel_name(ast));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( wrapper_asterisk111_get_rtp_peer ) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", pbx_channel_name(ast));
 		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
