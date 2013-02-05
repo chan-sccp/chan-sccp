@@ -409,7 +409,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	/* done - end callforwards */
 	
 	/* remove call from transferee, transferer */
-	
+	/** \todo we should discuse to use a helper variable in channel, e.g. channel->transferDevice.transferer / channel->transferDevice.transferee */
 // 	void (*removeTransferedDevice)(void) =
 // 	({
 // 		void __fn__ (void) 
@@ -422,13 +422,18 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 				if ((tmpDevice = sccp_device_retain(linedevice->device))) {
 					if(tmpDevice->transferChannels.transferer == c){
 						tmpDevice->transferChannels.transferer = sccp_channel_release(tmpDevice->transferChannels.transferer);
+						break;
 					}
-					if(tmpDevice->transferChannels.transferee == c){
+					if(tmpDevice->transferChannels.transferee == c) {
 						tmpDevice->transferChannels.transferee = sccp_channel_release(tmpDevice->transferChannels.transferee);
+						
+						/* also remove transferer */
+						tmpDevice->transferChannels.transferer = tmpDevice->transferChannels.transferer ? sccp_channel_release(tmpDevice->transferChannels.transferer) : NULL;
+						break;
 					}
-					tmpDevice = sccp_device_release(tmpDevice);
 				}
 			}
+			tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
 			SCCP_LIST_UNLOCK(&l->devices);
 		}
 // 		__fn__;
