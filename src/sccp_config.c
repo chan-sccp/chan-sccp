@@ -355,8 +355,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 			} else if (!sccp_strlen_zero(str)) {
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 				/* there is a value already, free it */
+				free(str);
 				if (value==NULL) {
-					free(str);
 					*(void **)dst = NULL;
 				} else {
 					*(void **)dst = strdup(value);
