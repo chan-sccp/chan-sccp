@@ -59,7 +59,7 @@ void sccp_channel_clean(sccp_channel_t * c);
 int sccp_channel_hold(sccp_channel_t * c);
 int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels);
 
-void sccp_channel_transfer(sccp_channel_t * c);
+void sccp_channel_transfer(sccp_channel_t * c, sccp_device_t *device);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
 int sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 

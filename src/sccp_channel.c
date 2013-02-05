@@ -1796,7 +1796,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
  * \lock
  * 	- device
  */
-void sccp_channel_transfer(sccp_channel_t * channel)
+void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t *device)
 {
 	sccp_device_t *d;
 	sccp_channel_t *sccp_channel_new = NULL;
@@ -1813,8 +1813,14 @@ void sccp_channel_transfer(sccp_channel_t * channel)
 	}
 
 	if (!(d = sccp_channel_getDevice_retained(channel))) {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device on channel %d\n", channel->callid);
-		return;
+	  
+		/* transfer was pressed on first (transferee) channel, check if is our transferee channel and continue with d <= device */
+		if ( channel == device->transferChannels.transferee && device->transferChannels.transferer ){
+			d = sccp_device_retain(device);
+		}else {
+			pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device on channel %d\n", channel->callid);
+			return;
+		}
 	}
 
 	if (!d->transfer || !channel->line->transfer) {

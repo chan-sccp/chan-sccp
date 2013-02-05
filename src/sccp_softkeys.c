@@ -383,7 +383,7 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	sccp_channel_transfer(c);
+	sccp_channel_transfer(c, d);
 }
 
 /*!
