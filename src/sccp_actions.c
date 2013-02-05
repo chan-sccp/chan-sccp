@@ -1259,7 +1259,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			}
 			channel = sccp_channel_get_active(d);
 			if (channel) {
-				sccp_channel_transfer(channel);
+				sccp_channel_transfer(channel, d);
 			}
 			break;
 
