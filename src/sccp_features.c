@@ -494,6 +494,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		target = c->owner;
 	}
 	/* prepare for call pickup */
+	SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	sccp_rtp_stop(c);
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
 	c->answered_elsewhere=TRUE;
 	pbx_channel_set_hangupcause(target, AST_CAUSE_ANSWERED_ELSEWHERE);
@@ -506,10 +508,10 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		pbx_hangup(target);							/* target has been masqueraded out -> ZOMBIE*/
 		pbx_channel_set_hangupcause(target, AST_CAUSE_NORMAL_CLEARING);
 		
-		/* resume call */
-		/* this should not be necessary, need to figure this out why the channel is partially put on hold, when using gpickup & allready offhook */
 		sccp_channel_setDevice(c, d);
-		sccp_channel_resume(d,c,TRUE);
+		sccp_channel_set_active(d, c);
+		sccp_channel_updateChannelCapability(c);
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 	} else {
 		/* call pickup failed, restore previous situation */	
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup failed (someone else might have picked it up already)\n", DEV_ID_LOG(d));
