@@ -495,30 +495,37 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	}
 	/* prepare for call pickup */
 	SCCP_SCHED_DEL(c->scheduler.digittimeout);
-	sccp_rtp_stop(c);
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
-	c->answered_elsewhere=TRUE;
-	pbx_channel_set_hangupcause(target, AST_CAUSE_ANSWERED_ELSEWHERE);
 	c->state = SCCP_CHANNELSTATE_PROCEED;
+	c->answered_elsewhere=TRUE;
 	
-	res = pbx_pickup_call(target);							/* Should be replaced with a PBX(feature_pickup) call */
+	res = pbx_pickup_call(target);							/* Should be replaced with a PBX(feature_pickup) call, which could give information back why the pickup failed (elsewhere or no match) */
 	if (!res) {
 		/* gpickup succeeded */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
-		pbx_hangup(target);							/* target has been masqueraded out -> ZOMBIE*/
-		pbx_channel_set_hangupcause(target, AST_CAUSE_NORMAL_CLEARING);
-		
+		sccp_rtp_stop(c);							/* stop previous audio */
+		pbx_channel_set_hangupcause(target, AST_CAUSE_ANSWERED_ELSEWHERE);
+		pbx_hangup(target);							/* hangup masqueraded zombie channel */
+
+		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);
 		sccp_channel_setDevice(c, d);
 		sccp_channel_set_active(d, c);
 		sccp_channel_updateChannelCapability(c);
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);			/* connect calls - reinstate audio */
 	} else {
 		/* call pickup failed, restore previous situation */	
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup failed (someone else might have picked it up already)\n", DEV_ID_LOG(d));
 		c->answered_elsewhere=FALSE;
-		pbx_channel_set_hangupcause(target, AST_CAUSE_CALL_REJECTED);
-		sccp_dev_displayprompt(d, 1, 0, "pickup failed", 5);
-		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 1, 0, 3);
+
+		/* send gpickup failure */
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup failed (someone else picked it up already or not in the correct callgroup)\n", DEV_ID_LOG(d));
+		int instance = sccp_device_find_index_for_line(d, l->name);
+		sccp_dev_set_message(d, "Pickup Failed", 5, FALSE, TRUE);		/* use messageStack */
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, c->callid, 2);
+		sleep(1);								/* give a little time for tone to get delivered, before hanging up */
+
+		/* hangup */
+		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_CALL_REJECTED);
+		pbx_hangup(c->owner);
 	}
 	c = sccp_channel_release(c);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished (%d)\n", DEV_ID_LOG(d), res);
