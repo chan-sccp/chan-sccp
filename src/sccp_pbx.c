@@ -415,7 +415,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 // 		void __fn__ (void) 
 		{
 			sccp_linedevices_t *linedevice;
-			sccp_device_t *tmpDevice;
+			sccp_device_t *tmpDevice = NULL;
 
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
