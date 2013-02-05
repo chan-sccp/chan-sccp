@@ -363,12 +363,13 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	d = sccp_channel_getDevice_retained(c);
 	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
 		//if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))           /* Caused active channels never to be full released */
-		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel)
+		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel){
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
+		}
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
-	c->owner = NULL;			/*! \todo should either be removed or it should use ast_channel_unref instead */
+// 	c->owner = NULL;			/*! \todo should either be removed or it should use ast_channel_unref instead */
 
 	l = sccp_line_retain(c->line);
 #    ifdef CS_SCCP_CONFERENCE
@@ -405,6 +406,37 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
+	/* done - end callforwards */
+	
+	/* remove call from transferee, transferer */
+	
+// 	void (*removeTransferdDevice)(void) =
+// 	({
+// 		void __fn__ (void) 
+		{
+			sccp_linedevices_t *linedevice;
+			sccp_device_t *tmpDevice;
+
+			SCCP_LIST_LOCK(&l->devices);
+			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+				if ((tmpDevice = sccp_device_retain(linedevice->device))) {
+					if(tmpDevice->transferChannels.transferer == c){
+						tmpDevice->transferChannels.transferer = sccp_channel_release(tmpDevice->transferChannels.transferer);
+					}
+					if(tmpDevice->transferChannels.transferee == c){
+						tmpDevice->transferChannels.transferee = sccp_channel_release(tmpDevice->transferChannels.transferee);
+					}
+					tmpDevice = sccp_device_release(tmpDevice);
+				}
+			}
+			SCCP_LIST_UNLOCK(&l->devices);
+		}
+// 		__fn__;
+// 	});
+// 	removeTransferdDevice();
+	
+	/* done - remove call from transferee, transferer */
+	
 
 	sccp_line_removeChannel(l, c);
 
@@ -435,10 +467,6 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	}
 
 	sccp_channel_clean(c);
-
-//      if (sccp_sched_add(0, sccp_channel_destroy_callback, c) < 0) {
-//              sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule destroy of channel %08X\n", c->callid);
-//      }
 
 
 	d = d ? sccp_device_release(d) : NULL;
