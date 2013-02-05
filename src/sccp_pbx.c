@@ -410,7 +410,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	
 	/* remove call from transferee, transferer */
 	
-// 	void (*removeTransferdDevice)(void) =
+// 	void (*removeTransferedDevice)(void) =
 // 	({
 // 		void __fn__ (void) 
 		{
@@ -433,7 +433,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		}
 // 		__fn__;
 // 	});
-// 	removeTransferdDevice();
+// 	removeTransferedDevice();
 	
 	/* done - remove call from transferee, transferer */
 	
