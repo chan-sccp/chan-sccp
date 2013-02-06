@@ -184,7 +184,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 					}
 					fprintf(f, " %s", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "NOT NULL" : "");
 					if (strlen(config[sccp_option].description) != 0) {
-						if (CONFIG_TYPE_MYSQL == config_type || CONFIG_TYPE_SQLITE == config_type) {
+						if (CONFIG_TYPE_MYSQL == config_type) {
 							if (CONFIG_TYPE_MYSQL == config_type) {
 								fprintf(f, " COMMENT '");
 							} else if (CONFIG_TYPE_SQLITE == config_type) {
@@ -203,7 +203,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 				}
 			}
 			if (add_primary_key) {
-				fprintf(f, ",\n	PRIMARY KEY name (name)");
+				fprintf(f, ",\n	PRIMARY KEY (name ASC)");
 			}
 			if (CONFIG_TYPE_MYSQL == config_type) {
 				fprintf(f, "\n) ENGINE=INNODB DEFAULT CHARSET=latin1;\n");
@@ -570,7 +570,7 @@ int main(int argc, char *argv[])
 		} else if (!strcasecmp(argv[2], "MYSQL")) {
 			config_type = CONFIG_TYPE_MYSQL;
 		} else if (!strcasecmp(argv[2], "SQLITE")) {
-			config_type = CONFIG_TYPE_MYSQL;
+			config_type = CONFIG_TYPE_SQLITE;
 		} else if (!strcasecmp(argv[2], "POSTGRES")) {
 			config_type = CONFIG_TYPE_POSTGRES;
 		} else {
