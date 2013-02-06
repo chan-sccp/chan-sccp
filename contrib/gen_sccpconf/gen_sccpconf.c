@@ -146,7 +146,11 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 								}
 								break;
 							case SCCP_CONFIG_DATATYPE_UINT:
-								fprintf(f, " INT UNSIGNED");
+								if (CONFIG_TYPE_POSTGRES == config_type) {
+									fprintf(f, " INT");
+								} else {	
+									fprintf(f, " INT UNSIGNED");
+								}
 								if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
 									fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
 								}
@@ -203,7 +207,11 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 				}
 			}
 			if (add_primary_key) {
-				fprintf(f, ",\n	PRIMARY KEY (name ASC)");
+				if (CONFIG_TYPE_POSTGRES == config_type) {
+					fprintf(f, ",\n	PRIMARY KEY (name)");
+				} else {
+					fprintf(f, ",\n	PRIMARY KEY (name ASC)");
+				}
 			}
 			if (CONFIG_TYPE_MYSQL == config_type) {
 				fprintf(f, "\n) ENGINE=INNODB DEFAULT CHARSET=latin1;\n");
@@ -312,10 +320,10 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 			fprintf(f, "-- View for device's button-configuration\n");
 			fprintf(f, "--\n");
 			fprintf(f, "CREATE VIEW sccpdeviceconfig AS\n");
-			fprintf(f, "SELECT\n");
-			fprintf(f, "	(SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device=sccp_device.name ORDER BY instance) bc ) as button,\n");
+			fprintf(f, "SELECT \n");
+			fprintf(f, "	(SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device=sccpdevice.name ORDER BY instance) bc ) as button, \n");
 			fprintf(f, "	sccpdevice.*\n");
-			fprintf(f, "FROM sccpdevice\n");
+			fprintf(f, "FROM sccpdevice;\n");
 			break;
 		}
 
