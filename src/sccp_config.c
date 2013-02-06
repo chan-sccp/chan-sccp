@@ -2006,7 +2006,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 #endif
 
 	if (!GLOB(cfg)) {
-		pbx_log(LOG_NOTICE, "Unable to load config file sccp.conf, SCCP disabled\n");
+		pbx_log(LOG_NOTICE, "SCCP: (sccp_config_readDevicesLines) Unable to load config file sccp.conf, SCCP disabled\n");
 		return;
 	}
 
@@ -2018,7 +2018,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			continue;
 
 		utype = pbx_variable_retrieve(GLOB(cfg), cat, "type");
-		sccp_log(0)(VERBOSE_PREFIX_3 "Reading Section Of Type %s\n", utype);
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "SCCP: (sccp_config_readDevicesLines) Reading Section Of Type %s\n", utype);
 
 		if (!utype) {
 			pbx_log(LOG_WARNING, "Section '%s' is missing a type parameter\n", cat);
@@ -2058,8 +2058,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */
-sccp_log(0)(VERBOSE_PREFIX_3 "Reading Section Of Type %s\n", utype);
-pbx_log(LOG_NOTICE, "Reading Section Of Type %s\n", utype);
 			if ((!(!sccp_strlen_zero(pbx_variable_retrieve(GLOB(cfg), cat, "label"))) && (!sccp_strlen_zero(pbx_variable_retrieve(GLOB(cfg), cat, "cid_name"))) && (!sccp_strlen_zero(pbx_variable_retrieve(GLOB(cfg), cat, "cid_num"))))) {
 				pbx_log(LOG_WARNING, "Unknown type '%s' for '%s' in %s\n", utype, cat, "sccp.conf");
 				continue;
@@ -2087,7 +2085,7 @@ pbx_log(LOG_NOTICE, "Reading Section Of Type %s\n", utype);
 			v = ast_variable_browse(GLOB(cfg), cat);
 			sccp_config_softKeySet(v, cat);
 		} else {
-			pbx_log(LOG_WARNING, "UNKNOWN SECTION / UTYPE\n");
+			pbx_log(LOG_WARNING, "SCCP: (sccp_config_readDevicesLines) UNKNOWN SECTION / UTYPE\n");
 		}
 	}
 
