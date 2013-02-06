@@ -1604,7 +1604,6 @@ static int sccp_wrapper_asterisk18_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
-	struct ast_sockaddr them;
 	int result = 0;
 
 	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) format: %d\n", (int)codecs);
@@ -1627,23 +1626,29 @@ static int sccp_wrapper_asterisk18_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_
 			break;
 		}
 
-		if (!d->directrtp) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) Direct RTP disabled\n");
-			result = 0;
-			break;
+		if (!d->directrtp) {											// in-direct rtp 
+			struct ast_sockaddr us_tmp;
+			struct sockaddr_in us = { 0, };
+
+			ast_rtp_instance_get_local_address(rtp, &us_tmp);
+			ast_sockaddr_to_sin(&us_tmp, &us);
+			us.sin_addr.s_addr = us.sin_addr.s_addr ? us.sin_addr.s_addr : d->session->ourip.s_addr;
+			sccp_rtp_set_peer(c, &c->rtp.audio, &us);
+/*		} else {												// direct rtp
+			struct ast_sockaddr them_tmp;
+			struct sockaddr_in them = { 0, };
+			
+			ast_rtp_instance_get_remote_address(rtp, &them_tmp);
+			ast_sockaddr_to_sin(&them_tmp, &them);
+			sccp_rtp_set_peer(c, &c->rtp.audio, &them);*/
 		}
 
-		if (rtp) {
-			ast_rtp_instance_get_remote_address(rtp, &them);
-			//sccp_rtp_set_peer(c, &them); /*! \todo convert struct ast_sockaddr -> struct sockaddr_in */
+		if (ast->_state != AST_STATE_UP) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%lu, nat=%d\n", (long unsigned int)codecs, d->nat);
 		} else {
-			if (ast->_state != AST_STATE_UP) {
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%lu, nat=%d\n", (long unsigned int)codecs, d->nat);
-			} else {
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%lu, nat=%d\n", (long unsigned int)codecs, d->nat);
-			}
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%lu, nat=%d\n", (long unsigned int)codecs, d->nat);
 		}
-	}while(0);
+	} while(0);
 
 	/* Need a return here to break the bridge */
 	d = d ? sccp_device_release(d) : NULL;
@@ -3110,7 +3115,7 @@ static int load_module(void)
 
 // 	ast_enable_distributed_devstate();
 
-	ast_rtp_glue_register(&sccp_rtp);
+//	ast_rtp_glue_register(&sccp_rtp);
 	sccp_register_management();
 	sccp_register_cli();
 	sccp_register_dialplan_functions();
@@ -3151,7 +3156,7 @@ static int unload_module(void)
 {
 	sccp_preUnload();
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
-	ast_rtp_glue_unregister(&sccp_rtp);
+//	ast_rtp_glue_unregister(&sccp_rtp);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
 	ast_channel_unregister(&sccp_tech);
 	sccp_unregister_dialplan_functions();
