@@ -2035,6 +2035,7 @@ static void sccp_wrapper_asterisk111_updateConnectedLine(const sccp_channel_t * 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
 }
 
+/* // moved to ast.c
 static void sccp_wrapper_asterisk111_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason){
 	
 	struct ast_party_redirecting redirecting;
@@ -2045,7 +2046,7 @@ static void sccp_wrapper_asterisk111_sendRedirectedUpdate(const sccp_channel_t *
 	
 
 
-	/* update redirecting info line for source part */
+	// update redirecting info line for source part
 	if(fromNumber){
 		update_redirecting.from.number = 1;
 		redirecting.from.number.valid = 1;
@@ -2074,6 +2075,7 @@ static void sccp_wrapper_asterisk111_sendRedirectedUpdate(const sccp_channel_t *
 	
 	ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
 }
+*/
 
 static int sccp_wrapper_asterisk111_sched_add(int when, sccp_sched_cb callback, const void *data)
 {
@@ -2696,7 +2698,8 @@ sccp_pbx_cb sccp_pbx = {
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk111_setRedirectedParty,
 	set_callerid_presence:		sccp_wrapper_asterisk111_setCalleridPresence,
 	set_connected_line:		sccp_wrapper_asterisk111_updateConnectedLine,
-	sendRedirectedUpdate:		sccp_wrapper_asterisk111_sendRedirectedUpdate,
+//	sendRedirectedUpdate:		sccp_wrapper_asterisk111_sendRedirectedUpdate,
+	sendRedirectedUpdate:		sccp_wrapper_sendRedirectedUpdate,
 
 	/* feature section */
 	feature_park:			sccp_wrapper_asterisk111_park,
@@ -2812,7 +2815,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk111_setRedirectedParty,
 	.set_callerid_presence 		= sccp_wrapper_asterisk111_setCalleridPresence,
 	.set_connected_line		= sccp_wrapper_asterisk111_updateConnectedLine,
-	.sendRedirectedUpdate		= sccp_wrapper_asterisk111_sendRedirectedUpdate,
+//	.sendRedirectedUpdate		= sccp_wrapper_asterisk111_sendRedirectedUpdate,
+	.sendRedirectedUpdate		= sccp_wrapper_sendRedirectedUpdate,
 	
 	/* database */
 	.feature_addToDatabase 		= sccp_asterisk_addToDatabase,

@@ -357,5 +357,6 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
 int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass);
 void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel);
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
+void sccp_wrapper_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 #endif
 
