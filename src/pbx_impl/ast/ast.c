@@ -532,7 +532,13 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(ast_channel);
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s, hangupcause: %d\n",
-				    pbx_channel_name(ast_channel), pbx_channel_pbx(ast_channel) ? "yes" : "no", pbx_state2str(pbx_channel_state(ast_channel)), sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel));
+				    pbx_channel_name(ast_channel), 
+				    pbx_channel_pbx(ast_channel) ? "yes" : "no", 
+				    pbx_state2str(pbx_channel_state(ast_channel)), 
+				    sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", 
+				    pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", 
+				    pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel)
+				   );
 
 	if (pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)) {
 		// wait for blocker before issuing softhangup
@@ -555,7 +561,8 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_queue_hangup(ast_channel);
 	} else {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
-		ast_hangup(ast_channel);
+// 		ast_hangup(ast_channel);
+		ast_queue_hangup(ast_channel);
 	}
 
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
@@ -669,6 +676,35 @@ void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 		pbx_clear_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
 		ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
 	} 
+}
+
+void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
+{
+	PBX_CHANNEL_TYPE *ast = channel->owner;
+
+
+	struct ast_party_id redirecting_from = ast_channel_redirecting_effective_from(ast);
+	struct ast_party_id redirecting_to = ast_channel_redirecting_effective_to(ast);
+
+
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), 
+				  redirecting_from.name.valid ? redirecting_from.name.str : "", 
+				  redirecting_from.number.valid ? redirecting_from.number.str : "",
+				  redirecting_to.name.valid ? redirecting_to.name.str : "", 
+				  redirecting_to.number.valid ? redirecting_to.number.str : ""
+ 				);
+
+
+	  
+	if(redirecting_from.name.valid){
+		sccp_copy_string(channel->callInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
+	} 
+	
+	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, redirecting_from.number.valid ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
+	channel->callInfo.lastRedirectingParty_valid = 1;
+	
+		
+	sccp_channel_send_callinfo2(channel);
 }
 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
