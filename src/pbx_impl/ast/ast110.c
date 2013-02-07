@@ -473,7 +473,7 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		
 		switch (ind) {
 		case AST_CONTROL_CONNECTED_LINE:
-			sccp_wrapper_asterisk111_connectedline(c, data, datalen);
+			sccp_wrapper_asterisk110_connectedline(c, data, datalen);
 
 			res = 0;
 			break;
