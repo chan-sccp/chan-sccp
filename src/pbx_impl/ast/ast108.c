@@ -466,8 +466,26 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 		return -1;
 
 	if (!(d = sccp_channel_getDevice_retained(c))) {
+
+		switch (ind) {
+		case AST_CONTROL_CONNECTED_LINE:
+			sccp_wrapper_asterisk111_connectedline(c, data, datalen);
+
+			res = 0;
+			break;
+		
+		case AST_CONTROL_REDIRECTING:
+			sccp_asterisk_redirectedUpdate(c, data, datalen);
+
+			res = 0;
+			break;
+		default:
+			res = -1;
+			break;
+		}
+		
 		c = sccp_channel_release(c);
-		return -1;
+		return res;
 	}
 
 	if (c->state == SCCP_CHANNELSTATE_DOWN) {
@@ -593,6 +611,13 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_wrapper_asterisk18_connectedline(c, data, datalen);
+			sccp_indicate(d, c, c->state);
+
+			res = 0;
+			break;
+		
+		case AST_CONTROL_REDIRECTING:
+			sccp_asterisk_redirectedUpdate(c, data, datalen);
 			sccp_indicate(d, c, c->state);
 
 			res = 0;

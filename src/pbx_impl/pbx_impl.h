@@ -115,6 +115,7 @@ struct sccp_pbx_cb {
 	void (*const set_callerid_redirectedParty) (const sccp_channel_t * channel, const char *number, const char *name);
 	void (*const set_callerid_presence) (const sccp_channel_t * channel);
 	void (*const set_connected_line) (const sccp_channel_t * channel, const char *number, const char *name, uint8_t reason);
+	void (*const sendRedirectedUpdate) (const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 
 	/* feature section */
 	sccp_parkresult_t(*const feature_park) (const sccp_channel_t * hostChannel);
