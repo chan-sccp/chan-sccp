@@ -61,6 +61,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    undef pbx_channel_cdr
 #    undef pbx_channel_call_forward_set
 #    undef pbx_channel_varshead
+#    undef pbx_channel_redirecting_effective_from
+#    undef pbx_channel_redirecting_effective_to
 
 #    define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
 #    define pbx_channel_flags(_a) ast_channel_flags(_a)
@@ -91,6 +93,8 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #    define pbx_channel_cdr(_a) ast_channel_cdr(_a)
 #    define pbx_channel_call_forward_set ast_channel_call_forward_set
 #    define pbx_channel_varshead(_a) ast_channel_varshead(_a)
+#    define pbx_channel_redirecting_effective_from(_a) ast_channel_redirecting_effective_from(_a)
+#    define pbx_channel_redirecting_effective_to(_a) ast_channel_redirecting_effective_to(_a)
 
 int pbx_manager_register(const char *action, int authority, int (*func)(struct mansession *s, const struct message *m), const char *synopsis, const char *description);
 

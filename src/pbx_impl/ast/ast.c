@@ -682,17 +682,17 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 
+#if ASTERISK_VERSION_GROUP >106
+	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
+	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
 
-	struct ast_party_id redirecting_from = ast_channel_redirecting_effective_from(ast);
-	struct ast_party_id redirecting_to = ast_channel_redirecting_effective_to(ast);
-
-
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), 
-				  redirecting_from.name.valid ? redirecting_from.name.str : "", 
-				  redirecting_from.number.valid ? redirecting_from.number.str : "",
-				  redirecting_to.name.valid ? redirecting_to.name.str : "", 
-				  redirecting_to.number.valid ? redirecting_to.number.str : ""
- 				);
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", 
+							pbx_channel_name(ast), 
+							redirecting_from.name.valid ? redirecting_from.name.str : "", 
+							redirecting_from.number.valid ? redirecting_from.number.str : "",
+							redirecting_to.name.valid ? redirecting_to.name.str : "", 
+							redirecting_to.number.valid ? redirecting_to.number.str : ""
+				);
 
 
 	  
@@ -702,9 +702,67 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	
 	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, redirecting_from.number.valid ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
 	channel->callInfo.lastRedirectingParty_valid = 1;
-	
+#else
+	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
+	channel->callInfo.lastRedirectingParty_valid = 1;
+#endif
 		
 	sccp_channel_send_callinfo2(channel);
+}
+
+void sccp_wrapper_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)
+{
+#if ASTERISK_VERSION_GROUP >106
+	struct ast_party_redirecting redirecting;
+	struct ast_set_party_redirecting update_redirecting;
+	
+	ast_party_redirecting_init(&redirecting);
+	memset(&update_redirecting, 0, sizeof(update_redirecting));
+	
+
+	/* update redirecting info line for source part */
+	if(fromNumber){
+		update_redirecting.from.number = 1;
+		redirecting.from.number.valid = 1;
+		redirecting.from.number.str = strdupa(fromNumber);
+	}
+	
+	if(fromName){
+		update_redirecting.from.name = 1;
+		redirecting.from.name.valid = 1;
+		redirecting.from.name.str = strdupa(fromName);
+	}
+
+	if(toNumber){
+		update_redirecting.to.number = 1;
+		redirecting.to.number.valid = 1;
+		redirecting.to.number.str = strdupa(toNumber);
+	}
+	
+	if(toName){
+		update_redirecting.to.name = 1;
+		redirecting.to.name.valid = 1;
+		redirecting.to.name.str = strdupa(toName);
+	}
+	
+	ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
+#else
+	// set redirecting party (forwarder)
+	if (fromNumber) {
+		if (channel->owner->cid.cid_rdnis) {
+			ast_free(channel->owner->cid.cid_rdnis);
+		}
+		channel->owner->cid.cid_rdnis = ast_strdup(fromNumber);
+	}
+
+	// where is the call going to now
+	if (toNumber) {
+		if (channel->owner->cid.cid_dnid) {
+			ast_free(channel->owner->cid.cid_dnid);
+		}
+		channel->owner->cid.cid_dnid = ast_strdup(toNumber);
+	}
+#endif
 }
 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
