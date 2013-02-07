@@ -190,7 +190,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	}
 	/* Set the channel calledParty Name and Number 7910 compatibility */
 	sccp_channel_set_calledparty(c, l->cid_name, l->cid_num);
-	PBX(set_connected_line) (c, c->callInfo.calledPartyNumber, c->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING);
+	PBX(set_connected_line) (c, c->callInfo.calledPartyNumber, c->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_UNKNOWN);
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	if (PBX(get_callerid_presence)) {
