@@ -133,13 +133,12 @@
 #    define pbx_db_freetree ast_db_freetree
 
 
-#ifdef CS_CACHEABLE_DEVICESTATE
+#if CS_CACHEABLE_DEVICESTATE
 #    define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,AST_DEVSTATE_CACHABLE,_b,_c)
 #    define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal(_a,AST_DEVSTATE_CACHABLE,_b)
 #elif defined(CS_DEVICESTATE)
 #    define pbx_devstate_changed(_a,_b,_c) ast_devstate_changed(_a,_b,_c)
 #    define pbx_devstate_changed_literal(_a,_b) ast_devstate_changed_literal(_a,_b)
-#elif 
 #else
 #    define pbx_devstate_changed(_a,_b,_c) ast_device_state_changed(_b,_c)
 #    define pbx_devstate_changed_literal(_a,_b) ast_device_state_changed_literal(_b)
@@ -318,9 +317,5 @@ typedef struct ast_event pbx_event_t;
 #    define pbx_pickup_call ast_pickup_call
 
 #    define pbx_bridge_change_state ast_bridge_change_state
-#if ASTERISK_VERSION_GROUP > 106
-#    define pbx_channel_redirecting_effective_from(_a) (_a)->redirecting.from
-#    define pbx_channel_redirecting_effective_to(_a) (_a)->redirecting.to
-#endif
 
 #endif
