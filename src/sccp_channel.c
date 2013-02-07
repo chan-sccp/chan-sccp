@@ -2078,15 +2078,19 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		
 		/* update transferee */
 		PBX(set_connected_line) (sccp_source_local_channel, toNumber, toName, connectedLineUpdateReason);
+#if ASTERISK_VERSION_GROUP > 106	/*! \todo change to SCCP_REASON Codes, using mapping table */
 		if(PBX(sendRedirectedUpdate)){
 			PBX(sendRedirectedUpdate)(sccp_source_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
 		}
+#endif		
 			
 		/* update ringin channel directly */
 		PBX(set_connected_line) (sccp_destination_local_channel, originalCallingPartyNumber, originalCallingPartyName, connectedLineUpdateReason);
+#if ASTERISK_VERSION_GROUP > 106	/*! \todo change to SCCP_REASON Codes, using mapping table */
 		if(PBX(sendRedirectedUpdate)){
 			PBX(sendRedirectedUpdate)(sccp_destination_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
 		}
+#endif		
 	}
 	
 	
