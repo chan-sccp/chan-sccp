@@ -21,6 +21,9 @@ extern "C" {
 #endif
 #include <asterisk/sched.h>
 #include <asterisk/netsock2.h>
+#if HAVE_PBX_CEL_H
+#include <asterisk/cel.h>
+#endif
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -890,6 +893,7 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
 	}
+	ast_module_ref(ast_module_info->self);
 	channel->owner = ast_channel_ref((*pbx_channel));
 
 	return TRUE;
@@ -956,20 +960,28 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_requestForeignChannel(const cha
 int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	sccp_channel_t *c;
+	PBX_CHANNEL_TYPE *channel_owner = NULL;
 	int res = -1;
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
+		channel_owner = c->owner;
 		if (ast_test_flag(ast_channel, AST_FLAG_ANSWERED_ELSEWHERE) || ast_channel->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
-		if (0 == res)
-			sccp_channel_release(c);
-	}
+		c->owner = NULL;
+		if (0 == res) {
+			sccp_channel_release(c); //this only releases the get_sccp_channel_from_pbx_channel
+		}
+	}	//after this moment c might have gone already
+
 	ast_channel->tech_pvt = NULL;
 	c = c ? sccp_channel_release(c) : NULL;
-	ast_channel_unref(ast_channel);
+	if (channel_owner) {
+		channel_owner = ast_channel_unref(channel_owner);
+	}
+	ast_module_unref(ast_module_info->self);
 	return res;
 }
 
@@ -1208,9 +1220,15 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE * chan, PBX_CHANNEL_TYPE * target)
 static boolean_t sccp_wrapper_asterisk18_pickupChannel(const sccp_channel_t * chan, PBX_CHANNEL_TYPE * target)
 {
 	boolean_t result = FALSE;
+	PBX_CHANNEL_TYPE *ref;
 
-//      result = ast_pickup_call(target) ? FALSE : TRUE;
+	ref = ast_channel_ref(chan->owner);
 	result = ast_do_pickup(chan->owner, target) ? FALSE : TRUE;
+	if (result){
+		((sccp_channel_t *)chan)->owner = ast_channel_ref(target);
+		ast_hangup(ref);
+	}
+	ref = ast_channel_unref(chan->owner);
 
 	return result;
 }
@@ -1510,18 +1528,31 @@ static int sccp_wrapper_asterisk18_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", newchan->name);
 	sccp_channel_t *c = NULL;
+	int res = 0;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(newchan))) {
 		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, (void *)oldchan, newchan->name, (void *)newchan);
 		return -1;
+	} else {
+		if (c->owner != oldchan) {
+			ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
+			res = -1;
+		} else {
+			c->owner = ast_channel_ref(newchan);
+			if (!sccp_strlen_zero(c->line->language)){
+				ast_string_field_set(newchan, language, c->line->language);	
+			}
+			ast_channel_unref(oldchan);
+			//! \todo force update of rtp_peer for directrtp
+			// sccp_wrapper_asterisk111_set_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
+
+			//! \todo update remote capabilities after fixup
+			
+		}
+		c = sccp_channel_release(c);
 	}
 
-	c->owner = newchan;
-	ast_channel_ref(c->owner);
-	ast_channel_unref(oldchan);
-	c = sccp_channel_release(c);
-
-	return 0;
+	return res;
 }
 
 static enum ast_bridge_result sccp_wrapper_asterisk18_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms)
@@ -2500,6 +2531,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_findChannelWithCallback(int (*c
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
+			ast_channel_unref(remotePeer);
 			break;
 		}
 
@@ -2630,7 +2662,14 @@ DECLARE_PBX_CHANNEL_STRGET(name)
 static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
 {
 	if (channel->owner) {
-		pbx_string_field_set(channel->owner, linkedid, new_linkedid);
+	        if (!strcmp(channel->owner->linkedid, new_linkedid)) {
+	        	return;
+                }
+#if HAVE_PBX_CEL_H
+                ast_cel_check_retire_linkedid(channel->owner);
+                ast_cel_linkedid_ref(new_linkedid);
+#endif                
+                ast_string_field_set(channel->owner, linkedid, new_linkedid);
 	}
 }
 
@@ -3289,6 +3328,7 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 
 		if (found_cb(remotePeer, data)) {
 			ast_channel_lock(remotePeer);
+			ast_channel_unref(remotePeer);
 			break;
 		}
 
