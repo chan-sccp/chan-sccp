@@ -1141,7 +1141,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_device_sendcallstate(d, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 				}
 
-				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** do not set visibility to COLLAPSED, this will hidde callInfo in state CALLREMOTEMULTILINE */
 				d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
 
 				if (state == SCCP_CHANNELSTATE_ONHOOK) {
