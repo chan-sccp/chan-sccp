@@ -710,7 +710,7 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	sccp_channel_send_callinfo2(channel);
 }
 
-void sccp_wrapper_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)
+void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason)
 {
 #if ASTERISK_VERSION_GROUP >106
 	struct ast_party_redirecting redirecting;
