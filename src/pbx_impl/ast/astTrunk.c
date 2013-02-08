@@ -2699,7 +2699,7 @@ sccp_pbx_cb sccp_pbx = {
 	set_callerid_presence:		sccp_wrapper_asterisk111_setCalleridPresence,
 	set_connected_line:		sccp_wrapper_asterisk111_updateConnectedLine,
 //	sendRedirectedUpdate:		sccp_wrapper_asterisk111_sendRedirectedUpdate,
-	sendRedirectedUpdate:		sccp_wrapper_sendRedirectedUpdate,
+	sendRedirectedUpdate:		sccp_asterisk_sendRedirectedUpdate,
 
 	/* feature section */
 	feature_park:			sccp_wrapper_asterisk111_park,
@@ -2816,7 +2816,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_callerid_presence 		= sccp_wrapper_asterisk111_setCalleridPresence,
 	.set_connected_line		= sccp_wrapper_asterisk111_updateConnectedLine,
 //	.sendRedirectedUpdate		= sccp_wrapper_asterisk111_sendRedirectedUpdate,
-	.sendRedirectedUpdate		= sccp_wrapper_sendRedirectedUpdate,
+	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 	
 	/* database */
 	.feature_addToDatabase 		= sccp_asterisk_addToDatabase,
