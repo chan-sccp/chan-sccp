@@ -413,12 +413,13 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	        refcountval = ATOMIC_DECR((&obj->refcount), 1 ,&obj->lock);
         	newrefcountval = refcountval -1;
 		if (newrefcountval == 0) {
-			int livemarker = ATOMIC_DECR(&obj->alive,SCCP_LIVE_MARKER, &obj->lock);	
+			ATOMIC_DECR(&obj->alive,SCCP_LIVE_MARKER, &obj->lock);	
 			sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s) (release) Finalizing %p (%p)\n", filename, lineno, func, obj, ptr);
 			remove_obj(ptr);
 		} else {
-			if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))
+			if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
 				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
+			}
 		}
 	} else {
 #if CS_REFCOUNT_DEBUG
