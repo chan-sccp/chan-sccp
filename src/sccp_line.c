@@ -160,10 +160,9 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 
 	if (l) {
 		pbx_log(LOG_NOTICE, "SCCP: line '%s' was already created by an other thread, cleaning up new line\n", line->name);
-//              sccp_free(line);                // this should never be (refcounted)
-		line = sccp_line_release(line);									// cleanup newly created line, to prevent doubles
+		//line = sccp_line_release(line);								// do not release line, this will be automaticly done by calling thread
 		SCCP_RWLIST_UNLOCK(&GLOB(lines));
-		return l;											// return previous instance
+		return line;											// return previous instance
 	}
 
 	/* line was not created */
