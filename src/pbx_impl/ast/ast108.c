@@ -1443,7 +1443,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 			goto EXITFUNC;
 	}
 
-	if (!sccp_pbx_channel_allocate(channel, NULL)) {
+	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL)) {
 		//! \todo handle error in more detail, cleanup sccp channel
 		pbx_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
@@ -1454,10 +1454,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 		/* set calling party */
 		sccp_channel_set_callingparty(channel, requestor->caller.id.name.str, requestor->caller.id.number.str);
 		sccp_channel_set_originalCalledparty(channel, requestor->redirecting.to.name.str, requestor->redirecting.to.number.str);
-
-		if (requestor->linkedid) {
-			ast_string_field_set(channel->owner, linkedid, requestor->linkedid);
-		}
 	}
 
  EXITFUNC:
