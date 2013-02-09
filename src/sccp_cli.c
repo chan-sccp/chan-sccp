@@ -482,7 +482,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	}
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
-	sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
+//	sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
+	sccp_print_ha(ha_buf, sizeof(ha_buf), d->ha);
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
@@ -530,7 +531,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, d->directrtp);
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s:%d", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
-	CLI_AMI_OUTPUT_PARAM("Our Address", CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
+	CLI_AMI_OUTPUT_PARAM("Server Address", CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("Early RTP", CLI_AMI_LIST_WIDTH, "%s (%s)", d->earlyrtp ? "Yes" : "No", d->earlyrtp ? sccp_indicate2str(d->earlyrtp) : "none");
 	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)", CLI_AMI_LIST_WIDTH, "%s", accessorystatus2str(d->accessorystatus));
@@ -1442,6 +1443,15 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		int state = (argc == 6) ? atoi(argv[5]) : 0;
 		pbx_devstate_changed(state, "SCCP/%s", argv[4]);
 		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[4], state);
+		return RESULT_SUCCESS;
+	}
+	if (!strcasecmp(argv[3], "permit")) {				/*  WIP */
+		struct ast_str *buf = pbx_str_alloca(512);
+		//struct sccp_ha *path;	
+		//sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error)
+		
+		sccp_print_ha(buf, sizeof(buf), GLOB(ha));
+		pbx_log(LOG_NOTICE, "%s: HA Buffer: %s\n", argv[4], pbx_str_buffer(buf));
 		return RESULT_SUCCESS;
 	}
 #    endif
