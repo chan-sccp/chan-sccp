@@ -1739,7 +1739,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					sccp_line_release(btn[i].ptr);
+					btn[i].ptr = sccp_line_release(btn[i].ptr);
 				}
 			}
 			sccp_free(d->buttonTemplate);

@@ -564,15 +564,15 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)) {
 
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
-					btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name);	/*! \todo we are possible creating realtime lines during buttonconfig traversal, is that a good idea ? */
 
-					/* check for existence */
-					if (NULL == btn[i].ptr) {
+					/* search line (create new line, if necessary (realtime)) */
+					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
+					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name))) {	
+						buttonconfig->instance = btn[i].instance = lineInstance++;
+					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
 						buttonconfig->instance = btn[i].instance = 0;
 						pbx_log(LOG_WARNING, "%s: line %s does not exists\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
-					} else {
-						buttonconfig->instance = btn[i].instance = lineInstance++;
 					}
 
 					sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: add line %s on position %d\n", DEV_ID_LOG(d), buttonconfig->button.line.name, buttonconfig->instance);
