@@ -482,17 +482,6 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 	if (!l || !device)
 		return;
 
-//      SCCP_LIST_LOCK(&l->devices);
-//      SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-//              if (linedevice->device == device)
-//                      break;
-//      }
-//      SCCP_LIST_UNLOCK(&l->devices);
-//
-//      if (!linedevice) {
-//              pbx_log(LOG_ERROR, "%s: Device does not have line configured \n", DEV_ID_LOG(device));
-//              return;
-//      }
 	if (!(linedevice = sccp_linedevice_find(device, l))) {
 		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
 		return;
@@ -524,24 +513,11 @@ void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char 
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), l->name, number);
 		}
 	}
-	if (linedevice && linedevice->device) {
-		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-		switch (type) {
-			case SCCP_CFWD_ALL:
-				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
-				break;
-			case SCCP_CFWD_BUSY:
-				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
-				break;
-			case SCCP_CFWD_NONE:
-				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
-				break;
-			default:
-				sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
-				break;
-		}
-		sccp_dev_forward_status(l, linedevice->lineInstance, device);
-	}
+
+	sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+	sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+	sccp_dev_forward_status(l, linedevice->lineInstance, device);
+	
 	linedevice = sccp_linedevice_release(linedevice);
 }
 
