@@ -266,9 +266,6 @@ sccp_device_t *sccp_device_create(const char *id)
 	memset(d, 0, sizeof(sccp_device_t));
 	pbx_mutex_init(&d->lock);
 	sccp_copy_string(d->id, id, sizeof(d->id));
-#if DEBUG
-	sccp_device_retain(d);
-#endif
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
 	SCCP_LIST_HEAD_INIT(&d->addons);
@@ -314,9 +311,6 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->hasDisplayPrompt = sccp_device_trueResult;
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
-#if DEBUG
-	sccp_device_release(d);
-#endif
 	return d;
 }
 

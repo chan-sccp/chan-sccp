@@ -118,15 +118,9 @@ sccp_line_t *sccp_line_create(const char *name)
 	pbx_mutex_init(&l->lock);
 	sccp_copy_string(l->name, name, sizeof(l->name));
 
-#if DEBUG
-	sccp_line_retain(l);
-#endif
 	SCCP_LIST_HEAD_INIT(&l->channels);
 	SCCP_LIST_HEAD_INIT(&l->devices);
 	SCCP_LIST_HEAD_INIT(&l->mailboxes);
-#if DEBUG
-	sccp_line_release(l);
-#endif
 	return l;
 }
 
