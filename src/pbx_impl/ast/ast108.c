@@ -2657,7 +2657,6 @@ static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * ch
                 }
 #if HAVE_PBX_CEL_H
                 ast_cel_check_retire_linkedid(channel->owner);
-                ast_cel_linkedid_ref(new_linkedid);
 #endif                
                 ast_string_field_set(channel->owner, linkedid, new_linkedid);
 	}
