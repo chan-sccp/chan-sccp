@@ -960,7 +960,7 @@ int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
 		channel_owner = c->owner;
 		if (ast_test_flag(ast_channel, AST_FLAG_ANSWERED_ELSEWHERE) || ast_channel->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
