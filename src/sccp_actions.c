@@ -234,7 +234,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	d->session = s;
 	s->lastKeepAlive = time(0);
 	d->mwilight = 0;
-	d->protocolversion = r->msg.RegisterMessage.protocolVer;
+	d->protocolversion = letohl(r->msg.RegisterMessage.protocolVer);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	d->keepaliveinterval = d->keepalive ? d->keepalive : GLOB(keepalive);
