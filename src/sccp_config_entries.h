@@ -265,7 +265,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"callerid", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE, 					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"obsolete callerid param. Use cid_num and cid_name\n"},
 	{"mailbox", 			L_OBJ_REF(mailboxes), 			TYPE_PARSER(sccp_config_parse_mailbox),						SCCP_CONFIG_FLAG_NONE,	 					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"Mailbox to store messages in\n"},
 	{"vmnum", 			L_OBJ_REF(vmnum), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number to dial to get to the users Mailbox\n"},
-	{"adhocNumber", 		L_OBJ_REF(adhocNumber), 		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Adhoc Number or Private-line automatic ring down (PLAR):\n"
+	{"adhocNumber", 		L_OBJ_REF(adhocNumber), 		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Adhoc Number or Private-line automatic ring down (PLAR):\n"
 																																					"Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls.\n"
 																																					" - The adhocNumber is dialed as soon as the Phone is taken off-hook or when the new-call button is pressed.\n"
 																																					" - The number will not be dialed when choosing a line; so when you choose a line you can enter a number manually.\n"},
