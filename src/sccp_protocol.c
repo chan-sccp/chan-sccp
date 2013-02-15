@@ -364,7 +364,6 @@ static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device,
 	memcpy(&r->msg.DisplayDynamicNotifyMessage.dummy, message, msg_len);
 
 	sccp_dev_send(device, r);
-	pbx_log(LOG_NOTICE, "%s: Display notify timeout %d\n", device->id, timeout);
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
