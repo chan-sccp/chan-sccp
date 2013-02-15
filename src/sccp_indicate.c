@@ -297,7 +297,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 //			}
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING (%s)\n", DEV_ID_LOG(d), sccp_indicate2str(c->previousChannelState));
 			sccp_channel_setDevice(c,d);
-			sccp_channel_callwaiting_tone_interval(c);
+			sccp_channel_callwaiting_tone_interval(sccp_channel_retain(c));	// function releases channel
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, 0);
