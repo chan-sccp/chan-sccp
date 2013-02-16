@@ -2373,41 +2373,43 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 	return TRUE;
 }
 
-int sccp_channel_callwaiting_tone_interval(sccp_channel_t * c)
+int sccp_channel_callwaiting_tone_interval(sccp_device_t *device, sccp_channel_t *channel)
 {
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone on channel %d\n", c ? c->callid : 0);
 	sccp_device_t *d = NULL;
+	sccp_channel_t *c = NULL;
+	int res = -1;
 
-	if (!c) {
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid channel received to handle callwaiting tone\n");
-		return -1;
-	}
-	if (!c->line || !c->line->name) {
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid line received to handle callwaiting tone\n");
-		sccp_channel_release(c);
-		return -1;
-	}
+	if (GLOB(callwaiting_tone)) {
+		if (( d = sccp_device_retain(device))) {
+			if ((c = sccp_channel_retain(channel))) {
+				if (c->line && c->line->name) {
+					sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Handle Callwaiting Tone on channel %d\n", c->callid);
+					if (c && c->owner && (SCCP_CHANNELSTATE_CALLWAITING == c->state || SCCP_CHANNELSTATE_RINGING == c->state)) {
+						sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", DEV_ID_LOG(d));
+						int instance = sccp_device_find_index_for_line(d, c->line->name);
+						sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
 
-	if ((d = sccp_channel_getDevice_retained(c))) {
-		int instance = sccp_device_find_index_for_line(d, c->line->name);
-
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", DEV_ID_LOG(d));
-		if (c && c->owner && (SCCP_CHANNELSTATE_CALLWAITING == c->state || SCCP_CHANNELSTATE_RINGING == c->state)) {
-			if (GLOB(callwaiting_tone)) {
-				sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Sending Call Waiting Tone \n", DEV_ID_LOG(d));
-				sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
-				if (GLOB(callwaiting_interval) != 0) {
-					sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Scheduling next Call Waiting Tone in %ds\n", DEV_ID_LOG(d), GLOB(callwaiting_interval));
-					PBX(sched_add) (GLOB(callwaiting_interval) * 1000, (void *)sccp_channel_callwaiting_tone_interval, (void *)sccp_channel_retain(c));
+						//! \todo reimplement callwaiting_interval
+						
+						res = 0;
+					} else {
+						sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval)channel has been hungup or pickup up by another phone\n");
+					}
+				} else {
+					sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid line received to handle callwaiting\n");
 				}
+				c = sccp_channel_release(channel);	
+			} else {
+				sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid channel received to handle callwaiting\n");
 			}
+			d = sccp_device_release(d);	
 		} else {
-			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval)channel has been hungup or pickup up by another phone\n");
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No valid device received to handle callwaiting\n");
 		}
-		d = sccp_device_release(d);
-	}	
-	sccp_channel_release(c);
-	return 0;
+	} else {
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_callwaiting_tone_interval) No callwaiting_tone set\n");
+	}
+	return res;
 }
 
 const char * sccp_channel_getLinkedId(const sccp_channel_t *channel){
