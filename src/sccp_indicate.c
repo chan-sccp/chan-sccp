@@ -292,15 +292,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
 			break;
 		case SCCP_CHANNELSTATE_CALLWAITING:
-//			if (GLOB(callwaiting_tone)) {
-//				sccp_dev_starttone(d, GLOB(callwaiting_tone), instance, c->callid, 0);
-//			}
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING (%s)\n", DEV_ID_LOG(d), sccp_indicate2str(c->previousChannelState));
-			sccp_channel_setDevice(c,d);
-			sccp_channel_callwaiting_tone_interval(sccp_channel_retain(c));	// function releases channel
+			sccp_channel_callwaiting_tone_interval(d, c);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, 0);
+			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 			PBX(set_callstate) (c, AST_STATE_RINGING);
 			break;
