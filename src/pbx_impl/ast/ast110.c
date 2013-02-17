@@ -1146,6 +1146,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk110_extensionStatus(const sc
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, struct ast_format_cap *format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause)
 {
+	PBX_CHANNEL_TYPE *result_ast_channel = NULL;
 	sccp_channel_request_status_t requestStatus;
 	sccp_channel_t *channel = NULL;
 
@@ -1175,7 +1176,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 		return NULL;
 	}
 	/* we leave the data unchanged */
-	lineName = strdup((const char *)data);
+	lineName = strdupa((const char *)data);
 	/* parsing options string */
 	char *options = NULL;
 	int optc = 0;
@@ -1341,11 +1342,14 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 	}
 
  EXITFUNC:
-	if (lineName)
-		sccp_free(lineName);
+
 	sccp_restart_monitor();
-	sccp_channel_release(channel);
-	return (channel && channel->owner) ? channel->owner : NULL;
+	
+	if(channel) {
+		result_ast_channel = channel->owner;
+		sccp_channel_release(channel);
+	}
+	return result_ast_channel;
 }
 
 static int sccp_wrapper_asterisk110_call(PBX_CHANNEL_TYPE * ast, char *dest, int timeout)
