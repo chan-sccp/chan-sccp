@@ -50,6 +50,8 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk111_devicestate(const char *data);
+static boolean_t sccp_wrapper_asterisk111_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec);
+static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -785,7 +787,7 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 	struct ast_format fmt;
 	int i;
 	
-#ifdef CS_EXPERIMENTAL_CODEC
+#ifndef CS_EXPERIMENTAL_CODEC
 	length = 1;	//set only one codec
 #endif
 
@@ -1070,6 +1072,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk111_extensionStatus(const sc
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, struct ast_format_cap *format, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause)
 {
 	sccp_channel_request_status_t requestStatus;
+	PBX_CHANNEL_TYPE *result_ast_channel = NULL;
 	sccp_channel_t *channel = NULL;
 	const char *linkedId = NULL;
 
@@ -1099,7 +1102,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		return NULL;
 	}
 	/* we leave the data unchanged */
-	lineName = strdup((const char *)dest);
+	lineName = strdupa((const char *)dest);
 	/* parsing options string */
 	char *options = NULL;
 	int optc = 0;
@@ -1260,17 +1263,19 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	*/
 	skinny_codec_t codecs[] = {SKINNY_CODEC_WIDEBAND_256K};
 	sccp_wrapper_asterisk111_setNativeAudioFormats(channel, codecs, 1);
+	sccp_wrapper_asterisk111_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
+	sccp_wrapper_asterisk111_setWriteFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 	/** done */
 
  EXITFUNC:
-	if (lineName){
-		sccp_free(lineName);
-	}
+
 	sccp_restart_monitor();
+	
 	if(channel) {
+		result_ast_channel = channel->owner;
 		sccp_channel_release(channel);
 	}
-	return (channel && channel->owner) ? channel->owner : NULL;
+	return result_ast_channel;
 }
 
 static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE *ast, const char *dest, int timeout)
