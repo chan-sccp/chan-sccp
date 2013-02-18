@@ -1,4 +1,408 @@
+2013-02-17  ddegroot
+
+	* [r4239] Makefile.in, aclocal.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in: Disable automatic installation of
+	  chan-sccp-b_backtrace script (bootstrap)
+
+	* [r4238] Makefile.am: Disable automatic installation of
+	  chan-sccp-b_backtrace script
+
+2013-02-17  marcelloceschia
+
+	* [r4237] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c: use strdupa for lineName and fixing
+	  refcount issue, fixes #49
+
+2013-02-16  ddegroot
+
+	* [r4235] src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_indicate.c: Temporarily removed callwaiting interval
+	  until we find a correct solution
+
+2013-02-15  ddegroot
+
+	* [r4234] src/sccp_channel.c, src/sccp_indicate.c: Fixing
+	  callwaiting interval handling (possible null dereference)
+
+	* [r4233] src/sccp_cli.c: Show callwaiting interval in sccp show
+	  globals
+
+	* [r4232] src/sccp_protocol.c: Reduce debug logging when using
+	  sendDynamicDisplayNotify
+
+	* [r4231] src/sccp_indicate.c: Fix Channel setDevice needed to make
+	  callwaiting work
+
+2013-02-15  marcelloceschia
+
+	* [r4230] src/sccp_featureButton.c: fixes refcount issuen when no
+	  linedevice found
+
+2013-02-14  ddegroot
+
+	* [r4229] src/sccp_config_entries.h: Fix reload for adhocNumber
+	  (sccp reload, reported by Sean Curran)
+
+2013-02-14  marcelloceschia
+
+	* [r4228] src/sccp_featureButton.c: fixes refcount issuen when no
+	  linedevice found
+
+2013-02-12  ddegroot
+
+	* [r4225] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: Updated debug comment for 'answered
+	  elsewhere'
+
+2013-02-11  marcelloceschia
+
+	* [r4224] src/pbx_impl/ast/ast108.c: fixes missing
+	  ast_cel_linkedid_ref in asterisk 1.8.13.1, fixes #45
+
+2013-02-11  ddegroot
+
+	* [r4223] src/pbx_impl/ast/ast108.c: Fix: duplicate case value in
+	  ast108.c for AST_CONTROL_REDIRECTING
+
+	* [r4222] src/sccp_device.c, src/sccp_line.c: fixes #43
+
+2013-02-10  marcelloceschia
+
+	* [r4221] src/pbx_impl/ast/ast.c, src/sccp_actions.c,
+	  src/sccp_device.c: add patch by diederik
+
+	* [r4220] src/sccp_line.c: fixes #37, button feature not updated
+	  when cfwd disabled
+
+2013-02-09  ddegroot
+
+	* [r4219] src/sccp_cli.c: Found little bug in display of
+	  permit/deny values for device
+
+2013-02-08  marcelloceschia
+
+	* [r4218] src/pbx_impl/ast/ast108.c: use requestor->linkedid,
+	  references #6
+
+	* [r4217] src/sccp_line.c: do not release line when already created
+	  by an other thread
+
+2013-02-08  ddegroot
+
+	* [r4216] src/sccp_refcount.c: revert previous sccp_refcount.c
+	  compile warning fix
+
+	* [r4215] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: renamed
+	  function sccp_wrapper_sendRedirectedUpdate to
+	  sccp_asterisk_sendRedirectedUpdate, as requested
+
+	* [r4214] src/pbx_impl/ast/define.h: Fix compile issue with
+	  pbx_channel_redirecting_effective_ in
+	  sccp_asterisk_redirectedUpdate (after define.h was replaced in
+	  other fix by marcello (conflicting commit))
+
+	* [r4213] src/sccp_channel.c, src/sccp_refcount.c: Fix compile
+	  warnings
+
+2013-02-07  marcelloceschia
+
+	* [r4212] src/pbx_impl/ast/define.h: references #33, clang issue
+
+	* [r4211] src/pbx_impl/ast/astTrunk.c: do not register asterisk
+	  glue, references #14
+
+	* [r4210] src/pbx_impl/ast/define.h: fixes #33, clang issue
+
+2013-02-07  ddegroot
+
+	* [r4209] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h: Back port
+	  of sendRedirectedUpdate. references #18.
+
+	* [r4208] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c:
+	  Make compile with asterisk-1.8 / asterisk10 (references #18)
+
+	* [r4207] src/sccp_channel.c: Make compile against asterisk-1.6
+	  (references #18)
+
+	* [r4206] src/pbx_impl/ast/ast108.c: Backport of astobj2 ref/unref
+	  from astTrunk.c (references #2, references #22, references #15,
+	  references #6)
+
+2013-02-07  marcelloceschia
+
+	* [r4205] src/sccp_hint2.c: add remark
+
+	* [r4204] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_channel.c: fixes #18, with room for improvement
+	  (transferer callLog)
+
+	* [r4203] src/sccp_pbx.c: use unknown reason for call request
+
+	* [r4202] src/sccp_hint2.c: fixes #32
+
+2013-02-06  ddegroot
+
+	* [r4201] src/pbx_impl/ast/ast108.c: Updated
+	  sccp_wrapper_asterisk18_set_rtp_peer to new version (marcello).
+	  Commented out ast_rtp_glue_register / ast_rtp_glue_unregister
+	  (Fixes #31)
+
+	* [r4200] contrib/gen_sccpconf/gen_sccpconf.c: Fixed sql file
+	  generator for Postgresql.
+
+	* [r4199] contrib/gen_sccpconf/gen_sccpconf.c: Fixed sql file
+	  generator for SqlLite.
+
+	* [r4198] contrib/gen_sccpconf/gen_sccpconf.c: Extended
+	  gen_sccpconf.c to include complete sql file generator for Mysql,
+	  Postgres and SqlLite.
+
+	* [r4197] src/sccp_config.c: Cleanup debugging for sccp_config.c
+
+2013-02-05  ddegroot
+
+	* [r4196] src/sccp_config.c: Fix memory leak. fixes #29
+
+	* [r4195] src/sccp_config.c, src/sccp_config_entries.h: Update
+	  value for removed parameters in sccp.conf when parsing defaults.
+	  fixes #29
+
+2013-02-05  marcelloceschia
+
+	* [r4194] src/pbx_impl/ast/ast108.c: this is references issue #31,
+	  untested
+
+2013-02-05  ddegroot
+
+	* [r4193] src/sccp_features.c: Fix #28 : returning information when
+	  gpickup failed.
+
+2013-02-05  marcelloceschia
+
+	* [r4192] src/sccp_pbx.c: fixes uninitialized warning
+
+	* [r4191] src/sccp_pbx.c: cleanup transferChannels.transfer* during
+	  the hangup process, add some remarks
+
+2013-02-05  ddegroot
+
+	* [r4190] src/sccp_features.c: Removed ugly hold/resume from
+	  gpickup (Issue: #10)
+
+	* [r4189] src/pbx_impl/ast/astTrunk.c, src/sccp_pbx.c: Fix two
+	  small spelling mistakes
+
+2013-02-05  marcelloceschia
+
+	* [r4188] src/sccp_pbx.c: cleanup transferChannels.transfer* during
+	  the hangup process
+
+	* [r4187] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_softkeys.c: allow to complete
+	  transfer on fist channel (transferee), references #25
+
+2013-02-04  marcelloceschia
+
+	* [r4186] src/pbx_impl/ast/astTrunk.c: some more checks test with
+	  asterisk channel ref; related to #2 #22
+
+2013-02-04  ddegroot
+
+	* [r4185] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_pbx.c: Replace ast_mod_start ->
+	  PBX(moh_start). Beautify sccp extension match helper output.
+
+2013-02-04  marcelloceschia
+
+	* [r4184] src/pbx_impl/ast/astTrunk.c: re-enable refcount for
+	  asterisk channels, this is related to #22
+
+2013-02-04  ddegroot
+
+	* [r4183] conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql, conf/mysql-v4.sql,
+	  conf/mysql-v5.sql, conf/postgres.sql, conf/sccp.conf.annotated,
+	  conf/sqlite.sql, conf/sqlite3.sql, src/chan_sccp.h,
+	  src/conference/sccp_conference10.c, src/sccp_conference.h,
+	  src/sccp_config_entries.h: Added music_on_hold paramater for
+	  conference. Handle hold/resume in conference correctly. When
+	  moderator is onhold, music is player. Set
+	  conf_music_on_hold_class to empty string, if music on hold is not
+	  wanted.
+
+	* [r4182] src/sccp_channel.c: Followed revision 4179
+
+	* [r4181] src/pbx_impl/ast/astTrunk.c: Fixed spelling mistake in
+	  function name
+
+	* [r4180] src/sccp_features.c: Cleanup conference join. (Issue #12)
+
+2013-02-04  marcelloceschia
+
+	* [r4179] src/sccp_channel.c: fixes #27
+
+	* [r4178] src/pbx_impl/ast/astTrunk.c: du not use ast_channel_ref
+	  in asterisk 11, closes #22
+
+	* [r4177] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: fixes
+	  channel refcount issue reported by Pavel Troller, closes #23
+
+2013-02-04  ddegroot
+
+	* [r4176] src/sccp_features.c: Fixed ')' issue reported by Bob
+	  (chan-sccp-b r4175 - no compile on 2 diff systems)
+
+2013-02-03  ddegroot
+
+	* [r4175] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast108.c, src/sccp_channel.c,
+	  src/sccp_conference.h, src/sccp_features.c: Put conference join
+	  into production. Solved Issue #12
+
+	* [r4174] src/conference/sccp_conference10.c: Fixed conference
+	  channel refcount (moderators side of the channels, where not
+	  being released after masqueration (Issue #1/#15)
+
+	* [r4173] src/conference/sccp_conference10.c: Cleanup conference /
+	  Added comments / Fixed Issue #1
+
+	* [r4172] src/conference/sccp_conference10.c: Removed the
+	  AST_BRIDGE_FLAG_SMART flag, resulting in working conference
+	  destroy, even with larger participant numbers and foreign channel
+	  types (like SIP). More testing is necessary, but it looks
+	  hopefull.
+
+	* [r4171] src/conference/sccp_conference10.c,
+	  src/sccp_conference.h: Fixed participant refcount for conference,
+	  so that it is cleaned up correctly after conference is over.
+	  Added linkedid to conference struct. Update linkedid's to the
+	  moderator channel whichs starts the conference
+
+	* [r4170] src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  Implemented sccp_wrapper_asterisk_set_channel_linkedid (replaced
+	  linkedid/updated cel_ref)
+
+	* [r4169] src/pbx_impl/ast/ast106.c: Replaced ast_rtp_glue_register
+	  with ast_rtp_proto_register for asterisk 1.6
+
+	* [r4168] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Fix queue
+	  answer issue wenn invalid url has been added, checking URL
+	  content in sendHTML to prevent invalid url being resent over and
+	  over again (1).
+
+	* [r4167] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Fix queue
+	  answer issue wenn invalid url has been added, checking URL
+	  content in sendHTML to prevent invalid url being resent over and
+	  over again.
+
+	* [r4166] src/sccp_channel.c, src/sccp_pbx.c: Tiny fix some debug
+	  messages.
+
+	* [r4165] src/sccp_features.c: Added comment to replace
+	  pbx_pickup_call with PBX(feature_pickup)
+
+2013-02-03  marcelloceschia
+
+	* [r4164] src/sccp_indicate.c: do not send dialing state back to
+	  asterisk, this will prevent signalling connected state when
+	  pickup a parked call, fixes #17
+
+2013-02-03  ddegroot
+
+	* [r4163] src/sccp_features.c: Singular implementation for
+	  grouppickup
+
+	* [r4162] src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c:
+	  Fix compile / fix comment / fix order
+
+2013-02-03  marcelloceschia
+
+	* [r4161] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: backport to asterisk 1.6 - 10
+
+	* [r4160] Makefile.in, aclocal.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_channel.h, src/sccp_cli.c,
+	  src/sccp_features.c, src/sccp_hint2.c, src/sccp_management.c,
+	  src/sccp_pbx.c, src/sccp_softkeys.c: major logic error, this
+	  fixes #6 and review for #15 may be a solution for #4
+
+2013-02-02  ddegroot
+
+	* [r4159] src/sccp_cli.c: Extent experimental define block to
+	  enclose all cli test messages (1)
+
+	* [r4158] src/sccp_cli.c: Extent experimental define block to
+	  enclose all cli test messages
+
+	* [r4157] src/sccp_cli.c: Update setvar listing in sccp show line
+
+2013-02-01  ddegroot
+
+	* [r4156] src/sccp_config_entries.h, src/sccp_line.c: Removed
+	  default value sccpregistration for regcontext. When regcontext is
+	  not available in sccp.conf the entries are not created. BTW
+	  regcontext is only used for dundi lookup purposes
+
+	* [r4155] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  Reactivate ast_rtp_glue_register. Partially solving bridging
+	  issue when using queues. Channel is still not connected
+	  correctly.
+
+	* [r4154] src/sccp_utils.c: Fix debug log messages on channel find
+
+2013-01-31  ddegroot
+
+	* [r4153] conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/mysql-v4.sql, conf/mysql-v5.sql, conf/postgres.sql,
+	  conf/sqlite.sql, conf/sqlite3.sql: Added conference parameters to
+	  database samples
+
+2013-01-30  ddegroot
+
+	* [r4152] src/sccp_device.c: Fix DND status display after reloading
+	  chan-sccp-b
+
+	* [r4151] src/sccp_actions.c: Debug Log Correction (sccp_actions.c)
+
+2013-01-29  marcelloceschia
+
+	* [r4150] contrib/res_xmpp.patch: fix
+
 2013-01-29  ddegroot
+
+	* [r4149] doc/05_Features_V3.doc, doc/doxygen.cfg,
+	  src/conference/sccp_conference10.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_device.c, src/sccp_event.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_hint2.c,
+	  src/sccp_hint2.h, src/sccp_line.c, src/sccp_pbx.c,
+	  src/sccp_pbx.h, src/sccp_socket.c, src/sccp_threadpool.h,
+	  src/sccp_utils.c: Doxygen/Documentation corrections
+
+	* [r4148] ChangeLog, src/chan_sccp.c,
+	  src/conference/sccp_conference10.c, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c, src/sccp_actions.c:
+	  Doxygen/Documentation corrections
 
 	* [r4147] ChangeLog, INSTALL, Makefile.in, aclocal.m4,
 	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,

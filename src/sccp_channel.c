@@ -1803,6 +1803,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 /*!
  * \brief Handle Transfer Request (Pressing the Transfer Softkey)
  * \param channel *retained* SCCP Channel
+ * \param device *retained* SCCP Device
  *
  * \callgraph
  * \callergraph
