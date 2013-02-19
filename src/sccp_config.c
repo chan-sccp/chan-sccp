@@ -89,10 +89,12 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
 #    if defined(__GNUC__) && __GNUC__ > 3
 #        define offsetof(type, member)  __builtin_offsetof (type, member)
 #    else
-#        define offsetof(T, F) ((unsigned int)((char *)&((T *)0)->F))
+#          define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 #    endif
 #endif
-#define offsize(T, F) sizeof(((T *)0)->F)
+#ifndef offsetof
+#endif
+#define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
 #define G_OBJ_REF(x) offsetof(struct sccp_global_vars,x), offsize(struct sccp_global_vars,x)
 #define D_OBJ_REF(x) offsetof(struct sccp_device,x), offsize(struct sccp_device,x)
 #define L_OBJ_REF(x) offsetof(struct sccp_line,x), offsize(struct sccp_line,x)
@@ -1407,6 +1409,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  *
  * \todo check changes to make the function more generic
  */
+#include <asterisk/unaligned.h>
 sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1414,6 +1417,9 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 	char *piece;
 	char *c;
 	int start = 0, finish = 0, x;
+#if defined(__sparc__)
+       sccp_group_t group_orig = (sccp_group_t) get_unaligned_uint64((const void *)dest);
+#endif
 	sccp_group_t group = 0;
 
 	if (!sccp_strlen_zero(value)) {
@@ -1437,17 +1443,19 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 				}
 			}
 		}
-		if ((*(sccp_group_t *) dest) != group) {
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-			*(sccp_group_t *) dest = group;
-		}
-	} else {
-		if ((*(sccp_group_t *) dest) != 0) { 
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-			*(sccp_group_t *) dest = group;
-		}
 	}
-
+#if defined(__sparc__)
+       group_orig = (sccp_group_t) get_unaligned_uint64((const void *)dest);
+               if(group_orig != group) {
+                       changed = SCCP_CONFIG_CHANGE_CHANGED;
+                       put_unaligned_uint64(dest, group);
+        }
+#else 
+       if ((*(sccp_group_t *) dest) != group) {
+               changed = SCCP_CONFIG_CHANGE_CHANGED;
+               *(sccp_group_t *) dest = group;
+       }
+#endif
 	return changed;
 }
 
