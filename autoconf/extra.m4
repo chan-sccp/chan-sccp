@@ -537,7 +537,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^[ \t]*//;s/[ \t]*$//'`" 	dnl Remove leading/ending spaces
 		CFLAGS_saved="${CFLAGS_saved} -Wall -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS="-g3 -ggdb3"
-		if test "x$GCC" = "xyes"; then
+		if test "x${GCC}" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
@@ -548,7 +548,7 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
     		fi 
-    		if test "x$CC" = "xclang"; then
+    		if test "x${CC}" = "xclang"; then
 dnl    			CFLAGS_saved="${CFLAGS_saved} -fsanitize= "
     			CFLAGS_saved="${CFLAGS_saved} "
     		fi
@@ -558,7 +558,7 @@ dnl    			CFLAGS_saved="${CFLAGS_saved} -fsanitize= "
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		CFLAGS_saved="${CFLAGS_saved} -D_FORTIFY_SOURCE=1 "
-		if test "x$GCC" = "xyes"; then
+		if test "x${GCC}" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)	// has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html)
@@ -943,6 +943,10 @@ AC_DEFUN([AX_COUNT_CPUS], [
         #On BSD/MacOS
         if test -x /usr/sbin/sysctl -a `/sbin/sysctl -a 2>/dev/null| grep -c hw.cpu`; then
             CPU_COUNT=`/usr/sbin/sysctl -n hw.ncpu`
+        fi
+        #On Sparc
+        if test "x${CPU_COUNT}" = "x0" -a -e /proc/cpuinfo; then
+            CPU_COUNT=`${EGREP} -c 'ClkTck' /proc/cpuinfo`
         fi
     fi
     if test "x$CPU_COUNT" = "x0"; then
