@@ -230,11 +230,9 @@ char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, O
 static int sccp_show_globals(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char pref_buf[256];
-#if !defined(__sparc__)
 	struct ast_str *callgroup_buf = pbx_str_alloca(512);
 #ifdef CS_SCCP_PICKUP
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
-#endif
 #endif
 	struct ast_str *ha_buf = pbx_str_alloca(512);
 	char *debugcategories;
@@ -284,14 +282,12 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("Accountcode", CLI_AMI_LIST_WIDTH, "%s", GLOB(accountcode));
 	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", GLOB(musicclass));
 	CLI_AMI_OUTPUT_PARAM("AMA flags", CLI_AMI_LIST_WIDTH, "%d (%s)", GLOB(amaflags), pbx_cdr_flags2str(GLOB(amaflags)));
-#if !defined(__sparc__)
 	sccp_print_group(callgroup_buf, sizeof(callgroup_buf), GLOB(callgroup));
 	CLI_AMI_OUTPUT_PARAM("Callgroup", CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
 #ifdef CS_SCCP_PICKUP
 	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), GLOB(pickupgroup));
 	CLI_AMI_OUTPUT_PARAM("Pickupgroup", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
 	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer ", CLI_AMI_LIST_WIDTH, GLOB(pickupmodeanswer));
-#endif
 #endif
 	CLI_AMI_OUTPUT_PARAM("Codecs preference", CLI_AMI_LIST_WIDTH, "%s", pref_buf);
 	CLI_AMI_OUTPUT_BOOL("CFWDALL    ", CLI_AMI_LIST_WIDTH, GLOB(cfwdall));
@@ -896,11 +892,9 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	sccp_line_t *l;
 	sccp_linedevices_t *linedevice;
 	PBX_VARIABLE_TYPE *v = NULL;
-#if !defined(__sparc__)
 	struct ast_str *callgroup_buf = pbx_str_alloca(512);
 #ifdef CS_SCCP_PICKUP
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
-#endif
 #endif
 	int local_total = 0;
 
@@ -939,13 +933,11 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_PARAM("Account Code", CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", l->musicclass ? l->musicclass : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("AmaFlags", CLI_AMI_LIST_WIDTH, "%d", l->amaflags);
-#if !defined(__sparc__)
 	sccp_print_group(callgroup_buf, sizeof(callgroup_buf), l->callgroup);
 	CLI_AMI_OUTPUT_PARAM("Call Group", CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
 #ifdef CS_SCCP_PICKUP
 	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), l->pickupgroup);
 	CLI_AMI_OUTPUT_PARAM("Pickup Group", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
-#endif
 #endif
 	CLI_AMI_OUTPUT_PARAM("Caller ID name", CLI_AMI_LIST_WIDTH, "%s", l->cid_name ? l->cid_name : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Caller ID number", CLI_AMI_LIST_WIDTH, "%s", l->cid_num ? l->cid_num : "<not set>");

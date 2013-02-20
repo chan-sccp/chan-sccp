@@ -1409,9 +1409,6 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  *
  * \todo check changes to make the function more generic
  */
-#if defined(__sparc__)
-//#include <asterisk/unaligned.h>
-#endif
 sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1419,9 +1416,6 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 	char *piece;
 	char *c;
 	int start = 0, finish = 0, x;
-#if defined(__sparc__)
-//	sccp_group_t group_orig = (sccp_group_t) get_unaligned_uint64((const void *)dest);
-#endif
 	sccp_group_t group = 0;
 
 	if (!sccp_strlen_zero(value)) {
@@ -1446,17 +1440,10 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 			}
 		}
 	}
-#if defined(__sparc__)
-//        if(group_orig != group) {
-//                changed = SCCP_CONFIG_CHANGE_CHANGED;
-//                put_unaligned_uint64(dest, group);
-//        }
-#else 
 	if ((*(sccp_group_t *) dest) != group) {
         	changed = SCCP_CONFIG_CHANGE_CHANGED;
         	*(sccp_group_t *) dest = group;
 	}
-#endif
 	return changed;
 }
 
