@@ -186,8 +186,8 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 
 #define SCCP_MAX_HOSTNAME_LEN 100
 #define SCCP_MAX_MESSAGESTACK 10
-#if defined(__sparc__)
-       typedef unsigned long sccp_group_t;									/*!< SCCP callgroup / pickupgroup / defined as unsigned long, otherwise alignmenent issue sparc */
+#if defined(HAVE_UNALIGNED_BUSERROR) 
+       typedef unsigned long sccp_group_t;									/*!< SCCP callgroup / pickupgroup / defined as unsigned long, otherwise alignmenent issue (for example on sparc) */
 #else  
        typedef unsigned long long sccp_group_t;									/*!< SCCP callgroup / pickupgroup */
 #endif
