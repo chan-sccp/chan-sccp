@@ -396,6 +396,42 @@ AC_DEFUN([CS_GET_VERSION], [
   AC_SUBST([PACKAGE_NAME])
 ])
 
+## -----------------------------------------------------##
+## CHECK_ALIGNED_ACCESS_REQUIRED (i.e. sparc/ppc/alpha) ##
+## -----------------------------------------------------##
+
+AC_DEFUN([AX_CHECK_ALIGNED_ACCESS_REQUIRED],
+[AC_CACHE_CHECK([if pointers to integers require aligned access],
+  [ax_cv_have_aligned_access_required],
+  [AC_TRY_RUN([
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+  char* string = malloc(40);
+  int i;
+  for (i=0; i < 40; i++) string[[i]] = i;
+  {
+     void* s = string;
+     int* p = s+1;
+     int* q = s+2;
+   
+     if (*p == *q) { return 1; }
+  }
+  return 0;
+}
+              ],
+     [ax_cv_have_aligned_access_required=yes],
+     [ax_cv_have_aligned_access_required=no],
+     [ax_cv_have_aligned_access_required=no])
+  ])
+if test "$ax_cv_have_aligned_access_required" = yes ; then
+  AC_DEFINE([HAVE_ALIGNED_ACCESS_REQUIRED], [1],
+    [Define if pointers to integers require aligned access])
+fi  
+])
+
 ## ------------------##
 ## Doxygen Defaults. ##
 ## ------------------##
