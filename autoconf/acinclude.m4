@@ -433,7 +433,7 @@ fi
 ])
 
 AC_DEFUN([AX_CHECK_UNALIGNED_BUSERROR],
-[AC_CACHE_CHECK([whether misalignment is allowed],
+[AC_CACHE_CHECK([whether uint64_t misalignment causes a buserror on this system],
   [ax_cv_have_unaligned_buserror],
   [AC_TRY_RUN([
 #include <stdio.h>
@@ -442,21 +442,21 @@ AC_DEFUN([AX_CHECK_UNALIGNED_BUSERROR],
 #include <stdint.h>
 int main()
 {
-          uint64_t buf64[[3]];
+          uint64_t buf64[3];
           uint8_t *p;
           memcpy(buf64, "AAAAAAA" "BBBBBBBB" "CCCCCCCC", 24); /* 7+8+8+1 */
-          p = (uint8_t*)&buf64[[0]] + 7;
+          p = (uint8_t*)&buf64[0] + 7;
           /* Either bad result or SIGBUS on some systems */
           return (*((uint64_t*)p) == 0x4242424242424242ull) ? 0 : 1;
 }
               ],
      [ax_cv_have_unaligned_buserror=no],
-     [ax_cv_have_unaligned_buserror=no],
-     [ax_cv_have_unaligned_buserror=yes])
+     [ax_cv_have_unaligned_buserror=yes],
+     [ax_cv_have_unaligned_buserror=no])
   ])
 if test "$ax_cv_have_unaligned_buserror" = yes ; then
   AC_DEFINE([HAVE_UNALIGNED_BUSERROR], [1],
-    [Define if pointers to unaligne uint64_t integers would cause buserror])
+    [Define if pointers to unaligned uint64_t integers would cause buserror])
 fi  
 ])
 
