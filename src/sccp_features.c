@@ -192,7 +192,6 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8
 				pbx_log(LOG_ERROR, "%s: Active call '%d' could not be put on hold\n", DEV_ID_LOG(device), c->callid);
 				goto EXIT;
 			}
-			c = sccp_channel_release(c);
 		}
 	}
 
