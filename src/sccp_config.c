@@ -2050,7 +2050,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 				/* load saved settings from ast db */
 				sccp_config_restoreDeviceFeatureStatus(d);
-				sccp_device_release(d);
+				d = sccp_device_release(d);
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */
@@ -2081,7 +2081,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			v = ast_variable_browse(GLOB(cfg), cat);
 			sccp_config_softKeySet(v, cat);
 		} else {
-			pbx_log(LOG_WARNING, "SCCP: (sccp_config_readDevicesLines) UNKNOWN SECTION / UTYPE\n");
+			pbx_log(LOG_WARNING, "SCCP: (sccp_config_readDevicesLines) UNKNOWN SECTION / UTYPE, type: %s\n", utype);
 		}
 	}
 
