@@ -138,8 +138,9 @@ void sccp_device_pre_reload(void)
 		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		sccp_free_ha(d->ha);
 		d->ha = NULL;
-		if (!d->realtime)										/* don't want to reset hotline devices. */
+		if (!d->realtime){										/* don't want to reset hotline devices. */
 			d->pendingDelete = 1;
+		}
 		d->pendingUpdate = 0;
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
@@ -185,8 +186,9 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (%d, %d)\n", d->id, d->pendingUpdate, d->pendingDelete);
 	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-	if (d->session)
+	if (d->session){
 		pthread_cancel(d->session->session_thread);
+	}
 	d->pendingUpdate = 0;
 
 	if (d->pendingDelete) {
@@ -239,8 +241,9 @@ void sccp_device_post_reload(void)
 		/* Because of the previous check, the only reason that the device hasn't
 		 * been updated will be because it is currently engaged in a call.
 		 */
-		if (!sccp_device_check_update(d))
+		if (!sccp_device_check_update(d)){
 			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
+		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -309,8 +312,10 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
 	d->hasDisplayPrompt = sccp_device_trueResult;
+#ifdef CS_DYNAMIC_CONFIG
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
+#endif
 	return d;
 }
 
@@ -1719,12 +1724,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		if (d->session && d->session->device) {
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			usleep(10);
-//                      sccp_session_lock(d->session);
-//                      d->session->device = sccp_session_removeDevice(d->session);
 			sccp_session_removeDevice(d->session);
 			d->session = NULL;
-//                      d->session = NULL;
-//                      sccp_session_unlock(d->session);
 		}
 
 		/* release line references, refcounted in btnList */
@@ -1751,10 +1752,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 
 #endif
-//              if (remove_from_global) {
-//                      sccp_device_destroy(d);
-// //                   sccp_device_removeFromGlobals(d);
-//              }
+
 		d = sccp_device_release(d);
 	}
 }
@@ -1965,15 +1963,21 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 {
 	sccp_moo_t *r;
 
-	if (!d)
+	if (!d){
 		return 0;
+	}
 
 	REQ(r, Reset);
-	if (!r)
+	if (!r){
 		return 0;
+	}
 
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
+	
+#ifdef CS_DYNAMIC_CONFIG
+	d->pendingUpdate = 0;
+#endif
 	return 1;
 }
 
