@@ -2111,14 +2111,19 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 #ifdef CS_EXPERIMENTAL
 		sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_channel_transfer_ringing_thread, (void *)dual);
 #else
-		pthread_attr_init(&attr);
-		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-		if (pbx_pthread_create(&t, &attr, sccp_channel_transfer_ringing_thread, dual)) {
-			pbx_log(LOG_WARNING, "%s: Unable to create thread for the blind transfer ring indication. %s\n", d->id, strerror(errno));
-			sccp_free(dual);
+		pbx_channel_lock(dual->transfered);
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (Ringing within Transfer %s(%p)\n", pbx_channel_name(dual->transfered), pbx_channel_name(dual->transfered));
+		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (Transfer destination %s(%p)\n", pbx_channel_name(dual->destination), pbx_channel_name(dual->destination));
+
+		if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_RING) {
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Send ringing indication to %s(%p)\n", pbx_channel_name(dual->transfered), (void *)dual->transfered);
+			pbx_indicate(dual->transfered, AST_CONTROL_RINGING);
+		} else if (GLOB(blindtransferindication) == SCCP_BLINDTRANSFER_MOH) {
+			sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: (sccp_channel_transfer_ringing_thread) Started music on hold for channel %s(%p)\n", pbx_channel_name(dual->transfered), (void *)dual->transfered);
+			PBX(moh_start) (dual->transfered, NULL, NULL);							//! \todo use pbx impl
 		}
-		pthread_detach(t);
-		pthread_attr_destroy(&attr);
+		pbx_channel_unlock(dual->transfered);
+		sccp_free(dual);
 #endif
 		
 	}
@@ -2223,8 +2228,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	memcpy(&sccp_forwarding_channel->remoteCapabilities.audio, sccp_channel_parent->remoteCapabilities.audio, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
 	memset(&sccp_forwarding_channel->preferences.audio, 0, sizeof(sccp_forwarding_channel->preferences.audio));
 	memcpy(&sccp_forwarding_channel->preferences.audio, sccp_channel_parent->preferences.audio, sizeof(sccp_channel_parent->preferences.audio));
-	sccp_forwarding_channel->rtp.audio.readFormat = sccp_channel_parent->rtp.audio.readFormat;
-	sccp_forwarding_channel->rtp.audio.writeFormat = sccp_channel_parent->rtp.audio.writeFormat;
+	
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(sccp_forwarding_channel, sccp_channel_getLinkedId(sccp_channel_parent) )) {
@@ -2237,8 +2241,10 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		goto EXIT_FUNC;
 	}
 	/* Update rtp setting to match predecessor */
-	PBX(rtp_setReadFormat) (sccp_forwarding_channel, sccp_channel_parent->rtp.audio.readFormat);
-	PBX(rtp_setWriteFormat) (sccp_forwarding_channel, sccp_channel_parent->rtp.audio.writeFormat);
+	skinny_codec_t codecs[] = {SKINNY_CODEC_WIDEBAND_256K};
+	PBX(set_nativeAudioFormats) (sccp_forwarding_channel, codecs, 1);
+	PBX(rtp_setWriteFormat) (sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
+	PBX(rtp_setWriteFormat) (sccp_forwarding_channel, SKINNY_CODEC_WIDEBAND_256K);
 	sccp_channel_updateChannelCapability(sccp_forwarding_channel);
 
 	/* setting callerid */
