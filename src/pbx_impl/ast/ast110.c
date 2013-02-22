@@ -76,6 +76,26 @@ skinny_codec_t sccp_asterisk10_getSkinnyFormatSingle(struct ast_format_cap *ast_
 	return codec;
 }
 
+static uint8_t sccp_asterisk10_getSkinnyFormatMultiple(struct ast_format_cap *ast_format_capability, skinny_codec_t codec[], int length){
+	struct ast_format tmp_fmt;
+	uint8_t i;
+	uint8_t position = 0;
+	
+	ast_format_cap_iter_start(ast_format_capability);
+	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt) && position < length) {
+		for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
+			if (skinny2pbx_codec_maps[i].pbx_codec == tmp_fmt.id) {
+				codec[position++] = skinny2pbx_codec_maps[i].skinny_codec;
+				break;
+			}
+		}
+	  
+	}
+	ast_format_cap_iter_end(ast_format_capability);
+	
+	return position;
+}
+
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -268,30 +288,30 @@ static boolean_t sccp_wrapper_asterisk110_setReadFormat(const sccp_channel_t * c
                 sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE))(VERBOSE_PREFIX_3 "SCCP: " #_log "\n"); 	\
         }
 
-static void get_skinnyFormats(struct ast_format_cap *format, skinny_codec_t codecs[], size_t size)
-{
-	unsigned int x;
-	unsigned len = 0;
-
-	size_t f_len;
-	struct ast_format tmp_fmt;
-	const struct ast_format_list *f_list = ast_format_list_get(&f_len);
-
-	if (!size) {
-		f_list = ast_format_list_destroy(f_list);
-		return;
-	}
-
-	for (x = 0; x < ARRAY_LEN(skinny2pbx_codec_maps) && len <= size; x++) {
-		ast_format_copy(&tmp_fmt, &f_list[x].format);
-		if (ast_format_cap_iscompatible(format, &tmp_fmt)) {
-			if (skinny2pbx_codec_maps[x].pbx_codec == ((uint) tmp_fmt.id)) {
-				codecs[len++] = skinny2pbx_codec_maps[x].skinny_codec;
-			}
-		}
-	}
-	f_list = ast_format_list_destroy(f_list);
-}
+// static void get_skinnyFormats(struct ast_format_cap *format, skinny_codec_t codecs[], size_t size)
+// {
+// 	unsigned int x;
+// 	unsigned len = 0;
+// 
+// 	size_t f_len;
+// 	struct ast_format tmp_fmt;
+// 	const struct ast_format_list *f_list = ast_format_list_get(&f_len);
+// 
+// 	if (!size) {
+// 		f_list = ast_format_list_destroy(f_list);
+// 		return;
+// 	}
+// 
+// 	for (x = 0; x < ARRAY_LEN(skinny2pbx_codec_maps) && len <= size; x++) {
+// 		ast_format_copy(&tmp_fmt, &f_list[x].format);
+// 		if (ast_format_cap_iscompatible(format, &tmp_fmt)) {
+// 			if (skinny2pbx_codec_maps[x].pbx_codec == ((uint) tmp_fmt.id)) {
+// 				codecs[len++] = skinny2pbx_codec_maps[x].skinny_codec;
+// 			}
+// 		}
+// 	}
+// 	f_list = ast_format_list_destroy(f_list);
+// }
 
 /*************************************************************************************************************** CODEC **/
 
@@ -569,7 +589,7 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 							remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
 						} else {
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, remotePeer->nativeformats));
-							get_skinnyFormats(remotePeer->nativeformats, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
+							sccp_asterisk10_getSkinnyFormatMultiple(remotePeer->nativeformats, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
 						}
 
 						sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio));
@@ -1295,11 +1315,11 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 			}
 			remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
 		} else {
-			get_skinnyFormats(requestor->nativeformats, audioCapabilities, ARRAY_LEN(audioCapabilities));	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+			sccp_asterisk10_getSkinnyFormatMultiple(requestor->nativeformats, audioCapabilities, ARRAY_LEN(audioCapabilities));	// replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 		}
 
 		/* video capabilities */
-		get_skinnyFormats(requestor->nativeformats, videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
+		sccp_asterisk10_getSkinnyFormatMultiple(requestor->nativeformats, videoCapabilities, ARRAY_LEN(videoCapabilities));	//replace AUDIO_MASK with AST_FORMAT_TYPE_AUDIO check
 	}
 
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, audioCapabilities, ARRAY_LEN(audioCapabilities));
