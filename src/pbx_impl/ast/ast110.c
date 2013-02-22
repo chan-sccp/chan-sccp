@@ -52,6 +52,31 @@ int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_c
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk110_devicestate(void *data);
 
+
+skinny_codec_t sccp_asterisk10_getSkinnyFormatSingle(struct ast_format_cap *ast_format_capability){
+	struct ast_format tmp_fmt;
+	uint8_t i;
+	skinny_codec_t codec = SKINNY_CODEC_NONE;
+	
+	ast_format_cap_iter_start(ast_format_capability);
+	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt)) {
+		for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
+			if (skinny2pbx_codec_maps[i].pbx_codec == tmp_fmt.id) {
+				codec = skinny2pbx_codec_maps[i].skinny_codec;
+				break;
+			}
+		}
+	  
+		if (codec != SKINNY_CODEC_NONE){
+			break;
+		}
+	}
+	ast_format_cap_iter_end(ast_format_capability);
+	
+	return codec;
+}
+
+
 #if defined(__cplusplus) || defined(c_plusplus)
 
 /*!
@@ -1286,7 +1311,8 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 	/** done */
 
 	/** get requested format */
-	codec = pbx_codec2skinny_codec(ast_format_cap_to_old_bitfield(format));
+// 	codec = pbx_codec2skinny_codec(ast_format_cap_to_old_bitfield(format));
+	codec = sccp_asterisk10_getSkinnyFormatSingle(format);
 
 	/* get requested format */
 	{
