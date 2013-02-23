@@ -551,7 +551,7 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	uint32_t packSize = 0;
 	sccp_moo_t *msg = NULL;
 
-	if (s->buffer_size <= 4) {
+	if (!s || s->buffer_size <= 4) {
 		return NULL;											/* Not enough data to even read the packet lenght */
 	}
 
@@ -563,12 +563,11 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 		return NULL;											/* Not enough data, yet. */
 	} else {
 		/* copy the first full message we can find out of s->buffer */
-		msg = sccp_malloc((packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));			/* Only malloc what we need */
+		msg = sccp_calloc(1, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));			/* Only malloc what we need */
 		if (!msg) {
 			pbx_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
 			return NULL;
 		}
-		memset(msg, 0, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));	
 		memcpy(msg, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));
 		msg->length = letohl(msg->length);
 
