@@ -29,45 +29,37 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: messagebuffer is not valid. exiting sccp_dump_packet\n");
 		return;
 	}
-
 	int cur, t, i;
 	int rows, cols;
 	int res = 16;
 	char row[256];
+	char *rowptr = row;
 	char temp[16];
-	char temp2[32];
+	char *tempptr = temp;
 
 	cur = 0;
-
 	cols = res;
 	rows = len / cols + (len % cols ? 1 : 0);
 
 	for (i = 0; i < rows; i++) {
 		memset(row, 0, sizeof(row));
-		sprintf(row, "%08X - ", cur);
+		memset(temp, 0, sizeof(temp));
+		rowptr=row;
+		tempptr=temp;
+
+		rowptr += sprintf(rowptr, "%08X - ", cur);
 		if ((i == rows - 1) && (len % res > 0))								// FIXED after 354 -FS
 			cols = len % res;
 
-		memset(temp2, 0, sizeof(temp2));
 		for (t = 0; t < cols; t++) {
-			memset(temp, 0, sizeof(temp));
-			sprintf(temp, "%02X ", messagebuffer[cur]);
-			strcat(row, temp);
+			rowptr += sprintf(rowptr, "%02X ", messagebuffer[cur]);
 			if (isprint((char)messagebuffer[cur]))
-				sprintf(temp, "%c", messagebuffer[cur]);
+				tempptr += sprintf(tempptr, "%c", messagebuffer[cur]);
 			else
-				sprintf(temp, ".");
-			strcat(temp2, temp);
+				tempptr += sprintf(tempptr, ".");
 			cur++;
 		}
-
-		if (cols < res) {
-			for (t = 0; t < res - cols; t++) {
-				strcat(row, "   ");
-			}
-		}
-		strcat(row, temp2);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s\n", row);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%-59.59s- %s\n", row, temp);
 	}
 }
 
