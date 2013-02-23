@@ -338,6 +338,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 
 	/* Dealloc */
 	ast_cond_destroy(&(tp_p->work));									/* Remove Condition */
+	ast_cond_destroy(&(tp_p->exit));									/* Remove Condition */
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->jobs));
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->threads));
 	free(tp_p);												/* DEALLOC thread pool         */
