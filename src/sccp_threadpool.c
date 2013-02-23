@@ -98,6 +98,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	SCCP_LIST_HEAD_INIT(&tp_p->jobs);
 	tp_p->last_size_check = time(0);
 	tp_p->job_high_water_mark = 0;
+	tp_p->last_resize = time(0);
 
 	/* Initialise Condition */
 	ast_cond_init(&(tp_p->work), NULL);
