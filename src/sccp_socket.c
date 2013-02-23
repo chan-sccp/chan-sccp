@@ -548,36 +548,38 @@ static void sccp_accept_connection(void)
  */
 static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 {
-	uint32_t packSize = 0;
+	uint32_t packetSize = 0;
 	sccp_moo_t *msg = NULL;
 
 	if (!s || s->buffer_size <= 4) {
 		return NULL;											/* Not enough data to even read the packet lenght */
 	}
 
-	memcpy(&packSize, s->buffer, 4);
-	packSize = letohl(packSize);
-	packSize += 8;
+	memcpy(&packetSize, s->buffer, 4);
+	packetSize = letohl(packetSize);
+	packetSize += 8;
 
-	if (packSize > (uint32_t) s->buffer_size) {
+	if (packetSize > s->buffer_size) {
 		return NULL;											/* Not enough data, yet. */
 	} else {
 		/* copy the first full message we can find out of s->buffer */
-		int new_msg_size = packSize;
-		if (packSize > SCCP_MAX_PACKET) {
-			pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(msg->lel_messageId), SCCP_MAX_PACKET, packSize);
-			new_msg_size = SCCP_MAX_PACKET;
-		}	
-		if (!(msg = sccp_calloc(1, new_msg_size))) {							/* Only calloc what we need */
-			pbx_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
+		if (packetSize > SCCP_MAX_PACKET) {
+			pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d (Expect Problems. Report to Developers)\n", letohl(msg->lel_messageId), SCCP_MAX_PACKET, packetSize);
+			packetSize = SCCP_MAX_PACKET;
+		}
+//		if ((msg = sccp_calloc(1, packetSize)) == NULL) {						/* Only calloc what we need */
+		if ((msg = calloc(1, packetSize)) == NULL) {						/* Only calloc what we need */
+			pbx_log(LOG_ERROR, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
 			return NULL;
 		}
-		memcpy(msg, s->buffer, new_msg_size);								/* Copy new_msg_size from the buffer */
-		msg->length = letohl(msg->length);								/* convert msg->length */
+		
+		memcpy(msg, s->buffer, packetSize);								/* Copy packetSize from the buffer */
+//		msg->length = letohl(msg->length);								/* replace msg->length (network conversion)*/
+		msg->length = packetSize;									/* use packetSize instead, in case we got an oversize packet. Replaced lenght with letohl(length), network conversion */
 
 		/* move s->buffer content to the beginning */
-		s->buffer_size -= packSize;
-		memmove(s->buffer, (s->buffer + packSize), s->buffer_size);
+		s->buffer_size -= packetSize;
+		memmove(s->buffer, (s->buffer+packetSize), s->buffer_size);
 
 		/* return the message */
 		return msg;
