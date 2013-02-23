@@ -559,21 +559,21 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	packSize = letohl(packSize);
 	packSize += 8;
 
-	if (s->buffer_size < 0 || (packSize) > (uint32_t) s->buffer_size) {
+	if (packSize > (uint32_t) s->buffer_size) {
 		return NULL;											/* Not enough data, yet. */
 	} else {
 		/* copy the first full message we can find out of s->buffer */
-		msg = sccp_calloc(1, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));			/* Only malloc what we need */
-		if (!msg) {
+		int new_msg_size = packSize;
+		if (packSize > SCCP_MAX_PACKET) {
+			pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(msg->lel_messageId), SCCP_MAX_PACKET, packSize);
+			new_msg_size = SCCP_MAX_PACKET;
+		}	
+		if (!(msg = sccp_calloc(1, new_msg_size))) {							/* Only calloc what we need */
 			pbx_log(LOG_WARNING, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
 			return NULL;
 		}
-		memcpy(msg, s->buffer, (packSize < SCCP_MAX_PACKET ? packSize : SCCP_MAX_PACKET));
-		msg->length = letohl(msg->length);
-
-		if (packSize > SCCP_MAX_PACKET) {
-			pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d\n", letohl(msg->lel_messageId), SCCP_MAX_PACKET, packSize);
-		}	
+		memcpy(msg, s->buffer, new_msg_size);								/* Copy new_msg_size from the buffer */
+		msg->length = letohl(msg->length);								/* convert msg->length */
 
 		/* move s->buffer content to the beginning */
 		s->buffer_size -= packSize;
