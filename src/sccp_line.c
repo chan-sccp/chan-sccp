@@ -35,18 +35,26 @@ int __sccp_lineDevice_destroy(const void *ptr);
 void sccp_line_pre_reload(void)
 {
 	sccp_line_t *l;
+	sccp_linedevices_t *linedevice;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		/* Don't want to include the hotline line */
-		if (GLOB(hotline)->line != l
+		if (GLOB(hotline)->line == l) {					/* always remove hotline from linedevice */
+			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", linedevice->device->id);
+				linedevice->device->isAnonymous = FALSE;
+				sccp_line_removeDevice(linedevice->line, linedevice->device);
+			}
+			SCCP_LIST_TRAVERSE_SAFE_END;
+		} else {							/* Don't want to include the hotline line */
 #    ifdef CS_SCCP_REALTIME
-		    && l->realtime == FALSE
+			if (l->realtime == FALSE)
 #    endif
-		    ) {
-			l->pendingDelete = 1;
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
-		}
+			{
+				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
+				l->pendingDelete = 1;
+			}
+		}	
 		l->pendingUpdate = 0;
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
