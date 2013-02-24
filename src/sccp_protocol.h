@@ -1911,14 +1911,12 @@ typedef union {
 		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatDynamicMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
 
-#    ifdef CS_EXPERIMENTAL
 	struct {
 		uint32_t lel_instance;						/*!< Instance */
 		uint32_t lel_type;						/*!< always 0x15 */
 		uint32_t lel_status;						/*!< status */
 		char DisplayName[StationMaxNameSize];				/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} SpeedDialStatDynamicMessage;						/*!< Speed Dial Stat Dynamic Message Structure */
-#    endif
 
 	struct {								// OK
 		uint32_t lel_displayTimeout;
