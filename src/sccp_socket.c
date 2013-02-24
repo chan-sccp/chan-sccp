@@ -399,11 +399,11 @@ void *sccp_socket_device_thread(void *session)
                 res = sccp_socket_poll(s->fds, 1, pollTimeout);
                 pthread_testcancel();
                 pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-                if (res > 0) {                                                                          /* poll data processing */
-                        if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {                /* POLLIN | POLLPRI*/
+                if (res > 0) {										/* poll data processing */
+                        if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {		/* POLLIN | POLLPRI*/
                                 /* we have new data -> continue */
                                 sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-                                if (sccp_read_data(s)>8) {                                              /* size of header*/   
+                                if (sccp_read_data(s)>8) {						/* size of header*/   
                                         while ((m = sccp_process_data(s))) {
                                                 if (!sccp_handle_message(m, s)) {
                                                         if (s->device) {
@@ -515,7 +515,7 @@ static void sccp_accept_connection(void)
 	s->protocolType = SCCP_PROTOCOL;
 
 	s->lastKeepAlive = time(0);
-	s->buffer = calloc(1,SCCP_MAX_PACKET * 2);				// maximum buffer size has to be more than one maximum packet
+	s->buffer = calloc(1,SCCP_MAX_PACKET * 2);							/* maximum buffer size has to be more than one maximum packet */
 	s->buffer_size = 0;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
@@ -556,46 +556,49 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	sccp_moo_t *msg = NULL;
 
 	if (!s || s->buffer_size < SCCP_PACKET_HEADER) {
-		return NULL;											/* Not enough data to even read the packet lenght */
+		return NULL;										/* Not enough data to even read the packet lenght */
 	}
 
 	memcpy(&header, s->buffer, SCCP_PACKET_HEADER);
 	messageId = letohl(header.lel_messageId);
 	packetSize = letohl(header.length);
-	packetSize += 8;											/* SCCP_PACKET_HEADER - sizeof(packetSize); */
+	packetSize += 8;										/* SCCP_PACKET_HEADER - sizeof(packetSize); */
 
 	if (packetSize > s->buffer_size) {
-		return NULL;											/* Not enough data, yet. */
-	} else {
-		/* copy the first full message we can find out of s->buffer */
-		newPacketSize = packetSize;
-		mooMessageSize=message2size(messageId);
-
-		if (newPacketSize > SCCP_MAX_PACKET) {								/* Make sure we don't read bigger then SCCP_MAX_PACKET */
-			pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize);
-			newPacketSize = SCCP_MAX_PACKET;
-		} else if (newPacketSize < mooMessageSize) {							/* Make sure we allocate enough to cover sccp_moo_t */
-			sccp_log((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))("SCCP: Undersized message: %s (%02X), message size: %d, phone packet size: %d\n", message2str(messageId), messageId, mooMessageSize, newPacketSize);
-			newPacketSize = mooMessageSize;	
-		}
-
-		if ((msg = sccp_calloc(1, newPacketSize)) == NULL) {						/* Only calloc what we need */
-			pbx_log(LOG_ERROR, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
-			return NULL;
-		}
-		
-		memcpy(msg, s->buffer, packetSize);								/* Copy packetSize from the buffer */
-		msg->header.length = letohl(msg->header.length);						/* replace msg->length (network conversion)*/
-		
-		sccp_log(DEBUGCAT_HIGH)("SCCP: packet message: %s (%02X), phone packet size: %d, new packet size: %d, sccp message_size: %d\n", message2str(messageId), messageId, packetSize, newPacketSize, mooMessageSize);
-
-		/* move s->buffer content to the beginning */
-		s->buffer_size -= packetSize;
-		memmove(s->buffer, (s->buffer+packetSize), s->buffer_size);
-
-		/* return the message */
-		return msg;
+		return NULL;										/* Not enough data, yet. */
 	}
+	
+	
+	/* copy the first full message we can find out of s->buffer */
+	newPacketSize = packetSize;
+	mooMessageSize= message2size(messageId);
+
+	if (newPacketSize > SCCP_MAX_PACKET) {								/* Make sure we don't read bigger then SCCP_MAX_PACKET */
+		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize);
+		newPacketSize = SCCP_MAX_PACKET;
+		
+	} else if (newPacketSize < mooMessageSize) {							/* Make sure we allocate enough to cover sccp_moo_t */
+		sccp_log((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))("SCCP: Undersized message: %s (%02X), message size: %d, phone packet size: %d\n", message2str(messageId), messageId, mooMessageSize, newPacketSize);
+		newPacketSize = mooMessageSize;	
+	}
+
+	if ((msg = sccp_calloc(1, newPacketSize)) == NULL) {						/* Only calloc what we need */
+		pbx_log(LOG_ERROR, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", newPacketSize);
+		return NULL;
+	}
+	
+	memcpy(msg, s->buffer, packetSize);								/* Copy packetSize from the buffer */
+	msg->header.length = letohl(msg->header.length);						/* replace msg->length (network conversion)*/
+	
+	sccp_log(DEBUGCAT_HIGH)("SCCP: packet message: %s (%02X), phone packet size: %d, new packet size: %d, sccp message_size: %d\n", message2str(messageId), messageId, packetSize, newPacketSize, mooMessageSize);
+
+	/* move s->buffer content to the beginning */
+	s->buffer_size -= packetSize;
+	memmove(s->buffer, (s->buffer+packetSize), s->buffer_size);
+
+	/* return the message */
+	return msg;
+	
 }
 
 /*!
@@ -723,19 +726,19 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
         if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
                 r->header.lel_protocolVer = 0;
         } else if (s->device && s->device->inuseprotocolversion >= 17) {
-                r->header.lel_protocolVer = htolel(0x11);                                                                 // we should always send 0x11
+                r->header.lel_protocolVer = htolel(0x11);						/* we should always send 0x11 */
         } else {
                 r->header.lel_protocolVer = 0;
         }
 
         try = 0;
-        maxTries = 500;                                                                                         // arbitrairy number of tries
+        maxTries = 500;											/* arbitrairy number of tries */
         bytesSent = 0;
         bufAddr = ((uint8_t *) r);
         bufLen = (ssize_t) (letohl(r->header.length) + 8);
         do {
                 try++;
-                ast_mutex_lock(&s->write_lock);                                                                 // prevent two threads writing at the same time. That should happen in a synchronized way
+                ast_mutex_lock(&s->write_lock);								/* prevent two threads writing at the same time. That should happen in a synchronized way */
                 res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
                 ast_mutex_unlock(&s->write_lock);
                 if (res < 0) {
@@ -748,7 +751,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                                 message2str(letohl(r->header.lel_messageId)), letohl(r->header.length),
                                                 try, maxTries
                                         );*/
-                                usleep(200);                                                                    // back off to give network/other threads some time
+                                usleep(200);								/* back off to give network/other threads some time */
                                 continue;
                         }
                         pbx_log(LOG_ERROR, 
