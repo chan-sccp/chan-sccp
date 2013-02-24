@@ -25,42 +25,39 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
-	if (!messagebuffer) {
+	static const int numcolumns = 16;						// number output columns
+
+	if (len <= 0 || !messagebuffer) {						// safe quard
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: messagebuffer is not valid. exiting sccp_dump_packet\n");
 		return;
-	}
-	int cur, t, i;
-	int rows, cols;
-	int res = 16;
-	char row[256];
-	char *rowptr = row;
-	char temp[16];
-	char *tempptr = temp;
-
-	cur = 0;
-	cols = res;
-	rows = len / cols + (len % cols ? 1 : 0);
-
-	for (i = 0; i < rows; i++) {
-		memset(row, 0, sizeof(row));
-		memset(temp, 0, sizeof(temp));
-		rowptr=row;
-		tempptr=temp;
-
-		rowptr += sprintf(rowptr, "%08X - ", cur);
-		if ((i == rows - 1) && (len % res > 0))								// FIXED after 354 -FS
-			cols = len % res;
-
-		for (t = 0; t < cols; t++) {
-			rowptr += sprintf(rowptr, "%02X ", messagebuffer[cur]);
-			if (isprint((char)messagebuffer[cur]))
-				tempptr += sprintf(tempptr, "%c", messagebuffer[cur]);
-			else
-				tempptr += sprintf(tempptr, ".");
-			cur++;
+	}	
+	int col = 0;
+	int cur = 0;	
+	int hexcolumnlength = 0;
+	const char * hex = "0123456789ABCDEF";
+        char hexout[(numcolumns * 3) + 1];
+        char *hexptr;
+        char chrout[numcolumns + 1];
+        char *chrptr;
+        do {
+	        memset(hexout, 0, sizeof(hexout));
+	        memset(chrout, 0, sizeof(chrout));
+	        hexptr=hexout;
+	        chrptr=chrout;
+        	for (col=0; col<numcolumns && (cur+col)<len; col++) {
+			*hexptr++ = hex[(*messagebuffer>>4)&0xF];			// lookup first part of hex value and add to hexptr
+			*hexptr++ = hex[(*messagebuffer)&0xF];				// lookup second part of a hex value and add to hexptr
+			*hexptr++ = ' ';						// add space to hexptr
+			if ((col+1) % 8 == 0) {
+				*hexptr++ = ' ';					// group by blocks of eight
+			}	
+			*chrptr++ = isprint(*messagebuffer) ? *messagebuffer : '.';	// add character or . to chrptr
+			messagebuffer+=1;						// instead *messagebuffer++ to circumvent unused warning
 		}
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%-59.59s- %s\n", row, temp);
-	}
+		hexcolumnlength = (numcolumns * 3) + (numcolumns/8) - 1;		// numcolums + block spaces - 1
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%08X - %-*.*s - %s\n", cur, hexcolumnlength, hexcolumnlength, hexout, chrout);
+		cur+=col;
+        } while (cur < (len-1));
 }
 
 /*!
@@ -996,6 +993,18 @@ void sccp_dev_dbclean()
 const char *message2str(uint32_t value)
 {
 	_ARR2STR(sccp_messagetypes, type, value, text);
+}
+
+size_t message2size(uint32_t value)
+{
+        uint32_t i; 
+        for (i = 0; i < ARRAY_LEN(sccp_messagetypes); i++) { 
+                if (sccp_messagetypes[i].type == value) { 
+                        return sccp_messagetypes[i].size; 
+                }
+        }
+        pbx_log(LOG_NOTICE, "SCCP: Unknown SCCP Message with %02X\n", value);
+        return SCCP_MAX_PACKET;
 }
 
 const char *channelstate2str(uint32_t value)

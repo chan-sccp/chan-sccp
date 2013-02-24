@@ -548,34 +548,46 @@ static void sccp_accept_connection(void)
  */
 static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 {
+	sccp_header_t header = {0};
 	uint32_t packetSize = 0;
+	uint32_t messageId = 0;
+	uint32_t newPacketSize = 0;
+	uint32_t mooMessageSize = 0;
 	sccp_moo_t *msg = NULL;
 
-	if (!s || s->buffer_size <= 4) {
+	if (!s || s->buffer_size < SCCP_PACKET_HEADER) {
 		return NULL;											/* Not enough data to even read the packet lenght */
 	}
 
-	memcpy(&packetSize, s->buffer, 4);
-	packetSize = letohl(packetSize);
-	packetSize += 8;
+	memcpy(&header, s->buffer, SCCP_PACKET_HEADER);
+	messageId = letohl(header.lel_messageId);
+	packetSize = letohl(header.length);
+	packetSize += 8;											/* SCCP_PACKET_HEADER - sizeof(packetSize); */
 
 	if (packetSize > s->buffer_size) {
 		return NULL;											/* Not enough data, yet. */
 	} else {
 		/* copy the first full message we can find out of s->buffer */
-		if (packetSize > SCCP_MAX_PACKET) {
-			pbx_log(LOG_WARNING, "SCCP: Oversize packet mid: %d, our packet size: %zd, phone packet size: %d (Expect Problems. Report to Developers)\n", letohl(msg->lel_messageId), SCCP_MAX_PACKET, packetSize);
-			packetSize = SCCP_MAX_PACKET;
+		newPacketSize = packetSize;
+		mooMessageSize=message2size(messageId);
+
+		if (newPacketSize > SCCP_MAX_PACKET) {								/* Make sure we don't read bigger then SCCP_MAX_PACKET */
+			pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize);
+			newPacketSize = SCCP_MAX_PACKET;
+		} else if (newPacketSize < mooMessageSize) {							/* Make sure we allocate enough to cover sccp_moo_t */
+			sccp_log((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))("SCCP: Undersized message: %s (%02X), message size: %d, phone packet size: %d\n", message2str(messageId), messageId, mooMessageSize, newPacketSize);
+			newPacketSize = mooMessageSize;	
 		}
-//		if ((msg = sccp_calloc(1, packetSize)) == NULL) {						/* Only calloc what we need */
-		if ((msg = calloc(1, packetSize)) == NULL) {						/* Only calloc what we need */
+
+		if ((msg = sccp_calloc(1, newPacketSize)) == NULL) {						/* Only calloc what we need */
 			pbx_log(LOG_ERROR, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", SCCP_MAX_PACKET);
 			return NULL;
 		}
 		
 		memcpy(msg, s->buffer, packetSize);								/* Copy packetSize from the buffer */
-//		msg->length = letohl(msg->length);								/* replace msg->length (network conversion)*/
-		msg->length = packetSize;									/* use packetSize instead, in case we got an oversize packet. Replaced lenght with letohl(length), network conversion */
+		msg->header.length = letohl(msg->header.length);						/* replace msg->length (network conversion)*/
+		
+		sccp_log(DEBUGCAT_HIGH)("SCCP: packet message: %s (%02X), phone packet size: %d, new packet size: %d, max packet size: %lu, message_size: %d\n", message2str(messageId), messageId, packetSize, newPacketSize, SCCP_MAX_PACKET, mooMessageSize);
 
 		/* move s->buffer content to the beginning */
 		s->buffer_size -= packetSize;
@@ -688,7 +700,7 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
 int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 {
         ssize_t res = 0;
-        uint32_t msgid = letohl(r->lel_messageId);
+        uint32_t msgid = letohl(r->header.lel_messageId);
         ssize_t bytesSent;
         ssize_t bufLen;  
         uint8_t *bufAddr;
@@ -709,18 +721,18 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
         }
 
         if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
-                r->lel_reserved = 0;
+                r->header.lel_protocolVer = 0;
         } else if (s->device && s->device->inuseprotocolversion >= 17) {
-                r->lel_reserved = htolel(0x11);                                                                 // we should always send 0x11
+                r->header.lel_protocolVer = htolel(0x11);                                                                 // we should always send 0x11
         } else {
-                r->lel_reserved = 0;
+                r->header.lel_protocolVer = 0;
         }
 
         try = 0;
         maxTries = 500;                                                                                         // arbitrairy number of tries
         bytesSent = 0;
         bufAddr = ((uint8_t *) r);
-        bufLen = (ssize_t) (letohl(r->length) + 8);
+        bufLen = (ssize_t) (letohl(r->header.length) + 8);
         do {
                 try++;
                 ast_mutex_lock(&s->write_lock);                                                                 // prevent two threads writing at the same time. That should happen in a synchronized way
@@ -733,7 +745,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                                 DEV_ID_LOG(s->device), 
                                                 (int)res, strerror(errno), errno,
                                                 (int)bytesSent, (int)bufLen, 
-                                                message2str(letohl(r->lel_messageId)), letohl(r->length),
+                                                message2str(letohl(r->header.lel_messageId)), letohl(r->header.length),
                                                 try, maxTries
                                         );*/
                                 usleep(200);                                                                    // back off to give network/other threads some time
@@ -744,7 +756,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
                                         DEV_ID_LOG(s->device), 
                                         (int)res, strerror(errno), errno, 
                                         (int)bytesSent, (int)bufLen, 
-                                        message2str(letohl(r->lel_messageId)), letohl(r->length)
+                                        message2str(letohl(r->header.lel_messageId)), letohl(r->header.length)
                                 );
                         if (s) {
                                 sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);

@@ -56,11 +56,11 @@ void sccp_handle_alarm(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t *
  */
 void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
 {
-	uint32_t mid = letohl(r->lel_messageId);
+	uint32_t mid = letohl(r->header.lel_messageId);
 
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
-		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->header.length);
+		sccp_dump_packet((unsigned char *)&r->msg, r->header.length);
 	}
 }
 
@@ -72,7 +72,7 @@ void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sc
  */
 void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
 {
-	uint32_t mid = letohl(r->lel_messageId);
+	uint32_t mid = letohl(r->header.lel_messageId);
 	char alarmName[101];
 	int reasonEnum;
 	char lastProtocolEventSent[101];
@@ -129,8 +129,8 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 */
 	}
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
-		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->length);
-		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->header.length);
+		sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
 	}
 }
 
@@ -164,7 +164,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	deviceInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 
-//	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->length);
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->header.length);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
@@ -2590,7 +2590,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 	if (status) {
 		/* rtp error from the phone */
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
-		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+		sccp_dump_packet((unsigned char *)&r->msg, r->header.length);
 		return;
 	}
 
@@ -2699,7 +2699,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		// update last_call_statistics
 		last_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_LAST];
 		strncpy(last_call_stats->type, "LAST", sizeof(last_call_stats->type));
-		if (letohl(r->lel_reserved < 19)) {
+		if (letohl(r->header.lel_protocolVer < 19)) {
 			last_call_stats->num = letohl(r->msg.ConnectionStatisticsRes.lel_CallIdentifier);
 			last_call_stats->packets_sent = letohl(r->msg.ConnectionStatisticsRes.lel_SentPackets);
 			last_call_stats->packets_received = letohl(r->msg.ConnectionStatisticsRes.lel_RecvdPackets);
@@ -2754,7 +2754,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		avg_call_stats->num++;
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Mean Statistics: # Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id, avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
 #if DEBUG
-//                sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+//                sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
 #endif
 		// update global_call_statistics
 		/*
@@ -3360,7 +3360,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	const char *ipAddress;
 
 	sin.sin_family = AF_INET;
-	if (letohl(r->lel_reserved) < 17) {
+	if (letohl(r->header.lel_protocolVer) < 17) {
 		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
 		partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);
 		status = letohl(r->msg.StartMediaTransmissionAck.lel_smtStatus);
@@ -3404,7 +3404,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	}
 	if (status) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
-		sccp_dump_packet((unsigned char *)&r->msg, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+		sccp_dump_packet((unsigned char *)&r->msg, r->header.length);
 		if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
 			sccp_channel_closereceivechannel(channel);
 		}
@@ -3542,10 +3542,10 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0;
 
-//	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+//	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
 
 	sin.sin_family = AF_INET;
-	if (letohl(r->lel_reserved) < 17) {
+	if (letohl(r->header.lel_protocolVer) < 17) {
 		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.lel_portNumber));
 		partyID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_passThruPartyId);
 		status = letohl(r->msg.StartMultiMediaTransmissionAck.lel_smtStatus);
@@ -3598,7 +3598,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
  */
 void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, (r->length < SCCP_MAX_PACKET) ? r->length : SCCP_MAX_PACKET);
+	sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
 }
 

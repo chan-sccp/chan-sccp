@@ -1468,171 +1468,6 @@ typedef enum {
 	SPCPRegisterTokenReject = 0x8101,
 } sccp_message_t;												/*!< SCCP Message Types Enum */
 
-/*!
- * \brief SCCP Message Type Structure
- */
-static const struct sccp_messagetype {
-	sccp_message_t type;
-	const char *const text;
-} sccp_messagetypes[] = {
-	/* *INDENT-OFF* */
-	{KeepAliveMessage, "Keep Alive Message"},
-	{RegisterMessage, "Register Message"},
-	{IpPortMessage, "Ip-Port Message"},
-	{KeypadButtonMessage, "Keypad Button Message"},
-	{EnblocCallMessage, "Enbloc Call Message"},
-	{StimulusMessage, "Stimulus Message"},
-	{OffHookMessage, "Off-Hook Message"},
-	{OnHookMessage, "On-Hook Message"},
-	{HookFlashMessage, "Hook-Flash Message"},
-	{ForwardStatReqMessage, "Forward State Request"},
-	{SpeedDialStatReqMessage, "Speed-Dial State Request"},
-	{LineStatReqMessage, "Line State Request"},
-	{ConfigStatReqMessage, "Config State Request"},
-	{TimeDateReqMessage, "Time Date Request"},
-	{ButtonTemplateReqMessage, "Button Template Request"},
-	{VersionReqMessage, "Version Request"},
-	{CapabilitiesResMessage, "Capabilities Response Message"},
-	{MediaPortListMessage, "Media Port List Message"},
-	{ServerReqMessage, "Server Request"},
-	{AlarmMessage, "Alarm Message"},
-	{MulticastMediaReceptionAck, "Multicast Media Reception Acknowledge"},
-	{OpenReceiveChannelAck, "Open Receive Channel Acknowledge"},
-	{ConnectionStatisticsRes, "Connection Statistics Response"},
-	{OffHookWithCgpnMessage, "Off-Hook With Cgpn Message"},
-	{SoftKeySetReqMessage, "SoftKey Set Request"},
-	{SoftKeyEventMessage, "SoftKey Event Message"},
-	{UnregisterMessage, "Unregister Message"},
-	{SoftKeyTemplateReqMessage, "SoftKey Template Request"},
-	{RegisterTokenRequest, "Register Token Request"},
-	{MediaTransmissionFailure, "Media Transmission Failure"}, 
-	{HeadsetStatusMessage, "Headset Status Message"},
-	{MediaResourceNotification, "Media Resource Notification"},
-	{RegisterAvailableLinesMessage, "Register Available Lines Message"},
-	{DeviceToUserDataMessage, "Device To User Data Message"},
-	{DeviceToUserDataResponseMessage, "Device To User Data Response"},
-	{UpdateCapabilitiesMessage, "Update Capabilities Message"},
-	{OpenMultiMediaReceiveChannelAckMessage, "Open MultiMedia Receive Channel Acknowledge"},
-	{ClearConferenceMessage, "Clear Conference Message"},
-	{ServiceURLStatReqMessage, "Service URL State Request"},
-	{FeatureStatReqMessage, "Feature State Request"},
-	{CreateConferenceResMessage, "Create Conference Response"},
-	{DeleteConferenceResMessage, "Delete Conference Response"},
-	{ModifyConferenceResMessage, "Modify Conference Response"},
-	{AddParticipantResMessage, "Add Participant Response"},
-	{AuditConferenceResMessage, "Audit Conference Response"},
-	{AuditParticipantResMessage, "Audit Participant Response"},
-	{DeviceToUserDataVersion1Message, "Device To User Data Version1 Message"},
-	{DeviceToUserDataResponseVersion1Message, "Device To User Data Version1 Response"},
-	{DialedPhoneBookMessage, "Dialed PhoneBook Message"},
-	{AccessoryStatusMessage, "Accessory Status Message"},
-	{Unknown_0x004A_Message, "Undefined 0x004A Message"},
-	{RegisterAckMessage, "Register Acknowledge"},
-	{StartToneMessage, "Start Tone Message"},
-	{StopToneMessage, "Stop Tone Message"},
-	{SetRingerMessage, "Set Ringer Message"},
-	{SetLampMessage, "Set Lamp Message"},
-	{SetHkFDetectMessage, "Set HkF Detect Message"},
-	{SetSpeakerModeMessage, "Set Speaker Mode Message"},
-	{SetMicroModeMessage, "Set Micro Mode Message"},
-	{StartMediaTransmission, "Start Media Transmission"},
-	{StopMediaTransmission, "Stop Media Transmission"},
-	{StartMediaReception, "Start Media Reception"},
-	{StopMediaReception, "Stop Media Reception"},
-	{CallInfoMessage, "Call Information Message"},
-	{ForwardStatMessage, "Forward State Message"},
-	{SpeedDialStatMessage, "SpeedDial State Message"},
-	{LineStatMessage, "Line State Message"},
-	{ConfigStatMessage, "Config State Message"},
-	{DefineTimeDate, "Define Time Date"},
-	{StartSessionTransmission, "Start Session Transmission"},
-	{StopSessionTransmission, "Stop Session Transmission"},
-	{ButtonTemplateMessage, "Button Template Message"},
-	{ButtonTemplateMessageSingle, "Button Template Message Single"},
-	{VersionMessage, "Version Message"},
-	{DisplayTextMessage, "Display Text Message"},
-	{ClearDisplay, "Clear Display"},
-	{CapabilitiesReqMessage, "Capabilities Request"},
-	{EnunciatorCommandMessage, "Enunciator Command Message"},
-	{RegisterRejectMessage, "Register Reject Message"},
-	{ServerResMessage, "Server Response"},
-	{Reset, "Reset"},
-	{KeepAliveAckMessage, "Keep Alive Acknowledge"},
-	{StartMulticastMediaReception, "Start MulticastMedia Reception"},
-	{StartMulticastMediaTransmission, "Start MulticastMedia Transmission"},
-	{StopMulticastMediaReception, "Stop MulticastMedia Reception"},
-	{StopMulticastMediaTransmission, "Stop MulticastMedia Transmission"},
-	{OpenReceiveChannel, "Open Receive Channel"},
-	{CloseReceiveChannel, "Close Receive Channel"},
-	{ConnectionStatisticsReq, "Connection Statistics Request"},
-	{SoftKeyTemplateResMessage, "SoftKey Template Response"},
-	{SoftKeySetResMessage, "SoftKey Set Response"},
-	{SelectSoftKeysMessage, "Select SoftKeys Message"},
-	{CallStateMessage, "Call State Message"},
-	{DisplayPromptStatusMessage, "Display Prompt Status Message"},
-	{ClearPromptStatusMessage, "Clear Prompt Status Message"},
-	{DisplayNotifyMessage, "Display Notify Message"},
-	{ClearNotifyMessage, "Clear Notify Message"},
-	{ActivateCallPlaneMessage, "Activate Call Plane Message"},
-	{DeactivateCallPlaneMessage, "Deactivate Call Plane Message"},
-	{UnregisterAckMessage, "Unregister Acknowledge"},
-	{BackSpaceReqMessage, "Back Space Request"},
-	{RegisterTokenAck, "Register Token Acknowledge"},
-	{RegisterTokenReject, "Register Token Reject"},
-	{StartMediaFailureDetection, "Start Media Failure Detection"},
-	{DialedNumberMessage, "Dialed Number Message"},
-	{UserToDeviceDataMessage, "User To Device Data Message"},
-	{FeatureStatMessage, "Feature State Message"},
-	{DisplayPriNotifyMessage, "Display Pri Notify Message"},
-	{ClearPriNotifyMessage, "Clear Pri Notify Message"},
-	{StartAnnouncementMessage, "Start Announcement Message"},
-	{StopAnnouncementMessage, "Stop Announcement Message"},
-	{AnnouncementFinishMessage, "Announcement Finish Message"},
-	{NotifyDtmfToneMessage, "Notify DTMF Tone Message"},
-	{SendDtmfToneMessage, "Send DTMF Tone Message"},
-	{SubscribeDtmfPayloadReqMessage, "Subscribe DTMF Payload Request"},
-	{SubscribeDtmfPayloadResMessage, "Subscribe DTMF Payload Response"},
-	{SubscribeDtmfPayloadErrMessage, "Subscribe DTMF Payload Error Message"},
-	{UnSubscribeDtmfPayloadReqMessage, "UnSubscribe DTMF Payload Request"},
-	{UnSubscribeDtmfPayloadResMessage, "UnSubscribe DTMF Payload Response"},
-	{UnSubscribeDtmfPayloadErrMessage, "UnSubscribe DTMF Payload Error Message"},
-	{ServiceURLStatMessage, "ServiceURL State Message"},
-	{CallSelectStatMessage, "Call Select State Message"},
-	{OpenMultiMediaChannelMessage, "Open MultiMedia Channel Message"},
-	{StartMultiMediaTransmission, "Start MultiMedia Transmission"},
-	{StopMultiMediaTransmission, "Stop MultiMedia Transmission"},
-	{MiscellaneousCommandMessage, "Miscellaneous Command Message"},
-	{FlowControlCommandMessage, "Flow Control Command Message"},
-	{CloseMultiMediaReceiveChannel, "Close MultiMedia Receive Channel"},
-	{CreateConferenceReqMessage, "Create Conference Request"},
-	{DeleteConferenceReqMessage, "Delete Conference Request"},
-	{ModifyConferenceReqMessage, "Modify Conference Request"},
-	{AddParticipantReqMessage, "Add Participant Request"},
-	{DropParticipantReqMessage, "Drop Participant Request"},
-	{AuditConferenceReqMessage, "Audit Conference Request"},
-	{AuditParticipantReqMessage, "Audit Participant Request"},
-	{UserToDeviceDataVersion1Message, "User To Device Data Version1 Message"},
-	{DisplayDynamicNotifyMessage, "Display Dynamic Notify Message"},
-	{DisplayDynamicPriNotifyMessage, "Display Dynamic Priority Notify Message"},
-	{DisplayDynamicPromptStatusMessage, "Display Dynamic Prompt Status Message"},
-	{FeatureStatDynamicMessage, "SpeedDial State Dynamic Message"},
-	{LineStatDynamicMessage, "Line State Dynamic Message"},
-	{ServiceURLStatDynamicMessage, "Service URL Stat Dynamic Messages"},
-	{SpeedDialStatDynamicMessage, "SpeedDial Stat Dynamic Message"},
-	{CallInfoDynamicMessage, "Call Information Dynamic Message"},
-	{DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message"},
-	{CallListStateUpdate, "CallList Status Update Message"},
-	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge"},
-	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge"},
-	{CallHistoryInfoMessage, "Call History Info"},
-	{ExtensionDeviceCaps, "Extension Device Capabilities Message"},
-	{XMLAlarmMessage, "XML-AlarmMessage"},
-	
-	{SPCPRegisterTokenRequest, "SPCP Register Token Request"},
-	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK"},
-	{SPCPRegisterTokenReject, "SCPA RegisterMessageReject"},
-	/* *INDENT-ON* */
-};
 
 #    define SCCP_ACCESSORY_NONE				0x00							/*!< Added for compatibility with old phones -FS */
 #    define SCCP_ACCESSORY_HEADSET			0x01
@@ -3625,7 +3460,7 @@ typedef union {
 
 	/* SCCP Firmware version > 9.1 */
 	struct {
-		char le_data[2004];						/*!< XML Alarm Message Data */
+		char le_data[2000];						/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;							/*!< XML Alarm Message Structure */
 
 	/* SPA */
@@ -3652,22 +3487,266 @@ typedef union {
 		uint32_t lel_unknown;
 	} CallHistoryInfoMessage;
 
+// empty / unresearched structs
+	struct {
+	} RegisterAvailableLinesMessage;
+
+	struct {
+	} CreateConferenceResMessage;
+
+	struct {
+	} DeleteConferenceResMessage;
+
+	struct {
+	} ModifyConferenceResMessage;
+
+	struct {
+	} AddParticipantResMessage;
+
+	struct {
+	} AuditConferenceResMessage;
+
+	struct {
+	} AuditParticipantResMessage;
+
+	struct {
+	} StartMediaFailureDetection;
+
+	struct {
+	} StartAnnouncementMessage;
+
+	struct {
+	} StopAnnouncementMessage;
+
+	struct {
+	} AnnouncementFinishMessage;
+
+	struct {
+	} NotifyDtmfToneMessage;
+
+	struct {
+	} SendDtmfToneMessage;
+
+	struct {
+	} SubscribeDtmfPayloadReqMessage;
+
+	struct {
+	} SubscribeDtmfPayloadResMessage;
+
+	struct {
+	} SubscribeDtmfPayloadErrMessage;
+
+	struct {
+	} UnSubscribeDtmfPayloadReqMessage;
+
+	struct {
+	} UnSubscribeDtmfPayloadResMessage;
+
+	struct {
+	} UnSubscribeDtmfPayloadErrMessage;
+
+	struct {
+	} ModifyConferenceReqMessage;
+
+	struct {
+	} AddParticipantReqMessage;
+
+	struct {
+	} DropParticipantReqMessage;
+
+	struct {
+	} AuditConferenceReqMessage;
+
+	struct {
+	} AuditParticipantReqMessage;
 } sccp_data_t;									/*!< SCCP Data Structure */
 
 /*!
  * \brief SCCP MOO Message Structure
  */
-
 typedef struct {
 	uint32_t length;							/*!< Message Length */
-	uint32_t lel_reserved;							/*!< Reserved Message */
+	uint32_t lel_protocolVer;						/*!< Protocol Version Message */
 	uint32_t lel_messageId;							/*!< Message ID */
+} sccp_header_t;								/*!< MOO Message Structure */
+
+typedef struct {
+	sccp_header_t header;							/*!< Message Header */	
 	sccp_data_t msg;							/*!< Message [SCCP Data] */
 } sccp_moo_t;									/*!< MOO Message Structure */
 
 /* So in theory, a message should never be bigger than this.
  * If it is, we abort the connection */
 #    define SCCP_MAX_PACKET sizeof(sccp_moo_t)
+#    define SCCP_PACKET_HEADER sizeof(sccp_header_t)
+
+/*!
+ * \brief SCCP Message Type Structure
+ */
+#define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
+static const struct sccp_messagetype {
+	sccp_message_t type;
+	const char *const text;
+	const size_t size;
+} sccp_messagetypes[] = {
+	/* *INDENT-OFF* */
+	{KeepAliveMessage, "Keep Alive Message", offsize(sccp_data_t, StationKeepAliveMessage) + SCCP_PACKET_HEADER},
+	{RegisterMessage, "Register Message", offsize(sccp_data_t, RegisterMessage) + SCCP_PACKET_HEADER},
+	{IpPortMessage, "Ip-Port Message", offsize(sccp_data_t, IpPortMessage) + SCCP_PACKET_HEADER},
+	{KeypadButtonMessage, "Keypad Button Message", offsize(sccp_data_t, KeypadButtonMessage) + SCCP_PACKET_HEADER},
+	{EnblocCallMessage, "Enbloc Call Message", offsize(sccp_data_t, EnblocCallMessage) + SCCP_PACKET_HEADER},
+	{StimulusMessage, "Stimulus Message", offsize(sccp_data_t, StimulusMessage) + SCCP_PACKET_HEADER},
+	{OffHookMessage, "Off-Hook Message", offsize(sccp_data_t, OffHookMessage) + SCCP_PACKET_HEADER},
+	{OnHookMessage, "On-Hook Message", offsize(sccp_data_t, OnHookMessage) + SCCP_PACKET_HEADER},
+	{HookFlashMessage, "Hook-Flash Message", offsize(sccp_data_t, HookFlashMessage) + SCCP_PACKET_HEADER},
+	{ForwardStatReqMessage, "Forward State Request", offsize(sccp_data_t, ForwardStatReqMessage) + SCCP_PACKET_HEADER},
+	{SpeedDialStatReqMessage, "Speed-Dial State Request", offsize(sccp_data_t, SpeedDialStatReqMessage) + SCCP_PACKET_HEADER},
+	{LineStatReqMessage, "Line State Request", offsize(sccp_data_t, LineStatReqMessage) + SCCP_PACKET_HEADER},
+	{ConfigStatReqMessage, "Config State Request", offsize(sccp_data_t, ConfigStatReqMessage) + SCCP_PACKET_HEADER},
+	{TimeDateReqMessage, "Time Date Request", offsize(sccp_data_t, TimeDateReqMessage) + SCCP_PACKET_HEADER},
+	{ButtonTemplateReqMessage, "Button Template Request", offsize(sccp_data_t, ButtonTemplateReqMessage) + SCCP_PACKET_HEADER},
+	{VersionReqMessage, "Version Request", offsize(sccp_data_t, VersionReqMessage) + SCCP_PACKET_HEADER},
+	{CapabilitiesResMessage, "Capabilities Response Message", offsize(sccp_data_t, CapabilitiesResMessage) + SCCP_PACKET_HEADER},
+	{MediaPortListMessage, "Media Port List Message", offsize(sccp_data_t, MediaPortListMessage) + SCCP_PACKET_HEADER},
+	{ServerReqMessage, "Server Request", offsize(sccp_data_t, ServerReqMessage) + SCCP_PACKET_HEADER},
+	{AlarmMessage, "Alarm Message", offsize(sccp_data_t, AlarmMessage) + SCCP_PACKET_HEADER},
+	{MulticastMediaReceptionAck, "Multicast Media Reception Acknowledge", offsize(sccp_data_t, MulticastMediaReceptionAck) + SCCP_PACKET_HEADER},
+	{OpenReceiveChannelAck, "Open Receive Channel Acknowledge", offsize(sccp_data_t, OpenReceiveChannelAck) + SCCP_PACKET_HEADER},
+	{ConnectionStatisticsRes, "Connection Statistics Response", offsize(sccp_data_t, ConnectionStatisticsRes) + SCCP_PACKET_HEADER},
+	{OffHookWithCgpnMessage, "Off-Hook With Cgpn Message", offsize(sccp_data_t, OffHookWithCgpnMessage) + SCCP_PACKET_HEADER},
+	{SoftKeySetReqMessage, "SoftKey Set Request", offsize(sccp_data_t, SoftKeySetReqMessage) + SCCP_PACKET_HEADER},
+	{SoftKeyEventMessage, "SoftKey Event Message", offsize(sccp_data_t, SoftKeyEventMessage) + SCCP_PACKET_HEADER},
+	{UnregisterMessage, "Unregister Message", offsize(sccp_data_t, UnregisterMessage) + SCCP_PACKET_HEADER},
+	{SoftKeyTemplateReqMessage, "SoftKey Template Request", offsize(sccp_data_t, SoftKeyTemplateReqMessage) + SCCP_PACKET_HEADER},
+	{RegisterTokenRequest, "Register Token Request", offsize(sccp_data_t, RegisterTokenRequest) + SCCP_PACKET_HEADER},
+	{MediaTransmissionFailure, "Media Transmission Failure", offsize(sccp_data_t, MediaTransmissionFailure) + SCCP_PACKET_HEADER}, 
+	{HeadsetStatusMessage, "Headset Status Message", offsize(sccp_data_t, HeadsetStatusMessage) + SCCP_PACKET_HEADER},
+	{MediaResourceNotification, "Media Resource Notification", offsize(sccp_data_t, MediaResourceNotification) + SCCP_PACKET_HEADER},
+	{RegisterAvailableLinesMessage, "Register Available Lines Message", offsize(sccp_data_t, RegisterAvailableLinesMessage) + SCCP_PACKET_HEADER},
+	{DeviceToUserDataMessage, "Device To User Data Message", offsize(sccp_data_t, DeviceToUserDataMessage) + SCCP_PACKET_HEADER},
+	{DeviceToUserDataResponseMessage, "Device To User Data Response", offsize(sccp_data_t, DeviceToUserDataResponseMessage) + SCCP_PACKET_HEADER},
+	{UpdateCapabilitiesMessage, "Update Capabilities Message", offsize(sccp_data_t, UpdateCapabilitiesMessage) + SCCP_PACKET_HEADER},
+	{OpenMultiMediaReceiveChannelAckMessage, "Open MultiMedia Receive Channel Acknowledge", offsize(sccp_data_t, OpenMultiMediaReceiveChannelAckMessage) + SCCP_PACKET_HEADER},
+	{ClearConferenceMessage, "Clear Conference Message", offsize(sccp_data_t, ClearConferenceMessage) + SCCP_PACKET_HEADER},
+	{ServiceURLStatReqMessage, "Service URL State Request", offsize(sccp_data_t, ServiceURLStatReqMessage) + SCCP_PACKET_HEADER},
+	{FeatureStatReqMessage, "Feature State Request", offsize(sccp_data_t, FeatureStatReqMessage) + SCCP_PACKET_HEADER},
+	{CreateConferenceResMessage, "Create Conference Response", offsize(sccp_data_t, CreateConferenceResMessage) + SCCP_PACKET_HEADER},
+	{DeleteConferenceResMessage, "Delete Conference Response", offsize(sccp_data_t, DeleteConferenceResMessage) + SCCP_PACKET_HEADER},
+	{ModifyConferenceResMessage, "Modify Conference Response", offsize(sccp_data_t, ModifyConferenceResMessage) + SCCP_PACKET_HEADER},
+	{AddParticipantResMessage, "Add Participant Response", offsize(sccp_data_t, AddParticipantResMessage) + SCCP_PACKET_HEADER},
+	{AuditConferenceResMessage, "Audit Conference Response", offsize(sccp_data_t, AuditConferenceResMessage) + SCCP_PACKET_HEADER},
+	{AuditParticipantResMessage, "Audit Participant Response", offsize(sccp_data_t, AuditParticipantResMessage) + SCCP_PACKET_HEADER},
+	{DeviceToUserDataVersion1Message, "Device To User Data Version1 Message", offsize(sccp_data_t, DeviceToUserDataVersion1Message) + SCCP_PACKET_HEADER},
+	{DeviceToUserDataResponseVersion1Message, "Device To User Data Version1 Response", offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message) + SCCP_PACKET_HEADER},
+	{DialedPhoneBookMessage, "Dialed PhoneBook Message", offsize(sccp_data_t, DialedPhoneBookMessage) + SCCP_PACKET_HEADER},
+	{AccessoryStatusMessage, "Accessory Status Message", offsize(sccp_data_t, AccessoryStatusMessage) + SCCP_PACKET_HEADER},
+	{Unknown_0x004A_Message, "Undefined 0x004A Message", offsize(sccp_data_t, Unknown_0x004A_Message) + SCCP_PACKET_HEADER},
+	{RegisterAckMessage, "Register Acknowledge", offsize(sccp_data_t, RegisterAckMessage) + SCCP_PACKET_HEADER},
+	{StartToneMessage, "Start Tone Message", offsize(sccp_data_t, StartToneMessage) + SCCP_PACKET_HEADER},
+	{StopToneMessage, "Stop Tone Message", offsize(sccp_data_t, StopToneMessage) + SCCP_PACKET_HEADER},
+	{SetRingerMessage, "Set Ringer Message", offsize(sccp_data_t, SetRingerMessage) + SCCP_PACKET_HEADER},
+	{SetLampMessage, "Set Lamp Message", offsize(sccp_data_t, SetLampMessage) + SCCP_PACKET_HEADER},
+	{SetHkFDetectMessage, "Set HkF Detect Message", offsize(sccp_data_t, SetHkFDetectMessage) + SCCP_PACKET_HEADER},
+	{SetSpeakerModeMessage, "Set Speaker Mode Message", offsize(sccp_data_t, SetSpeakerModeMessage) + SCCP_PACKET_HEADER},
+	{SetMicroModeMessage, "Set Micro Mode Message", offsize(sccp_data_t, SetMicroModeMessage) + SCCP_PACKET_HEADER},
+	{StartMediaTransmission, "Start Media Transmission", offsize(sccp_data_t, StartMediaTransmission) + SCCP_PACKET_HEADER},
+	{StopMediaTransmission, "Stop Media Transmission", offsize(sccp_data_t, StopMediaTransmission) + SCCP_PACKET_HEADER},
+	{StartMediaReception, "Start Media Reception", offsize(sccp_data_t, StartMediaReception) + SCCP_PACKET_HEADER},
+	{StopMediaReception, "Stop Media Reception", offsize(sccp_data_t, StopMediaReception) + SCCP_PACKET_HEADER},
+	{CallInfoMessage, "Call Information Message", offsize(sccp_data_t, CallInfoMessage) + SCCP_PACKET_HEADER},
+	{ForwardStatMessage, "Forward State Message", offsize(sccp_data_t, ForwardStatMessage) + SCCP_PACKET_HEADER},
+	{SpeedDialStatMessage, "SpeedDial State Message", offsize(sccp_data_t, SpeedDialStatMessage) + SCCP_PACKET_HEADER},
+	{LineStatMessage, "Line State Message", offsize(sccp_data_t, LineStatMessage) + SCCP_PACKET_HEADER},
+	{ConfigStatMessage, "Config State Message", offsize(sccp_data_t, ConfigStatMessage) + SCCP_PACKET_HEADER},
+	{DefineTimeDate, "Define Time Date", offsize(sccp_data_t, DefineTimeDate) + SCCP_PACKET_HEADER},
+	{StartSessionTransmission, "Start Session Transmission", offsize(sccp_data_t, StartSessionTransmission) + SCCP_PACKET_HEADER},
+	{StopSessionTransmission, "Stop Session Transmission", offsize(sccp_data_t, StopSessionTransmission) + SCCP_PACKET_HEADER},
+	{ButtonTemplateMessage, "Button Template Message", offsize(sccp_data_t, ButtonTemplateMessage) + SCCP_PACKET_HEADER},
+	{ButtonTemplateMessageSingle, "Button Template Message Single", offsize(sccp_data_t, ButtonTemplateMessageSingle) + SCCP_PACKET_HEADER},
+	{VersionMessage, "Version Message", offsize(sccp_data_t, VersionMessage) + SCCP_PACKET_HEADER},
+	{DisplayTextMessage, "Display Text Message", offsize(sccp_data_t, DisplayTextMessage) + SCCP_PACKET_HEADER},
+	{ClearDisplay, "Clear Display", offsize(sccp_data_t, ClearDisplay) + SCCP_PACKET_HEADER},
+	{CapabilitiesReqMessage, "Capabilities Request", offsize(sccp_data_t, CapabilitiesReqMessage) + SCCP_PACKET_HEADER},
+	{EnunciatorCommandMessage, "Enunciator Command Message", offsize(sccp_data_t, EnunciatorCommandMessage) + SCCP_PACKET_HEADER},
+	{RegisterRejectMessage, "Register Reject Message", offsize(sccp_data_t, RegisterRejectMessage) + SCCP_PACKET_HEADER},
+	{ServerResMessage, "Server Response", offsize(sccp_data_t, ServerResMessage) + SCCP_PACKET_HEADER},
+	{Reset, "Reset", offsize(sccp_data_t, Reset) + SCCP_PACKET_HEADER},
+	{KeepAliveAckMessage, "Keep Alive Acknowledge", offsize(sccp_data_t, KeepAliveAckMessage) + SCCP_PACKET_HEADER},
+	{StartMulticastMediaReception, "Start MulticastMedia Reception", offsize(sccp_data_t, StartMulticastMediaReception) + SCCP_PACKET_HEADER},
+	{StartMulticastMediaTransmission, "Start MulticastMedia Transmission", offsize(sccp_data_t, StartMulticastMediaTransmission) + SCCP_PACKET_HEADER},
+	{StopMulticastMediaReception, "Stop MulticastMedia Reception", offsize(sccp_data_t, StopMulticastMediaReception) + SCCP_PACKET_HEADER},
+	{StopMulticastMediaTransmission, "Stop MulticastMedia Transmission", offsize(sccp_data_t, StopMulticastMediaTransmission) + SCCP_PACKET_HEADER},
+	{OpenReceiveChannel, "Open Receive Channel", offsize(sccp_data_t, OpenReceiveChannel) + SCCP_PACKET_HEADER},
+	{CloseReceiveChannel, "Close Receive Channel", offsize(sccp_data_t, CloseReceiveChannel) + SCCP_PACKET_HEADER},
+	{ConnectionStatisticsReq, "Connection Statistics Request", offsize(sccp_data_t, ConnectionStatisticsReq) + SCCP_PACKET_HEADER},
+	{SoftKeyTemplateResMessage, "SoftKey Template Response", offsize(sccp_data_t, SoftKeyTemplateResMessage) + SCCP_PACKET_HEADER},
+	{SoftKeySetResMessage, "SoftKey Set Response", offsize(sccp_data_t, SoftKeySetResMessage) + SCCP_PACKET_HEADER},
+	{SelectSoftKeysMessage, "Select SoftKeys Message", offsize(sccp_data_t, SelectSoftKeysMessage) + SCCP_PACKET_HEADER},
+	{CallStateMessage, "Call State Message", offsize(sccp_data_t, CallStateMessage) + SCCP_PACKET_HEADER},
+	{DisplayPromptStatusMessage, "Display Prompt Status Message", offsize(sccp_data_t, DisplayPromptStatusMessage) + SCCP_PACKET_HEADER},
+	{ClearPromptStatusMessage, "Clear Prompt Status Message", offsize(sccp_data_t, ClearPromptStatusMessage) + SCCP_PACKET_HEADER},
+	{DisplayNotifyMessage, "Display Notify Message", offsize(sccp_data_t, DisplayNotifyMessage) + SCCP_PACKET_HEADER},
+	{ClearNotifyMessage, "Clear Notify Message", offsize(sccp_data_t, ClearNotifyMessage) + SCCP_PACKET_HEADER},
+	{ActivateCallPlaneMessage, "Activate Call Plane Message", offsize(sccp_data_t, ActivateCallPlaneMessage) + SCCP_PACKET_HEADER},
+	{DeactivateCallPlaneMessage, "Deactivate Call Plane Message", offsize(sccp_data_t, DeactivateCallPlaneMessage) + SCCP_PACKET_HEADER},
+	{UnregisterAckMessage, "Unregister Acknowledge", offsize(sccp_data_t, UnregisterAckMessage) + SCCP_PACKET_HEADER},
+	{BackSpaceReqMessage, "Back Space Request", offsize(sccp_data_t, BackSpaceReqMessage) + SCCP_PACKET_HEADER},
+	{RegisterTokenAck, "Register Token Acknowledge", offsize(sccp_data_t, RegisterTokenAck) + SCCP_PACKET_HEADER},
+	{RegisterTokenReject, "Register Token Reject", offsize(sccp_data_t, RegisterTokenReject) + SCCP_PACKET_HEADER},
+	{StartMediaFailureDetection, "Start Media Failure Detection", offsize(sccp_data_t, StartMediaFailureDetection) + SCCP_PACKET_HEADER},
+	{DialedNumberMessage, "Dialed Number Message", offsize(sccp_data_t, DialedNumberMessage) + SCCP_PACKET_HEADER},
+	{UserToDeviceDataMessage, "User To Device Data Message", offsize(sccp_data_t, UserToDeviceDataMessage) + SCCP_PACKET_HEADER},
+	{FeatureStatMessage, "Feature State Message", offsize(sccp_data_t, FeatureStatMessage) + SCCP_PACKET_HEADER},
+	{DisplayPriNotifyMessage, "Display Pri Notify Message", offsize(sccp_data_t, DisplayPriNotifyMessage) + SCCP_PACKET_HEADER},
+	{ClearPriNotifyMessage, "Clear Pri Notify Message", offsize(sccp_data_t, ClearPriNotifyMessage) + SCCP_PACKET_HEADER},
+	{StartAnnouncementMessage, "Start Announcement Message", offsize(sccp_data_t, StartAnnouncementMessage) + SCCP_PACKET_HEADER},
+	{StopAnnouncementMessage, "Stop Announcement Message", offsize(sccp_data_t, StopAnnouncementMessage) + SCCP_PACKET_HEADER},
+	{AnnouncementFinishMessage, "Announcement Finish Message", offsize(sccp_data_t, AnnouncementFinishMessage) + SCCP_PACKET_HEADER},
+	{NotifyDtmfToneMessage, "Notify DTMF Tone Message", offsize(sccp_data_t, NotifyDtmfToneMessage) + SCCP_PACKET_HEADER},
+	{SendDtmfToneMessage, "Send DTMF Tone Message", offsize(sccp_data_t, SendDtmfToneMessage) + SCCP_PACKET_HEADER},
+	{SubscribeDtmfPayloadReqMessage, "Subscribe DTMF Payload Request", offsize(sccp_data_t, SubscribeDtmfPayloadReqMessage) + SCCP_PACKET_HEADER},
+	{SubscribeDtmfPayloadResMessage, "Subscribe DTMF Payload Response", offsize(sccp_data_t, SubscribeDtmfPayloadResMessage) + SCCP_PACKET_HEADER},
+	{SubscribeDtmfPayloadErrMessage, "Subscribe DTMF Payload Error Message", offsize(sccp_data_t, SubscribeDtmfPayloadErrMessage) + SCCP_PACKET_HEADER},
+	{UnSubscribeDtmfPayloadReqMessage, "UnSubscribe DTMF Payload Request", offsize(sccp_data_t, UnSubscribeDtmfPayloadReqMessage) + SCCP_PACKET_HEADER},
+	{UnSubscribeDtmfPayloadResMessage, "UnSubscribe DTMF Payload Response", offsize(sccp_data_t, UnSubscribeDtmfPayloadResMessage) + SCCP_PACKET_HEADER},
+	{UnSubscribeDtmfPayloadErrMessage, "UnSubscribe DTMF Payload Error Message", offsize(sccp_data_t, UnSubscribeDtmfPayloadErrMessage) + SCCP_PACKET_HEADER},
+	{ServiceURLStatMessage, "ServiceURL State Message", offsize(sccp_data_t, ServiceURLStatMessage) + SCCP_PACKET_HEADER},
+	{CallSelectStatMessage, "Call Select State Message", offsize(sccp_data_t, CallSelectStatMessage) + SCCP_PACKET_HEADER},
+	{OpenMultiMediaChannelMessage, "Open MultiMedia Channel Message", offsize(sccp_data_t, OpenMultiMediaChannelMessage) + SCCP_PACKET_HEADER},
+	{StartMultiMediaTransmission, "Start MultiMedia Transmission", offsize(sccp_data_t, StartMultiMediaTransmission) + SCCP_PACKET_HEADER},
+	{StopMultiMediaTransmission, "Stop MultiMedia Transmission", offsize(sccp_data_t, StopMultiMediaTransmission) + SCCP_PACKET_HEADER},
+	{MiscellaneousCommandMessage, "Miscellaneous Command Message", offsize(sccp_data_t, MiscellaneousCommandMessage) + SCCP_PACKET_HEADER},
+	{FlowControlCommandMessage, "Flow Control Command Message", offsize(sccp_data_t, FlowControlCommandMessage) + SCCP_PACKET_HEADER},
+	{CloseMultiMediaReceiveChannel, "Close MultiMedia Receive Channel", offsize(sccp_data_t, CloseMultiMediaReceiveChannel) + SCCP_PACKET_HEADER},
+	{CreateConferenceReqMessage, "Create Conference Request", offsize(sccp_data_t, CreateConferenceReqMessage) + SCCP_PACKET_HEADER},
+	{DeleteConferenceReqMessage, "Delete Conference Request", offsize(sccp_data_t, DeleteConferenceReqMessage) + SCCP_PACKET_HEADER},
+	{ModifyConferenceReqMessage, "Modify Conference Request", offsize(sccp_data_t, ModifyConferenceReqMessage) + SCCP_PACKET_HEADER},
+	{AddParticipantReqMessage, "Add Participant Request", offsize(sccp_data_t, AddParticipantReqMessage) + SCCP_PACKET_HEADER},
+	{DropParticipantReqMessage, "Drop Participant Request", offsize(sccp_data_t, DropParticipantReqMessage) + SCCP_PACKET_HEADER},
+	{AuditConferenceReqMessage, "Audit Conference Request", offsize(sccp_data_t, AuditConferenceReqMessage) + SCCP_PACKET_HEADER},
+	{AuditParticipantReqMessage, "Audit Participant Request", offsize(sccp_data_t, AuditParticipantReqMessage) + SCCP_PACKET_HEADER},
+	{UserToDeviceDataVersion1Message, "User To Device Data Version1 Message", offsize(sccp_data_t, UserToDeviceDataVersion1Message) + SCCP_PACKET_HEADER},
+	{DisplayDynamicNotifyMessage, "Display Dynamic Notify Message", offsize(sccp_data_t, DisplayDynamicNotifyMessage) + SCCP_PACKET_HEADER},
+	{DisplayDynamicPriNotifyMessage, "Display Dynamic Priority Notify Message", offsize(sccp_data_t, DisplayDynamicPriNotifyMessage) + SCCP_PACKET_HEADER},
+	{DisplayDynamicPromptStatusMessage, "Display Dynamic Prompt Status Message", offsize(sccp_data_t, DisplayDynamicPromptStatusMessage) + SCCP_PACKET_HEADER},
+	{FeatureStatDynamicMessage, "SpeedDial State Dynamic Message", offsize(sccp_data_t, FeatureStatDynamicMessage) + SCCP_PACKET_HEADER},
+	{LineStatDynamicMessage, "Line State Dynamic Message", offsize(sccp_data_t, LineStatDynamicMessage) + SCCP_PACKET_HEADER},
+	{ServiceURLStatDynamicMessage, "Service URL Stat Dynamic Messages", offsize(sccp_data_t, ServiceURLStatDynamicMessage) + SCCP_PACKET_HEADER},
+	{SpeedDialStatDynamicMessage, "SpeedDial Stat Dynamic Message", offsize(sccp_data_t, SpeedDialStatDynamicMessage) + SCCP_PACKET_HEADER},
+	{CallInfoDynamicMessage, "Call Information Dynamic Message", offsize(sccp_data_t, CallInfoDynamicMessage) + SCCP_PACKET_HEADER},
+	{DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message", offsize(sccp_data_t, DialedPhoneBookAckMessage) + SCCP_PACKET_HEADER},
+	{CallListStateUpdate, "CallList Status Update Message", offsize(sccp_data_t, CallListStateUpdate) + SCCP_PACKET_HEADER},
+	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge", offsize(sccp_data_t, StartMediaTransmissionAck) + SCCP_PACKET_HEADER},
+	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge", offsize(sccp_data_t, StartMultiMediaTransmissionAck) + SCCP_PACKET_HEADER},
+	{CallHistoryInfoMessage, "Call History Info", offsize(sccp_data_t, CallHistoryInfoMessage) + SCCP_PACKET_HEADER},
+	{ExtensionDeviceCaps, "Extension Device Capabilities Message", offsize(sccp_data_t, ExtensionDeviceCaps) + SCCP_PACKET_HEADER},
+	{XMLAlarmMessage, "XML-AlarmMessage", offsize(sccp_data_t, XMLAlarmMessage) + SCCP_PACKET_HEADER},
+	
+	{SPCPRegisterTokenRequest, "SPCP Register Token Request", offsize(sccp_data_t, SPCPRegisterTokenRequest) + SCCP_PACKET_HEADER},
+	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK", offsize(sccp_data_t, SPCPRegisterTokenAck) + SCCP_PACKET_HEADER},
+	{SPCPRegisterTokenReject, "SCPA RegisterMessageReject", offsize(sccp_data_t, SPCPRegisterTokenReject) + SCCP_PACKET_HEADER},
+	/* *INDENT-ON* */
+};
 
 #    include "sccp_softkeys.h"
 #    include "sccp_labels.h"
