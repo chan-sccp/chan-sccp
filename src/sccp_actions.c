@@ -2439,9 +2439,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	memset(ipAddr, 0, 16);
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK, protocolVer: %d\n", d->id, letohl(r->header.lel_protocolVer));
-	sccp_dump_packet((unsigned char *)&r->msg, r->header.length);
-
 	if (d->inuseprotocolversion < 17) {
 		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck.lel_portNumber));
 		partyID = letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId);
