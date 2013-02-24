@@ -587,7 +587,7 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 		memcpy(msg, s->buffer, packetSize);								/* Copy packetSize from the buffer */
 		msg->header.length = letohl(msg->header.length);						/* replace msg->length (network conversion)*/
 		
-		sccp_log(DEBUGCAT_HIGH)("SCCP: packet message: %s (%02X), phone packet size: %d, new packet size: %d, max packet size: %lu, message_size: %d\n", message2str(messageId), messageId, packetSize, newPacketSize, SCCP_MAX_PACKET, mooMessageSize);
+		sccp_log(DEBUGCAT_HIGH)("SCCP: packet message: %s (%02X), phone packet size: %d, new packet size: %d, sccp message_size: %d\n", message2str(messageId), messageId, packetSize, newPacketSize, mooMessageSize);
 
 		/* move s->buffer content to the beginning */
 		s->buffer_size -= packetSize;
