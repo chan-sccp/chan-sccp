@@ -311,7 +311,7 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 	pbx_log(LOG_WARNING, "Type of Restart ([quick|reset] or [full|restart]) %s\n", fn);
 	if (sccp_strlen_zero(fn)) {
 		pbx_log(LOG_WARNING, "Type not specified, using quick");
-		type = "reset";
+		type = "quick";
 	}
 
 	d = sccp_device_find_byid(fn, FALSE);
@@ -326,15 +326,15 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	if (!strncasecmp(type, "quick", 5) || !strncasecmp(type, "full", 5)) {
+	if (!strncasecmp(type, "full", 4) || !strncasecmp(type, "reset", 5)) {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
 	} else {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	}
 
-	//astman_start_ack(s, m);
-	astman_append(s, "Send %s restart to device %s\r\n", type, fn);
-	astman_append(s, "\r\n");
+	astman_send_ack(s, m, "Device restarted");
+	//astman_append(s, "Send %s restart to device %s\r\n", type, fn);
+	//astman_append(s, "\r\n");
 	d = sccp_device_release(d);
 
 	return 0;
@@ -505,8 +505,7 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 
 	sccp_handle_button_template_req(d->session, d, NULL);
 
-	astman_append(s, "Done\r\n");
-	astman_append(s, "\r\n");
+	astman_send_ack(s, m, "Done");
 
 	d = sccp_device_release(d);
 	return 0;
@@ -622,11 +621,11 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 
 	c = sccp_channel_find_byid(atoi(channelId));
 	if (!c) {
-		astman_send_error(s, m, "Call not found\r\n");
+		astman_send_error(s, m, "Call not found.");
 		return 0;
 	}
 
-	astman_append(s, "Hangup call '%s'\r\n", channelId);
+	//astman_append(s, "Hangup call '%s'\r\n", channelId);
 	sccp_channel_endcall(c);
 	astman_send_ack(s, m, "Call was hungup");
 	c = sccp_channel_release(c);
@@ -656,19 +655,19 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 	if (sccp_strcaseequals("on", hold)) {									/* check to see if enable hold */
-		astman_append(s, "Put channel '%s' on hold\n", channelId);
+		//astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold(c);
 		retValStr = "Channel was put on hold";
 	} else if (sccp_strcaseequals("off", hold)) {								/* check to see if disable hold */
 
 		/** we need the device for resuming calls */
 		if (sccp_strlen_zero(deviceName)) {
-			astman_send_error(s, m, "To resume a channel, you need to specify the device that resumes call using Devicename variable\r\n");
+			astman_send_error(s, m, "To resume a channel, you need to specify the device that resumes call using Devicename variable.");
 			c = sccp_channel_release(c);
 			return 0;
 		}
 
-		astman_append(s, "remove channel '%s' from hold\n", channelId);
+		//astman_append(s, "remove channel '%s' from hold\n", channelId);
 		sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 
 		if (sccp_strcaseequals("yes", swap)) {
@@ -679,7 +678,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		d = d ? sccp_device_release(d) : NULL;
 		retValStr = "Channel was resumed";
 	} else {
-		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only\r\n");
+		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only.");
 		c = sccp_channel_release(c);
 		return 0;
 	}
