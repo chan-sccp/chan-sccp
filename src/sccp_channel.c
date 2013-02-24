@@ -1976,7 +1976,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 
 	sccp_device_t *d = NULL;
 
-#ifdef 0	//ifndef CS_EXPERIMENTAL
+#if 0	//ifndef CS_EXPERIMENTAL
 	pthread_attr_t attr;
 	pthread_t t;
 #endif
@@ -2110,7 +2110,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		dual->transfered = pbx_source_remote_channel;
 		dual->destination = pbx_destination_local_channel;
 
-#ifdef 0	//CS_EXPERIMENTAL
+#if 0	//CS_EXPERIMENTAL
 		sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_channel_transfer_ringing_thread, (void *)dual);
 #else
 		pbx_channel_lock(dual->transfered);
