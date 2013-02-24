@@ -57,6 +57,23 @@ static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int 
 
 	return ret;
 }
+static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+{
+	sccp_device_t *d;
+	int wordlen = strlen(word), which = 0;
+	char *ret = NULL;
+
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		if (!strncasecmp(word, d->id, wordlen) && d->registrationState != SKINNY_DEVICE_RS_NONE && ++which > state) {
+			ret = strdup(d->id);
+			break;
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+
+	return ret;
+}
 
 /*!
  * \brief Complete Line
@@ -80,6 +97,23 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (!strncasecmp(word, l->name, wordlen) && ++which > state) {
+			ret = strdup(l->name);
+			break;
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	return ret;
+}
+static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+{
+	sccp_line_t *l;
+	int wordlen = strlen(word), which = 0;
+	char *ret = NULL;
+
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+		if (!strncasecmp(word, l->name, wordlen) && SCCP_LIST_GETSIZE(&l->devices) > 0 && ++which > state) {
 			ret = strdup(l->name);
 			break;
 		}
@@ -189,8 +223,14 @@ char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, O
 		case SCCP_CLI_DEVICE_COMPLETER:
 			return sccp_complete_device(line, word, pos, state);
 			break;
+		case SCCP_CLI_CONNECTED_DEVICE_COMPLETER:
+			return sccp_complete_connected_device(line, word, pos, state);
+			break;
 		case SCCP_CLI_LINE_COMPLETER:
 			return sccp_complete_line(line, word, pos, state);
+			break;
+		case SCCP_CLI_CONNECTED_LINE_COMPLETER:
+			return sccp_complete_connected_line(line, word, pos, state);
 			break;
 		case SCCP_CLI_CHANNEL_COMPLETER:
 			return sccp_complete_channel(line, word, pos, state);
@@ -777,7 +817,6 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		memset(&cap_buf, 0, sizeof(cap_buf));
 
 		if (channel && channel->owner) {
-//                      pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), channel->owner->nativeformats);
 			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 		}
 
@@ -1801,7 +1840,7 @@ static int sccp_dnd_device(int fd, int argc, char *argv[])
 static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a dnd to an SCCP Device.\n";
 
 #define CLI_COMMAND "sccp", "dnd", "device"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 CLI_ENTRY(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device", dnd_device_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -1828,7 +1867,7 @@ static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n" "       Remove a line from device.\n";
 
 #define CLI_COMMAND "sccp", "remove", "line"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_LINE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER, SCCP_CLI_CONNECTED_LINE_COMPLETER
 CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a line from device", remove_line_from_device_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -1876,7 +1915,7 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineID>\n" "       Add a line to a device.\n";
 
 #define CLI_COMMAND "sccp", "add", "line"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_LINE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_CONNECTED_LINE_COMPLETER
 CLI_ENTRY(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a device", add_line_to_device_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -2185,7 +2224,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> [restart]\n";
 
 #define CLI_COMMAND "sccp", "reset"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 CLI_ENTRY(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -2194,7 +2233,7 @@ CLI_ENTRY(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usag
 static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <deviceId>\n";
 
 #define CLI_COMMAND "sccp", "restart"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -2248,7 +2287,7 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 static char unregister_usage[] = "Usage: SCCP unregister <deviceId>\n" "       Unregister an SCCP device\n";
 
 #define CLI_COMMAND "sccp", "unregister"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregister_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -2311,7 +2350,7 @@ static int sccp_start_call(int fd, int argc, char *argv[])
 static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number>\n" "Call number <number> using device <deviceId>\nIf number is ommitted, device will go off-Hook.\n";
 
 #define CLI_COMMAND "sccp", "call"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
@@ -2540,7 +2579,7 @@ static char cli_tokenack_usage[] = "Usage: sccp tokenack <deviceId>\n" "Send Tok
 static char ami_tokenack_usage[] = "Usage: SCCPTokenAck\n" "Send Token Acknowledge to device. Makes a phone switch servers on demand (used in clustering)\n\n" "PARAMS: DeviceName\n";
 
 #define CLI_COMMAND "sccp", "tokenack"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 #define AMI_COMMAND "SCCPTokenAck"
 #define CLI_AMI_PARAMS "DeviceName"
 CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALSE)
