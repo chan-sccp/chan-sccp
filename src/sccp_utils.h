@@ -183,6 +183,7 @@ void sccp_dev_dbclean(void);
 
 // SCCP Lookups
 const char *message2str(uint32_t value);
+size_t message2size(uint32_t value);
 const char *channelstate2str(uint32_t value);
 const char *pbxdevicestate2str(uint32_t value);
 const char *accessory2str(uint32_t value);

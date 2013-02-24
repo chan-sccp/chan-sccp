@@ -192,10 +192,10 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 
 EXIT:
 	if (r && (GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
-		uint32_t mid = letohl(r->lel_messageId);
+		uint32_t mid = letohl(r->header.lel_messageId);
 
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? message2str(mid) : NULL, mid ? mid : 0, r ? r->length : 0);
-		sccp_dump_packet((unsigned char *) &r->msg, (r->length < SCCP_MAX_PACKET) ? (int) r->length : (int) SCCP_MAX_PACKET);
+		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? message2str(mid) : NULL, mid ? mid : 0, r ? r->header.length : 0);
+		sccp_dump_packet((unsigned char *) &r->msg, r->header.length);
 	}
 	return d;
 }
@@ -284,7 +284,7 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		return -1;
 	}
 
-	mid = letohl(r->lel_messageId);
+	mid = letohl(r->header.lel_messageId);
 
 	/* search for message handler */
 	messageMap_cb = &messagesCbMap[mid];

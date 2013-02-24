@@ -677,8 +677,8 @@ sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
 		return NULL;
 	}
 	memset(r, 0, pkt_len + 12);
-	r->length = htolel(pkt_len + 4);
-	r->lel_messageId = htolel(t);
+	r->header.length = htolel(pkt_len + 4);
+	r->header.lel_messageId = htolel(t);
 	return r;
 }
 
@@ -695,7 +695,7 @@ int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r)
 	int result = -1;
 
 	if (d && d->session && r) {
-		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->lel_messageId)));
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, message2str(letohl(r->header.lel_messageId)));
 		result = sccp_session_send(d, r);
 	} else {
 		sccp_free(r);
