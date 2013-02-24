@@ -403,7 +403,7 @@ void *sccp_socket_device_thread(void *session)
                         if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {		/* POLLIN | POLLPRI*/
                                 /* we have new data -> continue */
                                 sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-                                if (sccp_read_data(s)>8) {						/* size of header*/   
+                                if (sccp_read_data(s) >= SCCP_PACKET_HEADER) {
                                         while ((m = sccp_process_data(s))) {
                                                 if (!sccp_handle_message(m, s)) {
                                                         if (s->device) {
@@ -583,7 +583,7 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	}
 
 	if ((msg = sccp_calloc(1, newPacketSize)) == NULL) {						/* Only calloc what we need */
-		pbx_log(LOG_ERROR, "SCCP: unable to allocate %zd bytes for a new skinny packet (Expect Dissaster)\n", newPacketSize);
+		pbx_log(LOG_ERROR, "SCCP: unable to allocate %d bytes for a new skinny packet (Expect Dissaster)\n", newPacketSize);
 		return NULL;
 	}
 	
