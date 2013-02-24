@@ -506,14 +506,14 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	const char *dev;
 
 	if (argc < 4) {
-		pbx_log(LOG_WARNING, "At least DeviceName needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least DeviceName needs to be supplied %s", "");
+		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 	}
 	dev = sccp_strdupa(argv[3]);
 //      dev = astman_get_header(m, "DeviceName");
 	if (pbx_strlen_zero(dev)) {
-		pbx_log(LOG_WARNING, "At least DeviceName needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least DeviceName needs to be supplied %s", "");
+		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 	}
 	d = sccp_device_find_byid(dev, FALSE);
 
@@ -940,8 +940,8 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	const char *line;
 
 	if (argc < 4) {
-		pbx_log(LOG_WARNING, "At least LineName needs to be supplied");
-		CLI_AMI_ERROR(fd, s, m, "At least LineName needs to be supplied %s", "");
+		pbx_log(LOG_WARNING, "LineName needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
 	}
 	line = sccp_strdupa(argv[3]);
 	l = sccp_line_find_byname(line);
@@ -1633,15 +1633,15 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 	int local_total = 0;
 
 	if (argc < 4) {
-		pbx_log(LOG_WARNING, "At least MessageText needs to be supplied");
-		CLI_AMI_ERROR(fd, s, m, "At least MessageText needs to be supplied %s", "");
+		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
 	}
 //      const char *messagetext = astman_get_header(m, "MessageText");
 //      if (sccp_strlen_zero(messagetext)) {
 
 	if (sccp_strlen_zero(argv[3])) {
-		pbx_log(LOG_WARNING, "MessageText cannot be length 0");
-		CLI_AMI_ERROR(fd, s, m, "messagetext cannot be length 0, '%s'", argv[3]);
+		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
+		CLI_AMI_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
 	}
 
 	if (argc > 4) {
@@ -1897,14 +1897,14 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
 		l = sccp_line_find_byname(argv[4]);
 		if (!l) {
-			pbx_log(LOG_ERROR, "Error: Line %s not found", argv[4]);
+			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
 			return RESULT_FAILURE;
 		}
 		sccp_config_addButton(d, -1, LINE, l->name, NULL, NULL);
 		l = sccp_line_release(l);
 		d = sccp_device_release(d);
 	} else {
-		pbx_log(LOG_ERROR, "Error: Device %s not found", argv[3]);
+		pbx_log(LOG_ERROR, "Error: Device %s not found\n", argv[3]);
 		return RESULT_FAILURE;
 	}
 
