@@ -277,6 +277,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	struct ast_str *ha_buf = pbx_str_alloca(512);
 	char *debugcategories;
 	int local_total = 0;
+	const char *actionid = "";
 
 	sccp_globals_lock(lock);
 
@@ -288,7 +289,12 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
 	} else {
 		astman_send_listack(s, m, argv[0], "start");
-		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
+		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s","SCCPGlobalSettings");
+		actionid = astman_get_header(m, "ActionID");
+		if (!pbx_strlen_zero(actionid)) {
+			astman_append(s, "ActionID: %s\r\n", actionid);
+		}
+		astman_append(s, "\r\n");
 	}
 	CLI_AMI_OUTPUT_PARAM("Config File", CLI_AMI_LIST_WIDTH, "%s", GLOB(config_file_name));
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
@@ -375,8 +381,10 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	sccp_free(debugcategories);
 	sccp_globals_unlock(lock);
 
-	if (s)
+	if (s) {
 		*total = local_total;
+		astman_append(s, "\r\n");
+	}
 
 	return RESULT_SUCCESS;
 }
@@ -502,6 +510,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	PBX_VARIABLE_TYPE *v = NULL;
 	sccp_linedevices_t *linedevice = NULL;
 	int local_total = 0;
+	const char *actionid = "";
 
 	const char *dev;
 
@@ -510,7 +519,6 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 		CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 	}
 	dev = sccp_strdupa(argv[3]);
-//      dev = astman_get_header(m, "DeviceName");
 	if (pbx_strlen_zero(dev)) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
 		CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
@@ -523,14 +531,18 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	}
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
-//	sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
 	sccp_print_ha(ha_buf, sizeof(ha_buf), d->ha);
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
 	} else {
 		astman_send_listack(s, m, argv[0], "start");
-		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
+		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s","SCCPShowDevice");
+		actionid = astman_get_header(m, "ActionID");
+		if (!pbx_strlen_zero(actionid)) {
+			astman_append(s, "ActionID: %s\r\n", actionid);
+		}
+		astman_append(s, "\r\n");
 	}
 	CLI_AMI_OUTPUT_PARAM("MAC-Address", CLI_AMI_LIST_WIDTH, "%s", d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version", CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
@@ -734,9 +746,10 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #include "sccp_cli_table.h"
 
 	sccp_device_release(d);
-	if (s)
+	if (s) {
 		*total = local_total;
-
+		astman_append(s, "\r\n");
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -794,8 +807,9 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		local_total++;
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
-			astman_append(s, "ActionID: %s\r\n\r\n", actionid);
+			astman_append(s, "ActionID: %s\r\n", actionid);
 		}
+		astman_append(s, "\r\n");
 	}
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -888,8 +902,10 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	if (s)
+	if (s) {
 		*total = local_total;
+		astman_append(s, "\r\n");
+	}
 
 	return RESULT_SUCCESS;
 }
