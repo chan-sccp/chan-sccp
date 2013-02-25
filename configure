@@ -29912,6 +29912,8 @@ case ".$ac_cv_cflags_gcc_option__fstack_protector_all" in
 esac
 
     		fi
+
+
     		if test "x${CC}" = "xclang"; then
     			CFLAGS_saved="${CFLAGS_saved} "
     		fi

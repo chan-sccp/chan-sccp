@@ -1440,10 +1440,19 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, cons
 			}
 		}
 	}
+#if defined(HAVE_UNALIGNED_BUSERROR)		// for example sparc64
+        sccp_group_t group_orig = 0;
+        memcpy(&group_orig, dest, sizeof(sccp_group_t));
+        if (group_orig != group) {
+                changed = SCCP_CONFIG_CHANGE_CHANGED;
+                memcpy(dest, &group, sizeof(sccp_group_t));
+        }
+#else
 	if ((*(sccp_group_t *) dest) != group) {
         	changed = SCCP_CONFIG_CHANGE_CHANGED;
         	*(sccp_group_t *) dest = group;
 	}
+#endif	
 	return changed;
 }
 
