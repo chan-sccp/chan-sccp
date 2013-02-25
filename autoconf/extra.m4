@@ -548,6 +548,12 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
     		fi 
+
+		dnl optional memory order setting for sparc machines, possibly fixing bus errors
+dnl    		if test "x${basic_machine} = "xsparc"; then
+dnl    			CFLAGS_saved="${CFLAGS_saved} -Wall -mmemory-model=rmo"		dnl rmo='relaxed memory order'
+dnl    		fi
+
     		if test "x${CC}" = "xclang"; then
 dnl    			CFLAGS_saved="${CFLAGS_saved} -fsanitize= "
     			CFLAGS_saved="${CFLAGS_saved} "

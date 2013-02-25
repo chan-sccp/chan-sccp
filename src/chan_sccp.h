@@ -186,11 +186,7 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 
 #define SCCP_MAX_HOSTNAME_LEN 100
 #define SCCP_MAX_MESSAGESTACK 10
-#if defined(HAVE_UNALIGNED_BUSERROR) 
-       typedef unsigned long sccp_group_t;									/*!< SCCP callgroup / pickupgroup / defined as unsigned long, otherwise alignmenent issue (for example on sparc) */
-#else  
-       typedef unsigned long long sccp_group_t;									/*!< SCCP callgroup / pickupgroup */
-#endif
+	typedef ULONG sccp_group_t;										/*!< SCCP callgroup / pickupgroup */
 	typedef struct sccp_channel sccp_channel_t;								/*!< SCCP Channel Structure */
 	typedef struct sccp_session sccp_session_t;								/*!< SCCP Session Structure */
 	typedef struct sccp_line sccp_line_t;									/*!< SCCP Line Structure */
@@ -1247,8 +1243,9 @@ struct sccp_global_vars {
 	boolean_t nat;												/*!< Network Address Translation */
 	boolean_t directrtp;											/*!< Direct RTP */
 	boolean_t useoverlap;											/*!< Overlap Dial Support */
+	sccp_group_t callgroup;											/*!< Call Group */
 #ifdef CS_SCCP_PICKUP
-	unsigned long pickupgroup;										/*!< Pick Up Group */
+	sccp_group_t pickupgroup;										/*!< Pick Up Group */
 	boolean_t pickupmodeanswer;										/*!< Pick Up Mode Answer */
 #endif
 	int amaflags;												/*!< AmaFlags */
@@ -1266,7 +1263,6 @@ struct sccp_global_vars {
 #endif
 
 	char used_context[SCCP_MAX_EXTENSION];									/*!< placeholder to check if context are already used in regcontext (DUNDI) */
-	unsigned long callgroup;										/*!< Call Group */
 
 	boolean_t reload_in_progress;										/*!< Reload in Progress */
 
