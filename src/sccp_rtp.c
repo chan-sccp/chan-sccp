@@ -166,9 +166,11 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 			PBX(rtp_setPeer) (rtp, new_peer, device->nat);
 		}
 		// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d", DEV_ID_LOG(device), pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port)
-		    );
-		sccp_log(DEBUGCAT_RTP) (" to:%15s:%d (NAT: %s)\n", pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), device->nat ? "yes" : "no");
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(device), 
+					pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port),
+					pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), 
+					device->nat ? "yes" : "no"
+				);
 
 		device = sccp_device_release(device);
 	}
