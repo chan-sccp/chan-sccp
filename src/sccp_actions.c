@@ -371,7 +371,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	struct sockaddr_storage *ss = { 0 };
 	char iabuf[INET6_ADDRSTRLEN];
-	struct sockaddr_in sin;
+	struct sockaddr_in sin = {0};
 
 	if (0 != r->msg.RegisterMessage.lel_stationIpAddr) {
 		sin.sin_family = AF_INET;
@@ -381,7 +381,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		ss = (struct sockaddr_storage *)&sin;
 	}
 #    ifdef CS_IPV6
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in6 sin6 = {0};
 
 	if (0 != r->msg.RegisterMessage.ipv6Address) {
 		sin6.sin6_family = AF_INET6;
@@ -2429,49 +2429,18 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
  */
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	struct sockaddr_in sin;
-
+	struct sockaddr_in sin = {0};
+	uint32_t status = 0, callReference = 0, passThruPartyId = 0;
 	sccp_channel_t *channel = NULL;
-	char ipAddr[16];
-	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, passthrupartyid = 0;
 
-//      uint32_t unknown1 = 0, unknown2 = 0, unknown3 = 0, unknown4 = 0;
+	d->protocol->parseOpenReceiveChannelAck((const sccp_moo_t *) r, &status, &sin, &passThruPartyId, &callReference);
 
-	memset(ipAddr, 0, 16);
-
-	if (d->inuseprotocolversion < 17) {
-		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck.lel_portNumber));
-		partyID = letohl(r->msg.OpenReceiveChannelAck.lel_passThruPartyId);
-		status = letohl(r->msg.OpenReceiveChannelAck.lel_orcStatus);
-		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck.bel_ipAddr, 4);
-//              unknown1 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_1);
-//              unknown2 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_2);
-//              unknown3 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_3);
-//              unknown4 = letohl(r->msg.OpenReceiveChannelAck.lel_unknown_4);
-		callID = letohl(r->msg.OpenReceiveChannelAck.lel_callReference);
-	} else {
-		ipPort = htons(htolel(r->msg.OpenReceiveChannelAck_v17.lel_portNumber));
-		partyID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_passThruPartyId);
-		status = letohl(r->msg.OpenReceiveChannelAck_v17.lel_orcStatus);
-		memcpy(&ipAddr, &r->msg.OpenReceiveChannelAck_v17.bel_ipAddr, 16);
-//              unknown1 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_1);
-//              unknown2 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_2);
-//              unknown3 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_3);
-//              unknown4 = letohl(r->msg.OpenReceiveChannelAck_v17.lel_unknown_4);
-		callID = letohl(r->msg.OpenReceiveChannelAck_v17.lel_callReference);
-	}
-
-	sin.sin_family = AF_INET;
 //      if (d->trustphoneip || d->directrtp) {
-	if (d->directrtp) {
-		memcpy(&sin.sin_addr, &ipAddr, sizeof(sin.sin_addr));
-	} else {
+	if (!d->directrtp) {
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	}
-	sin.sin_port = ipPort;
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callID);
-//      sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Unknown1: %u, Unknown2: %u: Unknown3: %u, Unknown4: %u\n", d->id, unknown1, unknown2, unknown3, unknown4);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	if (status) {
 		// rtp error from the phone 
@@ -2479,18 +2448,15 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		return;
 	}
 
-	if (partyID)
-		passthrupartyid = partyID;
-
-	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
-		passthrupartyid = 0xFFFFFFFF - callID;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passthrupartyid, using callid: %u -> passthrupartyid %u\n", d->id, callID, passthrupartyid);
+	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
+		passThruPartyId = 0xFFFFFFFF - callReference;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 6911 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
 	}
 
-	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {	// reduce the amount of searching by first checking active_channel
+	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
 		channel = sccp_channel_retain(d->active_channel);
 	} else {
-		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passthrupartyid);
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
 	if (channel) {												// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
 		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
@@ -2503,9 +2469,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			sccp_moo_t *r;
 
 			REQ(r, CloseReceiveChannel);
-			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callID);
-			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
-			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callID);
+			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
+			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
+			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callReference);
 			sccp_dev_send(d, r);
 			channel = sccp_channel_release(channel);
 			return;
@@ -2535,15 +2501,15 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		channel = sccp_channel_release(channel);
 	} else {
 		/* we successfully opened receive channel, but have no channel active -> close receive */
-		int callId = partyID ^ 0xFFFFFFFF;
+		int callId = passThruPartyId ^ 0xFFFFFFFF;
 
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruId %u (callid: %d, callid: %d)!\n", d->id, partyID, callID, callId);
+		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
 
 		sccp_moo_t *r;
 
 		REQ(r, CloseReceiveChannel);
 		r->msg.CloseReceiveChannel.lel_conferenceId = htolel(callId);
-		r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(partyID);
+		r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
 		r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(callId);
 		sccp_dev_send(d, r);
 	}
@@ -2561,33 +2527,13 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
  */
 void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	struct sockaddr_in sin;
+	struct sockaddr_in sin = {0};
 	sccp_channel_t *channel;
-	char ipAddr[16];
-	uint32_t status = 0, ipPort = 0, partyID = 0, passthrupartyid = 0, callID;
+	uint32_t status = 0, partyID = 0, passThruPartyId = 0, callReference;
 
-	memset(ipAddr, 0, 16);
-	if (d->inuseprotocolversion < 15) {
-		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_portNumber));
-		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_passThruPartyId);
-		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_orcStatus);
-		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, 4);
-		memcpy(&sin.sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.bel_ipAddr, sizeof(sin.sin_addr));
-		callID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.lel_callReference);
-	} else {
-		ipPort = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_portNumber));
-		partyID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_passThruPartyId);
-		status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_orcStatus);
-		memcpy(&ipAddr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, 16);
-		memcpy(&sin.sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.bel_ipAddr, sizeof(sin.sin_addr));
-		callID = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage_v17.lel_callReference);
-	}
+	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_moo_t *) r, &status, &sin, &passThruPartyId, &callReference);
 
-	sin.sin_family = AF_INET;
-	sin.sin_port = ipPort;
-
-//      sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, RemoteIP (%s): %s, Port: %d, PassThruId: %u\n", d->id, status, (d->directrtp ? "Phone DirectRTP" : "Connection"), pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), partyID);
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callID);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callReference);
 	if (status) {
 		/* rtp error from the phone */
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
@@ -2595,13 +2541,10 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		return;
 	}
 
-	if (partyID)
-		passthrupartyid = partyID;
-
-	if ((d->active_channel && d->active_channel->passthrupartyid == passthrupartyid) || !passthrupartyid) {	// reduce the amount of searching by first checking active_channel
+	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
 		channel = sccp_channel_retain(d->active_channel);
 	} else {
-		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passthrupartyid);
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
 	/* prevent a segmentation fault on fast hangup after answer, failed voicemail for example */
 	if (channel) {												// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -3355,35 +3298,11 @@ void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_mo
  */
 void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	struct sockaddr_in sin;
+	struct sockaddr_in sin = {0};
 	sccp_channel_t *channel = NULL;
-	uint32_t status = 0, ipPort = 0, partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
-	const char *ipAddress;
+	uint32_t status = 0, partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
 
-	sin.sin_family = AF_INET;
-	if (letohl(r->header.lel_protocolVer) < 17) {
-		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck.lel_portNumber));
-		partyID = letohl(r->msg.StartMediaTransmissionAck.lel_passThruPartyId);
-		status = letohl(r->msg.StartMediaTransmissionAck.lel_smtStatus);
-		callID = letohl(r->msg.StartMediaTransmissionAck.lel_callReference);
-		callID1 = letohl(r->msg.StartMediaTransmissionAck.lel_callReference1);
-
-		memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
-		ipAddress = pbx_inet_ntoa(sin.sin_addr);
-	} else {
-		ipPort = htons(htolel(r->msg.StartMediaTransmissionAck_v17.lel_portNumber));
-		partyID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_passThruPartyId);
-		status = letohl(r->msg.StartMediaTransmissionAck_v17.lel_smtStatus);
-		callID = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference);
-		callID1 = letohl(r->msg.StartMediaTransmissionAck_v17.lel_callReference1);
-
-		if (letohl(r->msg.StartMediaTransmissionAck_v17.lel_unknown1) == 1) {
-			ipAddress = (const char *)&r->msg.StartMediaTransmissionAck_v17.bel_ipAddr;
-		} else {
-			memcpy(&sin.sin_addr, &r->msg.StartMediaTransmissionAck_v17.bel_ipAddr, sizeof(sin.sin_addr));
-			ipAddress = pbx_inet_ntoa(sin.sin_addr);
-		}
-	}
+	d->protocol->parseStartMediaTransmissionAck((const sccp_moo_t *)r, &partyID, &callID, &callID1, &status, &sin);
 
 	if (partyID)
 		passthrupartyid = partyID;
@@ -3420,7 +3339,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 			    ) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, Remote TCP/IP: '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, ipAddress, ipPort, callID, callID1, partyID);
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, Remote TCP/IP: '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
 		} else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
 			if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
@@ -3536,7 +3455,7 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
  */
 void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	struct sockaddr_in sin;
+	struct sockaddr_in sin = {0};
 	const char *ipAddress;
 
 	sccp_channel_t *c;
@@ -3547,25 +3466,25 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 	sin.sin_family = AF_INET;
 	if (letohl(r->header.lel_protocolVer) < 17) {
-		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.lel_portNumber));
-		partyID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_passThruPartyId);
-		status = letohl(r->msg.StartMultiMediaTransmissionAck.lel_smtStatus);
-		callID = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference);
-		callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.lel_callReference1);
+		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.v3.lel_portNumber));
+		partyID = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_passThruPartyId);
+		status = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_smtStatus);
+		callID = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_callReference);
+		callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_callReference1);
 
-		memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck.bel_ipAddr, sizeof(sin.sin_addr));
+		memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck.v3.bel_ipAddr, sizeof(sin.sin_addr));
 		ipAddress = pbx_inet_ntoa(sin.sin_addr);
 	} else {
-		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck_v17.lel_portNumber));
-		partyID = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_passThruPartyId);
-		status = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_smtStatus);
-		callID = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_callReference);
-		callID1 = letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_callReference1);
+		ipPort = htons(htolel(r->msg.StartMultiMediaTransmissionAck.v17.lel_portNumber));
+		partyID = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_passThruPartyId);
+		status = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_smtStatus);
+		callID = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_callReference);
+		callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_callReference1);
 
-		if (letohl(r->msg.StartMultiMediaTransmissionAck_v17.lel_unknown1) == 1) {
-			ipAddress = (const char *)&r->msg.StartMultiMediaTransmissionAck_v17.bel_ipAddr;
+		if (letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_unknown1) == 1) {
+			ipAddress = (const char *)&r->msg.StartMultiMediaTransmissionAck.v17.bel_ipAddr;
 		} else {
-			memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck_v17.bel_ipAddr, sizeof(sin.sin_addr));
+			memcpy(&sin.sin_addr, &r->msg.StartMultiMediaTransmissionAck.v17.bel_ipAddr, sizeof(sin.sin_addr));
 			ipAddress = pbx_inet_ntoa(sin.sin_addr);
 		}
 	}
@@ -3612,7 +3531,7 @@ void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d,
 void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	sccp_miscCommandType_t commandType;
-	struct sockaddr_in sin;
+	struct sockaddr_in sin = {0};
 	uint32_t partyID;
 	sccp_channel_t *channel;
 

@@ -1000,7 +1000,7 @@ size_t message2size(uint32_t value)
         uint32_t i; 
         for (i = 0; i < ARRAY_LEN(sccp_messagetypes); i++) { 
                 if (sccp_messagetypes[i].type == value) { 
-                        return sccp_messagetypes[i].size; 
+                        return sccp_messagetypes[i].size + SCCP_PACKET_HEADER; 
                 }
         }
         pbx_log(LOG_NOTICE, "SCCP: Unknown SCCP Message with %02X\n", value);
