@@ -1715,23 +1715,8 @@ typedef struct {
 
 /*! 
  * \brief Video Parameter Structure 
- * \since 20100103
+ * \since 20110718
  */
-// typedef struct {
-//      uint32_t bitRate;                                                       /*!< BitRate (default 384) */
-//      uint32_t pictureFormatCount;                                            /*!< Picture Format Count (default 0) */
-//      pictureFormat_t pictureFormat[3];                                       /*!< Picture Format Array */
-//      uint32_t confServiceNum;                                                /*!< Conf Service Number */
-//      uint32_t dummy;                                                         /*!< dummy */
-//      h261VideoCapability_t h261VideoCapability;                              /*!< H261 Video Capability */
-//      h263VideoCapability_t h263VideoCapability;                              /*!< H263 Video Capability */
-//      vieoVideoCapability_t vieoVideoCapability;                              /*!< vieo Video Capability */
-// } videoParameter_t;                                                          /*!< Video Parameter Structure */
-
-/*! 
-	 * \brief Video Parameter Structure 
-	 * \since 20110718
-	 */
 typedef struct {
 	uint32_t bitRate;							/*!< BitRate (default 384) */
 	uint32_t pictureFormatCount;						/*!< Picture Format Count (default 0) */
@@ -2017,46 +2002,48 @@ typedef union {
 		char dummy[168];						/*!< Dummy */
 	} Unknown_0x0159_Message;						/*!< Unknown 0x0159 Message Strucute */
 
+	
 	struct {
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_callReference1;					/*!< Call Reference1 */
-		uint32_t bel_ipAddr;						/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
-		uint32_t lel_portNumber;					/*!< Port Number */
-		uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
-		uint32_t lel_unknown1;						/*!< Unknown 2 */
+		union {	
+			/* this is from a 7941
+			   Unhandled SCCP Message: unknown(0x0154) 44 bytes length
+			   00000000 - 03 00 00 00 FC FF FF FF 03 00 00 00 00 00 00 00 ................
+			   00000010 - C0 A8 09 24 00 00 00 00 00 00 00 00 00 00 00 00 ...$............
+			   00000020 - 00 00 00 00 03 00 00 00 00 00 00 00             ............
+			 */
+			struct {
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_callReference1;					/*!< Call Reference1 */
+				uint32_t bel_ipAddr;						/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
+				uint32_t lel_portNumber;					/*!< Port Number */
+				uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
+				uint32_t lel_unknown1;						/*!< Unknown 2 */
+			} v3;
+
+			/* this is from a 6911
+			   StartMediaTransmissionAck_v17(0x0154)
+			   0000  00 0c 29 03 e3 98 0c 85  25 a7 a0 02 08 00 45 00   ..)..... %.....E.
+			   0010  00 68 8d dd 40 00 40 06  08 4c c0 a8 11 7b c0 a8   .h..@.@. .L...{..
+			   0020  11 9b 09 af 07 d0 3f c3  48 70 8d 0a 18 15 80 18   ......?. Hp......
+			   0030  11 6c d3 0c 00 00 01 01  08 0a 00 01 ce 04 01 65   .l...... .......e
+			   0040  cf 13 2c 00 00 00 11 00  00 00 54 01 00 00 00 00   ..,..... ..T.....   ; lel_reserved = 17 (11), message_id 0x154
+			   0050  00 00 00 00 00 00 15 00  00 00 00 00 00 00 c0 a8   ........ ........   ; callreference = 0, passthrupartyid=0, callreference1=21 (15), unknown=0
+			   0060  11 7b 00 00 00 00 00 00  00 00 00 00 00 00 98 2b   .{...... .......+   ; ip-address=c0a8117b, portnumber=982b0000, smtStatus=0, unknown2=undefined
+			   0070  00 00 00 00 00 00                                  ......           
+			 */
+			struct {
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_callReference1;					/*!< Call Reference 1 */
+				uint32_t lel_ipv46;						/*!< ipv4 / ipv6 */
+				char bel_ipAddr[16];						/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
+				uint32_t lel_portNumber;					/*!< Port Number */
+				uint32_t lel_smtStatus;						/*!< startmediatransmission status */
+				uint32_t lel_unknown2;						/*!< Unknown */
+			} v17;	
+		};
 	} StartMediaTransmissionAck;						/*!< Start Media Transmission Acknowledgement Structure */
-
-	/* this is from a 7941
-	   Unhandled SCCP Message: unknown(0x0154) 44 bytes length
-	   00000000 - 03 00 00 00 FC FF FF FF 03 00 00 00 00 00 00 00 ................
-	   00000010 - C0 A8 09 24 00 00 00 00 00 00 00 00 00 00 00 00 ...$............
-	   00000020 - 00 00 00 00 03 00 00 00 00 00 00 00             ............
-	 */
-
-	/* this is from a 6911
-	   StartMediaTransmissionAck_v17(0x0154)
-	   0000  00 0c 29 03 e3 98 0c 85  25 a7 a0 02 08 00 45 00   ..)..... %.....E.
-	   0010  00 68 8d dd 40 00 40 06  08 4c c0 a8 11 7b c0 a8   .h..@.@. .L...{..
-	   0020  11 9b 09 af 07 d0 3f c3  48 70 8d 0a 18 15 80 18   ......?. Hp......
-	   0030  11 6c d3 0c 00 00 01 01  08 0a 00 01 ce 04 01 65   .l...... .......e
-	   0040  cf 13 2c 00 00 00 11 00  00 00 54 01 00 00 00 00   ..,..... ..T.....   ; lel_reserved = 17 (11), message_id 0x154
-	   0050  00 00 00 00 00 00 15 00  00 00 00 00 00 00 c0 a8   ........ ........   ; callreference = 0, passthrupartyid=0, callreference1=21 (15), unknown=0
-	   0060  11 7b 00 00 00 00 00 00  00 00 00 00 00 00 98 2b   .{...... .......+   ; ip-address=c0a8117b, portnumber=982b0000, smtStatus=0, unknown2=undefined
-	   0070  00 00 00 00 00 00                                  ......           
-	 */
-
-	struct {
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_callReference1;					/*!< Call Reference 1 */
-		uint32_t lel_unknown1;						/*!< i think this switches from IPv4 to IPv6 (0x00 in IPv4) */
-		/* include IPv6 support */
-		char bel_ipAddr[16];						/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
-		uint32_t lel_portNumber;					/*!< Port Number */
-		uint32_t lel_smtStatus;						/*!< startmediatransmission status */
-		uint32_t lel_unknown2;						/*!< Unknown */
-	} StartMediaTransmissionAck_v17;					/*!< Start Media Transmission Acknowledgement used in protocoll version 17 */
 
 	// No struct
 
@@ -2480,6 +2467,27 @@ typedef union {
 	   00000710 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
 	   00000720 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
 	   00000730 - 00 00 00 00                                     ....
+
+	diff:
+	>   00000000 - 08 00 00 00 02 00 00 00 00 00 00 00 00 00 00 00 ................
+	>   00000010 - 00 00 00 00 22 4B 01 00 0C CC CC CC 00 11 21 F1 ...."K..........
+	>   00000020 - 22 4B 00 74 AA AA 03 00 00 0C 20 00 02 B4 B8 67 "K.t...... ....g
+	>   00000030 - 00 01 00 13 53 45 50 30 30 31 31 32 31 46 31 32 ....SEP001122334
+	>   00000040 - 32 34 42 00 02 00 11 00 00 00 01 01 01 CC 00 04 455.............
+	>   00000050 - 0A 0A 0A D2 00 03 00 0A 50 6F 72 74 20 31 00 04 ........Port 1..
+	>   00000060 - 00 08 00 00 00 90 00 05 00 10 50 30 30 33 30 38 ..........P00308
+	>   00000070 - 30 30 31 30 30 30 00 06 00 17 43 69 73 63 6F 20 001000....Cisco
+	>   00000080 - 49 50 20 50 68 6F 6E 65 20 37 39 34 00 00 00 00 IP Phone 794....
+	>   00000130 - 00 00 00 00 00 00 00 00 19 00 00 00 78 00 00 00 ............x...
+	>   000001A0 - 00 00 00 00 00 00 00 00 01 01 00 00 04 00 00 00 ................
+	>   00000250 - 00 00 00 00 00 00 00 00 65 00 00 00 03 00 00 00 ........e.......
+	>   00000260 - 02 00 00 00 32 00 00 00 02 00 00 00 98 3A 00 00 ....2........:..
+	>   00000270 - F4 01 00 00 01 00 00 00 00 00 00 00 33 00 00 00 ............3...
+	>   00000280 - 03 00 00 00 98 3A 00 00 F4 01 00 00 01 00 00 00 .....:..........
+	>   000002C0 - 00 00 00 00 00 00 00 00 00 00 00 00 67 00 00 00 ............g...
+	>   000002D0 - 03 00 00 00 01 00 00 00 34 00 00 00 03 00 00 00 ........4.......
+	>   000002E0 - 98 3A 00 00 F4 01 00 00 01 00 00 00 00 00 00 00 .:..............
+	>   00000330 - 00 00 00 00 00 00 00 00 40 00 00 00 32 00 00 00 ........@...2...
 	 */
 
 	struct {
@@ -2510,69 +2518,72 @@ typedef union {
 	} MulticastMediaReceptionAck;						/*!< Multicast Media Reception Acknowledgement Message - Client -> Server */
 
 	struct {
-		uint32_t lel_orcStatus;						/*!< receiveChanStatus */
-		uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format,
-										   even though most other fields are in
-										   little-endian format. */
-		uint32_t lel_portNumber;					/*!< Port Number */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_unknown_1;
-		uint32_t lel_unknown_2;
-		uint32_t lel_unknown_3;
-		uint32_t lel_unknown_4;
-		uint32_t lel_callReference;					/*!< Call Reference */
+		union {	
+			struct {
+				uint32_t lel_status;						/*!< receiveChanStatus */
+				uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format,
+												   even though most other fields are in
+												   little-endian format. */
+				uint32_t lel_portNumber;					/*!< Port Number */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_unknown_1;
+				uint32_t lel_unknown_2;
+				uint32_t lel_unknown_3;
+				uint32_t lel_unknown_4;
+				uint32_t lel_callReference;					/*!< Call Reference */
+			} v3;
+			/*      this is v17 open receive channel ack
+			 *      0000   28 00 00 00 11 00 00 00 22 00 00 00 ST AT US xx  (.......".......
+			 *      0010   00 00 00 00 IP IP IP IP 00 00 00 00 00 00 00 00  ......."........
+			 *      0020   00 00 00 00 3a 4c 00 00 53 00 00 01 54 ae 9d 01  ....:L..S...T...
+			 */
+			/*	7961 / 7970 / 7962 with protocolVer=22
+				00000000 - 00 00 00 00 00 00 00 00  0A 0F 0F D1 00 00 00 00  - ................
+				00000010 - 00 00 00 00 00 00 00 00  CE 64 00 00 FE FF FF FF  - .........d......
+				00000020 - 01 00 00 00 00 00 00 00                           - ........
+			*/	
+			struct {
+				uint32_t lel_status;						/*!< Receive Channel Status */
+				uint32_t lel_ipv46;						/*!< ipv4 (0)/ ipv6 (1)*/
+				char bel_ipAddr[16];						/*!< This field is apparently in big-endian format,
+												   even though most other fields are in
+												   little-endian format. */
+				uint32_t lel_portNumber;					/*!< Port Number */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_unknown_1;
+				uint32_t lel_unknown_2;
+				uint32_t lel_unknown_3;
+				uint32_t lel_unknown_4;
+				uint32_t lel_callReference;					/*!< Call Reference */
+			} v17;
+		};
 	} OpenReceiveChannelAck;						/*!< Open Receive Channel Acknowledgement */
 
-	/*      this is v17 open receive channel ack
-	 *      0000   28 00 00 00 11 00 00 00 22 00 00 00 ST AT US xx  (.......".......
-	 *      0010   00 00 00 00 IP IP IP IP 00 00 00 00 00 00 00 00  ......."........
-	 *      0020   00 00 00 00 3a 4c 00 00 53 00 00 01 54 ae 9d 01  ....:L..S...T...
-	 */
-	/*	7961 / 7970 / 7962 with protocolVer=22
-		00000000 - 00 00 00 00 00 00 00 00  0A 0F 0F D1 00 00 00 00  - ................
-		00000010 - 00 00 00 00 00 00 00 00  CE 64 00 00 FE FF FF FF  - .........d......
-		00000020 - 01 00 00 00 00 00 00 00                           - ........
-	*/	
-   
 	struct {
-		uint32_t lel_orcStatus;						/*!< Receive Channel Status */
-		uint32_t lel_unknown1;						/*!< I think this switches from IPv4 to IPv6 (0x00 in IPv4) */
-		/* include IPv6 support */
-		char bel_ipAddr[16];						/*!< This field is apparently in big-endian format,
-										   even though most other fields are in
-										   little-endian format. */
-		uint32_t lel_portNumber;					/*!< Port Number */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_unknown_1;
-		uint32_t lel_unknown_2;
-		uint32_t lel_unknown_3;
-		uint32_t lel_unknown_4;
-		uint32_t lel_callReference;					/*!< Call Reference */
-	} OpenReceiveChannelAck_v17;						/*!< Open Receive Channel Acknowledgement v17 */
+		union {
+			struct {
+				uint32_t lel_status;						/*!< receiveChanStatus */
+				uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format,
+												   even though most other fields are in
+												   little-endian format. */
+				uint32_t lel_portNumber;
+				uint32_t lel_passThruPartyId;
+				uint32_t lel_callReference;
+			} v3;
 
-	struct {
-		uint32_t lel_orcStatus;						/*!< receiveChanStatus */
-		uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format,
-										   even though most other fields are in
-										   little-endian format. */
-		uint32_t lel_portNumber;
-		uint32_t lel_passThruPartyId;
-		uint32_t lel_callReference;
-
+			struct {
+				uint32_t lel_status;						/*!< status */
+				/* include IPv6 support */
+				uint32_t lel_ipv46;						/*!< ipv4 (0)/ ipv6 (1)*/
+				char bel_ipAddr[16];						/*!< This field is apparently in big-endian format,
+												   even though most other fields are in
+												   little-endian format. */
+				uint32_t lel_portNumber;
+				uint32_t lel_passThruPartyId;
+				uint32_t lel_callReference;
+			} v17;
+		};
 	} OpenMultiMediaReceiveChannelAckMessage;
-
-	struct {
-		uint32_t lel_orcStatus;						/*!< status */
-		uint32_t lel_unknown1;						/*!< I think this switches from IPv4 to IPv6 (0x00 in IPv4) */
-		/* include IPv6 support */
-		char bel_ipAddr[16];						/*!< This field is apparently in big-endian format,
-										   even though most other fields are in
-										   little-endian format. */
-		uint32_t lel_portNumber;
-		uint32_t lel_passThruPartyId;
-		uint32_t lel_callReference;
-
-	} OpenMultiMediaReceiveChannelAckMessage_v17;
 
 	struct {
 		char DirectoryNumber[StationMaxDirnumSize];			/*!< Directory Number */
@@ -2693,89 +2704,93 @@ typedef union {
 		uint32_t lel_micMode;						/*!< Microphone Mode */
 	} SetMicroModeMessage;							/*!< Set Microphone Mode Message Structure */
 
-	struct {
-		uint32_t lel_conferenceId;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian
-										   format, even though most other fields are
-										   little-endian. */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_millisecondPacketSize;				/*!< Packet Size per MilliSecond */
-		uint32_t lel_payloadType;					/*!< Media_PayloadType */
-		uint32_t lel_precedenceValue;					/*!< Precedence Value */
-		uint32_t lel_ssValue;						/*!< Simple String Value */
-		uint32_t lel_maxFramesPerPacket;				/*!< Maximum Frames per Packet */
-		uint32_t lel_g723BitRate;					/*!< only used with G.723 payload */
-		uint32_t lel_conferenceId1;					/*!< Conference ID 1 */
-		uint32_t unknown1;						/*!< Unknown */
-		uint32_t unknown2;						/*!< Unknown */
-		uint32_t unknown3;						/*!< Unknown */
-		uint32_t unknown4;						/*!< Unknown */
-		uint32_t unknown5;						/*!< Unknown */
-		uint32_t unknown6;						/*!< Unknown */
-		uint32_t unknown7;						/*!< Unknown */
-		uint32_t unknown8;						/*!< Unknown */
-		uint32_t unknown9;						/*!< Unknown */
-		uint32_t unknown10;						/*!< Unknown */
-		/* protocol v11 mods */
-		uint32_t unknown11;						/*!< Unknown */
-		uint32_t unknown12;						/*!< Unknown */
-		uint32_t unknown13;						/*!< Unknown */
-		uint32_t unknown14;						/*!< Unknown */
-		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
-		uint32_t lel_rtptimeout;					/*!< RTP TimeOut */
-		/* protocol v11 fields */
-		uint32_t unknown15;
-		uint32_t unknown16;
-	} StartMediaTransmission;
-
-	/* StartMediaTransmission v17
-	 * 0000   88 00 00 00 11 00 00 00 8a 00 00 00 54 ae 9d 01  ............T...
-	 * 0010   53 00 00 01 00 00 00 00 c0 a8 09 2c 00 00 00 00  S..........,....
-	 * 0020   00 00 00 00 00 00 00 00 c6 4c 00 00 14 00 00 00  .........L......
-	 * 0030   04 00 00 00 b8 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0040   00 00 00 00 54 ae 9d 01 00 00 00 00 00 00 00 00  ....T...........
-	 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0060   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0080   00 00 00 00 0a 00 00 00 00 00 00 00 00 00 00 00  ................
-	 */
 
 	struct {
-		uint32_t lel_conferenceId;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_unknown1;						/*!< Unknown */
-		char bel_remoteIpAddr[16];					/*!< This field is apparently in big-endian
-										   format, even though most other fields are
-										   little-endian. */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_millisecondPacketSize;				/*!< Packet Size per Millisecond */
-		uint32_t lel_payloadType;					/*!< Media_PayloadType */
-		uint32_t lel_precedenceValue;					/*!< Precedence Value */
-		uint32_t lel_ssValue;						/*!< Simple String Value */
-		uint32_t lel_maxFramesPerPacket;				/*!< Maximum Frames per Packet */
-		uint32_t lel_g723BitRate;					/*!< G.723 BitRate (only used with G.723 payload) */
-		uint32_t lel_conferenceId1;					/*!< Conference ID 1 */
-		uint32_t lel_unknown2;						/*!< Unknown */
-		uint32_t lel_unknown3;						/*!< Unknown */
-		uint32_t lel_unknown4;						/*!< Unknown */
-		uint32_t lel_unknown5;						/*!< Unknown */
-		uint32_t lel_unknown6;						/*!< Unknown */
-		uint32_t lel_unknown7;						/*!< Unknown */
-		uint32_t lel_unknown8;						/*!< Unknown */
-		uint32_t lel_unknown9;						/*!< Unknown */
-		uint32_t lel_unknown10;						/*!< Unknown */
-		uint32_t lel_unknown11;						/*!< Unknown */
-		uint32_t lel_unknown12;						/*!< Unknown */
-		uint32_t lel_unknown13;						/*!< Unknown */
-		uint32_t lel_unknown14;						/*!< Unknown */
-		uint32_t lel_unknown15;						/*!< Unknown */
-		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
-		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is set to 0x0A) */
-		uint32_t lel_unknown18;						/*!< Unknown */
-		uint32_t lel_unknown19;						/*!< Unknown */
-	} StartMediaTransmission_v17;						/*!< Start Media Transmission v17 Structure */
+		union {
+			struct {
+				uint32_t lel_conferenceId;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian
+												   format, even though most other fields are
+												   little-endian. */
+				uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
+				uint32_t lel_millisecondPacketSize;				/*!< Packet Size per MilliSecond */
+				uint32_t lel_payloadType;					/*!< Media_PayloadType */
+				uint32_t lel_precedenceValue;					/*!< Precedence Value */
+				uint32_t lel_ssValue;						/*!< Simple String Value */
+				uint32_t lel_maxFramesPerPacket;				/*!< Maximum Frames per Packet */
+				uint32_t lel_g723BitRate;					/*!< only used with G.723 payload */
+				uint32_t lel_conferenceId1;					/*!< Conference ID 1 */
+				uint32_t unknown1;						/*!< Unknown */
+				uint32_t unknown2;						/*!< Unknown */
+				uint32_t unknown3;						/*!< Unknown */
+				uint32_t unknown4;						/*!< Unknown */
+				uint32_t unknown5;						/*!< Unknown */
+				uint32_t unknown6;						/*!< Unknown */
+				uint32_t unknown7;						/*!< Unknown */
+				uint32_t unknown8;						/*!< Unknown */
+				uint32_t unknown9;						/*!< Unknown */
+				uint32_t unknown10;						/*!< Unknown */
+				/* protocol v11 mods */
+				uint32_t unknown11;						/*!< Unknown */
+				uint32_t unknown12;						/*!< Unknown */
+				uint32_t unknown13;						/*!< Unknown */
+				uint32_t unknown14;						/*!< Unknown */
+				uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_rtptimeout;					/*!< RTP TimeOut */
+				/* protocol v11 fields */
+				uint32_t unknown15;
+				uint32_t unknown16;
+			} v3;
 
+			/* StartMediaTransmission v17
+			 * 0000   88 00 00 00 11 00 00 00 8a 00 00 00 54 ae 9d 01  ............T...
+			 * 0010   53 00 00 01 00 00 00 00 c0 a8 09 2c 00 00 00 00  S..........,....
+			 * 0020   00 00 00 00 00 00 00 00 c6 4c 00 00 14 00 00 00  .........L......
+			 * 0030   04 00 00 00 b8 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0040   00 00 00 00 54 ae 9d 01 00 00 00 00 00 00 00 00  ....T...........
+			 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0060   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0080   00 00 00 00 0a 00 00 00 00 00 00 00 00 00 00 00  ................
+			 */
+			struct {
+				uint32_t lel_conferenceId;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_ipv46;						/*!< ipv4 (0)/ ipv6 (1)*/
+				char bel_remoteIpAddr[16];					/*!< This field is apparently in big-endian
+												   format, even though most other fields are
+												   little-endian. */
+				uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
+				uint32_t lel_millisecondPacketSize;				/*!< Packet Size per Millisecond */
+				uint32_t lel_payloadType;					/*!< Media_PayloadType */
+				uint32_t lel_precedenceValue;					/*!< Precedence Value */
+				uint32_t lel_ssValue;						/*!< Simple String Value */
+				uint32_t lel_maxFramesPerPacket;				/*!< Maximum Frames per Packet */
+				uint32_t lel_g723BitRate;					/*!< G.723 BitRate (only used with G.723 payload) */
+				uint32_t lel_conferenceId1;					/*!< Conference ID 1 */
+				uint32_t lel_unknown2;						/*!< Unknown */
+				uint32_t lel_unknown3;						/*!< Unknown */
+				uint32_t lel_unknown4;						/*!< Unknown */
+				uint32_t lel_unknown5;						/*!< Unknown */
+				uint32_t lel_unknown6;						/*!< Unknown */
+				uint32_t lel_unknown7;						/*!< Unknown */
+				uint32_t lel_unknown8;						/*!< Unknown */
+				uint32_t lel_unknown9;						/*!< Unknown */
+				uint32_t lel_unknown10;						/*!< Unknown */
+				uint32_t lel_unknown11;						/*!< Unknown */
+				uint32_t lel_unknown12;						/*!< Unknown */
+				uint32_t lel_unknown13;						/*!< Unknown */
+				uint32_t lel_unknown14;						/*!< Unknown */
+				uint32_t lel_unknown15;						/*!< Unknown */
+				uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is set to 0x0A) */
+				uint32_t lel_unknown18;						/*!< Unknown */
+				uint32_t lel_unknown19;						/*!< Unknown */
+			} v17;
+		};
+	} StartMediaTransmission;						/*!< Start Media Transmission Structure */
+	
 	struct {
 		uint32_t lel_conferenceId;					/*!< Conference ID */
 		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
@@ -3027,93 +3042,96 @@ typedef union {
 		uint32_t lel_passThruPartyID;					/*!< Pass Through Party ID */
 	} StopMulticastMediaTransmission;					/*!< Stop Multicast Media Transmission Message Structure */
 
-	/* this is v11 message from ccm7
-	 * 0000   60 00 00 00 00 00 00 00 05 01 00 00 5b ae 9d 01  `...........[...
-	 * 0010   5a 00 00 01 14 00 00 00 04 00 00 00 00 00 00 00  Z...............
-	 * 0020   00 00 00 00 5b ae 9d 01 00 00 00 00 00 00 00 00  ....[...........
-	 * 0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0060   00 00 00 00 0a 00 00 00                          ........
-	 */
-
+	
 	struct {
-		uint32_t lel_conferenceId;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_millisecondPacketSize;				/*!< Millisecond Packet Size */
-		uint32_t lel_payloadType;					/*!< Media_Payload Type */
-		uint32_t lel_vadValue;						/*!< VAD Value */
-		uint32_t lel_g723BitRate;					/*!< G.723 Payload (Only applies to G.723) */
-		/* protocol version 5 fields */
-		uint32_t lel_conferenceId1;					/*!< Conference ID */
-		uint32_t unknown1;						/*!< Unknown */
-		uint32_t unknown2;						/*!< Unknown */
-		uint32_t unknown3;						/*!< Unknown */
-		uint32_t unknown4;						/*!< Unknown */
-		uint32_t unknown5;						/*!< Unknown */
-		uint32_t unknown6;						/*!< Unknown */
-		uint32_t unknown7;						/*!< Unknown */
-		uint32_t unknown8;						/*!< Unknown */
-		uint32_t unknown9;						/*!< Unknown */
-		uint32_t unknown10;						/*!< Unknown */
-		/* protocol version 11 fields */
-		uint32_t unknown11;						/*!< Unknown */
-		uint32_t unknown12;						/*!< Unknown */
-		uint32_t unknown13;						/*!< Unknown */
-		uint32_t unknown14;						/*!< Unknown */
-		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
-		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
-		/* protocol version 15 fields */
-		uint32_t unknown15;
-		uint32_t unknown16;
-		char bel_remoteIpAddr[16];
-		uint32_t lel_unknown17;						/*!< this is always 0xFA0 */
-	} OpenReceiveChannel;							/*!< Open Receive Channel Message Structure */
+		union { 
+			/* this is v11 message from ccm7
+			 * 0000   60 00 00 00 00 00 00 00 05 01 00 00 5b ae 9d 01  `...........[...
+			 * 0010   5a 00 00 01 14 00 00 00 04 00 00 00 00 00 00 00  Z...............
+			 * 0020   00 00 00 00 5b ae 9d 01 00 00 00 00 00 00 00 00  ....[...........
+			 * 0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0060   00 00 00 00 0a 00 00 00                          ........
+			 */
+			struct {
+				uint32_t lel_conferenceId;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_millisecondPacketSize;				/*!< Millisecond Packet Size */
+				uint32_t lel_payloadType;					/*!< Media_Payload Type */
+				uint32_t lel_vadValue;						/*!< VAD Value */
+				uint32_t lel_g723BitRate;					/*!< G.723 Payload (Only applies to G.723) */
+				/* protocol version 5 fields */
+				uint32_t lel_conferenceId1;					/*!< Conference ID */
+				uint32_t unknown1;						/*!< Unknown */
+				uint32_t unknown2;						/*!< Unknown */
+				uint32_t unknown3;						/*!< Unknown */
+				uint32_t unknown4;						/*!< Unknown */
+				uint32_t unknown5;						/*!< Unknown */
+				uint32_t unknown6;						/*!< Unknown */
+				uint32_t unknown7;						/*!< Unknown */
+				uint32_t unknown8;						/*!< Unknown */
+				uint32_t unknown9;						/*!< Unknown */
+				uint32_t unknown10;						/*!< Unknown */
+				/* protocol version 11 fields */
+				uint32_t unknown11;						/*!< Unknown */
+				uint32_t unknown12;						/*!< Unknown */
+				uint32_t unknown13;						/*!< Unknown */
+				uint32_t unknown14;						/*!< Unknown */
+				uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
+				/* protocol version 15 fields */
+				uint32_t unknown15;
+				uint32_t unknown16;
+				char bel_remoteIpAddr[16];
+				uint32_t lel_unknown17;						/*!< this is always 0xFA0 */
+			} v3;
 
-	/*      OpenReceiveChannel v17
-	 * 0000   84 00 00 00 11 00 00 00 05 01 00 00 ec bc 68 01  ..............h.
-	 * 0010   07 00 00 01 14 00 00 00 04 00 00 00 00 00 00 00  ................
-	 * 0020   00 00 00 00 ec bc 68 01 00 00 00 00 00 00 00 00  ......h.........
-	 * 0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0060   00 00 00 00 0a 00 00 00 00 00 00 00 00 00 00 00  ................
-	 * 0070   00 00 00 00 c0 a8 09 2c 00 00 00 00 00 00 00 00  .......,........
-	 * 0080   00 00 00 00 a0 0f 00 00 00 00 00 00              ............
-	 */
-
-	struct {
-		uint32_t lel_conferenceId;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_millisecondPacketSize;				/*!< Millisecond Packet Size */
-		uint32_t lel_payloadType;					/*!< Media_Payload Type */
-		uint32_t lel_vadValue;						/*!< VAD Value */
-		uint32_t lel_g723BitRate;					/*!< G.723 Payload (Only applies to G.723) */
-		/* protocol version 5 fields */
-		uint32_t lel_conferenceId1;					/*!< Conference ID */
-		uint32_t unknown1;						/*!< Unknown */
-		uint32_t unknown2;						/*!< Unknown */
-		uint32_t unknown3;						/*!< Unknown */
-		uint32_t unknown4;						/*!< Unknown */
-		uint32_t unknown5;						/*!< Unknown */
-		uint32_t unknown6;						/*!< Unknown */
-		uint32_t unknown7;						/*!< Unknown */
-		uint32_t unknown8;						/*!< Unknown */
-		uint32_t unknown9;						/*!< Unknown */
-		uint32_t unknown10;						/*!< Unknown */
-		uint32_t unknown11;						/*!< Unknown */
-		uint32_t unknown12;						/*!< Unknown */
-		uint32_t unknown13;						/*!< Unknown */
-		uint32_t unknown14;						/*!< Unknown */
-		uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
-		uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
-		uint32_t unknown17;						/*!< Unknown */
-		uint32_t unknown18;						/*!< Unknown */
-		uint32_t unknown19;						/*!< Unknown */
-		char bel_remoteIpAddr[16];					/*!< Remote IP Address */
-		uint32_t lel_unknown20;						/*!< Unknown (this is always 0xFA0) */
-		uint32_t unknown21;						/*!< Unknown */
-	} OpenReceiveChannel_v17;						/*!< Open Receive Channel Message Structure v17 */
+			/*      OpenReceiveChannel v17
+			 * 0000   84 00 00 00 11 00 00 00 05 01 00 00 ec bc 68 01  ..............h.
+			 * 0010   07 00 00 01 14 00 00 00 04 00 00 00 00 00 00 00  ................
+			 * 0020   00 00 00 00 ec bc 68 01 00 00 00 00 00 00 00 00  ......h.........
+			 * 0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0060   00 00 00 00 0a 00 00 00 00 00 00 00 00 00 00 00  ................
+			 * 0070   00 00 00 00 c0 a8 09 2c 00 00 00 00 00 00 00 00  .......,........
+			 * 0080   00 00 00 00 a0 0f 00 00 00 00 00 00              ............
+			 */
+			struct {
+				uint32_t lel_conferenceId;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_millisecondPacketSize;				/*!< Millisecond Packet Size */
+				uint32_t lel_payloadType;					/*!< Media_Payload Type */
+				uint32_t lel_vadValue;						/*!< VAD Value */
+				uint32_t lel_g723BitRate;					/*!< G.723 Payload (Only applies to G.723) */
+				/* protocol version 5 fields */
+				uint32_t lel_conferenceId1;					/*!< Conference ID */
+				uint32_t unknown1;						/*!< Unknown */
+				uint32_t unknown2;						/*!< Unknown */
+				uint32_t unknown3;						/*!< Unknown */
+				uint32_t unknown4;						/*!< Unknown */
+				uint32_t unknown5;						/*!< Unknown */
+				uint32_t unknown6;						/*!< Unknown */
+				uint32_t unknown7;						/*!< Unknown */
+				uint32_t unknown8;						/*!< Unknown */
+				uint32_t unknown9;						/*!< Unknown */
+				uint32_t unknown10;						/*!< Unknown */
+				uint32_t unknown11;						/*!< Unknown */
+				uint32_t unknown12;						/*!< Unknown */
+				uint32_t unknown13;						/*!< Unknown */
+				uint32_t unknown14;						/*!< Unknown */
+				uint32_t lel_rtpDTMFPayload;					/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_rtptimeout;					/*!< RTP Timeout (this is always 0x0A) */
+				uint32_t unknown15;						/*!< Unknown */
+				uint32_t unknown16;						/*!< Unknown */
+				uint32_t lel_ipv46;						/*!< ipv4 / ipv6 */
+				char bel_remoteIpAddr[16];					/*!< Remote IP Address */
+				uint32_t lel_unknown17;						/*!< Unknown (this is always 0xFA0) */
+				uint32_t unknown18;						/*!< Unknown */
+			} v17;
+		};
+	} OpenReceiveChannel;									/*!< Open Receive Channel Message Structure */
 
 	struct {
 		uint32_t lel_conferenceId;					/*!< Conference ID */
@@ -3217,190 +3235,120 @@ typedef union {
 		uint32_t lel_lineInstance;					/*!< Line Instance */
 	} CallSelectStatMessage;						/*!< Call Select Status Message Structure */
 
-//      struct {
-//              uint32_t lel_conferenceID;                                      /*!< Conference ID */
-//              uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
-//              skinny_codec_t lel_payloadCapability;                           /*!< payload capability */
-//              uint32_t lel_lineInstance;                                      /*!< Line Instance */
-//              uint32_t lel_callReference;                                     /*!< Call Reference */
-//              uint32_t lel_payload_rfc_number;                                /*!<  */
-//              uint32_t lel_payloadType;                                       /*!< payload type */
-//              uint32_t lel_isConferenceCreator;                               /*!< we can set it to 0 */
-// 
-//              audioParameter_t audioParameter;                                /*!< Audio Parameter */
-//              videoParameter_t videoParameter;                                /*!< Video Parameter */
-//              dataParameter_t dataParameter;                                  /*!< Data Parameter */
-// 
-//              uint32_t unknown[12];                                           /*!< Unknown */
-//      } OpenMultiMediaChannelMessage;                                         /*!< Open Multi Media Channel Message Structure */
-// 
-//      struct {
-//              uint32_t lel_conferenceID;                                      /*!< Conference ID */
-//              uint32_t lel_passThruPartyId;                                   /*!< Pass Through Party ID */
-//              skinny_codec_t lel_payloadCapability;                           /*!< payload capability */
-//              uint32_t lel_lineInstance;                                      /*!< Line Instance */
-//              uint32_t lel_callReference;                                     /*!< Call Reference */
-//              uint32_t lel_payload_rfc_number;                                /*!<  */
-//              uint32_t lel_payloadType;                                       /*!< payload type */
-//              uint32_t lel_isConferenceCreator;                               /*!< we can set it to 0 */
-// 
-//              audioParameter_t audioParameter;                                /*!< Audio Parameter */
-//              videoParameter_t videoParameter;                                /*!< Video Parameter */
-//              dataParameter_t dataParameter;                                  /*!< Data Parameter */
-// 
-//              uint32_t unknown[19];                                           /*!< Unknown */
-//      } OpenMultiMediaChannelMessage_v17;                                     /*!< Open Multi Media Channel Message Structure */
+	struct {
+		union {
+			struct {
+				uint32_t lel_conferenceID;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				skinny_codec_t lel_payloadCapability;				/*!< payload capability */
+				uint32_t lel_lineInstance;					/*!< Line Instance */
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_payload_rfc_number;				/*!<  */
+				uint32_t lel_payloadType;					/*!< payload type */
+				uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+
+				videoParameter_t videoParameter;				/*!< Video Parameter */
+			} v3;
+
+			struct {
+				uint32_t lel_conferenceID;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				skinny_codec_t lel_payloadCapability;				/*!< payload capability */
+				uint32_t lel_lineInstance;					/*!< Line Instance */
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_payload_rfc_number;				/*!<  */
+				uint32_t lel_payloadType;					/*!< payload type */
+				uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+
+				videoParameter_t videoParameter;				/*!< Video Parameter */
+				uint32_t lel_dummy[16];
+			} v17;
+		};
+	} OpenMultiMediaChannelMessage;								/*!< Open Multi Media Channel Message Structure */
 
 	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
-		uint32_t lel_lineInstance;					/*!< Line Instance */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!<  */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+		union {
+			/*!
+			 * \since 20100104 -MC
+			 * \note update 20100722
+			 * 0000   ac 00 00 00 00 00 00 00 32 01 00 00 0b 00 00 01
+			 0010   82 00 00 01 67 00 00 00 ac 11 01 66 45 15 00 00
+			 0020   0b 00 00 01 00 00 00 00 61 00 00 00 88 00 00 00
+			 0030   00 0f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			 0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+			 0060   00 00 00 00 40 00 00 00 32 00 00 00 5b 52 3a 4c
+			 0070   50 20 2d 20 48 50 3a 20 30 2c 20 4e f8 15 24 00
+			 0080   c4 02 89 09 9c ee 5a 0a 88 06 18 00 54 ef 5a 0a
+			 0090   64 7e fb 77 58 31 f8 77 ff ff ff ff 64 ef 5a 0a
+			 00a0   c2 b7 fc 77 78 07 18 00 20 16 24 00 40 16 24 00
+			 00b0   20 16 24 00
+			 * 
+			 * 
+			 */
+			struct {
+				uint32_t lel_conferenceID;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				skinny_codec_t lel_payloadCapability;				/*!< payload capability */
 
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-	} OpenMultiMediaChannelMessage;						/*!< Open Multi Media Channel Message Structure */
+				uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian
+												   format, even though most other fields are
+												   little-endian. */
+				uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_payload_rfc_number;				/*!< Payload RFC Number */
+				uint32_t lel_payloadType;					/*!< payload type */
+				uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
-	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
-		uint32_t lel_lineInstance;					/*!< Line Instance */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!<  */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_isConferenceCreator;				/*!< we can set it to 0 */
+				videoParameter_t videoParameter;				/*!< Video Parameter */
+			} v3;
 
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-		uint32_t lel_dummy[16];
-	} OpenMultiMediaChannelMessage_v17;					/*!< Open Multi Media Channel Message Structure */
+			struct {
+				uint32_t lel_conferenceID;					/*!< Conference ID */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				skinny_codec_t lel_payloadCapability;				/*!< payload capability */
+				uint32_t lel_ipv46;						/*!<  */
 
-	/*!
-	 * \since 20100104 -MC
-	 * \note update 20100722
-	 * 0000   ac 00 00 00 00 00 00 00 32 01 00 00 0b 00 00 01
-	 0010   82 00 00 01 67 00 00 00 ac 11 01 66 45 15 00 00
-	 0020   0b 00 00 01 00 00 00 00 61 00 00 00 88 00 00 00
-	 0030   00 0f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-	 0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-	 0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-	 0060   00 00 00 00 40 00 00 00 32 00 00 00 5b 52 3a 4c
-	 0070   50 20 2d 20 48 50 3a 20 30 2c 20 4e f8 15 24 00
-	 0080   c4 02 89 09 9c ee 5a 0a 88 06 18 00 54 ef 5a 0a
-	 0090   64 7e fb 77 58 31 f8 77 ff ff ff ff 64 ef 5a 0a
-	 00a0   c2 b7 fc 77 78 07 18 00 20 16 24 00 40 16 24 00
-	 00b0   20 16 24 00
-	 * 
-	 * 
-	 */
-#    if 0
-	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
+				char bel_remoteIpAddr[16];					/*!< This field is apparently in big-endian
+												   format, even though most other fields are
+												   little-endian. */
+				uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_payload_rfc_number;				/*!< Payload RFC Number */
+				uint32_t lel_payloadType;					/*!< payload type */
+				uint32_t lel_DSCPValue;						/*!< DSCP Value */
 
-		uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian
-										   format, even though most other fields are
-										   little-endian. */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!< Payload RFC Number */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_DSCPValue;						/*!< DSCP Value */
+				videoParameter_t videoParameter;				/*!< Data Parameter */
 
-		audioParameter_t audioParameter;				/*!< Audio Parameter */
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-		dataParameter_t dataParameter;					/*!< Data Parameter */
-
-		uint32_t unknown[12];						/*!< Unknown */
-
-	} StartMultiMediaTransmission;						/*!< Start MultiMedia Transmission Message Structure */
+			} v17;
+		};
+	} StartMultiMediaTransmission;								/*!< Start MultiMedia Transmission Message Structure */
 
 	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
-		uint32_t unknown1;						/*!<  */
+		union {
+			struct {
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_callReference1;					/*!< Call Reference1 */
+				uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format, even though most other fields are little-endian. */
+				uint32_t lel_portNumber;					/*!< Port Number */
+				uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
+				uint32_t lel_unknown2;						/*!< Unknown 2 */
+			} v3;
 
-		char bel_remoteIpAddr[16];					/*!< This field is apparently in big-endian
-										   format, even though most other fields are
-										   little-endian. */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!< Payload RFC Number */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_DSCPValue;						/*!< DSCP Value */
-
-		audioParameter_t audioParameter;				/*!< Audio Parameter */
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-		dataParameter_t dataParameter;					/*!< Data Parameter */
-
-		uint32_t unknown[12];						/*!< Unknown */
-
-	} StartMultiMediaTransmission_v17;					/*!< Start MultiMedia Transmission Message Structure */
-#    endif
-
-	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
-
-		uint32_t bel_remoteIpAddr;					/*!< This field is apparently in big-endian
-										   format, even though most other fields are
-										   little-endian. */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!< Payload RFC Number */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_DSCPValue;						/*!< DSCP Value */
-
-		videoParameter_t videoParameter;				/*!< Video Parameter */
-
-	} StartMultiMediaTransmission;						/*!< Start MultiMedia Transmission Message Structure */
-
-	struct {
-		uint32_t lel_conferenceID;					/*!< Conference ID */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		skinny_codec_t lel_payloadCapability;				/*!< payload capability */
-		uint32_t unknown1;						/*!<  */
-
-		char bel_remoteIpAddr[16];					/*!< This field is apparently in big-endian
-										   format, even though most other fields are
-										   little-endian. */
-		uint32_t lel_remotePortNumber;					/*!< Remote Port Number */
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_payload_rfc_number;				/*!< Payload RFC Number */
-		uint32_t lel_payloadType;					/*!< payload type */
-		uint32_t lel_DSCPValue;						/*!< DSCP Value */
-
-		videoParameter_t videoParameter;				/*!< Data Parameter */
-
-	} StartMultiMediaTransmission_v17;					/*!< Start MultiMedia Transmission Message Structure */
-
-	struct {
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_callReference1;					/*!< Call Reference1 */
-		uint32_t bel_ipAddr;						/*!< This field is apparently in big-endian format, even though most other fields are little-endian. */
-		uint32_t lel_portNumber;					/*!< Port Number */
-		uint32_t lel_smtStatus;						/*!< Start Media Transmission Status */
-		uint32_t lel_unknown2;						/*!< Unknown 2 */
-	} StartMultiMediaTransmissionAck;					/*!< Start Media Transmission Acknowledgement Structure */
-
-	struct {
-		uint32_t lel_callReference;					/*!< Call Reference */
-		uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
-		uint32_t lel_callReference1;					/*!< Call Reference 1 */
-		uint32_t lel_unknown1;						/*!< i think this switches from IPv4 to IPv6 (0x00 in IPv4) */
-		/* include IPv6 support */
-		char bel_ipAddr[16];						/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
-		uint32_t lel_portNumber;					/*!< Port Number */
-		uint32_t lel_smtStatus;						/*!< startmediatransmission status */
-		uint32_t lel_unknown2;						/*!< Unknown */
-	} StartMultiMediaTransmissionAck_v17;					/*!< Start Media Transmission Acknowledgement used in protocoll version 17 */
+			struct {
+				uint32_t lel_callReference;					/*!< Call Reference */
+				uint32_t lel_passThruPartyId;					/*!< Pass Through Party ID */
+				uint32_t lel_callReference1;					/*!< Call Reference 1 */
+				uint32_t lel_unknown1;						/*!< i think this switches from IPv4 to IPv6 (0x00 in IPv4) */
+				/* include IPv6 support */
+				char bel_ipAddr[16];						/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
+				uint32_t lel_portNumber;					/*!< Port Number */
+				uint32_t lel_smtStatus;						/*!< startmediatransmission status */
+				uint32_t lel_unknown2;						/*!< Unknown */
+			} v17;
+		};
+	} StartMultiMediaTransmissionAck;							/*!< Start Media Transmission Acknowledgement Structure */
 
 	struct {
 		uint32_t lel_displayTimeout;					/*!< Display Timeout */
@@ -3593,161 +3541,161 @@ static const struct sccp_messagetype {
 	const size_t size;
 } sccp_messagetypes[] = {
 	/* *INDENT-OFF* */
-	{KeepAliveMessage, "Keep Alive Message", offsize(sccp_data_t, StationKeepAliveMessage) + SCCP_PACKET_HEADER},
-	{RegisterMessage, "Register Message", offsize(sccp_data_t, RegisterMessage) + SCCP_PACKET_HEADER},
-	{IpPortMessage, "Ip-Port Message", offsize(sccp_data_t, IpPortMessage) + SCCP_PACKET_HEADER},
-	{KeypadButtonMessage, "Keypad Button Message", offsize(sccp_data_t, KeypadButtonMessage) + SCCP_PACKET_HEADER},
-	{EnblocCallMessage, "Enbloc Call Message", offsize(sccp_data_t, EnblocCallMessage) + SCCP_PACKET_HEADER},
-	{StimulusMessage, "Stimulus Message", offsize(sccp_data_t, StimulusMessage) + SCCP_PACKET_HEADER},
-	{OffHookMessage, "Off-Hook Message", offsize(sccp_data_t, OffHookMessage) + SCCP_PACKET_HEADER},
-	{OnHookMessage, "On-Hook Message", offsize(sccp_data_t, OnHookMessage) + SCCP_PACKET_HEADER},
-	{HookFlashMessage, "Hook-Flash Message", offsize(sccp_data_t, HookFlashMessage) + SCCP_PACKET_HEADER},
-	{ForwardStatReqMessage, "Forward State Request", offsize(sccp_data_t, ForwardStatReqMessage) + SCCP_PACKET_HEADER},
-	{SpeedDialStatReqMessage, "Speed-Dial State Request", offsize(sccp_data_t, SpeedDialStatReqMessage) + SCCP_PACKET_HEADER},
-	{LineStatReqMessage, "Line State Request", offsize(sccp_data_t, LineStatReqMessage) + SCCP_PACKET_HEADER},
-	{ConfigStatReqMessage, "Config State Request", offsize(sccp_data_t, ConfigStatReqMessage) + SCCP_PACKET_HEADER},
-	{TimeDateReqMessage, "Time Date Request", offsize(sccp_data_t, TimeDateReqMessage) + SCCP_PACKET_HEADER},
-	{ButtonTemplateReqMessage, "Button Template Request", offsize(sccp_data_t, ButtonTemplateReqMessage) + SCCP_PACKET_HEADER},
-	{VersionReqMessage, "Version Request", offsize(sccp_data_t, VersionReqMessage) + SCCP_PACKET_HEADER},
-	{CapabilitiesResMessage, "Capabilities Response Message", offsize(sccp_data_t, CapabilitiesResMessage) + SCCP_PACKET_HEADER},
-	{MediaPortListMessage, "Media Port List Message", offsize(sccp_data_t, MediaPortListMessage) + SCCP_PACKET_HEADER},
-	{ServerReqMessage, "Server Request", offsize(sccp_data_t, ServerReqMessage) + SCCP_PACKET_HEADER},
-	{AlarmMessage, "Alarm Message", offsize(sccp_data_t, AlarmMessage) + SCCP_PACKET_HEADER},
-	{MulticastMediaReceptionAck, "Multicast Media Reception Acknowledge", offsize(sccp_data_t, MulticastMediaReceptionAck) + SCCP_PACKET_HEADER},
-	{OpenReceiveChannelAck, "Open Receive Channel Acknowledge", offsize(sccp_data_t, OpenReceiveChannelAck_v17) + SCCP_PACKET_HEADER},
-	{ConnectionStatisticsRes, "Connection Statistics Response", offsize(sccp_data_t, ConnectionStatisticsRes) + SCCP_PACKET_HEADER},
-	{OffHookWithCgpnMessage, "Off-Hook With Cgpn Message", offsize(sccp_data_t, OffHookWithCgpnMessage) + SCCP_PACKET_HEADER},
-	{SoftKeySetReqMessage, "SoftKey Set Request", offsize(sccp_data_t, SoftKeySetReqMessage) + SCCP_PACKET_HEADER},
-	{SoftKeyEventMessage, "SoftKey Event Message", offsize(sccp_data_t, SoftKeyEventMessage) + SCCP_PACKET_HEADER},
-	{UnregisterMessage, "Unregister Message", offsize(sccp_data_t, UnregisterMessage) + SCCP_PACKET_HEADER},
-	{SoftKeyTemplateReqMessage, "SoftKey Template Request", offsize(sccp_data_t, SoftKeyTemplateReqMessage) + SCCP_PACKET_HEADER},
-	{RegisterTokenRequest, "Register Token Request", offsize(sccp_data_t, RegisterTokenRequest) + SCCP_PACKET_HEADER},
-	{MediaTransmissionFailure, "Media Transmission Failure", offsize(sccp_data_t, MediaTransmissionFailure) + SCCP_PACKET_HEADER}, 
-	{HeadsetStatusMessage, "Headset Status Message", offsize(sccp_data_t, HeadsetStatusMessage) + SCCP_PACKET_HEADER},
-	{MediaResourceNotification, "Media Resource Notification", offsize(sccp_data_t, MediaResourceNotification) + SCCP_PACKET_HEADER},
-	{RegisterAvailableLinesMessage, "Register Available Lines Message", offsize(sccp_data_t, RegisterAvailableLinesMessage) + SCCP_PACKET_HEADER},
-	{DeviceToUserDataMessage, "Device To User Data Message", offsize(sccp_data_t, DeviceToUserDataMessage) + SCCP_PACKET_HEADER},
-	{DeviceToUserDataResponseMessage, "Device To User Data Response", offsize(sccp_data_t, DeviceToUserDataResponseMessage) + SCCP_PACKET_HEADER},
-	{UpdateCapabilitiesMessage, "Update Capabilities Message", offsize(sccp_data_t, UpdateCapabilitiesMessage) + SCCP_PACKET_HEADER},
-	{OpenMultiMediaReceiveChannelAckMessage, "Open MultiMedia Receive Channel Acknowledge", offsize(sccp_data_t, OpenMultiMediaReceiveChannelAckMessage_v17) + SCCP_PACKET_HEADER},
-	{ClearConferenceMessage, "Clear Conference Message", offsize(sccp_data_t, ClearConferenceMessage) + SCCP_PACKET_HEADER},
-	{ServiceURLStatReqMessage, "Service URL State Request", offsize(sccp_data_t, ServiceURLStatReqMessage) + SCCP_PACKET_HEADER},
-	{FeatureStatReqMessage, "Feature State Request", offsize(sccp_data_t, FeatureStatReqMessage) + SCCP_PACKET_HEADER},
-	{CreateConferenceResMessage, "Create Conference Response", offsize(sccp_data_t, CreateConferenceResMessage) + SCCP_PACKET_HEADER},
-	{DeleteConferenceResMessage, "Delete Conference Response", offsize(sccp_data_t, DeleteConferenceResMessage) + SCCP_PACKET_HEADER},
-	{ModifyConferenceResMessage, "Modify Conference Response", offsize(sccp_data_t, ModifyConferenceResMessage) + SCCP_PACKET_HEADER},
-	{AddParticipantResMessage, "Add Participant Response", offsize(sccp_data_t, AddParticipantResMessage) + SCCP_PACKET_HEADER},
-	{AuditConferenceResMessage, "Audit Conference Response", offsize(sccp_data_t, AuditConferenceResMessage) + SCCP_PACKET_HEADER},
-	{AuditParticipantResMessage, "Audit Participant Response", offsize(sccp_data_t, AuditParticipantResMessage) + SCCP_PACKET_HEADER},
-	{DeviceToUserDataVersion1Message, "Device To User Data Version1 Message", offsize(sccp_data_t, DeviceToUserDataVersion1Message) + SCCP_PACKET_HEADER},
-	{DeviceToUserDataResponseVersion1Message, "Device To User Data Version1 Response", offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message) + SCCP_PACKET_HEADER},
-	{DialedPhoneBookMessage, "Dialed PhoneBook Message", offsize(sccp_data_t, DialedPhoneBookMessage) + SCCP_PACKET_HEADER},
-	{AccessoryStatusMessage, "Accessory Status Message", offsize(sccp_data_t, AccessoryStatusMessage) + SCCP_PACKET_HEADER},
-	{Unknown_0x004A_Message, "Undefined 0x004A Message", offsize(sccp_data_t, Unknown_0x004A_Message) + SCCP_PACKET_HEADER},
-	{RegisterAckMessage, "Register Acknowledge", offsize(sccp_data_t, RegisterAckMessage) + SCCP_PACKET_HEADER},
-	{StartToneMessage, "Start Tone Message", offsize(sccp_data_t, StartToneMessage) + SCCP_PACKET_HEADER},
-	{StopToneMessage, "Stop Tone Message", offsize(sccp_data_t, StopToneMessage) + SCCP_PACKET_HEADER},
-	{SetRingerMessage, "Set Ringer Message", offsize(sccp_data_t, SetRingerMessage) + SCCP_PACKET_HEADER},
-	{SetLampMessage, "Set Lamp Message", offsize(sccp_data_t, SetLampMessage) + SCCP_PACKET_HEADER},
-	{SetHkFDetectMessage, "Set HkF Detect Message", offsize(sccp_data_t, SetHkFDetectMessage) + SCCP_PACKET_HEADER},
-	{SetSpeakerModeMessage, "Set Speaker Mode Message", offsize(sccp_data_t, SetSpeakerModeMessage) + SCCP_PACKET_HEADER},
-	{SetMicroModeMessage, "Set Micro Mode Message", offsize(sccp_data_t, SetMicroModeMessage) + SCCP_PACKET_HEADER},
-	{StartMediaTransmission, "Start Media Transmission", offsize(sccp_data_t, StartMediaTransmission) + SCCP_PACKET_HEADER},
-	{StopMediaTransmission, "Stop Media Transmission", offsize(sccp_data_t, StopMediaTransmission) + SCCP_PACKET_HEADER},
-	{StartMediaReception, "Start Media Reception", offsize(sccp_data_t, StartMediaReception) + SCCP_PACKET_HEADER},
-	{StopMediaReception, "Stop Media Reception", offsize(sccp_data_t, StopMediaReception) + SCCP_PACKET_HEADER},
-	{CallInfoMessage, "Call Information Message", offsize(sccp_data_t, CallInfoMessage) + SCCP_PACKET_HEADER},
-	{ForwardStatMessage, "Forward State Message", offsize(sccp_data_t, ForwardStatMessage) + SCCP_PACKET_HEADER},
-	{SpeedDialStatMessage, "SpeedDial State Message", offsize(sccp_data_t, SpeedDialStatMessage) + SCCP_PACKET_HEADER},
-	{LineStatMessage, "Line State Message", offsize(sccp_data_t, LineStatMessage) + SCCP_PACKET_HEADER},
-	{ConfigStatMessage, "Config State Message", offsize(sccp_data_t, ConfigStatMessage) + SCCP_PACKET_HEADER},
-	{DefineTimeDate, "Define Time Date", offsize(sccp_data_t, DefineTimeDate) + SCCP_PACKET_HEADER},
-	{StartSessionTransmission, "Start Session Transmission", offsize(sccp_data_t, StartSessionTransmission) + SCCP_PACKET_HEADER},
-	{StopSessionTransmission, "Stop Session Transmission", offsize(sccp_data_t, StopSessionTransmission) + SCCP_PACKET_HEADER},
-	{ButtonTemplateMessage, "Button Template Message", offsize(sccp_data_t, ButtonTemplateMessage) + SCCP_PACKET_HEADER},
-	{ButtonTemplateMessageSingle, "Button Template Message Single", offsize(sccp_data_t, ButtonTemplateMessageSingle) + SCCP_PACKET_HEADER},
-	{VersionMessage, "Version Message", offsize(sccp_data_t, VersionMessage) + SCCP_PACKET_HEADER},
-	{DisplayTextMessage, "Display Text Message", offsize(sccp_data_t, DisplayTextMessage) + SCCP_PACKET_HEADER},
-	{ClearDisplay, "Clear Display", offsize(sccp_data_t, ClearDisplay) + SCCP_PACKET_HEADER},
-	{CapabilitiesReqMessage, "Capabilities Request", offsize(sccp_data_t, CapabilitiesReqMessage) + SCCP_PACKET_HEADER},
-	{EnunciatorCommandMessage, "Enunciator Command Message", offsize(sccp_data_t, EnunciatorCommandMessage) + SCCP_PACKET_HEADER},
-	{RegisterRejectMessage, "Register Reject Message", offsize(sccp_data_t, RegisterRejectMessage) + SCCP_PACKET_HEADER},
-	{ServerResMessage, "Server Response", offsize(sccp_data_t, ServerResMessage) + SCCP_PACKET_HEADER},
-	{Reset, "Reset", offsize(sccp_data_t, Reset) + SCCP_PACKET_HEADER},
-	{KeepAliveAckMessage, "Keep Alive Acknowledge", offsize(sccp_data_t, KeepAliveAckMessage) + SCCP_PACKET_HEADER},
-	{StartMulticastMediaReception, "Start MulticastMedia Reception", offsize(sccp_data_t, StartMulticastMediaReception) + SCCP_PACKET_HEADER},
-	{StartMulticastMediaTransmission, "Start MulticastMedia Transmission", offsize(sccp_data_t, StartMulticastMediaTransmission) + SCCP_PACKET_HEADER},
-	{StopMulticastMediaReception, "Stop MulticastMedia Reception", offsize(sccp_data_t, StopMulticastMediaReception) + SCCP_PACKET_HEADER},
-	{StopMulticastMediaTransmission, "Stop MulticastMedia Transmission", offsize(sccp_data_t, StopMulticastMediaTransmission) + SCCP_PACKET_HEADER},
-	{OpenReceiveChannel, "Open Receive Channel", offsize(sccp_data_t, OpenReceiveChannel_v17) + SCCP_PACKET_HEADER},
-	{CloseReceiveChannel, "Close Receive Channel", offsize(sccp_data_t, CloseReceiveChannel) + SCCP_PACKET_HEADER},
-	{ConnectionStatisticsReq, "Connection Statistics Request", offsize(sccp_data_t, ConnectionStatisticsReq) + SCCP_PACKET_HEADER},
-	{SoftKeyTemplateResMessage, "SoftKey Template Response", offsize(sccp_data_t, SoftKeyTemplateResMessage) + SCCP_PACKET_HEADER},
-	{SoftKeySetResMessage, "SoftKey Set Response", offsize(sccp_data_t, SoftKeySetResMessage) + SCCP_PACKET_HEADER},
-	{SelectSoftKeysMessage, "Select SoftKeys Message", offsize(sccp_data_t, SelectSoftKeysMessage) + SCCP_PACKET_HEADER},
-	{CallStateMessage, "Call State Message", offsize(sccp_data_t, CallStateMessage) + SCCP_PACKET_HEADER},
-	{DisplayPromptStatusMessage, "Display Prompt Status Message", offsize(sccp_data_t, DisplayPromptStatusMessage) + SCCP_PACKET_HEADER},
-	{ClearPromptStatusMessage, "Clear Prompt Status Message", offsize(sccp_data_t, ClearPromptStatusMessage) + SCCP_PACKET_HEADER},
-	{DisplayNotifyMessage, "Display Notify Message", offsize(sccp_data_t, DisplayNotifyMessage) + SCCP_PACKET_HEADER},
-	{ClearNotifyMessage, "Clear Notify Message", offsize(sccp_data_t, ClearNotifyMessage) + SCCP_PACKET_HEADER},
-	{ActivateCallPlaneMessage, "Activate Call Plane Message", offsize(sccp_data_t, ActivateCallPlaneMessage) + SCCP_PACKET_HEADER},
-	{DeactivateCallPlaneMessage, "Deactivate Call Plane Message", offsize(sccp_data_t, DeactivateCallPlaneMessage) + SCCP_PACKET_HEADER},
-	{UnregisterAckMessage, "Unregister Acknowledge", offsize(sccp_data_t, UnregisterAckMessage) + SCCP_PACKET_HEADER},
-	{BackSpaceReqMessage, "Back Space Request", offsize(sccp_data_t, BackSpaceReqMessage) + SCCP_PACKET_HEADER},
-	{RegisterTokenAck, "Register Token Acknowledge", offsize(sccp_data_t, RegisterTokenAck) + SCCP_PACKET_HEADER},
-	{RegisterTokenReject, "Register Token Reject", offsize(sccp_data_t, RegisterTokenReject) + SCCP_PACKET_HEADER},
-	{StartMediaFailureDetection, "Start Media Failure Detection", offsize(sccp_data_t, StartMediaFailureDetection) + SCCP_PACKET_HEADER},
-	{DialedNumberMessage, "Dialed Number Message", offsize(sccp_data_t, DialedNumberMessage) + SCCP_PACKET_HEADER},
-	{UserToDeviceDataMessage, "User To Device Data Message", offsize(sccp_data_t, UserToDeviceDataMessage) + SCCP_PACKET_HEADER},
-	{FeatureStatMessage, "Feature State Message", offsize(sccp_data_t, FeatureStatMessage) + SCCP_PACKET_HEADER},
-	{DisplayPriNotifyMessage, "Display Pri Notify Message", offsize(sccp_data_t, DisplayPriNotifyMessage) + SCCP_PACKET_HEADER},
-	{ClearPriNotifyMessage, "Clear Pri Notify Message", offsize(sccp_data_t, ClearPriNotifyMessage) + SCCP_PACKET_HEADER},
-	{StartAnnouncementMessage, "Start Announcement Message", offsize(sccp_data_t, StartAnnouncementMessage) + SCCP_PACKET_HEADER},
-	{StopAnnouncementMessage, "Stop Announcement Message", offsize(sccp_data_t, StopAnnouncementMessage) + SCCP_PACKET_HEADER},
-	{AnnouncementFinishMessage, "Announcement Finish Message", offsize(sccp_data_t, AnnouncementFinishMessage) + SCCP_PACKET_HEADER},
-	{NotifyDtmfToneMessage, "Notify DTMF Tone Message", offsize(sccp_data_t, NotifyDtmfToneMessage) + SCCP_PACKET_HEADER},
-	{SendDtmfToneMessage, "Send DTMF Tone Message", offsize(sccp_data_t, SendDtmfToneMessage) + SCCP_PACKET_HEADER},
-	{SubscribeDtmfPayloadReqMessage, "Subscribe DTMF Payload Request", offsize(sccp_data_t, SubscribeDtmfPayloadReqMessage) + SCCP_PACKET_HEADER},
-	{SubscribeDtmfPayloadResMessage, "Subscribe DTMF Payload Response", offsize(sccp_data_t, SubscribeDtmfPayloadResMessage) + SCCP_PACKET_HEADER},
-	{SubscribeDtmfPayloadErrMessage, "Subscribe DTMF Payload Error Message", offsize(sccp_data_t, SubscribeDtmfPayloadErrMessage) + SCCP_PACKET_HEADER},
-	{UnSubscribeDtmfPayloadReqMessage, "UnSubscribe DTMF Payload Request", offsize(sccp_data_t, UnSubscribeDtmfPayloadReqMessage) + SCCP_PACKET_HEADER},
-	{UnSubscribeDtmfPayloadResMessage, "UnSubscribe DTMF Payload Response", offsize(sccp_data_t, UnSubscribeDtmfPayloadResMessage) + SCCP_PACKET_HEADER},
-	{UnSubscribeDtmfPayloadErrMessage, "UnSubscribe DTMF Payload Error Message", offsize(sccp_data_t, UnSubscribeDtmfPayloadErrMessage) + SCCP_PACKET_HEADER},
-	{ServiceURLStatMessage, "ServiceURL State Message", offsize(sccp_data_t, ServiceURLStatMessage) + SCCP_PACKET_HEADER},
-	{CallSelectStatMessage, "Call Select State Message", offsize(sccp_data_t, CallSelectStatMessage) + SCCP_PACKET_HEADER},
-	{OpenMultiMediaChannelMessage, "Open MultiMedia Channel Message", offsize(sccp_data_t, OpenMultiMediaChannelMessage) + SCCP_PACKET_HEADER},
-	{StartMultiMediaTransmission, "Start MultiMedia Transmission", offsize(sccp_data_t, StartMultiMediaTransmission_v17) + SCCP_PACKET_HEADER},
-	{StopMultiMediaTransmission, "Stop MultiMedia Transmission", offsize(sccp_data_t, StopMultiMediaTransmission) + SCCP_PACKET_HEADER},
-	{MiscellaneousCommandMessage, "Miscellaneous Command Message", offsize(sccp_data_t, MiscellaneousCommandMessage) + SCCP_PACKET_HEADER},
-	{FlowControlCommandMessage, "Flow Control Command Message", offsize(sccp_data_t, FlowControlCommandMessage) + SCCP_PACKET_HEADER},
-	{CloseMultiMediaReceiveChannel, "Close MultiMedia Receive Channel", offsize(sccp_data_t, CloseMultiMediaReceiveChannel) + SCCP_PACKET_HEADER},
-	{CreateConferenceReqMessage, "Create Conference Request", offsize(sccp_data_t, CreateConferenceReqMessage) + SCCP_PACKET_HEADER},
-	{DeleteConferenceReqMessage, "Delete Conference Request", offsize(sccp_data_t, DeleteConferenceReqMessage) + SCCP_PACKET_HEADER},
-	{ModifyConferenceReqMessage, "Modify Conference Request", offsize(sccp_data_t, ModifyConferenceReqMessage) + SCCP_PACKET_HEADER},
-	{AddParticipantReqMessage, "Add Participant Request", offsize(sccp_data_t, AddParticipantReqMessage) + SCCP_PACKET_HEADER},
-	{DropParticipantReqMessage, "Drop Participant Request", offsize(sccp_data_t, DropParticipantReqMessage) + SCCP_PACKET_HEADER},
-	{AuditConferenceReqMessage, "Audit Conference Request", offsize(sccp_data_t, AuditConferenceReqMessage) + SCCP_PACKET_HEADER},
-	{AuditParticipantReqMessage, "Audit Participant Request", offsize(sccp_data_t, AuditParticipantReqMessage) + SCCP_PACKET_HEADER},
-	{UserToDeviceDataVersion1Message, "User To Device Data Version1 Message", offsize(sccp_data_t, UserToDeviceDataVersion1Message) + SCCP_PACKET_HEADER},
-	{DisplayDynamicNotifyMessage, "Display Dynamic Notify Message", offsize(sccp_data_t, DisplayDynamicNotifyMessage) + SCCP_PACKET_HEADER},
-	{DisplayDynamicPriNotifyMessage, "Display Dynamic Priority Notify Message", offsize(sccp_data_t, DisplayDynamicPriNotifyMessage) + SCCP_PACKET_HEADER},
-	{DisplayDynamicPromptStatusMessage, "Display Dynamic Prompt Status Message", offsize(sccp_data_t, DisplayDynamicPromptStatusMessage) + SCCP_PACKET_HEADER},
-	{FeatureStatDynamicMessage, "SpeedDial State Dynamic Message", offsize(sccp_data_t, FeatureStatDynamicMessage) + SCCP_PACKET_HEADER},
-	{LineStatDynamicMessage, "Line State Dynamic Message", offsize(sccp_data_t, LineStatDynamicMessage) + SCCP_PACKET_HEADER},
-	{ServiceURLStatDynamicMessage, "Service URL Stat Dynamic Messages", offsize(sccp_data_t, ServiceURLStatDynamicMessage) + SCCP_PACKET_HEADER},
-	{SpeedDialStatDynamicMessage, "SpeedDial Stat Dynamic Message", offsize(sccp_data_t, SpeedDialStatDynamicMessage) + SCCP_PACKET_HEADER},
-	{CallInfoDynamicMessage, "Call Information Dynamic Message", offsize(sccp_data_t, CallInfoDynamicMessage) + SCCP_PACKET_HEADER},
-	{DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message", offsize(sccp_data_t, DialedPhoneBookAckMessage) + SCCP_PACKET_HEADER},
-	{CallListStateUpdate, "CallList Status Update Message", offsize(sccp_data_t, CallListStateUpdate) + SCCP_PACKET_HEADER},
-	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge", offsize(sccp_data_t, StartMediaTransmissionAck_v17) + SCCP_PACKET_HEADER},
-	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge", offsize(sccp_data_t, StartMultiMediaTransmissionAck_v17) + SCCP_PACKET_HEADER},
-	{CallHistoryInfoMessage, "Call History Info", offsize(sccp_data_t, CallHistoryInfoMessage) + SCCP_PACKET_HEADER},
-	{ExtensionDeviceCaps, "Extension Device Capabilities Message", offsize(sccp_data_t, ExtensionDeviceCaps) + SCCP_PACKET_HEADER},
-	{XMLAlarmMessage, "XML-AlarmMessage", offsize(sccp_data_t, XMLAlarmMessage) + SCCP_PACKET_HEADER},
+	{KeepAliveMessage, "Keep Alive Message", offsize(sccp_data_t, StationKeepAliveMessage)},
+	{RegisterMessage, "Register Message", offsize(sccp_data_t, RegisterMessage)},
+	{IpPortMessage, "Ip-Port Message", offsize(sccp_data_t, IpPortMessage)},
+	{KeypadButtonMessage, "Keypad Button Message", offsize(sccp_data_t, KeypadButtonMessage)},
+	{EnblocCallMessage, "Enbloc Call Message", offsize(sccp_data_t, EnblocCallMessage)},
+	{StimulusMessage, "Stimulus Message", offsize(sccp_data_t, StimulusMessage)},
+	{OffHookMessage, "Off-Hook Message", offsize(sccp_data_t, OffHookMessage)},
+	{OnHookMessage, "On-Hook Message", offsize(sccp_data_t, OnHookMessage)},
+	{HookFlashMessage, "Hook-Flash Message", offsize(sccp_data_t, HookFlashMessage)},
+	{ForwardStatReqMessage, "Forward State Request", offsize(sccp_data_t, ForwardStatReqMessage)},
+	{SpeedDialStatReqMessage, "Speed-Dial State Request", offsize(sccp_data_t, SpeedDialStatReqMessage)},
+	{LineStatReqMessage, "Line State Request", offsize(sccp_data_t, LineStatReqMessage)},
+	{ConfigStatReqMessage, "Config State Request", offsize(sccp_data_t, ConfigStatReqMessage)},
+	{TimeDateReqMessage, "Time Date Request", offsize(sccp_data_t, TimeDateReqMessage)},
+	{ButtonTemplateReqMessage, "Button Template Request", offsize(sccp_data_t, ButtonTemplateReqMessage)},
+	{VersionReqMessage, "Version Request", offsize(sccp_data_t, VersionReqMessage)},
+	{CapabilitiesResMessage, "Capabilities Response Message", offsize(sccp_data_t, CapabilitiesResMessage)},
+	{MediaPortListMessage, "Media Port List Message", offsize(sccp_data_t, MediaPortListMessage)},
+	{ServerReqMessage, "Server Request", offsize(sccp_data_t, ServerReqMessage)},
+	{AlarmMessage, "Alarm Message", offsize(sccp_data_t, AlarmMessage)},
+	{MulticastMediaReceptionAck, "Multicast Media Reception Acknowledge", offsize(sccp_data_t, MulticastMediaReceptionAck)},
+	{OpenReceiveChannelAck, "Open Receive Channel Acknowledge", offsize(sccp_data_t, OpenReceiveChannelAck)},
+	{ConnectionStatisticsRes, "Connection Statistics Response", offsize(sccp_data_t, ConnectionStatisticsRes)},
+	{OffHookWithCgpnMessage, "Off-Hook With Cgpn Message", offsize(sccp_data_t, OffHookWithCgpnMessage)},
+	{SoftKeySetReqMessage, "SoftKey Set Request", offsize(sccp_data_t, SoftKeySetReqMessage)},
+	{SoftKeyEventMessage, "SoftKey Event Message", offsize(sccp_data_t, SoftKeyEventMessage)},
+	{UnregisterMessage, "Unregister Message", offsize(sccp_data_t, UnregisterMessage)},
+	{SoftKeyTemplateReqMessage, "SoftKey Template Request", offsize(sccp_data_t, SoftKeyTemplateReqMessage)},
+	{RegisterTokenRequest, "Register Token Request", offsize(sccp_data_t, RegisterTokenRequest)},
+	{MediaTransmissionFailure, "Media Transmission Failure", offsize(sccp_data_t, MediaTransmissionFailure)}, 
+	{HeadsetStatusMessage, "Headset Status Message", offsize(sccp_data_t, HeadsetStatusMessage)},
+	{MediaResourceNotification, "Media Resource Notification", offsize(sccp_data_t, MediaResourceNotification)},
+	{RegisterAvailableLinesMessage, "Register Available Lines Message", offsize(sccp_data_t, RegisterAvailableLinesMessage)},
+	{DeviceToUserDataMessage, "Device To User Data Message", offsize(sccp_data_t, DeviceToUserDataMessage)},
+	{DeviceToUserDataResponseMessage, "Device To User Data Response", offsize(sccp_data_t, DeviceToUserDataResponseMessage)},
+	{UpdateCapabilitiesMessage, "Update Capabilities Message", offsize(sccp_data_t, UpdateCapabilitiesMessage)},
+	{OpenMultiMediaReceiveChannelAckMessage, "Open MultiMedia Receive Channel Acknowledge", offsize(sccp_data_t, OpenMultiMediaReceiveChannelAckMessage)},
+	{ClearConferenceMessage, "Clear Conference Message", offsize(sccp_data_t, ClearConferenceMessage)},
+	{ServiceURLStatReqMessage, "Service URL State Request", offsize(sccp_data_t, ServiceURLStatReqMessage)},
+	{FeatureStatReqMessage, "Feature State Request", offsize(sccp_data_t, FeatureStatReqMessage)},
+	{CreateConferenceResMessage, "Create Conference Response", offsize(sccp_data_t, CreateConferenceResMessage)},
+	{DeleteConferenceResMessage, "Delete Conference Response", offsize(sccp_data_t, DeleteConferenceResMessage)},
+	{ModifyConferenceResMessage, "Modify Conference Response", offsize(sccp_data_t, ModifyConferenceResMessage)},
+	{AddParticipantResMessage, "Add Participant Response", offsize(sccp_data_t, AddParticipantResMessage)},
+	{AuditConferenceResMessage, "Audit Conference Response", offsize(sccp_data_t, AuditConferenceResMessage)},
+	{AuditParticipantResMessage, "Audit Participant Response", offsize(sccp_data_t, AuditParticipantResMessage)},
+	{DeviceToUserDataVersion1Message, "Device To User Data Version1 Message", offsize(sccp_data_t, DeviceToUserDataVersion1Message)},
+	{DeviceToUserDataResponseVersion1Message, "Device To User Data Version1 Response", offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message)},
+	{DialedPhoneBookMessage, "Dialed PhoneBook Message", offsize(sccp_data_t, DialedPhoneBookMessage)},
+	{AccessoryStatusMessage, "Accessory Status Message", offsize(sccp_data_t, AccessoryStatusMessage)},
+	{Unknown_0x004A_Message, "Undefined 0x004A Message", offsize(sccp_data_t, Unknown_0x004A_Message)},
+	{RegisterAckMessage, "Register Acknowledge", offsize(sccp_data_t, RegisterAckMessage)},
+	{StartToneMessage, "Start Tone Message", offsize(sccp_data_t, StartToneMessage)},
+	{StopToneMessage, "Stop Tone Message", offsize(sccp_data_t, StopToneMessage)},
+	{SetRingerMessage, "Set Ringer Message", offsize(sccp_data_t, SetRingerMessage)},
+	{SetLampMessage, "Set Lamp Message", offsize(sccp_data_t, SetLampMessage)},
+	{SetHkFDetectMessage, "Set HkF Detect Message", offsize(sccp_data_t, SetHkFDetectMessage)},
+	{SetSpeakerModeMessage, "Set Speaker Mode Message", offsize(sccp_data_t, SetSpeakerModeMessage)},
+	{SetMicroModeMessage, "Set Micro Mode Message", offsize(sccp_data_t, SetMicroModeMessage)},
+	{StartMediaTransmission, "Start Media Transmission", offsize(sccp_data_t, StartMediaTransmission)},
+	{StopMediaTransmission, "Stop Media Transmission", offsize(sccp_data_t, StopMediaTransmission)},
+	{StartMediaReception, "Start Media Reception", offsize(sccp_data_t, StartMediaReception)},
+	{StopMediaReception, "Stop Media Reception", offsize(sccp_data_t, StopMediaReception)},
+	{CallInfoMessage, "Call Information Message", offsize(sccp_data_t, CallInfoMessage)},
+	{ForwardStatMessage, "Forward State Message", offsize(sccp_data_t, ForwardStatMessage)},
+	{SpeedDialStatMessage, "SpeedDial State Message", offsize(sccp_data_t, SpeedDialStatMessage)},
+	{LineStatMessage, "Line State Message", offsize(sccp_data_t, LineStatMessage)},
+	{ConfigStatMessage, "Config State Message", offsize(sccp_data_t, ConfigStatMessage)},
+	{DefineTimeDate, "Define Time Date", offsize(sccp_data_t, DefineTimeDate)},
+	{StartSessionTransmission, "Start Session Transmission", offsize(sccp_data_t, StartSessionTransmission)},
+	{StopSessionTransmission, "Stop Session Transmission", offsize(sccp_data_t, StopSessionTransmission)},
+	{ButtonTemplateMessage, "Button Template Message", offsize(sccp_data_t, ButtonTemplateMessage)},
+	{ButtonTemplateMessageSingle, "Button Template Message Single", offsize(sccp_data_t, ButtonTemplateMessageSingle)},
+	{VersionMessage, "Version Message", offsize(sccp_data_t, VersionMessage)},
+	{DisplayTextMessage, "Display Text Message", offsize(sccp_data_t, DisplayTextMessage)},
+	{ClearDisplay, "Clear Display", offsize(sccp_data_t, ClearDisplay)},
+	{CapabilitiesReqMessage, "Capabilities Request", offsize(sccp_data_t, CapabilitiesReqMessage)},
+	{EnunciatorCommandMessage, "Enunciator Command Message", offsize(sccp_data_t, EnunciatorCommandMessage)},
+	{RegisterRejectMessage, "Register Reject Message", offsize(sccp_data_t, RegisterRejectMessage)},
+	{ServerResMessage, "Server Response", offsize(sccp_data_t, ServerResMessage)},
+	{Reset, "Reset", offsize(sccp_data_t, Reset)},
+	{KeepAliveAckMessage, "Keep Alive Acknowledge", offsize(sccp_data_t, KeepAliveAckMessage)},
+	{StartMulticastMediaReception, "Start MulticastMedia Reception", offsize(sccp_data_t, StartMulticastMediaReception)},
+	{StartMulticastMediaTransmission, "Start MulticastMedia Transmission", offsize(sccp_data_t, StartMulticastMediaTransmission)},
+	{StopMulticastMediaReception, "Stop MulticastMedia Reception", offsize(sccp_data_t, StopMulticastMediaReception)},
+	{StopMulticastMediaTransmission, "Stop MulticastMedia Transmission", offsize(sccp_data_t, StopMulticastMediaTransmission)},
+	{OpenReceiveChannel, "Open Receive Channel", offsize(sccp_data_t, OpenReceiveChannel)},
+	{CloseReceiveChannel, "Close Receive Channel", offsize(sccp_data_t, CloseReceiveChannel)},
+	{ConnectionStatisticsReq, "Connection Statistics Request", offsize(sccp_data_t, ConnectionStatisticsReq)},
+	{SoftKeyTemplateResMessage, "SoftKey Template Response", offsize(sccp_data_t, SoftKeyTemplateResMessage)},
+	{SoftKeySetResMessage, "SoftKey Set Response", offsize(sccp_data_t, SoftKeySetResMessage)},
+	{SelectSoftKeysMessage, "Select SoftKeys Message", offsize(sccp_data_t, SelectSoftKeysMessage)},
+	{CallStateMessage, "Call State Message", offsize(sccp_data_t, CallStateMessage)},
+	{DisplayPromptStatusMessage, "Display Prompt Status Message", offsize(sccp_data_t, DisplayPromptStatusMessage)},
+	{ClearPromptStatusMessage, "Clear Prompt Status Message", offsize(sccp_data_t, ClearPromptStatusMessage)},
+	{DisplayNotifyMessage, "Display Notify Message", offsize(sccp_data_t, DisplayNotifyMessage)},
+	{ClearNotifyMessage, "Clear Notify Message", offsize(sccp_data_t, ClearNotifyMessage)},
+	{ActivateCallPlaneMessage, "Activate Call Plane Message", offsize(sccp_data_t, ActivateCallPlaneMessage)},
+	{DeactivateCallPlaneMessage, "Deactivate Call Plane Message", offsize(sccp_data_t, DeactivateCallPlaneMessage)},
+	{UnregisterAckMessage, "Unregister Acknowledge", offsize(sccp_data_t, UnregisterAckMessage)},
+	{BackSpaceReqMessage, "Back Space Request", offsize(sccp_data_t, BackSpaceReqMessage)},
+	{RegisterTokenAck, "Register Token Acknowledge", offsize(sccp_data_t, RegisterTokenAck)},
+	{RegisterTokenReject, "Register Token Reject", offsize(sccp_data_t, RegisterTokenReject)},
+	{StartMediaFailureDetection, "Start Media Failure Detection", offsize(sccp_data_t, StartMediaFailureDetection)},
+	{DialedNumberMessage, "Dialed Number Message", offsize(sccp_data_t, DialedNumberMessage)},
+	{UserToDeviceDataMessage, "User To Device Data Message", offsize(sccp_data_t, UserToDeviceDataMessage)},
+	{FeatureStatMessage, "Feature State Message", offsize(sccp_data_t, FeatureStatMessage)},
+	{DisplayPriNotifyMessage, "Display Pri Notify Message", offsize(sccp_data_t, DisplayPriNotifyMessage)},
+	{ClearPriNotifyMessage, "Clear Pri Notify Message", offsize(sccp_data_t, ClearPriNotifyMessage)},
+	{StartAnnouncementMessage, "Start Announcement Message", offsize(sccp_data_t, StartAnnouncementMessage)},
+	{StopAnnouncementMessage, "Stop Announcement Message", offsize(sccp_data_t, StopAnnouncementMessage)},
+	{AnnouncementFinishMessage, "Announcement Finish Message", offsize(sccp_data_t, AnnouncementFinishMessage)},
+	{NotifyDtmfToneMessage, "Notify DTMF Tone Message", offsize(sccp_data_t, NotifyDtmfToneMessage)},
+	{SendDtmfToneMessage, "Send DTMF Tone Message", offsize(sccp_data_t, SendDtmfToneMessage)},
+	{SubscribeDtmfPayloadReqMessage, "Subscribe DTMF Payload Request", offsize(sccp_data_t, SubscribeDtmfPayloadReqMessage)},
+	{SubscribeDtmfPayloadResMessage, "Subscribe DTMF Payload Response", offsize(sccp_data_t, SubscribeDtmfPayloadResMessage)},
+	{SubscribeDtmfPayloadErrMessage, "Subscribe DTMF Payload Error Message", offsize(sccp_data_t, SubscribeDtmfPayloadErrMessage)},
+	{UnSubscribeDtmfPayloadReqMessage, "UnSubscribe DTMF Payload Request", offsize(sccp_data_t, UnSubscribeDtmfPayloadReqMessage)},
+	{UnSubscribeDtmfPayloadResMessage, "UnSubscribe DTMF Payload Response", offsize(sccp_data_t, UnSubscribeDtmfPayloadResMessage)},
+	{UnSubscribeDtmfPayloadErrMessage, "UnSubscribe DTMF Payload Error Message", offsize(sccp_data_t, UnSubscribeDtmfPayloadErrMessage)},
+	{ServiceURLStatMessage, "ServiceURL State Message", offsize(sccp_data_t, ServiceURLStatMessage)},
+	{CallSelectStatMessage, "Call Select State Message", offsize(sccp_data_t, CallSelectStatMessage)},
+	{OpenMultiMediaChannelMessage, "Open MultiMedia Channel Message", offsize(sccp_data_t, OpenMultiMediaChannelMessage)},
+	{StartMultiMediaTransmission, "Start MultiMedia Transmission", offsize(sccp_data_t, StartMultiMediaTransmission)},
+	{StopMultiMediaTransmission, "Stop MultiMedia Transmission", offsize(sccp_data_t, StopMultiMediaTransmission)},
+	{MiscellaneousCommandMessage, "Miscellaneous Command Message", offsize(sccp_data_t, MiscellaneousCommandMessage)},
+	{FlowControlCommandMessage, "Flow Control Command Message", offsize(sccp_data_t, FlowControlCommandMessage)},
+	{CloseMultiMediaReceiveChannel, "Close MultiMedia Receive Channel", offsize(sccp_data_t, CloseMultiMediaReceiveChannel)},
+	{CreateConferenceReqMessage, "Create Conference Request", offsize(sccp_data_t, CreateConferenceReqMessage)},
+	{DeleteConferenceReqMessage, "Delete Conference Request", offsize(sccp_data_t, DeleteConferenceReqMessage)},
+	{ModifyConferenceReqMessage, "Modify Conference Request", offsize(sccp_data_t, ModifyConferenceReqMessage)},
+	{AddParticipantReqMessage, "Add Participant Request", offsize(sccp_data_t, AddParticipantReqMessage)},
+	{DropParticipantReqMessage, "Drop Participant Request", offsize(sccp_data_t, DropParticipantReqMessage)},
+	{AuditConferenceReqMessage, "Audit Conference Request", offsize(sccp_data_t, AuditConferenceReqMessage)},
+	{AuditParticipantReqMessage, "Audit Participant Request", offsize(sccp_data_t, AuditParticipantReqMessage)},
+	{UserToDeviceDataVersion1Message, "User To Device Data Version1 Message", offsize(sccp_data_t, UserToDeviceDataVersion1Message)},
+	{DisplayDynamicNotifyMessage, "Display Dynamic Notify Message", offsize(sccp_data_t, DisplayDynamicNotifyMessage)},
+	{DisplayDynamicPriNotifyMessage, "Display Dynamic Priority Notify Message", offsize(sccp_data_t, DisplayDynamicPriNotifyMessage)},
+	{DisplayDynamicPromptStatusMessage, "Display Dynamic Prompt Status Message", offsize(sccp_data_t, DisplayDynamicPromptStatusMessage)},
+	{FeatureStatDynamicMessage, "SpeedDial State Dynamic Message", offsize(sccp_data_t, FeatureStatDynamicMessage)},
+	{LineStatDynamicMessage, "Line State Dynamic Message", offsize(sccp_data_t, LineStatDynamicMessage)},
+	{ServiceURLStatDynamicMessage, "Service URL Stat Dynamic Messages", offsize(sccp_data_t, ServiceURLStatDynamicMessage)},
+	{SpeedDialStatDynamicMessage, "SpeedDial Stat Dynamic Message", offsize(sccp_data_t, SpeedDialStatDynamicMessage)},
+	{CallInfoDynamicMessage, "Call Information Dynamic Message", offsize(sccp_data_t, CallInfoDynamicMessage)},
+	{DialedPhoneBookAckMessage, "Dialed PhoneBook Ack Message", offsize(sccp_data_t, DialedPhoneBookAckMessage)},
+	{CallListStateUpdate, "CallList Status Update Message", offsize(sccp_data_t, CallListStateUpdate)},
+	{StartMediaTransmissionAck, "Start Media Transmission Acknowledge", offsize(sccp_data_t, StartMediaTransmissionAck)},
+	{StartMultiMediaTransmissionAck, "Start Media Transmission Acknowledge", offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
+	{CallHistoryInfoMessage, "Call History Info", offsize(sccp_data_t, CallHistoryInfoMessage)},
+	{ExtensionDeviceCaps, "Extension Device Capabilities Message", offsize(sccp_data_t, ExtensionDeviceCaps)},
+	{XMLAlarmMessage, "XML-AlarmMessage", offsize(sccp_data_t, XMLAlarmMessage)},
 	
-	{SPCPRegisterTokenRequest, "SPCP Register Token Request", offsize(sccp_data_t, SPCPRegisterTokenRequest) + SCCP_PACKET_HEADER},
-	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK", offsize(sccp_data_t, SPCPRegisterTokenAck) + SCCP_PACKET_HEADER},
-	{SPCPRegisterTokenReject, "SCPA RegisterMessageReject", offsize(sccp_data_t, SPCPRegisterTokenReject) + SCCP_PACKET_HEADER},
+	{SPCPRegisterTokenRequest, "SPCP Register Token Request", offsize(sccp_data_t, SPCPRegisterTokenRequest)},
+	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK", offsize(sccp_data_t, SPCPRegisterTokenAck)},
+	{SPCPRegisterTokenReject, "SCPA RegisterMessageReject", offsize(sccp_data_t, SPCPRegisterTokenReject)},
 	/* *INDENT-ON* */
 };
 
@@ -4013,6 +3961,7 @@ typedef struct {
 	const uint8_t version;
 
 	/* protocol callbacks */
+	/* send messages */
 	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance);
 	void (*const sendDialedNumber) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendRegisterAck) (const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
@@ -4026,6 +3975,11 @@ typedef struct {
 	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
 	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate, struct sockaddr_in sin);
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
+	
+	/* parse received messages */
+	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t *r, uint32_t *partyID, uint32_t *callID, uint32_t *callID1, uint32_t *status, struct sockaddr_in *sin);
+	void (*const parseOpenReceiveChannelAck) (const sccp_moo_t *r, uint32_t *status, struct sockaddr_in *sin, uint32_t *passthrupartyid, uint32_t *callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_moo_t *r, uint32_t *status, struct sockaddr_in *sin, uint32_t *passthrupartyid, uint32_t *callReference);
 } sccp_deviceProtocol_t;
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
