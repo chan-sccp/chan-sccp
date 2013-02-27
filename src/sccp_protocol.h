@@ -3336,8 +3336,7 @@ typedef union {
 				uint32_t lel_callReference;							/*!< Call Reference */
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_callReference1;							/*!< Call Reference 1 */
-				uint32_t lel_unknown1;								/*!< i think this switches from IPv4 to IPv6 (0x00 in IPv4) */
-				/* include IPv6 support */
+				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_smtStatus;								/*!< startmediatransmission status */
@@ -3973,9 +3972,10 @@ typedef struct {
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
 
 	/* parse received messages */
-	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in * sin);
 	void (*const parseOpenReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_in * sin, uint32_t * passthrupartyid, uint32_t * callReference);
 	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_in * sin, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in * sin);
+	void (*const parseStartMultiMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in * sin);
 } sccp_deviceProtocol_t;
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
