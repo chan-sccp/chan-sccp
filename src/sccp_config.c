@@ -1053,6 +1053,8 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 			sccp_copy_string(permithost->name, value, sizeof(permithost->name));
 			SCCP_LIST_INSERT_HEAD(&(*(SCCP_LIST_HEAD(, sccp_hostname_t) *) dest), permithost, list);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
+		} else {
+			sccp_free(permithost);
 		}
 	} else {
 		pbx_log(LOG_WARNING, "Error getting memory to assign hostname '%s' (malloc)\n", value);
@@ -2733,19 +2735,23 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 						}
 						if (strlen(config->description) != 0) {
 //                                                        description=malloc(sizeof(char) * strlen(config->description));       
-							description = strdup(config->description);
+							description = strdupa(config->description);
 							astman_append(s, "Description: ");
-							while ((description_part = strsep(&description, "\n"))) {
-								if (description_part && strlen(description_part) != 0) {
-									astman_append(s, "%s", description_part);
-								}
+							while (description && (description_part = strsep(&description, "\n"))) {
+								astman_append(s, "%s ", description_part);
 							}
-							astman_append(s, "%s%s\r\n", !sccp_strlen_zero(possible_values) ? "(POSSIBLE VALUES: " : "", possible_values);
-							sccp_free(description);
+							if (!sccp_strlen_zero(possible_values)) {
+								astman_append(s, "(POSSIBLE VALUES: %s)\r\n", possible_values);
+							}	
+							if (description_part) {
+								sccp_free(description_part);
+							}
+//							sccp_free(description);
 						}
 						astman_append(s, "\r\n");
-						if (possible_values)
+						if (possible_values) {
 							sccp_free(possible_values);
+						}
 						total++;
 					}
 				} else {
