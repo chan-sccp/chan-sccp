@@ -70,7 +70,8 @@ static int sccp_sockect_getOurAddressfor(struct in_addr *them, struct in_addr *u
 		return -1;
 	}
 	close(s);
-	*us = sin.sin_addr;
+//	*us = sin.sin_addr;
+	memcpy(us, &sin.sin_addr, sizeof(struct in_addr));
 	return 0;
 }
 
@@ -519,10 +520,11 @@ static void sccp_accept_connection(void)
 	s->buffer_size = 0;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
-	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
+	if (s->ourip.s_addr == INADDR_ANY) {
 		sccp_sockect_getOurAddressfor(&incoming.sin_addr, &s->ourip);
 	} else {
-		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
+	//	memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
+		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr), sizeof(s->ourip));
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Using ip %s\n", pbx_inet_ntoa(s->ourip));
