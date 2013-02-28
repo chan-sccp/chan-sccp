@@ -357,6 +357,7 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 {
 	if (!tp_p) {
 		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) no tp_p\n");
+		sccp_free(newjob_p);
 		return;
 	}
 
@@ -365,6 +366,7 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 	if (sccp_threadpool_shuttingdown) {
 		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) shutting down\n");
 		SCCP_LIST_UNLOCK(&(tp_p->jobs));
+		sccp_free(newjob_p);
 		return;
 	}
 	SCCP_LIST_INSERT_TAIL(&(tp_p->jobs), newjob_p, list);
