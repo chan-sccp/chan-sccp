@@ -1673,6 +1673,10 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	int i;
 	skinny_codec_t codec;
 
+	if (!d) {
+		return;
+	}
+
 	uint8_t n = letohl(r->msg.CapabilitiesResMessage.lel_count);
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Capabilities\n", DEV_ID_LOG(d), n);
