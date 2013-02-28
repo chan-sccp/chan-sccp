@@ -314,15 +314,18 @@ void sccp_line_kill_channels(sccp_line_t * l)
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
-	sccp_linedevices_t *linedevice;
+//	sccp_linedevices_t *linedevice;
 
 	sccp_line_kill_channels(l);
 
 	//SCCP_LIST_LOCK(&l->devices);
+/*
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		sccp_line_removeDevice(linedevice->line, linedevice->device);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
+*/
+	sccp_line_removeDevice(l, NULL);		// removing all devices from this line.
 	//SCCP_LIST_UNLOCK(&l->devices);
 
 	if (remove_from_global) {
@@ -638,6 +641,8 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
  *
  * \param l SCCP Line
  * \param device SCCP Device
+ *
+ * \note device can be NULL, mening remove all device from this line
  * 
  * \lock
  * 	- line
@@ -649,14 +654,16 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
 	sccp_linedevices_t *linedevice;
 
-	if (!l || !device)
+//	if (!l || !device)
+	if (!l)
 		return;
 
 	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-		if (linedevice->device == device) {
+		if (device == NULL || linedevice->device == device) {	
+//		if (linedevice->device == device) {
 #ifdef CS_DYNAMIC_CONFIG
 			regcontext_exten(l, &(linedevice->subscriptionId), 0);
 #endif
