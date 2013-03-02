@@ -200,7 +200,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	if (!c->ringermode) {
 		c->ringermode = SKINNY_STATION_OUTSIDERING;
-		//ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 	}
 
 /*
@@ -264,8 +263,33 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
                         isRinging = TRUE;
 			active_channel = sccp_channel_release(active_channel);
 		} else {
-			if (linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-				hasDNDParticipant = TRUE;
+			if (linedevice->device->dndFeature.enabled && SCCP_DNDMODE_OFF != linedevice->device->dndFeature.status) {
+				// if DND in silent / reject mode but ALERT_INFO has URGENTRING, dnd is overridden
+				switch (linedevice->device->dndFeature.status) {
+					case SCCP_DNDMODE_USERDEFINED:
+					case SCCP_DNDMODE_REJECT:
+						if (SKINNY_STATION_URGENTRING == c->ringermode)	{
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Overriding DND for urgent call on line %s\n", linedevice->device->id, linedevice->line->name);
+							int instance = sccp_device_find_index_for_line(linedevice->device, linedevice->line->name);
+							sccp_dev_displayprompt(linedevice->device, instance, c->callid, "Urgent Call", 10);
+							sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
+							isRinging = TRUE;
+						}
+						hasDNDParticipant = TRUE;
+						break;
+					case SCCP_DNDMODE_SILENT:
+						if (SKINNY_STATION_URGENTRING == c->ringermode)	{
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Overriding DND for urgent call on line %s\n", linedevice->device->id, linedevice->line->name);
+							int instance = sccp_device_find_index_for_line(linedevice->device, linedevice->line->name);
+							sccp_dev_displayprompt(linedevice->device, instance, c->callid, "Urgent Call", 10);
+						}
+						sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);	// ringing sound will be surpressed in sccp_indicate.c if necessary
+						isRinging = TRUE;
+						hasDNDParticipant = TRUE;
+						break;
+					case SCCP_DNDMODE_OFF:
+						break;						
+				}
 				continue;
 			}
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
@@ -304,6 +328,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
 		PBX(queue_control) (c->owner, AST_CONTROL_RINGING);
 	} else if (hasDNDParticipant) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
+		pbx_setstate(c->owner, AST_STATE_BUSY);
 		PBX(queue_control) (c->owner, AST_CONTROL_BUSY);
 	} else {
 		PBX(queue_control) (c->owner, AST_CONTROL_CONGESTION);
