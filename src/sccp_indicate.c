@@ -179,7 +179,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 				sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
 				sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 			} else {
-
 				sccp_linedevices_t *ownlinedevice;
 				sccp_device_t *remoteDevice;
 
@@ -205,8 +204,11 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 
 			char prompt[100];
-
-			snprintf(prompt, sizeof(prompt), "Incoming Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
+			if (c->ringermode == SKINNY_STATION_URGENTRING) {
+				snprintf(prompt, sizeof(prompt), "Urgent Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
+			} else {
+				snprintf(prompt, sizeof(prompt), "Incoming Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
+			}
 			sccp_dev_displayprompt(d, instance, c->callid, prompt, 0);
 
 			PBX(set_callstate) (c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
