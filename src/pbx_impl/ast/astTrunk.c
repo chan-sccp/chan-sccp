@@ -145,7 +145,7 @@ static struct ast_channel_tech sccp_tech = {
  */
 struct ast_channel_tech sccp_tech = {
 	/* *INDENT-OFF* */	
-	.type 		= SCCP_TECHTYPE_STR,
+	.type 			= SCCP_TECHTYPE_STR,
 	.description 		= "Skinny Client Control Protocol (SCCP)",
 	// we could use the skinny_codec = ast_codec mapping here to generate the list of capabilities
 //      .capabilities           = AST_FORMAT_SLINEAR16 | AST_FORMAT_SLINEAR | AST_FORMAT_ALAW | AST_FORMAT_ULAW | AST_FORMAT_GSM | AST_FORMAT_G723_1 | AST_FORMAT_G729A,
@@ -1160,6 +1160,27 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked us to create a channel with type=%s, format=" UI64FMT ", lineName=%s, options=%s\n", type, (uint64_t) ast_format_cap_to_old_bitfield(format), lineName, (options) ? options : "");
 
+	
+	/* get ringer mode from ALERT_INFO */
+	if(requestor){
+		const char *alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *)requestor, "_ALERT_INFO");
+		if(!alert_info){
+			alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *)requestor, "__ALERT_INFO");
+		}
+		
+		if (alert_info && !sccp_strlen_zero(alert_info)) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
+			if (strcasecmp(alert_info, "inside") == 0)
+				ringermode = SKINNY_STATION_INSIDERING;
+			else if (strcasecmp(alert_info, "feature") == 0)
+				ringermode = SKINNY_STATION_FEATURERING;
+			else if (strcasecmp(alert_info, "silent") == 0)
+				ringermode = SKINNY_STATION_SILENTRING;
+			else if (strcasecmp(alert_info, "urgent") == 0)
+				ringermode = SKINNY_STATION_URGENTRING;
+		}
+	}
+	
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
 		pbx_log(LOG_NOTICE, "parse options\n");
@@ -2158,7 +2179,6 @@ static int sccp_wrapper_asterisk111_sched_del(int id)
 static int sccp_wrapper_asterisk111_setCallState(const sccp_channel_t * channel, int state)
 {
 	sccp_pbx_setcallstate((sccp_channel_t *) channel, state);
-	//! \todo implement correct return value (take into account negative deadlock prevention)
 	return 0;
 }
 
