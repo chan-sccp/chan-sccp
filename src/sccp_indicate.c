@@ -175,7 +175,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(d, c);
 
-			if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT)) {
+			if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT && c->ringermode != SKINNY_STATION_URGENTRING)) {
 				sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
 				sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 			} else {
