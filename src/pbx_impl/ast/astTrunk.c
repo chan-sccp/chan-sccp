@@ -1162,24 +1162,25 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 
 	
 	/* get ringer mode from ALERT_INFO */
+	const char *alert_info = NULL;
 	if(requestor){
-		const char *alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *)requestor, "_ALERT_INFO");
+		alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *)requestor, "_ALERT_INFO");
 		if(!alert_info){
 			alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *)requestor, "__ALERT_INFO");
 		}
-		
-		if (alert_info && !sccp_strlen_zero(alert_info)) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
-			if (strcasecmp(alert_info, "inside") == 0)
-				ringermode = SKINNY_STATION_INSIDERING;
-			else if (strcasecmp(alert_info, "feature") == 0)
-				ringermode = SKINNY_STATION_FEATURERING;
-			else if (strcasecmp(alert_info, "silent") == 0)
-				ringermode = SKINNY_STATION_SILENTRING;
-			else if (strcasecmp(alert_info, "urgent") == 0)
-				ringermode = SKINNY_STATION_URGENTRING;
-		}
+	}	
+	if (alert_info && !sccp_strlen_zero(alert_info)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
+		if (strcasecmp(alert_info, "inside") == 0)
+			ringermode = SKINNY_STATION_INSIDERING;
+		else if (strcasecmp(alert_info, "feature") == 0)
+			ringermode = SKINNY_STATION_FEATURERING;
+		else if (strcasecmp(alert_info, "silent") == 0)
+			ringermode = SKINNY_STATION_SILENTRING;
+		else if (strcasecmp(alert_info, "urgent") == 0)
+			ringermode = SKINNY_STATION_URGENTRING;
 	}
+	
 	
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
