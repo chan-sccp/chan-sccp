@@ -200,6 +200,19 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	if (!c->ringermode) {
 		c->ringermode = SKINNY_STATION_OUTSIDERING;
+
+		const char *alert_info = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
+		if (alert_info && !sccp_strlen_zero(alert_info)) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
+			if (strcasecmp(alert_info, "inside") == 0)
+				c->ringermode = SKINNY_STATION_INSIDERING;
+			else if (strcasecmp(alert_info, "feature") == 0)
+				c->ringermode = SKINNY_STATION_FEATURERING;
+			else if (strcasecmp(alert_info, "silent") == 0)
+				c->ringermode = SKINNY_STATION_SILENTRING;
+			else if (strcasecmp(alert_info, "urgent") == 0)
+				c->ringermode = SKINNY_STATION_URGENTRING;
+		}
 	}
 
 /*
@@ -270,20 +283,13 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 					case SCCP_DNDMODE_REJECT:
 						if (SKINNY_STATION_URGENTRING == c->ringermode)	{
 							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Overriding DND for urgent call on line %s\n", linedevice->device->id, linedevice->line->name);
-							int instance = sccp_device_find_index_for_line(linedevice->device, linedevice->line->name);
-							sccp_dev_displayprompt(linedevice->device, instance, c->callid, "Urgent Call", 10);
 							sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);
 							isRinging = TRUE;
 						}
 						hasDNDParticipant = TRUE;
 						break;
 					case SCCP_DNDMODE_SILENT:
-						if (SKINNY_STATION_URGENTRING == c->ringermode)	{
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Overriding DND for urgent call on line %s\n", linedevice->device->id, linedevice->line->name);
-							int instance = sccp_device_find_index_for_line(linedevice->device, linedevice->line->name);
-							sccp_dev_displayprompt(linedevice->device, instance, c->callid, "Urgent Call", 10);
-						}
-						sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);	// ringing sound will be surpressed in sccp_indicate.c if necessary
+						sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_RINGING);	// ringing sound will be surpressed in sccp_indicate.c if not urgent
 						isRinging = TRUE;
 						hasDNDParticipant = TRUE;
 						break;
