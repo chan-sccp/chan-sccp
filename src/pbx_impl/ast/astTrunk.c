@@ -1180,7 +1180,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 		else if (strcasecmp(alert_info, "urgent") == 0)
 			ringermode = SKINNY_STATION_URGENTRING;
 	}
-	
+	/* done ALERT_INFO parsing */
 	
 	/* parse options */
 	if (options && (optc = sccp_app_separate_args(options, '/', optv, sizeof(optv) / sizeof(optv[0])))) {
