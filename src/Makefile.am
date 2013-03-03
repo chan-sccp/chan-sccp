@@ -16,8 +16,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		
                                 pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint2.h 		sccp_lock.h		\
                                 sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
                                 sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
-                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_config_entries.h	\
-                                sccp_sockaddr.h
+                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_config_entries.h	
                                 
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
@@ -25,7 +24,7 @@ chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicat
                                 sccp_features.c 	sccp_config.c		sccp_hint2.c 		sccp_lock.c		\
                                 sccp_refcount.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
                                 sccp_mwi.c		conference/sccp_conference10.c	sccp_rtp.c	sccp_appfunctions.c	\
-                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c	sccp_sockaddr.c
+                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c
                                 
 EXTRA_chan_sccp_la_SOURCES = 
 if BUILD_AST
