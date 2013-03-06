@@ -898,6 +898,7 @@ boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * channel, PBX
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		(*pbx_channel)->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
 	}
+	ast_module_ref(ast_module_info->self);
 	channel->owner = ast_channel_ref((*pbx_channel));
 
 	return TRUE;
@@ -910,6 +911,7 @@ static boolean_t sccp_wrapper_asterisk110_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
 		return FALSE;
 	}
+	pbxTmpChannel->_state = AST_STATE_UP;
 	pbx_do_masquerade(pbxTmpChannel);
 
 	// when returning from bridge, the channel will continue at the next priority
@@ -923,16 +925,17 @@ static boolean_t sccp_wrapper_asterisk110_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
 	}
-	(*pbxDstChannel) = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->linkedid, pbxSrcChannel->amaflags, "TMP/%s", pbxSrcChannel->name);
+	(*pbxDstChannel) = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->linkedid, pbxSrcChannel->amaflags, "TMP/%s", pbxSrcChannel->name);
 	if ((*pbxDstChannel) == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) create pbx channel failed\n");
 		return FALSE;
 	}
 		
 	ast_channel_lock(pbxSrcChannel);
+
 	(*pbxDstChannel)->writeformat = pbxSrcChannel->writeformat;
 	(*pbxDstChannel)->readformat = pbxSrcChannel->readformat;
-	(*pbxDstChannel)->tech_pvt = sccp_channel_retain((sccp_channel_t *)pbxSrcChannel->tech_pvt);
+//	(*pbxDstChannel)->tech_pvt = sccp_channel_retain((sccp_channel_t *)pbxSrcChannel->tech_pvt);		// do not copy the tech_pvt
 	sccp_copy_string((*pbxDstChannel)->context, pbxSrcChannel->context, sizeof((*pbxDstChannel)->context));
 	sccp_copy_string((*pbxDstChannel)->exten, pbxSrcChannel->exten, sizeof((*pbxDstChannel)->exten));
 	(*pbxDstChannel)->priority = pbxSrcChannel->priority;
@@ -962,22 +965,28 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_requestForeignChannel(const ch
 
 int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
+	PBX_CHANNEL_TYPE *channel_owner = NULL;
 	int res = -1;
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
+		channel_owner = c->owner;
 		if (ast_test_flag(ast_channel, AST_FLAG_ANSWERED_ELSEWHERE) || ast_channel->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
+		c->owner = NULL;
 		if (0 == res) {
-			sccp_channel_release(c);
+			sccp_channel_release(c); //this only releases the get_sccp_channel_from_pbx_channel
 		}
-	}
+	}	//after this moment c might have gone already
 	ast_channel->tech_pvt = NULL;
 	c = c ? sccp_channel_release(c) : NULL;
-	ast_channel = ast_channel_unref(ast_channel);
+	if (channel_owner) {
+		channel_owner = ast_channel_unref(channel_owner);
+	}
+	ast_module_unref(ast_module_info->self);
 	return res;
 }
 

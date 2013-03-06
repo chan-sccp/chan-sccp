@@ -919,6 +919,7 @@ static boolean_t sccp_wrapper_asterisk111_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
 		return FALSE;
 	}
+	ast_channel_state_set(pbxTmpChannel, AST_STATE_UP);
 	pbx_do_masquerade(pbxTmpChannel);
 
 	// when returning from bridge, the channel will continue at the next priority
@@ -933,19 +934,19 @@ static boolean_t sccp_wrapper_asterisk111_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 		return FALSE;
 	}
 		
-	(*pbxDstChannel) = ast_channel_alloc(0, pbx_channel_state(pbxSrcChannel), 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "TMP/%s", ast_channel_name(pbxSrcChannel));
+	(*pbxDstChannel) = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), ast_channel_linkedid(pbxSrcChannel), ast_channel_amaflags(pbxSrcChannel), "TMP/%s", ast_channel_name(pbxSrcChannel));
 	if ((*pbxDstChannel) == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) create pbx channel failed\n");
 		return FALSE;
 	}
 		
 	ast_channel_lock(pbxSrcChannel);
+	ast_set_read_format((*pbxDstChannel), ast_channel_readformat(pbxSrcChannel));
+	ast_set_write_format((*pbxDstChannel), ast_channel_writeformat(pbxSrcChannel));
+//	ast_channel_tech_pvt_set((*pbxDstChannel), pbxSrcChannel);						// do not copy the tech_pvt
 	ast_channel_context_set((*pbxDstChannel), ast_channel_context(pbxSrcChannel));
 	ast_channel_exten_set((*pbxDstChannel), ast_channel_exten(pbxSrcChannel));
 	ast_channel_priority_set((*pbxDstChannel), ast_channel_priority(pbxSrcChannel));
-	ast_set_read_format((*pbxDstChannel), ast_channel_readformat(pbxSrcChannel));
-	ast_set_write_format((*pbxDstChannel), ast_channel_writeformat(pbxSrcChannel));
-	ast_channel_tech_pvt_set((*pbxDstChannel), pbxSrcChannel);
 	ast_channel_unlock(pbxSrcChannel);
 	return TRUE;
 }
