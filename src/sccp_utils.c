@@ -35,7 +35,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	int cur = 0;
 	int hexcolumnlength = 0;
 	const char *hex = "0123456789ABCDEF";
-	char hexout[(numcolumns * 3) + 1];
+	char hexout[(numcolumns * 3) + (numcolumns / 8) + 1];							// 3 char per hex value + grouping + endofline
 	char *hexptr;
 	char chrout[numcolumns + 1];
 	char *chrptr;
