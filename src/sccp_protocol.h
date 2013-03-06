@@ -1052,6 +1052,11 @@ static const struct skinny_lampmode {
 #define SKINNY_STATION_FEATURERING			4
 #define SKINNY_STATION_SILENTRING			5
 #define SKINNY_STATION_URGENTRING			6
+#    define SKINNY_STATION_BELLCORE_1 			7
+#    define SKINNY_STATION_BELLCORE_2			8
+#    define SKINNY_STATION_BELLCORE_3			9
+#    define SKINNY_STATION_BELLCORE_4			10
+#    define SKINNY_STATION_BELLCORE_5			11
 
 /*!
  * \brief Skinny Station Structure
@@ -1459,6 +1464,7 @@ typedef enum {
 	CallHistoryInfoMessage = 0x0156,
 	ExtensionDeviceCaps = 0x0159,
 	XMLAlarmMessage = 0x015A,
+	Unknown_15E = 0x015E,											/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
 
 	/* SPCP client -> server */
 	SPCPRegisterTokenRequest = 0x8000,
@@ -1472,6 +1478,7 @@ typedef enum {
 #define SCCP_ACCESSORY_HEADSET			0x01
 #define SCCP_ACCESSORY_HANDSET			0x02
 #define SCCP_ACCESSORY_SPEAKER			0x03
+
 
 /*!
  * \brief SCCP Accessory Structure
@@ -3408,6 +3415,8 @@ typedef union {
 	struct {
 		char le_data[2000];										/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
+	
+	struct { } Unknown_15E;
 
 	/* SPA */
 	struct {
@@ -3687,6 +3696,7 @@ static const struct sccp_messagetype {
 	{CallHistoryInfoMessage, "Call History Info", offsize(sccp_data_t, CallHistoryInfoMessage)},
 	{ExtensionDeviceCaps, "Extension Device Capabilities Message", offsize(sccp_data_t, ExtensionDeviceCaps)},
 	{XMLAlarmMessage, "XML-AlarmMessage", offsize(sccp_data_t, XMLAlarmMessage)},
+	{Unknown_15E, "Unknown message with ID 0x015E", offsize(sccp_data_t, Unknown_15E)},
 	
 	{SPCPRegisterTokenRequest, "SPCP Register Token Request", offsize(sccp_data_t, SPCPRegisterTokenRequest)},
 	{SPCPRegisterTokenAck, "SCPA RegisterMessageACK", offsize(sccp_data_t, SPCPRegisterTokenAck)},
