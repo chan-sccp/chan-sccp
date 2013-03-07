@@ -17,21 +17,52 @@
  * \page new_features New Features in V4.1
  * 
  * \ref nf_config_parser 		"New Config Parser"\n
+ * \ref nf_emulated_enbloc		"Emulated EnBloc Dialing for older devices"\n
  * \ref nf_protocol_handler		"New SCCP Protocol Handler"\n
  * \ref nf_rtp_handling			"Rewritten RTP Handling"\n
  * \ref nf_multiple_asterisk_support 	"Support for multiple asterisk version in one code base"\n
- * \ref nf_emulated_enbloc		"Emulated EnBloc Dialing for older devices"\n
  * <HR>
  *
  *
  * \subsection nf_config_parser 		New Config Parser
  *
- * \subsection nf_protocol_handler 		New SCCP Protocol Handler
+ * The new config parser in V4.1 allows you to verify your sccp.conf for use with chan-sccp-b. If you set debug = core,config in the beginning of the
+ * config file and issue "sccp reload" in CLI, the sccp.conf file will be loaded and you will get output per line about it status and interpretation.
+ *
+ * You can also reload with a different sccp.conf file if you like, i.e. "sccp reload sccp.test.conf"
+ *
+ * In the contrib directory you will find gen_sccpconf.c which allows you to generate several file types (conf / sql / xml). The information is 
+ * directly generated from the sccp sources and will therefor always produce a correct sample file.
+ *
+ *
+ *
+ * \subsection nf_emulated_enbloc		Emulated EnBloc Dialing for older devices
+ *
+ * Emulated Enbloc dialing has been added to make older phones react faster when dialing with the receiver down or pressing re-dial. The individual
+ * buttonpresses are still send over the line in seperate tcp packets, but when we recognize that the buttonpresses arrive in a monotonous stream with 
+ * equidistant timing between the buttons, we assume that the number was dialed before picking up the receive and start the call immediatly instead of 
+ * waiting for more digits to arrive. This negates the secundairy digit waiting.
+ *
+ *
+ * 
+ * \subsection nf_protocol_handler 		New SCCP Protocol Handler / Protocol Version
+ *
+ * Protocol version does not have to be set anymore in sccp.conf and is extrapolated automatically when the device registers. The new protocol handler
+ * always tries to use the highest possible sccp protocol version the device is capable of handling.
+ *
+ *
  * 
  * \subsection nf_rtp_handling			Rewritten RTP Handling
+ *
+ * RTP handling and codec dissemination has been completely rewritten in V4.1. 
+ *
+ *
  * 
  * \subsection nf_multiple_asterisk_support 	Support for multiple asterisk version in one code base
- * 
- * \subsection nf_emulated_enbloc		Emulated EnBloc Dialing for older devices
+ *
+ * With V4.1 multiple versions os Asterisk are supported on one code base. On the chan-sccp-b side the same code is used for any asterisk version. The 
+ * pbx specific code is handled by pbx_impl which should be seen as a singular/stable API for dealing with asterisk.
+ *
+ *
  * 
  */
