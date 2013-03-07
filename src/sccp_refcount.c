@@ -10,12 +10,7 @@
  */
 
 /*!
- * \file
- * \page sccp_lock Locking and Object Preservation in SCCP
- *
- * \ref refcount   Reference Counting\n
- * 
- * \section refcount Refcounted Objects
+ * \section sccp_refcount   Reference Counted Objects
  * 
  * We started using refcounting in V4.0 to prevent possible deadlock situations where the would not even have to occur. Up till now we had been using lock to prevent objects 
  * from vanishing instead of preventing modification. As a rule there will be at most be one thread modifying a device, line, channel object in such a significant manner 
