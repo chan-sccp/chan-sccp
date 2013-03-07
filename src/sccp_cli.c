@@ -612,11 +612,11 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 														\
 			CLI_AMI_TABLE_FIELD(Id,			d,	4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(TypeStr,		s,	29,	sccp_buttontype2str(buttonconfig->type))		\
-			CLI_AMI_TABLE_FIELD(Type,		d,	21,	buttonconfig->type)					\
+			CLI_AMI_TABLE_FIELD(TypeStr,		s,	30,	sccp_buttontype2str(buttonconfig->type))		\
+			CLI_AMI_TABLE_FIELD(Type,		d,	24,	buttonconfig->type)					\
 			CLI_AMI_TABLE_FIELD(pendUpdt,		s,	8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(pendDel,		s, 	8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(Default,		s,	8,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
+			CLI_AMI_TABLE_FIELD(Default,		s,	9,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
 #include "sccp_cli_table.h"
 
 		// LINES
@@ -642,7 +642,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Id,			d,	4,	buttonconfig->instance)					\
 			CLI_AMI_TABLE_FIELD(Name,		s,	23,	l->name)						\
 			CLI_AMI_TABLE_FIELD(Suffix,		s,	6,	buttonconfig->button.line.subscriptionId.number)	\
-			CLI_AMI_TABLE_FIELD(Label,		s,	19, 	l->label)						\
+			CLI_AMI_TABLE_FIELD(Label,		s,	24, 	l->label)						\
 			CLI_AMI_TABLE_FIELD(CfwdType,		s, 	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		s, 	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
@@ -663,7 +663,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_FIELDS 												\
 			CLI_AMI_TABLE_FIELD(Id,			d,	4,	buttonconfig->instance)					\
 			CLI_AMI_TABLE_FIELD(Name,		s,	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(Number,		s,	26,	buttonconfig->button.speeddial.ext)			\
+			CLI_AMI_TABLE_FIELD(Number,		s,	31,	buttonconfig->button.speeddial.ext)			\
 			CLI_AMI_TABLE_FIELD(Hint,		s,	27, 	buttonconfig->button.speeddial.hint)
 		//                    CLI_AMI_TABLE_FIELD(HintStatus,    s,      20,     ast_extension_state2str(ast_extension_state()))
 #include "sccp_cli_table.h"
@@ -684,7 +684,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_FIELDS 												\
 			CLI_AMI_TABLE_FIELD(Id,			d,	4,	buttonconfig->instance)					\
 			CLI_AMI_TABLE_FIELD(Name,		s,	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(Options,		s,	26,	buttonconfig->button.feature.options)			\
+			CLI_AMI_TABLE_FIELD(Options,		s,	31,	buttonconfig->button.feature.options)			\
 			CLI_AMI_TABLE_FIELD(Status,		d,	27, 	buttonconfig->button.feature.status)
 #include "sccp_cli_table.h"
 
@@ -704,7 +704,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_FIELDS 												\
 			CLI_AMI_TABLE_FIELD(Id,			d,	4,	buttonconfig->instance)					\
 			CLI_AMI_TABLE_FIELD(Name,		s,	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(URL,		s,	54,	buttonconfig->button.service.url)
+			CLI_AMI_TABLE_FIELD(URL,		s,	59,	buttonconfig->button.service.url)
 #include "sccp_cli_table.h"
 	}
 
@@ -715,7 +715,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_ITERATOR for(v = d->variables;v;v = v->next)
 #define CLI_AMI_TABLE_FIELDS 												\
 			CLI_AMI_TABLE_FIELD(Name,		s,	28,	v->name)				\
-			CLI_AMI_TABLE_FIELD(Value,		s,	54,	v->value)
+			CLI_AMI_TABLE_FIELD(Value,		s,	59,	v->value)
 #include "sccp_cli_table.h"
 	}
 
@@ -1035,7 +1035,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_ITERATOR for(v = l->variables;v;v = v->next)
 #define CLI_AMI_TABLE_FIELDS 											\
 			CLI_AMI_TABLE_FIELD(Name,		s,	15,	v->name)			\
-			CLI_AMI_TABLE_FIELD(Value,		s,	28,	v->value)
+			CLI_AMI_TABLE_FIELD(Value,		s,	29,	v->value)
 #include "sccp_cli_table.h"
 	}
 	sccp_line_release(l);
