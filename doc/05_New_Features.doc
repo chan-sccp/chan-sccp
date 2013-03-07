@@ -13,10 +13,14 @@
  * \date	$date$
  */
 
+/*!
+ * \page new_features What is new
+ * \ref V3_features New in V3
+ * \ref V4_features New in V4
+ */
 
 /*!
- * \page V3_features What is new in V3
- * \section se_V3_features New features in V3
+ * \section V3_features New features in V3
  * 
  * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
  * \ref nf_phone_buttons 	"How to set Phone Buttons on a device (softkeys)"\n
@@ -530,4 +534,27 @@
  *   and reduce the total digittimeout to 2000 milliseconds (2 secs after the last digit). The following two rules still apply.
  * - Matching of number uses regcontext group specified in sccp.conf first, if a full match is found, the digittimout is halved.
  * - If a full match is found in the dialplan, and no other dialplan entries would match, dialing starts immediatly.
+ */
+
+/*!
+ * \section V4_features New features in V4/trunk
+ * 
+ * \ref nf_config_parser 		"New Config Parser"\n
+ * \ref nf_protocol_handler		"New SCCP Protocol Handler"\n
+ * \ref nf_rtp_handling			"Rewritten RTP Handling"\n
+ * \ref nf_multiple_asterisk_support 	"Support for multiple asterisk version in one code base"\n
+ * \ref nf_emulated_enbloc		"Emulated EnBloc Dialing for older devices"\n
+ * <HR>
+ *
+ *
+ * \subsection nf_config_parser 		New Config Parser
+ *
+ * \subsection nf_protocol_handler 		New SCCP Protocol Handler
+ * 
+ * \subsection nf_rtp_handling			Rewritten RTP Handling
+ * 
+ * \subsection nf_multiple_asterisk_support 	Support for multiple asterisk version in one code base
+ * 
+ * \subsection nf_emulated_enbloc		Emulated EnBloc Dialing for older devices
+ * 
  */

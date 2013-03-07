@@ -22,126 +22,35 @@
 /*!
  * \page supp_os 	Supported Operating Systems to date
  *
- * Status for various supported OSes ( Asterisk - Chan_SCCP )
+ * Status for various supported OSes ( Asterisk - Chan_SCCP ) on different CPU's (x86 / x86_64 / Sparc / Arm)
  *
  * Please tell us if you have succesfully installed / ported chan_sccp to you platform if it's not in the list yet
  *
- * \section supp_os_hp 		HP-UX/Tru64
- *
- * \section supp_os_ibm 	IBM AIX
- *
- * \section supp_os_sun 	SUN Solaris
- * Being checked
- *
- * \section supp_os_sun 	OS X
- *   - 10.6 Snow Leopard
- *
- * \section supp_os_free 	Free OS'es
- *
- * \subsection supp_freeos_bsd	BSD
- *   - OpenBSD 4.6
- *      - Asterisk 1.4.25.1
- *      - Asterisk 1.6.1.12
+ * \subsection supp_freeos_linux Linux Based Operating Systems
+ *   - OpenSuSE
+ *   - Debian
+ *   - Ubuntu / MintLinux
+ *   - Fedora
+ *   - RedHat
+ *   - Centos
+ *   - Embedded OS:
+ *      - OpenWRT
+ *      - Horstbox
  *      .
- *   - FreeBSD\n
- *     Should work because openBSD works. Has to be confirmed
- *   - NetBSD\n
- *     Should work because openBSD works. Has to be confirmed
  *   .
  *
- * \subsection supp_freeos_linux Linux
- *   - Embedded OS:  
- *      - Horstbox 2.09
- *       - Compile script created, testing underway (MC)
- *         checkout: 
- *         - http://gforge.willwebhosting.de/gf/project/horstbox/tracker/?action=TrackerItemEdit&tracker_item_id=219&tracker_id=219
- *         - http://gforge.willwebhosting.de/gf/download/trackeritem/219/158/sccp.mk
- *         .
- *       .
- *   - RedHat:  
- *      - RedHat 5.0
- *       - Asterisk 1.4
- *       - Asterisk 1.6
- *       - Asterisk 1.6.1
- *       - Asterisk 1.6.2
- *       .
- *      - RedHat 5.5
- *       - Asterisk 1.4
- *       - Asterisk 1.6
- *       - Asterisk 1.6.1
- *       - Asterisk 1.6.2
- *       .
- *      .
- *   - Fedora:  
- *      - Fedora 12
- *       - Asterisk 1.4
- *       - Asterisk 1.6
- *       - Asterisk 1.6.1
- *       - Asterisk 1.6.2
- *       .
- *      - Fedora 13
- *       - Asterisk 1.4
- *       - Asterisk 1.6
- *       - Asterisk 1.6.1
- *       - Asterisk 1.6.2
- *       .
- *      .
- *   - Centos:  
- *      - Asterisk 1.4
- *      - Asterisk 1.6
- *      - Asterisk 1.6.1
- *      .
- *   - Debian:  
- *      - Asterisk 1.4
- *      - Asterisk 1.6
- *      - Asterisk 1.6.1
- *      - Asterisk 1.6.2
- *      .
- *   - Ubuntu / MintLinux
- *     - Karmic
- *       - Asterisk 1.4
- *       - Asterisk 1.6
- *       - Asterisk 1.6.1
- *       - Asterisk 1.6.2
- *       .
- *     - Lucid
- *       - Asterisk 1.4
- *       - Asterisk 1.6
- *       - Asterisk 1.6.1
- *       - Asterisk 1.6.2
- *       .
- *     .
- *   - OpenSuSE:
- *      - 10.0:
- *         - Asterisk 1.4
- *         - Asterisk 1.6
- *         - Asterisk 1.6.1
- *         .
- *      - 11.0:
- *         - Asterisk 1.4
- *         - Asterisk 1.6
- *         - Asterisk 1.6.1
- *         - Asterisk 1.6.2
- *         .
- *      - 11.1:
- *         - Asterisk 1.4
- *         - Asterisk 1.6
- *         - Asterisk 1.6.1
- *         - Asterisk 1.6.2
- *         .
- *      - 11.2:
- *         - Asterisk 1.4
- *         - Asterisk 1.6
- *         - Asterisk 1.6.1
- *         - Asterisk 1.6.2
- *         .
- *      - 11.3:
- *         - Asterisk 1.4
- *         - Asterisk 1.6
- *         - Asterisk 1.6.1
- *         - Asterisk 1.6.2
- *         .
- *      .
+ * \subsection supp_freeos_bsd	BSD Based Operating Systems
+ *   - OpenBSD
+ *   - FreeBSD
+ *   - NetBSD
+ *   .
+ *
+ * \subsection supp_os_commercial Commercial Operating Systems
+ *   - IBM Aix
+ *   - Oracle/Sun Solaris
+ *   - Apple OS-X
+ *   - HP-UX
+ *   - HP Tru64
  *   .
  *
  **/

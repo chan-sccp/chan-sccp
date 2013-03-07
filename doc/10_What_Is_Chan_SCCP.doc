@@ -22,8 +22,6 @@
 /*!
  * \page 	what_sccp 		What is Chan_SCCP
  *
- * \section 	what_is_chan_sccp 	What is Chan_SCCP
- * 
  * Chan_SCCP is a replacement Channel Driver for chan_skinny in the Asterisk Channel Driver Library. It delivers
  * better performance, scalability, interoperability and functionality than either chan_skinny or chan_sip on a 
  * SCCP capable phone. It is still under heavy development but a stable release is also available for you to use.
