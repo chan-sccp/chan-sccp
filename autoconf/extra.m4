@@ -554,10 +554,9 @@ dnl    		if test "x${basic_machine} = "xsparc"; then
 dnl    			CFLAGS_saved="${CFLAGS_saved} -Wall -mmemory-model=rmo"		dnl rmo='relaxed memory order'
 dnl    		fi
 
-    		if test "x${CC}" = "xclang"; then
-dnl    			CFLAGS_saved="${CFLAGS_saved} -fsanitize= "
-    			CFLAGS_saved="${CFLAGS_saved} "
-    		fi
+dnl    		if test -n "`echo ${CC} |${EGREP} 'clang'`"; then
+dnl    			CFLAGS_saved="${CFLAGS_saved} -fsanitize=address "
+dnl    		fi
 	else
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		DEBUG=0

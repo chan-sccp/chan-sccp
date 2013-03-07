@@ -29914,9 +29914,6 @@ esac
     		fi
 
 
-    		if test "x${CC}" = "xclang"; then
-    			CFLAGS_saved="${CFLAGS_saved} "
-    		fi
 	else
 
 $as_echo "#define DEBUG 0" >>confdefs.h
