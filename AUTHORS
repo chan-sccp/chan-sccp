@@ -14,61 +14,19 @@
  *              Modified by Jan Czmok and Julien Goodwin
  *
  * \page authors Chan-SCCP-b Authors
- * \section sec_authors Chan-SCCP-b Authors
- *  
- * \subsection auth_anthonyshaw Anthony Shaw
- * UserName:	anthonyshaw				\n
- * Role:	Project Admin/Developer			\n
- * E-Mail:	anthonyshaw@users.sourceforge.net 	\n
- * 
- * \subsection auth_marcelloceschia Marcello Ceschia
- * UserName: 	marcelloceschia				\n
- * Role:	Project Admin/Developer (Trunk)		\n
- * E-Mail:	marcelloceschia@users.sourceforge.net\n
- * 
- * \subsection auth_scotchy Scotchy
- * UserName:	scotchy					\n
- * Role:	Project Admin/Developer 		\n
- * E-Mail:	scotchy@users.sourceforge.net 		\n
- * 
- * \subsection auth_davidded David Dederscheck
- * UserName:	davidded				\n
- * Role:	Project Manager/Developer (Trunk)	\n
- * E-Mail:	davidded@users.sourceforge.net 		\n
- * 
- * \subsection auth_andrewylee Andrew Lee
- * UserName: 	andrewylee  				\n
- * Role:	Developer  				\n
- * E-Mail:	andrewylee@users.sourceforge.net	\n
- * 
- * \subsection auth_ddegroot Diederik de Groot
- * UserName:	ddegroot 				\n
- * Role:	Content Management (Trunk)		\n
- * E-Mail:	ddegroot@users.sourceforge.net 	\n
- * 
- * \subsection auth_fsantulli Federico Santulli
- * UserName:	fsantulli 				\n
- * Role:	Developer (Stable Maintainer)		\n
- * E-Mail:	fsantulli@users.sourceforge.net 	\n
- * 
- * \subsection auth_gthornton Geoff Thornton
- * UserName:	gthornton 				\n
- * Role:	Developer 				\n
- * E-Mail:	gthornton@users.sourceforge.net 	\n
- * 
- * \subsection auth_macdiver macdiver
- * UserName:	macdiver 				\n
- * Role:	Developer 				\n
- * E-Mail:	macdiver@users.sourceforge.net 	\n
- * 
- * \subsection auth_sebbbl Sebastian Vetter
- * UserName:	sebbbl 					\n
- * Role:	Doc Writer 				\n
- * E-Mail:	sebbbl@users.sourceforge.net		\n
  *
- * \subsection auth_progs Romain Bignon
- * UserName:	progs 					\n
- * Role:	Developer 				\n
- * E-Mail:	progs@users.sourceforge.net		\n
+ * Name                 | Username		| Role                    		| E-mail			| Active
+ * ---------------------|-----------------------|---------------------------------------|-------------------------------|---------------
+ * Marcello Ceschia	| marcelloceschia	| Project Admin/Developer (Trunk)	| marcelloceschia@users.sf.net	| YES
+ * David Dederscheck 	| davidded		| Project Admin/Developer (Stable)	| davidded@users.sf.net		| YES
+ * Diederik de Groot	| ddegroot 		| Project Admin/Developer (Trunk)  	| ddegroot@users.sf.net		| YES
+ * Anthony Shaw		| anthonyshaw		| Project Admin/Developer		| anthonyshaw@users.sf.net	| NO
+ * Scotchy		| scotchy		| Project Admin/Developer 		| scotchy@users.sf.net		| NO
+ * Andrew Lee		| andrewylee		| Developer  		 		| andrewylee@users.sf.net	| NO
+ * Federico Santulli	| fsantulli 		| Developer 				| fsantulli@users.sf.net	| NO
+ * Geoff Thornton	| gthornton 		| Developer 		 		| gthornton@users.sf.net	| NO
+ * macdiver		| macdiver 		| Developer 		 		| macdiver@users.sf.net		| NO
+ * Sebastian Vetter	| sebbbl 		| Doc Writer 		 		| sebbbl@users.sf.net		| NO
+ * Romain Bignon	| progs 		| Developer 		 		| progs@users.sf.net		| NO
  *
  */

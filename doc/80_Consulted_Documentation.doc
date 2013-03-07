@@ -22,6 +22,19 @@
 /*!
  * \page cons Consulted Documentation
  * The following documents have been useful to us:
+ *  - http://www.asterisk.org/community/documentation
+ *  - https://wiki.asterisk.org/wiki/display/AST/Home
+ *    - https://wiki.asterisk.org/wiki/display/AST/Roadmap
+ *    - https://wiki.asterisk.org/wiki/display/AST/Asterisk+1.8+Documentation
+ *    - https://wiki.asterisk.org/wiki/display/AST/Asterisk+10+Documentation
+ *    - https://wiki.asterisk.org/wiki/display/AST/Asterisk+11+Documentation
+ *    - https://wiki.asterisk.org/wiki/display/AST/Configuration+and+Operation
+ *    - http://doxygen.asterisk.org/1.6.2/index.html
+ *    - http://doxygen.asterisk.org/1.8/index.html
+ *    - http://doxygen.asterisk.org/trunk/index.html
+ *    .
+ *  - http://www.asteriskdocs.org/
+ *  - http://www.stack.nl/~dimitri/doxygen/manual/index.html
  *  - http://www.aosabook.org/en/asterisk.html
  *  - http://hisown.com/Talks/VoIP%20-%20Excerpt%20(SCCP).pdf
  *  - http://www.javvin.com/protocolSCCP.html
