@@ -1182,6 +1182,10 @@ static int sccp_wrapper_asterisk110_get_sampleRate(skinny_codec_t codec)
 static sccp_extension_status_t sccp_wrapper_asterisk110_extensionStatus(const sccp_channel_t * channel)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+	if (!pbx_channel || !pbx_channel->context) {
+		pbx_log(LOG_ERROR, "%s: (extension_status) Either no pbx_channel or no valid context provided to lookup number\n", channel->designator);	
+		return SCCP_EXTENSION_NOTEXISTS;
+	}
 	int ignore_pat = ast_ignore_pattern(pbx_channel->context, channel->dialedNumber);
 	int ext_exist = ast_exists_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);

@@ -2124,6 +2124,12 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
 		goto EXIT_FUNC;
 	}
+	
+	if (!channel->owner) {
+		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) pbx channel! Exiting\n", DEV_ID_LOG(d));
+		sccp_channel_endcall(channel);
+		goto EXIT_FUNC;
+	}
 
 	if (!l) {
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no line specified! Exiting\n", DEV_ID_LOG(d));
