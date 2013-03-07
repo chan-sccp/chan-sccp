@@ -1,4 +1,266 @@
+2013-03-07  ddegroot
+
+	* [r4312] src/Makefile.in, src/common.h, src/sccp_conference.c: Fix
+	  paths
+
+	* [r4311] src/Makefile.am, src/conference/sccp_conference10.c[DEL],
+	  src/sccp_conference.c[CPY], src/sccp_hint.c[CPY],
+	  src/sccp_hint.h[ADD], src/sccp_hint2.c[DEL]: Rename sccp_hint2 to
+	  sccp_hint. Move conference/sccp_conference to sccp_conference.
+	  Update Makefile.am
+
+	* [r4310] src/sccp_hint.h[DEL]: Removed sccp_hint.c
+	  sccp_conference.c (old files)
+
+	* [r4309] src/sccp_hint2.h[DEL]: Removed sccp_hint.c
+	  sccp_conference.c (old files)
+
+	* [r4308] src/sccp_conference.c[DEL], src/sccp_hint.c[DEL]: Removed
+	  sccp_hint.c sccp_conference.c (old files)
+
+	* [r4307] src/sccp_cli.c: Equalize sccp_cli output columns
+
+	* [r4306] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_actions.c: Fix extensionStatus helper coredump, when
+	  channel->owner=NULL (Added check to sccp_handle_keypad_button)
+
+	* [r4305] src/pbx_impl/ast/astTrunk.c: Fixes conference when using
+	  asterisk-trunk (fixes #44)
+
+	* [r4304] src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  Update codec setting for ast110 and astTrunk (references #44)
+
+	* [r4303] src/conference/sccp_conference10.c: Add function
+	  description/documentation to conference
+
+	* [r4302] src/conference/sccp_conference10.c: Fix conference
+	  refcount
+
+2013-03-06  ddegroot
+
+	* [r4301] src/conference/sccp_conference10.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Fixing
+	  conference for asterisk-10. Conference for asterisk-11 still
+	  broken (codec issue). Refcount needs fixing (masquerade/zombie).
+	  (references #44)
+
+	* [r4300] src/sccp_utils.c: Fix array subscript out of bounds error
+	  ing sccp_dump_packet
+
+2013-03-06  marcelloceschia
+
+	* [r4299] src/sccp_protocol.h: add message dummy for 0x015E
+
+2013-03-03  ddegroot
+
+	* [r4298] src/Makefile.am, src/Makefile.in, src/common.h,
+	  src/sccp_sockaddr.c[DEL], src/sccp_sockaddr.h[DEL]: Reverted
+	  accidental commit of sccp_sockaddr.c
+
+	* [r4297] src/Makefile.am, src/Makefile.in, src/common.h,
+	  src/pbx_impl/ast/ast106.c, src/sccp_sockaddr.c[ADD],
+	  src/sccp_sockaddr.h[ADD]: Removed requestor dependency in
+	  ast106.c -> ALERT_INFO support dropped for this version
+
+2013-03-02  marcelloceschia
+
+	* [r4296] src/sccp_pbx.c: remove ALERT_INFO parsing, remove
+	  complexity for dnd and ringermod
+
+	* [r4295] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: parse _ALERT_INFO/__ALERT_INFO during
+	  call request
+
+	* [r4294] src/pbx_impl/ast/astTrunk.c: some more comment
+
+	* [r4293] src/pbx_impl/ast/astTrunk.c: parse
+	  _ALERT_INFO/__ALERT_INFO during call request
+
+	* [r4292] src/pbx_impl/ast/astTrunk.c: parse
+	  _ALERT_INFO/__ALERT_INFO during call request
+
+2013-03-02  ddegroot
+
+	* [r4291] src/sccp_indicate.c, src/sccp_pbx.c: Update/Sent urgent
+	  call message even when DND is enabled
+
+	* [r4290] src/sccp_indicate.c: Re-implemented DND override for
+	  using ringer=urgent (Request: Andreas Anderon)
+
+	* [r4289] src/sccp_pbx.c: Re-implemented DND override for using
+	  ringer=urgent (Request: Andreas Anderon)
+
+2013-02-28  ddegroot
+
+	* [r4288] src/sccp_socket.c: fixes #58 sccp_socket.c
+
+	* [r4287] src/sccp_threadpool.c: fixes #58 sccp_threadpool.c
+
+	* [r4286] src/sccp_config.c: fixes #58 sccp_config.c
+
+	* [r4285] src/sccp_actions.c: fixes #58 sccp_actions.c (suppresses
+	  d null deref by checking d first, should never occur though)
+
+	* [r4284] src/sccp_line.c: fixes #58 sccp_line.c
+
+2013-02-27  ddegroot
+
+	* [r4283] src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Moved over parsing of
+	  StartMultiMediaTransmissionAck to sccp_protocol.c as well.
+
+	* [r4282] src/sccp_actions.c, src/sccp_cli.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_utils.c: Reformatted sources
+	  (indent).
+
+	* [r4281] src/sccp_actions.c, src/sccp_cli.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_utils.c: Using unions in messages
+	  which have different implementations per protocol version. Added
+	  messages parsers to sccp_protocol.c for these messages.
+
+2013-02-26  ddegroot
+
+	* [r4280] src/sccp_channel.c: Fix 'Tell ... to send RTP/UDP media'
+	  debug output. Use SCCP_PACKET_HEADER in sccp_build_packet instead
+	  of magic value 12
+
+	* [r4279] src/sccp_device.c, src/sccp_rtp.c: Fix 'Tell ... to send
+	  RTP/UDP media' debug output. Use SCCP_PACKET_HEADER in
+	  sccp_build_packet instead of magic value 12
+
+2013-02-25  ddegroot
+
+	* [r4278] autoconf/extra.m4, configure, src/chan_sccp.h,
+	  src/sccp_config.c: Finalizarion/Update/Cleanup for bus-error /
+	  unaligned access issue on sparc64 cpu's (Reported by Philippe
+	  Teissier)
+
+2013-02-24  ddegroot
+
+	* [r4277] src/sccp_cli.c, src/sccp_management.c: Added patches
+	  supplied by Kevin Vandenberg for CLI/AMI Commands
+
+	* [r4276] src/sccp_cli.c: Committed patch supplied by Nicola
+	  Ciprich
+
+	* [r4275] src/sccp_cli.c, src/sccp_cli.h: Added device_connected /
+	  line_connected completers for sccp_cli.c
+
+	* [r4274] src/sccp_actions.c, src/sccp_protocol.h: Temporariry fix
+	  for sccp_handle_open_receive_channel_ack message size, until we
+	  have d->protocol->allocMessage(messageId)
+
+	* [r4273] src/sccp_socket.c: Use SCCP_PACKET_HEADER instead of '8',
+	  fix printf parameter in sccp_process_data
+
+	* [r4272] src/sccp_line.c: Fix sccp reload, when in previous
+	  sccp.conf device was connected to hotline. linedevice needs to be
+	  removed for hotline connection and d->isAnonymous needs to be
+	  false before running reload.
+
+2013-02-24  marcelloceschia
+
+	* [r4271] src/sccp_socket.c: fixes some whitespaces and error
+	  messages
+
+2013-02-24  ddegroot
+
+	* [r4270] src/sccp_channel.c: Fix compile warnings
+
+	* [r4269] src/sccp_channel.c, src/sccp_socket.c: Fix compile
+	  warnings
+
+	* [r4268] src/sccp_protocol.h: Fix compile issue for
+	  SpeedDialStatDynamicMessage
+
+	* [r4267] src/sccp_actions.c, src/sccp_protocol.h: Researching if
+	  OpenReceiveChannelAck_v22 is necessary
+
+	* [r4266] src/chan_sccp.c, src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_protocol.h, src/sccp_socket.c, src/sccp_utils.c,
+	  src/sccp_utils.h: Revised sccp_process_data, revised
+	  sccp_dump_packet, added struct size to sccp_messagetypes lookup
+	  table
+
+2013-02-23  ddegroot
+
+	* [r4265] src/chan_sccp.h, src/sccp_socket.c: Guard against
+	  negative s->buffer_size (valgrind)
+
+	* [r4264] src/sccp_threadpool.c: Fix memory leak (valgrind)
+
+	* [r4263] src/sccp_socket.c: cleanup order of sccp_process_data
+
+	* [r4262] src/sccp_socket.c: valgrind fix sccp_process_data
+
+	* [r4261] src/sccp_threadpool.c: Fix valgrind 'conditional jump or
+	  move depends on uninitialised value'
+
+	* [r4260] src/sccp_utils.c: Revised sccp_dump_packet
+
+2013-02-22  marcelloceschia
+
+	* [r4259] src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  add sccp_asterisk_getSkinnyFormatMultiple
+
+	* [r4258] src/sccp_config.c: use return value for during release,
+	  print type
+
+	* [r4257] src/sccp_device.c: use if with {
+
+	* [r4256] src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c:
+	  fixes skinny <==> asterisk codec conversion, fixes inbound codec
+	  negotiation, closes #48
+
+	* [r4255] src/pbx_impl/ast/ast.h: remove whitespaces
+
+	* [r4254] src/sccp_channel.c: fixes #55, fixes cfwd issue when
+	  outgoing channel uses sip peer (cause 58 - Bearer capability not
+	  available)
+
+2013-02-21  marcelloceschia
+
+	* [r4253] src/sccp_features.c: fixes issue during cfwd (double
+	  channel release), references #51
+
+2013-02-20  ddegroot
+
+	* [r4252] src/chan_sccp.h: Added HAVE_UNALIGNED_BUSERROR to sparc
+	  temporary fix
+
+	* [r4251] autoconf/acinclude.m4, configure: Fixed
+	  HAVE_UNALIGNED_BUSERROR detection to configure.ac (Sparc64 /
+	  Alpha)
+
+	* [r4250] autoconf/acinclude.m4, configure, configure.ac,
+	  src/config.h.in: Added HAVE_UNALIGNED_BUSERROR detection to
+	  configure.ac (Sparc64 / Alpha)
+
+	* [r4249] autoconf/acinclude.m4, configure, configure.ac,
+	  src/config.h.in: Added HAVE_ALIGNED_ACCESS_REQUIRED to
+	  configure.ac
+
+	* [r4248] src/chan_sccp.h, src/sccp_cli.c, src/sccp_config.c: Fix
+	  for Sparc run-time issue with memory alignment (replaced unsigned
+	  long long with unsigned long for sccp_group_t)
+
+2013-02-19  ddegroot
+
+	* [r4247] src/sccp_cli.c, src/sccp_config.c: Remarked out Fix for
+	  Sparc run-time issue with memory alignment (need more time to
+	  test/think)
+
+	* [r4246] autoconf/extra.m4, configure: Fix sparc configure issue
+	  calculating number of CPU
+
+	* [r4245] src/chan_sccp.h, src/sccp_config.c: Fix sparc run-time
+	  issue with memory alignment
+
 2013-02-18  ddegroot
+
+	* [r4244] ChangeLog, configure, configure.ac: Updated configure
+	  report at the end
 
 	* [r4242] src/sccp_socket.c: Warn more clearly when rejecting
 	  connection from device based on global deny/permit settings
