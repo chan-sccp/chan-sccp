@@ -19,7 +19,7 @@
  *
  **/
 /*!
- * \page setup_sccp	How to Setup
+ * \page setup_sccp	How to Setup Chan_SCCP
  *
  * This contains detailed instructions about setting up chan_sccp.
  *
@@ -35,8 +35,6 @@
  *   - \ref shared_lines Shared Lines
  *   .
  *
- * \section setup_howto     How to setup Chan_SCCP
- * 
  * \section sccp_config_howto How to use the config file
  *
  * Please check out ./conf/sccp.conf for all possible sccp configuration parameters. This new config file uses standard 
