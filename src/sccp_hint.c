@@ -15,9 +15,6 @@
  */
 
 /*!
- * \file
- * \page sccp_hint How do hints work in chan-sccp-b
- *
  * \section hint_update How does hint update work
  *
  * Getting hint information for display the various connected devices (e.g., 7960 or 7914) varies from PBX implementation to implementation.  

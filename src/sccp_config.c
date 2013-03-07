@@ -16,65 +16,70 @@
  */
 
 /*!
- * \file
- * \ref sccp_config
+ * \section sccp_config Loading sccp.conf/realtime configuration implementation
  *
- * \page sccp_config Loading sccp.conf/realtime configuration implementation
+ * \subsection sccp_config_reload How was the new cli command "sccp reload" implemented
  *
-* \section sccp_config_reload How was the new cli command "sccp reload" implemented
- *
- * \code
  * sccp_cli.c
- * 	new implementation of cli reload command
- * 		checks if no other reload command is currently running
- * 		starts loading global settings from sccp.conf (sccp_config_general)
- * 		starts loading devices and lines from sccp.conf(sccp_config_readDevicesLines)
+ * -	new implementation of cli reload command
+ * 	-	checks if no other reload command is currently running
+ * 	-	starts loading global settings from sccp.conf (sccp_config_general)
+ * 	-	starts loading devices and lines from sccp.conf(sccp_config_readDevicesLines)
+ *	.
+ * .
  *
  * sccp_config.c
- * 	modified sccp_config_general
+ * -	modified sccp_config_general
  *
- * 	modified sccp_config_readDevicesLines
- * 		sets pendingDelete for
- * 			devices (via sccp_device_pre_reload),
- * 			lines (via sccp_line_pre_reload)
- * 			softkey (via sccp_softkey_pre_reload)
- *
- * 		calls sccp_config_buildDevice as usual
- * 			calls sccp_config_buildDevice as usual
- * 				find device
- * 				or create new device
- * 				parses sccp.conf for device
- *				set defaults for device if necessary using the default from globals using the same parameter name
- * 				set pendingUpdate on device for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
- * 			calls sccp_config_buildLine as usual
- * 				find line
- * 				or create new line
- * 				parses sccp.conf for line
- *				set defaults for line if necessary using the default from globals using the same parameter name
- *			 	set pendingUpdate on line for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
- * 			calls sccp_config_softKeySet as usual ***
- * 				find softKeySet
- *				or create new softKeySet
- *			 	parses sccp.conf for softKeySet
- * 				set pendingUpdate on softKetSet for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
- *
- * 		checks pendingDelete and pendingUpdate for
- *			skip when call in progress
- * 			devices (via sccp_device_post_reload),
- * 				resets GLOB(device) if pendingUpdate
- * 				removes GLOB(devices) with pendingDelete
- * 			lines (via sccp_line_post_reload)
- * 				resets GLOB(lines) if pendingUpdate
- * 				removes GLOB(lines) with pendingDelete
- * 			softkey (via sccp_softkey_post_reload) ***
- * 				resets GLOB(softkeyset) if pendingUpdate ***
- * 				removes GLOB(softkeyset) with pendingDelete ***
- *
+ * -	modified sccp_config_readDevicesLines
+ * 	-	sets pendingDelete for
+ * 		-	devices (via sccp_device_pre_reload),
+ * 		-	lines (via sccp_line_pre_reload)
+ * 		-	softkey (via sccp_softkey_pre_reload)
+ *		.
+ * 	-	calls sccp_config_buildDevice as usual
+ * 		-	calls sccp_config_buildDevice as usual
+ * 			-	find device
+ * 			-	or create new device
+ * 			-	parses sccp.conf for device
+ *			-	set defaults for device if necessary using the default from globals using the same parameter name
+ * 			-	set pendingUpdate on device for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
+ *			.
+ * 		-	calls sccp_config_buildLine as usual
+ * 			-	find line
+ * 			-	or create new line
+ * 			-	parses sccp.conf for line
+ *			-	set defaults for line if necessary using the default from globals using the same parameter name
+ *			- 	set pendingUpdate on line for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
+ *			.
+ * 		-	calls sccp_config_softKeySet as usual ***
+ * 			-	find softKeySet
+ *			-	or create new softKeySet
+ *			- 	parses sccp.conf for softKeySet
+ * 			-	set pendingUpdate on softKetSet for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
+ *			.
+ *		.
+ * 	-	checks pendingDelete and pendingUpdate for
+ *		-	skip when call in progress
+ * 		-	devices (via sccp_device_post_reload),
+ * 			-	resets GLOB(device) if pendingUpdate
+ * 			-	removes GLOB(devices) with pendingDelete
+ *			.
+ * 		-	lines (via sccp_line_post_reload)
+ * 			-	resets GLOB(lines) if pendingUpdate
+ * 			-	removes GLOB(lines) with pendingDelete
+ *			.
+ * 		-	softkey (via sccp_softkey_post_reload) ***
+ * 			-	resets GLOB(softkeyset) if pendingUpdate ***
+ * 			-	removes GLOB(softkeyset) with pendingDelete ***
+ *			.
+ *		.
+ *	.
  * channel.c
- * 	sccp_channel_endcall ***
- *		reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
- *
- * \endcode
+ * -	sccp_channel_endcall ***
+ *	-	reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
+ *	.
+ * .
  *
  * lines marked with "***" still need be implemented
  *
