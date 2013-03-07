@@ -943,12 +943,12 @@ static boolean_t sccp_wrapper_asterisk111_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 		
 	ast_channel_lock(pbxSrcChannel);
 
-        if (ast_format_cap_is_empty(pbxSrcChannel->nativeformats)) {
+        if (ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
         	ast_format_set(&tmpfmt, AST_FORMAT_ULAW, 0);
         } else {
-                ast_best_codec(pbxSrcChannel->nativeformats, &tmpfmt);
+                ast_best_codec(pbx_channel_nativeformats(pbxSrcChannel), &tmpfmt);
         }
-        ast_format_cap_add((*pbxDstChannel)->nativeformats, &tmpfmt);
+        ast_format_cap_add(ast_channel_nativeformats(*pbxDstChannel), &tmpfmt);
         ast_set_read_format((*pbxDstChannel), &tmpfmt);
         ast_set_write_format((*pbxDstChannel), &tmpfmt);
 
