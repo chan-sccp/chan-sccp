@@ -923,12 +923,13 @@ static boolean_t sccp_wrapper_asterisk111_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	pbx_do_masquerade(pbxTmpChannel);
 
 	// when returning from bridge, the channel will continue at the next priority
-	ast_explicit_goto(pbxTmpChannel, pbx_channel_context(pbxTmpChannel), pbx_channel_exten(pbxTmpChannel), pbx_channel_priority(pbxTmpChannel) + 1);
+//	ast_explicit_goto(pbxTmpChannel, pbx_channel_context(pbxTmpChannel), pbx_channel_exten(pbxTmpChannel), pbx_channel_priority(pbxTmpChannel) + 1);
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk111_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel)
 {
+	struct ast_format tmpfmt;
 	if (!pbxSrcChannel) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
@@ -941,9 +942,16 @@ static boolean_t sccp_wrapper_asterisk111_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	}
 		
 	ast_channel_lock(pbxSrcChannel);
-	ast_set_read_format((*pbxDstChannel), ast_channel_readformat(pbxSrcChannel));
-	ast_set_write_format((*pbxDstChannel), ast_channel_writeformat(pbxSrcChannel));
-//	ast_channel_tech_pvt_set((*pbxDstChannel), pbxSrcChannel);						// do not copy the tech_pvt
+
+        if (ast_format_cap_is_empty(pbxSrcChannel->nativeformats)) {
+        	ast_format_set(&tmpfmt, AST_FORMAT_ULAW, 0);
+        } else {
+                ast_best_codec(pbxSrcChannel->nativeformats, &tmpfmt);
+        }
+        ast_format_cap_add((*pbxDstChannel)->nativeformats, &tmpfmt);
+        ast_set_read_format((*pbxDstChannel), &tmpfmt);
+        ast_set_write_format((*pbxDstChannel), &tmpfmt);
+
 	ast_channel_context_set((*pbxDstChannel), ast_channel_context(pbxSrcChannel));
 	ast_channel_exten_set((*pbxDstChannel), ast_channel_exten(pbxSrcChannel));
 	ast_channel_priority_set((*pbxDstChannel), ast_channel_priority(pbxSrcChannel));
