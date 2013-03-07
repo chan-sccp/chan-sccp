@@ -25,6 +25,19 @@
  * You will find some background information to the sources provided by us. Please follow one of the following 
  * Links
  * 
- * \ref hint_update How does hint update work
+ * Sccp Config / Reload:
+ * ---------------------
+ * - \ref sccp_config
+ * .
+ * 
+ * Sccp Hint Handling:
+ * -------------------
+ * - \ref hint_update
+ * .
+ *
+ * Refcounting:
+ * -----------------------
+ * - \ref sccp_refcount  
+ * .
  *
  **/
