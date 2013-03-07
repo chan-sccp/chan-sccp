@@ -34,6 +34,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 #    define NEWCONST const							// old functions used without const
 #    define OLDCONST								// new function used with const
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #    define CLI_AMI_OUTPUT(fd, s, ...) 										\
 	if (NULL != s) {											\
 		astman_append(s, __VA_ARGS__);									\
@@ -182,4 +183,5 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 			default: return CLI_FAILURE;								\
 		}												\
 	};
+#endif                                                                          /* DOXYGEN_SHOULD_SKIP_THIS */
 #endif										/* SCCP_AST108_H_ */
