@@ -40,7 +40,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
 void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start);
 
 /*!
- * \brief
+ * \brief Start Conference Module
  */
 void sccp_conference_module_start(void)
 {
@@ -48,7 +48,7 @@ void sccp_conference_module_start(void)
 }
 
 /*
- * refcount destroy functions 
+ * \brief Cleanup after conference refcount goes to zero (refcount destroy)
  */
 static void __sccp_conference_destroy(sccp_conference_t * conference)
 {
@@ -77,6 +77,9 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 	return;
 }
 
+/*
+ * \brief Cleanup after participant refcount goes to zero (refcount destroy)
+ */
 static void __sccp_conference_participant_destroy(sccp_conference_participant_t * participant)
 {
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying participant %d %p\n", participant->conference->id, participant->id, participant);
@@ -99,6 +102,8 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 	return;
 }
 
+
+/* ============================================================================================================================ Conference Functions === */
 /*!
  * \brief Create a new conference on sccp_channel_t 
  */
@@ -205,8 +210,12 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 	return participant;
 }
 
-/* Using a bit of a trick to get at the ast_bridge_channel, there is no remote function provided by asterisk */
-/* should we use asterisk ref / unref for the bridge_channel reference */
+/*! 
+ * \brief Connect ConfBridge Channels to Participants
+ *
+ * \note Using a bit of a trick to get at the ast_bridge_channel, there is no remote function provided by asterisk
+ * \note should we use asterisk ref / unref for the bridge_channel reference
+ */
 static void sccp_conference_connect_bridge_channels_to_participants(sccp_conference_t * conference)
 {
 	struct ast_bridge_channel *bridge_channel = NULL;
@@ -224,7 +233,9 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 }
 
 /*!
- * \brief Create a new channel and masquerade the bridge peer into the conference
+ * \brief Allocate a temp channel(participant->conferenceBridgePeer) to take the place of the participant_ast_channel in the old channel bridge (masquerade). 
+ * The resulting "bridge-free" participant_ast_channel can then be inserted into the conference
+ * The temp channel will be hungup
  */
 static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_channel, sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
@@ -233,7 +244,6 @@ static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Creation of Temp Channel Failed. Exiting.\n", conference->id);
 			return 0;
 		}
-
 		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
 			PBX(requestHangup) (participant->conferenceBridgePeer);
@@ -241,6 +251,8 @@ static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_
 			participant_ast_channel = ast_channel_unref(participant_ast_channel);
 #endif
 		}
+//		PBX(requestHangup) (participant_ast_channel);
+		
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			PBX(requestHangup) (participant->conferenceBridgePeer);
 			return 0;
@@ -299,7 +311,10 @@ static void sccp_conference_update_callInfo(sccp_conference_participant_t * part
 	}
 }
 
-/* has to be moved to pbx_impl */
+/*!
+ * \brief Used to set the ConferenceId and ParticipantId on the pbx channel for outside use
+ * \todo Has to be moved to pbx_impl 
+ */
 void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_name, int intvalue)
 {
 	char valuestr[8] = "";
@@ -310,7 +325,7 @@ void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_n
 }
 
 /*!
- * \brief Take the channel bridge peer and add it to the conference (used for the channels on hold)
+ * \brief Take the channel bridge peer and add it to the conference. (used for the bridge peer channels which are on hold on the moderators phone)
  */
 void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
@@ -333,7 +348,7 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 			}
 			// if peer is sccp then retain peer_sccp_channel
 			participant->channel = get_sccp_channel_from_pbx_channel(participant_ast_channel);
-			
+
 			if (sccp_conference_masqueradeChannel(participant_ast_channel, conference, participant)) {
 				sccp_conference_addParticipant_toList(conference, participant);
 				if (participant->channel) {
@@ -361,7 +376,7 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 }
 
 /*!
- * \brief Add both the channel->owner and the brige peer to the conference
+ * \brief Add both the channel->owner and the brige peer to the conference (used for the active channel on the moderator phone)
  */
 void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
@@ -497,6 +512,7 @@ static void *sccp_conference_thread(void *data)
 
 /*!
  * \brief Remote function to Remove a participantChannel from a conference
+ * \todo To be implemented (if necessary)
  */
 void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel)
 {
@@ -546,6 +562,11 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference = sccp_conference_release(conference);
 }
 
+
+/* ========================================================================================================================== Conference Hold/Resume === */
+/*!
+ * \brief Handle putting on hold a conference
+ */
 void sccp_conference_hold(sccp_conference_t * conference) 
 {
 	sccp_conference_participant_t *participant = NULL;	
@@ -567,6 +588,9 @@ void sccp_conference_hold(sccp_conference_t * conference)
 	}
 }
 
+/*!
+ * \brief Handle resuming a conference
+ */
 void sccp_conference_resume(sccp_conference_t * conference) 
 {
 	sccp_conference_participant_t *participant = NULL;	
@@ -588,6 +612,10 @@ void sccp_conference_resume(sccp_conference_t * conference)
 	}
 }
 
+/* =============================================================================================================== Playback to Conference/Participant === */
+/*!
+ * \brief This helper-function is used to playback either a file or number sequence
+ */
 static int stream_and_wait(PBX_CHANNEL_TYPE * playback_channel, const char *filename, int say_number)
 {
 	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
@@ -606,6 +634,9 @@ static int stream_and_wait(PBX_CHANNEL_TYPE * playback_channel, const char *file
 	return 1;
 }
 
+/*!
+ * \brief This function is used to playback either a file or number sequence to a specific participant only
+ */
 int playback_to_channel(sccp_conference_participant_t * participant, const char *filename, int say_number)
 {
 	int res = 0;
@@ -627,6 +658,7 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 	}
 	return res;
 }
+
 
 /*!
  * \brief This function is used to playback either a file or number sequence to all conference participants. Used for announcing
@@ -700,7 +732,10 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	return res;
 }
 
-/* conf list related */
+/* ============================================================================================================================= List Find Functions === */
+/*!
+ * \brief Find conference by ID
+ */
 sccp_conference_t *sccp_conference_findByID(uint32_t identifier)
 {
 	sccp_conference_t *conference = NULL;
@@ -719,6 +754,9 @@ sccp_conference_t *sccp_conference_findByID(uint32_t identifier)
 	return conference;
 }
 
+/*!
+ * \brief Find participant by ID
+ */
 sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_conference_t * conference, uint32_t identifier)
 {
 	sccp_conference_participant_t *participant = NULL;
@@ -737,6 +775,9 @@ sccp_conference_participant_t *sccp_conference_participant_findByID(sccp_confere
 	return participant;
 }
 
+/*!
+ * \brief Find participant by sccp channel
+ */
 sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 	sccp_conference_participant_t *participant = NULL;
@@ -755,6 +796,9 @@ sccp_conference_participant_t *sccp_conference_participant_findByChannel(sccp_co
 	return participant;
 }
 
+/*!
+ * \brief Find participant by PBX channel
+ */
 sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE * channel)
 {
 	sccp_conference_participant_t *participant = NULL;
@@ -773,6 +817,11 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
 	return participant;
 }
 
+/* ======================================================================================================================== ConfList (XML) Functions === */
+
+/*!
+ * \brief Show ConfList
+ */
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * c)
 {
 	int use_icon = 0;
@@ -948,6 +997,9 @@ exit_function:
 	channel = channel ? sccp_channel_release(channel) : NULL;
 }
 
+/*!
+ * \brief Update ConfList on all phones displaying the list
+ */
 static void sccp_conference_update_conflist(sccp_conference_t * conference)
 {
 	sccp_conference_participant_t *participant = NULL;
@@ -970,6 +1022,9 @@ static void sccp_conference_update_conflist(sccp_conference_t * conference)
 	SCCP_LIST_UNLOCK(&conference->participants);
 }
 
+/*!
+ * \brief Handle ButtonPresses from ConfList
+ */
 void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID)
 {
 	sccp_conference_t *conference = NULL;
@@ -1021,6 +1076,9 @@ EXIT:
 	conference = conference ? sccp_conference_release(conference) : NULL;
 }
 
+/*!
+ * \brief Kick Participant out of the conference
+ */
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	participant->pendingRemoval = TRUE;
@@ -1029,6 +1087,9 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	sccp_conference_update_conflist(conference);
 }
 
+/*!
+ * \brief Toggle Conference Lock
+ */
 void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	conference->isLocked = (!conference->isLocked ? 1 : 0);
@@ -1036,6 +1097,9 @@ void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp
 	sccp_conference_update_conflist(conference);
 }
 
+/*!
+ * \brief Toggle Participant Mute Status
+ */
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	sccp_device_t *d = NULL;
@@ -1066,6 +1130,9 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	sccp_conference_update_conflist(conference);
 }
 
+/*!
+ * \brief Toggle Music on Hold to a specific participant
+ */
 void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start)
 {
 	sccp_device_t *d = NULL;	
@@ -1102,19 +1169,35 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
 	sccp_conference_update_conflist(conference);
 }
 
+/*!
+ * \brief Promote Participant to Moderator
+ *
+ * \todo To Be Implemented
+ */
 void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 }
 
+/*!
+ * \brief Demote from Moderator to standard Participant
+ *
+ * \todo To Be Implemented
+ */
 void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 }
 
+/*!
+ * \brief Invite a new participant (XML function)
+ * usage: enter a phone number via conflist menu, number will be dialed and included into the conference without any further action
+ *
+ * \todo To Be Implemented
+ */
 void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel)
 {
 }
 
-/* CLI Functions */
+/* =================================================================================================================================== CLI Functions === */
 #include <asterisk/cli.h>
 /*!
  * \brief Complete Conference
