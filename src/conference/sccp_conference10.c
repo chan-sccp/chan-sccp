@@ -352,7 +352,6 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 				participant = sccp_participant_release(participant);
 			}
 			d = d ? sccp_device_release(d) : NULL;
-			sccp_channel_release(channel);	/* release the moderator side */
 			participant_ast_channel = ast_channel_unref(participant_ast_channel);
 		}
 	} else {
