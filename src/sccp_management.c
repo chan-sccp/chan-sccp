@@ -1,23 +1,23 @@
 
 /*!
- * \file 	sccp_management.c
- * \brief 	SCCP Management Class
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \file        sccp_management.c
+ * \brief       SCCP Management Class
+ * \author      Marcello Ceschia <marcello [at] ceschia.de>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  * 
  * $Date: 2010-11-22 14:09:28 +0100 (Mon, 22 Nov 2010) $
  * $Revision: 2174 $  
  */
 #include <config.h>
 #ifdef CS_SCCP_MANAGER
-#    include "common.h"
+#include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2174 $")
 
-/*!
- * \brief Show Device Description
- */
+    /*!
+     * \brief Show Device Description
+     */
 static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 
 /*!
@@ -63,14 +63,14 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m);
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m);
 
-#    if HAVE_PBX_MANAGER_HOOK_H
+#if HAVE_PBX_MANAGER_HOOK_H
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content);
 
 static struct manager_custom_hook sccp_manager_hook = {
 	.file = "chan_sccp",
 	.helper = sccp_asterisk_managerHookHelper,
 };
-#    endif
+#endif
 
 /*!
  * \brief Register management commands
@@ -80,11 +80,11 @@ int sccp_register_management(void)
 	int result = 0;
 
 	/* Register manager commands */
-#    if ASTERISK_VERSION_NUMBER < 10600
-#        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
-#    else
-#        define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
-#    endif
+#if ASTERISK_VERSION_NUMBER < 10600
+#define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG
+#else
+#define _MAN_FLAGS	EVENT_FLAG_SYSTEM | EVENT_FLAG_CONFIG | EVENT_FLAG_REPORTING
+#endif
 
 	result = pbx_manager_register("SCCPListDevices", _MAN_FLAGS, sccp_manager_show_devices, "List SCCP devices (text format)", management_show_devices_desc);
 	result |= pbx_manager_register("SCCPListLines", _MAN_FLAGS, sccp_manager_show_lines, "List SCCP lines (text format)", management_show_lines_desc);
@@ -97,11 +97,11 @@ int sccp_register_management(void)
 	result |= pbx_manager_register("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", "");	//!< \todo add description for ami
 	result |= pbx_manager_register("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", "");	//!< \todo add description for ami
 	result |= pbx_manager_register("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata", management_fetch_config_metadata_desc);
-#    undef _MAN_FLAGS
+#undef _MAN_FLAGS
 
-#    if HAVE_PBX_MANAGER_HOOK_H
+#if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_register_hook(&sccp_manager_hook);
-#    endif
+#endif
 
 	return result;
 }
@@ -123,9 +123,9 @@ int sccp_unregister_management(void)
 	result |= pbx_manager_unregister("SCCPHangupCall");
 	result |= pbx_manager_unregister("SCCPHoldCall");
 	result |= pbx_manager_unregister("SCCPConfigMetaData");
-#    if HAVE_PBX_MANAGER_HOOK_H
+#if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_unregister_hook(&sccp_manager_hook);
-#    endif
+#endif
 
 	return result;
 }
@@ -142,7 +142,7 @@ void sccp_manager_module_start()
  * \brief stop manager-module
  *
  * \lock
- * 	- sccp_hint_subscriptions
+ *      - sccp_hint_subscriptions
  */
 void sccp_manager_module_stop()
 {
@@ -206,7 +206,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
  * \called_from_asterisk
  * 
  * \lock
- * 	- devices
+ *      - devices
  */
 int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
@@ -255,7 +255,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
  * \called_from_asterisk
  * 
  * \lock
- * 	- lines
+ *      - lines
  */
 int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
@@ -297,7 +297,7 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
-//      sccp_list_t     *hintList = NULL;
+	//      sccp_list_t     *hintList = NULL;
 	sccp_device_t *d;
 	const char *fn = astman_get_header(m, "Devicename");
 	const char *type = astman_get_header(m, "Type");
@@ -551,7 +551,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *)number, SKINNY_CALLTYPE_OUTBOUND, NULL);
+	channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	astman_send_ack(s, m, "Call Started");
 	line = sccp_line_release(line);
 	d = sccp_device_release(d);
@@ -624,7 +624,6 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 		astman_send_error(s, m, "Call not found.");
 		return 0;
 	}
-
 	//astman_append(s, "Hangup call '%s'\r\n", channelId);
 	sccp_channel_endcall(c);
 	astman_send_ack(s, m, "Call was hungup");
@@ -666,7 +665,6 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 			c = sccp_channel_release(c);
 			return 0;
 		}
-
 		//astman_append(s, "remove channel '%s' from hold\n", channelId);
 		sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 
@@ -687,7 +685,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	return 0;
 }
 
-#    if HAVE_PBX_MANAGER_HOOK_H
+#if HAVE_PBX_MANAGER_HOOK_H
 
 /**
  * parse string from management hook to struct message
@@ -700,7 +698,7 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 
 	curlen = strlen(str);
 	for (x = 0; x < curlen; x++) {
-		int cr;								/* set if we have \r */
+		int cr;												/* set if we have \r */
 
 		if (str[x] == '\r' && x + 1 < curlen && str[x + 1] == '\n')
 			cr = 2;											/* Found. Update length to include \r\n */
@@ -769,6 +767,6 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	}
 	return 0;
 }
-#    endif									/* HAVE_PBX_MANAGER_HOOK_H */
+#endif														/* HAVE_PBX_MANAGER_HOOK_H */
 
-#endif										/* CS_SCCP_MANAGER */
+#endif														/* CS_SCCP_MANAGER */

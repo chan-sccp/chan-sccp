@@ -1,67 +1,67 @@
 /*!
- * \file 	sccp_conference.h
- * \brief 	SCCP Conference Header
+ * \file        sccp_conference.h
+ * \brief       SCCP Conference Header
  * \author
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  * 
  * $Date$
  * $Revision$  
  */
 
 #ifndef SCCP_CONFERENCE_H_
-#    define SCCP_CONFERENCE_H_
+#define SCCP_CONFERENCE_H_
 
-#    ifdef CS_SCCP_CONFERENCE
+#ifdef CS_SCCP_CONFERENCE
 
-#        if defined(__cplusplus) || defined(c_plusplus)
+#if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
-#        endif
+#endif
 
-#        include "asterisk/bridging.h"
-#        include "asterisk/bridging_features.h"
+#include "asterisk/bridging.h"
+#include "asterisk/bridging_features.h"
 
-//	typedef struct sccp_conference sccp_conference_t;			/*!< SCCP Conference Structure */
-	typedef struct sccp_conference_participant sccp_conference_participant_t;	/*!< SCCP Conference Participant Structure */
+	//      typedef struct sccp_conference sccp_conference_t;                       /*!< SCCP Conference Structure */
+	typedef struct sccp_conference_participant sccp_conference_participant_t;				/*!< SCCP Conference Participant Structure */
 
-/* structures */
+	/* structures */
 	struct sccp_conference {
-		ast_mutex_t lock;						/*!< mutex */
-		uint32_t id;							/*!< conference id */
-		struct ast_bridge *bridge;					/*!< Shared Ast_Bridge used by this conference */
-		int num_moderators;						/*!< Number of moderators for this conference */
-		boolean_t finishing;						/*!< Indicates the conference is closing down */
-		boolean_t isLocked;						/*!< Indicates that no new participants are allowed */
+		ast_mutex_t lock;										/*!< mutex */
+		uint32_t id;											/*!< conference id */
+		struct ast_bridge *bridge;									/*!< Shared Ast_Bridge used by this conference */
+		int num_moderators;										/*!< Number of moderators for this conference */
+		boolean_t finishing;										/*!< Indicates the conference is closing down */
+		boolean_t isLocked;										/*!< Indicates that no new participants are allowed */
 		boolean_t isOnHold;
-		PBX_CHANNEL_TYPE *playback_channel;				/*!< Channel to playback sound file on */
-		ast_mutex_t playback_lock;					/*!< Mutex Lock for playing back sound files */
-		char playback_language[SCCP_MAX_LANGUAGE];			/*!< Language to be used during playback */
-		boolean_t mute_on_entry;					/*!< Mute new participant when they enter the conference */
-		boolean_t playback_announcements;				/*!< general hear announcements */
-		const char *linkedid;						/*!< Conference LinkedId */
+		PBX_CHANNEL_TYPE *playback_channel;								/*!< Channel to playback sound file on */
+		ast_mutex_t playback_lock;									/*!< Mutex Lock for playing back sound files */
+		char playback_language[SCCP_MAX_LANGUAGE];							/*!< Language to be used during playback */
+		boolean_t mute_on_entry;									/*!< Mute new participant when they enter the conference */
+		boolean_t playback_announcements;								/*!< general hear announcements */
+		const char *linkedid;										/*!< Conference LinkedId */
 
-		SCCP_LIST_HEAD(, sccp_conference_participant_t) participants;	/*!< participants in conference */
-		SCCP_LIST_ENTRY(sccp_conference_t) list;			/*!< Linked List Entry */
+		SCCP_LIST_HEAD (, sccp_conference_participant_t) participants;					/*!< participants in conference */
+		SCCP_LIST_ENTRY (sccp_conference_t) list;							/*!< Linked List Entry */
 	};
 
 	struct sccp_conference_participant {
-		boolean_t pendingRemoval;					/*!< Pending Removal */
-		uint32_t id;							/*!< Numeric participant id. */
-		sccp_channel_t *channel;					/*!< sccp channel, non-null if the participant resides on an SCCP device */
-		PBX_CHANNEL_TYPE *conferenceBridgePeer;				/*!< the asterisk channel which joins the conference bridge */
-		struct ast_bridge_channel *bridge_channel;			/*!< Adterisk Conference Bridge Channel */
-		struct ast_bridge_features features;				/*!< Enabled features information */
-		pthread_t joinThread;						/*!< Running in this Thread */
-		sccp_conference_t *conference;					/*!< Conference this participant belongs to */
+		boolean_t pendingRemoval;									/*!< Pending Removal */
+		uint32_t id;											/*!< Numeric participant id. */
+		sccp_channel_t *channel;									/*!< sccp channel, non-null if the participant resides on an SCCP device */
+		PBX_CHANNEL_TYPE *conferenceBridgePeer;								/*!< the asterisk channel which joins the conference bridge */
+		struct ast_bridge_channel *bridge_channel;							/*!< Adterisk Conference Bridge Channel */
+		struct ast_bridge_features features;								/*!< Enabled features information */
+		pthread_t joinThread;										/*!< Running in this Thread */
+		sccp_conference_t *conference;									/*!< Conference this participant belongs to */
 		boolean_t isModerator;
-		boolean_t isMuted;						/*!< Participant is Muted */
-		boolean_t onMusicOnHold;					/*!< Participant is listening to Music on Hold */
-		boolean_t playback_announcements;				/*!< Does the Participant want to hear announcements */
+		boolean_t isMuted;										/*!< Participant is Muted */
+		boolean_t onMusicOnHold;									/*!< Participant is listening to Music on Hold */
+		boolean_t playback_announcements;								/*!< Does the Participant want to hear announcements */
 
-		SCCP_LIST_ENTRY(sccp_conference_participant_t) list;		/*!< Linked List Entry */
+		SCCP_LIST_ENTRY (sccp_conference_participant_t) list;						/*!< Linked List Entry */
 	};
 
-/* prototype definition */
+	/* prototype definition */
 
 	void sccp_conference_module_start(void);
 	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
@@ -89,9 +89,9 @@ extern "C" {
 	int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 	int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 	int sccp_cli_conference_end(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
-	
-#       if defined(__cplusplus) || defined(c_plusplus)
+
+#if defined(__cplusplus) || defined(c_plusplus)
 }
-#       endif
-#    endif									/* CS_SCCP_CONFERENCE */
-#endif										/* SCCP_CONFERENCE_H_ */
+#endif
+#endif														/* CS_SCCP_CONFERENCE */
+#endif														/* SCCP_CONFERENCE_H_ */

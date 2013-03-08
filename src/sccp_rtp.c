@@ -1,13 +1,13 @@
 
 /*!
- * \file 	sccp_rtp.c
- * \brief 	SCCP RTP Class
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note		Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
- * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \file        sccp_rtp.c
+ * \brief       SCCP RTP Class
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note                Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -18,10 +18,10 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-/*!
- * \brief create a new rtp server for audio data
- * \param c SCCP Channel
- */
+    /*!
+     * \brief create a new rtp server for audio data
+     * \param c SCCP Channel
+     */
 int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 {
 	boolean_t rtpResult = FALSE;
@@ -48,7 +48,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	}
 
 	device = sccp_channel_getDevice_retained(c);
-//      PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
+	//      PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 	device = device ? sccp_device_release(device) : NULL;
 
 	return rtpResult;
@@ -154,10 +154,10 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 
-/*		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
-			// return;
-		}*/
+		/*              if (socket_equals(new_peer, &c->rtp.audio.phone)) {
+		   sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
+		   // return;
+		   } */
 
 		memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
 
@@ -166,11 +166,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 			PBX(rtp_setPeer) (rtp, new_peer, device->nat);
 		}
 		// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(device), 
-					pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port),
-					pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), 
-					device->nat ? "yes" : "no"
-				);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(device), pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port), pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), device->nat ? "yes" : "no");
 
 		device = sccp_device_release(device);
 	}
@@ -286,7 +282,7 @@ boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_in **new_pee
 /*!
  * \brief Get Video Peer
  */
-boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_in ** new_peer)
+boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_in **new_peer)
 {
 	*new_peer = &c->rtp.audio.phone_remote;
 	return TRUE;
@@ -295,14 +291,14 @@ boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_in ** new_pe
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getUs(const struct sccp_rtp * rtp, struct sockaddr_in * us)
+boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_in *us)
 {
 	if (rtp->rtp) {
 		PBX(rtp_getUs) (rtp->rtp, us);
 		return TRUE;
 	} else {
-		us = (struct sockaddr_in *)&rtp->phone_remote;
-//              return FALSE;
+		us = (struct sockaddr_in *) &rtp->phone_remote;
+		//              return FALSE;
 		return TRUE;
 	}
 }
@@ -310,7 +306,7 @@ boolean_t sccp_rtp_getUs(const struct sccp_rtp * rtp, struct sockaddr_in * us)
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getPeer(const struct sccp_rtp * rtp, struct sockaddr_in * them)
+boolean_t sccp_rtp_getPeer(const struct sccp_rtp *rtp, struct sockaddr_in *them)
 {
 	if (rtp->rtp) {
 		PBX(rtp_getPeer) (rtp->rtp, them);

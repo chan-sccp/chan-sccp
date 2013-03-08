@@ -403,7 +403,7 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
     /*!
      * \brief Show Devices
@@ -480,7 +480,7 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
     /*!
      * \brief Show Device
@@ -767,7 +767,7 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
     /*!
      * \brief Show Lines
@@ -924,7 +924,7 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
     /*!
      * \brief Show Line
@@ -1066,7 +1066,7 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
     /*!
      * \brief Show Channels
@@ -1150,7 +1150,7 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
     /*!
      * \brief Show Sessions
@@ -1225,7 +1225,7 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
     // sccp_show_mwi_subscriptions implementation moved to sccp_mwi.c, because of access to private struct
 static char cli_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n" "	Show All SCCP MWI Subscriptions.\n";
@@ -1241,7 +1241,7 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
     /* ---------------------------------------------------------------------------------------------CONFERENCE FUNCTIONS- */
 #ifdef CS_SCCP_CONFERENCE
@@ -1258,7 +1258,7 @@ CLI_AMI_ENTRY(show_conferences, sccp_cli_show_conferences, "List running SCCP Co
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 static char cli_conference_usage[] = "Usage: sccp show conference\n" "       Lists running SCCP conference.\n";
 static char ami_conference_usage[] = "Usage: SCCPShowConference\n" "Lists running SCCP conference.\n\n" "PARAMS: ConferenceId\n";
 
@@ -1272,7 +1272,7 @@ CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conf
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 static char cli_conference_end_usage[] = "Usage: sccp conference end [conference_id]\n" "	Conference end [conference_id].\n";
 static char ami_conference_end_usage[] = "Usage: SCCPConfEnd [conference id]\n" "End Conference.\n\n" "PARAMS: ConferenceId\n";
 
@@ -1286,7 +1286,7 @@ CLI_AMI_ENTRY(conference_end, sccp_cli_conference_end, "Conference End", cli_con
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif
     /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
 #define NUM_LOOPS 20
@@ -1540,7 +1540,7 @@ static char cli_test_message_usage[] = "Usage: sccp test message [message_name]\
 CLI_ENTRY(cli_test_message, sccp_test_message, "Test a Message", cli_test_message_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
     /*!
      * \brief Print Refcount Hash Table
@@ -1568,7 +1568,7 @@ static char cli_show_refcount_usage[] = "Usage: sccp show refcount [sortorder]\n
 CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refcount_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														//defined(DEBUG) || defined(CS_EXPERIMENTAL)
     /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
     /*!
@@ -1639,7 +1639,7 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
     /*!
      * \brief Message Devices
@@ -1713,7 +1713,7 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
     /*!
      * \brief Message Device
@@ -1765,7 +1765,7 @@ static char message_device_usage[] = "Usage: sccp message device <deviceId> <mes
 CLI_ENTRY(cli_message_device, sccp_message_device, "Send a message to SCCP Device", message_device_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
     /*!
      * \brief System Message
@@ -1838,7 +1838,7 @@ static char system_message_usage[] = "Usage: sccp system message <message text> 
 CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", system_message_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -----------------------------------------------------------------------------------------------------DND DEVICE- */
     /*!
      * \brief Message Device
@@ -1879,7 +1879,7 @@ static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a d
 CLI_ENTRY(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device", dnd_device_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
     /*!
      * \brief Remove Line From Device
@@ -1906,7 +1906,7 @@ static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID
 CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a line from device", remove_line_from_device_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
     /*!
      * \brief Add Line To Device
@@ -1954,7 +1954,7 @@ static char add_line_to_device_usage[] = "Usage: sccp add line <deviceID> <lineI
 CLI_ENTRY(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a device", add_line_to_device_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
     /*!
      * \brief Do Debug
@@ -1993,7 +1993,7 @@ static char do_debug_usage[] = "Usage: SCCP debug [no] <level or categories>\n" 
 CLI_ENTRY(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usage, TRUE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
     /*!
      * \brief No Debug
@@ -2022,7 +2022,7 @@ static char no_debug_usage[] = "Usage: SCCP no debug\n" "       Disables dumping
 CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------------RELOAD- */
     /*!
      * \brief Do Reload
@@ -2119,7 +2119,7 @@ static char reload_usage[] = "Usage: SCCP reload [filename]\n" "       Reloads S
 CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /*!
      * \brief Generare sccp.conf
      * \param fd Fd as int
@@ -2166,7 +2166,7 @@ static char config_generate_usage[] = "Usage: SCCP config generate [filename]\n"
 CLI_ENTRY(cli_config_generate, sccp_cli_config_generate, "Generate a SCCP configuration file", config_generate_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
     /*!
      * \brief Show Version
@@ -2191,7 +2191,7 @@ static char show_version_usage[] = "Usage: SCCP show version\n" "       Show SCC
 CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show_version_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
     /*!
      * \brief Reset/Restart
@@ -2264,7 +2264,7 @@ static char reset_usage[] = "Usage: SCCP reset\n" "       sccp reset <deviceId> 
 CLI_ENTRY(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* -------------------------------------------------------------------------------------------------------------RESTART- */
 static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <deviceId>\n";
 
@@ -2274,7 +2274,7 @@ static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <devi
 CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
     /*!
      * \brief Unregister
@@ -2328,7 +2328,7 @@ static char unregister_usage[] = "Usage: SCCP unregister <deviceId>\n" "       U
 CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregister_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------------START CALL- */
     /*!
      * \brief Start Call
@@ -2391,7 +2391,7 @@ static char start_call_usage[] = "Usage: sccp call <deviceId> <phone_number>\n" 
 CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------------SET HOLD- */
     /*!
      * \brief Set Channel on Hold
@@ -2452,7 +2452,7 @@ static char set_hold_usage[] = "Usage: sccp set hold <channelId> <on/off>\n" "Se
 CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
     /*!
      * \brief Answer a Remote Channel
@@ -2509,7 +2509,7 @@ static char remote_answer_usage[] = "Usage: sccp answer <channelId>\n" "Answer a
 CLI_ENTRY(cli_remote_answer, sccp_remote_answer, "Answer a ringing/incoming channel", remote_answer_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --------------------------------------------------------------------------------------------------------------END CALL- */
     /*!
      * \brief End a Call (on a Channel)
@@ -2558,7 +2558,7 @@ static char end_call_usage[] = "Usage: sccp onhook <channelId>\n" "Hangup a chan
 CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* ---------------------------------------------------------------------------------------------------------------------- TOKEN - */
     /*!
      * \brief Send Token Ack to device(s)
@@ -2624,7 +2624,7 @@ CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif /* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
     /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
     /*!
      * \brief Asterisk Cli Entry

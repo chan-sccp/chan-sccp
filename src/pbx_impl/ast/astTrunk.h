@@ -1,26 +1,26 @@
 /*!
- * \file 	astTrunk.h
- * \brief 	SCCP PBX Asterisk Header
- * \author 	Marcello Ceshia
- * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \file        astTrunk.h
+ * \brief       SCCP PBX Asterisk Header
+ * \author      Marcello Ceshia
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
  */
 
 #ifndef SCCP_AST_MAJOR_H_
-#    define SCCP_AST_MAJOR_H_
+#define SCCP_AST_MAJOR_H_
 
-#    include <config.h>
-#    include "../../common.h"
+#include <config.h>
+#include "../../common.h"
 
-#    undef pbx_channel_ref
-#    define pbx_channel_ref ast_channel_unref
-#    undef pbx_channel_unref
-#    define pbx_channel_unref ast_channel_unref
-#    define sccp_sched_context_destroy sched_context_destroy
+#undef pbx_channel_ref
+#define pbx_channel_ref ast_channel_unref
+#undef pbx_channel_unref
+#define pbx_channel_unref ast_channel_unref
+#define sccp_sched_context_destroy sched_context_destroy
 
 typedef struct ast_format_cap ast_format_t;
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
@@ -31,86 +31,86 @@ const char *pbx_getformatname(const struct ast_format *format);
 char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *format);
 
 /* Redefinitions for asterisk-trunk, need to be sorted  */
-#    define pbx_channel_name(x) ast_channel_name(x)
+#define pbx_channel_name(x) ast_channel_name(x)
 
-#    undef pbx_channel_uniqueid
-#    undef pbx_channel_flags
-#    undef pbx_channel_call_forward
-#    undef pbx_channel_appl
-#    undef pbx_channel_state
-#    undef pbx_channel_pbx
-#    undef pbx_channel_hangupcause
-#    undef pbx_channel_set_hangupcause
-#    undef pbx_channel_softhangup
-#    undef pbx_channel_context
-#    undef pbx_channel_nativeformats
-#    undef pbx_channel_exten
-#    undef pbx_channel_priority
-#    undef pbx_channel_macroexten
-#    undef pbx_channel_macrocontext
-#    undef pbx_channel_dialcontext
-#    undef pbx_channel_callgroup
-#    undef pbx_channel_masq
-#    undef pbx_channel_setwhentohangup_tv
-#    undef pbx_channel_blocker
-#    undef pbx_channel_blockproc
-#    undef pbx_channel_tech
-#    undef pbx_channel_bridge
-#    undef pbx_channel_set_bridge
-#    undef pbx_channel_language
-#    undef pbx_channel_cdr
-#    undef pbx_channel_call_forward_set
-#    undef pbx_channel_varshead
-#    undef pbx_channel_redirecting_effective_from
-#    undef pbx_channel_redirecting_effective_to
+#undef pbx_channel_uniqueid
+#undef pbx_channel_flags
+#undef pbx_channel_call_forward
+#undef pbx_channel_appl
+#undef pbx_channel_state
+#undef pbx_channel_pbx
+#undef pbx_channel_hangupcause
+#undef pbx_channel_set_hangupcause
+#undef pbx_channel_softhangup
+#undef pbx_channel_context
+#undef pbx_channel_nativeformats
+#undef pbx_channel_exten
+#undef pbx_channel_priority
+#undef pbx_channel_macroexten
+#undef pbx_channel_macrocontext
+#undef pbx_channel_dialcontext
+#undef pbx_channel_callgroup
+#undef pbx_channel_masq
+#undef pbx_channel_setwhentohangup_tv
+#undef pbx_channel_blocker
+#undef pbx_channel_blockproc
+#undef pbx_channel_tech
+#undef pbx_channel_bridge
+#undef pbx_channel_set_bridge
+#undef pbx_channel_language
+#undef pbx_channel_cdr
+#undef pbx_channel_call_forward_set
+#undef pbx_channel_varshead
+#undef pbx_channel_redirecting_effective_from
+#undef pbx_channel_redirecting_effective_to
 
-#    define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
-#    define pbx_channel_flags(_a) ast_channel_flags(_a)
-#    define pbx_channel_call_forward(_a) ast_channel_call_forward(_a)
-#    define pbx_channel_appl(_a) ast_channel_appl(_a)
-#    define pbx_channel_state(_a) ast_channel_state(_a)
-#    define pbx_channel_pbx(_a) ast_channel_pbx(_a)
-#    define pbx_channel_hangupcause(_a) ast_channel_hangupcause(_a)
-#    define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
-#    define pbx_channel_softhangup(_a) ast_channel_softhangup_internal_flag(_a)
-#    define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
-#    define pbx_channel_context(_a) ast_channel_context(_a)
-#    define pbx_channel_nativeformats(_a) ast_channel_nativeformats(_a)
-#    define pbx_channel_exten(_a) ast_channel_exten(_a)
-#    define pbx_channel_priority(_a) ast_channel_priority(_a)
-#    define pbx_channel_macroexten(_a) ast_channel_macroexten(_a)
-#    define pbx_channel_macrocontext(_a) ast_channel_macrocontext(_a)
-#    define pbx_channel_dialcontext(_a) ast_channel_dialcontext(_a)
-#    define pbx_channel_callgroup(_a) ast_channel_callgroup(_a)
-#    define pbx_channel_masq(_a) ast_channel_masq(_a)
-#    define pbx_channel_setwhentohangup_tv(_a, _b) ast_channel_setwhentohangup_tv(_a, _b)
-#    define pbx_channel_blocker(_a) ast_channel_blocker(_a)
-#    define pbx_channel_blockproc(_a) ast_channel_blockproc(_a)
-#    define pbx_channel_tech(_a) ast_channel_tech(_a)
-#    define pbx_channel_bridge(_a) ast_channel_bridge(_a)
-#    define pbx_channel_set_bridge(_a, _b) ast_channel_internal_bridge_set(_a, _b)
-#    define pbx_channel_language(_a) ast_channel_language(_a)
-#    define pbx_channel_cdr(_a) ast_channel_cdr(_a)
-#    define pbx_channel_call_forward_set ast_channel_call_forward_set
-#    define pbx_channel_varshead(_a) ast_channel_varshead(_a)
-#    define pbx_channel_redirecting_effective_from(_a) ast_channel_redirecting_effective_from(_a)
-#    define pbx_channel_redirecting_effective_to(_a) ast_channel_redirecting_effective_to(_a)
+#define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
+#define pbx_channel_flags(_a) ast_channel_flags(_a)
+#define pbx_channel_call_forward(_a) ast_channel_call_forward(_a)
+#define pbx_channel_appl(_a) ast_channel_appl(_a)
+#define pbx_channel_state(_a) ast_channel_state(_a)
+#define pbx_channel_pbx(_a) ast_channel_pbx(_a)
+#define pbx_channel_hangupcause(_a) ast_channel_hangupcause(_a)
+#define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
+#define pbx_channel_softhangup(_a) ast_channel_softhangup_internal_flag(_a)
+#define pbx_channel_set_hangupcause(_a, _b) ast_channel_hangupcause_set(_a, _b)
+#define pbx_channel_context(_a) ast_channel_context(_a)
+#define pbx_channel_nativeformats(_a) ast_channel_nativeformats(_a)
+#define pbx_channel_exten(_a) ast_channel_exten(_a)
+#define pbx_channel_priority(_a) ast_channel_priority(_a)
+#define pbx_channel_macroexten(_a) ast_channel_macroexten(_a)
+#define pbx_channel_macrocontext(_a) ast_channel_macrocontext(_a)
+#define pbx_channel_dialcontext(_a) ast_channel_dialcontext(_a)
+#define pbx_channel_callgroup(_a) ast_channel_callgroup(_a)
+#define pbx_channel_masq(_a) ast_channel_masq(_a)
+#define pbx_channel_setwhentohangup_tv(_a, _b) ast_channel_setwhentohangup_tv(_a, _b)
+#define pbx_channel_blocker(_a) ast_channel_blocker(_a)
+#define pbx_channel_blockproc(_a) ast_channel_blockproc(_a)
+#define pbx_channel_tech(_a) ast_channel_tech(_a)
+#define pbx_channel_bridge(_a) ast_channel_bridge(_a)
+#define pbx_channel_set_bridge(_a, _b) ast_channel_internal_bridge_set(_a, _b)
+#define pbx_channel_language(_a) ast_channel_language(_a)
+#define pbx_channel_cdr(_a) ast_channel_cdr(_a)
+#define pbx_channel_call_forward_set ast_channel_call_forward_set
+#define pbx_channel_varshead(_a) ast_channel_varshead(_a)
+#define pbx_channel_redirecting_effective_from(_a) ast_channel_redirecting_effective_from(_a)
+#define pbx_channel_redirecting_effective_to(_a) ast_channel_redirecting_effective_to(_a)
 
-int pbx_manager_register(const char *action, int authority, int (*func)(struct mansession *s, const struct message *m), const char *synopsis, const char *description);
+int pbx_manager_register(const char *action, int authority, int (*func) (struct mansession * s, const struct message * m), const char *synopsis, const char *description);
 
-#    undef CS_AST_CHANNEL_PVT
-#    undef CS_AST_CHANNEL_PVT_TYPE
-#    undef CS_AST_CHANNEL_PVT_CMP_TYPE
+#undef CS_AST_CHANNEL_PVT
+#undef CS_AST_CHANNEL_PVT_TYPE
+#undef CS_AST_CHANNEL_PVT_CMP_TYPE
 
-#    define CS_AST_CHANNEL_PVT(_a) ((sccp_channel_t*)ast_channel_tech_pvt(_a))
-#    define CS_AST_CHANNEL_PVT_TYPE(_a) ast_channel_tech(_a)->type
-#    define CS_AST_CHANNEL_PVT_CMP_TYPE(_a,_b) !strncasecmp(CS_AST_CHANNEL_PVT_TYPE(_a), _b, strlen(_b))
+#define CS_AST_CHANNEL_PVT(_a) ((sccp_channel_t*)ast_channel_tech_pvt(_a))
+#define CS_AST_CHANNEL_PVT_TYPE(_a) ast_channel_tech(_a)->type
+#define CS_AST_CHANNEL_PVT_CMP_TYPE(_a,_b) !strncasecmp(CS_AST_CHANNEL_PVT_TYPE(_a), _b, strlen(_b))
 
-#    define NEWCONST const							// old functions used without const
-#    define OLDCONST								// new function used with const
+#define NEWCONST const												// old functions used without const
+#define OLDCONST												// new function used with const
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#    define CLI_AMI_OUTPUT(fd, s, ...) 										\
+#define CLI_AMI_OUTPUT(fd, s, ...) 										\
 	if (NULL != s) {											\
 		astman_append(s, __VA_ARGS__);									\
 		local_total++;											\
@@ -118,7 +118,7 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 		ast_cli(fd, __VA_ARGS__);									\
 	}
 
-#    define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) 							\
+#define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) 							\
 	if (NULL != s) {											\
 		astman_append(s, "%s: " fmt "\r\n", param, __VA_ARGS__);					\
 		local_total++;											\
@@ -126,7 +126,7 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 		ast_cli(fd, "%-*.*s %s " fmt "\n", width, width, param, ":", __VA_ARGS__);			\
 	}
 
-#    define CLI_AMI_OUTPUT_BOOL(param, width, value) 								\
+#define CLI_AMI_OUTPUT_BOOL(param, width, value) 								\
 	if (NULL != s) {											\
 		astman_append(s, "%s: %s\r\n", param, ((value) ? "on" : "off"));				\
 		local_total++;											\
@@ -134,7 +134,7 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "on" : "off")); 		\
 	}
 
-#    define CLI_AMI_OUTPUT_YES_NO(param, width, value) 								\
+#define CLI_AMI_OUTPUT_YES_NO(param, width, value) 								\
 	if (NULL != s) {											\
 		astman_append(s, "%s: %s\r\n", param, ((value) ? "yes" : "no"));				\
 		local_total++;											\
@@ -142,7 +142,7 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
 
-#    define CLI_AMI_ERROR(fd, s, m, fmt, ...) 									\
+#define CLI_AMI_ERROR(fd, s, m, fmt, ...) 									\
 /*	pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						*/\
 	if (NULL != s) {											\
 		astman_send_error(s, m, fmt);									\
@@ -158,7 +158,7 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)			\
+#define CLI_AMI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)			\
 	static int manager_ ## _FUNCTION_NAME(struct mansession *s, const struct message *m)			\
 	{													\
 		const char *id = astman_get_header(m, "ActionID");						\
@@ -227,7 +227,7 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 			default: return CLI_FAILURE;								\
 		}												\
 	};
-#    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
+#define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE, _COMPLETER_REPEAT)				\
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
 		const char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
@@ -256,5 +256,5 @@ int pbx_manager_register(const char *action, int authority, int (*func)(struct m
 			default: return CLI_FAILURE;								\
 		}												\
 	};
-#endif                                                                          /* DOXYGEN_SHOULD_SKIP_THIS */
-#endif										/* SCCP_AST108_H_ */
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+#endif														/* SCCP_AST108_H_ */

@@ -1,15 +1,15 @@
 /*!
- * \file 	sccp_rtp.h
- * \brief 	SCCP RTP Header
- * \author 	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \file        sccp_rtp.h
+ * \brief       SCCP RTP Header
+ * \author      Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
  */
 #ifndef __SCCP_RTP_H
-#    define __SCCP_RTP_H
+#define __SCCP_RTP_H
 
 typedef enum {
 	SCCP_RTP_INFO_NORTP = 0,
@@ -33,4 +33,4 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_
 boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_in *us);
 boolean_t sccp_rtp_getPeer(const struct sccp_rtp *rtp, struct sockaddr_in *us);
 
-#endif										// __SCCP_RTP_H
+#endif														// __SCCP_RTP_H

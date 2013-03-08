@@ -1,20 +1,20 @@
 /*!
- * \file 	sccp_utils.h
- * \brief 	SCCP Utils Header
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file        sccp_utils.h
+ * \brief       SCCP Utils Header
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
  */
 #ifndef __SCCP_UTILS_H
-#    define __SCCP_UTILS_H
+#define __SCCP_UTILS_H
 
-#    define sccp_strdupa(s)                                               \
+#define sccp_strdupa(s)                                               \
         (__extension__                                                    \
         ({                                                                \
                 const char *__old = (s);                                  \
@@ -23,9 +23,9 @@
                 memcpy (__new, __old, __len);                             \
                 __new;                                                    \
         }))
-#    ifndef strdupa
-#        define strdupa sccp_strdupa
-#    endif
+#ifndef strdupa
+#define strdupa sccp_strdupa
+#endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
 
@@ -43,88 +43,88 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
 
 // find device
-#    if DEBUG
-#        define sccp_device_find_byid(_x,_y) __sccp_device_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#if DEBUG
+#define sccp_device_find_byid(_x,_y) __sccp_device_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_device_t *__sccp_device_find_byid(const char *name, boolean_t useRealtime, const char *filename, int lineno, const char *func);
 
-#        define sccp_device_find_byname(_x) __sccp_device_find_byid(_x)
-#        ifdef CS_SCCP_REALTIME
-#            define sccp_device_find_realtime(_x) __sccp_device_find_realtime(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define sccp_device_find_byname(_x) __sccp_device_find_byid(_x)
+#ifdef CS_SCCP_REALTIME
+#define sccp_device_find_realtime(_x) __sccp_device_find_realtime(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_device_t *__sccp_device_find_realtime(const char *name, const char *filename, int lineno, const char *func);
 
-#            define sccp_device_find_realtime_byid(_x) sccp_device_find_realtime(_x)
-#            define sccp_device_find_realtime_byname(_x) sccp_device_find_realtime(_x)
-#        endif
-#    else
+#define sccp_device_find_realtime_byid(_x) sccp_device_find_realtime(_x)
+#define sccp_device_find_realtime_byname(_x) sccp_device_find_realtime(_x)
+#endif
+#else
 sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime);
 
-#        define sccp_device_find_byname(x) sccp_device_find_byid(x)
-#        ifdef CS_SCCP_REALTIME
+#define sccp_device_find_byname(x) sccp_device_find_byid(x)
+#ifdef CS_SCCP_REALTIME
 sccp_device_t *sccp_device_find_realtime(const char *name);
 
-#            define sccp_device_find_realtime_byid(x) sccp_device_find_realtime(x)
-#            define sccp_device_find_realtime_byname(x) sccp_device_find_realtime(x)
-#        endif
-#    endif
+#define sccp_device_find_realtime_byid(x) sccp_device_find_realtime(x)
+#define sccp_device_find_realtime_byname(x) sccp_device_find_realtime(x)
+#endif
+#endif
 
 // find line
-#    if DEBUG
-#        define sccp_line_find_byname_wo(_x,_y) __sccp_line_find_byname_wo(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#if DEBUG
+#define sccp_line_find_byname_wo(_x,_y) __sccp_line_find_byname_wo(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_byname_wo(const char *name, uint8_t realtime, const char *filename, int lineno, const char *func);
 
-#        define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const char *filename, int lineno, const char *func);
 
-#        ifdef CS_SCCP_REALTIME
-#            define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
-#            define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#ifdef CS_SCCP_REALTIME
+#define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
+#define sccp_line_find_realtime_byname(_x) __sccp_line_find_realtime_byname(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
-#        else
-#            define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
-#        endif
-#    else
+#else
+#define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
+#endif
+#else
 sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t realtime);
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance);
 
-#        ifdef CS_SCCP_REALTIME
-#            define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
+#ifdef CS_SCCP_REALTIME
+#define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
 sccp_line_t *sccp_line_find_realtime_byname(const char *name);
-#        else
-#            define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
-#        endif
-#    endif
+#else
+#define sccp_line_find_byname(x) sccp_line_find_byname_wo(x, 1)
+#endif
+#endif
 
 // find channel
-#    if DEBUG
-#        define sccp_find_channel_on_line_byid(_x,_y) __sccp_find_channel_on_line_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#if DEBUG
+#define sccp_find_channel_on_line_byid(_x,_y) __sccp_find_channel_on_line_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id, const char *filename, int lineno, const char *func);
 
-#        define sccp_channel_find_byid(_x) __sccp_channel_find_byid(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define sccp_channel_find_byid(_x) __sccp_channel_find_byid(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_channel_find_byid(uint32_t id, const char *filename, int lineno, const char *func);
 
-#        define sccp_channel_find_bypassthrupartyid(_x) __sccp_channel_find_bypassthrupartyid(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define sccp_channel_find_bypassthrupartyid(_x) __sccp_channel_find_bypassthrupartyid(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid, const char *filename, int lineno, const char *func);
 
-#        define sccp_channel_find_bystate_on_line(_x,_y) __sccp_channel_find_bystate_on_line(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define sccp_channel_find_bystate_on_line(_x,_y) __sccp_channel_find_bystate_on_line(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state, const char *filename, int lineno, const char *func);
 
-#        define sccp_channel_find_bystate_on_device(_x,_y) __sccp_channel_find_bystate_on_device(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define sccp_channel_find_bystate_on_device(_x,_y) __sccp_channel_find_bystate_on_device(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state, const char *filename, int lineno, const char *func);
-#    else
+#else
 sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id);
 sccp_channel_t *sccp_channel_find_byid(uint32_t id);
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state);
-#    endif
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t *d, uint32_t passthrupartyid);
+#endif
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid);
 
 void sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
 
 void sccp_dev_dbclean(void);
 
-#    define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
+#define _ARR2STR(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
         for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
@@ -135,7 +135,7 @@ void sccp_dev_dbclean(void);
         pbx_log(LOG_ERROR, "_ARR2STR Lookup Failed for " #arrayname "." #lookup_var "=%i\n", lookup_val); \
         return ""; \
         })
-#    define _STRARR2INT(arrayname, lookup_var, lookup_val, return_var) \
+#define _STRARR2INT(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
         for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
@@ -146,7 +146,7 @@ void sccp_dev_dbclean(void);
         pbx_log(LOG_ERROR, "_STRARR2INT Lookup Failed for " #arrayname "." #lookup_var "=%s\n", lookup_val); \
         return 0; \
         })
-#    define _RETURNALLKEYS(_array,_key) 							\
+#define _RETURNALLKEYS(_array,_key) 							\
 ({										\
 	uint32_t i;								\
 	char *res = NULL;							\
@@ -169,7 +169,7 @@ void sccp_dev_dbclean(void);
 	return (const char *)res;						\
 })
 
-#    define _ARR2INT(arrayname, lookup_var, lookup_val, return_var) \
+#define _ARR2INT(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
         for (i = 0; i < ARRAY_LEN(arrayname); i++) { \
@@ -228,16 +228,16 @@ const char *sccp_channel_toString(sccp_channel_t * c);
 
 struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength);
 
-#    ifndef CS_AST_HAS_STRINGS
+#ifndef CS_AST_HAS_STRINGS
 char *pbx_skip_blanks(char *str);
 char *pbx_trim_blanks(char *str);
 char *pbx_skip_nonblanks(char *str);
 char *pbx_strip(char *s);
-#    endif
+#endif
 
-#    ifndef CS_AST_HAS_APP_SEPARATE_ARGS
+#ifndef CS_AST_HAS_APP_SEPARATE_ARGS
 unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arraylen);
-#    endif
+#endif
 
 void sccp_util_featureStorageBackend(const sccp_event_t * e);
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
@@ -245,13 +245,14 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin);
 
-#    if ASTERISK_VERSION_NUMBER >= 10600
-#        ifdef HAVE_PBX_DEVICESTATE_H
+#if ASTERISK_VERSION_NUMBER >= 10600
+#ifdef HAVE_PBX_DEVICESTATE_H
 enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state);
-#        endif
-#    endif
+#endif
+#endif
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
+
 #define sccp_linedevice_find(_x,_y) __sccp_linedevice_find(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
@@ -260,15 +261,15 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 char **explode(const char *str, const char *sep);
 boolean_t implode(char *str[], char *sep, char **res);
 
-#    ifdef HAVE_LIBGC
+#ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
-#    endif
+#endif
 int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
 size_t sccp_strlen(const char *data);
 boolean_t sccp_strlen_zero(const char *data);
 boolean_t sccp_strequals(const char *data1, const char *data2);
 boolean_t sccp_strcaseequals(const char *data1, const char *data2);
-int sccp_strIsNumeric (const char *s);
+int sccp_strIsNumeric(const char *s);
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
 
 void sccp_free_ha(struct sccp_ha *ha);

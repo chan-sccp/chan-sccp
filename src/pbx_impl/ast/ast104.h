@@ -1,25 +1,25 @@
 /*!
- * \file 	ast104.h
- * \brief 	SCCP PBX Asterisk Header
- * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \file        ast104.h
+ * \brief       SCCP PBX Asterisk Header
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
  */
 #ifndef SCCP_AST_MAJOR_H_
-#    define SCCP_AST_MAJOR_H_
+#define SCCP_AST_MAJOR_H_
 
-#    include <config.h>
-#    include "../../common.h"
+#include <config.h>
+#include "../../common.h"
 
-#    define sccp_sched_context_destroy sched_context_destroy
+#define sccp_sched_context_destroy sched_context_destroy
 
 typedef int ast_format_t;
 
-#    define NEWCONST								// old functions used without const
-#    define OLDCONST const							// new function used with const
+#define NEWCONST												// old functions used without const
+#define OLDCONST const												// new function used with const
 
 struct ast_hashtab {
 };
@@ -59,7 +59,7 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny
 //   param3=cli string to be types as array of strings
 //   param4=registration description
 //   param5=usage string
-#    define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)	\
+#define CLI_ENTRY_COMPLETE(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE,_COMPLETER)	\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
 	  .cmda = { CLI_COMMAND },								\
 	  .handler = _CALLED_FUNCTION,								\
@@ -67,7 +67,7 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny
 	  .usage = _USAGE,									\
 	  .generator = _COMPLETER								\
 	};
-#    define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)			\
+#define CLI_ENTRY(_FUNCTION_NAME,_CALLED_FUNCTION,_DESCR,_USAGE)			\
 	static struct ast_cli_entry _FUNCTION_NAME = {						\
 	  .cmda = { CLI_COMMAND },								\
 	  .handler = _CALLED_FUNCTION,								\
@@ -76,4 +76,4 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny
 	};
 // END CLI_ENTRY
 
-#endif										/* SCCP_ASTERISK19_PBX_H_ */
+#endif														/* SCCP_ASTERISK19_PBX_H_ */

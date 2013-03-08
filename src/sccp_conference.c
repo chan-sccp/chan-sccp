@@ -102,7 +102,6 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 	return;
 }
 
-
 /* ============================================================================================================================ Conference Functions === */
 /*!
  * \brief Create a new conference on sccp_channel_t 
@@ -130,16 +129,16 @@ sccp_conference_t *sccp_conference_create(sccp_channel_t * conferenceCreatorChan
 	conference->finishing = FALSE;
 	conference->isLocked = FALSE;
 	conference->isOnHold = FALSE;
-	conference->linkedid = PBX(getChannelLinkedId)(conferenceCreatorChannel);
+	conference->linkedid = PBX(getChannelLinkedId) (conferenceCreatorChannel);
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 
-//	bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;				/* bridge_multiplexed */
-	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;				/* bridge_softmix */
-	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;			/* bridge_softmix */
+	//      bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;                             /* bridge_multiplexed */
+	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;							/* bridge_softmix */
+	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;						/* bridge_softmix */
 #ifdef CS_SCCP_VIDEO
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_VIDEO;
 #endif
-	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be more complex then necessary*/
+	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be more complex then necessary */
 	// conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_SMART);
 	// conference->bridge = pbx_bridge_new(bridgeCapabilities, AST_BRIDGE_FLAG_DISSOLVE);
 	conference->bridge = pbx_bridge_new(bridgeCapabilities, 0);
@@ -251,8 +250,8 @@ static int sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_
 			participant_ast_channel = ast_channel_unref(participant_ast_channel);
 #endif
 		}
-//		PBX(requestHangup) (participant_ast_channel);
-		
+		//              PBX(requestHangup) (participant_ast_channel);
+
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			PBX(requestHangup) (participant->conferenceBridgePeer);
 			return 0;
@@ -355,7 +354,7 @@ void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_ch
 					participant->channel->conference = sccp_conference_retain(conference);
 					participant->channel->conference_id = conference->id;
 					participant->channel->conference_participant_id = participant->id;
-					PBX(setChannelLinkedId)(participant->channel, conference->linkedid);
+					PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
 					sccp_conference_update_callInfo(participant);
 				}
 				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
@@ -387,11 +386,12 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 
 		if (moderator) {
 			PBX_CHANNEL_TYPE *moderator_ast_channel = NULL;
+
 			moderator_ast_channel = ast_channel_ref(channel->owner);
- 
+
 			// Lock moderator channel so it does not vanish during masquaration
 			pbx_channel_lock(moderator_ast_channel);
- 
+
 			// handle participant first (channel->owner->bridge side)
 			sccp_conference_splitOffParticipant(conference, channel);
 
@@ -410,7 +410,7 @@ void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * confer
 						moderator->channel->conference = sccp_conference_retain(conference);
 						moderator->channel->conference_id = conference->id;
 						moderator->channel->conference_participant_id = moderator->id;
-						PBX(setChannelLinkedId)(moderator->channel, conference->linkedid);
+						PBX(setChannelLinkedId) (moderator->channel, conference->linkedid);
 						sccp_conference_update_callInfo(moderator);
 					}
 					sccp_copy_string(conference->playback_language, pbx_channel_language(moderator->conferenceBridgePeer), sizeof(conference->playback_language));
@@ -562,38 +562,39 @@ void sccp_conference_end(sccp_conference_t * conference)
 	conference = sccp_conference_release(conference);
 }
 
-
 /* ========================================================================================================================== Conference Hold/Resume === */
 /*!
  * \brief Handle putting on hold a conference
  */
-void sccp_conference_hold(sccp_conference_t * conference) 
+void sccp_conference_hold(sccp_conference_t * conference)
 {
-	sccp_conference_participant_t *participant = NULL;	
+	sccp_conference_participant_t *participant = NULL;
+
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Putting conference on hold.\n", conference->id);
 	if (!conference) {
 		return;
 	}
-	
+
 	/* play music on hold to participants, if there is no moderator, currently active to the conference */
-	if (!conference->isOnHold && conference->num_moderators==1) {
+	if (!conference->isOnHold && conference->num_moderators == 1) {
 		SCCP_LIST_LOCK(&conference->participants);
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
-				sccp_conference_play_music_on_hold_to_participant (conference, participant, TRUE);
+				sccp_conference_play_music_on_hold_to_participant(conference, participant, TRUE);
 			}
-		}	
+		}
 		SCCP_LIST_UNLOCK(&conference->participants);
-		conference->isOnHold=TRUE;
+		conference->isOnHold = TRUE;
 	}
 }
 
 /*!
  * \brief Handle resuming a conference
  */
-void sccp_conference_resume(sccp_conference_t * conference) 
+void sccp_conference_resume(sccp_conference_t * conference)
 {
-	sccp_conference_participant_t *participant = NULL;	
+	sccp_conference_participant_t *participant = NULL;
+
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Resuming conference.\n", conference->id);
 	if (!conference) {
 		return;
@@ -604,11 +605,11 @@ void sccp_conference_resume(sccp_conference_t * conference)
 		SCCP_LIST_LOCK(&conference->participants);
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
-				sccp_conference_play_music_on_hold_to_participant (conference, participant, FALSE);
+				sccp_conference_play_music_on_hold_to_participant(conference, participant, FALSE);
 			}
-		}	
+		}
 		SCCP_LIST_UNLOCK(&conference->participants);
-		conference->isOnHold=TRUE;
+		conference->isOnHold = TRUE;
 	}
 }
 
@@ -658,7 +659,6 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 	}
 	return res;
 }
-
 
 /*!
  * \brief This function is used to playback either a file or number sequence to all conference participants. Used for announcing
@@ -1135,34 +1135,35 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
  */
 void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start)
 {
-	sccp_device_t *d = NULL;	
+	sccp_device_t *d = NULL;
+
 	if (!participant->channel) {
-		return;	
+		return;
 	}
 	if ((d = sccp_channel_getDevice_retained(participant->channel))) {
 		if (start) {
 			if (participant->onMusicOnHold == FALSE) {
 				if (!sccp_strlen_zero(d->conf_music_on_hold_class)) {
-					PBX(moh_start)(participant->conferenceBridgePeer, d->conf_music_on_hold_class, NULL);
+					PBX(moh_start) (participant->conferenceBridgePeer, d->conf_music_on_hold_class, NULL);
 					participant->onMusicOnHold = TRUE;
-//					pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
+					//                                      pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
 				} else {
 					sccp_conference_toggle_mute_participant(conference, participant);
 				}
-			}		
-		} else {		
+			}
+		} else {
 			if ((d = sccp_channel_getDevice_retained(participant->channel))) {
 				if (!sccp_strlen_zero(d->conf_music_on_hold_class)) {
 					if (!ast_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
-						PBX(moh_stop)(participant->conferenceBridgePeer);
-//						pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
+						PBX(moh_stop) (participant->conferenceBridgePeer);
+						//                                              pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
 						ast_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
 						participant->onMusicOnHold = FALSE;
 					}
 				} else {
 					sccp_conference_toggle_mute_participant(conference, participant);
 				}
-			}	
+			}
 		}
 		d = sccp_device_release(d);
 	}

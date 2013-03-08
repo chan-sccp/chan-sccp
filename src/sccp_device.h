@@ -1,27 +1,27 @@
 /*!
- * \file 	sccp_device.h
- * \brief 	SCCP Device Header
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file        sccp_device.h
+ * \brief       SCCP Device Header
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
  */
 
 #ifndef __SCCP_DEVICE_H
-#    define __SCCP_DEVICE_H
+#define __SCCP_DEVICE_H
 
-#    ifdef CS_DYNAMIC_CONFIG
+#ifdef CS_DYNAMIC_CONFIG
 void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
-#    endif
+#endif
 
-#    define sccp_device_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_device_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_device_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_device_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /*!
  * \brief SCCP Device Indication Callback Structure
@@ -57,10 +57,10 @@ void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uin
 void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid);
 void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid);
 
-#    define sccp_dev_display(p,q) sccp_dev_display_debug(p, q, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_dev_displayprompt(p, q, r, s, t) sccp_dev_displayprompt_debug(p, q, r, s, t, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_dev_displaynotify(p,q,r) sccp_dev_displaynotify_debug(p,q,r, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_dev_displayprinotify(p,q,r,s) sccp_dev_displayprinotify_debug(p,q,r,s,__FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_dev_display(p,q) sccp_dev_display_debug(p, q, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_dev_displayprompt(p, q, r, s, t) sccp_dev_displayprompt_debug(p, q, r, s, t, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_dev_displaynotify(p,q,r) sccp_dev_displaynotify_debug(p,q,r, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_dev_displayprinotify(p,q,r,s) sccp_dev_displayprinotify_debug(p,q,r,s,__FILE__, __LINE__, __PRETTY_FUNCTION__)
 void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char *file, const int lineno, const char *pretty_function);
 void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineInstance, const uint32_t callid, const char *msg, int timeout, const char *file, const int lineno, const char *pretty_function);
 void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
@@ -68,7 +68,7 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
 void sccp_dev_cleardisplaynotify(const sccp_device_t * d);
 void sccp_dev_cleardisplayprinotify(const sccp_device_t * d);
 
-void sccp_dev_speed_find_byindex(sccp_device_t *d, uint16_t instance, uint8_t type, sccp_speed_t *k);
+void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type, sccp_speed_t * k);
 sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d);
 void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l);
 
@@ -94,8 +94,8 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t * device);
 
 uint8_t sccp_device_numberOfChannels(const sccp_device_t * device);
 
-#    define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
-#    define REQCMD(x,y) x = sccp_build_packet(y, 0)
+#define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
+#define REQCMD(x,y) x = sccp_build_packet(y, 0)
 
 void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid);
 boolean_t sccp_device_check_update(sccp_device_t * d);
@@ -106,4 +106,4 @@ void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb);
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message);
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority);
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
-#endif										/* __SCCP_DEVICE_H */
+#endif														/* __SCCP_DEVICE_H */

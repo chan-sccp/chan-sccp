@@ -1,18 +1,18 @@
 /*!
- * \file 	sccp_config.h
- * \brief 	SCCP Config Header
- * \author 	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file        sccp_config.h
+ * \brief       SCCP Config Header
+ * \author      Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  * 
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
 #ifndef __SCCP_CONFIG_H
-#    define __SCCP_CONFIG_H
+#define __SCCP_CONFIG_H
 
 /*!
  * \brief Enum for Config Value Change Status
@@ -44,9 +44,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
  * \brief Soft Key Configuration Template Structure
  */
 typedef struct {
-	const char configVar[50];						/*!< Config Variable as Character */
-	const int softkey;							/*!< Softkey as Int */
-} softkeyConfigurationTemplate;							/*!< Soft Key Configuration Template Structure */
+	const char configVar[50];										/*!< Config Variable as Character */
+	const int softkey;											/*!< Softkey as Int */
+} softkeyConfigurationTemplate;											/*!< Soft Key Configuration Template Structure */
 
 static const softkeyConfigurationTemplate softKeyTemplate[] = {
 /* *INDENT-OFF* */

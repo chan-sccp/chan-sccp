@@ -1,22 +1,22 @@
 
 /*!
- * \file 	sccp_featureButton.c
- * \brief 	SCCP FeatureButton Class
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \since 	2009-06-15
+ * \file        sccp_featureButton.c
+ * \brief       SCCP FeatureButton Class
+ * \author      Marcello Ceschia <marcello [at] ceschia.de>
+ * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2009-06-15
  *
  * $Date$
  * $Revision$
  */
 
 /*!
- * \remarks	Purpose: 	SCCP FeatureButton
- * 		When to use:	Only methods directly related to the phone featureButtons should be stored in this source file.
+ * \remarks     Purpose:        SCCP FeatureButton
+ *              When to use:    Only methods directly related to the phone featureButtons should be stored in this source file.
  *                              FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial
  *                              buttons on the right side of the display.
- *   		Relationships: 	Call SCCP Features
+ *              Relationships:  Call SCCP Features
  *
  */
 
@@ -25,23 +25,23 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-/*!
- * \brief Feature Button Changed
- *
- * fetch the new state, and send status to device
- *
- * \param device SCCP Device
- * \param featureType SCCP Feature Type
- * 
- * \warning
- * 	- device->buttonconfig is not always locked
- *
- * \lock
- * 	- device->buttonconfig
- * 	  - see sccp_line_find_byname_wo()
- * 	  - see sccp_linedevice_find()
- * 	  - see sccp_dev_send()
- */
+    /*!
+     * \brief Feature Button Changed
+     *
+     * fetch the new state, and send status to device
+     *
+     * \param device SCCP Device
+     * \param featureType SCCP Feature Type
+     * 
+     * \warning
+     *      - device->buttonconfig is not always locked
+     *
+     * \lock
+     *      - device->buttonconfig
+     *        - see sccp_line_find_byname_wo()
+     *        - see sccp_linedevice_find()
+     *        - see sccp_dev_send()
+     */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	sccp_moo_t *featureMessage = NULL;
@@ -49,7 +49,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_line_t *line;
 	uint8_t instance = 0;
-	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;				// Default feature type.
+	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;								// Default feature type.
 	boolean_t lineFound = FALSE;
 
 #ifdef CS_DEVSTATE_FEATURE
@@ -97,8 +97,8 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 						if (buttonconfig->type == LINE) {
 
 							// Check if line and line device exists and thus forward status on that device can be checked
-							if ( (line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE)) ) {
-								if ( (linedevice = sccp_linedevice_find(device, line)) ) {
+							if ((line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))) {
+								if ((linedevice = sccp_linedevice_find(device, line))) {
 
 									sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
@@ -298,7 +298,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	sccp_device_t *device;
 	size_t len = strlen("Custom:");
 
-//      char *sspecifier = 0;
+	//      char *sspecifier = 0;
 	const char *dev;
 
 	if (!data || !ast_event)
@@ -324,7 +324,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	   In the future we might need a more elegant hint-registry for this type of notification,
 	   which should be global to chan-sccp-b, not for each device. For now, this suffices. */
 	if (!strncasecmp(dev, "Custom:", len)) {
-//              sspecifier = (char *)(dev + len);
+		//              sspecifier = (char *)(dev + len);
 		sccp_featButton_changed(device, SCCP_FEATURE_DEVSTATE);
 	}
 }

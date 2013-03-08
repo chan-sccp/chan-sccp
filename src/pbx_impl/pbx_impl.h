@@ -12,19 +12,19 @@
  * $Revision: 2044 $  
  */
 #ifndef __PBX_IMPL_H
-#    define __PBX_IMPL_H
+#define __PBX_IMPL_H
 
-#    include <config.h>
-#    include "../common.h"
+#include <config.h>
+#include "../common.h"
 
-#    ifdef HAVE_ASTERISK
-#        include "ast/ast.h"
-#    endif
-#    ifdef HAVE_CALLWEAVER
-#        include "cw/cw.h"
-#    endif
+#ifdef HAVE_ASTERISK
+#include "ast/ast.h"
+#endif
+#ifdef HAVE_CALLWEAVER
+#include "cw/cw.h"
+#endif
 
-#    define PBX_BRIDGE_TYPE struct ast_bridge
+#define PBX_BRIDGE_TYPE struct ast_bridge
 
 /*!
  * \brief SCCP PBX Callback function

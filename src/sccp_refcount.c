@@ -148,6 +148,7 @@ int sccp_refcount_schedule_cleanup(const void *data)
 {
 	return 0;
 }
+
 void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
 {
 	RefCountedObject *obj;
@@ -161,8 +162,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 
 	if (!(&obj_info[type])->destructor) {
 		(&obj_info[type])->destructor = destructor;
-	}		
-
+	}
 	// initialize object    
 	obj->len = size;
 	obj->type = type;
@@ -200,11 +200,12 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	obj->alive = SCCP_LIVE_MARKER;
 
 #if CS_REFCOUNT_DEBUG
-	FILE *refo = fopen(REF_FILE, "a");	
-        if (refo) {
-        	fprintf(refo, "%p =1   %s:%d:%s (allocate new %s, len: %d, destructor: %p) [%p]\n", obj, __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, (int)obj->len, (&obj_info[type])->destructor, ptr);
-                fclose(refo);
-        }
+	FILE *refo = fopen(REF_FILE, "a");
+
+	if (refo) {
+		fprintf(refo, "%p =1   %s:%d:%s (allocate new %s, len: %d, destructor: %p) [%p]\n", obj, __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, (int) obj->len, (&obj_info[type])->destructor, ptr);
+		fclose(refo);
+	}
 #endif
 
 	memset(ptr, 0, size);
@@ -212,53 +213,57 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 }
 
 #if CS_REFCOUNT_DEBUG
-int __sccp_refcount_debug(void *ptr, RefCountedObject *obj, int delta, const char *file, int line, const char *func)
+int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
 {
-        if (ptr == NULL) {
-                FILE *refo = fopen(REF_FILE, "a");
-                if (refo) {
-                        fprintf(refo, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
-                        fclose(refo);
-                }
-//                ast_assert(0);
-                return -1;
-        }
-        if (obj == NULL) {
-                FILE *refo = fopen(REF_FILE, "a");
-                if (refo) {
-                        fprintf(refo, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
-                        fclose(refo);
-                }
-//                ast_assert(0);
-                return -1;
-        }
+	if (ptr == NULL) {
+		FILE *refo = fopen(REF_FILE, "a");
 
-        if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
-                FILE *refo = fopen(REF_FILE, "a");
-                if (refo) {
-                        fprintf(refo, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-                        fclose(refo);
-                }
-//                ast_assert(0);
-                return -1;
-        }
+		if (refo) {
+			fprintf(refo, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
+			fclose(refo);
+		}
+		//                ast_assert(0);
+		return -1;
+	}
+	if (obj == NULL) {
+		FILE *refo = fopen(REF_FILE, "a");
 
-        if (delta != 0) {
-                FILE *refo = fopen(REF_FILE, "a");
-                if (refo) {
-                        fprintf(refo, "%p %s%d   %s:%d:%s (%s:%s) [@%d] [%p]\n", obj, (delta < 0 ? "" : "+"),
-                                delta, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-                        fclose(refo);
-                }
-        }
-        if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
-                FILE *refo = fopen(REF_FILE, "a");
-                if (refo) {
-                        fprintf(refo, "%p **call destructor** %s:%d:%s (%s:%s)\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
-                        fclose(refo);
-                }
-        }
-        return 0;
+		if (refo) {
+			fprintf(refo, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
+			fclose(refo);
+		}
+		//                ast_assert(0);
+		return -1;
+	}
+
+	if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
+		FILE *refo = fopen(REF_FILE, "a");
+
+		if (refo) {
+			fprintf(refo, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
+			fclose(refo);
+		}
+		//                ast_assert(0);
+		return -1;
+	}
+
+	if (delta != 0) {
+		FILE *refo = fopen(REF_FILE, "a");
+
+		if (refo) {
+			fprintf(refo, "%p %s%d   %s:%d:%s (%s:%s) [@%d] [%p]\n", obj, (delta < 0 ? "" : "+"), delta, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
+			fclose(refo);
+		}
+	}
+	if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
+		FILE *refo = fopen(REF_FILE, "a");
+
+		if (refo) {
+			fprintf(refo, "%p **call destructor** %s:%d:%s (%s:%s)\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
+			fclose(refo);
+		}
+	}
+	return 0;
 }
 #endif
 
@@ -281,7 +286,7 @@ static inline RefCountedObject *find_obj(const void *ptr, const char *filename, 
 				} else {
 #if CS_REFCOUNT_DEBUG
 					__sccp_refcount_debug((void *) ptr, obj, 0, filename, lineno, func);
-#endif					
+#endif
 					sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (find_obj) %p Already declared dead (hash: %d)\n", obj, hash);
 				}
 				break;
@@ -365,8 +370,6 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 	}
 }
 
-
-
 inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
@@ -377,10 +380,10 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
-	        refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
-        	newrefcountval = refcountval + 1;
-		
-		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) 
+		refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
+		newrefcountval = refcountval + 1;
+
+		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)))
 		    == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
 			ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
@@ -388,7 +391,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	} else {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
-#endif		
+#endif
 		ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF", (obj && obj->identifier) ? obj->identifier : "UNREF", obj);
 		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 		return NULL;
@@ -405,10 +408,10 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
-	        refcountval = ATOMIC_DECR((&obj->refcount), 1 ,&obj->lock);
-        	newrefcountval = refcountval -1;
+		refcountval = ATOMIC_DECR((&obj->refcount), 1, &obj->lock);
+		newrefcountval = refcountval - 1;
 		if (newrefcountval == 0) {
-			ATOMIC_DECR(&obj->alive,SCCP_LIVE_MARKER, &obj->lock);	
+			ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
 			sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s) (release) Finalizing %p (%p)\n", filename, lineno, func, obj, ptr);
 			remove_obj(ptr);
 		} else {
@@ -419,10 +422,9 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	} else {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, -1, filename, lineno, func);
-#endif		
+#endif
 		ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj && (&obj_info[obj->type])->datatype) ? (&obj_info[obj->type])->datatype : "UNREF", (obj && obj->identifier) ? obj->identifier : "UNREF", obj);
 		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
 	}
 	return NULL;
 }
-

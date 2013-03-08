@@ -146,7 +146,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	return SCCP_REQUEST_STATUS_SUCCESS;
 }
 
-
 /*!
  * \brief Local Function to check for Valid Session, Message and Device
  * \param s SCCP Session

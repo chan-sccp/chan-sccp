@@ -1,26 +1,26 @@
 /*!
- * \file 	sccp_features.h
- * \brief 	SCCP Features Header
- * \author 	Federico Santulli <fsantulli [at] users.sourceforge.net >
+ * \file        sccp_features.h
+ * \brief       SCCP Features Header
+ * \author      Federico Santulli <fsantulli [at] users.sourceforge.net >
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
- *		See the LICENSE file at the top of the source tree.
- * \since 	2009-01-16
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2009-01-16
  *
  * $Date$
  * $Revision$  
  */
 
 #ifndef __SCCP_FEATURES_H
-#    define __SCCP_FEATURES_H
+#define __SCCP_FEATURES_H
 
 // callforward
 void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8_t type);
 
-#    ifdef CS_SCCP_PICKUP
+#ifdef CS_SCCP_PICKUP
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d);
 int sccp_feat_directpickup(sccp_channel_t * c, char *exten);
 void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
-#    endif
+#endif
 void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c);
 void sccp_feat_updatecid(sccp_channel_t * c);
 void sccp_feat_meetme_start(sccp_channel_t * c);
@@ -38,4 +38,4 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 int sccp_feat_barge(sccp_channel_t * c, char *exten);
 void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum);
-#endif										/* __SCCP_FEATURES_H */
+#endif														/* __SCCP_FEATURES_H */

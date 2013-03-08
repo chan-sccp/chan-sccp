@@ -1,38 +1,38 @@
 /*!
- * \file 	sccp_threadpool.h
- * \brief 	SCCP Threadpool Header
- * \author 	Diederik de Groot < ddegroot@users.sourceforge.net >
+ * \file        sccp_threadpool.h
+ * \brief       SCCP Threadpool Header
+ * \author      Diederik de Groot < ddegroot@users.sourceforge.net >
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \note	Based on the work of Johan Hanssen Seferidis
- * 		Library providing a threading pool where you can add work. 
- * \since 	2009-01-16
+ *              See the LICENSE file at the top of the source tree.
+ * \note        Based on the work of Johan Hanssen Seferidis
+ *              Library providing a threading pool where you can add work. 
+ * \since       2009-01-16
  *
  * $Date: 2010-11-17 12:03:44 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2130 $  
  */
 #ifndef SCCP_THREADPOOL_H_
-#  define SCCP_THREADPOOL_H_
+#define SCCP_THREADPOOL_H_
 
-#    include <config.h>
-#    include "common.h"
+#include <config.h>
+#include "common.h"
 
-/* Description: 	Library providing a threading pool where you can add work on the fly. The number
- *              	of threads in the pool is adjustable when creating the pool. In most cases
- *              	this should equal the number of threads supported by your cpu.
+/* Description:         Library providing a threading pool where you can add work on the fly. The number
+ *                      of threads in the pool is adjustable when creating the pool. In most cases
+ *                      this should equal the number of threads supported by your cpu.
  *          
- *              	In this header file a detailed overview of the functions and the threadpool logical
- *              	scheme is present in case tweaking of the pool is needed. 
+ *                      In this header file a detailed overview of the functions and the threadpool logical
+ *                      scheme is present in case tweaking of the pool is needed. 
  * */
 
 /* 
  * Fast reminders:
  * 
- * tp  		        = threadpool 
+ * tp                   = threadpool 
  * sccp_threadpool      = threadpool
  * sccp_threadpool_t    = threadpool type
- * tp_p         	= threadpool pointer
- * xN           	= x can be any string. N stands for amount
+ * tp_p                 = threadpool pointer
+ * xN                   = x can be any string. N stands for amount
  * 
  * */
 
@@ -43,11 +43,11 @@
  *                      |   threadpool      | thread1 | thread2 | ..            |
  *                      \_______________________________________________________/
  *      
- * Description:       	Jobs are added to the job queue. Once a thread in the pool
- *                    	is idle, it is assigned with the first job from the queue(and
- *                    	erased from the queue). It's each thread's job to read from 
- *                    	the queue serially(using lock) and executing each job
- *                    	until the queue is empty.
+ * Description:         Jobs are added to the job queue. Once a thread in the pool
+ *                      is idle, it is assigned with the first job from the queue(and
+ *                      erased from the queue). It's each thread's job to read from 
+ *                      the queue serially(using lock) and executing each job
+ *                      until the queue is empty.
  * 
  */
 /* ================================= STRUCTURES ================================================ */
@@ -56,9 +56,9 @@
 typedef struct sccp_threadpool_job sccp_threadpool_job_t;
 
 struct sccp_threadpool_job {
-	void *(*function) (void *arg);						/*!< function pointer         */
-	void *arg;								/*!< function's argument      */
-	SCCP_LIST_ENTRY(sccp_threadpool_job_t) list;
+	void *(*function) (void *arg);										/*!< function pointer         */
+	void *arg;												/*!< function's argument      */
+	SCCP_LIST_ENTRY (sccp_threadpool_job_t) list;
 };
 
 typedef struct sccp_threadpool sccp_threadpool_t;
@@ -88,7 +88,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN);
  * \param p threadpool to use
  * \return nothing
  */
-void sccp_threadpool_thread_do(void * p);
+void sccp_threadpool_thread_do(void *p);
 
 /*!
  * \brief Add work to the job queue

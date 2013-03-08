@@ -1,13 +1,13 @@
 
 /*!
- * \file 	ast.c
- * \brief 	SCCP PBX Asterisk Wrapper Class
- * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file        ast.c
+ * \brief       SCCP PBX Asterisk Wrapper Class
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
@@ -17,15 +17,15 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 
-/*
- * \brief itterate through locked pbx channels
- * \note replacement for ast_channel_walk_locked
- * \param ast_chan Asterisk Channel
- * \return ast_chan Locked Asterisk Channel
- *
- * \todo implement pbx_channel_walk_locked or replace
- * \warning marcello is this the right implementation for pbx_channel_walk_locked. Not sure if i replaced the iterator correctly
- */
+    /*
+     * \brief itterate through locked pbx channels
+     * \note replacement for ast_channel_walk_locked
+     * \param ast_chan Asterisk Channel
+     * \return ast_chan Locked Asterisk Channel
+     *
+     * \todo implement pbx_channel_walk_locked or replace
+     * \warning marcello is this the right implementation for pbx_channel_walk_locked. Not sure if i replaced the iterator correctly
+     */
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -66,7 +66,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
  */
 PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data)
 {
-//#ifdef ast_channel_search_locked
+	//#ifdef ast_channel_search_locked
 #if ASTERISK_VERSION_NUMBER < 10800
 	return ast_channel_search_locked(is_match, data);
 #else
@@ -120,7 +120,7 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
 	return ast_append_ha(sense, stuff, path);
 #else
 	return ast_append_ha(sense, stuff, path, error);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 /*
@@ -142,7 +142,7 @@ struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts,
 	return ast_context_find_or_create(extcontexts, name, registrar);
 #else
 	return ast_context_find_or_create(extcontexts, exttable, name, registrar);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 /*!
@@ -168,7 +168,7 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 	return ast_config_load(filename);
 #else
 	return ast_config_load2(filename, who_asked, flags);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 /*!
@@ -183,7 +183,7 @@ PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE * v)
 	return ast_variable_new(v->name, v->value, v->file);
 #else
 	return ast_variable_new(v->name, v->value);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 /******************************************************************************************************** NET / SOCKET **/
@@ -202,12 +202,12 @@ const char *pbx_inet_ntoa(struct in_addr ia)
 	return ast_inet_ntoa(iabuf, sizeof(iabuf), ia);
 #else
 	return ast_inet_ntoa(ia);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 #if ASTERISK_VERSION_NUMBER < 10400
 
-/* BackPort of ast_str2cos & ast_str2cos for asterisk 1.2*/
+/* BackPort of ast_str2cos & ast_str2cos for asterisk 1.2 */
 struct dscp_codepoint {
 	char *name;
 	unsigned int space;
@@ -262,7 +262,7 @@ int pbx_str2tos(const char *value, unsigned int *tos)
 {
 	return ast_str2tos(value, tos);
 }
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 
 #if ASTERISK_VERSION_NUMBER < 10600
 int pbx_str2cos(const char *value, unsigned int *cos)
@@ -283,7 +283,7 @@ int pbx_str2cos(const char *value, unsigned int *cos)
 {
 	return ast_str2cos(value, cos);
 }
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 
 /************************************************************************************************************* GENERAL **/
 
@@ -314,7 +314,7 @@ int pbx_context_remove_extension(const char *context, const char *extension, int
 	}
 #else
 	return ast_context_remove_extension(context, extension, priority, registrar);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 /*!   
@@ -331,7 +331,7 @@ void pbxman_send_listack(struct mansession *s, const struct message *m, char *ms
 	astman_send_ack(s, m, msg);
 #else
 	astman_send_listack(s, m, msg, listflag);
-#endif										// ASTERISK_VERSION_NUMBER
+#endif														// ASTERISK_VERSION_NUMBER
 }
 
 /****************************************************************************************************** CODEC / FORMAT **/
@@ -507,7 +507,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 #else
 			pbx_channel_setwhentohangup_tv(ast_channel, ast_tvnow());
 #endif
-//			ast_channel->_state=AST_STATE_DOWN;
+			//                      ast_channel->_state=AST_STATE_DOWN;
 			ast_queue_hangup(ast_channel);
 			break;
 	}
@@ -532,13 +532,8 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(ast_channel);
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s, hangupcause: %d\n",
-				    pbx_channel_name(ast_channel), 
-				    pbx_channel_pbx(ast_channel) ? "yes" : "no", 
-				    pbx_state2str(pbx_channel_state(ast_channel)), 
-				    sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", 
-				    pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", 
-				    pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel)
-				   );
+				    pbx_channel_name(ast_channel), pbx_channel_pbx(ast_channel) ? "yes" : "no", pbx_state2str(pbx_channel_state(ast_channel)), sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel)
+	    );
 
 	if (pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)) {
 		// wait for blocker before issuing softhangup
@@ -562,7 +557,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	} else {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
 		ast_hangup(ast_channel);
-//		ast_queue_hangup(ast_channel);
+		//              ast_queue_hangup(ast_channel);
 	}
 
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
@@ -579,7 +574,7 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 		return -1;
 	} else {
 		if (!strcasecmp(args, "MaxCallBR")) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", (char *)c->currentDeviceId, value);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", (char *) c->currentDeviceId, value);
 
 			if (sscanf(value, "%ud", &c->maxBitRate)) {
 				pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
@@ -675,7 +670,7 @@ void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel)
 	if (ast_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH)) {
 		pbx_clear_flag(pbx_channel_flags(pbx_channel), AST_FLAG_MOH);
 		ast_moh_stop((PBX_CHANNEL_TYPE *) pbx_channel);
-	} 
+	}
 }
 
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen)
@@ -686,27 +681,19 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", 
-							pbx_channel_name(ast), 
-							redirecting_from.name.valid ? redirecting_from.name.str : "", 
-							redirecting_from.number.valid ? redirecting_from.number.str : "",
-							redirecting_to.name.valid ? redirecting_to.name.str : "", 
-							redirecting_to.number.valid ? redirecting_to.number.str : ""
-				);
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), redirecting_from.name.valid ? redirecting_from.name.str : "", redirecting_from.number.valid ? redirecting_from.number.str : "", redirecting_to.name.valid ? redirecting_to.name.str : "", redirecting_to.number.valid ? redirecting_to.number.str : "");
 
-
-	  
-	if(redirecting_from.name.valid){
+	if (redirecting_from.name.valid) {
 		sccp_copy_string(channel->callInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
-	} 
-	
+	}
+
 	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, redirecting_from.number.valid ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
 	channel->callInfo.lastRedirectingParty_valid = 1;
 #else
 	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
 	channel->callInfo.lastRedirectingParty_valid = 1;
 #endif
-		
+
 	sccp_channel_send_callinfo2(channel);
 }
 
@@ -715,36 +702,35 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 #if ASTERISK_VERSION_GROUP >106
 	struct ast_party_redirecting redirecting;
 	struct ast_set_party_redirecting update_redirecting;
-	
+
 	ast_party_redirecting_init(&redirecting);
 	memset(&update_redirecting, 0, sizeof(update_redirecting));
-	
 
 	/* update redirecting info line for source part */
-	if(fromNumber){
+	if (fromNumber) {
 		update_redirecting.from.number = 1;
 		redirecting.from.number.valid = 1;
 		redirecting.from.number.str = strdupa(fromNumber);
 	}
-	
-	if(fromName){
+
+	if (fromName) {
 		update_redirecting.from.name = 1;
 		redirecting.from.name.valid = 1;
 		redirecting.from.name.str = strdupa(fromName);
 	}
 
-	if(toNumber){
+	if (toNumber) {
 		update_redirecting.to.number = 1;
 		redirecting.to.number.valid = 1;
 		redirecting.to.number.str = strdupa(toNumber);
 	}
-	
-	if(toName){
+
+	if (toName) {
 		update_redirecting.to.name = 1;
 		redirecting.to.name.valid = 1;
 		redirecting.to.name.str = strdupa(toName);
 	}
-	
+
 	ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
 #else
 	// set redirecting party (forwarder)
@@ -754,7 +740,6 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 		}
 		channel->owner->cid.cid_rdnis = ast_strdup(fromNumber);
 	}
-
 	// where is the call going to now
 	if (toNumber) {
 		if (channel->owner->cid.cid_dnid) {
