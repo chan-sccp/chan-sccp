@@ -1,5 +1,5 @@
 /*!
- * \file 	05_Features_V3.doc
+ * \file 	40_New_Features.doc
  * \brief 	SCCP New Feature Documentation
  *
  * Contains extra documentation about new Features.
@@ -16,11 +16,12 @@
 /*!
  * \page new_features New Features in V4.1
  * 
- * \ref nf_config_parser 		"New Config Parser"\n
- * \ref nf_emulated_enbloc		"Emulated EnBloc Dialing for older devices"\n
- * \ref nf_protocol_handler		"New SCCP Protocol Handler"\n
- * \ref nf_rtp_handling			"Rewritten RTP Handling"\n
- * \ref nf_multiple_asterisk_support 	"Support for multiple asterisk version in one code base"\n
+ *  - \ref nf_config_parser 		"New Config Parser"
+ *  - \ref nf_emulated_enbloc		"Emulated EnBloc Dialing for older devices"
+ *  - \ref nf_protocol_handler		"New SCCP Protocol Handler"
+ *  - \ref nf_rtp_handling			"Rewritten RTP Handling"
+ *  - \ref nf_multiple_asterisk_support 	"Support for multiple asterisk version in one code base"
+ *  .
  * <HR>
  *
  *

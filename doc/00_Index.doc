@@ -1,5 +1,5 @@
 /*!
- * \file 	01_Index.doc
+ * \file 	00_Index.doc
  * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
  * \author 	Diederik de Groot <dkgroot [at] talon.nl>
  * \since	2009-11-12
@@ -29,20 +29,21 @@
  * On these pages here, you can find the documented source code, the change log.
  * and more.
  * 
- * To get started have a look at the pages:\n
- * \ref what_sccp	"What is Chan_SCCP"\n
- * \ref build_guide 	"Building and Installation Guide"\n
- * \ref setup_sccp      "How to setup the chan_sccp Module"\n
- * \ref V3_features     "What is new in V3"\n
- * \ref new_features    "What is new in this version (V4/Trunk)"\n
- * \ref faq		"Frequently Asked Questions"\n
- * \ref cons 		"Consulted Documentation"\n
- * \ref supp_os		"Supported Operating Systems / Notes"\n
- * \ref Problems	"Reporting Problems / Issues"\n
- * \ref dev_guide	"Developer's Guide"\n
- * \ref sources_explain "Sources Explained"\n
- * \ref authors		"Meet the Authors"\n
- * \ref Licensing	"Licensing"\n
+ * To get started have a look at the pages:
+ *  - \ref what_sccp	"What is Chan_SCCP"
+ *  - \ref build_guide 	"Building and Installation Guide"
+ *  - \ref setup_sccp   "How to setup the chan_sccp Module"
+ *  - \ref V3_features  "What is new in V3"
+ *  - \ref new_features "What is new in this version (V4/Trunk)"
+ *  - \ref faq		"Frequently Asked Questions"
+ *  - \ref cons 	"Consulted Documentation"
+ *  - \ref supp_os	"Supported Operating Systems / Notes"
+ *  - \ref Problems	"Reporting Problems / Issues"
+ *  - \ref dev_guide	"Developer's Guide"
+ *  - \ref sources_explain "Sources Explained"
+ *  - \ref authors	"Meet the Authors"
+ *  - \ref Licensing	"Licensing"
+ *  .
  * <a href=ChangeLog_SVN2CL.html><strong>SVN Change Log</strong></a>
  * 
  * See http://sourceforge.net/projects/chan-sccp-b/ for more information about
