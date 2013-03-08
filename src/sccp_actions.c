@@ -2335,9 +2335,9 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		l = sccp_line_find_byid(d, lineInstance);
 	}
 
-	if (l && callid)
+	if (l && callid) {
 		c = sccp_find_channel_on_line_byid(l, callid);
-
+	}
 	do {
 		softkeyMap_cb = sccp_getSoftkeyMap_by_SoftkeyEvent(event);
 
@@ -2359,7 +2359,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 			sccp_dev_set_keyset(d, lineInstance, callid, KEYMODE_ONHOOK);
 			break;
 		}
-		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "ÜNDEF", c ? sccp_channel_toString(c) : "UNDEF");
+		sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? sccp_channel_toString(c) : "UNDEF");
 		softkeyMap_cb->softkeyEvent_cb(d, l, lineInstance, c);
 
 	} while (FALSE);
