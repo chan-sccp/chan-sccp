@@ -1464,33 +1464,6 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 		channel = sccp_channel_release(channel);
 	} else {
 		/* check Remote RINGING + gpickup */
-#ifdef CS_SCCP_PICKUP
-		/*! \todo Fix Speeddial with ringing channel -> gpickup */
-		/* Does not work at this moment - DdG, either picking up the wrong channel or just failing misserably */
-		//              l = sccp_line_find_byid(d, k->instance);
-		/*              if (d->defaultLineInstance > 0) {
-		   l = sccp_line_find_byid(d, d->defaultLineInstance);
-		   } else {
-		   l = sccp_dev_get_activeline(d);
-		   }
-		   if (l && l->pickupgroup && PBX(feature_pickup) && !sccp_strlen_zero(k->hint)) {
-		   const char *hint_context;
-		   const char *hint_extension;
-		   char *splitter = strdup(k->hint);
-
-		   hint_extension = strsep(&splitter, "@");
-		   hint_context = strsep(&splitter, "@");
-
-		   if (AST_EXTENSION_RINGING == pbx_extension_state(NULL, hint_context, hint_extension)) {
-		   if (sccp_feat_grouppickup(l, d)) {
-		   sccp_line_release(l);
-		   return;
-		   }
-		   }
-		   } */
-#endif
-
-		// Pull up a channel
 		if (d->defaultLineInstance > 0) {
 			sccp_log((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
@@ -1544,16 +1517,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	if ((channel = sccp_channel_find_bystate_on_device(d, SKINNY_CALLSTATE_RINGIN))) {
 		/* Answer the ringing channel. */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
-
-		/* we should never lock a pbx channel -MC */
-		//              if (channel->owner)
-		//                      pbx_channel_lock(channel->owner);
-
 		sccp_channel_answer(d, channel);
-
-		//              if (channel->owner)
-		//                      pbx_channel_unlock(channel->owner);
-
 	} else {
 		/* use default line if it is set */
 		if (d && d->defaultLineInstance > 0) {
@@ -1615,7 +1579,7 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
-	/* checking for registerd lines */
+	/* checking for registered lines */
 	uint8_t numberOfLines = 0;
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
@@ -1628,7 +1592,6 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 		return;
 	}
-	/* end line check */
 
 	/* get the active channel */
 	if ((channel = sccp_channel_get_active(d))) {
@@ -1715,15 +1678,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_device_t * d, sc
 	/* ok the device support the softkey map */
 	d->softkeysupport = 1;
 
-	//REQ(r1, SoftKeyTemplateResMessage);
 	int arrayLen = ARRAY_LEN(softkeysmap);
-
-	/*
-	   if(d->inuseprotocolversion < 15){
-	   arrayLen = 31; // fall back to old behaivour
-	   }
-	 */
-
 	int dummy_len = arrayLen * (sizeof(StationSoftKeyDefinition));
 	int hdr_len = sizeof(r->msg.SoftKeyTemplateResMessage);
 	int padding = ((dummy_len + hdr_len) % 4);
@@ -2160,9 +2115,6 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS)) {
 		len = strlen(channel->dialedNumber);
 		if (len >= (SCCP_MAX_EXTENSION - 1)) {
-			//                      uint8_t instance;
-			//                      instance = sccp_device_find_index_for_line(d, channel->line->name);
-			//                      sccp_dev_displayprompt(d, instance, channel->callid, "No more digits", 5);
 			sccp_dev_displayprompt(d, lineInstance, channel->callid, "No more digits", 5);
 		} else {
 			//                      sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: else state\n");
@@ -2327,7 +2279,6 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 	if (d && channel && l) {
 		if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
 			/* We have a secondary dialtone */
-			//                      sccp_safe_sleep(100);                   // don't sleep while not owning all locks
 			sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
 		} else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
 			sccp_dev_stoptone(d, instance, callid);
@@ -2382,14 +2333,6 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 	if (lineInstance) {
 		l = sccp_line_find_byid(d, lineInstance);
-		// fix newcall during softkeymode==INUSEHINT, whereby lineInstance returned is a speeddial
-		// and d->defaultLineInstance = 0. Can't find the location in sources where defaultLineInstance is supposed to be set.
-		// using this horrible solution for now. I would say defaultLineInstance should be set to the first LINE button during the build of the device, and updated during last use
-		//              if (!l) {
-		//                      if (d->defaultLineInstance > 0) {
-		//                              l = sccp_line_find_byid(d, d->defaultLineInstance);
-		//                      }
-		//              }
 	}
 
 	if (l && callid)
@@ -2618,29 +2561,33 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", d->id, d->imageversion);
 }
 
+
 #define CALC_AVG(_newval, _mean, _numval) ( ( (_mean * (_numval) ) + _newval ) / (_numval + 1))
 /*!
  * \brief Handle Connection Statistics for Session
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
+ *
+ * \section sccp_statistics Phone Audio Statistics 
+ *
+ * MOS LQK = Mean Opinion Score for listening Quality (5=Excellent -> 1=BAD)
+ * Max MOS LQK = Baseline or highest MOS LQK score observed from start of the voice stream. These codecs provide the following maximum MOS LQK score under normal conditions with no frame loss: (G.711 gives 4.5, G.729 A /AB gives 3.7)
+ * MOS LQK Version = Version of the Cisco proprietary algorithm used to calculate MOS LQK scores.
+ * CS = Concealement seconds
+ * Cumulative Conceal Ratio = Total number of concealment frames divided by total number of speech frames received from start of the voice stream.
+ * Interval Conceal Ratio = Ratio of concealment frames to speech frames in preceding 3-second interval of active speech. If using voice activity detection (VAD), a longer interval might be required to accumulate 3 seconds of active speech.
+ * Max Conceal Ratio = Highest interval concealment ratio from start of the voice stream.
+ * Conceal Secs = Number of seconds that have concealment events (lost frames) from the start of the voice stream (includes severely concealed seconds).
+ * Severely Conceal Secs = Number of seconds that have more than 5 percent concealment events (lost frames) from the start of the voice stream.
+ * Latency1 = Estimate of the network latency, expressed in milliseconds. Represents a running average of the round-trip delay, measured when RTCP receiver report blocks are received.
+ * Max Jitter = Maximum value of instantaneous jitter, in milliseconds.
+ * Sender Size = RTP packet size, in milliseconds, for the transmitted stream.
+ * Rcvr Size = RTP packet size, in milliseconds, for the received stream.
+ * Rcvr Discarded = RTP packets received from network but discarded from jitter buffers.   
  */
 void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	//      MOS LQK = Mean Opinion Score for listening Quality (5=Excellent -> 1=BAD)
-	//      Max MOS LQK = Baseline or highest MOS LQK score observed from start of the voice stream. These codecs provide the following maximum MOS LQK score under normal conditions with no frame loss: (G.711 gives 4.5, G.729 A /AB gives 3.7)
-	//      MOS LQK Version = Version of the Cisco proprietary algorithm used to calculate MOS LQK scores.
-	//      CS = Concealement seconds
-	//      Cumulative Conceal Ratio = Total number of concealment frames divided by total number of speech frames received from start of the voice stream.
-	//      Interval Conceal Ratio = Ratio of concealment frames to speech frames in preceding 3-second interval of active speech. If using voice activity detection (VAD), a longer interval might be required to accumulate 3 seconds of active speech.
-	//      Max Conceal Ratio = Highest interval concealment ratio from start of the voice stream.
-	//      Conceal Secs = Number of seconds that have concealment events (lost frames) from the start of the voice stream (includes severely concealed seconds).
-	//      Severely Conceal Secs = Number of seconds that have more than 5 percent concealment events (lost frames) from the start of the voice stream.
-	//      Latency1 = Estimate of the network latency, expressed in milliseconds. Represents a running average of the round-trip delay, measured when RTCP receiver report blocks are received.
-	//      Max Jitter = Maximum value of instantaneous jitter, in milliseconds.
-	//      Sender Size = RTP packet size, in milliseconds, for the transmitted stream.
-	//      Rcvr Size = RTP packet size, in milliseconds, for the received stream.
-	//      Rcvr Discarded = RTP packets received from network but discarded from jitter buffers.   
 
 	sccp_call_statistics_t *last_call_stats = NULL;
 	sccp_call_statistics_t *avg_call_stats = NULL;
@@ -2671,8 +2618,6 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Quality Statistics: %s\n", d->id, QualityStats);
 		if (!sccp_strlen_zero(QualityStats)) {
-			// MLQK=0.0000;MLQKav=0.0000;MLQKmn=0.0000;MLQKmx=0.0000;ICR=0.0000;CCR=0.0000;ICRmx=0.0000;CS=0;SCS=0;MLQKvr=0.95
-			// MLQK=4.2011;MLQKav=4.2011;MLQKmn=4.2011;MLQKmx=4.2011;ICR=0.0233;CCR=0.0078;ICRmx=0.0233;CS=2;SCS=0;MLQKvr=0.95
 			sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;ICR=%f;CCR=%f;ICRmx=%f;CS=%d;SCS=%d;MLQKvr=%f",
 			       &last_call_stats->opinion_score_listening_quality,
 			       &last_call_stats->avg_opinion_score_listening_quality, &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
@@ -2704,9 +2649,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 
 		avg_call_stats->num++;
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Mean Statistics: # Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id, avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
-#if DEBUG
-		//                sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
-#endif
+
 		// update global_call_statistics
 		/*
 		   avg_call_stats = &GLOB(avg_call_statistics);
@@ -2718,7 +2661,6 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		   avg_call_stats->num++;
 		 */
 		d = sccp_device_release(d);
-		//                sccp_free(quality_stats);
 	}
 
 }
@@ -3093,20 +3035,6 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
 			d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
-
-			//              if (TRUE == toggleState) {
-			// 
-			//                      sccp_channel_t *channel = sccp_channel_get_active(d);
-			// 
-			//                      if (!channel) {
-			//                              d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
-			//                      } else {
-			//                              d->monitorFeature.status = (SCCP_FEATURE_MONITOR_STATE_DISABLED == d->monitorFeature.status) ? SCCP_FEATURE_MONITOR_STATE_ACTIVE : SCCP_FEATURE_MONITOR_STATE_DISABLED;
-			//                              sccp_feat_monitor(d, channel->line, 0, channel);
-			//                              channel = sccp_channel_release(channel);
-			//                      }
-			//              }
-
 			if (TRUE == toggleState) {
 
 				sccp_channel_t *channel = NULL;
@@ -3532,12 +3460,12 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 						  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 			    );
 			break;
-			//        case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
-			//        case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
-			//        case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
-			//        case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
-			//        case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
-			//        case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
+//		case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+//      	case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
+//		case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
+//		case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
+//		case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
+//		case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
 		default:
 
 			break;

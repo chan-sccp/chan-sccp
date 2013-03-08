@@ -18,24 +18,23 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
 
-    /*!
-     * \brief  ${SCCPDEVICE()} Dialplan function - reads device data 
-     * \param chan Asterisk Channel
-     * \param cmd Command as char
-     * \param data Extra data as char
-     * \param buf Buffer as chan*
-     * \param len Lenght as size_t
-     * \return Status as int
-     *
-     * \author Diederik de Groot <ddegroot@users.sourceforce.net>
-     * \ref nf_sccp_dialplan_sccpdevice
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *      - device
-     *        - device->buttonconfig
-     */
+/*!
+ * \brief  ${SCCPDEVICE()} Dialplan function - reads device data 
+ * \param chan Asterisk Channel
+ * \param cmd Command as char
+ * \param data Extra data as char
+ * \param buf Buffer as chan*
+ * \param len Lenght as size_t
+ * \return Status as int
+ *
+ * \author Diederik de Groot <ddegroot@users.sourceforce.net>
+ * \ref nf_sccp_dialplan_sccpdevice
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *        - device->buttonconfig
+ */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
 	sccp_device_t *d;
@@ -239,7 +238,6 @@ static struct pbx_custom_function sccpdevice_function = {
  * \called_from_asterisk
  * 
  * \lock
- *      - line
  *        - line->devices
  */
 static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
@@ -449,9 +447,6 @@ static struct pbx_custom_function sccpline_function = {
  * \ref nf_sccp_dialplan_sccpchannel
  * 
  * \called_from_asterisk
- * 
- * \lock
- *      - channel
  */
 static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
