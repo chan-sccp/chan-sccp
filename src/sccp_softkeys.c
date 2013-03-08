@@ -18,9 +18,8 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-    /* private prototypes */
+/* private prototypes */
 void sccp_sk_videomode(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
-
 /* done */
 
 /*!
@@ -31,7 +30,6 @@ struct softKeySetConfigList softKeySetConfig;									/*!< List of SoftKeySets *
 /*!
  * \brief Softkey Pre Reload
  *
- * \deprecated
  * \lock
  *      - softKeySetConfig
  */
