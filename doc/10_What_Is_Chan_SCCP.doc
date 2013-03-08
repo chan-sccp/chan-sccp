@@ -28,7 +28,7 @@
  *
  * To read more about asterisk, you can find a nice introduction <a href="http://www.aosabook.org/en/asterisk.html">here</a>.
  * 
- * \subsection 	what_sccp_ss1		SCCP in relation to SIP/IAX/MGCP
+ * \section 	what_sccp_ss1		SCCP in relation to SIP/IAX/MGCP
  *
  * There are several methods to communicate with a VOIP Server. Next to the well known SIP Protocol there are 
  * Several others like: MGCP, IAX, IAX2, SS7 and SCCP. The SCCP protocol is sometimes refered to as SKINNY. 
@@ -38,7 +38,7 @@
  *
  * IPBlue markets a software phone (soft phone) which uses SCCP for signaling and emulates a Cisco 7960 hardware phone.
  *
- * \subsection 	what_sccp_ss2 		SCCP as a Protocol
+ * \section 	what_sccp_ss2 		SCCP as a Protocol
  * 
  * The Skinny Call Control Protocol a.k.a Signalling Connection Control Part (SCCP, Q.713, or short Skinny) is a 
  * proprietary network terminal control protocol originally developed by Selsius Corporation. The term "Skinny" 

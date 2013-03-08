@@ -35,10 +35,9 @@
  *   .
  *
  * \section unix UNIX, BSD and Linux
- * These instructions are valid for most UNIX-like operating systems, including BSD and
- * Linux variants.
+ * These instructions are valid for most UNIX-like operating systems, including BSD and Linux variants.
  *
- * \subsection unix_pre Precompiled for your Platform
+ * \section unix_pre Precompiled for your Platform
  * On http://chan-sccp-b.sourceforge.net/download.shtml you can find links to lot of precompiled versions of chan-sccp-b. 
  * You can just at the specific repository file specific to your platform to your system and install chan-sccp-b from there.
  *
@@ -56,7 +55,7 @@
  *     .
  *   .
  *
- * \subsection unix_bi Building and Installation
+ * \section unix_bi Building and Installation
  *
  * Build instructions:
  *   - Download the Chan_SCCP sources. 

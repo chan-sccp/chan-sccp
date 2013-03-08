@@ -21,6 +21,10 @@
 
 /*!
  * \page Problems Reporting Issues/Problems
+ *
+ * Please read this section carefully before reporting any issues / problems
+ *
+ * \section reporing_issue Report Issues/Problems
  * 
  * When reporting problems / issues via the sourceforge mailinglist or bug/issue report pages please include as much information as possible. 
  * And try to describe you problem/issue as acquarate as possible.
@@ -35,7 +39,7 @@
  *  .
  * When reporting issues/problems be patient. We will try and get back to you as soon as possible, but time is sometimes scarce. Other users of chan_sccp are very welcome to answer any questions if they know the answer of course. 
  *
- * \subsection generating_a_debug_report Generating a Debug Report
+ * \section generating_a_debug_report Generating a Debug Report
  *  
  * To generate a debug report please take the following steps:
  *   - switch on the "all" section in logger.conf. 
@@ -48,7 +52,7 @@
  * 
  * A less exact method is to cut and paste the information from CLI.
  *
- * \subsection generating_a_backtrace Generating a Backtrace
+ * \section generating_a_backtrace Generating a Backtrace
  *  
  * To generate a backtrace after asterisk produced a so called core dump
  *   - find the location of the core dump (current working directory, /tmp, /var/log/asterisk)

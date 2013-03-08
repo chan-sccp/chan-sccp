@@ -24,13 +24,13 @@
  *
  * On this page, people who want to contribute can find information.
  *
- * \subsection dv_bugs You found a Bug
+ * \section dv_bugs You found a Bug
  * 
  * You found a bug, please report it via : http://sourceforge.net/tracker/?group_id=186378&atid=917045. Please
  * try to describe the bug you found as clearly as possible. Please give us a step by step procedure to reproduce
  * the error. Give us some thing to work with, like "sccp debug all" logging, asterisk logging, protocol analyzer pcap files etc.
  * 
- * \subsection dv_suggest Sending Feature Requests
+ * \section dv_suggest Sending Feature Requests
  * 
  * You have a new Feature which you think would be a wonderfull addition to chan_sccp. Or you need
  * something implemented and are willing to pay. Just send a Message via: 
@@ -40,18 +40,18 @@
  * and start coding yourself. You could even become a member of the development team if you like. Have a look
  * here \ref dv_sendpatch and here \ref dv_developer.
  *
- * \subsection dv_sendpatch Send us a Patch
+ * \section dv_sendpatch Send us a Patch
  *
  * You found an error and fixed it or you wrote some new functionality ? Please submit a patch to:
  * http://sourceforge.net/tracker/?group_id=186378&atid=917047. Please include a description of your
  * patch and if necessary how to apply it. 
  * 
- * \subsection dv_developer Becoming a Developer in out Team
+ * \section dv_developer Becoming a Developer in out Team
  * 
  * Our project can always use more testers, documentors, developers, project managers. Why not apply 
  * by contacting one of our Project Admin members (\ref authors). 
  * 
- * \subsection dv_locking Get familiar and follow the sccp locking and refcounting rules
+ * \section dv_locking Get familiar and follow the sccp locking and refcounting rules
  * 
  * Please check out the locking and refcounted object types used by chan-sccp-b to see when and how the are used (see: \ref lock_types).
  *
@@ -62,7 +62,7 @@
  **/
 
 /*
- * \!subsection dv_tracing   How to trace an Protocol Error
- * \!subsection dv_protocol  Using a Network Protocol Analyzer
+ * \!section dv_tracing   How to trace an Protocol Error
+ * \!section dv_protocol  Using a Network Protocol Analyzer
  *
  */

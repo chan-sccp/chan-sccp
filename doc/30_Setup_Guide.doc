@@ -24,7 +24,6 @@
  * This contains detailed instructions about setting up chan_sccp.
  *
  *   - \ref setup_howto How to setup Chan_SCCP
- *   - \ref sccp_config_howto1 Setting Protocol
  *   - \ref sccp_config_howto2 Sample config file
  *   - \ref sccp_config_rt How to use RealTime Database
  *   - \ref sccp_config_dhcp Setting up a DHCP Server
@@ -40,21 +39,6 @@
  * Please check out ./conf/sccp.conf for all possible sccp configuration parameters. This new config file uses standard 
  * asterisk templating to keep your config file shorter and easier to manager. For an untemplated version check-out 
  * ./conf/sccp_simple.conf
- *
- * \subsection sccp_config_howto1 Setting Protocol
- *
- * An important part in the config file is setting up the protocol version to match you phone firmware. During phone registration
- * you can see the version of the protocol the phone supports and the version setup in the sccp.conf file. Please try to 
- * match them as closely as possible
- *
- * Currently chan_sccp-b supports the following protocol versions:
- *   - 3-10
- *   - 10
- *   - 11  : for example matched by cisco 7960
- *   - 15  : matched by 7911 
- *   - 16
- *   - 17  : matched by the 7970 and 7975 's 
- *   .
  *
  * \subsection sccp_config_howto2 Sample config files
  * 
