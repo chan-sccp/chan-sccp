@@ -41,7 +41,7 @@ void sccp_line_pre_reload(void)
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (GLOB(hotline)->line == l) {									/* always remove hotline from linedevice */
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", linedevice->device->id);
+				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", linedevice->device->id);
 				linedevice->device->isAnonymous = FALSE;
 				sccp_line_removeDevice(linedevice->line, linedevice->device);
 			}
@@ -51,7 +51,7 @@ void sccp_line_pre_reload(void)
 			if (l->realtime == FALSE)
 #endif
 			{
-				sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
+				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
 				l->pendingDelete = 1;
 			}
 		}
@@ -349,7 +349,7 @@ int __sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
 
-	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 
 	sccp_mutex_lock(&l->lock);
 
@@ -425,7 +425,7 @@ int __sccp_lineDevice_destroy(const void *ptr)
 {
 	sccp_linedevices_t *linedevice = (sccp_linedevices_t *) ptr;
 
-	sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "LineDevice FREE %p\n", linedevice);
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "LineDevice FREE %p\n", linedevice);
 	if (linedevice->line)
 		linedevice->line = sccp_line_release(linedevice->line);
 	if (linedevice->device)
@@ -789,7 +789,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				/* register */
 
 				if (!pbx_exists_extension(NULL, context, ext, 1, NULL) && pbx_add_extension(context, 0, ext, 1, NULL, NULL, "Noop", sccp_strdup(l->name), sccp_free_ptr, "SCCP")) {
-					sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
+					sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
 				}
 
 				/* register extension + subscriptionId */
@@ -797,7 +797,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
 				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->name);
 				   if (!pbx_exists_extension(NULL, context, extension, 2, NULL) && pbx_add_extension(context, 0, extension, 2, NULL, NULL, "Noop", sccp_strdup(name), sccp_free_ptr, "SCCP")) {
-				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
+				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
 				   }
 				   } */
 			} else {
@@ -806,7 +806,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				if (l->devices.size == 1) {							// only remove entry if it is the last one (shared line)
 					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
-						sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
+						sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
 					}
 				}
 
@@ -816,7 +816,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				   //                                   if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
 				   if (pbx_find_extension(NULL, NULL, &q, context, extension, 2, NULL, "", E_MATCH)) {
 				   ast_context_remove_extension(context, extension, 2, NULL);
-				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_NEWCODE)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, extension);
+				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, extension);
 				   }
 				   } */
 			}
