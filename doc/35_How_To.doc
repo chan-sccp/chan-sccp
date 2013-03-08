@@ -16,16 +16,17 @@
 /*!
  * \page _howto How To
  * 
- * \ref nf_shared_lines 	"How to use Shared Lines on a device"\n
- * \ref nf_phone_buttons 	"How to set Phone Buttons on a device (softkeys)"\n
- * \ref nf_hotline		"How to use the Hotline option on a device"\n
- * \ref nf_adhoc_plar		"How to use the adhoc option on a line (PLAR)"\n
- * \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"\n
- * \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"\n
- * \ref nf_sccp_reload   	"How to use Reload"\n
- * \ref nf_sccp_function   	"How to use Dialplan Function"\n
- * \ref nf_devicestate		"How to use device state"\n
- * \ref nf_digittimeout		"How does digit timeout and dialing work"\n
+ *  - \ref nf_shared_lines 	"How to use Shared Lines on a device"
+ *  - \ref nf_phone_buttons 	"How to set Phone Buttons on a device (softkeys)"
+ *  - \ref nf_hotline		"How to use the Hotline option on a device"
+ *  - \ref nf_adhoc_plar		"How to use the adhoc option on a line (PLAR)"
+ *  - \ref nf_dynamic_speeddial   	"How to use Dynamic SpeedDials"
+ *  - \ref nf_sccp_softkeys   	"How to use the Soft Keys on the Phone"
+ *  - \ref nf_sccp_reload   	"How to use Reload"
+ *  - \ref nf_sccp_function   	"How to use Dialplan Function"
+ *  - \ref nf_devicestate		"How to use device state"
+ *  - \ref nf_digittimeout		"How does digit timeout and dialing work"
+ *  .
  * <HR>
  *
  *
@@ -381,7 +382,7 @@
  * And \ref nf_sccp_dialplan_sccpsetcodec SCCPSetCodec, \ref nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty and \ref nf_sccp_dialplan_sccpsetmessage SCCPSetMessage
  * to provide the ability to change chan_sccp behaviour while prosessing dialplan requests.
  *
- * \subsubsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
+ * \subsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
  *
  * Usage: SCCPDEVICE([deviceId|current],[option]);
  * 
@@ -404,7 +405,7 @@
  * \endcode
  * to put the information of a/the device in a dialplan variable.
  *
- * \subsubsection nf_sccp_dialplan_sccpline SCCPLINE
+ * \subsection nf_sccp_dialplan_sccpline SCCPLINE
  *
  * Usage: SCCPLINE([current|parent|linename],[option]);
  * 
@@ -427,7 +428,7 @@
  * \endcode
  * to put the information of a/the line in a dialplan variable.
  *
- * \subsubsection nf_sccp_dialplan_sccpchannel SCCPCHANNEL
+ * \subsection nf_sccp_dialplan_sccpchannel SCCPCHANNEL
  *
  * Usage: SCCPCHANNEL([current|callid],[option]);
  * 
@@ -459,19 +460,19 @@
  *
  *
  * Dialplan function to manipulate sccp channels and dial commands are:
- * \subsubsection nf_sccp_dialplan_sccpsetcodec SCCPSetCodec
+ * \subsection nf_sccp_dialplan_sccpsetcodec SCCPSetCodec
  * Usage: SCCPSetCodec(codec)
  * Sets the preferred codec for dialing out with the next DIAL statemnet using an sccp channel.
  *
  * Previous function name SetSCCPCodec(codec) is now deprecated in favour of SCCPSetCodec.
  *
- * \subsubsection nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty
+ * \subsection nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty
  * Usage: SCCPSetCalledParty("name" \<ext\>)
  * Sets the name and number of the called party before using the DIAL statement, only usefull when dialing an SCCP Channel.
  *
  * Previous function name SetCalledParty(codec) is now deprecated in favour of SCCPSetCalledParty.
  *
- * \subsubsection nf_sccp_dialplan_sccpsetmessage SCCPSetMessage
+ * \subsection nf_sccp_dialplan_sccpsetmessage SCCPSetMessage
  * Usage: SCCPSetMessage(<message text> [,timeout])
  * Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message.
  *
@@ -491,7 +492,7 @@
  *
  * exten => s,1,NoOp(My phone state is currently ${DEVICE_STATE(SCCP/98011)})
  * 
- * \subsubsection nf_customdevicestate	Custom Device State
+ * \subsection nf_customdevicestate	Custom Device State
  *
  * If you add a new devstate button to you sccp.conf like so, you will have a new custom device state which can be set and monitored
  * \code

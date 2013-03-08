@@ -1,5 +1,5 @@
 /*!
- * \file 	03_Building_and_Installation_Guide.doc
+ * \file 	20_Building_and_Installation_Guide.doc
  * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
  * \author 	Diederik de Groot <dkgroot [at] talon.nl>
  * \since	2009-11-12
@@ -21,17 +21,19 @@
 /*!
  * \page build_guide Building and Installation Guide
  *
- *   - \ref unix_pre Precompiled for your Platform
- *   - \ref unix_pr Prerequisites
- *   - \ref unix_bi Building and Installation
- *   - \ref setup_howto How to setup Chan_SCCP
- *   - \ref sccp_config_howto1 Setting Protocol
- *   - \ref sccp_config_howto2 Sample config file
- *   - \ref sccp_config_rt How to use RealTime Database
- *   - \ref sccp_config_dhcp Setting up a DHCP Server
- *   - \ref change_phone_to_sccp Hot to change the firmware to SCCP
- *   - \ref sccp_config_sep What does a Sample SEP[MacAddr].cnf.xml Look Like
- *   - \ref dialplan_sample Dialplan Sample
+ *   - \ref unix_pre
+ *   - \ref unix_pr
+ *   - \ref unix_bi
+ *   - \ref sccp_config_howto
+ *   - \ref sccp_config_load_module_howto
+ *   - \ref sccp_config_rt
+ *   - \ref sccp_config_dhcp
+ *   - \ref sccp_config_sep
+ *   - \ref dialplan_sample
+ *   - \ref change_phone_to_sccp
+ *   - \ref DUNDi
+ *   - \ref NAT
+ *   - \ref shared_lines
  *   .
  *
  * \section unix UNIX, BSD and Linux
@@ -60,7 +62,7 @@
  * Build instructions:
  *   - Download the Chan_SCCP sources. 
  *   - Extract the source tree to a clean directory.
- *   - To get started with configure please run (run "./configure --help" to get a list of all the possible configure flags)\n
+ *   - To get started with configure please run (run "./configure --help" to get a list of all the possible configure flags)
  *   - Some of the configure switches have changed during the latest development, please check before running configure
  *   .
  * \code

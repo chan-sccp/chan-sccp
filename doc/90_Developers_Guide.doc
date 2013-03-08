@@ -1,5 +1,5 @@
 /*!
- * \file 	09_Developers_Guide.doc
+ * \file 	90_Developers_Guide.doc
  * \brief 	An implementation of Skinny Client Control Protocol (SCCP)
  * \author 	Diederik de Groot <dkgroot [at] talon.nl>
  * \since	2009-11-12
@@ -53,11 +53,10 @@
  * 
  * \section dv_locking Get familiar and follow the sccp locking and refcounting rules
  * 
- * Please check out the locking and refcounted object types used by chan-sccp-b to see when and how the are used (see: \ref lock_types).
+ * Please check out the refcounted object types used by chan-sccp-b to see when and how the are used (see: \ref refcount).
  *
- * When submitting patches or developing within the chan-sccp-b team, regard, follow and obey by these locking and refcount rules at all times:
- * - \ref lock_order Locking Order\n
- * - \ref refcount   Reference Counting\n
+ * When submitting patches or developing within the chan-sccp-b team, regard, follow and obey by these refcount rules at all times:
+ * - \ref refcount
  * .
  **/
 
