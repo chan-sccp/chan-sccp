@@ -1010,10 +1010,8 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, con
 	char k_button[256];
 	char *splitter;
 
-#ifdef CS_DYNAMIC_CONFIG
 	button_type_t type;
 	unsigned i;
-#endif
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", value);
 	sccp_copy_string(k_button, value, sizeof(k_button));
 	splitter = k_button;
@@ -1021,14 +1019,13 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, con
 	buttonName = strsep(&splitter, ",");
 	buttonOption = strsep(&splitter, ",");
 	buttonArgs = splitter;
-#ifdef CS_DYNAMIC_CONFIG
+
 	for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
 	if (i >= ARRAY_LEN(sccp_buttontypes)) {
 		pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 	type = sccp_buttontypes[i].buttontype;
-#endif
 	//      sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ButtonType: %s\n", buttonType);
 	//      sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ButtonName: %s\n", buttonName);
 	//      sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ButtonOption: %s\n", buttonOption);
@@ -1777,7 +1774,6 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const
 #ifdef CS_SCCP_REALTIME
 	l->realtime = isRealtime;
 #endif
-#ifdef CS_DYNAMIC_CONFIG
 	//      if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id);
@@ -1787,7 +1783,6 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const
 	}
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
 	l->pendingDelete = 0;
-#endif														/* CS_DYNAMIC_CONFIG */
 	return l;
 }
 
@@ -1812,7 +1807,6 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * v,
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
 #endif
-#ifdef CS_DYNAMIC_CONFIG
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for device detected, device reset required -> pendingUpdate=1\n", d->id);
 		d->pendingUpdate = 1;
@@ -1820,8 +1814,6 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * v,
 		d->pendingUpdate = 0;
 	}
 	d->pendingDelete = 0;
-#endif														/* CS_DYNAMIC_CONFIG */
-
 	return d;
 }
 
@@ -1898,14 +1890,12 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 
 	//      sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 
-#ifdef CS_DYNAMIC_CONFIG
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
 		GLOB(pendingUpdate = 1);
 	} else {
 		GLOB(pendingUpdate = 0);
 	}
-#endif
 
 	/* setup bindaddress */
 	if (!ntohs(GLOB(bindaddr.sin_port))) {
@@ -2004,7 +1994,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
-#ifdef CS_DYNAMIC_CONFIG
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Device Pre Reload\n");
@@ -2014,7 +2003,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Softkey Pre Reload\n");
 		sccp_softkey_pre_reload();
 	}
-#endif
 
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "SCCP: (sccp_config_readDevicesLines) Unable to load config file sccp.conf, SCCP disabled\n");
@@ -2055,11 +2043,9 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					sccp_device_addToGlobals(d);
 					device_count++;
 				} else {
-#ifdef CS_DYNAMIC_CONFIG
 					if (d->pendingDelete) {
 						d->pendingDelete = 0;
 					}
-#endif
 				}
 				sccp_config_buildDevice(d, v, cat, FALSE);
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
@@ -2112,24 +2098,20 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			if (line->realtime == TRUE && line != GLOB(hotline)->line) {
 				sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", line->name);
 				v = pbx_load_realtime(GLOB(realtimelinetable), "name", line->name, NULL);
-#ifdef CS_DYNAMIC_CONFIG
 				/* we did not find this line, mark it for deletion */
 				if (!v) {
 					sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelete=1\n", line->name);
 					line->pendingDelete = 1;
 					continue;
 				}
-#endif
 
 				res = sccp_config_applyLineConfiguration(line, v);
 				/* check if we did some changes that needs a device update */
-#ifdef CS_DYNAMIC_CONFIG
 				if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 					line->pendingUpdate = 1;
 				} else {
 					line->pendingUpdate = 0;
 				}
-#endif
 				pbx_variables_destroy(v);
 			}
 			line = sccp_line_release(line);
@@ -2155,7 +2137,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	}
 	GLOB(pendingUpdate) = 0;
 
-#ifdef CS_DYNAMIC_CONFIG
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
 	if (readingtype == SCCP_CONFIG_READRELOAD) {
 		/* IMPORTANT: The line_post_reload function may change the pendingUpdate field of
@@ -2168,7 +2149,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Softkey Post Reload\n");
 		sccp_softkey_post_reload();
 	}
-#endif
 }
 
 /*!
@@ -2191,7 +2171,6 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	uint8_t i = 0;
 
 	memset(alreadySetEntries, 0, sizeof(alreadySetEntries));
-#ifdef CS_DYNAMIC_CONFIG
 	if (l->pendingDelete) {
 		/* removing variables */
 		if (l->variables) {
@@ -2199,7 +2178,6 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 			l->variables = NULL;
 		}
 	}
-#endif
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(l, v->name, v->value, v->lineno, SCCP_CONFIG_LINE_SEGMENT);
 		// mark entries as already set
@@ -2239,7 +2217,6 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 	uint8_t i = 0;
 
 	memset(alreadySetEntries, 0, sizeof(alreadySetEntries));
-#ifdef CS_DYNAMIC_CONFIG
 	if (d->pendingDelete) {
 		// remove all addons before adding them again (to find differences later on in sccp_device_change)
 		sccp_addon_t *addon;
@@ -2274,7 +2251,6 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 		sccp_free_ha(d->ha);
 		d->ha = NULL;
 	}
-#endif
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(d, v->name, v->value, v->lineno, SCCP_CONFIG_DEVICE_SEGMENT);
 		//              sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Update Needed (%d)\n", d->id, res);

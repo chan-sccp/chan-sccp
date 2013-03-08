@@ -372,7 +372,6 @@ void *sccp_socket_device_thread(void *session)
 	while (s->fds[0].fd > 0 && !s->session_stop) {
 		/* create cancellation point */
 		pthread_testcancel();
-#ifdef CS_DYNAMIC_CONFIG
 		if (s->device) {
 			pbx_mutex_lock(&GLOB(lock));
 			if (GLOB(reload_in_progress) == FALSE && s && s->device && (!(s->device->pendingUpdate == FALSE && s->device->pendingDelete == FALSE))) {
@@ -380,7 +379,6 @@ void *sccp_socket_device_thread(void *session)
 			}
 			pbx_mutex_unlock(&GLOB(lock));
 		}
-#endif
 		/* calculate poll timout using keepalive interval */
 		maxWaitTime = (s->device) ? s->device->keepalive : GLOB(keepalive);
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;

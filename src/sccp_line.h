@@ -20,10 +20,8 @@
 #define sccp_line_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_line_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-#ifdef CS_DYNAMIC_CONFIG
 void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);
-#endif
 sccp_line_t *sccp_line_create(const char *name);
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line);
 sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line);

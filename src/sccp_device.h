@@ -15,10 +15,8 @@
 #ifndef __SCCP_DEVICE_H
 #define __SCCP_DEVICE_H
 
-#ifdef CS_DYNAMIC_CONFIG
 void sccp_device_pre_reload(void);
 void sccp_device_post_reload(void);
-#endif
 
 #define sccp_device_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_device_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)

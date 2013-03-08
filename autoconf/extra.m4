@@ -773,14 +773,6 @@ AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_MSG_NOTICE([--enable-distributed-devicestate: ${ac_cv_use_distributed_devicestate}])
 ])
 
-AC_DEFUN([CS_DISABLE_DYNAMIC_CONFIG], [
-	AC_ARG_ENABLE(dynamic_config, 
-	  AC_HELP_STRING([--disable-dynamic-config], [disable sccp reload]), 
-	  ac_cv_dynamic_config=$enableval, ac_cv_dynamic_config=yes)
-	AS_IF([test "_${ac_cv_dynamic_config}" == "_yes"], [AC_DEFINE(CS_DYNAMIC_CONFIG, 1, [sccp reload enabled])])
-	AC_MSG_NOTICE([--enable-dynamic-config: ${ac_cv_dynamic_config}])
-])
-
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_OPTIMIZATION
 	CS_ENABLE_DEBUG  
@@ -807,7 +799,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_VIDEOLAYER
 	CS_ENABLE_DISTRIBUTED_DEVSTATE
 	CS_IPv6
-	CS_DISABLE_DYNAMIC_CONFIG
 ])
 
 AC_DEFUN([CS_PARSE_WITH_LIBGC], [

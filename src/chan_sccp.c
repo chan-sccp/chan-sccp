@@ -734,7 +734,6 @@ int sccp_preUnload(void)
  */
 int sccp_reload(void)
 {
-#ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 	int returnval = 0;
 
@@ -791,10 +790,6 @@ int sccp_reload(void)
 	}
 	pbx_mutex_unlock(&GLOB(lock));
 	return returnval;
-#else
-	pbx_log(LOG_ERROR, "SCCP configuration reload not implemented yet! use unload and load.\n");
-	return 5;
-#endif
 }
 
 #ifdef CS_DEVSTATE_FEATURE

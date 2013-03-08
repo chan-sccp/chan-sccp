@@ -14,10 +14,8 @@
 #ifndef __SCCP_SOFTKEYS_H
 #define __SCCP_SOFTKEYS_H
 
-#ifdef CS_DYNAMIC_CONFIG
 void sccp_softkey_pre_reload(void);
 void sccp_softkey_post_reload(void);
-#endif
 void sccp_softkey_clear(void);
 
 /*!
