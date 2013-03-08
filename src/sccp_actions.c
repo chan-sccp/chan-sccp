@@ -3210,16 +3210,11 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
- * 
- * \deprecated
  */
 void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	//      sccp_session_sendmsg(d, KeepAliveAckMessage);
 	sccp_moo_t *r1 = sccp_build_packet(KeepAliveAckMessage, 0);
-
 	sccp_session_send2(s, r1);
-
 }
 
 /*!
