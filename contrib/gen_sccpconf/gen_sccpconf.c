@@ -180,10 +180,6 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 									fprintf(f, " DEFAULT '%-1s'", config[sccp_option].defaultValue);
 								}
 								break;
-							case SCCP_CONFIG_DATATYPE_ENUM2INT:
-							case SCCP_CONFIG_DATATYPE_ENUM2STR:
-							case SCCP_CONFIG_DATATYPE_CSV2STR:
-								break;
 						}
 					}
 					fprintf(f, " %s", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "NOT NULL" : "");
@@ -375,10 +371,6 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 								break;
 							case SCCP_CONFIG_DATATYPE_CHAR:
 								fprintf(f, "        <type>char</type>\n");
-								break;
-							case SCCP_CONFIG_DATATYPE_ENUM2INT:
-							case SCCP_CONFIG_DATATYPE_ENUM2STR:
-							case SCCP_CONFIG_DATATYPE_CSV2STR:
 								break;
 						}
 					}

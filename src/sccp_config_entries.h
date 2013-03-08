@@ -25,19 +25,6 @@
 #define TYPE_STRINGPTR DATA_TYPE(STRINGPTR, NULL, NULL, NULL)
 #define TYPE_CHAR DATA_TYPE(CHAR, NULL, NULL, NULL)
 
-/* complex data type parsers */
-
-/* TYPE_ENUM2INT convert regular key index enum to int */
-
-/* where _enum2int_cb should be passed an enum as string and will return it's int value (by config->size) */
-#define TYPE_ENUM2INT(_enum2int_cb,_fullkeys_cb) DATA_TYPE(ENUM2INT, NULL, _enum2int_cb,_fullkeys_cb)
-
-/* where _enum2str_cb should be passed an enum as string and will return it's str value after being checked */
-//#define TYPE_ENUM2STR(_enum2str_cb,_fullkeys_cb) DATA_TYPE(ENUM2STR, NULL, _enum2int_cb,_fullkeys_cb)
-
-/* where _csv2str_cb should be passed any comma seperated string and will return it's str value after being checked */
-//#define TYPE_CSV2STR(_csv2str_cb) DATA_TYPE(CSV2STR, NULL, _csv2str_cb, NULL)
-
 /* custom parser */
 #define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
 
@@ -49,11 +36,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
 	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat). \n"
 																										  											"Don't set any lower than 60 seconds.\n"},
-//#if CS_EXPERIMENTAL
-//	{"debug", 			G_OBJ_REF(debug), 			TYPE_ENUM2INT(debugcat2int,debugcat_keys),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
-//#else	
 	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
-//#endif	
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
 																																					"possible categories: \n"
 																																					"core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"

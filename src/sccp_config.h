@@ -98,14 +98,14 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
  * \brief Enum for Config File Status (Return Values)
  */
 typedef enum {
-  /* *INDENT-OFF* */
-  CONFIG_STATUS_FILE_NOT_CHANGED = -1,
-  CONFIG_STATUS_FILE_OK = 0,
-  CONFIG_STATUS_FILE_OLD = 1,
-  CONFIG_STATUS_FILE_NOT_SCCP = 2,
-  CONFIG_STATUS_FILE_NOT_FOUND = 3,
-  CONFIG_STATUS_FILE_INVALID = 5,
-  /* *INDENT-ON* */
+/* *INDENT-OFF* */
+	CONFIG_STATUS_FILE_NOT_CHANGED = -1,
+	CONFIG_STATUS_FILE_OK = 0,
+	CONFIG_STATUS_FILE_OLD = 1,
+	CONFIG_STATUS_FILE_NOT_SCCP = 2,
+	CONFIG_STATUS_FILE_NOT_FOUND = 3,
+	 CONFIG_STATUS_FILE_INVALID = 5,
+/* *INDENT-ON* */
 } sccp_config_file_status_t;
 
 sccp_config_file_status_t sccp_config_getConfig(boolean_t reload);
