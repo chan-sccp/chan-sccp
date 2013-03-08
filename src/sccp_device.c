@@ -344,7 +344,6 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
  */
 void sccp_device_setIndicationProtocol(sccp_device_t * device)
 {
-
 	switch (device->skinny_type) {
 			//      case SKINNY_DEVICETYPE_30SPPLUS:
 			//      case SKINNY_DEVICETYPE_30VIP:
@@ -1595,17 +1594,11 @@ void *sccp_dev_postregistration(void *data)
  * \param remove_from_global as boolean_t
  * \param cleanupTime Clean-up Time as uint8
  *
- * \todo integrate sccp_dev_clean and sccp_dev_free into sccp_device_delete -DdG
- *
  * \callgraph
  * \callergraph
  * 
- * \warning
- *      - line->channels is not always locked
- * 
  * \lock
  *      - devices
- *      - device
  *        - see sccp_dev_set_registered()
  *        - see sccp_hint_eventListener() via sccp_event_fire()
  *        - device->buttonconfig
@@ -1644,7 +1637,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		if (!sccp_strlen_zero(d->lastNumber))
 			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
 
-		/* unsubscribe hints *//* prevent loop:sccp_dev_clean =>
+		/* unsubscribe hints */
+		/* prevent loop:sccp_dev_clean =>
 		   sccp_line_removeDevice =>
 		   sccp_event_fire =>
 		   sccp_hint_eventListener =>

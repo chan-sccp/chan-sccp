@@ -1774,26 +1774,6 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 }
 
 /*!
- * \brief Destroy Channel
- * \param channel SCCP Channel
- * \note We assume channel is locked
- *
- * \callgraph
- * \callergraph
- *
- * \warning
- *      - line->channels is not always locked
- * 
- * \lock
- *      - channel
- */
-// void sccp_channel_destroy(sccp_channel_t * channel)
-// {
-//      channel = sccp_channel_release(channel);
-//      return;
-// }
-
-/*!
  * \brief Handle Transfer Request (Pressing the Transfer Softkey)
  * \param channel *retained* SCCP Channel
  * \param device *retained* SCCP Device
@@ -2367,6 +2347,11 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 	return TRUE;
 }
 
+/*!
+ * \brief Send callwaiting tone to device multiple times
+ * \note this caused refcount / segfault issues, when channel would be lost before thread callback
+ * \todo find another method to reimplement this.
+ */
 int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_t * channel)
 {
 	sccp_device_t *d = NULL;
@@ -2407,6 +2392,9 @@ int sccp_channel_callwaiting_tone_interval(sccp_device_t * device, sccp_channel_
 	return res;
 }
 
+/*!
+ * \brief Helper function to retrieve the pbx channel LinkedID
+ */
 const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
 {
 	if (!PBX(getChannelLinkedId)) {
