@@ -1704,14 +1704,17 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			}
 			break;
 		case SCCP_FEATURE_DND:
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
+//			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
 			if (device->dndFeature.previousStatus != device->dndFeature.status) {
 				if (!device->dndFeature.status) {
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to off\n", DEV_ID_LOG(device));
 					PBX(feature_removeFromDatabase) (family, "dnd");
 				} else {
 					if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to silent\n", DEV_ID_LOG(device));
 						PBX(feature_addToDatabase) (family, "dnd", "silent");
 					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to reject\n", DEV_ID_LOG(device));
 						PBX(feature_addToDatabase) (family, "dnd", "reject");
 					}
 				}
