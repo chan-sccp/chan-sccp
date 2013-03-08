@@ -26,7 +26,7 @@
  *
  * \section dv_bugs You found a Bug
  * 
- * You found a bug, please report it via : http://sourceforge.net/tracker/?group_id=186378&atid=917045. Please
+ * You found a bug, please report it via : <a href="http://sourceforge.net/tracker/?group_id=186378&atid=917045" window=_new>BugReport</a>. Please
  * try to describe the bug you found as clearly as possible. Please give us a step by step procedure to reproduce
  * the error. Give us some thing to work with, like "sccp debug all" logging, asterisk logging, protocol analyzer pcap files etc.
  * 
@@ -34,7 +34,7 @@
  * 
  * You have a new Feature which you think would be a wonderfull addition to chan_sccp. Or you need
  * something implemented and are willing to pay. Just send a Message via: 
- * http://sourceforge.net/tracker/?group_id=186378&atid=917048. We'll look into it and let you know
+ * <a href="http://sourceforge.net/tracker/?group_id=186378&atid=917048" window=_new>MailingList</a>. We'll look into it and let you know
  * what we think. 
  * You can't wait until it is implemented, why not give the sources a look over. Read the documentation
  * and start coding yourself. You could even become a member of the development team if you like. Have a look
@@ -43,7 +43,7 @@
  * \section dv_sendpatch Send us a Patch
  *
  * You found an error and fixed it or you wrote some new functionality ? Please submit a patch to:
- * http://sourceforge.net/tracker/?group_id=186378&atid=917047. Please include a description of your
+ * <a href="http://sourceforge.net/tracker/?group_id=186378&atid=917047" window=_new>PatchList</a>. Please include a description of your
  * patch and if necessary how to apply it. 
  * 
  * \section dv_developer Becoming a Developer in out Team
