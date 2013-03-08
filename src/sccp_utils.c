@@ -82,68 +82,6 @@ void sccp_permithost_addnew(sccp_device_t * d, const char *config_string)
 }
 
 /*!
- * \brief Add New AddOn/Sidecar to Device's AddOn Linked List
- * \param d SCCP Device
- * \param addon_config_type AddOn Type as Character
- * 
- * \warning
- *      - device->addons is not always locked
- *
- * \deprecated implementation moved to sccp_config.c
- */
-boolean_t sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type)
-{
-	int addon_type;
-
-	// check for device
-	if (!d)
-		return FALSE;
-
-	// checking if devicetype is specified
-	if (sccp_strlen_zero(d->config_type)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Addon type (%s) must be specified after device type\n", addon_config_type);
-		return FALSE;
-	}
-
-	if (!strcasecmp(addon_config_type, "7914"))
-		addon_type = SKINNY_DEVICETYPE_CISCO7914;
-	else if (!strcasecmp(addon_config_type, "7915"))
-		addon_type = SKINNY_DEVICETYPE_CISCO7915;
-	else if (!strcasecmp(addon_config_type, "7916"))
-		addon_type = SKINNY_DEVICETYPE_CISCO7916;
-	else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s) for device (%s)\n", addon_config_type, d->config_type);
-		return FALSE;
-	}
-
-	if (!((addon_type == SKINNY_DEVICETYPE_CISCO7914) &&
-	      ((!strcasecmp(d->config_type, "7960")) ||
-	       (!strcasecmp(d->config_type, "7961")) ||
-	       (!strcasecmp(d->config_type, "7962")) ||
-	       (!strcasecmp(d->config_type, "7965")) ||
-	       (!strcasecmp(d->config_type, "7970")) || (!strcasecmp(d->config_type, "7971")) || (!strcasecmp(d->config_type, "7975")))) && !((addon_type == SKINNY_DEVICETYPE_CISCO7915) && ((!strcasecmp(d->config_type, "7962")) || (!strcasecmp(d->config_type, "7965")) || (!strcasecmp(d->config_type, "7975")))) && !((addon_type == SKINNY_DEVICETYPE_CISCO7916) && ((!strcasecmp(d->config_type, "7962")) || (!strcasecmp(d->config_type, "7965")) || (!strcasecmp(d->config_type, "7975"))))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Configured device (%s) does not support the specified addon type (%s)\n", d->config_type, addon_config_type);
-		return FALSE;
-	}
-
-	sccp_addon_t *a = sccp_malloc(sizeof(sccp_addon_t));
-
-	if (!a) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
-		return FALSE;
-	}
-	memset(a, 0, sizeof(sccp_addon_t));
-
-	a->type = addon_type;
-	a->device = d;
-
-	SCCP_LIST_INSERT_HEAD(&d->addons, a, list);
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Added addon (%d) taps on device type (%s)\n", (d->id ? d->id : "SCCP"), a->type, d->config_type);
-	return TRUE;
-}
-
-/*!
  * \brief Return Number of Buttons on AddOn Device
  * \param d SCCP Device
  * \return taps (Number of Buttons on AddOn Device)
@@ -2155,47 +2093,6 @@ char **explode(const char *str, const char *sep)
 	}
 	sccp_free(ds);
 	return res;
-}
-
-/*!
- * \brief implode string array to string
- * \param str Array of String to implode
- * \param sep String to use as seperator
- * \param res Result String
- * \return success as boolean
- *
- * \deprecated use ast_join instead
- */
-boolean_t implode(char *str[], char *sep, char **res)
-{
-	int nn = 0;
-
-	if (*res) {
-		sccp_free(*res);
-	}
-
-	*res = sccp_malloc((strlen(str[0]) * strlen(sep) + 1) * sizeof(char *));
-	if (*res == NULL) {
-		pbx_log(LOG_ERROR, "Error allocating memory during implode");
-		return FALSE;
-	}
-	memset(*res, 0, (strlen(str[0]) * strlen(sep) + 1) * sizeof(char *));
-	if (*res != NULL) {
-		strcat(*res, str[nn]);
-		for (nn = 1; str[nn] != NULL; nn++) {
-			*res = sccp_realloc(*res, (strlen(*res) + strlen(str[nn]) + strlen(sep) + 1) * sizeof(char *));
-			if (*res != NULL) {
-				strcat(*res, sep);
-				strcat(*res, str[nn]);
-			} else {
-				pbx_log(LOG_ERROR, "Error allocating memory during implode");
-				return FALSE;
-			}
-		}
-	} else {
-		return FALSE;
-	}
-	return TRUE;
 }
 
 #ifdef HAVE_LIBGC

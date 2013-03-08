@@ -1269,38 +1269,6 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 //      return 0;
 // }
 
-/*!
- * \brief Get (remote) peer for this channel
- * \param channel       SCCP Channel
- *
- * \deprecated
- */
-
-/* 
-   sccp_channel_t *sccp_pbx_getPeer(sccp_channel_t * channel)
-   {
-   //! \todo implement internal peer search
-   return NULL;
-   }
- */
-
-/*!
- * \brief Get codec capabilities for local channel
- * \param channel       SCCP Channel
- * \param capabilities  Codec Capabilities
- *
- * \deprecated
- * \note Variable capabilities will be malloced by function, caller must destroy this later
- */
-
-/*
-   int sccp_pbx_getCodecCapabilities(sccp_channel_t * channel, void **capabilities)
-   {
-   //! \todo implement internal peer search
-   return -1;
-   }
- */
-
 /**
  * \brief Get Peer Codec Capabilies
  * \param channel 	SCCP Channel
