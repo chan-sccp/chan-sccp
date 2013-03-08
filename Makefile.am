@@ -6,7 +6,6 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
-include $(top_srcdir)/amdoxygen.am
 AUTOMAKE_OPTS			= gnu silent-rules
 #EXTRA_DIST 			= .version tools conf
 EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf
@@ -58,6 +57,12 @@ endif
 
 # Update ChangeLog Files and Generate Doxygen Documentation
 doxygen: ChangeLog ChangeLog-HTML doxygen-doc
+
+doxygen-doc: ChangeLog ChangeLog-HTML 
+	cd doc && $(MAKE) $(AM_MAKEFLAGS) doxygen-doc
+
+doxygen-pdf: ChangeLog ChangeLog-HTML
+	cd doc && $(MAKE) $(AM_MAKEFLAGS) doxygen-pdf
 
 deb: 
 	dpkg-buildpackage -rfakeroot -us -uc

@@ -6,12 +6,13 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
+include $(top_srcdir)/amdoxygen.am
 EXTRA_DIST = doxygen.cfg doxygen-header  														\
-	01_Index.doc                            05_Features_V3.doc                  09_Developers_Guide.doc         13_Reporting_Issues_Problems.doc 	\
-	02_What_Is_Chan_SCCP.doc                06_New_Features.doc                 10_Sources_Explained.doc						\
-	03_Building_and_Installation_Guide.doc  07_Frequently_Asked_Questions.doc   11_Consulted_Documentation.doc					\
-	04_Setup_Guide.doc                      08_Supported_Operating_Systems.doc  12_Licensing.doc							\
-	chan-sccp-b_pdf.sty
+	00_Index.doc                            40_New_Features.doc                 80_Consulted_Documentation.doc 					\
+	10_What_Is_Chan_SCCP.doc                50_Frequently_Asked_Questions.doc   90_Developers_Guide.doc        					\
+	20_Building_and_Installation_Guide.doc  55_Reporting_Issues_Problems.doc    99_Licensing.doc               					\
+	30_Setup_Guide.doc                      60_Supported_Operating_Systems.doc  chan-sccp-b_pdf.sty            					\
+	35_How_To.doc                           70_Sources_Explained.doc
 	
-DX_CLEANFILES = everything to clean.
+# DX_CLEANFILES = everything to clean.
 

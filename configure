@@ -27243,7 +27243,7 @@ $as_echo "$as_me: --enable-devdoc: ${ac_cv_use_devdoc}" >&6;}
 # Files:
 DX_PROJECT=$PACKAGE
 
-DX_CONFIG=doc/doxygen.cfg
+DX_CONFIG=doxygen.cfg
 
 DX_DOCDIR=doxygen-doc
 
