@@ -880,7 +880,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		/* If there are any digits, send them instead of starting the PBX */
 		if (!sccp_strlen_zero(c->dialedNumber)) {
 			sccp_pbx_senddigits(c, c->dialedNumber);
-			sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
+			sccp_channel_set_calledparty(c, "", c->dialedNumber);
 			if ((d = sccp_channel_getDevice_retained(c))) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				d = sccp_device_release(d);
@@ -1080,7 +1080,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 
 	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
-	sccp_channel_set_calledparty(c, c->dialedNumber, shortenedNumber);
+	sccp_channel_set_calledparty(c, "", shortenedNumber);
 
 	/* The 7961 seems to need the dialing callstate to record its directories information. */
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
