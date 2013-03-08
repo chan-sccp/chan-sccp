@@ -595,10 +595,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #ifdef CS_ADV_FEATURES
 	CLI_AMI_OUTPUT_BOOL("Use Placed Calls", CLI_AMI_LIST_WIDTH, d->useRedialMenu);
 #endif
-#ifdef CS_DYNAMIC_CONFIG
 	CLI_AMI_OUTPUT_BOOL("PendingUpdate", CLI_AMI_LIST_WIDTH, d->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("PendingDelete", CLI_AMI_LIST_WIDTH, d->pendingDelete);
-#endif
 #ifdef CS_SCCP_PICKUP
 	CLI_AMI_OUTPUT_PARAM("Pickup Extension", CLI_AMI_LIST_WIDTH, "%d", d->pickupexten);
 	CLI_AMI_OUTPUT_PARAM("Pickup Context", CLI_AMI_LIST_WIDTH, "%s (%s)", d->pickupcontext, pbx_context_find(d->pickupcontext) ? "exists" : "does not exist !!");
@@ -1009,10 +1007,8 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #ifdef CS_SCCP_REALTIME
 	CLI_AMI_OUTPUT_BOOL("Is Realtime Line", CLI_AMI_LIST_WIDTH, l->realtime);
 #endif
-#ifdef CS_DYNAMIC_CONFIG
 	CLI_AMI_OUTPUT_BOOL("Pending Delete", CLI_AMI_LIST_WIDTH, l->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("Pending Update", CLI_AMI_LIST_WIDTH, l->pendingDelete);
-#endif
 
 	CLI_AMI_OUTPUT_PARAM("Registration Extension", CLI_AMI_LIST_WIDTH, "%s", l->regexten ? l->regexten : "Unset");
 	CLI_AMI_OUTPUT_PARAM("Registration Context", CLI_AMI_LIST_WIDTH, "%s", l->regcontext ? l->regcontext : "Unset");
@@ -2040,7 +2036,6 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
      */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
-#ifdef CS_DYNAMIC_CONFIG
 	sccp_readingtype_t readingtype;
 	int returnval = RESULT_SUCCESS;
 
@@ -2105,10 +2100,6 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	}
 	pbx_mutex_unlock(&GLOB(lock));
 	return returnval;
-#else
-	pbx_cli(fd, "SCCP configuration reload not implemented yet! use unload and load.\n");
-	return RESULT_SUCCESS;
-#endif
 }
 
 static char reload_usage[] = "Usage: SCCP reload [filename]\n" "       Reloads SCCP configuration from sccp.conf or optional [filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";

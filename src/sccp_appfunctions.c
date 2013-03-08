@@ -175,17 +175,9 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 		snprintf(buf, len, "[ %s ]", lbuf);
 	} else if (!strcasecmp(colname, "pending_delete")) {
-#ifdef CS_DYNAMIC_CONFIG
 		sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", len);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
 	} else if (!strcasecmp(colname, "pending_update")) {
-#ifdef CS_DYNAMIC_CONFIG
 		sccp_copy_string(buf, d->pendingUpdate ? "yes" : "no", len);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
 	} else if (!strncasecmp(colname, "chanvar[", 8)) {
 		char *chanvar = colname + 8;
 
@@ -359,20 +351,9 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		sccp_copy_string(buf, "not supported", len);
 #endif
 	} else if (!strcasecmp(colname, "pending_delete")) {
-
-#ifdef CS_DYNAMIC_CONFIG
 		sccp_copy_string(buf, l->pendingDelete ? "yes" : "no", len);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
 	} else if (!strcasecmp(colname, "pending_update")) {
-
-#ifdef CS_DYNAMIC_CONFIG
 		sccp_copy_string(buf, l->pendingUpdate ? "yes" : "no", len);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
-
 		/* regexten feature -- */
 	} else if (!strcasecmp(colname, "regexten")) {
 		sccp_copy_string(buf, l->regexten ? l->regexten : "Unset", len);

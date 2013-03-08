@@ -28,8 +28,6 @@ void sccp_sk_videomode(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
  */
 struct softKeySetConfigList softKeySetConfig;									/*!< List of SoftKeySets */
 
-#ifdef CS_DYNAMIC_CONFIG
-
 /*!
  * \brief Softkey Pre Reload
  *
@@ -61,7 +59,6 @@ void sccp_softkey_post_reload(void)
 {
 
 }
-#endif														/* CS_DYNAMIC_CONFIG */
 
 void sccp_softkey_clear()
 {

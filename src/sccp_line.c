@@ -17,7 +17,6 @@
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#ifdef CS_DYNAMIC_CONFIG
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
 int __sccp_lineDevice_destroy(const void *ptr);
@@ -102,7 +101,6 @@ void sccp_line_post_reload(void)
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 }
-#endif														/* CS_DYNAMIC_CONFIG */
 
 /*!
  * \brief Build Default SCCP Line.
@@ -627,9 +625,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
 	sccp_event_fire(&event);
 
-#ifdef CS_DYNAMIC_CONFIG
 	regcontext_exten(l, &(linedevice->subscriptionId), 1);
-#endif
 	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
 	l = sccp_line_release(l);
 	device = sccp_device_release(device);
@@ -665,9 +661,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (device == NULL || linedevice->device == device) {
 			//              if (linedevice->device == device) {
-#ifdef CS_DYNAMIC_CONFIG
 			regcontext_exten(l, &(linedevice->subscriptionId), 0);
-#endif
 			SCCP_LIST_REMOVE_CURRENT(list);
 			l->statistic.numberOfActiveDevices--;
 

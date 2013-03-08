@@ -655,10 +655,8 @@ struct sccp_buttonconfig {
 	button_type_t type;											/*!< Button type (e.g. line, speeddial, feature, empty) */
 	SCCP_LIST_ENTRY (sccp_buttonconfig_t) list;								/*!< Button Linked List Entry */
 
-#ifdef CS_DYNAMIC_CONFIG
 	unsigned int pendingDelete:1;
 	unsigned int pendingUpdate:1;
-#endif
 
 	/*!
 	 * \brief SCCP Button Structure
@@ -772,11 +770,9 @@ struct sccp_line {
 	uint8_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	struct subscriptionId defaultSubscriptionId;								/*!< default subscription id for shared lines */
 
-#ifdef CS_DYNAMIC_CONFIG
 	/* this is for reload routines */
 	unsigned int pendingDelete:1;										/*!< this bit will tell the scheduler to delete this line when unused */
 	unsigned int pendingUpdate:1;										/*!< this bit will tell the scheduler to update this line when unused */
-#endif
 
 	/*!
 	 * \brief Statistic for Line Structure
@@ -928,11 +924,8 @@ struct sccp_device {
 		uint8_t numberOfServices;									/*!< Number of Services */
 	} configurationStatistic;										/*!< Configuration Statistic Structure */
 
-#ifdef CS_DYNAMIC_CONFIG
 	unsigned int pendingDelete:1;										/*!< this bit will tell the scheduler to delete this line when unused */
 	unsigned int pendingUpdate:1;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
-
-#endif
 
 	boolean_t isAnonymous;											/*!< Device is connected Anonymously (Guest) */
 	light_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
@@ -1271,9 +1264,7 @@ struct sccp_global_vars {
 	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
 	sccp_hotline_t *hotline;										/*!< HotLine */
 
-#ifdef CS_DYNAMIC_CONFIG
 	unsigned int pendingUpdate:1;
-#endif
 	char token_fallback[7];											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 
@@ -1337,10 +1328,8 @@ struct softKeySetConfiguration {
 	uint8_t numberOfSoftKeySets;										/*!< How many SoftKeySets we definde? */
 	SCCP_LIST_ENTRY (sccp_softKeySetConfiguration_t) list;							/*!< Next list entry */
 
-#ifdef CS_DYNAMIC_CONFIG
 	unsigned int pendingDelete:1;
 	unsigned int pendingUpdate:1;
-#endif
 };														/*!< SoftKeySet Configuration Structure */
 SCCP_LIST_HEAD (softKeySetConfigList, sccp_softKeySetConfiguration_t);						/*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
 extern struct softKeySetConfigList softKeySetConfig;								/*!< List of SoftKeySets */

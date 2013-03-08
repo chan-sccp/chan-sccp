@@ -115,8 +115,6 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 	return matchesACL;
 }
 
-#ifdef CS_DYNAMIC_CONFIG
-
 /*!
  * \brief run before reload is start on devices
  * \note See \ref sccp_config_reload
@@ -247,7 +245,6 @@ void sccp_device_post_reload(void)
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
-#endif														/* CS_DYNAMIC_CONFIG */
 
 /*!
  * \brief create a device and adding default values.
@@ -312,10 +309,8 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
 	d->hasDisplayPrompt = sccp_device_trueResult;
-#ifdef CS_DYNAMIC_CONFIG
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
-#endif
 	return d;
 }
 
@@ -1973,10 +1968,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 
 	r->msg.Reset.lel_resetType = htolel(reset_type);
 	sccp_session_send(d, r);
-
-#ifdef CS_DYNAMIC_CONFIG
 	d->pendingUpdate = 0;
-#endif
 	return 1;
 }
 
