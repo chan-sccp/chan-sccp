@@ -514,7 +514,6 @@ static void sccp_accept_connection(void)
 	if (s->ourip.s_addr == INADDR_ANY) {
 		sccp_sockect_getOurAddressfor(&incoming.sin_addr, &s->ourip);
 	} else {
-		//      memcpy(&s->ourip, &GLOB(bindaddr.sin_addr.s_addr), sizeof(s->ourip));
 		memcpy(&s->ourip, &GLOB(bindaddr.sin_addr), sizeof(s->ourip));
 	}
 
@@ -735,14 +734,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		ast_mutex_unlock(&s->write_lock);
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
-				/*                                sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_4 
-				   "%s: EAGAIN / EINTR: %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d. Try: %d/%d\n",
-				   DEV_ID_LOG(s->device), 
-				   (int)res, strerror(errno), errno,
-				   (int)bytesSent, (int)bufLen, 
-				   message2str(letohl(r->header.lel_messageId)), letohl(r->header.length),
-				   try, maxTries
-				   ); */
 				usleep(200);									/* back off to give network/other threads some time */
 				continue;
 			}

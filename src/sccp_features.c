@@ -685,8 +685,6 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
  *
  * \lock
- *      - device
- *        - see sccp_device_numberOfChannels()
  *      - device->selectedChannels
  *        - see sccp_conference_addParticipant()
  *      - device->buttonconfig
@@ -1337,18 +1335,6 @@ void sccp_feat_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 		event.event.featureChanged.device = sccp_device_retain(device);
 		event.event.featureChanged.featureType = featureType;
 		sccp_event_fire(&event);
-
-		//              if (SCCP_FEATURE_MONITOR == featureType) {
-		//                      /* Special case for monitor */
-		//                      sccp_moo_t *r;
-		// 
-		//                      REQ(r, SetLampMessage);
-		//                      r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-		//                      r->msg.SetLampMessage.lel_stimulusInstance = 0;
-		//                      r->msg.SetLampMessage.lel_lampMode = htolel((device->monitorFeature.status || (device->mwilight & (1 << 0))) ? SKINNY_LAMP_ON : SKINNY_LAMP_OFF);
-		//                      sccp_dev_send(device, r);
-		//              }
-
 	}
 }
 
@@ -1392,24 +1378,6 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 	}
 
 }
-
-//int checkMonCond(void *v);
-
-/*!
- * \brief Check Monitor Condition
- */
-
-/*
-   int checkMonCond(void *v)
-   {
-   PBX_CHANNEL_TYPE *c = (PBX_CHANNEL_TYPE *) v;
-
-   if (NULL == c)
-   return 1;
-
-   return (c->monitor) ? 1 : 0;
-   }
- */
 
 /*!
  * \brief Feature Monitor

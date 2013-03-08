@@ -1221,26 +1221,14 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 		}
 		for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
 			if (all || !strcasecmp(skinny_codecs[x].key, this)) {
-				//pbx_log(LOG_WARNING, "%s codec '%s'\n", allowing ? "allow" : "disallow", this);
 				codec = skinny_codecs[x].codec;
 				found = TRUE;
-				//                              mapped = FALSE;
-				//                                sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "parsing codec '%s'\n", this);
 				if (skinny_codec_mask) {
 					if (allowing)
 						*skinny_codec_mask |= codec;
 					else
 						*skinny_codec_mask &= ~codec;
 				}
-				// check if mapped in skinny2pbx_codec_maps (taken out because phones can use a codec via passthrough without a mapping to pbx codec)
-				//                              for (y = 0; y < ARRAY_LEN(skinny2pbx_codec_maps); y++) {
-				//                                      if (skinny2pbx_codec_maps[y].skinny_codec == codec) {
-				//                                              mapped = TRUE;
-				//                                              break;
-				//                                      }
-				//                              }
-
-				//                              if (skinny_codec_prefs && mapped) {
 				if (skinny_codec_prefs) {
 					if (strcasecmp(this, "all")) {
 						if (allowing) {
@@ -1810,18 +1798,8 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
  */
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *subscriptionIdNum)
 {
-	boolean_t result = TRUE;
+	boolean_t result = FALSE;
 	boolean_t filterPhones = FALSE;
-
-	/*
-	   int compareId = 0;
-	   int compareDefId = 0;
-	 */
-
-	/* Determine if the phones registered on the shared line shall be filtered at all:
-	   only if a non-trivial subscription id is specified with the calling channel,
-	   which is not the default subscription id of the shared line denoting all devices,
-	   the phones are addressed individually. (-DD) */
 
 	filterPhones = FALSE;											/* set the default to call all phones */
 
@@ -1840,38 +1818,6 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 		   &&0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))) {	/* Do the match! */
 		result = FALSE;
 	}
-#if 0
-	/* we are calling a line with no or default subscriptionIdNum -> let all devices get the call -> return true */
-	if (strlen(channel->subscriptionId.number) == 0) {
-		result = TRUE;
-		goto DONE;
-	}
-#if 0
-	/* sccp_channel->line has a defaultSubscriptionId -> if we wish to ring all devices -> remove the #if */
-	if (strlen(channel->line->defaultSubscriptionId.number) && 0 == strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number))) {
-		result = TRUE;
-		goto DONE;
-	}
-#endif
-
-	/* we are calling a line with suffix, but device does not have a subscriptionIdNum -> skip it -> return false */
-	else if (strlen(subscriptionIdNum) == 0 && strlen(channel->subscriptionId.number) != 0) {
-		result = FALSE;
-		goto DONE;
-	}
-
-	else if (NULL != subscriptionIdNum && 0 != strlen(subscriptionIdNum)
-		 && NULL != channel->line && 0 != (compareDefId = strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number)))) {
-
-		if (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))
-		    && 0 != (compareId = strlen(channel->subscriptionId.number))) {
-
-			result = FALSE;
-		}
-	}
-DONE:
-#endif
-
 #if 0
 	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
 	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? strlen(subscriptionIdNum) : -1);
@@ -2307,66 +2253,6 @@ void sccp_free_ha(struct sccp_ha *ha)
 	}
 }
 
-#if 0														// contains an undefined problem, leading to segfault when used
-void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to);
-
-/*! 
- * \brief Copy Host Access Rule Structure 
- * \param from Source HA to copy
- * \param to Destination HA to copy to
- * \retval void
- */
-void sccp_copy_ha(const struct sccp_ha *from, struct sccp_ha *to)
-{
-	memcpy(&to->netaddr, &from->netaddr, sizeof(from->netaddr));
-	memcpy(&to->netmask, &from->netmask, sizeof(from->netmask));
-	to->sense = from->sense;
-}
-
-/*!
- * \brief Create duplicate of ha structure 
- */
-static struct sccp_ha *sccp_duplicate_ha(struct sccp_ha *original)
-{
-	struct sccp_ha *new_ha;
-
-	if ((new_ha = sccp_malloc(sizeof(*new_ha)))) {
-		/* Copy from original to new object */
-		sccp_copy_ha(original, new_ha);
-	}
-
-	return new_ha;
-}
-
-/*!
- * \brief Duplicate the contents of a list of host access rules
- * \param original The ast_ha to copy
- * \retval The head of the list of duplicated ast_has
- */
-struct sccp_ha *sccp_duplicate_ha_list(struct sccp_ha *original)
-{
-	struct sccp_ha *start = original;
-	struct sccp_ha *ret = NULL;
-	struct sccp_ha *current, *prev = NULL;
-
-	while (start) {
-		current = sccp_duplicate_ha(start);								/* Create copy of this object */
-		if (prev) {
-			prev->next = current;									/* Link previous to this object */
-		}
-
-		if (!ret) {
-			ret = current;										/* Save starting point */
-		}
-
-		start = start->next;										/* Go to next object */
-		prev = current;											/* Save pointer to this object */
-	}
-
-	return ret;												/* Return start of list */
-}
-#endif
-
 /*!
  * \brief Apply a set of rules to a given IP address
  *
@@ -2380,31 +2266,14 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 	/* Start optimistic */
 	int res = AST_SENSE_DENY;
 
-#if 0
-	char str1[INET_ADDRSTRLEN];
-	char str2[INET_ADDRSTRLEN];
-	char str3[INET_ADDRSTRLEN];
-#endif
-
 	while (ha) {
 		/* For each rule, if this address and the netmask = the net address
 		   apply the current rule */
-#if 0
-		inet_ntop(AF_INET, &sin->sin_addr.s_addr, str1, INET_ADDRSTRLEN);
-		inet_ntop(AF_INET, &ha->netaddr.s_addr, str2, INET_ADDRSTRLEN);
-		inet_ntop(AF_INET, &ha->netmask.s_addr, str3, INET_ADDRSTRLEN);
-		sccp_log(DEBUGCAT_CORE) ("TEST IP: %s HA: IP: %s/%s, sense '%s'\n", str1, str2, str3, ha->sense ? "permit" : "deny");
-#endif
-
 		if ((sin->sin_addr.s_addr & ha->netmask.s_addr) == ha->netaddr.s_addr) {
 			res = ha->sense;
 		}
 		ha = ha->next;
 	}
-
-#if 0
-	sccp_log(DEBUGCAT_CORE) ("result %d\n", res);
-#endif
 	return res;
 }
 

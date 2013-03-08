@@ -70,10 +70,6 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool\n");
 	sccp_threadpool_t *tp_p;
 
-	//#ifndef CS_CPU_COUNT
-	//      #warning CPU_COUNT not defined
-	//#endif        
-
 #if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
 	threadsN = get_nprocs_conf();										// get current number of active processors
 #endif
@@ -345,7 +341,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	ast_cond_destroy(&(tp_p->exit));									/* Remove Condition */
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->jobs));
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->threads));
-	free(tp_p);												/* DEALLOC thread pool         */
+	free(tp_p);												/* DEALLOC thread pool */
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Threadpool Ended\n");
 }
 

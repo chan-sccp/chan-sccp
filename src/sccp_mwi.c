@@ -67,7 +67,6 @@ void sccp_mwi_module_stop()
 			pbx_event_unsubscribe(subscription->event_sub);
 		}
 #else
-		//              SCCP_SCHED_DEL(sched, subscription->schedUpdate);
 		subscription->schedUpdate = SCCP_SCHED_DEL(subscription->schedUpdate);
 #endif
 
@@ -477,8 +476,6 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		REQ(r, SetLampMessage);
 		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
 		r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
-		//r->msg.SetLampMessage.lel_lampMode = htolel( (l->voicemailStatistic.newmsgs) ? SKINNY_LAMP_ON :  SKINNY_LAMP_OFF);
-		//              r->msg.SetLampMessage.lel_lampMode = htolel((status) ? d->mwilamp : SKINNY_LAMP_OFF);
 		r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
 
 		sccp_dev_send(d, r);
@@ -630,8 +627,6 @@ void sccp_mwi_check(sccp_device_t * device)
  * \return Result as int
  * 
  * \called_from_asterisk
- *
- * \todo TO BE IMPLEMENTED: sccp show mwi subscriptions
  */
 #include <asterisk/cli.h>
 int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])

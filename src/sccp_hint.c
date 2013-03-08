@@ -265,12 +265,6 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	//      cidNumber       = hint->callInfo.partyNumber;
 
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "%s: (sccp_hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), hint->callInfo.partyName, hint->callInfo.partyNumber);
-
-	//      if( ast_device_state(hintStr) == AST_DEVICE_UNAVAILABLE ) {
-	//              extensionState = AST_EXTENSION_UNAVAILABLE;
-	//              sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_devstate_cb) extensionState = AST_EXTENSION_UNAVAILABLE\n", hint->exten);
-	//      }
-
 	switch (extensionState) {
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
@@ -281,11 +275,6 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
 			break;
 		case AST_EXTENSION_INUSE:
-			// hint->currentState = SCCP_CHANNELSTATE_CONNECTED;
-
-			// DdG: This is not correct, it depend on the hint->previousState
-			// DdG: If the previous is ONHOOK/DOWN, the currentState should become SCCP_CHANNELSTATE_DIALING        
-			// DdG: Otherwise you go offhook, get a devstate_cb which would state we are Connected, although we are actually starting to dial
 			if (SCCP_CHANNELSTATE_ONHOOK == hint->previousState || SCCP_CHANNELSTATE_DOWN == hint->previousState) {
 				hint->currentState = SCCP_CHANNELSTATE_DIALING;
 			} else {
@@ -332,7 +321,6 @@ void sccp_hint_eventListener(const sccp_event_t * event)
 
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
-			/* already retained by event */
 			device = event->event.deviceRegistered.device;
 
 			sccp_hint_deviceRegistered(device);
@@ -342,8 +330,6 @@ void sccp_hint_eventListener(const sccp_event_t * event)
 
 			if (device && device->id) {
 				char *deviceName = strdupa(device->id);
-
-				/* remove device from list */
 				sccp_hint_deviceUnRegistered(deviceName);
 			}
 
@@ -949,8 +935,14 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		pbx_event_t *event;
 
 		event = pbx_event_new(
-					     //                              AST_EVENT_DEVICE_STATE_CHANGE,
-					     AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber, AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, AST_EVENT_IE_END);
+					     AST_EVENT_DEVICE_STATE, 
+					     AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
+					     AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
+					     AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
+					     AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber, 
+					     AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, 
+					     AST_EVENT_IE_END
+				     );
 		pbx_event_queue_and_cache(event);
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: \n");
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(newDeviceState), newDeviceState, lineState->line->name);
@@ -1147,11 +1139,6 @@ static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, co
 	if (positionOnDevice <= 6 && (device->skinny_type == SKINNY_DEVICETYPE_CISCO7945 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7961 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7961GE || device->skinny_type == SKINNY_DEVICETYPE_CISCO7962 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7965)) {
 		return TRUE;
 	}
-	/*      if (positionOnDevice <= 4 && (
-	   //                   device->skinny_type == SKINNY_DEVICETYPE_CISCO79??
-	   )) {
-	   return TRUE;
-	   } */
 	if (positionOnDevice <= 2 && (device->skinny_type == SKINNY_DEVICETYPE_CISCO7911 ||
 				      device->skinny_type == SKINNY_DEVICETYPE_CISCO7912 ||
 				      device->skinny_type == SKINNY_DEVICETYPE_CISCO7931 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7935 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7936 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7937 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7941 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7941GE || device->skinny_type == SKINNY_DEVICETYPE_CISCO7942 || device->skinny_type == SKINNY_DEVICETYPE_CISCO7945)) {
@@ -1209,14 +1196,11 @@ sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *dev
 
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {
-		//              if (!strcasecmp(lineState->line->name, linename)) {
-		if (sccp_strcaseequals(lineState->line->name, linename)) {					// includes check if both params are not zero / null
+		if (sccp_strcaseequals(lineState->line->name, linename)) {
 			state = lineState->state;
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&lineStates);
-
-	//      pbx_log(LOG_WARNING, "LineState '%d'\n", state);
 	return state;
 }

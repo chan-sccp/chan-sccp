@@ -93,7 +93,6 @@ struct refcount_object {
 	unsigned char data[0];
 };
 
-//AST_RWLOCK_DEFINE_STATIC_NOTRACKING(objectslock);                             // general lock to modify hash table entries
 ast_rwlock_t objectslock;											// general lock to modify hash table entries
 static struct refcount_objentry {
 	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects;						//!< one rwlock per hash table entry, used to modify list

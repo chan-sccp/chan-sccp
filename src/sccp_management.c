@@ -15,9 +15,9 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2174 $")
 
-    /*!
-     * \brief Show Device Description
-     */
+/*!
+ * \brief Show Device Description
+ */
 static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 
 /*!

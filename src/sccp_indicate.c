@@ -50,10 +50,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	if (debug) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] mode '%s' in file '%s', on line %d (%s)\n", "UNLOCK", file, line, pretty_function);
 	}
-	//      if(c->state == state){
-	//              sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] no need for new indication\n");
-	//              return;
-	//      }
 
 	d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice_retained(c);
 	if (!d) {
@@ -463,8 +459,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "I'm a hotline, do not notify me!\n");
 		return;
 	}
-	//      SCCP_LIST_LOCK(&c->line->devices);
-	// \todo find working lock
 	sccp_linedevices_t *linedevice;
 
 	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: __sccp_indicate_remote_device: traverse linedevices\n");
@@ -514,13 +508,11 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 					break;
 				case SCCP_CHANNELSTATE_ONHOOK:
-					//if(c->previousChannelState == SCCP_CHANNELSTATE_RINGING)
 					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
 
-					/* if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
-					if (c->answered_elsewhere)
+					if (c->answered_elsewhere) {
 						sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
-
+					}
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 
@@ -588,7 +580,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			remoteDevice = sccp_device_release(remoteDevice);
 		}
 	}
-	//      SCCP_LIST_UNLOCK(&c->line->devices);
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state remote device SCCP (%s) on call %08x\n", device->id, sccp_indicate2str(state), c->callid);
 }
 
