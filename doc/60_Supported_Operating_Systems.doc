@@ -26,7 +26,7 @@
  *
  * Please tell us if you have succesfully installed / ported chan_sccp to you platform if it's not in the list yet
  *
- * \subsection supp_freeos_linux Linux Based Operating Systems
+ * \section supp_freeos_linux Linux Based Operating Systems
  *   - OpenSuSE
  *   - Debian
  *   - Ubuntu / MintLinux
@@ -39,13 +39,13 @@
  *      .
  *   .
  *
- * \subsection supp_freeos_bsd	BSD Based Operating Systems
+ * \section supp_freeos_bsd	BSD Based Operating Systems
  *   - OpenBSD
  *   - FreeBSD
  *   - NetBSD
  *   .
  *
- * \subsection supp_os_commercial Commercial Operating Systems
+ * \section supp_os_commercial Commercial Operating Systems
  *   - IBM Aix
  *   - Oracle/Sun Solaris
  *   - Apple OS-X

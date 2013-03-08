@@ -24,7 +24,7 @@
  * <HR>
  *
  *
- * \subsection nf_config_parser 		New Config Parser
+ * \section nf_config_parser 		New Config Parser
  *
  * The new config parser in V4.1 allows you to verify your sccp.conf for use with chan-sccp-b. If you set debug = core,config in the beginning of the
  * config file and issue "sccp reload" in CLI, the sccp.conf file will be loaded and you will get output per line about it status and interpretation.
@@ -36,7 +36,7 @@
  *
  *
  *
- * \subsection nf_emulated_enbloc		Emulated EnBloc Dialing for older devices
+ * \section nf_emulated_enbloc		Emulated EnBloc Dialing for older devices
  *
  * Emulated Enbloc dialing has been added to make older phones react faster when dialing with the receiver down or pressing re-dial. The individual
  * buttonpresses are still send over the line in seperate tcp packets, but when we recognize that the buttonpresses arrive in a monotonous stream with 
@@ -45,20 +45,20 @@
  *
  *
  * 
- * \subsection nf_protocol_handler 		New SCCP Protocol Handler / Protocol Version
+ * \section nf_protocol_handler 		New SCCP Protocol Handler / Protocol Version
  *
  * Protocol version does not have to be set anymore in sccp.conf and is extrapolated automatically when the device registers. The new protocol handler
  * always tries to use the highest possible sccp protocol version the device is capable of handling.
  *
  *
  * 
- * \subsection nf_rtp_handling			Rewritten RTP Handling
+ * \section nf_rtp_handling			Rewritten RTP Handling
  *
  * RTP handling and codec dissemination has been completely rewritten in V4.1. 
  *
  *
  * 
- * \subsection nf_multiple_asterisk_support 	Support for multiple asterisk version in one code base
+ * \section nf_multiple_asterisk_support 	Support for multiple asterisk version in one code base
  *
  * With V4.1 multiple versions os Asterisk are supported on one code base. On the chan-sccp-b side the same code is used for any asterisk version. The 
  * pbx specific code is handled by pbx_impl which should be seen as a singular/stable API for dealing with asterisk.

@@ -29,7 +29,7 @@
  * <HR>
  *
  *
- * \subsection nf_shared_lines Shared Lines
+ * \section nf_shared_lines Shared Lines
  * 
  * Shared lines is simple, and is activated readily by registering multiple phones on the same line.
  * That's all, no extra options required. What happens is that all phones on a shared line "see" the calls of  
@@ -46,7 +46,7 @@
  *
  *
  *
- * \subsection nf_phone_buttons Phone Buttons
+ * \section nf_phone_buttons Phone Buttons
  * 
  * We do not use the different autologin, speeddial options any longer, instead trunk uses a unified scheme for adding buttons:
  * Each button is added to the phone in the order as specified in the config file by specifying a "button" assignment. The syntax is
@@ -102,7 +102,7 @@
  *
  *
  *
- * \subsection nf_dynamic_speeddial How to use Dynamic SpeedDials (now on by default)
+ * \section nf_dynamic_speeddial How to use Dynamic SpeedDials (now on by default)
  * 
  * Dynamic SpeedDials give additional information about the status of the lines assigned the speeddial. The
  * Icon displayed changes to indicate "IDLE", "DND", "IN USE" and "RINGING". In the latest version this feature is 
@@ -122,7 +122,7 @@
  *
  *
  *
- * \subsection nf_hotline How to use the hotline option
+ * \section nf_hotline How to use the hotline option
  *
  * Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver
  * is picked up or the "New Call" Button is pressed. No number has to be given. This works even on devices which 
@@ -147,7 +147,7 @@
  * 
  *
  *
- * \subsection nf_adhoc_plar How to use the adhoc option (PLAR)
+ * \section nf_adhoc_plar How to use the adhoc option (PLAR)
  *
  * Adhoc Number or Private-line automatic ringdown (PLAR): 
  * Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls. 
@@ -167,9 +167,9 @@
  * 
  *
  *
- * \subsection nf_sccp_softkeys 	Soft Keys Howto
+ * \section nf_sccp_softkeys 	Soft Keys Howto
  * 
- * \subsection sk_config		Softkey Configuration
+ * \section sk_config		Softkey Configuration
  * 
  * You can create several softkeyset in you config for use on different devices. You can assign these softkeyset to a device 
  * using: softkeyset = name_of_softkeyset in the device section of the config. 
@@ -360,7 +360,7 @@
  *
  *
  *
- * \subsection nf_sccp_reload	 	Reload Howto
+ * \section nf_sccp_reload	 	Reload Howto
  * 
  * When chan-sccp-b has been configured with the --with-dynamic-config during the build fase. The new "sccp reload" function 
  * will be availble in from the CLI inside asterisk. When run, chan_sccp-b will reload the sccp.conf file and update all it's 
@@ -372,7 +372,7 @@
  *
  *
  *
- * \subsection nf_sccp_function	 	How to use dialplan functions
+ * \section nf_sccp_function	 	How to use dialplan functions
  * 
  * We have added new dialplan functions 
  * \ref nf_sccp_dialplan_sccpdevice SCCPDEVICE, \ref nf_sccp_dialplan_sccpline SCCPLINE and nf_sccp_dialplan_sccpchannel SCCPCHANNEL
@@ -483,7 +483,7 @@
  *
  *
  *
- * \subsection nf_devicestate         How to use devicestate
+ * \section nf_devicestate         How to use devicestate
  *
  * When chan-sccp-b is used with asterisk 1.6.1 and up, you have the option to use configure directive --enable-devstate-feature.
  * This will make chan-sccp-b report back the device_state back to asterisk, to be used by for example the 
@@ -518,7 +518,7 @@
  *
  *
  *
- * \subsection nf_digittimeout	      Digit timeout and dialing
+ * \section nf_digittimeout	      Digit timeout and dialing
  * 
  * Dialing changes:
  *
