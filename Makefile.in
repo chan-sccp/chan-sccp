@@ -67,7 +67,7 @@ target_triplet = @target@
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/README.in \
 	$(top_srcdir)/amdoxygen.am $(top_srcdir)/configure AUTHORS \
-	COPYING ChangeLog INSTALL NEWS TODO autoconf/config.guess \
+	COPYING ChangeLog INSTALL NEWS autoconf/config.guess \
 	autoconf/config.sub autoconf/depcomp autoconf/install-sh \
 	autoconf/ltmain.sh autoconf/missing
 subdir = .
