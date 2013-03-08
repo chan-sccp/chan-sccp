@@ -28,7 +28,7 @@
  * At least include the following information:
  *  - Operating System
  *  - Installed version of Asterisk
- *  - Installed version of chan_scpp. When using the trunk version, please include the revision number ($Revision: -1 $).
+ *  - Installed version of chan_scpp. When using the trunk version, please include the svn revision number.
  *  - Asterisk Debug Report (see \ref generating_a_debug_report section)
  *  - In case of registration errors, also include the TFTP Files which are used by the device
  *  - In case of dialplan issues, include the part of the dialplan in question.
@@ -37,7 +37,7 @@
  *
  * \subsection generating_a_debug_report Generating a Debug Report
  *  
- * To generate a debuig report please take the following steps:
+ * To generate a debug report please take the following steps:
  *   - switch on the "all" section in logger.conf. 
  *   - Restart Asterisk
  *   - In cli (asterisk -rvvvvvvvvvvv) enter: sccp debug device,channel,line,event (or more or event all).
@@ -47,5 +47,22 @@
  *   - Attach the /var/log/asterisk/all (might be stored in a different location on your os) file to your error/issue report. 
  * 
  * A less exact method is to cut and paste the information from CLI.
+ *
+ * \subsection generating_a_backtrace Generating a Backtrace
+ *  
+ * To generate a backtrace after asterisk produced a so called core dump
+ *   - find the location of the core dump (current working directory, /tmp, /var/log/asterisk)
+ *   - either use:
+ *     - the contrib/generate_backtrace script
+ *     - or, manually execute:
+ *       \code
+ *       gdb --batch --silent --quiet -ex "set height 0" -ex "set pagination off" -ex "bt" -ex "quit" /usr/sbin/asterisk /tmp/core
+ *       \endcode
+ *       whereby you have to replace the paths to the asterisk executable and the core file.
+ *     .
+ *   .
+ *
+ * If asterisk did not dump a core file, you might need to switch this on first in /etc/asterisk/asterisk.conf or start asterisk with the -g option
+ * 
  **/
 

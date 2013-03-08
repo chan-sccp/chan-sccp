@@ -1,0 +1,14 @@
+#!/bin/bash
+if test $# == 2; then
+	if test -f $1 && test -f $2; then
+		gdb --batch --silent --quiet -ex "set height 0" -ex "set pagination off" -ex "bt" -ex "quit" $1 $2 2>&1 |egrep -v "\[New LWP"
+	else 
+		echo "Either [$1] or [$2] could not be found"
+	fi
+else
+	echo "$0"
+	echo "-----------------------------"
+	echo "Usage  : $0 [localtion asterisk executable] [core dump location]"
+	echo "Example: $0 /usr/sbin/asterisk /tmp/core.astserv1-2012-02-02T11:16:43+0100"
+fi
+
