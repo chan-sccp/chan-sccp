@@ -135,7 +135,7 @@ void sccp_device_pre_reload(void)
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
+		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device to Pending Delete=1\n", d->id);
 		sccp_free_ha(d->ha);
 		d->ha = NULL;
 		if (!d->realtime) {										/* don't want to reset hotline devices. */
@@ -192,7 +192,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 	d->pendingUpdate = 0;
 
 	if (d->pendingDelete) {
-		sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
 		sccp_dev_clean(d, TRUE, 0);
 	} else {
 		sccp_buttonconfig_t *buttonconfig;
@@ -203,7 +203,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 				continue;
 
 			if (buttonconfig->pendingDelete) {
-				sccp_log((DEBUGCAT_NEWCODE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
 				SCCP_LIST_REMOVE_CURRENT(list);
 				sccp_free(buttonconfig);
 			} else {
@@ -242,7 +242,7 @@ void sccp_device_post_reload(void)
 		 * been updated will be because it is currently engaged in a call.
 		 */
 		if (!sccp_device_check_update(d)) {
-			sccp_log(DEBUGCAT_NEWCODE) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
+			sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
