@@ -496,7 +496,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	  ac_cv_use_devdoc=$enableval, ac_cv_use_devdoc=no)
 	AS_IF([test "_${ac_cv_use_devdoc}" == "_yes"], 
 	  [DX_ENV_APPEND([INPUT],[. doc src src/pbx_impl src/pbx_impl/ast])],
-	  [DX_ENV_APPEND([INPUT],[. doc])]
+	  [DX_ENV_APPEND([INPUT],[. doc ])]
 	)
 	AC_MSG_NOTICE([--enable-devdoc: ${ac_cv_use_devdoc}])
 	DX_HTML_FEATURE(ON)
@@ -507,7 +507,7 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	DX_XML_FEATURE(OFF)
 	DX_PDF_FEATURE(OFF)
 	DX_PS_FEATURE(OFF)
-	DX_INIT_DOXYGEN($PACKAGE, doxygen.cfg)
+	DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
 ])
 
 

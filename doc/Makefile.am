@@ -14,5 +14,5 @@ EXTRA_DIST = doxygen.cfg doxygen-header  														\
 	30_Setup_Guide.doc                      60_Supported_Operating_Systems.doc  chan-sccp-b_pdf.sty            					\
 	35_How_To.doc                           70_Sources_Explained.doc
 	
-# DX_CLEANFILES = everything to clean.
+#DX_CLEANFILES = everything to clean.
 

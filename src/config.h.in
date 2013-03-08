@@ -747,7 +747,7 @@
    `tzname'. */
 #undef HAVE_TZNAME
 
-/* Define if pointers to unaligne uint64_t integers would cause buserror */
+/* Define if pointers to unaligned uint64_t integers would cause buserror */
 #undef HAVE_UNALIGNED_BUSERROR
 
 /* Define to 1 if you have the <unistd.h> header file. */

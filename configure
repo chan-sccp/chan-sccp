@@ -27224,7 +27224,7 @@ fi
   DX_ENV="$DX_ENV INPUT='. doc src src/pbx_impl src/pbx_impl/ast'"
 
 else
-  DX_ENV="$DX_ENV INPUT='. doc'"
+  DX_ENV="$DX_ENV INPUT='. doc '"
 
 
 fi
@@ -27243,7 +27243,7 @@ $as_echo "$as_me: --enable-devdoc: ${ac_cv_use_devdoc}" >&6;}
 # Files:
 DX_PROJECT=$PACKAGE
 
-DX_CONFIG=doxygen.cfg
+DX_CONFIG=doc/doxygen.cfg
 
 DX_DOCDIR=doxygen-doc
 
