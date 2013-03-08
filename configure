@@ -22652,7 +22652,7 @@ if test "${with_changelog_oldest+set}" = set; then :
   withval=$with_changelog_oldest;
 fi
 
-	CHANGELOG_OLDEST=3000
+	CHANGELOG_OLDEST=3365
 	if test "x$with_changelog_oldest" != "x" ; then
 	  CHANGELOG_OLDEST=$with_changelog_oldest
 	fi
