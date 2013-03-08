@@ -27221,11 +27221,7 @@ else
 fi
 
 	if test "_${ac_cv_use_devdoc}" == "_yes"; then :
-  DX_ENV="$DX_ENV INPUT='. doc src src/pbx_impl src/pbx_impl/ast'"
-
-else
-  DX_ENV="$DX_ENV INPUT='. doc '"
-
+  DX_ENV="$DX_ENV INPUT='. src src/pbx_impl src/pbx_impl/ast'"
 
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-devdoc: ${ac_cv_use_devdoc}" >&5
