@@ -80,16 +80,16 @@ extern "C" {
 
 #define THREADPOOL_MIN_SIZE 2
 #define THREADPOOL_MAX_SIZE 10
-//#    define THREADPOOL_RESIZE_INTERVAL 120
+	//#    define THREADPOOL_RESIZE_INTERVAL 120
 #define THREADPOOL_RESIZE_INTERVAL 10
 
 #define CHANNEL_DESIGNATOR_SIZE 20
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 
-/*! \todo I don't like the -1 returned value */
+	/*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 
-// When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
+	// When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
 #define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
 #define sccp_log(_x) if ((sccp_globals->debug & (_x)) == _x) sccp_log1
 
@@ -1156,7 +1156,7 @@ struct sccp_channel {
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*isMicrophoneEnabled) (void);
 
-// 	char linkedid[SCCP_MAX_EXTENSION];
+	//      char linkedid[SCCP_MAX_EXTENSION];
 };														/*!< SCCP Channel Structure */
 
 /*!

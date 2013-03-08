@@ -1,20 +1,20 @@
 
 /*!
- * \file 	sccp_event.c
- * \brief 	SCCP Event Class
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
- * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \since	2009-09-02
+ * \file        sccp_event.c
+ * \brief       SCCP Event Class
+ * \author      Marcello Ceschia <marcello [at] ceschia.de>
+ * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2009-09-02
  * 
  * $Date$
  * $Revision$  
  */
 
 /*!
- * \remarks	Purpose: 	SCCP Event
- * 		When to use:	Only methods directly related to sccp events should be stored in this source file.
- *   		Relationships: 	SCCP Hint
+ * \remarks     Purpose:        SCCP Event
+ *              When to use:    Only methods directly related to sccp events should be stored in this source file.
+ *              Relationships:  SCCP Hint
  */
 
 #include <config.h>
@@ -46,7 +46,7 @@ boolean_t sccp_event_running = FALSE;
 
 void sccp_event_destroy(sccp_event_t * event)
 {
-//      pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
+	//      pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
@@ -77,7 +77,7 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_DELETED:
 			break;
 	}
-//      pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
+	//      pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
 }
 
 static void *sccp_event_processor(void *data)
@@ -97,7 +97,7 @@ static void *sccp_event_processor(void *data)
 		for (n = 0; n < subscribers->aSyncSize && sccp_event_running; n++) {
 			if (subscribers->async[n].callback_function != NULL) {
 				sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, event2str(event->type), subscribers->async[n].callback_function, n);
-				subscribers->async[n].callback_function((const sccp_event_t *)event);
+				subscribers->async[n].callback_function((const sccp_event_t *) event);
 			}
 		}
 		sccp_event_release(event);
@@ -147,7 +147,7 @@ void sccp_event_module_stop(void)
  * \param allowASyncExecution Handle Event Asynchronously (Boolean)
  * 
  * \warning
- * 	- sccp_event_listeners->subscriber is not always locked
+ *      - sccp_event_listeners->subscriber is not always locked
  */
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowASyncExecution)
 {
@@ -189,13 +189,13 @@ void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t c
 		if (eventType & n) {
 			for (x = 0; x < subscriptions[i].aSyncSize; x++) {
 				if (subscriptions[i].async[x].callback_function == cb) {
-					subscriptions[i].async[x].callback_function = (void *)NULL;
+					subscriptions[i].async[x].callback_function = (void *) NULL;
 					subscriptions[i].async[x].eventType = 0;
 				}
 			}
 			for (x = 0; x < subscriptions[i].syncSize; x++) {
 				if (subscriptions[i].sync[x].callback_function == cb) {
-					subscriptions[i].sync[x].callback_function = (void *)NULL;
+					subscriptions[i].sync[x].callback_function = (void *) NULL;
 					subscriptions[i].sync[x].eventType = 0;
 				}
 			}
@@ -210,7 +210,7 @@ void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t c
  * \note event will be freed after event is fired
  * 
  * \warning
- * 	- sccp_event_listeners->subscriber is not always locked
+ *      - sccp_event_listeners->subscriber is not always locked
  */
 void sccp_event_fire(const sccp_event_t * event)
 {
@@ -223,7 +223,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
 		return;
 	}
-//      memcpy(e, event, sizeof(sccp_event_t));
+	//      memcpy(e, event, sizeof(sccp_event_t));
 	e->type = event->type;
 
 	sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, event2str(e->type));
@@ -270,8 +270,8 @@ void sccp_event_fire(const sccp_event_t * event)
 		}
 	}
 
-//      pthread_attr_t tattr;
-//      pthread_t tid;
+	//      pthread_attr_t tattr;
+	//      pthread_t tid;
 
 	/* start async thread if nessesary */
 	if (GLOB(module_running)) {
@@ -288,7 +288,7 @@ void sccp_event_fire(const sccp_event_t * event)
 				/* initialized with default attributes */
 				if (arg->event != NULL) {
 					sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, event2str(event->type));
-					if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *)sccp_event_processor, (void *)arg)) {
+					if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
 						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, event2str(event->type));
 						arg->event = sccp_event_release(arg->event);
 						sccp_free(arg);
@@ -304,7 +304,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		if ((e = sccp_event_retain(e))) {
 			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
 				if (subscriptions[i].sync[n].callback_function != NULL) {
-					subscriptions[i].sync[n].callback_function((const sccp_event_t *)e);
+					subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
 				}
 			}
 			sccp_event_release(e);
@@ -317,12 +317,12 @@ void sccp_event_fire(const sccp_event_t * event)
 		if ((e = sccp_event_retain(e))) {
 			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
 				if (subscriptions[i].sync[n].callback_function != NULL) {
-					subscriptions[i].sync[n].callback_function((const sccp_event_t *)e);
+					subscriptions[i].sync[n].callback_function((const sccp_event_t *) e);
 				}
 			}
 			for (n = 0; n < subscriptions[i].aSyncSize && sccp_event_running; n++) {
 				if (subscriptions[i].async[n].callback_function != NULL) {
-					subscriptions[i].async[n].callback_function((const sccp_event_t *)e);
+					subscriptions[i].async[n].callback_function((const sccp_event_t *) e);
 				}
 			}
 			sccp_event_release(e);

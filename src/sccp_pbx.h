@@ -12,7 +12,7 @@
  * $Revision$  
  */
 #ifndef __SCCP_PBX_H
-#    define __SCCP_PBX_H
+#define __SCCP_PBX_H
 
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId);
 int sccp_pbx_sched_dial(const void *data);

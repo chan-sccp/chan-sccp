@@ -1,26 +1,26 @@
 /*!
- * \file 	sccp_refcount.h
- * \brief 	SCCP RefCount Header
+ * \file        sccp_refcount.h
+ * \brief       SCCP RefCount Header
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
  */
 
 #ifndef __SCCP_REFCOUNT_H
-#    define __SCCP_REFCOUNT_H
+#define __SCCP_REFCOUNT_H
 
 #include <setjmp.h>
 
 #define REFCOUNT_INDENTIFIER_SIZE 25
 enum sccp_refcounted_types {
-        SCCP_REF_DEVICE = 1,
-        SCCP_REF_LINE,
-        SCCP_REF_CHANNEL,
-        SCCP_REF_LINEDEVICE,
-        SCCP_REF_EVENT,
-        SCCP_REF_TEST,
+	SCCP_REF_DEVICE = 1,
+	SCCP_REF_LINE,
+	SCCP_REF_CHANNEL,
+	SCCP_REF_LINEDEVICE,
+	SCCP_REF_EVENT,
+	SCCP_REF_TEST,
 	SCCP_REF_CONFERENCE,
 	SCCP_REF_PARTICIPANT,
 };
@@ -57,4 +57,4 @@ void sccp_refcount_print_hashtable(int fd);
 
 #define with_ref(_a) __WITH_REF(_a,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 /* *INDENT-ON* */
-#endif										// __SCCP_REFCOUNT_H
+#endif														// __SCCP_REFCOUNT_H

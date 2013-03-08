@@ -1052,11 +1052,11 @@ static const struct skinny_lampmode {
 #define SKINNY_STATION_FEATURERING			4
 #define SKINNY_STATION_SILENTRING			5
 #define SKINNY_STATION_URGENTRING			6
-#    define SKINNY_STATION_BELLCORE_1 			7
-#    define SKINNY_STATION_BELLCORE_2			8
-#    define SKINNY_STATION_BELLCORE_3			9
-#    define SKINNY_STATION_BELLCORE_4			10
-#    define SKINNY_STATION_BELLCORE_5			11
+#define SKINNY_STATION_BELLCORE_1 			7
+#define SKINNY_STATION_BELLCORE_2			8
+#define SKINNY_STATION_BELLCORE_3			9
+#define SKINNY_STATION_BELLCORE_4			10
+#define SKINNY_STATION_BELLCORE_5			11
 
 /*!
  * \brief Skinny Station Structure
@@ -1478,7 +1478,6 @@ typedef enum {
 #define SCCP_ACCESSORY_HEADSET			0x01
 #define SCCP_ACCESSORY_HANDSET			0x02
 #define SCCP_ACCESSORY_SPEAKER			0x03
-
 
 /*!
  * \brief SCCP Accessory Structure
@@ -3415,8 +3414,9 @@ typedef union {
 	struct {
 		char le_data[2000];										/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
-	
-	struct { } Unknown_15E;
+
+	struct {
+	} Unknown_15E;
 
 	/* SPA */
 	struct {

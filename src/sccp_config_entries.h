@@ -1,13 +1,13 @@
 /*!
- * \file 	sccp_config_entries.h
- * \brief 	SCCP Config Entries Header
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file        sccp_config_entries.h
+ * \brief       SCCP Config Entries Header
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \note 	To find out more about the reload function see \ref sccp_config_reload
+ *              See the LICENSE file at the top of the source tree.
+ * \note        To find out more about the reload function see \ref sccp_config_reload
  * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
  * $Date: 2010-11-17 18:10:34 +0100 (Wed, 17 Nov 2010) $
@@ -29,13 +29,13 @@
 
 /* TYPE_ENUM2INT convert regular key index enum to int */
 
-/* where _enum2int_cb should be passed an enum as string and will return it's int value (by config->size)*/
+/* where _enum2int_cb should be passed an enum as string and will return it's int value (by config->size) */
 #define TYPE_ENUM2INT(_enum2int_cb,_fullkeys_cb) DATA_TYPE(ENUM2INT, NULL, _enum2int_cb,_fullkeys_cb)
 
-/* where _enum2str_cb should be passed an enum as string and will return it's str value after being checked*/
+/* where _enum2str_cb should be passed an enum as string and will return it's str value after being checked */
 //#define TYPE_ENUM2STR(_enum2str_cb,_fullkeys_cb) DATA_TYPE(ENUM2STR, NULL, _enum2int_cb,_fullkeys_cb)
 
-/* where _csv2str_cb should be passed any comma seperated string and will return it's str value after being checked*/
+/* where _csv2str_cb should be passed any comma seperated string and will return it's str value after being checked */
 //#define TYPE_CSV2STR(_csv2str_cb) DATA_TYPE(CSV2STR, NULL, _csv2str_cb, NULL)
 
 /* custom parser */

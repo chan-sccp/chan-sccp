@@ -1,20 +1,20 @@
 /*!
- * \file 	sccp_mwi.h
- * \brief 	SCCP Message Waiting Indicator Header
- * \author 	Marcello Ceschia <marcello [at] ceschia.de>
+ * \file        sccp_mwi.h
+ * \brief       SCCP Message Waiting Indicator Header
+ * \author      Marcello Ceschia <marcello [at] ceschia.de>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  * 
  * $Date$
  * $Revision$  
  */
 
 #ifndef SCCP_MWI_H_
-#    define SCCP_MWI_H_
+#define SCCP_MWI_H_
 
-#    ifdef CS_AST_HAS_EVENT
-#        include "asterisk/event.h"
-#    endif
+#ifdef CS_AST_HAS_EVENT
+#include "asterisk/event.h"
+#endif
 
 /*!
  * \brief SCCP Mailbox Line Type Definition
@@ -32,7 +32,7 @@ typedef struct sccp_mailboxLine sccp_mailboxLine_t;
  */
 struct sccp_mailboxLine {
 	sccp_line_t *line;
-	 SCCP_LIST_ENTRY(sccp_mailboxLine_t) list;
+	SCCP_LIST_ENTRY (sccp_mailboxLine_t) list;
 };
 
 /*!
@@ -50,34 +50,34 @@ struct sccp_mailbox_subscriber_list {
 	char mailbox[60];
 	char context[60];
 
-	 SCCP_LIST_HEAD(, sccp_mailboxLine_t) sccp_mailboxLine;
-	 SCCP_LIST_ENTRY(sccp_mailbox_subscriber_list_t) list;
+	SCCP_LIST_HEAD (, sccp_mailboxLine_t) sccp_mailboxLine;
+	SCCP_LIST_ENTRY (sccp_mailbox_subscriber_list_t) list;
 
 	/*!
 	 * \brief Current Voicemail Statistic Structure 
 	 */
 	struct {
-		int newmsgs;							/*!< New Messages */
-		int oldmsgs;							/*!< Old Messages */
-	} currentVoicemailStatistic;						/*!< Current Voicemail Statistic Structure */
+		int newmsgs;											/*!< New Messages */
+		int oldmsgs;											/*!< Old Messages */
+	} currentVoicemailStatistic;										/*!< Current Voicemail Statistic Structure */
 
 	/*!
 	 * \brief Previous Voicemail Statistic Structure 
 	 */
 	struct {
-		int newmsgs;							/*!< New Messages */
-		int oldmsgs;							/*!< Old Messages */
-	} previousVoicemailStatistic;						/*!< Previous Voicemail Statistic Structure */
+		int newmsgs;											/*!< New Messages */
+		int oldmsgs;											/*!< Old Messages */
+	} previousVoicemailStatistic;										/*!< Previous Voicemail Statistic Structure */
 
-#    ifdef CS_AST_HAS_EVENT
+#ifdef CS_AST_HAS_EVENT
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
 	struct pbx_event_sub *event_sub;
-#    else
+#else
 	int schedUpdate;
-#    endif
-};										/*!< SCCP Mailbox Subscriber List Structure */
+#endif
+};														/*!< SCCP Mailbox Subscriber List Structure */
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
@@ -85,11 +85,11 @@ void sccp_mwi_check(sccp_device_t * device);
 
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox);
 
-#    ifdef CS_AST_HAS_EVENT
+#ifdef CS_AST_HAS_EVENT
 void sccp_mwi_event(const struct ast_event *event, void *data);
-#    else
+#else
 int sccp_mwi_checksubscription(const void *ptr);
-#    endif
+#endif
 int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 
-#endif										/*SCCP_MWI_H_ */
+#endif														/*SCCP_MWI_H_ */

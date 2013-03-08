@@ -1,109 +1,109 @@
 /*!
- * \file 	ast.h
- * \brief 	SCCP PBX Asterisk Header
- * \author 	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file        ast.h
+ * \brief       SCCP PBX Asterisk Header
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
  */
 #ifndef __SCCP_PBX_WRAPPER_H
-#    define __SCCP_PBX_WRAPPER_H
-#    include "../../common.h"
+#define __SCCP_PBX_WRAPPER_H
+#include "../../common.h"
 
-#    if ASTERISK_VERSION_NUMBER >= 10400
-#        include <asterisk.h>
-#        include <asterisk/abstract_jb.h>
-#    endif
-#    include <asterisk/compiler.h>
-#    include <asterisk/utils.h>
-#    include <asterisk/threadstorage.h>
-#    include <asterisk/strings.h>
-#    include <asterisk/pbx.h>
-#    include <asterisk/acl.h>
-#    include <asterisk/module.h>
-#    include <asterisk/options.h>
-#    include <asterisk/logger.h>
-#    include <asterisk/config.h>
-#    include <asterisk/sched.h>
-#    include <asterisk/causes.h>
-#    include <asterisk/frame.h>
-#    include <asterisk/lock.h>
-#    include <asterisk/channel.h>
-#    include <asterisk/app.h>
-#    include <asterisk/callerid.h>
-#    include <asterisk/musiconhold.h>
-#    include <asterisk/astdb.h>
-#    include <asterisk/features.h>
-#    ifdef HAVE_PBX_EVENT
-#        include <asterisk/event.h>
-#    endif
-#    ifndef CS_AST_HAS_TECH_PVT
-#        include <asterisk/channel_pvt.h>
-#    endif
-#    ifdef HAVE_PBX_DEVICESTATE_H
-#        include <asterisk/devicestate.h>
-#    endif
-#    ifdef AST_EVENT_IE_CIDNAME
-#        include <asterisk/event.h>
-#        include <asterisk/event_defs.h>
-#    endif
-#    ifdef CS_AST_HAS_AST_STRING_FIELD
-#        include <asterisk/stringfields.h>
-#    endif
-#    ifdef CS_MANAGER_EVENTS
-#        include <asterisk/manager.h>
-#    endif
-#    ifdef CS_AST_HAS_ENDIAN
-#        include <asterisk/endian.h>
-#    endif
-#    include <asterisk/translate.h>
-#    ifdef HAVE_PBX_RTP_ENGINE_H
-#        include <asterisk/rtp_engine.h>
-#    else
-#        include <asterisk/rtp.h>
-#    endif
-#    ifdef CS_DEVSTATE_FEATURE
-#        include <asterisk/event_defs.h>
-#    endif
-#    include <asterisk/indications.h>
+#if ASTERISK_VERSION_NUMBER >= 10400
+#include <asterisk.h>
+#include <asterisk/abstract_jb.h>
+#endif
+#include <asterisk/compiler.h>
+#include <asterisk/utils.h>
+#include <asterisk/threadstorage.h>
+#include <asterisk/strings.h>
+#include <asterisk/pbx.h>
+#include <asterisk/acl.h>
+#include <asterisk/module.h>
+#include <asterisk/options.h>
+#include <asterisk/logger.h>
+#include <asterisk/config.h>
+#include <asterisk/sched.h>
+#include <asterisk/causes.h>
+#include <asterisk/frame.h>
+#include <asterisk/lock.h>
+#include <asterisk/channel.h>
+#include <asterisk/app.h>
+#include <asterisk/callerid.h>
+#include <asterisk/musiconhold.h>
+#include <asterisk/astdb.h>
+#include <asterisk/features.h>
+#ifdef HAVE_PBX_EVENT
+#include <asterisk/event.h>
+#endif
+#ifndef CS_AST_HAS_TECH_PVT
+#include <asterisk/channel_pvt.h>
+#endif
+#ifdef HAVE_PBX_DEVICESTATE_H
+#include <asterisk/devicestate.h>
+#endif
+#ifdef AST_EVENT_IE_CIDNAME
+#include <asterisk/event.h>
+#include <asterisk/event_defs.h>
+#endif
+#ifdef CS_AST_HAS_AST_STRING_FIELD
+#include <asterisk/stringfields.h>
+#endif
+#ifdef CS_MANAGER_EVENTS
+#include <asterisk/manager.h>
+#endif
+#ifdef CS_AST_HAS_ENDIAN
+#include <asterisk/endian.h>
+#endif
+#include <asterisk/translate.h>
+#ifdef HAVE_PBX_RTP_ENGINE_H
+#include <asterisk/rtp_engine.h>
+#else
+#include <asterisk/rtp.h>
+#endif
+#ifdef CS_DEVSTATE_FEATURE
+#include <asterisk/event_defs.h>
+#endif
+#include <asterisk/indications.h>
 
-#    include "define.h"
-#    ifdef ASTERISK_CONF_1_2
-#        include "ast102.h"
-#        define PBXVER 10200
-#    endif
-#    ifdef ASTERISK_CONF_1_4
-#        include "ast104.h"
-#        define PBXVER 10400
-#    endif
-#    ifdef ASTERISK_CONF_1_6
-#        include "ast106.h"
-#    endif
-#    ifdef ASTERISK_CONF_1_8
-#        include "ast108.h"
-#    endif
-#    ifdef ASTERISK_CONF_1_10
-#     	include "ast110.h"
-#    endif
-#    ifdef ASTERISK_CONF_1_12
-#      	include "astTrunk.h"
-#    endif
-#    include <asterisk/file.h>
+#include "define.h"
+#ifdef ASTERISK_CONF_1_2
+#include "ast102.h"
+#define PBXVER 10200
+#endif
+#ifdef ASTERISK_CONF_1_4
+#include "ast104.h"
+#define PBXVER 10400
+#endif
+#ifdef ASTERISK_CONF_1_6
+#include "ast106.h"
+#endif
+#ifdef ASTERISK_CONF_1_8
+#include "ast108.h"
+#endif
+#ifdef ASTERISK_CONF_1_10
+#	include "ast110.h"
+#endif
+#ifdef ASTERISK_CONF_1_12
+#	include "astTrunk.h"
+#endif
+#include <asterisk/file.h>
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
-#    ifndef AST_CAUSE_ANSWERED_ELSEWHERE
-#        define AST_CAUSE_ANSWERED_ELSEWHERE 200
-#    endif
+#ifndef AST_CAUSE_ANSWERED_ELSEWHERE
+#define AST_CAUSE_ANSWERED_ELSEWHERE 200
+#endif
 
 extern struct sccp_pbx_cb sccp_pbx;
 
-#    define PBX(x) sccp_pbx.x
-#    define AST_MODULE "chan_sccp"
+#define PBX(x) sccp_pbx.x
+#define AST_MODULE "chan_sccp"
 
 /*!
  * \brief Skinny Codec Mapping
@@ -143,30 +143,30 @@ static const struct skinny2pbx_codec_map {
 	/* *INDENT-ON* */
 };
 
-#    define PBX_HANGUP_CAUSE_UNKNOWN AST_CAUSE_NORMAL_UNSPECIFIED
-#    define PBX_HANGUP_CAUSE_NORMAL_CALL_CLEARING AST_CAUSE_NORMAL_CLEARING
-#    define PBX_HANGUP_CAUSE_CHANNEL_UNAVAILABLE AST_CAUSE_REQUESTED_CHAN_UNAVAIL
-#    define PBX_HANGUP_CAUSE_FACILITY_REJECTED AST_CAUSE_FACILITY_REJECTED
-#    define PBX_HANGUP_CAUSE_CALL_REJECTED AST_CAUSE_CALL_REJECTED
+#define PBX_HANGUP_CAUSE_UNKNOWN AST_CAUSE_NORMAL_UNSPECIFIED
+#define PBX_HANGUP_CAUSE_NORMAL_CALL_CLEARING AST_CAUSE_NORMAL_CLEARING
+#define PBX_HANGUP_CAUSE_CHANNEL_UNAVAILABLE AST_CAUSE_REQUESTED_CHAN_UNAVAIL
+#define PBX_HANGUP_CAUSE_FACILITY_REJECTED AST_CAUSE_FACILITY_REJECTED
+#define PBX_HANGUP_CAUSE_CALL_REJECTED AST_CAUSE_CALL_REJECTED
 
 /*!
  * \brief PBX Hangup Types handled by sccp_wrapper_asterisk_forceHangup
  */
 typedef enum {
-        PBX_QUEUED_HANGUP = 0,
-        PBX_SOFT_HANGUP = 1,
-        PBX_HARD_HANGUP = 2,
+	PBX_QUEUED_HANGUP = 0,
+	PBX_SOFT_HANGUP = 1,
+	PBX_HARD_HANGUP = 2,
 } pbx_hangup_type_t;
 
 /*!
  * \brief AST Device State Structure
  */
 static const struct pbx_devicestate {
-#    ifdef ENUM_AST_DEVICE
+#ifdef ENUM_AST_DEVICE
 	enum ast_device_state devicestate;
-#    else
+#else
 	uint8_t devicestate;
-#    endif
+#endif
 	const char *const text;
 } pbx_devicestates[] = {
 	/* *INDENT-OFF* */
@@ -298,19 +298,19 @@ int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *inter
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data);
 const char *pbx_inet_ntoa(struct in_addr ia);
 
-#    define ast_format_type int
-#    define pbx_format_type int
+#define ast_format_type int
+#define pbx_format_type int
 
 skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt);
 ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec);
 
 // support for old uin32_t format (only temporarily
-#    define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
-#    define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
+#define pbx_format2skinny_format (uint32_t)pbx_codec2skinny_codec
+#define skinny_format2pbx_format(_x) skinny_codec2pbx_codec((skinny_codec_t)_x)
 
 int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
 
-#    define sccp_strndup(str, len) \
+#define sccp_strndup(str, len) \
 	_sccp_strndup((str), (len), __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func);
@@ -342,7 +342,7 @@ sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx
 #else
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
 #endif
-int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE *ast, const char *funcname, char *args, const char *value);
+int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
 int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * pbx_channel, pbx_hangup_type_t pbx_hangup_type);
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * pbx_channel);
 int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * pbx_channel, pbx_hangup_type_t pbx_hangup_type);
@@ -352,11 +352,11 @@ boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const
 boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, char *out, int outlen);
 boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key);
 boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *key);
+
 /***** end - database *****/
 
-int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char* interpclass);
+int sccp_asterisk_moh_start(PBX_CHANNEL_TYPE * pbx_channel, const char *mclass, const char *interpclass);
 void sccp_asterisk_moh_stop(PBX_CHANNEL_TYPE * pbx_channel);
 void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, size_t datalen);
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 #endif
-
