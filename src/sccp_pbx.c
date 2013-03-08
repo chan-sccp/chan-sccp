@@ -1219,44 +1219,6 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 	return res;
 }
 
-/*
- * \brief ACF Channel Read callback
- *
- * \param ast Asterisk Channel
- * \param funcname      functionname as const char *
- * \param args          arguments as char *
- * \param buf           buffer as char *
- * \param buflen        bufferlenght as size_t
- * \return result as int
- *
- * \called_from_asterisk
- * 
- * \test ACF Channel Read Needs to be tested
- */
-// int acf_channel_read(PBX_CHANNEL_TYPE *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
-// 
-// int acf_channel_read(PBX_CHANNEL_TYPE *ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen)
-// {
-//      sccp_channel_t *c;
-// 
-//      c = get_sccp_channel_from_pbx_channel(ast);
-//      if (c == NULL)
-//              return -1;
-// 
-//      if (!strcasecmp(args, "peerip")) {
-//              sccp_copy_string(buf, c->rtp.audio.phone_remote.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr) : "", buflen);
-//      } else if (!strcasecmp(args, "recvip")) {
-//              sccp_copy_string(buf, c->rtp.audio.phone.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.phone.sin_addr) : "", buflen);
-//      } else if (!strcasecmp(args, "from") && c->device) {
-//              sccp_copy_string(buf, (char *)c->device->id, buflen);
-//      } else {
-//              c = sccp_channel_release(c);
-//              return -1;
-//      }
-//      c = sccp_channel_release(c);
-//      return 0;
-// }
-
 /**
  * \brief Get Peer Codec Capabilies
  * \param channel 	SCCP Channel
