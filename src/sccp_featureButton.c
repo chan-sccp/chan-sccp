@@ -25,23 +25,23 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-    /*!
-     * \brief Feature Button Changed
-     *
-     * fetch the new state, and send status to device
-     *
-     * \param device SCCP Device
-     * \param featureType SCCP Feature Type
-     * 
-     * \warning
-     *      - device->buttonconfig is not always locked
-     *
-     * \lock
-     *      - device->buttonconfig
-     *        - see sccp_line_find_byname_wo()
-     *        - see sccp_linedevice_find()
-     *        - see sccp_dev_send()
-     */
+/*!
+ * \brief Feature Button Changed
+ *
+ * fetch the new state, and send status to device
+ *
+ * \param device SCCP Device
+ * \param featureType SCCP Feature Type
+ * 
+ * \warning
+ *      - device->buttonconfig is not always locked
+ *
+ * \lock
+ *      - device->buttonconfig
+ *        - see sccp_line_find_byname_wo()
+ *        - see sccp_linedevice_find()
+ *        - see sccp_dev_send()
+ */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	sccp_moo_t *featureMessage = NULL;

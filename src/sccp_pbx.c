@@ -202,15 +202,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		c->ringermode = SKINNY_STATION_OUTSIDERING;
 	}
 
-	/*
-	   if (l->devices.size == 1 && SCCP_LIST_FIRST(&l->devices) && SCCP_LIST_FIRST(&l->devices)->device && SCCP_LIST_FIRST(&l->devices)->device->session) {
-	   //! \todo check if we have to do this
-	   sccp_channel_setDevice(c, SCCP_LIST_FIRST(&l->devices)->device);
-	   //              c->device = SCCP_LIST_FIRST(&l->devices)->device;
-	   sccp_channel_updateChannelCapability(c);
-	   }
-	 */
-
 	boolean_t isRinging = FALSE;
 	boolean_t hasDNDParticipant = FALSE;
 
@@ -371,7 +362,6 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		}
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	}
-	//      c->owner = NULL;                        /*! \todo should either be removed or it should use ast_channel_unref instead */
 
 	l = sccp_line_retain(c->line);
 #ifdef CS_SCCP_CONFERENCE
@@ -412,7 +402,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	/* remove call from transferee, transferer */
 
-	/** \todo we should discuse to use a helper variable in channel, e.g. channel->transferDevice.transferer / channel->transferDevice.transferee */
+	/** \todo we should discuse to use a helper variable in channel, e.g. channel->transferingDevice.transferer / channel->transferingDevice.transferee */
 	//      void (*removeTransferedDevice)(void) =
 	//      ({
 	//              void __fn__ (void) 
@@ -757,8 +747,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 
 	if (PBX(set_callerid_name))
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
-
-	//      if (d && d->monitorFeature.status == SCCP_FEATURE_MONITOR_STATE_ENABLED_NOTACTIVE) {
 
 	/** check for monitor request */
 	if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED)

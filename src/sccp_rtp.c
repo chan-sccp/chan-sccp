@@ -27,7 +27,6 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	boolean_t rtpResult = FALSE;
 	sccp_device_t *device = NULL;
 
-	//struct sockaddr_in us;
 
 	if (!c)
 		return -1;
@@ -48,6 +47,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	}
 
 	device = sccp_channel_getDevice_retained(c);
+	//struct sockaddr_in us;
 	//      PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 	device = device ? sccp_device_release(device) : NULL;
 
@@ -154,10 +154,12 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 
-		/*              if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-		   sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
-		   // return;
-		   } */
+		/*
+		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
+			//return;
+		} 
+		*/
 
 		memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
 
