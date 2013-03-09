@@ -408,14 +408,15 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 	memset(&event, 0, sizeof(sccp_event_t));
 	event.type = SCCP_EVENT_LINESTATUS_CHANGED;
-	event.event.lineStatusChanged.line = sccp_line_retain(l);
-	event.event.lineStatusChanged.device = sccp_device_retain(device);
-	event.event.lineStatusChanged.state = c->state;
+	event.event.lineStatusChanged.line	= sccp_line_retain(l);
+	event.event.lineStatusChanged.device	= sccp_device_retain(device);
+	event.event.lineStatusChanged.state	= c->state;
 	sccp_event_fire(&event);
 
-	sccp_device_release(d);
-	sccp_line_release(l);
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n", d->id, sccp_indicate2str(state), l->name, c->callid);
+	
+	d = sccp_device_release(d);
+	l = sccp_line_release(l);
 }
 
 /*!
