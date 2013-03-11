@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<device>
+	<fullConfig>true</fullConfig>
+	<deviceProtocol>SCCP</deviceProtocol>
+	<sshUserId>cisco</sshUserId>
+	<sshPassword>cisco</sshPassword>
+	<!--
+		After using the above login, you will be prompted again for a username/password.
+		Use debug/debug for this second login, and type 'help' for commands.
+		(also see note about sshAccess below)
+	-->
+	<devicePool>
+		<revertPriority>0</revertPriority>
+		<name>Default</name>
+		<dateTimeSetting>
+			<name>Netherlands</name>
+			<dateTemplate>D/M/YA</dateTemplate>
+			<timeZone>W. Europe Standard/Daylight Time</timeZone>
+			<ntps>
+				<ntp>
+					<name>pool.ntp.org</name>
+					<ntpMode>Unicast</ntpMode>
+				</ntp>
+			</ntps>
+		</dateTimeSetting>
+		<callManagerGroup>
+			<name>Default</name>
+			<tftpDefault>true</tftpDefault>
+			<members>
+				<member	priority="0">
+					<callManager>
+						<name>Asterisk</name>
+						<description>Primary Asterisk Server</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<!--
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+							-->
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+					</callManager>
+				</member>
+				<member	priority="1">
+					<callManager>
+						<name>Asterisk 1</name>
+						<description>Secundary Asterisk Server</description>
+						<ports>
+							<ethernetPhonePort>2000</ethernetPhonePort>
+							<!--
+							<sipPort>5060</sipPort>
+							<securedSipPort>5061</securedSipPort>
+							<mgcpPorts>
+								<listen>2427</listen>
+								<keepAlive>2428</keepAlive>
+							</mgcpPorts>
+							-->
+						</ports>
+						<processNodeName>x.x.x.x</processNodeName>
+			                        <!--
+			                            'processNodeName' is the ip address of your	asterisk server.
+			                        -->
+					</callManager>
+				</member>
+			</members>
+		</callManagerGroup>
+		<srstInfo>
+			<name>Enable</name>
+			<srstOption>Enable</srstOption>
+			<userModifiable>true</userModifiable>
+			<ipAddr1>x.x.x.x</ipAddr1>
+			<port1>2000</port1>
+			<ipAddr2></ipAddr2>
+			<port2>2000</port2>
+			<ipAddr3></ipAddr3>
+			<port3>2000</port3>
+			<sipIpAddr1>192.168.5.101</sipIpAddr1>
+			<sipPort1>5060</sipPort1>
+			<sipIpAddr2></sipIpAddr2>
+			<sipPort2>5060</sipPort2>
+			<sipIpAddr3></sipIpAddr3>
+			<sipPort3>5060</sipPort3>
+			<isSecure>false</isSecure>
+		</srstInfo>
+	        <mlppDomainId>-1</mlppDomainId>
+		<mlppIndicationStatus>Default</mlppIndicationStatus>
+		<preemption>Default</preemption>
+		<connectionMonitorDuration>120</connectionMonitorDuration>
+	</devicePool>
+	<commonProfile>
+		<phonePassword></phonePassword>
+		<backgroundImageAccess>true</backgroundImageAccess>
+		<callLogBlfEnabled>2</callLogBlfEnabled>
+	</commonProfile> 
+	<vendorConfig>
+		<ehookEnable>1</ehookEnable> 
+		<!-- 
+			Headset Hookswitch Control 
+			This allows the headset to take the phone off-hook (with appropriate
+			cables/connections etc)
+		-->
+
+		<disableSpeaker>false</disableSpeaker>
+		<!--
+			Enables and disables the speakerphone.
+			true = Disabled.
+			false = Enabled (default). 
+		-->
+
+		<disableSpeakerAndHeadset>false</disableSpeakerAndHeadset>
+		<!--
+			Enables and disables the speakerphone and headset.
+			true = Disabled.
+			false = Enabled (default). 
+		-->
+
+		<pcPort>0</pcPort>
+		<!--
+			Enables and disables the Ethernet switch port on the phone so the IP phone can 
+			have access to an Ethernet connection for a PC connection through the phone.
+				0 = Enabled (default).
+				1 = Disabled. 
+		-->
+		
+		<settingsAccess>1</settingsAccess>
+		<!--
+			Enables and disables the Settings button on an IP phone.
+				0 = Disabled.
+				1 = Enabled (default). The phone user can modify features by using the Settings menu.
+				2 = Restricted. The phone user is allowed to access User Preferences and volume settings only. 
+		-->
+		
+		<garp>0</garp>
+		<!--
+			Enables and disables IP phone response to gratuitous Address Resolution 
+			Protocol (ARP) messages from the IP phone's Ethernet interface.
+				0 = Disabled.
+				1 = Enabled (default).
+		--> 
+		
+		<voiceVlanAccess>0</voiceVlanAccess>
+		<!--
+			Enables and disables spanning, which is the IP phone's access to the voice 
+			VLAN of the PC to which the IP phone's Ethernet port is connected.
+				0 = Enabled (default).
+				1 = Disabled. 
+		-->
+		
+		<videoCapability>1</videoCapability>  
+		<!-- 
+			7975G doesn't have any "real" video capability, it requires (I believe)
+			integration with a special pc-only program.  Enabled here just as a 
+			curiosity for now.
+		 -->
+		 
+		<autoSelectLineEnable>0</autoSelectLineEnable>
+		<!--
+			Enables and disables auto line selection.
+				0 = Disabled.
+				1 = Enabled (default). 
+		-->
+		
+		<webAccess>0</webAccess> 
+		<!--
+			Enables and disables web access that allows phone users to configure settings 
+			and features on User Option web pages.
+				0 = Enabled (default).
+				1 = Disabled.
+				2 = Read Only.  
+		-->
+		
+		<daysDisplayNotActive>1,7</daysDisplayNotActive> <!-- sunday = 1, sat = 7 -->
+		<displayOnTime>08:00</displayOnTime>
+		<displayOnDuration>12:00</displayOnDuration>
+		<displayIdleTimeout>00:10</displayIdleTimeout>
+		<displayOnWhenIncomingCall>1</displayOnWhenIncomingCall>
+
+		<forwardingDelay>1</forwardingDelay>
+
+		<loggingDisplay>1</loggingDisplay>
+
+		<!-- <headsetWidebandUIControl>1</headsetWidebandUIControl> -->
+		<!--
+			Enables or disables wideband headset option on supported IP phones.
+			If the headsetWidebandUIControl parameter is set to Enable (0), the option set 
+			in the phone UI, by the phone user, has priority over the value set for this 
+			parameter.
+				0 = Enabled (default). Enables wideband headset on phone.
+				1 = Disabled. Disables wideband headset on phone. 
+		-->
+		
+		<!-- <handsetWidebandUIControl>1</handsetWidebandUIControl> -->
+		<!--
+			Enables or disables control of handset options by phone user.
+				0 = Enabled (default). Allows phone user to select either narrowband or wideband handset in the phone UI.
+				1 = Disabled. 
+		-->
+		
+		<!-- <headsetWidebandEnable>1</headsetWidebandEnable> -->
+		<!--
+			Enables or disables control of headset option by phone user.
+				0 = Enabled (default). Allows phone user to select either narrowband or wideband headset
+				1 = Disabled. 
+		-->
+		
+		<!-- <handsetWidebandEnable>1</handsetWidebandEnable> -->
+		<!--
+			Enables or disables wideband handset option on supported IP phones.
+			If the handsetWidebandUIControl parameter is set to Enable (1), the option 
+			set in the phone UI, by the phone user, has priority over the value set for 
+			this parameter.
+				0 = Phone default (default), equal to disabled or enabled and set by manufacturer.
+				1 = Enabled. Enables wideband handset on phone.
+				2 = Disabled. Disables wideband headset on phone. 
+		-->
+		
+		<spanToPCPort>1</spanToPCPort>
+		<!--
+			Enables and disables the path between the Ethernet switch port of an IP phone 
+			and a connection to a PC.
+				0 = Enabled (default).
+				1 = Disabled. 
+		-->
+		
+		<g722CodecSupport>2</g722CodecSupport>
+		<!--
+			Enables and disables the registration of the G.722 codec on the IP phone.
+				0 = Phone default (default), equal to disabled or enabled and set by manufacturer.
+				1 = Disabled. Disables G.722-64K2 codec on phone.
+				2 = Enabled. Enables G.722-64K codec on phone. 
+			See also advertiseG722Codec
+		-->
+
+		<peerFirmwareSharing>1</peerFirmwareSharing>
+		<enableCdpSwPort>1</enableCdpSwPort>
+		<enableCdpPcPort>1</enableCdpPcPort>
+		<enableLldpSwPort>1</enableLldpSwPort>
+		<enableLldpPcPort>1</enableLldpPcPort>
+		<lldpAssetId></lldpAssetId>
+		<powerPriority>1</powerPriority>
+		<!-- 
+			I have the above turned on just for curiosity.
+		-->
+ 
+		<sshAccess>0</sshAccess> <!-- 0 = enabled -->
+		<sshPort>22</sshPort>
+		<!--
+			The above 2 lines are *required* to enable ssh on this phone, it is off
+			by default.
+		-->
+	</vendorConfig>
+	<versionStamp>{Jan 01 2003 00:00:00}</versionStamp>
+	<loadInformation>P00308010100</loadInformation>
+	<!-- 
+		The firmware version that the phone looks for at boot.
+	-->
+	<userLocale>
+		<name>Dutch_Netherlands</name>
+		<langCode>nl</langCode>
+		<winCharSet>iso-8859-1</winCharSet>
+	</userLocale>
+
+	<networkLocale>Netherlands</networkLocale>
+	<networkLocaleInfo>
+		<name>Dutch_Netherlands</name>
+		<langCode>nl</langCode>
+		<uid>64</uid>
+		<version>4.0(1)</version>
+	</networkLocaleInfo>
+	<!--
+		This is something to do with dialtones. The above config gives Dutch dialtones.
+	-->
+
+	<authenticationURL>http://x.x.x.x/cisco_menu/authentication.php</authenticationURL>
+	<!--
+		The above is simply a dummy authentication page.  It literally contains
+		one word: AUTHORIZED
+		(it receives UserId, Password, and devicename in the url - if you truly wish
+		to implement special auth)
+	-->
+	<informationURL>http://x.x.x.x/cisco_menu/help/help.php</informationURL>
+	<messagesURL></messagesURL>
+	<proxyServerURL></proxyServerURL>
+	<servicesURL>http://x.x.x.x/cisco_menu/menu.php</servicesURL>
+	<directoryURL>http://x.x.x.x/cisco_menu/directory/menu.php</directoryURL>
+	<!-- 
+		This is the URL for a CiscoIPPhoneMenu which gets appended to the end of the
+		Missed/Received/Placed calls.  I don't use it (I find it makes more sense to 
+		put my phone book under services)
+	-->
+	<idleURL>http://x.x.x.x/cisco_menu/idle.php</idleURL>
+	<!--
+		URL of CiscoIPPhoneImage.  
+		Requires a non-zero setting in idleTimeout.
+	-->
+	<idleTimeout>3600</idleTimeout>
+
+	<deviceSecurityMode>1</deviceSecurityMode>
+	<phonePersonalization>1</phonePersonalization>
+	<singleButtonBarge>1</singleButtonBarge>
+	<joinAcrossLines>1</joinAcrossLines>
+	<autoCallPickupEnable>false</autoCallPickupEnable>
+	<blfAudibleAlertSettingOfIdleStation>1</blfAudibleAlertSettingOfIdleStation>
+	<blfAudibleAlertSettingOfBusyStation>1</blfAudibleAlertSettingOfBusyStation>
+	<advertiseG722Codec>1</advertiseG722Codec> 
+
+	<mobility>
+		<handoffdn></handoffdn>
+		<dtmfdn></dtmfdn>
+		<ivrdn></ivrdn>
+		<dtmfHoldCode>*81</dtmfHoldCode>
+		<dtmfExclusiveHoldCode>*82</dtmfExclusiveHoldCode>
+		<dtmfResumeCode>*83</dtmfResumeCode>
+		<dtmfTxfCode>*84</dtmfTxfCode>
+		<dtmfCnfCode>*85</dtmfCnfCode>
+	</mobility>
+	
+	<dscpForSCCPPhoneConfig>104</dscpForSCCPPhoneConfig>
+	<dscpForSCCPPhoneServices>0</dscpForSCCPPhoneServices>
+	<dscpForCm2Dvce>184</dscpForCm2Dvce>
+	<transportLayerProtocol>4</transportLayerProtocol>
+	<capfAuthMode>0</capfAuthMode>
+	<capfList>
+		<capf>
+			<phonePort>3804</phonePort>
+		</capf>
+	</capfList>
+	<certHash></certHash>
+	<encrConfig>false</encrConfig>
+</device>
