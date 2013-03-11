@@ -3416,6 +3416,7 @@ typedef union {
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
 
 	struct {
+		uint32_t lel_unknown;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/?page=1 */
 	} Unknown_15E;
 
 	/* SPA */
