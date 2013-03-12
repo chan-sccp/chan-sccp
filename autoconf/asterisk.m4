@@ -236,7 +236,11 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                                 AC_DEFINE(DEBUG_THREADS,1,[Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against asterisk 1.6.2])
                         fi
                         AC_MSG_CHECKING([ - if asterisk was compiled with the 'LOW_MEMORY' buildoption...])                              
-                        AC_EGREP_HEADER([define LOW_MEMORY 1], [asterisk/buildopts.h],                            
+                        AC_EGREP_HEADER([yes], [
+                        #include <asterisk/buildopts.h>
+                        #ifdef LOW_MEMORY
+                        	yes
+                        #endif],                            
                         [                                                                                         
                                 AC_DEFINE([CS_LOW_MEMORY],1,[asterisk compiled with 'LOW_MEMORY'])                  
                                 AC_MSG_RESULT(yes)                                                                
