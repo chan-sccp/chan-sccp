@@ -23435,6 +23435,45 @@ $as_echo "#define DEBUG_THREADS 1" >>confdefs.h
 
                         fi
 
+	ac_lib_var=`echo define LOW_MEMORY 1'_'asterisk/buildopts.h | sed 'y%./+- %__p__%'`
+	if eval \${ac_cv_lib_$ac_lib_var+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+   eval "ac_cv_type_$ac_lib_var='not-found'"
+	  ac_cv_check_typedef_header=`echo asterisk/buildopts.h`
+	  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+		        #if ASTERISK_VERSION_NUMBER >= 10400
+		        #include <asterisk.h>
+		        #endif
+			#include <$ac_cv_check_typedef_header>
+
+int
+main ()
+{
+int x = sizeof(define LOW_MEMORY 1); x = x;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  eval "ac_cv_type_$ac_lib_var=yes"
+else
+  eval "ac_cv_type_$ac_lib_var=no"
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
+	    :
+	    else
+$as_echo "#define CS_LOW_MEMORY 1" >>confdefs.h
+
+	  fi
+
+fi
+
+
+
 fi
 
 

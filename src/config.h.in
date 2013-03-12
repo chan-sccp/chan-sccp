@@ -257,6 +257,9 @@
 /* Enable IPv6 support */
 #undef CS_IPV6
 
+/* 'LOW_MEMORY' set */
+#undef CS_LOW_MEMORY
+
 /* manager events enabled */
 #undef CS_MANAGER_EVENTS
 
