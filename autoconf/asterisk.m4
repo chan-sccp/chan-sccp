@@ -235,6 +235,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
                         if [ test ${ASTERISK_VER_GROUP} == 106 ]; then
                                 AC_DEFINE(DEBUG_THREADS,1,[Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against asterisk 1.6.2])
                         fi
+			CS_CHECK_AST_TYPEDEF([define LOW_MEMORY 1],[asterisk/buildopts.h],AC_DEFINE([CS_LOW_MEMORY],1,['LOW_MEMORY' set]))
 		],,[
 	               	$HEADER_INCLUDE
 		]
