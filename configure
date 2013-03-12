@@ -23434,44 +23434,29 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 $as_echo "#define DEBUG_THREADS 1" >>confdefs.h
 
                         fi
-
-	ac_lib_var=`echo define LOW_MEMORY 1'_'asterisk/buildopts.h | sed 'y%./+- %__p__%'`
-	if eval \${ac_cv_lib_$ac_lib_var+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-   eval "ac_cv_type_$ac_lib_var='not-found'"
-	  ac_cv_check_typedef_header=`echo asterisk/buildopts.h`
-	  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+                        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - if asterisk was compiled with the 'LOW_MEMORY' buildoption..." >&5
+$as_echo_n "checking  - if asterisk was compiled with the 'LOW_MEMORY' buildoption...... " >&6; }
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#include <asterisk/buildopts.h>
 
-		        #if ASTERISK_VERSION_NUMBER >= 10400
-		        #include <asterisk.h>
-		        #endif
-			#include <$ac_cv_check_typedef_header>
-
-int
-main ()
-{
-int x = sizeof(define LOW_MEMORY 1); x = x;
-  ;
-  return 0;
-}
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  eval "ac_cv_type_$ac_lib_var=yes"
-else
-  eval "ac_cv_type_$ac_lib_var=no"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	  if test `eval echo '$ac_cv_type_'$ac_lib_var` = "no" ; then
-	    :
-	    else
+if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
+  $EGREP "define LOW_MEMORY 1" >/dev/null 2>&1; then :
+
+
 $as_echo "#define CS_LOW_MEMORY 1" >>confdefs.h
 
-	  fi
+                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+                                { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 
 fi
-
+rm -f conftest*
 
 
 fi
