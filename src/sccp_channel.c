@@ -986,7 +986,16 @@ void sccp_channel_startmediatransmission(sccp_channel_t * channel)
 	d->protocol->sendStartMediaTransmission(d, channel);
 
 	// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(d), pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port), pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), d->nat ? "yes" : "no");
+//	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(d), pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port), pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), d->nat ? "yes" : "no");
+
+//	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%15s:%d\n", DEV_ID_LOG(d), pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port));
+//	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s:                                    to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(d), pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port), d->nat ? "yes" : "no");
+	char cbuf1[128] = "";
+	char cbuf2[128] = "";
+	sprintf (cbuf1,"%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port));
+	sprintf (cbuf2,"%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port));
+
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%s to %s (NAT: %s)\n", DEV_ID_LOG(d), cbuf1, cbuf2, d->nat ? "yes" : "no");
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 

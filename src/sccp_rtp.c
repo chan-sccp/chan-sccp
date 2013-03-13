@@ -121,7 +121,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 	}
 
 	memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
-	pbx_log(LOG_ERROR, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 	if (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) {
 		/* Shutdown any early-media or previous media on re-invite */
@@ -161,13 +161,23 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		*/
 
 		memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
+		pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_phone ) Set phone address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 		//update pbx
 		if (PBX(rtp_setPeer)) {
 			PBX(rtp_setPeer) (rtp, new_peer, device->nat);
 		}
 		// pbx_inet_ntoa can not be called twice in one sccp_log, buffer is not being overwritten
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(device), pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port), pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), device->nat ? "yes" : "no");
+//		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%15s:%d\n", DEV_ID_LOG(device), pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port));
+//		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s:                                    to:%15s:%d (NAT: %s)\n", DEV_ID_LOG(device), pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port), device->nat ? "yes" : "no");
+
+		char cbuf1[128] = "";
+		char cbuf2[128] = "";
+		sprintf (cbuf1,"%15s:%d", pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr), ntohs(c->rtp.audio.phone_remote.sin_port));
+		sprintf (cbuf2,"%15s:%d", pbx_inet_ntoa(c->rtp.audio.phone.sin_addr), ntohs(c->rtp.audio.phone.sin_port));
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%s to %s (NAT: %s)\n", DEV_ID_LOG(device), cbuf1, cbuf2, device->nat ? "yes" : "no");
+		
 
 		device = sccp_device_release(device);
 	}
