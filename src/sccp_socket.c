@@ -623,7 +623,7 @@ void *sccp_socket_thread(void *ignore)
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, 2000);
+		res = sccp_socket_poll(fds, 1, SCCP_SOCKET_ACCEPT_TIMEOUT);
 
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
