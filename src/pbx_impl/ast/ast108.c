@@ -2031,19 +2031,18 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 		return FALSE;
 
 	s = d->session;
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection on %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
 		struct sockaddr_in sin;
-
 		sin.sin_family = AF_INET;
 		sin.sin_port = GLOB(bindaddr.sin_port);
-		//              sin.sin_port= rand()*1000;
 		sin.sin_addr = s->ourip;
+/*		sccp_socket_getOurAddressfor(s->sin.sin_addr, sin.sin_addr);*/		// maybe we should use this opertunity to check the connected ip-address again
 		ast_sockaddr_from_sin(&sock, &sin);
 	} else {
 		ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
 	}
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
 
 	c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
 	if (!c->rtp.audio.rtp) {
