@@ -478,50 +478,47 @@ void sccp_line_delete_nolock(sccp_line_t * l)
  *
  * \todo implement cfwd_noanswer
  */
-void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, uint8_t type, char *number)
+void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, uint8_t type, char *number)
 {
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 
-	if (!l || !device)
+	if (!line || !device)
 		return;
 
-	if (!(linedevice = sccp_linedevice_find(device, l))) {
-		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
-		return;
-	}
-
-	if (type == SCCP_CFWD_NONE) {
-		linedevice->cfwdAll.enabled = 0;
-		linedevice->cfwdBusy.enabled = 0;
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), l->name);
-	} else {
-		if (!number || sccp_strlen_zero(number)) {
+	if ((linedevice = sccp_linedevice_find(device, line))) {
+		if (type == SCCP_CFWD_NONE) {
 			linedevice->cfwdAll.enabled = 0;
 			linedevice->cfwdBusy.enabled = 0;
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), line->name);
 		} else {
-			switch (type) {
-				case SCCP_CFWD_ALL:
-					linedevice->cfwdAll.enabled = 1;
-					sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
-					break;
-				case SCCP_CFWD_BUSY:
-					linedevice->cfwdBusy.enabled = 1;
-					sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
-					break;
-				default:
-					linedevice->cfwdAll.enabled = 0;
-					linedevice->cfwdBusy.enabled = 0;
+			if (!number || sccp_strlen_zero(number)) {
+				linedevice->cfwdAll.enabled = 0;
+				linedevice->cfwdBusy.enabled = 0;
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
+			} else {
+				switch (type) {
+					case SCCP_CFWD_ALL:
+						linedevice->cfwdAll.enabled = 1;
+						sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
+						break;
+					case SCCP_CFWD_BUSY:
+						linedevice->cfwdBusy.enabled = 1;
+						sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
+						break;
+					default:
+						linedevice->cfwdAll.enabled = 0;
+						linedevice->cfwdBusy.enabled = 0;
+				}
+				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), line->name, number);
 			}
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), l->name, number);
 		}
-	}
-
-	sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-	sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
-	sccp_dev_forward_status(l, linedevice->lineInstance, device);
-
-	linedevice = sccp_linedevice_release(linedevice);
+		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
+		sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDALL);
+		sccp_dev_forward_status(linedevice->line, linedevice->lineInstance, device);
+		linedevice = sccp_linedevice_release(linedevice);
+	} else {
+		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
+	}	
 }
 
 /*!
@@ -605,13 +602,13 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		linedevice->cfwdAll.enabled = TRUE;
 		sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
-		sccp_feat_changed(device, SCCP_FEATURE_CFWDALL);
+		sccp_feat_changed(device, linedevice, SCCP_FEATURE_CFWDALL);
 	}
 
 	if (PBX(feature_getFromDatabase) (family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		linedevice->cfwdBusy.enabled = TRUE;
 		sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
-		sccp_feat_changed(device, SCCP_FEATURE_CFWDBUSY);
+		sccp_feat_changed(device, linedevice, SCCP_FEATURE_CFWDBUSY);
 	}
 
 	if (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) {

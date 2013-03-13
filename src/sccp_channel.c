@@ -1728,7 +1728,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		if (channel->privacy) {
 			channel->privacy = FALSE;
 			d->privacyFeature.status = FALSE;
-			sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 		}
 
 		if ((sccp_selected_channel = sccp_device_find_selectedchannel(d, channel))) {

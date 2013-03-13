@@ -461,16 +461,16 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 			}
 			switch (cfwd_type) {
 				case SCCP_CFWD_ALL:
-					sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDALL);
+					sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDALL);
 					snprintf (cbuf, sizeof(cbuf), "Line %s CallForward ALL set to %s", lineName, linedevice->cfwdAll.number);
 					break;
 				case SCCP_CFWD_BUSY:
-					sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDBUSY);
+					sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDBUSY);
 					snprintf (cbuf, sizeof(cbuf), "Line %s CallForward BUSY set to %s", lineName, linedevice->cfwdBusy.number);
 					break;
 				case SCCP_CFWD_NONE:
 				default:
-					sccp_feat_changed(linedevice->device, SCCP_FEATURE_CFWDNONE);
+					sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDNONE);
 					snprintf (cbuf, sizeof(cbuf), "Line %s Call Forward Disabled", lineName);
 					break;
 			}
@@ -574,7 +574,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 
 			if (d->dndFeature.status != prevStatus) {
 				snprintf(retValStr, sizeof(retValStr), "Device %s DND has been set to %s", d->id, dndmode2str(d->dndFeature.status));
-				sccp_feat_changed(d, SCCP_FEATURE_DND);
+				sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 				sccp_dev_check_displayprompt(d);
 			} else {
 				snprintf(retValStr, sizeof(retValStr), "Device %s DND state unchanged", d->id);
@@ -843,7 +843,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					} else {
 						d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					}
-					sccp_feat_changed(d, SCCP_FEATURE_MONITOR);
+					sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 					d = sccp_device_release(d);
 				}
 				channel = sccp_channel_release(channel);

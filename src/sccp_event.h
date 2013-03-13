@@ -90,13 +90,14 @@ struct sccp_event {
 		} deviceAttached;										/*!< Event Device Attached Structure */
 
 		struct {
-			sccp_device_t *device;									/*!< device how initialized the change */
+			sccp_device_t *device;									/*!< SCCP device */
+			sccp_linedevices_t *linedevice;								/*!< SCCP linedevice */
 			sccp_feature_type_t featureType;							/*!< what feature is changed */
 		} featureChanged;										/*!< Event feature changed Structure */
 
 		struct {
-			sccp_device_t *device;									/*!< device how initialized the change */
-			sccp_line_t *line;									/*!< what line is changed */
+			sccp_device_t *device;									/*!< SCCP device */
+			sccp_line_t *line;									/*!< SCCP line */
 			uint8_t state;										/*!< state */
 		} lineStatusChanged;										/*!< Event feature changed Structure */
 

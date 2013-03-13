@@ -753,7 +753,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	    && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 
 		sccp_feat_monitor(d, c->line, 0, c);
-		sccp_feat_changed(d, SCCP_FEATURE_MONITOR);
+		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
 
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
