@@ -523,7 +523,7 @@ boolean_t sccp_prePBXLoad()
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend, TRUE);
 
 	GLOB(descriptor) = -1;
-	GLOB(bindaddr.sin_port) = 2000;
+	GLOB(bindaddr.sin_port) = DEFAULT_SCCP_PORT;
 	GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_KEEPALIVE;
 	sccp_copy_string(GLOB(dateformat), "D/M/YA", sizeof(GLOB(dateformat)));
