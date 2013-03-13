@@ -1,7 +1,7 @@
 Source: chan-sccp-b
 Priority: extra
 Maintainer: Diederik de Groot <ddegroot@sourceforge.net>
-Build-Depends: asterisk, asterisk-dev, dh-make, debhelper, binutils, coreutils, libacl1, libasound2, libc6, libattr1, libc6, libc6-dev, libgmp3c2, libncurses5, libselinux1, linux-libc-dev, zlib1g
+Build-Depends: asterisk, asterisk-dev, dh-make, debhelper, binutils, coreutils, libacl1, libasound2, libc6, libattr1, libc6, libc6-dev, libncurses5, libselinux1, linux-libc-dev, zlib1g
 Standards-Version: 3.8.1
 Section: libs
 Homepage: chan-sccp-b.sourceforge.net
