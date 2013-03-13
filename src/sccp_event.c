@@ -66,6 +66,7 @@ void sccp_event_destroy(sccp_event_t * event)
 
 		case SCCP_EVENT_FEATURE_CHANGED:
 			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);
+			event->event.featureChanged.linedevice = event->event.featureChanged.linedevice ? sccp_linedevice_release(event->event.featureChanged.linedevice) : NULL;
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
@@ -246,6 +247,7 @@ void sccp_event_fire(const sccp_event_t * event)
 
 		case SCCP_EVENT_FEATURE_CHANGED:
 			e->event.featureChanged.device = event->event.featureChanged.device;
+			e->event.featureChanged.linedevice = event->event.featureChanged.linedevice;
 			e->event.featureChanged.featureType = event->event.featureChanged.featureType;
 			break;
 

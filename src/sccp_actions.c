@@ -2241,14 +2241,17 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 	uint32_t callid = 0;
 	uint32_t secondary_dialtone_tone = 0;
 
-	if (!channel)
+	if (!channel) {
 		return;
+	}	
 
-	if (!(l = channel->line))
+	if (!(l = sccp_line_retain(channel->line))) {
 		return;
+	}
 
-	if (!(d = sccp_channel_getDevice_retained(channel)))
+	if (!(d = sccp_channel_getDevice_retained(channel))) {
 		return;
+	}	
 
 	callid = channel->callid;
 	lenDialed = strlen(channel->dialedNumber);
@@ -2264,8 +2267,11 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 	 * etc.
 	 * */
 
-	if (channel->ss_action != SCCP_SS_DIAL)
+	if (channel->ss_action != SCCP_SS_DIAL)  {
+		l = sccp_line_release(l);	
+		d = sccp_device_release(d);	
 		return;
+	}
 
 	if (lenDialed == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 		sccp_dev_stoptone(d, instance, channel->callid);
@@ -2287,6 +2293,7 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 			sccp_dev_stoptone(d, instance, callid);
 		}
 	}
+	l = sccp_line_release(l);
 	d = sccp_device_release(d);
 }
 
@@ -2863,7 +2870,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->instance == instance && config->type == FEATURE) {
-			sccp_feat_changed(d, config->button.feature.id);
+			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}
 	}
 }
@@ -3033,7 +3040,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: dndmode %d is %s\n", d->id, d->dndFeature.status, (d->dndFeature.status) ? "on" : "off");
 			sccp_dev_check_displayprompt(d);
-			sccp_feat_changed(d, SCCP_FEATURE_DND);
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 			break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
@@ -3103,7 +3110,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 
 	if (config) {
 		sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Status: %d\n", d->id, instance, config->button.feature.status);
-		sccp_feat_changed(d, config->button.feature.id);
+		sccp_feat_changed(d, NULL, config->button.feature.id);
 	}
 
 	return;

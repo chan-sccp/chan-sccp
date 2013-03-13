@@ -456,7 +456,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 		}
 	}
 
-	sccp_feat_changed(d, SCCP_FEATURE_DND);									/* notify the modules the the DND-feature changed state */
+	sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);									/* notify the modules the the DND-feature changed state */
 	sccp_dev_check_displayprompt(d);									/*! \todo we should use the feature changed event to check displayprompt */
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
 }
@@ -828,7 +828,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 	c->privacy = (c->privacy) ? FALSE : TRUE;
 	//      d->privacyFeature.status = c->privacy;          // should not be activeted on softkey
-	//      sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
+	//      sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
 		c->callInfo.presentation = 0;

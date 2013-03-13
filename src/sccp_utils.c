@@ -1570,13 +1570,12 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 {
 	char family[25];
 	char cfwdLineStore[60];
-	sccp_buttonconfig_t *config;
-	sccp_line_t *line;
-	sccp_linedevices_t *lineDevice;
+	sccp_linedevices_t *linedevice = NULL;
 	sccp_device_t *device = event->event.featureChanged.device;
 
-	if (!event || (!(device = sccp_device_retain(device))))
+	if (!event || !device) {
 		return;
+	}
 
 	sccp_log((DEBUGCAT_EVENT | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 	sprintf(family, "SCCP/%s", device->id);
@@ -1585,48 +1584,39 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_CFWDNONE:
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-				if (config->type == LINE) {
-					line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
-					if (line) {
-						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
-							if (lineDevice->device != device)
-								continue;
-
-							uint8_t instance = sccp_device_find_index_for_line(device, line->name);
-
-							sccp_dev_forward_status(line, instance, device);
-							sprintf(cfwdLineStore, "%s/%s", family, config->button.line.name);
-							switch (event->event.featureChanged.featureType) {
-								case SCCP_FEATURE_CFWDALL:
-									if (lineDevice->cfwdAll.enabled) {
-										PBX(feature_addToDatabase) (cfwdLineStore, "cfwdAll", lineDevice->cfwdAll.number);
-										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
-									} else {
-										PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
-										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
-									}
-									break;
-								case SCCP_FEATURE_CFWDBUSY:
-									if (lineDevice->cfwdBusy.enabled) {
-										PBX(feature_addToDatabase) (cfwdLineStore, "cfwdBusy", lineDevice->cfwdBusy.number);
-										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
-									} else {
-										PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
-										sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
-									}
-									break;
-								case SCCP_FEATURE_CFWDNONE:
-									PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
-									PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
-									sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
-								default:
-									break;
-							}
+			if ((linedevice = event->event.featureChanged.linedevice)) {
+				sccp_line_t *line = linedevice->line;	
+				uint8_t instance = linedevice->lineInstance;
+				sccp_dev_forward_status(line, instance, device);
+				sprintf(cfwdLineStore, "%s/%s", family, line->name);
+				switch (event->event.featureChanged.featureType) {
+					case SCCP_FEATURE_CFWDALL:
+						if (linedevice->cfwdAll.enabled) {
+							PBX(feature_addToDatabase) (cfwdLineStore, "cfwdAll", linedevice->cfwdAll.number);
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+						} else {
+							PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
 						}
-						line = sccp_line_release(line);
-					}
+						break;
+					case SCCP_FEATURE_CFWDBUSY:
+						if (linedevice->cfwdBusy.enabled) {
+							PBX(feature_addToDatabase) (cfwdLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+						} else {
+							PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
+						}
+						break;
+					case SCCP_FEATURE_CFWDNONE:
+						PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
+						PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
+					default:
+						break;
 				}
+			} else {
+				pbx_log(LOG_WARNING, "%s: No linedevice %p provided to set call forward for\n", device->id, linedevice);
 			}
 			break;
 		case SCCP_FEATURE_DND:
@@ -1671,10 +1661,8 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			}
 			break;
 		default:
-			device = sccp_device_release(device);
 			return;
 	}
-	device = sccp_device_release(device);
 }
 
 /*!

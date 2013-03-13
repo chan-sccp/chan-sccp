@@ -1563,17 +1563,17 @@ void *sccp_dev_postregistration(void *data)
 	sprintf(family, "SCCP/%s", d->id);
 	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		sccp_config_parse_dnd(&d->dndFeature.status, sizeof(d->dndFeature.status), (const char *) buffer, SCCP_CONFIG_DEVICE_SEGMENT);
-		sccp_feat_changed(d, SCCP_FEATURE_DND);
+		sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 	}
 
 	if (PBX(feature_getFromDatabase) (family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		d->privacyFeature.status = TRUE;
-		sccp_feat_changed(d, SCCP_FEATURE_PRIVACY);
+		sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 	}
 
 	if (PBX(feature_getFromDatabase) (family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		d->monitorFeature.status = TRUE;
-		sccp_feat_changed(d, SCCP_FEATURE_MONITOR);
+		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
 
 	sccp_dev_check_displayprompt(d);
@@ -2210,8 +2210,6 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
  */
 void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 {
-	sccp_buttonconfig_t *config;
-	sccp_line_t *line;
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_device_t *device = event->event.featureChanged.device;
 
@@ -2223,52 +2221,37 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 		return;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_EVENT | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
-
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-				if (config->type == LINE) {
-					if ((line = sccp_line_find_byname_wo(config->button.line.name, FALSE))) {
-						SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
-							if (linedevice->device != device) {
-								continue;
-							}
-							linedevice = sccp_linedevice_retain(linedevice);
-
-							uint8_t instance = sccp_device_find_index_for_line(device, line->name);
-
-							sccp_dev_forward_status(line, instance, device);
-							switch (event->event.featureChanged.featureType) {
-								case SCCP_FEATURE_CFWDALL:
-									if (linedevice->cfwdAll.enabled) {
-										/* build disp message string */
-										if (s != tmp)
-											pbx_build_string(&s, &len, ", ");
-										pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
-									}
-									break;
-								case SCCP_FEATURE_CFWDBUSY:
-									if (linedevice->cfwdBusy.enabled) {
-										/* build disp message string */
-										if (s != tmp)
-											pbx_build_string(&s, &len, ", ");
-										pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
-									}
-									break;
-								default:
-									break;
-							}
-							sccp_linedevice_release(linedevice);
+			if ((linedevice = event->event.featureChanged.linedevice)) {
+				sccp_line_t *line = linedevice->line;
+				uint8_t instance = linedevice->lineInstance;
+				sccp_dev_forward_status(line, instance, device);
+				switch (event->event.featureChanged.featureType) {
+					case SCCP_FEATURE_CFWDALL:
+						if (linedevice->cfwdAll.enabled) {
+							/* build disp message string */
+							if (s != tmp)
+								pbx_build_string(&s, &len, ", ");
+							pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
 						}
-						line = sccp_line_release(line);
-					}
+						break;
+					case SCCP_FEATURE_CFWDBUSY:
+						if (linedevice->cfwdBusy.enabled) {
+							/* build disp message string */
+							if (s != tmp)
+								pbx_build_string(&s, &len, ", ");
+							pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
+						}
+						break;
+					default:
+						break;
 				}
 			}
-
 			if (strlen(tmp) > 0) {
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
 			} else {
