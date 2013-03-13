@@ -729,7 +729,9 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	const char *hold = astman_get_header(m, "hold");
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *swap = astman_get_header(m, "SwapChannels");
-	char *retValStr;
+	char *retValStr = "Channel was resumed";
+	boolean_t errorMessage = TRUE;
+	
 
 	c = sccp_channel_find_byid(atoi(channelId));
 	if (!c) {
@@ -737,18 +739,18 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 	if (sccp_strcaseequals("on", hold)) {									/* check to see if enable hold */
-		//astman_append(s, "Put channel '%s' on hold\n", channelId);
 		sccp_channel_hold(c);
 		retValStr = "Channel was put on hold";
+		errorMessage = FALSE;
+	
 	} else if (sccp_strcaseequals("off", hold)) {								/* check to see if disable hold */
 
 		/** we need the device for resuming calls */
 		if (sccp_strlen_zero(deviceName)) {
-			astman_send_error(s, m, "To resume a channel, you need to specify the device that resumes call using Devicename variable.");
-			c = sccp_channel_release(c);
-			return 0;
+			retValStr = "To resume a channel, you need to specify the device that resumes call using Devicename variable.";
+			goto SEND_RESPONSE;
 		}
-		//astman_append(s, "remove channel '%s' from hold\n", channelId);
+
 		if ((d = sccp_device_find_byid(deviceName, FALSE))) {
 			if (sccp_strcaseequals("yes", swap)) {
 				sccp_channel_resume(d, c, TRUE);
@@ -756,17 +758,23 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 				sccp_channel_resume(d, c, FALSE);
 			}
 			retValStr = "Channel was resumed";
-			d = sccp_device_release(d);
+			errorMessage = FALSE;
 		} else {
-			astman_send_error(s, m, "Device to hold/resume could not be found.");
+			retValStr = "Device to hold/resume could not be found.";
 		}
 	} else {
-		astman_send_error(s, m, "Invalid value for hold, use 'on' or 'off' only.");
-		c = sccp_channel_release(c);
-		return 0;
+		retValStr = "Invalid value for hold, use 'on' or 'off' only.";
 	}
-	astman_send_ack(s, m, retValStr);
-	c = sccp_channel_release(c);
+	
+SEND_RESPONSE:
+	if (errorMessage){
+		astman_send_error(s, m, retValStr);
+	} else {
+		astman_send_ack(s, m, retValStr);
+	}
+	
+	d = d ? sccp_device_release(d) : NULL;
+	c = c ? sccp_channel_release(c): NULL;
 	return 0;
 }
 
