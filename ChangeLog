@@ -1,4 +1,115 @@
+2013-03-13  ddegroot
+
+	* [r4354] debian/control, debian/source[ADD],
+	  debian/source/format[ADD]: Update debian package files
+
+	* [r4353] autoconf/extra.m4, configure: Fix Fortify_Source Compile
+	  Warnings when already provided by the operating system
+
+2013-03-13  marcelloceschia
+
+	* [r4352] src/sccp_featureButton.c: fixes dnd feature buttons
+
+2013-03-12  ddegroot
+
+	* [r4351] autoconf/asterisk.m4, configure: Updated 'Low Memory'
+	  Check
+
+	* [r4350] autoconf/asterisk.m4, configure: Changed 'Low Memory'
+	  Check
+
+	* [r4349] src/chan_sccp.h: Added escape for SCCP_FILE_VERSION when
+	  using on low memory systems
+
+	* [r4348] autoconf/asterisk.m4, configure, src/config.h.in: Added
+	  Asterisk compiled with 'Low Memory' Check
+
+2013-03-11  marcelloceschia
+
+	* [r4347] src/sccp_protocol.h: correct 0x015E
+
+2013-03-11  ddegroot
+
+	* [r4346] conf/tftp/SEP0000000000.cnf.xml_791x_template,
+	  conf/tftp/SEP0000000000.cnf.xml_796x_template,
+	  conf/tftp/SEP0000000000.cnf.xml_797x_template: Reindented cnf.xml
+	  files
+
+	* [r4345] conf/tftp/SEP0000000000.cnf.xml_annotated[ADD]: Added
+	  annotated cnf.xml file
+
+2013-03-09  marcelloceschia
+
+	* [r4344] src/sccp_indicate.c: indent
+
 2013-03-08  ddegroot
+
+	* [r4343] src/sccp_actions.c: Remove extranous accent
+
+2013-03-08  marcelloceschia
+
+	* [r4342] src/sccp_pbx.c: do not set number for name
+
+	* [r4341] src/sccp_channel.c: reset name/mumber of string is empty
+
+2013-03-08  ddegroot
+
+	* [r4340] doc/00_Index.doc, doc/90_Developers_Guide.doc,
+	  doc/99_Licensing.doc[DEL], src/sccp_pbx.c: Fix xhtml doxygen
+	  issues
+
+	* [r4339] src/sccp_actions.c: Remove deprecated status from
+	  sccp_handle_KeepAliveMessage
+
+	* [r4338] autoconf/extra.m4, configure, doc/chan-sccp-b_pdf.sty,
+	  doc/doxygen.cfg: Switch doxygen to producing svg images
+
+	* [r4337] doc/00_Index.doc, doc/10_What_Is_Chan_SCCP.doc,
+	  doc/20_Building_and_Installation_Guide.doc,
+	  doc/30_Setup_Guide.doc, doc/35_How_To.doc,
+	  doc/40_New_Features.doc, doc/50_Frequently_Asked_Questions.doc,
+	  doc/55_Reporting_Issues_Problems.doc,
+	  doc/60_Supported_Operating_Systems.doc,
+	  doc/70_Sources_Explained.doc, doc/80_Consulted_Documentation.doc,
+	  doc/90_Developers_Guide.doc, doc/99_Licensing.doc: Fix doxygen
+	  warnings
+
+	* [r4336] src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_labels.h,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_refcount.c, src/sccp_rtp.c, src/sccp_socket.c,
+	  src/sccp_threadpool.c, src/sccp_utils.c: Removed unused code
+	  fragments / remarked out code
+
+	* [r4335] src/sccp_actions.c, src/sccp_appfunctions.c,
+	  src/sccp_channel.c, src/sccp_device.c: Removed unused code
+	  fragments / remarked out code
+
+	* [r4334] contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h, src/sccp_config.c,
+	  src/sccp_config.h, src/sccp_config_entries.h: Removed unused code
+	  fragments from the config parser
+
+	* [r4333] src/sccp_lock.h: Remove unused lock macro's
+
+	* [r4332] src/config.h.in, src/sccp_pbx.c, src/sccp_softkeys.c,
+	  src/sccp_utils.c: Removed deprecated and unused functions
+
+	* [r4331] autoconf/extra.m4, configure, src/chan_sccp.c,
+	  src/chan_sccp.h, src/config.h.in, src/sccp_appfunctions.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_line.c, src/sccp_line.h,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_softkeys.h:
+	  Removed the --disable-dynamic-config from configure. Removed use
+	  of CS_DYNAMIC_CONFIG from sources. Making dynamic config standard
+
+	* [r4330] src/sccp_config.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_softkeys.c: Replaced DEBUGCAT_NEWCODE uses.
+
+	* [r4329] .version, ChangeLog, Makefile.in, TODO[DEL],
+	  WARNING_USE_BRANCHES_V3.0.txt[DEL],
+	  WARNING_USE_BRANCHES_V4.0.txt[DEL], autoconf/extra.m4, configure:
+	  Cleanup trunk directory. Update ChangeLog oldest revision
 
 	* [r4328] src/sccp_utils.c: Clarify debug logging on DND status
 	  change

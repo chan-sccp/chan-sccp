@@ -1,9 +1,10 @@
 chan-sccp-b (4.1.0-1) unstable; urgency=low
 
+  [ Diederik de Groot ]
   * Development Revision 4.1
   * 
 
- -- Diederik de Groot <dkgroot@sourceforge.net>  Sun, 15 Jul 2012 11:19:26 +0200
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 13 Mar 2013 13:41:31 +0100
 
 chan-sccp-b (3.0.0-3) unstable; urgency=low
 
