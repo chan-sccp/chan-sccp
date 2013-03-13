@@ -108,7 +108,6 @@ void sccp_rtp_stop(sccp_channel_t * c)
  */
 void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_in *new_peer)
 {
-
 	/* validate socket */
 	if (new_peer->sin_port == 0) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: ( sccp_rtp_set_peer ) remote information are invalid, dont change anything\n", c->currentDeviceId);
@@ -117,7 +116,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 
 	/* check if we have new infos */
 	if (socket_equals(new_peer, &c->rtp.audio.phone_remote)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 		return;
 	}
 
@@ -156,7 +155,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 
 		/*
 		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equals with our curent one, ignore change\n", c->currentDeviceId);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
 			//return;
 		} 
 		*/
