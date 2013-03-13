@@ -357,7 +357,7 @@ top_srcdir = @top_srcdir@
 EXTRA_DIST = doxygen.cfg doxygen-header  														\
 	00_Index.doc                            40_New_Features.doc                 80_Consulted_Documentation.doc 					\
 	10_What_Is_Chan_SCCP.doc                50_Frequently_Asked_Questions.doc   90_Developers_Guide.doc        					\
-	20_Building_and_Installation_Guide.doc  55_Reporting_Issues_Problems.doc    99_Licensing.doc               					\
+	20_Building_and_Installation_Guide.doc  55_Reporting_Issues_Problems.doc    									\
 	30_Setup_Guide.doc                      60_Supported_Operating_Systems.doc  chan-sccp-b_pdf.sty            					\
 	35_How_To.doc                           70_Sources_Explained.doc
 
