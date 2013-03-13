@@ -23440,7 +23440,7 @@ $as_echo_n "checking  - if asterisk was compiled with the 'LOW_MEMORY' buildopti
 /* end confdefs.h.  */
 #include <
                         #include <asterisk/buildopts.h>
-                        #ifndef LOW_MEMORY
+                        #ifdef LOW_MEMORY
                         	yes
                         #endif>
 
@@ -29488,7 +29488,7 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		enable_debug_mutex="yes"
 		strip_binaries="no"
 
-		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^ \t*//;s/ \t*$//'`" 			CFLAGS_saved="${CFLAGS_saved} -Wall -D_FORTIFY_SOURCE=2"
+		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^ \t*//;s/ \t*$//'`" 			CFLAGS_saved="${CFLAGS_saved} -Wall -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS="-g3 -ggdb3"
 		if test "x${GCC}" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wstrict-prototypes" >&5
@@ -29942,7 +29942,7 @@ $as_echo "#define DEBUG 0" >>confdefs.h
 		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
-		CFLAGS_saved="${CFLAGS_saved} -D_FORTIFY_SOURCE=1 "
+		CFLAGS_saved="${CFLAGS_saved} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1 "
 		if test "x${GCC}" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-long-long... " >&6; }
