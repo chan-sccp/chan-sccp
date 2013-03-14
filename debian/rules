@@ -8,12 +8,7 @@
 
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
-export DH_COMPAT=4
-
-
-
-
-
+export DH_COMPAT=5
 
 # shared library versions, option 1
 version=2.0.5
@@ -28,8 +23,7 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 	# Add here commands to configure the package.
-	./configure --with-dynamic-speeddial
-
+	./configure --enable-debug
 	touch configure-stamp
 
 
@@ -39,6 +33,7 @@ build-stamp: configure-stamp
 
 	# Add here commands to compile the package.
 	$(MAKE)
+	$(MAKE) gen_sccpconf
 #	$(MAKE) doxygen-doc
 
 	touch $@
@@ -47,10 +42,6 @@ clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
-
-	# Add here commands to clean up after the build process.
-#	$(MAKE) clean
-
 	dh_clean 
 
 install: build
@@ -59,8 +50,9 @@ install: build
 	dh_prep  
 	dh_installdirs
 
-	# Add here commands to install the package into debian/tmp
-	$(MAKE) DESTDIR=$(CURDIR)/debian/tmp install
+	# Add here commands to install the package into debian/chan-sccp-b
+	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp-b install
+	$(MAKE) DESTDIR=$(CURDIR)/debian/chan-sccp-b gen_sccpconf_install
 
 
 # Build architecture-independent files here.
@@ -72,7 +64,7 @@ binary-arch: install
 	dh_testdir
 	dh_testroot
 	dh_installchangelogs ChangeLog
-	dh_installdocs
+#	dh_installdocs
 #	dh_installexamples
 #	dh_install
 #	dh_installmenu
@@ -84,9 +76,9 @@ binary-arch: install
 #	dh_installinit
 #	dh_installcron
 #	dh_installinfo
-	dh_installman
+#	dh_installman
 	dh_link
-	dh_strip --dbg-package=chan-sccp-b-dbg$(major)
+	dh_strip --dbg-package=chan-sccp-b-dbg
 	dh_compress
 	dh_fixperms
 #	dh_perl
