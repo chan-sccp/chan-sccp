@@ -101,6 +101,9 @@ release:
 gen_sccpconf:
 	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) all
 
+gen_sccpconf_install:
+	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) install
+
 isntall: install
 
 #install-exec-hook:

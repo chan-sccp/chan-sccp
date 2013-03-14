@@ -1,8 +1,21 @@
+chan-sccp-b (4.1.0-2) unstable; urgency=low
+
+  [ Diederik de Groot ]
+  * Fix debian package builder
+
+ -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 14 Mar 2013 13:41:31 +0100
+
 chan-sccp-b (4.1.0-1) unstable; urgency=low
 
   [ Diederik de Groot ]
   * Development Revision 4.1
-  * 
+  * Updated audio/video/codec handling
+  * Reworked hint handling
+  * Updated refcount system
+  * Updated for asterisk devstate api change
+  * Compatible with multitute of asterisk versions from 1.6 up to trunk, using one code base
+  * new Conference implementation
+  * New sccp.conf handling system, using a flexible TABLE as the basis for all config parsing
 
  -- Diederik de Groot <dkgroot@sourceforge.net>  Wed, 13 Mar 2013 13:41:31 +0100
 
