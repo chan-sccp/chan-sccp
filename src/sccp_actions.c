@@ -3149,7 +3149,6 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 #ifdef CS_SCCP_VIDEO
 	uint8_t video_capabilities = 0, video_capability = 0;
 	uint8_t video_codec = 0;
-	char transmitReceiveStr[5];
 
 	/* parsing video caps */
 	video_capabilities = letohl(r->msg.UpdateCapabilitiesMessage.lel_videoCapCount);
@@ -3166,6 +3165,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 
 			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
+			char transmitReceiveStr[5];
 			sprintf(transmitReceiveStr, "%c-%c", (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_STATION_RECEIVE) ? '<' : ' ', (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_STATION_TRANSMIT) ? '>' : ' ');
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
