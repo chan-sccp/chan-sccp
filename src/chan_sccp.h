@@ -1302,6 +1302,7 @@ struct sccp_hotline {
 #define SCCP_SS_GETMEETMEROOM			3
 #define SCCP_SS_GETBARGEEXTEN			4
 #define SCCP_SS_GETCBARGEROOM			5
+#define SCCP_SS_GETCONFERENCEROOM		6
 
 /*!
  * \brief Scheduler Tasks

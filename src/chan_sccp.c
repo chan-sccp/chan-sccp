@@ -23,17 +23,17 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-    /*!
-     * \brief       Buffer for Jitterbuffer use
-     */
+/*!
+ * \brief       Buffer for Jitterbuffer use
+ */
 #if defined(__cplusplus) || defined(c_plusplus)
 static ast_jb_conf default_jbconf = {
-flags:	0,
-max_size:-1,
-resync_threshold:-1,
-impl:	"",
+	flags:	0,
+	max_size:-1,
+	resync_threshold:-1,
+	impl:	"",
 #ifdef CS_AST_JB_TARGET_EXTRA
-target_extra:-1,
+	target_extra:-1,
 #endif
 };
 #else
@@ -135,7 +135,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		my_sccp_channel->preferences.audio[0] = requestedCodec;
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
 	}
-
 	/** done */
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
