@@ -230,7 +230,7 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 #ifdef CS_ADV_FEATURES
 	if (d->useRedialMenu) {
-		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\"URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
+		char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
 
 		d->protocol->sendUserToDeviceDataVersionMessage(d, 0, lineInstance, 0, 0, data, 0);
 		return;
@@ -851,7 +851,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conference Pressed\n", DEV_ID_LOG(d));
-	sccp_feat_conference(d, l, lineInstance, c);
+	sccp_feat_handle_conference(d, l, lineInstance, c);
 }
 
 /*!
