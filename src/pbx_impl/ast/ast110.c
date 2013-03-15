@@ -32,6 +32,7 @@ extern "C" {
 #endif
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
+struct ast_format slinFormat = {AST_FORMAT_SLINEAR, {{0},0} };
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, struct ast_format_cap *format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause);
 static int sccp_wrapper_asterisk110_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout);
@@ -431,7 +432,11 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk110_rtp_read(PBX_CHANNEL_TYPE * ast)
 	} else {
 		//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 		if (frame->frametype == AST_FRAME_VOICE) {
-
+#ifdef CS_SCCP_CONFERENCE
+			if (c->conference && (!ast_format_is_slinear(&ast->readformat))) {
+				ast_set_read_format(ast, &slinFormat);
+			} else 
+#endif
 			if (ast_format_cmp(&frame->subclass.format, &ast->rawreadformat) == AST_FORMAT_CMP_NOT_EQUAL) {
 				ast_set_read_format_by_id(ast, frame->subclass.format.id);
 			}

@@ -392,15 +392,11 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk16_rtp_read(PBX_CHANNEL_TYPE * ast)
 	} else {
 		//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast->fdno, frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 		if (frame->frametype == AST_FRAME_VOICE) {
-
-			if (!(frame->subclass & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK)))			// ASTERISK_VERSION_NUMBER >= 10400
-			{
-				//                              sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
-#ifndef CS_EXPERIMENTAL_CODEC
-				sccp_wrapper_asterisk16_setReadFormat(c, c->rtp.audio.readFormat);
-#endif
-				//                              ast_set_write_format(ast, frame->subclass);
+#ifdef CS_SCCP_CONFERENCE
+			if (c->conference && ast->readformat == AST_FORMAT_SLINEAR) {
+				ast_set_read_format(ast, AST_FORMAT_SLINEAR);
 			}
+#endif
 		}
 	}
 	//      c = sccp_channel_release(c);
