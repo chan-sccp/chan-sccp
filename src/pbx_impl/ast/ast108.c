@@ -376,21 +376,28 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 	}
 
 	if (frame->frametype == AST_FRAME_VOICE) {
-		if (!(frame->subclass.codec & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK))) {
-			//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
-#ifndef CS_EXPERIMENTAL_CODEC
-			sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
+#ifdef CS_SCCP_CONFERENCE
+		if (c->conference && (AST_FORMAT_SLINEAR != ast->readformat)) {
+			ast_set_read_format(ast, AST_FORMAT_SLINEAR);
+		} else 
 #endif
-		}
-		if (frame->subclass.codec != (ast->nativeformats & AST_FORMAT_AUDIO_MASK)) {
-			if (!(frame->subclass.codec & skinny_codecs2pbx_codecs(c->capabilities.audio))) {
-				ast_debug(1, "Bogus frame of format '%s' received from '%s'!\n", ast_getformatname(frame->subclass.codec), ast->name);
-				return &ast_null_frame;
+		{	
+			if (!(frame->subclass.codec & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK))) {
+				//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
+#ifndef CS_EXPERIMENTAL_CODEC
+				sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
+#endif
 			}
-			ast_debug(1, "SCCP: format changed to %s\n", ast_getformatname(frame->subclass.codec));
-			ast->nativeformats = (ast->nativeformats & (AST_FORMAT_VIDEO_MASK | AST_FORMAT_TEXT_MASK)) | frame->subclass.codec;
-			ast_set_read_format(ast, ast->readformat);
-			ast_set_write_format(ast, ast->writeformat);
+			if (frame->subclass.codec != (ast->nativeformats & AST_FORMAT_AUDIO_MASK)) {
+				if (!(frame->subclass.codec & skinny_codecs2pbx_codecs(c->capabilities.audio))) {
+					ast_debug(1, "Bogus frame of format '%s' received from '%s'!\n", ast_getformatname(frame->subclass.codec), ast->name);
+					return &ast_null_frame;
+				}
+				ast_debug(1, "SCCP: format changed to %s\n", ast_getformatname(frame->subclass.codec));
+				ast->nativeformats = (ast->nativeformats & (AST_FORMAT_VIDEO_MASK | AST_FORMAT_TEXT_MASK)) | frame->subclass.codec;
+				ast_set_read_format(ast, ast->readformat);
+				ast_set_write_format(ast, ast->writeformat);
+			}
 		}
 	}
 	return frame;

@@ -31,6 +31,7 @@ extern "C" {
 #endif
 struct ast_sched_context *sched = 0;
 struct io_context *io = 0;
+struct ast_format slinFormat = {AST_FORMAT_SLINEAR, {{0},0} };
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, struct ast_format_cap *format, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause);
 static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE * chan, const char *addr, int timeout);
@@ -180,7 +181,7 @@ struct ast_channel_tech sccp_tech = {
 	//.write_video          =
 	//.cc_callback          =                                              // ccss, new >1.6.0
 	//.exception            =                                              // new >1.6.0
-//      .setoption              = sccp_wrapper_asterisk111_setOption,
+	//.setoption              = sccp_wrapper_asterisk111_setOption,
 	//.queryoption          =                                              // new >1.6.0
 	//.get_pvt_uniqueid     = sccp_pbx_get_callid,                         // new >1.6.0
 	//.get_base_channel     =
@@ -430,10 +431,16 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 	}
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 	if (frame->frametype == AST_FRAME_VOICE) {
-
-		if (!(ast_format_cap_iscompatible(ast_channel_nativeformats(ast), &frame->subclass.format))) {
-			sccp_wrapper_asterisk111_setReadFormat(c, c->rtp.audio.readFormat);
-		}
+/*                if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast)))) {
+			ast_set_read_format_by_id(ast, AST_FORMAT_SLINEAR);
+		} else  if (!(ast_format_cap_iscompatible(ast_channel_nativeformats(ast), &frame->subclass.format))) {
+			sccp_wrapper_asterisk111_setReadFormat(c, c->rtp.audio.readFormat);  
+		}*/
+#ifdef CS_SCCP_CONFERENCE
+		if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast))) ) {
+			ast_set_read_format(ast, &slinFormat);
+ 		}
+#endif
 	}
 	//
 	//      c = sccp_channel_release(c);
@@ -913,7 +920,22 @@ static boolean_t sccp_wrapper_asterisk111_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
 		return FALSE;
 	}
+
+	/* Force SrcChannel to SLIN before conference */
+/*
+	struct ast_format tmpfmt;
+	ast_format_set(&tmpfmt, AST_FORMAT_SLINEAR, 0);
+	ast_set_read_format(pbxChannel, &tmpfmt);
+	ast_set_write_format(pbxChannel, &tmpfmt);
+*/
+	
+/*
+	ast_clear_flag(ast_channel_flags(pbxChannel), AST_FLAGS_ALL);
+        ast_channel_clear_softhangup(pbxChannel, AST_SOFTHANGUP_ALL);
+*/
+
 	ast_channel_state_set(pbxTmpChannel, AST_STATE_UP);
+//	/* skipping do masquerade works (don't understand why, but it does) */
 	pbx_do_masquerade(pbxTmpChannel);
 
 	// when returning from bridge, the channel will continue at the next priority
@@ -937,7 +959,6 @@ static boolean_t sccp_wrapper_asterisk111_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	}
 
 	ast_channel_lock(pbxSrcChannel);
-
 	if (ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
 		ast_format_set(&tmpfmt, AST_FORMAT_ULAW, 0);
 	} else {
@@ -2398,14 +2419,14 @@ static int sccp_wrapper_asterisk111_setOption(PBX_CHANNEL_TYPE * ast, int option
 				break;
 			case AST_OPTION_FORMAT_WRITE:
 				if (c->rtp.audio.rtp) {
-					//res = ast_rtp_instance_set_write_format(c->rtp.audio.rtp, (struct ast_format *) data);
+				        res = ast_rtp_instance_set_write_format(c->rtp.audio.rtp, (struct ast_format *) data);
 				}
 				//sccp_wrapper_asterisk111_setWriteFormat(c, (struct ast_format *) data);
 				break;
 
 			case AST_OPTION_MAKE_COMPATIBLE:
 				if (c->rtp.audio.rtp) {
-					//res = ast_rtp_instance_make_compatible(ast, c->rtp.audio.rtp, (PBX_CHANNEL_TYPE *) data);
+					res = ast_rtp_instance_make_compatible(ast, c->rtp.audio.rtp, (PBX_CHANNEL_TYPE *) data);
 				}
 				break;
 			case AST_OPTION_DIGIT_DETECT:
