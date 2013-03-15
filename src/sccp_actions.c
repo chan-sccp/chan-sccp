@@ -2452,8 +2452,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			/* update status */
 			channel->rtp.audio.writeState |= SCCP_RTP_STATUS_ACTIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED) && (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)
-			    ) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) ) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
 		} else {
