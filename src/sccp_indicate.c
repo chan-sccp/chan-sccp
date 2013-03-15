@@ -315,26 +315,23 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:							/* \todo SCCP_CHANNELSTATE_CONNECTEDCONFERENCE To be implemented */
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
-
+			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_channel_send_callinfo(d, c);
+//			sccp_channel_send_callinfo(d, c);
 			sccp_dev_set_cplane(l, instance, d, 1);
-			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNECTED);
+			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
+			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, FALSE);
+			
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
-			// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
-			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
+			if (!c->rtp.audio.rtp) {
 				sccp_channel_openreceivechannel(c);
 			} else if (c->rtp.audio.rtp) {
 				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 			}
-			/* asterisk wants rtp open before AST_STATE_UP
-			 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
-			 */
-			//                      if (d->earlyrtp) {
-			//                              PBX(set_callstate) (c, AST_STATE_UP);                   // cause 1 second delay in sound -> should not be done here (Marcello)
-			//                      }
+//			PBX(set_callstate) (channel, AST_STATE_UP);
+
 			break;
 		case SCCP_CHANNELSTATE_CALLPARK:
 			sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
