@@ -64,12 +64,13 @@ extern "C" {
 	/* prototype definition */
 
 	void sccp_conference_module_start(void);
-	sccp_conference_t *sccp_conference_create(sccp_channel_t * owner);
-	void sccp_conference_splitOffParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
+	sccp_conference_t *sccp_conference_create(sccp_device_t *device, sccp_channel_t * channel);
+	void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE *pbxChannel);
 	void sccp_conference_resume(sccp_conference_t * conference);
-	void sccp_conference_splitIntoModeratorAndParticipant(sccp_conference_t * conference, sccp_channel_t * moderatorChannel);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_start(sccp_conference_t * conference);
+	void sccp_conference_update(sccp_conference_t * conference);
 	void sccp_conference_end(sccp_conference_t * conference);
 	void sccp_conference_hold(sccp_conference_t * conference);
 	void sccp_conference_resume(sccp_conference_t * conference);

@@ -44,7 +44,7 @@ void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance
 			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 			return;
 		}
-		sccp_conference_show_list(d->conference, c);
+		sccp_conference_show_list(c->conference, c);
 #else
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
@@ -675,6 +675,88 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 }
 
 /*!
+ * \brief Handle 3-Way Phone Based Conferencing on a Device
+ * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
+ * \param d SCCP Device
+ * \return SCCP Channel
+ * \todo Conferencing option needs to be build and implemented
+ *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
+ *
+ * \lock
+ *      - channel
+ *        - see sccp_indicate_nolock()
+ *      - channel
+ *        - see sccp_channel_set_active()
+ *        - see sccp_indicate_nolock()
+ *        - see sccp_pbx_channel_allocate()
+ *        - see sccp_channel_openreceivechannel()
+ */
+void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
+{
+	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
+		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
+		return;
+	}
+
+	if (!d->allow_conference) {
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+		pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+		return;
+	}
+
+	/* look if we have a call */
+	if ((c = sccp_channel_get_active(d))) {
+		// we have a channel, checking if
+		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
+			// we are dialing but without entering a number :D -FS
+			sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
+			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
+			c->ss_action = SCCP_SS_GETCONFERENCEROOM;						/* Simpleswitch will catch a number to be dialed */
+			c->ss_data = 0;										/* this should be found in thread */
+			// changing channelstate to GETDIGITS
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+			c = sccp_channel_release(c);
+			return;
+			/* there is an active call, let's put it on hold first */
+		} else if (!sccp_channel_hold(c)) {
+			c = sccp_channel_release(c);
+			return;
+		}
+		c = sccp_channel_release(c);
+	}
+
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Allocating new channel for conference\n");
+	if ((c = sccp_channel_allocate(l, d))) {
+		c->ss_action = SCCP_SS_GETCONFERENCEROOM;							/* Simpleswitch will catch a number to be dialed */
+		c->ss_data = 0;											/* not needed here */
+		c->calltype = SKINNY_CALLTYPE_OUTBOUND;
+
+		sccp_channel_set_active(d, c);
+		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+
+		/* ok the number exist. allocate the asterisk channel */
+		if (!sccp_pbx_channel_allocate(c, NULL)) {
+        		pbx_log(LOG_WARNING, "%s: (sccp_feat_handle_conference) Unable to allocate a new channel for line %s\n", d->id, l->name);
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
+			c = sccp_channel_release(c);
+			return;
+		}
+
+		PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+		/* removing scheduled dial */
+		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+
+		sccp_pbx_softswitch(c);
+
+		c = sccp_channel_release(c);
+	} else {
+		pbx_log(LOG_ERROR, "%s: (sccp_feat_handle_conference) Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(d), l->name);
+		return;
+	}
+}
+
+/*!
  * \brief Handle Conference
  * \param d SCCP Device
  * \param l SCCP Line
@@ -692,53 +774,38 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  *        - line->channels
  *          - see sccp_conference_addParticipant()
  */
-void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
+void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 {
 #ifdef CS_SCCP_CONFERENCE
 	sccp_channel_t *channel = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	boolean_t selectedFound = FALSE;
 
-	if (!(d = sccp_device_retain(d)) || !c)
-		return;
-
-	if (!d->allow_conference) {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-		pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
-		d = sccp_device_release(d);
+	if (!(d = sccp_device_retain(d)) || !c) {
 		return;
 	}
 
 	uint8_t num = sccp_device_numberOfChannels(d);
+	int instance = sccp_device_find_index_for_line(d, l->name);
 
 	sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
-	if (!d->conference) {
-		d->conference = sccp_conference_create(c);
-	} else {
-		pbx_log(LOG_NOTICE, "%s: There is already a conference running on this device.\n", DEV_ID_LOG(d));
-		d = sccp_device_release(d);
-		return;
-	}
-
-	if (d->conference) {
+	if (d->conference /* && num > 3 */ ) {
 		/* if we have selected channels, add this to conference */
+
 		SCCP_LIST_LOCK(&d->selectedChannels);
 		SCCP_LIST_TRAVERSE(&d->selectedChannels, selectedChannel, list) {
 			selectedFound = TRUE;
 
 			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
-				if (channel == c) {
-					sccp_conference_splitIntoModeratorAndParticipant(d->conference, channel);
-				} else if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-					sccp_conference_splitOffParticipant(d->conference, channel);
+				if (channel != d->active_channel) {
+					sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(c->owner));
 				}
 			}
 		}
 		SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 		/* If no calls were selected, add all calls to the conference, across all lines. */
-
 		if (FALSE == selectedFound) {
 			// all channels on this phone
 			sccp_line_t *line = NULL;
@@ -749,20 +816,10 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 					if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
 						SCCP_LIST_LOCK(&line->channels);
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-							sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
-							if (channel == c) {
-								// Resume call on hold before moving it in to the conference, to bind the remote channels device
-								sccp_channel_resume(d, channel, FALSE);
-								sccp_conference_splitIntoModeratorAndParticipant(d->conference, channel);
-							} else if (channel->state == SCCP_CHANNELSTATE_HOLD) {
-								sccp_conference_splitOffParticipant(d->conference, channel);
-								if (channel != d->active_channel) {
-									sccp_log(((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE) + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: update moderator display. (Removing Channel On Hold from Display)\n", DEV_ID_LOG(d));
-									// drop from display immediatly
-									int instance = sccp_device_find_index_for_line(d, l->name);
-
-									sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-								}
+							if (channel != d->active_channel) {
+								sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
+								sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(channel->owner));
+//								sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 							}
 						}
 						SCCP_LIST_UNLOCK(&line->channels);
@@ -772,8 +829,9 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 
 			}
 		}
+		sccp_conference_start(d->conference);
 	} else {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, "Error creating conf", 5);
+		sccp_dev_displayprompt(d, instance, c->callid, "Error creating conf", 5);
 		pbx_log(LOG_NOTICE, "%s: conference could not be created\n", DEV_ID_LOG(d));
 	}
 	d = d ? sccp_device_release(d) : NULL;
@@ -795,6 +853,8 @@ void sccp_feat_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstan
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
 #if CS_SCCP_CONFERENCE
+	sccp_channel_t *channel = NULL;
+
 	if (!c)
 		return;
 
@@ -805,32 +865,28 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "conference not allowed", 5);
 		} else if (!d->conference) {
 			pbx_log(LOG_NOTICE, "%s: There is currently no active conference on this device. Start Conference First.\n", DEV_ID_LOG(d));
-			sccp_dev_displayprompt(d, lineInstance, c->callid, "No Running Conference", 5);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "No Conference to Join", 5);
 		} else if (!d->active_channel) {
 			pbx_log(LOG_NOTICE, "%s: No active channel on device to join to the conference.\n", DEV_ID_LOG(d));
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "No Active Channel", 5);
+		} else if (d->active_channel->conference) {
+			pbx_log(LOG_NOTICE, "%s: Channel is already part of a conference.\n", DEV_ID_LOG(d));
+			sccp_dev_displayprompt(d, lineInstance, c->callid, "Already in Conference", 5);
 		} else {
-			pbx_log(LOG_NOTICE, "%s: Adding participant '%d' to conference %d.\n", DEV_ID_LOG(d), d->active_channel->callid, d->conference->id);
-			sccp_conference_splitOffParticipant(d->conference, d->active_channel);
-			/* Resume conference */
-			sccp_channel_t *channel = NULL;
-			sccp_line_t *line = NULL;
-			uint8_t i = 0;
-
-			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-				if (d->buttonTemplate[i].type == SKINNY_BUTTONTYPE_LINE && d->buttonTemplate[i].ptr) {
-					if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
-						SCCP_LIST_LOCK(&line->channels);
-						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-							if (channel->conference == d->conference) {
-								sccp_channel_resume(d, channel, FALSE);
-							}
-						}
-						SCCP_LIST_UNLOCK(&line->channels);
-						line = sccp_line_release(line);
-					}
-				}
-			}
+			channel = d->active_channel;
+			pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
+			sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(channel->owner));
+			
+			sccp_channel_t *mod_chan = NULL;
+                        SCCP_LIST_LOCK(&l->channels);
+                        SCCP_LIST_TRAVERSE(&l->channels, mod_chan, list) {
+                                if (d->conference == mod_chan->conference) {
+                                        sccp_channel_resume(d, mod_chan, FALSE);
+                                        break;
+                                }
+                        }
+                        SCCP_LIST_UNLOCK(&l->channels);
+                        sccp_conference_update(d->conference);
 		}
 		d = sccp_device_release(d);
 	}
@@ -1322,7 +1378,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
  *      - see sccp_hint_handleFeatureChangeEvent() via sccp_event_fire()
  *      - see sccp_util_handleFeatureChangeEvent() via sccp_event_fire()
  */
-void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t *linedevice, sccp_feature_type_t featureType)
+void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, sccp_feature_type_t featureType)
 {
 	if (device) {
 		sccp_featButton_changed(device, featureType);

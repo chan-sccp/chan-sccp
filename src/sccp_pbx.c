@@ -812,7 +812,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		}
 	}
 
-	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM)) {
+	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)) {
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
@@ -979,6 +979,26 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			}
 			goto EXIT_FUNC;										// leave simpleswitch without dial
 #endif														// CS_SCCP_PICKUP
+		case SCCP_SS_GETCONFERENCEROOM:
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Conference request\n", d->id);
+			if (c->owner && !pbx_check_hangup(c->owner)) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+				PBX(set_callstate) (channel, AST_STATE_UP);
+				if (!d->conference) {
+					d->conference = sccp_conference_create(d, c);
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+				} else {
+					pbx_log(LOG_NOTICE, "%s: There is already a conference running on this device.\n", DEV_ID_LOG(d));
+					sccp_channel_endcall(c);
+					goto EXIT_FUNC;
+				}
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Start Conference\n", d->id);
+				sccp_feat_conference_start(d, l, c);
+			}
+			goto EXIT_FUNC;
+
 		case SCCP_SS_GETMEETMEROOM:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 			if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
