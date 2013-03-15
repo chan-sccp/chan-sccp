@@ -921,25 +921,11 @@ static boolean_t sccp_wrapper_asterisk111_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 		return FALSE;
 	}
 
-	/* Force SrcChannel to SLIN before conference */
-/*
-	struct ast_format tmpfmt;
-	ast_format_set(&tmpfmt, AST_FORMAT_SLINEAR, 0);
-	ast_set_read_format(pbxChannel, &tmpfmt);
-	ast_set_write_format(pbxChannel, &tmpfmt);
-*/
-	
-/*
-	ast_clear_flag(ast_channel_flags(pbxChannel), AST_FLAGS_ALL);
-        ast_channel_clear_softhangup(pbxChannel, AST_SOFTHANGUP_ALL);
-*/
-
 	ast_channel_state_set(pbxTmpChannel, AST_STATE_UP);
-//	/* skipping do masquerade works (don't understand why, but it does) */
 	pbx_do_masquerade(pbxTmpChannel);
 
 	// when returning from bridge, the channel will continue at the next priority
-	//      ast_explicit_goto(pbxTmpChannel, pbx_channel_context(pbxTmpChannel), pbx_channel_exten(pbxTmpChannel), pbx_channel_priority(pbxTmpChannel) + 1);
+	// ast_explicit_goto(pbxTmpChannel, pbx_channel_context(pbxTmpChannel), pbx_channel_exten(pbxTmpChannel), pbx_channel_priority(pbxTmpChannel) + 1);
 	return TRUE;
 }
 
