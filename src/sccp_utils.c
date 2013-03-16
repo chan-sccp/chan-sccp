@@ -1092,11 +1092,6 @@ const char *featureType2str(uint32_t value)
 	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
 
-const char *debugcat_keys(void)
-{
-	_RETURNALLKEYS(sccp_debug_categories, key);
-}
-
 uint32_t debugcat2int(const char *str)
 {
 	_STRARR2INT(sccp_debug_categories, key, str, category);
