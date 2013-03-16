@@ -812,7 +812,11 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		}
 	}
 
-	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)) {
+	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) 
+#ifdef CS_SCCP_CONFERENCE
+	  && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)) 
+#endif
+	{
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
@@ -1058,7 +1062,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			goto EXIT_FUNC;										// leave simpleswitch without dial
 		case SCCP_SS_DIAL:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension\n", d->id);
-		default:
 			break;
 	}
 
