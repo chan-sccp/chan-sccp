@@ -814,9 +814,9 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 
 	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) 
 #ifdef CS_SCCP_CONFERENCE
-	  && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)) 
+	  && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)
 #endif
-	{
+	) {
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
