@@ -854,6 +854,7 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineI
 #ifdef CS_SCCP_CONFERENCE
 	sccp_feat_handle_conference(d, l, lineInstance, c);
 #else
+       	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Conference was not compiled in\n");
 #endif
 }
