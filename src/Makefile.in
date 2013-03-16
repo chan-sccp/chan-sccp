@@ -430,7 +430,7 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_appfunctions.c sccp_protocol.c sccp_socket.c \
 	sccp_threadpool.c
 EXTRA_chan_sccp_la_SOURCES = $(am__append_1)
-chan_sccp_la_CPPFLAGS = $(PBX_CPPFLAGS)
+chan_sccp_la_CPPFLAGS = $(CPPFLAGS) $(PBX_CPPFLAGS)
 chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \

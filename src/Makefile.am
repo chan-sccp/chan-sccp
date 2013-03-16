@@ -36,7 +36,7 @@ if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/astTrunk.h pbx_impl/ast/astTrunk.c
 endif
 
-chan_sccp_la_CPPFLAGS	  = $(PBX_CPPFLAGS)
+chan_sccp_la_CPPFLAGS	  = $(CPPFLAGS) $(PBX_CPPFLAGS)
 chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS)
