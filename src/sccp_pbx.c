@@ -979,9 +979,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			}
 			goto EXIT_FUNC;										// leave simpleswitch without dial
 #endif														// CS_SCCP_PICKUP
+#ifdef CS_SCCP_CONFERENCE
 		case SCCP_SS_GETCONFERENCEROOM:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Conference request\n", d->id);
-#ifdef CS_SCCP_CONFERENCE
 			if (c->owner && !pbx_check_hangup(c->owner)) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -998,8 +998,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Start Conference\n", d->id);
 				sccp_feat_conference_start(d, l, instance, c);
 			}
-#endif
 			goto EXIT_FUNC;
+#endif
 		case SCCP_SS_GETMEETMEROOM:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 			if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
