@@ -27,29 +27,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-    /*!
-     * \brief Handle Conference List
-     * \param d SCCP Device
-     * \param l SCCP Line
-     * \param lineInstance lineInstance as uint8_t
-     * \param c SCCP Channel
-     * \return Success as int
-     */
-void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
-{
-	if (d) {
-#ifdef CS_SCCP_CONFERENCE
-		if (!d->allow_conference) {
-			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
-			return;
-		}
-		sccp_conference_show_list(c->conference, c);
-#else
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
-#endif
-	}
-}
 
 /*!
  * \brief Handle Call Forwarding
@@ -898,6 +875,30 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
+}
+
+/*!
+ * \brief Handle Conference List
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param lineInstance lineInstance as uint8_t
+ * \param c SCCP Channel
+ * \return Success as int
+ */
+void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
+{
+	if (d) {
+#ifdef CS_SCCP_CONFERENCE
+		if (!d->allow_conference) {
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+			pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+			return;
+		}
+		sccp_conference_show_list(c->conference, c);
+#else
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+#endif
+	}
 }
 
 /*!
