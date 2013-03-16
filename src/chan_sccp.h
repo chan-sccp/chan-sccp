@@ -274,6 +274,17 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 		SCCP_TOKEN_STATE_ACK,
 		SCCP_TOKEN_STATE_REJ,
 	} sccp_tokenstate_t;
+	typedef enum {
+		SCCP_SS_DIAL			= 0,
+		SCCP_SS_GETFORWARDEXTEN		= 1,
+		SCCP_SS_GETPICKUPEXTEN		= 2,
+		SCCP_SS_GETMEETMEROOM		= 3,
+		SCCP_SS_GETBARGEEXTEN		= 4,
+		SCCP_SS_GETCBARGEROOM		= 5,
+#ifdef CS_SCCP_CONFERENCE
+		SCCP_SS_GETCONFERENCEROOM	= 6,
+#endif
+	} sccp_softswitch_action_t;
 
 #include "sccp_protocol.h"
 #ifdef HAVE_ASTERISK
@@ -1143,7 +1154,7 @@ struct sccp_channel {
 	/* don't allow sccp phones to monitor (hint) this call */
 	boolean_t privacy;											/*!< Private */
 	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
-	sccp_softwitch_state_t ss_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
+	sccp_softswitch_action_t ss_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
 	uint8_t ss_data;											/*!< Simple Switch Integer param */
 
 	/* feature sets */
@@ -1296,18 +1307,6 @@ struct sccp_hotline {
  * \note Used in simple switch tread to distinguish dial from other number collects
  * \note (Moved here from protocol.h)
  */
-
-typedef enum {
-	SCCP_SS_DIAL			= 0.
-	SCCP_SS_GETFORWARDEXTEN		= 1,
-	SCCP_SS_GETPICKUPEXTEN		= 2,
-	SCCP_SS_GETMEETMEROOM		= 3,
-	SCCP_SS_GETBARGEEXTEN		= 4,
-	SCCP_SS_GETCBARGEROOM		= 5,
-#ifdef CS_SCCP_CONFERENCE
-	SCCP_SS_GETCONFERENCEROOM	= 6,
-#endif
-} sccp_softwitch_state_t;
 
 
 /*!
