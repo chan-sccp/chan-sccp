@@ -146,29 +146,6 @@ void sccp_dev_dbclean(void);
         pbx_log(LOG_ERROR, "_STRARR2INT Lookup Failed for " #arrayname "." #lookup_var "=%s\n", lookup_val); \
         return 0; \
         })
-#define _RETURNALLKEYS(_array,_key) 							\
-({										\
-	uint32_t i;								\
-	char *res = NULL;							\
-	const char *sep = ",";							\
-	size_t size = 0;							\
-	for (i = 0; i < ARRAY_LEN(_array); ++i) {				\
-                size_t new_size = size;						\
-                new_size += strlen(_array[i]._key) + sizeof(sep) + 1;		\
-                res = sccp_realloc(res, new_size);				\
-                if (!res)							\
-                        return NULL;						\
-                if (size == 0) {						\
-                        strcpy(res, _array[i]._key);				\
-                } else {							\
-                        strcat(res, sep);					\
-                        strcat(res, _array[i]._key);				\
-                }								\
-                size = new_size;						\
-	}									\
-	return (const char *)res;						\
-})
-
 #define _ARR2INT(arrayname, lookup_var, lookup_val, return_var) \
         ({ \
         uint32_t i; \
