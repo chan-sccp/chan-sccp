@@ -674,6 +674,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	PBX(queue_control) (c->owner, AST_CONTROL_BUSY);
 }
 
+
 /*!
  * \brief Handle 3-Way Phone Based Conferencing on a Device
  * \param l SCCP Line
@@ -694,6 +695,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  */
 void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
+#ifdef CS_SCCP_CONFERENCE
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
@@ -754,7 +756,9 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 		pbx_log(LOG_ERROR, "%s: (sccp_feat_handle_conference) Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(d), l->name);
 		return;
 	}
+#endif
 }
+
 
 /*!
  * \brief Handle Conference
@@ -774,7 +778,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
  *        - line->channels
  *          - see sccp_conference_addParticipant()
  */
-void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
+void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 #ifdef CS_SCCP_CONFERENCE
 	sccp_channel_t *channel = NULL;
