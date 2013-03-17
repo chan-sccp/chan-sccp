@@ -48,6 +48,7 @@ extern "C" {
 		boolean_t pendingRemoval;									/*!< Pending Removal */
 		uint32_t id;											/*!< Numeric participant id. */
 		sccp_channel_t *channel;									/*!< sccp channel, non-null if the participant resides on an SCCP device */
+		sccp_device_t *device;										/*!< sccp device, non-null if the participant resides on an SCCP device */
 		PBX_CHANNEL_TYPE *conferenceBridgePeer;								/*!< the asterisk channel which joins the conference bridge */
 		struct ast_bridge_channel *bridge_channel;							/*!< Adterisk Conference Bridge Channel */
 		struct ast_bridge_features features;								/*!< Enabled features information */
@@ -58,6 +59,11 @@ extern "C" {
 		boolean_t onMusicOnHold;									/*!< Participant is listening to Music on Hold */
 		boolean_t playback_announcements;								/*!< Does the Participant want to hear announcements */
 
+		/* conflist */
+		uint32_t callReference;
+		uint32_t lineInstance;
+		uint32_t transactionID;
+
 		SCCP_LIST_ENTRY (sccp_conference_participant_t) list;						/*!< Linked List Entry */
 	};
 
@@ -65,6 +71,7 @@ extern "C" {
 
 	void sccp_conference_module_start(void);
 	sccp_conference_t *sccp_conference_create(sccp_device_t *device, sccp_channel_t * channel);
+	void sccp_conference_update_callInfo(sccp_channel_t *channel);
 	void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE *pbxChannel);
 	void sccp_conference_resume(sccp_conference_t * conference);
 	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
@@ -78,6 +85,7 @@ extern "C" {
 
 	/* conf list related */
 	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
+	void sccp_conference_hide_list_ByDevice(sccp_device_t *device);
 	void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callReference, uint32_t transactionID, uint32_t conferenceID, uint32_t participantID);
 	void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);

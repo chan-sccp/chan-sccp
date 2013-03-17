@@ -916,7 +916,7 @@ static boolean_t sccp_wrapper_asterisk110_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
 		return FALSE;
 	}
-	pbxTmpChannel->_state = AST_STATE_UP;
+	//pbxTmpChannel->_state = AST_STATE_UP;
 	pbx_do_masquerade(pbxTmpChannel);
 
 	// when returning from bridge, the channel will continue at the next priority
