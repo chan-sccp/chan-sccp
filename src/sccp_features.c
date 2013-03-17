@@ -684,19 +684,8 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 
 	/* look if we have a call */
 	if ((c = sccp_channel_get_active(d))) {
-		// we have a channel, checking if
-		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
-			// we are dialing but without entering a number :D -FS
-			sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
-			// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-			c->ss_action = SCCP_SS_GETCONFERENCEROOM;						/* Simpleswitch will catch a number to be dialed */
-			c->ss_data = 0;										/* this should be found in thread */
-			// changing channelstate to GETDIGITS
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
-			c = sccp_channel_release(c);
-			return;
-			/* there is an active call, let's put it on hold first */
-		} else if (!sccp_channel_hold(c)) {
+		if (!sccp_channel_hold(c)) {
+                       	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, 5);
 			c = sccp_channel_release(c);
 			return;
 		}
