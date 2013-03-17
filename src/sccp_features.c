@@ -27,7 +27,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-
 /*!
  * \brief Handle Call Forwarding
  * \param l SCCP Line
@@ -651,7 +650,6 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 	PBX(queue_control) (c->owner, AST_CONTROL_BUSY);
 }
 
-
 /*!
  * \brief Handle 3-Way Phone Based Conferencing on a Device
  * \param l SCCP Line
@@ -716,7 +714,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 
 		/* ok the number exist. allocate the asterisk channel */
 		if (!sccp_pbx_channel_allocate(c, NULL)) {
-        		pbx_log(LOG_WARNING, "%s: (sccp_feat_handle_conference) Unable to allocate a new channel for line %s\n", d->id, l->name);
+			pbx_log(LOG_WARNING, "%s: (sccp_feat_handle_conference) Unable to allocate a new channel for line %s\n", d->id, l->name);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			c = sccp_channel_release(c);
 			return;
@@ -735,7 +733,6 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 	}
 #endif
 }
-
 
 /*!
  * \brief Handle Conference
@@ -800,7 +797,6 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 							if (channel != d->active_channel) {
 								sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
 								sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(channel->owner));
-//								sccp_device_sendcallstate(d, instance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 							}
 						}
 						SCCP_LIST_UNLOCK(&line->channels);
@@ -856,18 +852,20 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 		} else {
 			channel = d->active_channel;
 			pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
+			sccp_channel_hold(channel);
 			sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(channel->owner));
-			
+
 			sccp_channel_t *mod_chan = NULL;
-                        SCCP_LIST_LOCK(&l->channels);
-                        SCCP_LIST_TRAVERSE(&l->channels, mod_chan, list) {
-                                if (d->conference == mod_chan->conference) {
-                                        sccp_channel_resume(d, mod_chan, FALSE);
-                                        break;
-                                }
-                        }
-                        SCCP_LIST_UNLOCK(&l->channels);
-                        sccp_conference_update(d->conference);
+
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, mod_chan, list) {
+				if (d->conference == mod_chan->conference) {
+					sccp_channel_resume(d, mod_chan, FALSE);
+					break;
+				}
+			}
+			SCCP_LIST_UNLOCK(&l->channels);
+			sccp_conference_update(d->conference);
 		}
 		d = sccp_device_release(d);
 	}
