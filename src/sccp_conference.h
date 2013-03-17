@@ -74,14 +74,10 @@ extern "C" {
 	void sccp_conference_update_callInfo(sccp_channel_t *channel);
 	void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE *pbxChannel);
 	void sccp_conference_resume(sccp_conference_t * conference);
-	void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
-	void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_start(sccp_conference_t * conference);
 	void sccp_conference_update(sccp_conference_t * conference);
 	void sccp_conference_end(sccp_conference_t * conference);
 	void sccp_conference_hold(sccp_conference_t * conference);
-	void sccp_conference_resume(sccp_conference_t * conference);
-	int sccp_conference_addAstChannelToConferenceBridge(sccp_conference_participant_t * participant, PBX_CHANNEL_TYPE * currentParticipantPeer);
 
 	/* conf list related */
 	void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * channel);
