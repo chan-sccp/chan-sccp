@@ -394,6 +394,8 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX
 					if (d) {
 						sccp_conference_update_callInfo(participant);
 						sccp_channel_send_callinfo(d, channel);
+						
+						sccp_softkey_setSoftkeyState(d, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, FALSE);
 						sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 					}
 				} else {									// PBX Channel
