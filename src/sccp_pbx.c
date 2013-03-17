@@ -366,8 +366,6 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	l = sccp_line_retain(c->line);
 #ifdef CS_SCCP_CONFERENCE
 	if (c && c->conference) {
-		//sccp_conference_removeParticipant(c->conference, c);
-		sccp_conference_retractParticipatingChannel(c->conference, c);
 		c->conference = sccp_refcount_release(c->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 	if (d && d->conference) {

@@ -427,7 +427,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX
 /*!
  * \brief Remove a specific participant from a conference
  */
-void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
+static void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	sccp_conference_participant_t *tmp_participant = NULL;
 
@@ -496,14 +496,6 @@ static void *sccp_conference_thread(void *data)
 	}
 
 	return NULL;
-}
-
-/*!
- * \brief Remote function to Remove a participantChannel from a conference
- * \todo To be implemented (if necessary)
- */
-void sccp_conference_retractParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * channel)
-{
 }
 
 /*!
