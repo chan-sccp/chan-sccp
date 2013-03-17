@@ -882,10 +882,21 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		char xmlTmp[512] = "";
 
 	//	sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">\n", appID);
-		sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\">\n", appID);
-		strcat(xmlStr, xmlTmp);
-		sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
-		strcat(xmlStr, xmlTmp);
+		if (participant->device->protocolversion > 17) {
+			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">\n", appID);
+			strcat(xmlStr, xmlTmp);
+			if (conference->isLocked) {
+				sprintf(xmlTmp, "<Title IconIndex=\"1\">Conference %d</Title>\n", conference->id);
+			} else {
+				sprintf(xmlTmp, "<Title IconIndex=\"0\">Conference %d</Title>\n", conference->id);
+			}
+			strcat(xmlStr, xmlTmp);
+		} else {
+			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\">\n", appID);
+			strcat(xmlStr, xmlTmp);
+			sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
+			strcat(xmlStr, xmlTmp);
+		}	
 		strcat(xmlStr, "<Prompt>Make Your Selection</Prompt>\n");
 
 		// MenuItems
@@ -900,9 +911,9 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<MenuItem>\n");
 
 			if (part->isModerator)
-				use_icon = 0;
-			else
 				use_icon = 2;
+			else
+				use_icon = 4;
 
 			if (part->isMuted) {
 				++use_icon;
@@ -955,7 +966,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 #endif
 
 			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Mute</Name>");
+			strcat(xmlStr, "  <Name>Mute</Name>\n");
 			strcat(xmlStr, "  <Position>2</Position>\n");
 			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MUTE$%d$%d$%d$</URL>\n", 2, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
@@ -964,7 +975,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Kick</Name>\n");
 			strcat(xmlStr, "  <Position>3</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:KICK$%d$%d$%d$</URL>", 3, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:KICK$%d$%d$%d$</URL>\n", 3, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 		}
@@ -975,42 +986,54 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "</SoftKeyItem>\n");
 
 		// CiscoIPPhoneIconMenu Icons
-		strcat(xmlStr, "<IconItem>\n");										// moderator
-		strcat(xmlStr, "  <Index>0</Index>\n");
-		strcat(xmlStr, "  <Height>10</Height>\n");
-		strcat(xmlStr, "  <Width>16</Width>\n");
-		strcat(xmlStr, "  <Depth>2</Depth>\n");
-		strcat(xmlStr, "  <Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data>\n");
-		strcat(xmlStr, "</IconItem>\n");
+		if (participant->device->protocolversion > 17) {
+			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Speaker</URL></IconItem>\n");		// unlocked conference
+			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");		// locked conference
+			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
+			strcat(xmlStr, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted moderator
+			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>\n");	// participant
+			strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted participant
+		} else {
+			strcat(xmlStr, "</IconItem>\n");
+			strcat(xmlStr, "  <Index>2</Index>\n");									// moderator
+			strcat(xmlStr, "  <Height>10</Height>\n");
+			strcat(xmlStr, "  <Width>16</Width>\n");
+			strcat(xmlStr, "  <Depth>2</Depth>\n");
+			strcat(xmlStr, "  <Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data>\n");
+			strcat(xmlStr, "</IconItem>\n");
 
-		strcat(xmlStr, "<IconItem>\n");										// muted moderator
-		strcat(xmlStr, "  <Index>1</Index>\n");
-		strcat(xmlStr, "  <Height>10</Height>\n");
-		strcat(xmlStr, "  <Width>16</Width>\n");
-		strcat(xmlStr, "  <Depth>2</Depth>\n");
-		strcat(xmlStr, "  <Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data>\n");
-		strcat(xmlStr, "</IconItem>\n");
+			strcat(xmlStr, "<IconItem>\n");										// muted moderator
+			strcat(xmlStr, "  <Index>3</Index>\n");
+			strcat(xmlStr, "  <Height>10</Height>\n");
+			strcat(xmlStr, "  <Width>16</Width>\n");
+			strcat(xmlStr, "  <Depth>2</Depth>\n");
+			strcat(xmlStr, "  <Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data>\n");
+			strcat(xmlStr, "</IconItem>\n");
 
-		strcat(xmlStr, "<IconItem>\n");										// participant
-		strcat(xmlStr, "  <Index>2</Index>\n");
-		strcat(xmlStr, "  <Height>10</Height>\n");
-		strcat(xmlStr, "  <Width>16</Width>\n");
-		strcat(xmlStr, "  <Depth>2</Depth>\n");
-		strcat(xmlStr, "  <Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data>\n");
-		strcat(xmlStr, "</IconItem>\n");
+			strcat(xmlStr, "<IconItem>\n");										// participant
+			strcat(xmlStr, "  <Index>4</Index>\n");
+			strcat(xmlStr, "  <Height>10</Height>\n");
+			strcat(xmlStr, "  <Width>16</Width>\n");
+			strcat(xmlStr, "  <Depth>2</Depth>\n");
+			strcat(xmlStr, "  <Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data>\n");
+			strcat(xmlStr, "</IconItem>\n");
 
-		strcat(xmlStr, "<IconItem>\n");										// muted participant
-		strcat(xmlStr, "  <Index>3</Index>\n");
-		strcat(xmlStr, "  <Height>10</Height>\n");
-		strcat(xmlStr, "  <Width>16</Width>\n");
-		strcat(xmlStr, "  <Depth>2</Depth>\n");
-		strcat(xmlStr, "  <Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data>\n");
-		strcat(xmlStr, "</IconItem>\n");
+			strcat(xmlStr, "<IconItem>\n");										// muted participant
+			strcat(xmlStr, "  <Index>5</Index>\n");
+			strcat(xmlStr, "  <Height>10</Height>\n");
+			strcat(xmlStr, "  <Width>16</Width>\n");
+			strcat(xmlStr, "  <Depth>2</Depth>\n");
+			strcat(xmlStr, "  <Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data>\n");
+			strcat(xmlStr, "</IconItem>\n");
+		}
 
-		strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
-
-//		sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: ShowList appID %d, lineInstance %d, callReference %d, transactionID %d\n", conference->id, appID, participant->callReference, participant->lineInstance, participant->transactionID);
-//		sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, xmlStr);
+		if (participant->device->protocolversion > 17) {
+			strcat(xmlStr, "</CiscoIPPhoneIconFileMenu>\n");
+		} else {	
+			strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
+		}
+		sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: ShowList appID %d, lineInstance %d, callReference %d, transactionID %d\n", conference->id, appID, participant->callReference, participant->lineInstance, participant->transactionID);
+		sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, xmlStr);
 
 		participant->device->protocol->sendUserToDeviceDataVersionMessage(participant->device, appID, participant->callReference, participant->lineInstance, participant->transactionID, xmlStr, 2);
 	}
