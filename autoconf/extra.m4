@@ -534,7 +534,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 
 		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^[ \t]*//;s/[ \t]*$//'`" 	dnl Remove leading/ending spaces
 		CFLAGS_saved="${CFLAGS_saved} -Wall"
-		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
+		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE "
 		GDB_FLAGS="-g3 -ggdb3"
 		if test "x${GCC}" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
@@ -561,7 +561,8 @@ dnl    		fi
 		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
-		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1"
+		CFLAGS_saved="${CFLAGS_saved}"
+		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE "
 		if test "x${GCC}" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
