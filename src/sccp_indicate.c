@@ -300,7 +300,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 			PBX(set_callstate) (c, AST_STATE_RINGING);
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CALLWAITING / in conference / disabling conflist (%s, %p, %d)\n", d->id, sccp_indicate2str(c->previousChannelState), d->conference, d->conferencelist_active);
+//			if (d->conferencelist_active) {
+//				sccp_conference_hide_list_ByDevice(d);
+//			}
 			break;
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TRANSFER, 0);
@@ -637,9 +639,9 @@ const char *sccp_indicate2str(uint8_t state)
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 			return "DigitsFoll";
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-			return "InvalidConference";
+			return "InvalidConf";
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
-			return "ConnectedConference";
+			return "ConnConf";
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:
 			return "BlindTransfer";
 		case SCCP_CHANNELSTATE_ZOMBIE:
