@@ -120,6 +120,7 @@ static const struct sccp_channelstate {
  * \brief Skinny Miscellaneous Command Type (Enum)
  */
 typedef enum {
+	/* *INDENT-OFF* */
 	SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE 	= 0,
 	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE,
 	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB,
@@ -128,6 +129,7 @@ typedef enum {
 	SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE,
 	SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE,
 	SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF
+	/* *INDENT-ON* */
 } sccp_miscCommandType_t;											/*!< misccommand types */
 
 static const struct sccp_miscCommandType {
