@@ -257,7 +257,7 @@
 /* Enable IPv6 support */
 #undef CS_IPV6
 
-/* 'LOW_MEMORY' set */
+/* asterisk compiled with 'LOW_MEMORY' */
 #undef CS_LOW_MEMORY
 
 /* manager events enabled */
