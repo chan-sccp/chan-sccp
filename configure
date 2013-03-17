@@ -20675,7 +20675,7 @@ eval "LTDLOPEN=\"$libname_spec\""
 
 	if test "x$with_included_ltdl" != "xyes"; then
 	  save_CFLAGS="${CFLAGS}"
-	  save_CPPFLASG="${CPPFLAGS}"
+	  save_CPPFLAGS="${CPPFLAGS}"
 	  save_LDFLAGS="${LDFLAGS}"
 	  CFLAGS="${CFLAGS} ${LTDLINCL}"
 	  LDFLAGS="${LDFLAGS} ${LIBLTDL}"
@@ -29468,6 +29468,7 @@ $as_echo "$as_me: --enable-optimization: ${enable_optimization}" >&6;}
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-debug: ${enable_debug}" >&5
 $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
 
+ 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
 	if test "${SCCP_BRANCH}" == "TRUNK" || test "$enable_optimization" == "no" || test "${enable_debug}" = "yes"; then
 		strip_binaries="no"
 		CFLAGS_saved="${CFLAGS_saved} -O0 "
@@ -29475,6 +29476,7 @@ $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O3 "
 		GDB_FLAGS=""
+                CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 	fi
 
 	if test "${enable_debug}" = "yes"; then
@@ -29490,7 +29492,6 @@ $as_echo "#define DEBUG 1" >>confdefs.h
 		strip_binaries="no"
 
 		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^ \t*//;s/ \t*$//'`" 			CFLAGS_saved="${CFLAGS_saved} -Wall"
-		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS="-g3 -ggdb3"
 		if test "x${GCC}" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wstrict-prototypes" >&5
@@ -29935,8 +29936,6 @@ case ".$ac_cv_cflags_gcc_option__fstack_protector_all" in
 esac
 
     		fi
-
-
 	else
 
 $as_echo "#define DEBUG 0" >>confdefs.h
@@ -29944,7 +29943,7 @@ $as_echo "#define DEBUG 0" >>confdefs.h
 		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
-		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=1"
+		CFLAGS_saved="${CFLAGS_saved}"
 		if test "x${GCC}" = "xyes"; then
                         { $as_echo "$as_me:${as_lineno-$LINENO}: checking CFLAGS for gcc -Wno-long-long" >&5
 $as_echo_n "checking CFLAGS for gcc -Wno-long-long... " >&6; }
@@ -33746,6 +33745,7 @@ if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${GCLIBS}"
+echo "        CPPFLAGS : ${CPPFLAGS}"
 echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${GCLIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "         PBX_LIB : ${PBX_LIB}"

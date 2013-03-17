@@ -151,6 +151,7 @@ if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${GCLIBS}"
+echo "        CPPFLAGS : ${CPPFLAGS}"
 echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${GCLIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "         PBX_LIB : ${PBX_LIB}"
