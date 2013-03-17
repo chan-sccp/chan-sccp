@@ -365,7 +365,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	l = sccp_line_retain(c->line);
 #ifdef CS_SCCP_CONFERENCE
-	if (c->conference) {
+	if (c && c->conference) {
 		//sccp_conference_removeParticipant(c->conference, c);
 		sccp_conference_retractParticipatingChannel(c->conference, c);
 		c->conference = sccp_refcount_release(c->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -444,7 +444,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState && (d = sccp_device_retain(linedevice->device))) {
-				sccp_indicate(d, c, SKINNY_CALLSTATE_ONHOOK);
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 				d = sccp_device_release(d);
 			}
 		}
