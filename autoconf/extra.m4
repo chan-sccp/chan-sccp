@@ -278,7 +278,7 @@ AC_DEFUN([CS_SETUP_LIBTOOL], [
 	LTDL_INIT([])
 	if test "x$with_included_ltdl" != "xyes"; then
 	  save_CFLAGS="${CFLAGS}"
-	  save_CPPFLASG="${CPPFLAGS}"
+	  save_CPPFLAGS="${CPPFLAGS}"
 	  save_LDFLAGS="${LDFLAGS}"
 	  CFLAGS="${CFLAGS} ${LTDLINCL}"
 	  LDFLAGS="${LDFLAGS} ${LIBLTDL}"
@@ -515,6 +515,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_MSG_NOTICE([--enable-optimization: ${enable_optimization}])
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
+ 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
 	if test "${SCCP_BRANCH}" == "TRUNK" || test "$enable_optimization" == "no" || test "${enable_debug}" = "yes"; then 
 		strip_binaries="no"
 		CFLAGS_saved="${CFLAGS_saved} -O0 "
@@ -522,6 +523,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O3 "
 		GDB_FLAGS=""
+                CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 	fi
 
 	if test "${enable_debug}" = "yes"; then
@@ -534,7 +536,6 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 
 		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^[ \t]*//;s/[ \t]*$//'`" 	dnl Remove leading/ending spaces
 		CFLAGS_saved="${CFLAGS_saved} -Wall"
-		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE "
 		GDB_FLAGS="-g3 -ggdb3"
 		if test "x${GCC}" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
@@ -547,22 +548,12 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
 dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
     		fi 
-
-		dnl optional memory order setting for sparc machines, possibly fixing bus errors
-dnl    		if test "x${basic_machine} = "xsparc"; then
-dnl    			CFLAGS_saved="${CFLAGS_saved} -Wall -mmemory-model=rmo"		dnl rmo='relaxed memory order'
-dnl    		fi
-
-dnl    		if test -n "`echo ${CC} |${EGREP} 'clang'`"; then
-dnl    			CFLAGS_saved="${CFLAGS_saved} -fsanitize=address "
-dnl    		fi
 	else
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		DEBUG=0
 		enable_do_crash="no"
 		enable_debug_mutex="no"
 		CFLAGS_saved="${CFLAGS_saved}"
-		CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE "
 		if test "x${GCC}" = "xyes"; then
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
                         AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
