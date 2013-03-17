@@ -161,7 +161,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		*/
 
 		memcpy(&c->rtp.audio.phone, new_peer, sizeof(c->rtp.audio.phone));
-		pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_phone ) Set phone address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+//		pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_phone ) Set phone address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 
 		//update pbx
 		if (PBX(rtp_setPeer)) {
