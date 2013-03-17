@@ -300,9 +300,11 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 			PBX(set_callstate) (c, AST_STATE_RINGING);
+#ifdef CS_SCCP_CONFERENCE
 			if (d->conferencelist_active) {
 				sccp_conference_hide_list_ByDevice(d);
 			}
+#endif
 			break;
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TRANSFER, 0);
