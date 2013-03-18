@@ -886,13 +886,13 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">\n", appID);
 			strcat(xmlStr, xmlTmp);
 			if (conference->isLocked) {
-				sprintf(xmlTmp, "<Title IconIndex=\"1\">Conference %d</Title>\n", conference->id);
+				sprintf(xmlTmp, "<Title IconIndex=\"5\">Conference %d</Title>\n", conference->id);
 			} else {
-				sprintf(xmlTmp, "<Title IconIndex=\"0\">Conference %d</Title>\n", conference->id);
+				sprintf(xmlTmp, "<Title IconIndex=\"4\">Conference %d</Title>\n", conference->id);
 			}
 			strcat(xmlStr, xmlTmp);
 		} else {
-			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\">\n", appID);
+			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu>\n");
 			strcat(xmlStr, xmlTmp);
 			sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
 			strcat(xmlStr, xmlTmp);
@@ -911,9 +911,9 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<MenuItem>\n");
 
 			if (part->isModerator)
-				use_icon = 2;
+				use_icon = 0;
 			else
-				use_icon = 4;
+				use_icon = 2;
 
 			if (part->isMuted) {
 				++use_icon;
@@ -987,15 +987,15 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		// CiscoIPPhoneIconMenu Icons
 		if (participant->device->protocolversion >= 17) {
-			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Speaker</URL></IconItem>\n");		// unlocked conference
-			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");		// locked conference
-			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
-			strcat(xmlStr, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted moderator
-			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>\n");	// participant
-			strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted participant
+			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
+			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted moderator
+			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>\n");	// participant
+			strcat(xmlStr, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted participant
+			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:Icon.Speaker</URL></IconItem>\n");		// unlocked conference
+			strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");		// locked conference
 		} else {
 			strcat(xmlStr, "<IconItem>\n");
-			strcat(xmlStr, "  <Index>2</Index>\n");									// moderator
+			strcat(xmlStr, "  <Index>0</Index>\n");									// moderator
 			strcat(xmlStr, "  <Height>10</Height>\n");
 			strcat(xmlStr, "  <Width>16</Width>\n");
 			strcat(xmlStr, "  <Depth>2</Depth>\n");
@@ -1003,7 +1003,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "</IconItem>\n");
 
 			strcat(xmlStr, "<IconItem>\n");										// muted moderator
-			strcat(xmlStr, "  <Index>3</Index>\n");
+			strcat(xmlStr, "  <Index>1</Index>\n");
 			strcat(xmlStr, "  <Height>10</Height>\n");
 			strcat(xmlStr, "  <Width>16</Width>\n");
 			strcat(xmlStr, "  <Depth>2</Depth>\n");
@@ -1011,7 +1011,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "</IconItem>\n");
 
 			strcat(xmlStr, "<IconItem>\n");										// participant
-			strcat(xmlStr, "  <Index>4</Index>\n");
+			strcat(xmlStr, "  <Index>2</Index>\n");
 			strcat(xmlStr, "  <Height>10</Height>\n");
 			strcat(xmlStr, "  <Width>16</Width>\n");
 			strcat(xmlStr, "  <Depth>2</Depth>\n");
@@ -1019,7 +1019,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "</IconItem>\n");
 
 			strcat(xmlStr, "<IconItem>\n");										// muted participant
-			strcat(xmlStr, "  <Index>5</Index>\n");
+			strcat(xmlStr, "  <Index>3</Index>\n");
 			strcat(xmlStr, "  <Height>10</Height>\n");
 			strcat(xmlStr, "  <Width>16</Width>\n");
 			strcat(xmlStr, "  <Depth>2</Depth>\n");
