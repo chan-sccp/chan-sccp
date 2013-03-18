@@ -649,8 +649,6 @@ static const struct skinny_alarm {
 #define SKINNY_DEVICETYPE_CISCO8945			585
 #define SKINNY_DEVICETYPE_CISCO8961                	540
 
-//#define SKINNY_DEVICETYPE_CISCO9951                   ???
-//#define SKINNY_DEVICETYPE_CISCO9971                   ???
 //#define SKINNY_DEVICETYPE_CISCO7926                   ???
 
 /* SPA Devices */
@@ -751,7 +749,7 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7921, 			{ {176,140}, 	SCCP_COLOR, 	16 },	"Cisco 7921"				},
 	{ SKINNY_DEVICETYPE_CISCO7925, 			{ {176,140}, 	SCCP_COLOR, 	16 },	"Cisco 7925"				},
 //	{ SKINNY_DEVICETYPE_CISCO7926, 			{ {176,140}, 	SCCP_COLOR, 	16 },	"Cisco 7926"				},
-	{ SKINNY_DEVICETYPE_CISCO7936, 			{ {255,128}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7936 Conference"			},
+	{ SKINNY_DEVICETYPE_CISCO7936, 			{ {128,64}, 	SCCP_MONOCHROME,0  },	"Cisco 7936 Conference"			},
 	{ SKINNY_DEVICETYPE_CISCO7937, 			{ {255,128}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7937 Conference"			},
 	{ SKINNY_DEVICETYPE_CISCO7940, 			{ {133,65}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7940"				},
 	{ SKINNY_DEVICETYPE_CISCO7960, 			{ {133,65}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7960"				},
@@ -772,8 +770,6 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO6961, 			{ {396,81}, 	SCCP_MONOCHROME,0  },	"Cisco 6961"				},
 	{ SKINNY_DEVICETYPE_CISCO6941, 			{ {396,162}, 	SCCP_MONOCHROME,0  },	"Cisco 6941"				},
 	{ SKINNY_DEVICETYPE_CISCO6945, 			{ {396,162}, 	SCCP_MONOCHROME,0  },	"Cisco 6945"				},
-//	{ SKINNY_DEVICETYPE_CISCO9951, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 9951"				},
-//	{ SKINNY_DEVICETYPE_CISCO9971, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 9971"				},
 	{ SKINNY_DEVICETYPE_CISCO8961, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 8961"				},
 	{ SKINNY_DEVICETYPE_CISCO8941, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 8941"				},
 	{ SKINNY_DEVICETYPE_CISCO8945, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 8945"				},
