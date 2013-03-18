@@ -1373,25 +1373,25 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	if (!d || !d->session)
 		return;
 
-	sccp_dev_clearprompt(d, 0, 0);
+	if (d->hasDisplayPrompt()) {
+		sccp_dev_clearprompt(d, 0, 0);
 
-	int i;
+		int i;
 
 #ifndef SCCP_ATOMIC
-	sccp_mutex_lock(&d->messageStackLock);
+		sccp_mutex_lock(&d->messageStackLock);
 #endif
-	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
-		if (d->messageStack[i] != NULL) {
-			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
-			goto DONE;
+		for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
+			if (d->messageStack[i] != NULL) {
+				sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
+				goto DONE;
+			}
 		}
-	}
 #ifndef SCCP_ATOMIC
-	sccp_mutex_unlock(&d->messageStackLock);
+		sccp_mutex_unlock(&d->messageStackLock);
 #endif
 
 	/* when we are here, there's nothing to display */
-	if (d->hasDisplayPrompt()) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 	}
 	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);								/* this is for redial softkey */
@@ -1711,7 +1711,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 		if (d->session && d->session->device) {
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-			usleep(10);
+			usleep(20);
 			sccp_session_removeDevice(d->session);
 			d->session = NULL;
 		}
@@ -2155,7 +2155,7 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
 
-	char *newValue = NULL;
+	char *newValue = "";
 	char *oldValue = NULL;
 
 	if (ARRAY_LEN(device->messageStack) <= priority)
