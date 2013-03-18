@@ -948,7 +948,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 				strcat(xmlStr, xmlTmp);
 			}
 			strcat(xmlStr, "</Name>\n");
-			sprintf(xmlTmp, "  <URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
+			sprintf(xmlTmp, "  <URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</MenuItem>\n");
 		}
@@ -994,7 +994,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>\n");	// participant
 			strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted participant
 		} else {
-			strcat(xmlStr, "</IconItem>\n");
+			strcat(xmlStr, "<IconItem>\n");
 			strcat(xmlStr, "  <Index>2</Index>\n");									// moderator
 			strcat(xmlStr, "  <Height>10</Height>\n");
 			strcat(xmlStr, "  <Width>16</Width>\n");
