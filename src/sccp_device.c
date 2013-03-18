@@ -1382,8 +1382,11 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		sccp_mutex_lock(&d->messageStackLock);
 #endif
 		for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
-			if (d->messageStack[i] != NULL) {
+			if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
 				sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
+#ifndef SCCP_ATOMIC
+				sccp_mutex_unlock(&d->messageStackLock);
+#endif
 				goto DONE;
 			}
 		}
@@ -2155,7 +2158,7 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
 
-	char *newValue = "";
+	char *newValue = NULL;
 	char *oldValue = NULL;
 
 	if (ARRAY_LEN(device->messageStack) <= priority)
