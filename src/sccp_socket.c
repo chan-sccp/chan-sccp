@@ -161,13 +161,13 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
 {
 	boolean_t res = FALSE;
 
-	assert(s);
-
-	if (!sccp_session_findBySession(s)) {;
-		SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-		SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);
-		res = TRUE;
-		SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+	if (s) {
+		if (!sccp_session_findBySession(s)) {;
+			SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+			SCCP_LIST_INSERT_HEAD(&GLOB(sessions), s, list);
+			res = TRUE;
+			SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+		}
 	}
 	return res;
 }
@@ -185,18 +185,18 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 	sccp_session_t *session;
 	boolean_t res = FALSE;
 
-	assert(s);
-
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-		if (session == s) {
-			SCCP_LIST_REMOVE_CURRENT(list);
-			res = TRUE;
-			break;
+	if (s) {
+		SCCP_RWLIST_WRLOCK(&GLOB(sessions));
+		SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+			if (session == s) {
+				SCCP_LIST_REMOVE_CURRENT(list);
+				res = TRUE;
+				break;
+			}
 		}
+		SCCP_RWLIST_TRAVERSE_SAFE_END;
+		SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 	}
-	SCCP_RWLIST_TRAVERSE_SAFE_END;
-	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 	return res;
 }
 
