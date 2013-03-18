@@ -882,7 +882,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		char xmlTmp[512] = "";
 
 	//	sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">\n", appID);
-		if (participant->device->protocolversion > 17) {
+		if (participant->device->protocolversion >= 17) {
 			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">\n", appID);
 			strcat(xmlStr, xmlTmp);
 			if (conference->isLocked) {
@@ -986,7 +986,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "</SoftKeyItem>\n");
 
 		// CiscoIPPhoneIconMenu Icons
-		if (participant->device->protocolversion > 17) {
+		if (participant->device->protocolversion >= 17) {
 			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Speaker</URL></IconItem>\n");		// unlocked conference
 			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");		// locked conference
 			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
@@ -1027,7 +1027,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "</IconItem>\n");
 		}
 
-		if (participant->device->protocolversion > 17) {
+		if (participant->device->protocolversion >= 17) {
 			strcat(xmlStr, "</CiscoIPPhoneIconFileMenu>\n");
 		} else {	
 			strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
