@@ -833,7 +833,7 @@ sccp_channelState_t sccp_line_getDNDChannelState(sccp_line_t * line)
 		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_getDNDState) Either no hint or line provided\n");
 		return state;
 	}
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->id);
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->name);
 	if (line->devices.size > 1) {
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
