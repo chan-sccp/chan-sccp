@@ -236,7 +236,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"name", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"line name\n"},
 	{"line", 			0,	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"line name\n"},
 	{"type", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"line\n"},
-	{"id", 				L_OBJ_REF(id),				TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"id\n"},
+	{"id", 				L_OBJ_REF(id),				TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"id\n"},
 	{"pin", 			L_OBJ_REF(pin), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"pin\n"},
 	{"label", 			L_OBJ_REF(label), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED, 					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"label\n"},
 	{"description", 		L_OBJ_REF(description),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"description\n"},
