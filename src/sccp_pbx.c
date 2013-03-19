@@ -627,8 +627,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 {
 	PBX_CHANNEL_TYPE *tmp;
 
-	if (!c)
+	if (!(c = sccp_channel_retain(c))) {
 		return -1;
+	}
 
 	sccp_line_t *l = sccp_line_retain(c->line);
 	sccp_device_t *d = NULL;
@@ -645,6 +646,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate asterisk channel %s\n", l->name);
 		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel\n");
+		sccp_channel_release(c);
 		return 0;
 	}
 	//      /* Don't hold a sccp pvt lock while we allocate a channel */
@@ -717,6 +719,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	PBX(alloc_pbxChannel) (c, &tmp, linkedId);
 	if (!tmp) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
+		c = sccp_channel_release(c);
 		l = l ? sccp_line_release(l) : NULL;
 		d = d ? sccp_device_release(d) : NULL;
 		return 0;
@@ -766,8 +769,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", pbx_inet_ntoa(d->session->sin.sin_addr));
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(d->skinny_type));
 	}
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c ? c->callid : NULL);
 
+	c = sccp_channel_release(c);
 	l = l ? sccp_line_release(l) : NULL;
 	d = d ? sccp_device_release(d) : NULL;
 	return 1;
