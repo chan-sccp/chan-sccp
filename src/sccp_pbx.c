@@ -146,7 +146,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		return -1;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->id, PBX(getChannelName) (c));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->name, PBX(getChannelName) (c));
 
 	/* if incoming call limit is reached send BUSY */
 	if (SCCP_RWLIST_GETSIZE(l->channels) > l->incominglimit) {						/* >= just to be sure :-) */
