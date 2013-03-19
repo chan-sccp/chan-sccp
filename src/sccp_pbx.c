@@ -158,11 +158,13 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	}
 
 	/* Reinstated this call instead of the following lines */
-	if (strlen(c->callInfo.callingPartyName) > 0)
+	if (strlen(c->callInfo.callingPartyName) > 0) {
 		cid_name = strdup(c->callInfo.callingPartyName);
+	}	
 
-	if (strlen(c->callInfo.callingPartyNumber) > 0)
+	if (strlen(c->callInfo.callingPartyNumber) > 0) {
 		cid_number = strdup(c->callInfo.callingPartyNumber);
+	}
 
 	//! \todo implement dnid, ani, ani2 and rdnis
 	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "");
@@ -257,6 +259,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 			/** check if ringermode is not urgent and device enabled dnd in reject mode */
 			if (SKINNY_STATION_URGENTRING != c->ringermode && linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
+			        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
 				hasDNDParticipant = TRUE;
 				continue;
 			}
@@ -296,7 +299,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
 		PBX(queue_control) (c->owner, AST_CONTROL_RINGING);
 	} else if (hasDNDParticipant) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
 		pbx_setstate(c->owner, AST_STATE_BUSY);
 		PBX(queue_control) (c->owner, AST_CONTROL_BUSY);
 	} else {
