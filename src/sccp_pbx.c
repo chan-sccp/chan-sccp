@@ -203,7 +203,6 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	if (!c->ringermode) {
 		c->ringermode = SKINNY_STATION_OUTSIDERING;
 	}
-
 	boolean_t isRinging = FALSE;
 	boolean_t hasDNDParticipant = FALSE;
 
@@ -769,7 +768,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", pbx_inet_ntoa(d->session->sin.sin_addr));
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(d->skinny_type));
 	}
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c ? c->callid : NULL);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
 
 	c = sccp_channel_release(c);
 	l = l ? sccp_line_release(l) : NULL;
