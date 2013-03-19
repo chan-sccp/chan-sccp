@@ -149,10 +149,6 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
 		return NULL;
 	}
-	
-	if (sccp_strlen_zero(line->id) && !sccp_strlen_zero(line->name)) {
-		sccp_copy_string(line->id, line->name, sizeof(line->id));
-	}
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	/* does the line already exist (created by an other thread) ? */
@@ -171,6 +167,12 @@ sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 
 	/* line was not created */
 	line = sccp_line_retain(line);
+
+	/* not the right location to do this but ok */	
+	if (sccp_strlen_zero(line->id) && !sccp_strlen_zero(line->name)) {
+		sccp_copy_string(line->id, line->name, sizeof(line->id));
+	}
+
 	//      SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
 	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), line, list, cid_num);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
