@@ -236,7 +236,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 	if (!event)
 		return;
 
-	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "Get deviceAttachedEvent\n");
+	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
 	sccp_line_t *line = event->event.deviceAttached.linedevice->line;
 	sccp_device_t *device = event->event.deviceAttached.linedevice->device;
 
@@ -263,7 +263,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 	if (!event)
 		return;
 
-	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "Get lineStatusChangedEvent\n");
+	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
 	sccp_device_t *device = event->event.lineStatusChanged.device;
 
 	if (!device)
@@ -287,7 +287,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 	sccp_mailbox_t *mailbox;
 	sccp_line_t *line = event->event.lineCreated.line;
 
-	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "Get linecreatedEvent\n");
+	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_1 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
 
 	if (!line) {
 		pbx_log(LOG_ERROR, "Get linecreatedEvent, but line not set\n");
@@ -335,7 +335,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	if (!subscription) {
 		subscription = sccp_malloc(sizeof(sccp_mailbox_subscriber_list_t));
 		if (!subscription) {
-			pbx_log(LOG_ERROR, "Error allocating memory for sccp_mwi_addMailboxSubscription");
+			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error allocating memory for sccp_mwi_addMailboxSubscription");
 			return;
 		}
 		memset(subscription, 0, sizeof(sccp_mailbox_subscriber_list_t));
@@ -344,7 +344,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 		sccp_copy_string(subscription->mailbox, mailbox, sizeof(subscription->mailbox));
 		sccp_copy_string(subscription->context, context, sizeof(subscription->context));
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "create subscription for: %s@%s\n", subscription->mailbox, subscription->context);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) create subscription for: %s@%s\n", subscription->mailbox, subscription->context);
 
 		SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_mailbox_subscriptions, subscription, list);
@@ -367,7 +367,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 #else
 		if ((subscription->schedUpdate = sccp_sched_add(sched, SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
-			pbx_log(LOG_ERROR, "Error creating mailbox subscription.\n");
+			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
 #endif
 	}
@@ -381,7 +381,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	if (!mailboxLine) {
 		mailboxLine = sccp_malloc(sizeof(sccp_mailboxLine_t));
 		if (!mailboxLine) {
-			pbx_log(LOG_ERROR, "Error allocating memory for mailboxLine");
+			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error allocating memory for mailboxLine");
 			return;
 		}
 		memset(mailboxLine, 0, sizeof(sccp_mailboxLine_t));
@@ -412,7 +412,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
 	SCCP_LIST_LOCK(&line->mailboxes);
 	SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
 		sprintf(buffer, "%s@%s", mailbox->mailbox, (mailbox->context) ? mailbox->context : "default");
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s\n", line->name, buffer);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "SCCP: (mwi_checkLine) Line: %s, Mailbox: %s\n", line->name, buffer);
 		if (!sccp_strlen_zero(buffer)) {
 
 #ifdef CS_AST_HAS_NEW_VOICEMAIL
@@ -422,7 +422,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
 				line->voicemailStatistic.newmsgs = 1;
 			}
 #endif
-			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "Line: %s, Mailbox: %s inbox: %d/%d\n", line->name, buffer, line->voicemailStatistic.newmsgs, line->voicemailStatistic.oldmsgs);
+			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "SCCP: (mwi_checkLine) Line: %s, Mailbox: %s inbox: %d/%d\n", line->name, buffer, line->voicemailStatistic.newmsgs, line->voicemailStatistic.oldmsgs);
 		}
 	}
 	SCCP_LIST_UNLOCK(&line->mailboxes);
@@ -479,9 +479,9 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 		r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
 
 		sccp_dev_send(d, r);
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s)%d\n", DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Turn %s the MWI on line (%s)%d\n", DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	} else {
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Device already know status %s on line %s (%d)\n", DEV_ID_LOG(d), (newState & ~(1 << 0)) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Device already knows status %s on line %s (%d)\n", DEV_ID_LOG(d), (newState & ~(1 << 0)) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	}
 
 	sccp_mwi_check(d);
@@ -521,7 +521,7 @@ void sccp_mwi_check(sccp_device_t * device)
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
 
 	if (!(device = sccp_device_retain(device))) {
-		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "sccp_mwi_check called with NULL device!\n");
+		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "SCCP: (mwi_check) called with NULL device!\n");
 		return;
 	}
 
@@ -552,7 +552,7 @@ void sccp_mwi_check(sccp_device_t * device)
 			/* pre-collect number of voicemails on device to be set later */
 			oldmsgs += line->voicemailStatistic.oldmsgs;
 			newmsgs += line->voicemailStatistic.newmsgs;
-			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: line retrieved from buttonconfig! (%d/%d)\n", DEV_ID_LOG(device), line->voicemailStatistic.newmsgs, line->voicemailStatistic.oldmsgs);
+			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: (mwi_check) line retrieved from buttonconfig! (%d/%d)\n", DEV_ID_LOG(device), line->voicemailStatistic.newmsgs, line->voicemailStatistic.oldmsgs);
 			SCCP_LIST_UNLOCK(&line->channels);
 			line = sccp_line_release(line);
 		}
@@ -602,15 +602,14 @@ void sccp_mwi_check(sccp_device_t * device)
 		sccp_dev_send(device, r);
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI light (newmsgs: %d->%d)\n", DEV_ID_LOG(device), (device->mwilight & (1 << 0)) ? "ON" : "OFF", newmsgs, device->voicemailStatistic.newmsgs);
 
-		/* we should check the display only once, maybe we need a priority stack -MC */
-		if (device->mwilight > 0) {
-			char buffer[StationMaxDisplayTextSize];
-
-			sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, newmsgs, oldmsgs);
-			sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
-		} else {
-			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL);
-		}
+	}
+	/* we should check the display only once, maybe we need a priority stack -MC */
+	if (newmsgs > 0) {
+		char buffer[StationMaxDisplayTextSize];
+		sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, newmsgs, oldmsgs);
+		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
+	} else {
+		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL);
 	}
 
 	device = sccp_device_release(device);
