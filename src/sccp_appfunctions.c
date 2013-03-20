@@ -130,7 +130,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strcasecmp(colname, "dnd_feature")) {
 		sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", len);
 	} else if (!strcasecmp(colname, "dnd_state")) {
-		sccp_copy_string(buf, (d->dndFeature.status) ? "ON" : "OFF", len);
+		sccp_copy_string(buf, dndmode2str(d->dndFeature.status), len);
 	} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 		sccp_copy_string(buf, d->realtime ? "yes" : "no", len);
