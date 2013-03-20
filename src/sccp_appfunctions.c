@@ -51,12 +51,14 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
-		if (deprecation_warning++ % 10 == 0)
+		if (deprecation_warning++ % 10 == 0) {
 			pbx_log(LOG_WARNING, "SCCPDEVICE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
-	} else if ((colname = strchr(data, ',')))
+		}	
+	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
-	else
+	} else {
 		colname = "ip";
+	}	
 
 	if (!strncasecmp(data, "current", 7)) {
 		sccp_channel_t *c;
@@ -125,6 +127,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		snprintf(buf, len, "%d", d->inuseprotocolversion);
 	} else if (!strcasecmp(colname, "mwi_light")) {
 		sccp_copy_string(buf, d->mwilight ? "ON" : "OFF", len);
+	} else if (!strcasecmp(colname, "dnd_feature")) {
+		sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", len);
+	} else if (!strcasecmp(colname, "dnd_state")) {
+		sccp_copy_string(buf, (d->dndFeature.status) ? "ON" : "OFF", len);
 	} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 		sccp_copy_string(buf, d->realtime ? "yes" : "no", len);
@@ -203,7 +209,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			buf[0] = '\0';
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s", data);
+		pbx_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s\n", data);
 		buf[0] = '\0';
 	}
 	sccp_device_release(d);
@@ -257,13 +263,14 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
-		if (deprecation_warning++ % 10 == 0)
+		if (deprecation_warning++ % 10 == 0) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
-	} else if ((colname = strchr(data, ',')))
+		}	
+	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
-	else
+	} else {
 		colname = "id";
-
+	}
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
@@ -415,7 +422,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			}
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s", data);
+		pbx_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s\n", data);
 		buf[0] = '\0';
 	}
 	sccp_line_release(l);
@@ -458,16 +465,18 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		static int deprecation_warning = 0;
 
 		*colname++ = '\0';
-		if (deprecation_warning++ % 10 == 0)
+		if (deprecation_warning++ % 10 == 0) {
 			pbx_log(LOG_WARNING, "SCCPCHANNEL(): usage of ':' to separate arguments is deprecated.  Please use ',' instead.\n");
-	} else if ((colname = strchr(data, ',')))
+		}	
+	} else if ((colname = strchr(data, ','))) {
 		*colname++ = '\0';
-	else
+	} else {
 		colname = "callid";
-
+	}
 	if (!strncasecmp(data, "current", 7)) {
-		if (!(c = get_sccp_channel_from_pbx_channel(chan)))
+		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 			return -1;										/* Not a SCCP channel. */
+		}	
 	} else {
 		uint32_t callid = atoi(data);
 
@@ -558,7 +567,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			buf[0] = '\0';
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s", data);
+		pbx_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s\n", data);
 		buf[0] = '\0';
 	}
 	sccp_channel_release(c);
