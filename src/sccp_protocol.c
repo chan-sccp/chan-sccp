@@ -882,7 +882,6 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_moo_
 
 static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_moo_t * r, uint32_t * status, struct sockaddr_in *sin, uint32_t * passthrupartyid, uint32_t * callReference)
 {
-	struct sockaddr_in tmp = { 0 };
 	*status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_status);
 	*passthrupartyid = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_passThruPartyId);
 	*callReference = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_callReference);
@@ -897,7 +896,6 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_moo
 		memcpy(&sin->sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, INET6_ADDRSTRLEN);
 		sin->sin_port = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_portNumber));
 	}
-	*sin = tmp;
 }
 
 /*!
