@@ -1715,8 +1715,11 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		if (d->session && d->session->device) {
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			usleep(20);
-			sccp_session_removeDevice(d->session);
+			if (d->session) {
+				sccp_session_removeDevice(d->session);
+			}	
 			d->session = NULL;
+			session = NULL;
 		}
 
 		/* release line references, refcounted in btnList */
