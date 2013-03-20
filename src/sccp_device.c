@@ -1719,7 +1719,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 				sccp_session_removeDevice(d->session);
 			}	
 			d->session = NULL;
-			session = NULL;
 		}
 
 		/* release line references, refcounted in btnList */
