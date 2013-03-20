@@ -640,6 +640,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  *        - line->channels
  *      - channel
  */
+#if !CS_EXPERIMENTAL	// Old Version
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
 {
 	if (!d) {
@@ -659,7 +660,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
 				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-					//                                      if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
+					//if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
 					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
 					if (c->passthrupartyid == passthrupartyid) {
 						sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
@@ -671,19 +672,66 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 				SCCP_LIST_UNLOCK(&l->channels);
 
 				l = sccp_line_release(l);
-					
 				if (channelFound)
 					break;
 			}
 		}
 	}
 
-	if (!c || !channelFound)
+	if (!c || !channelFound) {
 		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u on device %s\n", passthrupartyid, DEV_ID_LOG(d));
+	}	
 
 	return c;
 }
+#else	// New Version
+sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
+{
+	if (!d) {
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "SCCP: No device provided to look for %u\n", passthrupartyid);
+		return NULL;
+	}
+	btnlist * btn = d->buttonTemplate;
+	if (!btn) {
+		sccp_log(DEBUGCAT_BUTTONTEMPLATE) (VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
+		return NULL;		
+	}
+	sccp_channel_t *c = NULL;
+	sccp_line_t *l = NULL;
+	int i = 0;
+	boolean_t channelFound = FALSE;
 
+	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
+	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
+			if ((l=sccp_line_retain(btn[i].ptr))) {
+				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", DEV_ID_LOG(d), l->name);
+				SCCP_LIST_LOCK(&l->channels);
+				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+					//if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
+					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
+					if (c->passthrupartyid == passthrupartyid) {
+						sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
+						c = sccp_channel_retain(c);
+						channelFound = TRUE;
+						break;
+					}
+				}
+				SCCP_LIST_UNLOCK(&l->channels);
+				
+				l = sccp_line_release(l);
+				if (channelFound)
+					break;
+			}
+		}
+	}
+	if (!c || !channelFound) {
+		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u on device %s\n", passthrupartyid, DEV_ID_LOG(d));
+	}	
+
+	return c;
+}
+#endif
 /*!
  * \brief Find Channel by State on Line
  * \return *refcounted* SCCP Channel
@@ -828,6 +876,8 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
  * 
  * \lock
  *      - device->selectedChannels
+ *
+ * \todo Currently this returns the selectedchannel unretained !
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
 {
