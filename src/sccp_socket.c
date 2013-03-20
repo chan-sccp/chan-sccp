@@ -207,9 +207,10 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
  */
 sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
 {
-	//assert(session);
-	//assert(device);
-	if (session && session->device && device && session->device != device) {
+//	assert(session);
+//	assert(device);
+	if (session && device && session->device != device) {
+//	if (session->device != device) {
 		sccp_session_lock(session);
 		if (session->device) {
 			sccp_device_t *remdevice = sccp_device_retain(session->device);
