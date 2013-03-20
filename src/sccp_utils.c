@@ -670,6 +670,8 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 				}
 				SCCP_LIST_UNLOCK(&l->channels);
 
+				l = sccp_line_release(l);
+					
 				if (channelFound)
 					break;
 			}
