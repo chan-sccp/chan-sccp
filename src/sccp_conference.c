@@ -504,8 +504,9 @@ static void *sccp_conference_thread(void *data)
 void sccp_conference_start(sccp_conference_t * conference)
 {
 	sccp_conference_update_conflist(conference);
-	playback_to_conference(conference, "conf-enteringno", -1);
-	playback_to_conference(conference, NULL, conference->id);
+	//playback_to_conference(conference, "conf-enteringno", -1);
+	//playback_to_conference(conference, NULL, conference->id);
+	playback_to_conference(conference, "conf-placeintoconf", -1);
 	sccp_conference_connect_bridge_channels_to_participants(conference);
 }
 
