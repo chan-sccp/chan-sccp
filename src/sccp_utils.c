@@ -1839,9 +1839,12 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	filterPhones = FALSE;											/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
-	if (strlen(channel->subscriptionId.number) != 0) {
+	if (strlen(channel->subscriptionId.number) != 0 && strlen(channel->line->defaultSubscriptionId.number) > 0 ) {
 		/* Second condition: SubscriptionId does not match default subscriptionId of line. */
 		if (0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number))) {
+#if 0
+			pbx_log(LOG_NOTICE, "Second condition: SubscriptionId does not match default subscriptionId of line. channel->line->defaultSubscriptionId.number '%s'\n", channel->line->defaultSubscriptionId.number);
+#endif
 			filterPhones = TRUE;
 		}
 	}
