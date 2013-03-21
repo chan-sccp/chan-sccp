@@ -240,13 +240,16 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			continue;
 		}
 
-		if (!linedevice->device->session)
+		if (!linedevice->device->session){
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: line device has no session\n", DEV_ID_LOG(linedevice->device));
 			continue;
+		}
 
 		/* check if c->subscriptionId.number is matching deviceSubscriptionID */
 		/* This means that we call only those devices on a shared line
 		   which match the specified subscription id in the dial parameters. */
 		if (!sccp_util_matchSubscriptionId(c, linedevice->subscriptionId.number)) {
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: device does not match subscriptionId.number c->subscriptionId.number: '%s', deviceSubscriptionID: '%s'\n", DEV_ID_LOG(linedevice->device), c->subscriptionId.number, linedevice->subscriptionId.number);
 			continue;
 		}
 
