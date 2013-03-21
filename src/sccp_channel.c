@@ -1141,6 +1141,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		 *	7960 loses callplane when cancel transfer (end call on other channel).
 		 *	This script set the hold state for transfer_channel explicitly -MC
 		 */
+		 
 		if (channel->privateData->device && channel->privateData->device->transferChannels.transferee && channel->privateData->device->transferChannels.transferee != channel) {
 			uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transferChannels.transferee->line->name);
 
@@ -1149,7 +1150,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 			channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
 		}
 
-		/** request a hangup for channel that are part of a transfer call */
+		// request a hangup for channel that are part of a transfer call 
 		if (channel->privateData->device) {
 			if ((channel->privateData->device->transferChannels.transferee && channel == channel->privateData->device->transferChannels.transferee) || (channel->privateData->device->transferChannels.transferer && channel == channel->privateData->device->transferChannels.transferer)
 			    ) {
@@ -1157,7 +1158,22 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
 			}
 		}
-
+		
+#if CS_EXPERIMENTAL
+		/* Complete transfer when one is in progress */
+		if (channel->privateData->device) {
+			if (	
+				((channel->privateData->device->transferChannels.transferee) && (channel->privateData->device->transferChannels.transferer)) && 
+				((channel == channel->privateData->device->transferChannels.transferee) || (channel == channel->privateData->device->transferChannels.transferer))
+			    ) {
+			    sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
+			    sccp_channel_transfer_complete(channel->privateData->device->transferChannels.transferer);
+			    d = sccp_device_release(d);
+			    return;
+			}
+		}
+#endif
+		
 		if (channel->owner) {
 			PBX(requestHangup) (channel->owner);
 		} else {
