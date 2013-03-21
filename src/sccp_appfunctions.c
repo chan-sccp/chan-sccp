@@ -144,6 +144,18 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 #ifdef CS_SCCP_CONFERENCE
 	} else if (!strcasecmp(colname, "conference_id")) {
 		snprintf(buf, len, "%d", d->conference->id);
+        } else if (!strcasecmp(colname, "allow_conference")) {
+        	snprintf(buf, len, "%s", d->allow_conference ? "ON" : "OFF");
+        } else if (!strcasecmp(colname, "conf_play_general_announce")) {
+        	snprintf(buf, len, "%s", d->conf_play_general_announce ? "ON" : "OFF");
+        } else if (!strcasecmp(colname, "allow_conference")) {
+        	snprintf(buf, len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
+        } else if (!strcasecmp(colname, "conf_play_part_announce")) {
+        	snprintf(buf, len, "%s", d->allow_conference ? "ON" : "OFF");
+        } else if (!strcasecmp(colname, "conf_mute_on_entry")) {
+        	snprintf(buf, len, "%s", d->conf_mute_on_entry ? "ON" : "OFF");
+        } else if (!strcasecmp(colname, "conf_music_on_hold_class")) {
+        	snprintf(buf, len, "%s", d->conf_music_on_hold_class);
 #endif
 	} else if (!strcasecmp(colname, "current_line")) {
 		sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", len);
@@ -546,8 +558,12 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		snprintf(buf, len, "%d", c->ss_action);
 		//      } else if (!strcasecmp(colname, "monitorEnabled")) {
 		//              sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "conference")) {
-		/*! \todo needs to be implemented */
+#ifdef CS_SCCP_CONFERENCE
+	} else if (!strcasecmp(colname, "conference_id")) {
+		snprintf(buf, len, "%d", c->conference_id);
+        } else if (!strcasecmp(colname, "conference_participant_id")) {
+        	snprintf(buf, len, "%d", c->conference_participant_id);
+#endif
 	} else if (!strcasecmp(colname, "parent")) {
 		snprintf(buf, len, "%d", c->parentChannel->callid);
 	} else if (!strcasecmp(colname, "peer")) {
