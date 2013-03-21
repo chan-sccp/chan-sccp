@@ -1662,8 +1662,6 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 					default:
 						break;
 				}
-			} else {
-				pbx_log(LOG_WARNING, "%s: No linedevice %p provided to set call forward for\n", device->id, linedevice);
 			}
 			break;
 		case SCCP_FEATURE_DND:
