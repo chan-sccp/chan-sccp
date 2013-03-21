@@ -2406,7 +2406,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	if (status) {
 		// rtp error from the phone 
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: %d ! No RTP media available. Giving up.\n", d->id, status);
+		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: %d ! No RTP stream available. Possibly all the rtp streams the phone supports have been used up. Giving up.\n", d->id, status);
 		return;
 	}
 

@@ -1156,6 +1156,7 @@ EXIT:
  */
 void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Kick Participant %d\n", conference->id, participant->id);
 	participant->pendingRemoval = TRUE;
 	playback_to_channel(participant, "conf-kicked", -1);
 	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
@@ -1166,6 +1167,7 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
  */
 void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Toggle Conference Lock\n", conference->id);
 	conference->isLocked = (!conference->isLocked ? 1 : 0);
 	playback_to_channel(participant, (conference->isLocked ? "conf-lockednow" : "conf-unlockednow"), -1);
 	sccp_conference_update_conflist(conference);
@@ -1176,6 +1178,7 @@ void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp
  */
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Mute Participant %d\n", conference->id, participant->id);
 	if (participant->channel && participant->device) {
 		if (!participant->isMuted) {
 			playback_to_channel(participant, "conf-muted", -1);
@@ -1199,6 +1202,7 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
  */
 void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant, boolean_t start)
 {
+	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Play Music on hold to Participant %d\n", conference->id, participant->id);
 	if (!participant->channel || !participant->device) {
 		return;
 	}
