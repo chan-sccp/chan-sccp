@@ -1,4 +1,3 @@
-
 /*!
  * \file        sccp_conference.c
  * \brief       SCCP Conference for asterisk 10
@@ -262,7 +261,6 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 		if ((participant = sccp_conference_participant_findByPBXChannel(conference, bridge_channel->chan))) {
 			if (conference->mute_on_entry) {
  				participant->features.mute = 1;
-				participant->isMuted = TRUE;
 			}
  			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
  			participant->bridge_channel = bridge_channel;
@@ -916,7 +914,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			else
 				use_icon = 2;
 
-			if (part->isMuted) {
+			if (part->features.mute) {
 				++use_icon;
 			}
 			strcat(xmlStr, "  <IconIndex>");
@@ -1179,22 +1177,19 @@ void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp
 void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Mute Participant %d\n", conference->id, participant->id);
-	if (participant->channel && participant->device) {
-		if (!participant->isMuted) {
-			playback_to_channel(participant, "conf-muted", -1);
-			participant->isMuted = 1;
-			participant->features.mute = 1;
-//			sccp_dev_set_microphone(participant->device, SKINNY_STATIONMIC_OFF);
-			sccp_dev_set_message(participant->device, "muted", 5, FALSE, FALSE);
-		} else {
-			playback_to_channel(participant, "conf-unmuted", -1);
-//			sccp_dev_set_microphone(participant->device, SKINNY_STATIONMIC_ON);
-			sccp_dev_set_message(participant->device, "unmuted", 5, FALSE, FALSE);
-			participant->isMuted = 0;
-			participant->features.mute = 0;
-		}
+	if (!participant->features.mute) {
+		participant->features.mute = 1;
+		playback_to_channel(participant, "conf-muted", -1);
+		//sccp_dev_set_microphone(participant->device, SKINNY_STATIONMIC_OFF);
+	} else {
+		participant->features.mute = 0;
+		playback_to_channel(participant, "conf-unmuted", -1);
+		//sccp_dev_set_microphone(participant->device, SKINNY_STATIONMIC_ON);
 	}
-	sccp_conference_update_conflist(conference);
+	if (participant->channel && participant->device) {
+		sccp_dev_set_message(participant->device, participant->features.mute ? "You are muted" : "You are unmuted", 5, FALSE, FALSE);
+		sccp_conference_update_conflist(conference);
+	}	
 }
 
 /*!
@@ -1386,7 +1381,7 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 			CLI_AMI_TABLE_FIELD(Id,			d,	3,	participant->id)					\
 			CLI_AMI_TABLE_FIELD(ChannelName,	s,	20,	participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL")		\
 			CLI_AMI_TABLE_FIELD(Moderator,		s,	11,	participant->isModerator ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(Muted,		s,	5,	participant->isMuted ? "Yes" : "No")			\
+			CLI_AMI_TABLE_FIELD(Muted,		s,	5,	participant->features.mute ? "Yes" : "No")			\
 			CLI_AMI_TABLE_FIELD(Announce,		s,	8,	participant->playback_announcements ? "Yes" : "No")	\
 
 #include "sccp_cli_table.h"
