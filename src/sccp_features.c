@@ -850,6 +850,7 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 			SCCP_LIST_TRAVERSE(&l->channels, mod_chan, list) {
 				if (d->conference == mod_chan->conference) {
 					sccp_channel_resume(d, mod_chan, FALSE);
+                                	sccp_feat_conflist(d, mod_chan->line, 0, mod_chan);
 					break;
 				}
 			}

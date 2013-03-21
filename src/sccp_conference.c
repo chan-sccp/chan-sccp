@@ -866,6 +866,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		goto exit_function;
 	}
 	if (participant->device) {
+		participant->device->conferencelist_active = TRUE;
 		if (!participant->callReference) {
 			participant->callReference = channel->callid;
 			participant->lineInstance = conference->id;
