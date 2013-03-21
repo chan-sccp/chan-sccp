@@ -1188,8 +1188,8 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	}
 	if (participant->channel && participant->device) {
 		sccp_dev_set_message(participant->device, participant->features.mute ? "You are muted" : "You are unmuted", 5, FALSE, FALSE);
-		sccp_conference_update_conflist(conference);
 	}	
+	sccp_conference_update_conflist(conference);
 }
 
 /*!
