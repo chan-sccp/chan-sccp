@@ -954,15 +954,12 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		// SoftKeys
 		if (participant->isModerator) {
-#if CS_EXPERIMENTAL
 			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Invite</Name>\n");
+			strcat(xmlStr, "  <Name>EndConf</Name>\n");
 			strcat(xmlStr, "  <Position>1</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:ENDCONF$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
-#endif
-
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Mute</Name>\n");
 			strcat(xmlStr, "  <Position>2</Position>\n");
@@ -982,7 +979,16 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Position>4</Position>\n");
 		strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
-
+#if CS_EXPERIMENTAL
+		if (participant->isModerator) {
+			strcat(xmlStr, "<SoftKeyItem>\n");
+			strcat(xmlStr, "  <Name>Invite</Name>\n");
+			strcat(xmlStr, "  <Position>5</Position>\n");
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, xmlTmp);
+			strcat(xmlStr, "</SoftKeyItem>\n");
+		}
+#endif
 		// CiscoIPPhoneIconMenu Icons
 		if (participant->device->protocolversion >= 17) {
 			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
@@ -1114,13 +1120,8 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 		}
 
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: DTU Softkey Executing Action %s (%s)\n", conference->id, d->dtu_softkey.action, DEV_ID_LOG(d));
-		if (!strcmp(d->dtu_softkey.action, "INVITE")) {
-#if CS_EXPERIMENTAL
-			sccp_conference_show_list(conference, participant->channel);
-			sccp_conference_invite_participant(conference, participant->channel);
-#endif
-		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
-			d->conferencelist_active = FALSE;
+		if (!strcmp(d->dtu_softkey.action, "ENDCONF")) {
+			sccp_conference_end(conference);
 		} else if (!strcmp(d->dtu_softkey.action, "MUTE")) {
 			sccp_conference_toggle_mute_participant(conference, participant);
 		} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
@@ -1130,6 +1131,13 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			} else {
 				sccp_conference_kick_participant(conference, participant);
 			}
+		} else if (!strcmp(d->dtu_softkey.action, "EXIT")) {
+			d->conferencelist_active = FALSE;
+#if CS_EXPERIMENTAL
+		} else if (!strcmp(d->dtu_softkey.action, "INVITE")) {
+			sccp_conference_show_list(conference, participant->channel);
+			sccp_conference_invite_participant(conference, participant->channel);
+#endif
 		}
 	} else {
 		pbx_log(LOG_WARNING, "%s: DTU TransactionID does not match or device not found (%d)\n", DEV_ID_LOG(d), transactionID);
