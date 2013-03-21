@@ -55,7 +55,6 @@ extern "C" {
 		pthread_t joinThread;										/*!< Running in this Thread */
 		sccp_conference_t *conference;									/*!< Conference this participant belongs to */
 		boolean_t isModerator;
-		boolean_t isMuted;										/*!< Participant is Muted */
 		boolean_t onMusicOnHold;									/*!< Participant is listening to Music on Hold */
 		boolean_t playback_announcements;								/*!< Does the Participant want to hear announcements */
 
