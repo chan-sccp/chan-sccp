@@ -25,7 +25,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static int lastConferenceID = 99;
-static int lastParticipantID = 0;
 static const uint32_t appID = APPID_CONFERENCE;
 
 SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
@@ -219,7 +218,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_conference_t * conference)
 {
 	sccp_conference_participant_t *participant = NULL;
-	int participantID = ++lastParticipantID;
+	int participantID = conference->participants.size + 1;
 	char participantIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 
 	if (!conference) {
