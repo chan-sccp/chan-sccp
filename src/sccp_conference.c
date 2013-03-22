@@ -959,20 +959,20 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>EndConf</Name>\n");
 			strcat(xmlStr, "  <Position>1</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:ENDCONF$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Mute</Name>\n");
 			strcat(xmlStr, "  <Position>2</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MUTE$%d$%d$%d$</URL>\n", 2, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>\n", 2, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Kick</Name>\n");
 			strcat(xmlStr, "  <Position>3</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:KICK$%d$%d$%d$</URL>\n", 3, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>\n", 3, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 		}
@@ -986,14 +986,14 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Invite</Name>\n");
 			strcat(xmlStr, "  <Position>5</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 			
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Moderate</Name>\n");
 			strcat(xmlStr, "  <Position>6</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MODERATE$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MODERATE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 		}

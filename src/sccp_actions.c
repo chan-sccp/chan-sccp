@@ -3339,18 +3339,17 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	} else {
 		// It has data -> must be a softkey
 		if (dataLength) {
-			/* split data by "$" */
-			char **xmlArray;
-
-			xmlArray = explode(data, "$");
-			sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s,%s,%s,%s\n", d->id, xmlArray[0], xmlArray[1], xmlArray[2], xmlArray[3]);
-
-			/* save softkey info to device */
-			d->dtu_softkey.action = strdup(xmlArray[0]);
-			d->dtu_softkey.appID = appID;
-			d->dtu_softkey.payload = atoi(xmlArray[2]);						// For Conference Payload=Conference->ID
-			d->dtu_softkey.transactionID = atoi(xmlArray[3]);
-			free(xmlArray);
+			/* split data by "/" */
+                        char str_action[10] = "", str_appID[10] = "", str_payload[10] = "", str_transactionID[10] = "";
+                        if (sscanf(data,"%[^/]/%[^/]/%[^/]/%[^/]/", str_action, str_appID, str_payload, str_transactionID) > 0) {
+                                sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s, %s, %s\n", d->id, str_action, str_appID, str_payload, str_transactionID);
+                                d->dtu_softkey.action = strdup(str_action);
+                                d->dtu_softkey.appID = atoi(str_appID);
+                                d->dtu_softkey.payload = atoi(str_payload);						// For Conference Payload=Conference->ID
+                                d->dtu_softkey.transactionID = atoi(str_transactionID);
+			} else {
+			        pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
+			}
 		}
 	}
 
