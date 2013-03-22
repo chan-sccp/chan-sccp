@@ -44,6 +44,7 @@ void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_n
 static void sccp_conference_connect_bridge_channels_to_participants(sccp_conference_t * conference);
 static void sccp_conference_update_conflist(sccp_conference_t * conference);
 void __sccp_conference_hide_list(sccp_conference_participant_t * participant);
+void sccp_conference_promote_demote_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant, sccp_conference_participant_t *moderator);
  
 /*!
  * \brief Start Conference Module
@@ -988,6 +989,13 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
+			
+			strcat(xmlStr, "<SoftKeyItem>\n");
+			strcat(xmlStr, "  <Name>Moderate</Name>\n");
+			strcat(xmlStr, "  <Position>6</Position>\n");
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MODERATE$%d$%d$%d$</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, xmlTmp);
+			strcat(xmlStr, "</SoftKeyItem>\n");
 		}
 #endif
 		// CiscoIPPhoneIconMenu Icons
@@ -1107,6 +1115,7 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 {
 	sccp_conference_t *conference = NULL;
 	sccp_conference_participant_t *participant = NULL;
+	sccp_conference_participant_t *moderator = NULL;
 
 	if (d && d->dtu_softkey.transactionID == transactionID) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "%s: Handle DTU SoftKey Button Press for CallID %d, Transaction %d, Conference %d, Participant:%d, Action %s\n", d->id, callReference, transactionID, conferenceID, participantID, d->dtu_softkey.action);
@@ -1119,7 +1128,10 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			pbx_log(LOG_WARNING, "SCCPCONF/%04d: %s: Participant not found\n", conference->id, DEV_ID_LOG(d));
 			goto EXIT;
 		}
-
+		if (!(moderator = sccp_conference_participant_findByDevice(conference, d))) {
+			pbx_log(LOG_WARNING, "SCCPCONF/%04d: %s: Moderator not found\n", conference->id, DEV_ID_LOG(d));
+			goto EXIT;
+		}
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: DTU Softkey Executing Action %s (%s)\n", conference->id, d->dtu_softkey.action, DEV_ID_LOG(d));
 		if (!strcmp(d->dtu_softkey.action, "ENDCONF")) {
 			sccp_conference_end(conference);
@@ -1138,6 +1150,8 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 		} else if (!strcmp(d->dtu_softkey.action, "INVITE")) {
 			sccp_conference_show_list(conference, participant->channel);
 			sccp_conference_invite_participant(conference, participant->channel);
+		} else if (!strcmp(d->dtu_softkey.action, "MODERATE")) {
+			sccp_conference_promote_demote_participant(conference, participant, moderator);
 #endif
 		}
 	} else {
@@ -1155,6 +1169,7 @@ EXIT:
 	}
 	participant = participant ? sccp_participant_release(participant) : NULL;
 	conference = conference ? sccp_conference_release(conference) : NULL;
+	moderator = moderator ? sccp_participant_release(moderator) : NULL;
 }
 
 /*!
@@ -1239,17 +1254,36 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
  *
  * \todo To Be Implemented
  */
-void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+void sccp_conference_promote_demote_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant, sccp_conference_participant_t *moderator)
 {
-}
-
-/*!
- * \brief Demote from Moderator to standard Participant
- *
- * \todo To Be Implemented
- */
-void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel)
-{
+	if (participant->device && participant->channel) {
+		if (!participant->isModerator) {			// promote
+			participant->isModerator = TRUE;
+			conference->num_moderators++;
+			participant->device->conferencelist_active = TRUE;
+			participant->device->conference = sccp_conference_retain(conference);
+			sccp_softkey_setSoftkeyState(participant->device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
+			sccp_softkey_setSoftkeyState(participant->device, KEYMODE_CONNTRANS, SKINNY_LBL_JOIN, TRUE);
+			sccp_indicate(participant->device, participant->channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+		} else {
+			if (conference->num_moderators > 1) {		// demote
+				participant->isModerator = FALSE;
+				conference->num_moderators++;
+				participant->device->conference = sccp_conference_release(participant->device->conference);
+				sccp_softkey_setSoftkeyState(participant->device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, FALSE);
+				sccp_softkey_setSoftkeyState(participant->device, KEYMODE_CONNTRANS, SKINNY_LBL_JOIN, FALSE);
+				sccp_indicate(participant->device, participant->channel, SCCP_CHANNELSTATE_CONNECTED);
+			} else {
+				sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "SCCPCONF/%04d: Not enough moderators left in the conference. Promote someone else first.\n", conference->id);
+				sccp_dev_set_message(moderator->device, "Promote someone first", 5, FALSE, FALSE);
+			}
+		}
+		sccp_dev_set_message(participant->device, participant->isModerator ? "You have been Promoted" : "You have been Demoted", 5, FALSE, FALSE);
+	} else {
+		sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "SCCPCONF/%04d: Only SCCP Channels can be moderators\n", conference->id);
+		sccp_dev_set_message(moderator->device, "Only sccp phones can be moderator", 5, FALSE, FALSE);
+	}
+	sccp_conference_update_conflist(conference);
 }
 
 /*!
