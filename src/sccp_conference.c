@@ -477,7 +477,7 @@ static void *sccp_conference_thread(void *data)
 #endif
 		// Join the bridge
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Entering pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
-		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features);
+		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL);
 
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Leaving pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
 #ifdef CS_MANAGER_EVENTS
@@ -721,11 +721,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		/* Channel was already available so we just need to add it back into the bridge */
 		underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
-#if ASTERISK_VERSION_GROUP < 110
-		pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL);
-#else
 		pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0);
-#endif
 	}
 
 	if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
