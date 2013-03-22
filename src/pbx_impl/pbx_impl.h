@@ -44,6 +44,7 @@ struct sccp_pbx_cb {
 	int (*const forceHangup) (PBX_CHANNEL_TYPE * channel, pbx_hangup_type_t pbx_hangup_type);
 	sccp_extension_status_t(*const extension_status) (const sccp_channel_t * channel);
 	
+	void (*const setPBXChannelLinkedId) (PBX_CHANNEL_TYPE *pbxchannel, const char *linkedid);
 	const char *(*const getChannelName) (const sccp_channel_t *channel);
 	void (*const setChannelName) (const sccp_channel_t *channel, const char *name);
 	const char *(*const getChannelUniqueID) (const sccp_channel_t *channel);

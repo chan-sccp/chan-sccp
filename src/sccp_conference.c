@@ -285,9 +285,7 @@ static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participan
 		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
 			PBX(requestHangup) (participant->conferenceBridgePeer);
-#if ASTERISK_VERSION_GROUP > 106
-			participant_ast_channel = ast_channel_unref(participant_ast_channel);
-#endif
+			participant_ast_channel = pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
@@ -390,18 +388,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX
 					sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 //					device->conferencelist_active = TRUE;					// Activate conflist on all sccp participants
 				} else {									// PBX Channel
-					// Update linkedid for foreign channels (implementation should move to pbx_impl)
-#if HAVE_PBX_CEL_H
-					ast_cel_check_retire_linkedid(participant->conferenceBridgePeer);
-#endif
-#if ASTERISK_VERSION_GROUP>111
-					ast_channel_linkedid_set(participant->conferenceBridgePeer, conference->linkedid);
-					ast_cel_linkedid_ref(conference->linkedid);
-#else
-#if ASTERISK_VERSION_GROUP>106
-					ast_string_field_set(participant->conferenceBridgePeer, linkedid, conference->linkedid);
-#endif
-#endif
+					PBX(setPBXChannelLinkedId)(participant->conferenceBridgePeer, conference->linkedid);
 				}
 				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
 				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_PARTICIPANT_ID", participant->id);
@@ -985,20 +972,20 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 		if (participant->isModerator) {
+			strcat(xmlStr, "<SoftKeyItem>\n");
+			strcat(xmlStr, "  <Name>Moderate</Name>\n");
+			strcat(xmlStr, "  <Position>5</Position>\n");
+			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MODERATE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, xmlTmp);
+			strcat(xmlStr, "</SoftKeyItem>\n");
 #if CS_EXPERIMENTAL
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Invite</Name>\n");
-			strcat(xmlStr, "  <Position>5</Position>\n");
+			strcat(xmlStr, "  <Position>6</Position>\n");
 			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 #endif
-			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Moderate</Name>\n");
-			strcat(xmlStr, "  <Position>6</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MODERATE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
-			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</SoftKeyItem>\n");
 		}
 		// CiscoIPPhoneIconMenu Icons
 		if (participant->device->protocolversion >= 17) {
@@ -1553,10 +1540,6 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 		*total = local_total;
 	return res;
 }
-
-/* To implement */
-//sccp conference mute conf_id/participant_id
-//sccp conference kick conf_id/participant_id
 
 #endif
 
