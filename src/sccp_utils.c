@@ -2056,30 +2056,6 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 	return r1;
 }
 
-/*!
- * \brief explode string to string array
- * \param str String to explode
- * \param sep String to use as seperator
- * \return array of string (Needs to be freed afterwards)
- */
-char **explode(const char *str, const char *sep)
-{
-	int nn = 0;
-	char *tmp = "";
-	char *ds = strdup(str);
-	char **res = (char **) sccp_malloc((strlen(str) / 2) * sizeof(char *));
-
-	if (res != NULL) {
-		tmp = strtok(ds, sep);
-		for (nn = 0; tmp != NULL; ++nn) {
-			res[nn] = strdup(tmp);
-			tmp = strtok(NULL, sep);
-		}
-	}
-	sccp_free(ds);
-	return res;
-}
-
 #ifdef HAVE_LIBGC
 
 /*!
