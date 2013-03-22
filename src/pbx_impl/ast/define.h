@@ -86,16 +86,22 @@
 #define pbx_bridge_features_init ast_bridge_features_init
 
 #if ASTERISK_VERSION_NUMBER < 11010
-#define pbx_bridge_join(_bridge, _channel, _replace, _features) ast_bridge_join(_bridge, _channel, _replace, _features)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features)
 #else
-#define pbx_bridge_join(_bridge, _channel, _replace, _features) ast_bridge_join(_bridge, _channel, _replace, _features, NULL)
+#define pbx_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations) ast_bridge_join(_bridge, _channel, _replace, _features, _tech_optimizations)
 #endif
 
 #define pbx_bridge_new ast_bridge_new
 #define pbx_bridge_remove ast_bridge_remove
 #define pbx_bridge_result ast_bridge_result
-#define pbx_bridge_impart ast_bridge_impart
+
+#if ASTERISK_VERSION_GROUP < 110
+#define pbx_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup) ast_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features)
+#else
+#define pbx_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup) ast_bridge_impart(_bridge, _underlying_channel, _swap_channel, _features, _allow_hangup)
+#endif
 #define pbx_bridge_depart ast_bridge_depart
+
 #define pbx_bridge_destroy ast_bridge_destroy
 #define pbx_bridge_features_cleanup ast_bridge_features_cleanup
 #define pbx_request ast_request
