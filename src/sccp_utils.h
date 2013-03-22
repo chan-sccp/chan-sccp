@@ -235,8 +235,6 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
 char *sccp_get_debugcategories(int32_t debugvalue);
 sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
-char **explode(const char *str, const char *sep);
-boolean_t implode(char *str[], char *sep, char **res);
 
 #ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
