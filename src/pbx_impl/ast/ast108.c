@@ -2641,6 +2641,19 @@ static int sccp_wrapper_asterisk18_setOption(PBX_CHANNEL_TYPE * ast, int option,
 }
 #endif
 
+static void sccp_wrapper_asterisk_set_pbxchannel_linkedid(PBX_CHANNEL_TYPE * pbx_channel, const char *new_linkedid)
+{
+	if (pbx_channel) {
+		if (!strcmp(pbx_channel->linkedid, new_linkedid)) {
+			return;
+		}
+#if HAVE_PBX_CEL_H
+		ast_cel_check_retire_linkedid(pbx_channel);
+#endif
+		ast_string_field_set(pbx_channel, linkedid, new_linkedid);
+	}
+}
+
 #define DECLARE_PBX_CHANNEL_STRGET(_field) 									\
 static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel_t * channel)	 		\
 {														\
@@ -2660,29 +2673,23 @@ static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * ch
 };
 
 DECLARE_PBX_CHANNEL_STRGET(name)
-    DECLARE_PBX_CHANNEL_STRGET(uniqueid)
-    DECLARE_PBX_CHANNEL_STRGET(appl)
-    DECLARE_PBX_CHANNEL_STRGET(linkedid)
-    DECLARE_PBX_CHANNEL_STRGET(exten)
-    DECLARE_PBX_CHANNEL_STRSET(exten)
-    DECLARE_PBX_CHANNEL_STRGET(context)
-    DECLARE_PBX_CHANNEL_STRSET(context)
-    DECLARE_PBX_CHANNEL_STRGET(macroexten)
-    DECLARE_PBX_CHANNEL_STRSET(macroexten)
-    DECLARE_PBX_CHANNEL_STRGET(macrocontext)
-    DECLARE_PBX_CHANNEL_STRSET(macrocontext)
-    DECLARE_PBX_CHANNEL_STRGET(call_forward)
+DECLARE_PBX_CHANNEL_STRGET(uniqueid)
+DECLARE_PBX_CHANNEL_STRGET(appl)
+DECLARE_PBX_CHANNEL_STRGET(linkedid)
+DECLARE_PBX_CHANNEL_STRGET(exten)
+DECLARE_PBX_CHANNEL_STRSET(exten)
+DECLARE_PBX_CHANNEL_STRGET(context)
+DECLARE_PBX_CHANNEL_STRSET(context)
+DECLARE_PBX_CHANNEL_STRGET(macroexten)
+DECLARE_PBX_CHANNEL_STRSET(macroexten)
+DECLARE_PBX_CHANNEL_STRGET(macrocontext)
+DECLARE_PBX_CHANNEL_STRSET(macrocontext)
+DECLARE_PBX_CHANNEL_STRGET(call_forward)
 
 static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
 {
 	if (channel->owner) {
-		if (!strcmp(channel->owner->linkedid, new_linkedid)) {
-			return;
-		}
-#if HAVE_PBX_CEL_H
-		ast_cel_check_retire_linkedid(channel->owner);
-#endif
-		ast_string_field_set(channel->owner, linkedid, new_linkedid);
+		sccp_wrapper_asterisk_set_pbxchannel_linkedid(channel->owner, new_linkedid);
 	}
 }
 
@@ -2722,6 +2729,8 @@ static void sccp_wrapper_asterisk_set_channel_tech_pvt(const sccp_channel_t * ch
 		//              channel->owner->tech_pvt = channel;
 	}
 }
+
+
 
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen)
 {
@@ -2931,6 +2940,7 @@ sccp_pbx_cb sccp_pbx = {
 	forceHangup:                    sccp_wrapper_asterisk_forceHangup,
 	extension_status:		sccp_wrapper_asterisk18_extensionStatus,
 
+	setPBXChannelLinkedId:		sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	/** get channel by name */
 	getChannelByName:		sccp_wrapper_asterisk18_getChannelByName,
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
@@ -3045,6 +3055,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk18_extensionStatus,
+	.setPBXChannelLinkedId		= sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	.getChannelByName 		= sccp_wrapper_asterisk18_getChannelByName,
 
 	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,

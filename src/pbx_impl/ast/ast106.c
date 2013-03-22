@@ -2094,6 +2094,13 @@ static int sccp_wrapper_asterisk16_setCallState(const sccp_channel_t * channel, 
 	return 0;
 }
 
+static void sccp_wrapper_asterisk_set_pbxchannel_linkedid(PBX_CHANNEL_TYPE * pbx_channel, const char *new_linkedid)
+{
+	if (pbx_channel) {
+		pbx_builtin_setvar_helper(pbx_channel, "__" SCCP_AST_LINKEDID_HELPER, new_linkedid);
+	}
+}
+
 #define DECLARE_PBX_CHANNEL_STRGET(_field) 									\
 static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel_t * channel)	 		\
 {														\
@@ -2137,10 +2144,10 @@ static const char *sccp_wrapper_asterisk_get_channel_linkedid(const sccp_channel
 	return emptyLinkedId;
 }
 
-static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *linkedid)
+static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
 {
 	if (channel->owner) {
-		pbx_builtin_setvar_helper(channel->owner, "__" SCCP_AST_LINKEDID_HELPER, linkedid);
+		sccp_wrapper_asterisk_set_pbxchannel_linkedid(channel->owner, new_linkedid);
 	}
 }
 
@@ -2611,6 +2618,7 @@ sccp_pbx_cb sccp_pbx = {
 	forceHangup:                    sccp_wrapper_asterisk_forceHangup,
 	extension_status:		sccp_wrapper_asterisk16_extensionStatus,
 
+	setPBXChannelLinkedId:		sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	/** get channel by name */
 	getChannelByName:		sccp_wrapper_asterisk16_getChannelByName,
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
@@ -2728,6 +2736,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk16_extensionStatus,
+	.setPBXChannelLinkedId		= sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	.getChannelByName 		= sccp_wrapper_asterisk16_getChannelByName,
 
 	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,

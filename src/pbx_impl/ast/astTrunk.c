@@ -2433,6 +2433,18 @@ static int sccp_wrapper_asterisk111_setOption(PBX_CHANNEL_TYPE * ast, int option
 }
 #endif
 
+static void sccp_wrapper_asterisk_set_pbxchannel_linkedid(PBX_CHANNEL_TYPE * pbx_channel, const char *new_linkedid)
+{
+	if (pbx_channel) {
+		if (!strcmp(ast_channel_linkedid(pbx_channel), new_linkedid)) {
+			return;
+		}
+		ast_cel_check_retire_linkedid(pbx_channel);
+		ast_channel_linkedid_set(pbx_channel, new_linkedid);
+		ast_cel_linkedid_ref(new_linkedid);
+	}
+};
+
 #define DECLARE_PBX_CHANNEL_STRGET(_field) 									\
 static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel_t * channel)	 		\
 {														\
@@ -2470,12 +2482,7 @@ DECLARE_PBX_CHANNEL_STRGET(name)
 static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
 {
 	if (channel->owner) {
-		if (!strcmp(ast_channel_linkedid(channel->owner), new_linkedid)) {
-			return;
-		}
-		ast_cel_check_retire_linkedid(channel->owner);
-		ast_channel_linkedid_set(channel->owner, new_linkedid);
-		ast_cel_linkedid_ref(new_linkedid);
+	        sccp_wrapper_asterisk_set_pbxchannel_linkedid(channel->owner, new_linkedid);
 	}
 };
 
@@ -2721,6 +2728,7 @@ sccp_pbx_cb sccp_pbx = {
 	forceHangup:                    sccp_wrapper_asterisk_forceHangup,
 	extension_status:		sccp_wrapper_asterisk111_extensionStatus,
 
+	setPBXChannelLinkedId:		sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	/** get channel by name */
 	getChannelByName:		sccp_wrapper_asterisk111_getChannelByName,
 	getRemoteChannel:		sccp_asterisk_getRemoteChannel,
@@ -2836,6 +2844,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.forceHangup                    = sccp_wrapper_asterisk_forceHangup,
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
+	.setPBXChannelLinkedId		= sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
 
 	.getChannelLinkedId		= sccp_wrapper_asterisk_get_channel_linkedid,
