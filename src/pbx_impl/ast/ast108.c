@@ -761,6 +761,11 @@ static int sccp_wrapper_asterisk18_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 
 static int sccp_wrapper_asterisk18_sendDigits(const sccp_channel_t * channel, const char *digits)
 {
+	if (!channel || !channel->owner) {
+		pbx_log(LOG_WARNING, "No channel to send digits to\n");
+		return 0;
+	}
+
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 	int i;
 	PBX_FRAME_TYPE f;
