@@ -84,7 +84,13 @@
 #define pbx_app_inboxcount ast_app_inboxcount
 #define pbx_app_separate_args ast_app_separate_args
 #define pbx_bridge_features_init ast_bridge_features_init
-#define pbx_bridge_join ast_bridge_join
+
+#if ASTERISK_VERSION_NUMBER < 11010
+#define pbx_bridge_join(_bridge, _channel, _replace, _features) ast_bridge_join(_bridge, _channel, _replace, _features)
+#else
+#define pbx_bridge_join(_bridge, _channel, _replace, _features) ast_bridge_join(_bridge, _channel, _replace, _features, NULL)
+#endif
+
 #define pbx_bridge_new ast_bridge_new
 #define pbx_bridge_remove ast_bridge_remove
 #define pbx_bridge_result ast_bridge_result
