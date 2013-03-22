@@ -1007,37 +1007,10 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:Icon.Speaker</URL></IconItem>\n");		// unlocked conference
 			strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");		// locked conference
 		} else {
-			strcat(xmlStr, "<IconItem>\n");
-			strcat(xmlStr, "  <Index>0</Index>\n");									// moderator
-			strcat(xmlStr, "  <Height>10</Height>\n");
-			strcat(xmlStr, "  <Width>16</Width>\n");
-			strcat(xmlStr, "  <Depth>2</Depth>\n");
-			strcat(xmlStr, "  <Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data>\n");
-			strcat(xmlStr, "</IconItem>\n");
-
-			strcat(xmlStr, "<IconItem>\n");										// muted moderator
-			strcat(xmlStr, "  <Index>1</Index>\n");
-			strcat(xmlStr, "  <Height>10</Height>\n");
-			strcat(xmlStr, "  <Width>16</Width>\n");
-			strcat(xmlStr, "  <Depth>2</Depth>\n");
-			strcat(xmlStr, "  <Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data>\n");
-			strcat(xmlStr, "</IconItem>\n");
-
-			strcat(xmlStr, "<IconItem>\n");										// participant
-			strcat(xmlStr, "  <Index>2</Index>\n");
-			strcat(xmlStr, "  <Height>10</Height>\n");
-			strcat(xmlStr, "  <Width>16</Width>\n");
-			strcat(xmlStr, "  <Depth>2</Depth>\n");
-			strcat(xmlStr, "  <Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data>\n");
-			strcat(xmlStr, "</IconItem>\n");
-
-			strcat(xmlStr, "<IconItem>\n");										// muted participant
-			strcat(xmlStr, "  <Index>3</Index>\n");
-			strcat(xmlStr, "  <Height>10</Height>\n");
-			strcat(xmlStr, "  <Width>16</Width>\n");
-			strcat(xmlStr, "  <Depth>2</Depth>\n");
-			strcat(xmlStr, "  <Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data>\n");
-			strcat(xmlStr, "</IconItem>\n");
+			strcat(xmlStr, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data></IconItem>\n");// moderator
+			strcat(xmlStr, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data></IconItem>\n");// muted moderator
+			strcat(xmlStr, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data></IconItem>\n");// participant
+			strcat(xmlStr, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data></IconItem>\n");// muted participant
 		}
 
 		if (participant->device->protocolversion >= 17) {
@@ -1252,7 +1225,7 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
 /*!
  * \brief Promote Participant to Moderator
  *
- * \todo To Be Implemented
+ * paramater moderator can be provided as NULL (cli/ami actions)
  */
 void sccp_conference_promote_demote_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant, sccp_conference_participant_t *moderator)
 {
@@ -1275,13 +1248,17 @@ void sccp_conference_promote_demote_participant(sccp_conference_t * conference, 
 				sccp_indicate(participant->device, participant->channel, SCCP_CHANNELSTATE_CONNECTED);
 			} else {
 				sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "SCCPCONF/%04d: Not enough moderators left in the conference. Promote someone else first.\n", conference->id);
-				sccp_dev_set_message(moderator->device, "Promote someone first", 5, FALSE, FALSE);
+				if (moderator) {
+					sccp_dev_set_message(moderator->device, "Promote someone first", 5, FALSE, FALSE);
+				}
 			}
 		}
 		sccp_dev_set_message(participant->device, participant->isModerator ? "You have been Promoted" : "You have been Demoted", 5, FALSE, FALSE);
 	} else {
 		sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "SCCPCONF/%04d: Only SCCP Channels can be moderators\n", conference->id);
-		sccp_dev_set_message(moderator->device, "Only sccp phones can be moderator", 5, FALSE, FALSE);
+		if (moderator) {
+			sccp_dev_set_message(moderator->device, "Only sccp phones can be moderator", 5, FALSE, FALSE);
+		}
 	}
 	sccp_conference_update_conflist(conference);
 }
@@ -1314,19 +1291,52 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_cha
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	sccp_conference_t *conference = NULL;
-	int wordlen = strlen(word), which = 0;
+	sccp_conference_participant_t *participant = NULL;
+	int conference_id = 0;
+	int wordlen = strlen(word), which = 0, i = 0;
 	char *ret = NULL;
 	char tmpname[20];
-
-	SCCP_LIST_LOCK(&conferences);
-	SCCP_LIST_TRAVERSE(&conferences, conference, list) {
-		snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%d", conference->id);
-		if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
-			ret = strdup(tmpname);
+	char *actions[5] = { "EndConf", "Kick", "Mute", "Invite", "Moderate" };
+	
+	switch (pos) {
+		case 2:		// action
+			for (i = 0; i < ARRAY_LEN(actions); i++) {
+				if (!strncasecmp(word, actions[i], wordlen) && ++which > state) {
+					return strdup(actions[i]);
+				}
+			}
 			break;
-		}
+		case 3:		// conferenceid
+			SCCP_LIST_LOCK(&conferences);
+			SCCP_LIST_TRAVERSE(&conferences, conference, list) {
+				snprintf(tmpname, sizeof(tmpname), "%d", conference->id);
+				if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
+					ret = strdup(tmpname);
+					break;
+				}
+			}
+			SCCP_LIST_UNLOCK(&conferences);
+			break;
+		case 4:		// participantid
+			if (sscanf(line, "sccp conference %s %d", tmpname, &conference_id) > 0) {
+				if ((conference = sccp_conference_findByID(conference_id))) {
+					SCCP_LIST_LOCK(&conference->participants);
+					SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
+						snprintf(tmpname, sizeof(tmpname), "%d", participant->id);
+						if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
+							ret = strdup(tmpname);
+							break;
+						}
+					}
+					SCCP_LIST_UNLOCK(&conference->participants);
+					
+					conference = sccp_conference_release(conference);
+				}
+			}
+			break;
+		default:
+			break;
 	}
-	SCCP_LIST_UNLOCK(&conferences);
 	return ret;
 }
 
@@ -1451,37 +1461,75 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
  * 
  * \called_from_asterisk
  */
-int sccp_cli_conference_end(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int confid = 0;
+	int confid = 0, partid=0;
 	int local_total = 0;
 	sccp_conference_t *conference = NULL;
+	sccp_conference_participant_t *participant = NULL;
+	int res = RESULT_SUCCESS;
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Ending Conference, %d, %s,%s,%s,%s\n", argc, argv[0], argv[1], argv[2], argv[3]);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Conference Action:%s, Conference %s, Participant %s\n", argv[2], argv[3], argc >= 5 ? argv[4] : "");
 
 	if (argc < 4 || argc > 5)
 		return RESULT_SHOWUSAGE;
 
-	if (sccp_strlen_zero(argv[3]))
+	if (sccp_strlen_zero(argv[2]) || sccp_strlen_zero(argv[3]))
 		return RESULT_SHOWUSAGE;
 
-	if (!sccp_strIsNumeric(argv[3]) || (confid = atoi(argv[3])) <= 0) {
-		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
-		return RESULT_FAILURE;
-	}
-	if ((conference = sccp_conference_findByID(confid))) {
-		sccp_conference_end(conference);
-		conference = sccp_conference_release(conference);
+	if (sccp_strIsNumeric(argv[3]) && (confid = atoi(argv[3])) > 0) {
+		if ((conference = sccp_conference_findByID(confid))) {
+			if (!strncasecmp(argv[2], "EndConf", 7)) {									// EndConf Action
+				sccp_conference_end(conference);
+			} else if (argc >= 5) {
+				if (sccp_strIsNumeric(argv[4]) && (partid = atoi(argv[4])) > 0) {
+					if ((participant = sccp_conference_participant_findByID(conference, partid))) {
+						if (!strncasecmp(argv[2], "Kick", 4)) {								// Kick Action
+							sccp_conference_kick_participant(conference, participant);
+						} else if (!strncasecmp(argv[2], "Mute", 4)) {							// Mute Action
+							sccp_conference_toggle_mute_participant(conference, participant);
+						} else if (!strncasecmp(argv[2], "Invite", 5)) {							// Invite Action
+							if (participant->channel) {
+								sccp_conference_invite_participant(conference, participant->channel);
+							}
+						} else if (!strncasecmp(argv[2], "Moderate", 8)) {						// Moderate Action
+							sccp_conference_promote_demote_participant(conference, participant, NULL);
+						} else {
+							pbx_log(LOG_WARNING, "Unknown Action %s\n", argv[2]);
+							CLI_AMI_ERROR(fd, s, m, "Unknown Action\n %s", argv[2]);
+							res = RESULT_FAILURE;
+						}
+						participant = sccp_participant_release(participant);
+					} else {
+						pbx_log(LOG_WARNING, "Participant %s not found in conference %s\n", argv[4], argv[3]);
+						CLI_AMI_ERROR(fd, s, m, "Participant %s not found in conference\n", argv[4]);
+						res = RESULT_FAILURE;
+					}
+				} else {
+					pbx_log(LOG_WARNING, "At least a valid ParticipantId needs to be supplied\n");
+					CLI_AMI_ERROR(fd, s, m, "At least valid ParticipantId needs to be supplied\n %s", "");
+					res = RESULT_FAILURE;
+				}	
+			} else {
+				pbx_log(LOG_WARNING, "Not enough parameters provided for action %s\n", argv[2]);
+				CLI_AMI_ERROR(fd, s, m, "Not enough parameters provided for action %s\n", argv[2]);
+				res = RESULT_FAILURE;
+			}	
+			conference = sccp_conference_release(conference);
+		} else {
+			pbx_log(LOG_WARNING, "Conference %s not found\n", argv[3]);
+			CLI_AMI_ERROR(fd, s, m, "Conference %s not found\n", argv[3]);
+			res = RESULT_FAILURE;
+		}
 	} else {
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
 		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 		return RESULT_FAILURE;
 	}
+
 	if (s)
 		*total = local_total;
-	return RESULT_SUCCESS;
-	return RESULT_FAILURE;
+	return res;
 }
 
 /* To implement */
