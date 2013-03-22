@@ -472,17 +472,19 @@ static void *sccp_conference_thread(void *data)
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: entering join thread.\n", participant->conference->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
-			manager_event(EVENT_FLAG_CALL, "SCCPConfEnter", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference->id, participant->id, participant->channel ? PBX(getChannelName) (participant->channel) : "NULL", participant->channel ? PBX(getChannelUniqueID) (participant->channel) : "NULL");
+			manager_event(EVENT_FLAG_CALL, "SCCPConfEntered", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference->id, participant->id, participant->channel ? PBX(getChannelName) (participant->channel) : "NULL", participant->channel ? PBX(getChannelUniqueID) (participant->channel) : "NULL");
 		}
 #endif
+		// Join the bridge
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Entering pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
-
-#if ASTERISK_VERSION_NUMBER < 11010
 		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features);
-#else
-		pbx_bridge_join(participant->conference->bridge, participant->conferenceBridgePeer, NULL, &participant->features, NULL);
-#endif
+
 		sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Leaving pbx_bridge_join: %s as %d\n", participant->conference->id, pbx_channel_name(participant->conferenceBridgePeer), participant->id);
+#ifdef CS_MANAGER_EVENTS
+		if (GLOB(callevents)) {
+			manager_event(EVENT_FLAG_CALL, "SCCPConfLeft", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", participant->conference->id, participant->id, participant->channel ? PBX(getChannelName) (participant->channel) : "NULL", participant->channel ? PBX(getChannelUniqueID) (participant->channel) : "NULL");
+		}
+#endif
 		if (participant->channel && participant->device) {
 			__sccp_conference_hide_list(participant);
 		}
@@ -506,6 +508,11 @@ void sccp_conference_start(sccp_conference_t * conference)
 	//playback_to_conference(conference, NULL, conference->id);
 	playback_to_conference(conference, "conf-placeintoconf", -1);
 	sccp_conference_connect_bridge_channels_to_participants(conference);
+#ifdef CS_MANAGER_EVENTS
+		if (GLOB(callevents)) {
+			manager_event(EVENT_FLAG_CALL, "SCCPConfStarted", "ConfId: %d\r\n", conference->id);
+		}
+#endif
 }
 
 void sccp_conference_update(sccp_conference_t * conference)
@@ -981,15 +988,15 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		strcat(xmlStr, "  <Position>4</Position>\n");
 		strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
 		strcat(xmlStr, "</SoftKeyItem>\n");
-#if CS_EXPERIMENTAL
 		if (participant->isModerator) {
+#if CS_EXPERIMENTAL
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Invite</Name>\n");
 			strcat(xmlStr, "  <Position>5</Position>\n");
 			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
-			
+#endif
 			strcat(xmlStr, "<SoftKeyItem>\n");
 			strcat(xmlStr, "  <Name>Moderate</Name>\n");
 			strcat(xmlStr, "  <Position>6</Position>\n");
@@ -997,7 +1004,6 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 		}
-#endif
 		// CiscoIPPhoneIconMenu Icons
 		if (participant->device->protocolversion >= 17) {
 			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
@@ -1123,9 +1129,9 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 		} else if (!strcmp(d->dtu_softkey.action, "INVITE")) {
 			sccp_conference_show_list(conference, participant->channel);
 			sccp_conference_invite_participant(conference, participant->channel);
+#endif
 		} else if (!strcmp(d->dtu_softkey.action, "MODERATE")) {
 			sccp_conference_promote_demote_participant(conference, participant, moderator);
-#endif
 		}
 	} else {
 		pbx_log(LOG_WARNING, "%s: DTU TransactionID does not match or device not found (%d)\n", DEV_ID_LOG(d), transactionID);
@@ -1153,6 +1159,11 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Kick Participant %d\n", conference->id, participant->id);
 	participant->pendingRemoval = TRUE;
 	playback_to_channel(participant, "conf-kicked", -1);
+#ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantKicked", "ConfId: %d\r\n" "PartId: %d\r\n", conference->id, participant->id);
+	}
+#endif
 	pbx_bridge_remove(participant->conference->bridge, participant->conferenceBridgePeer);
 }
 
@@ -1164,6 +1175,11 @@ void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Toggle Conference Lock\n", conference->id);
 	conference->isLocked = (!conference->isLocked ? 1 : 0);
 	playback_to_channel(participant, (conference->isLocked ? "conf-lockednow" : "conf-unlockednow"), -1);
+#ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_CALL, "SCCPConfLock", "ConfId: %d\r\n" "Enabled: %s\r\n", conference->id, conference->isLocked ? "Yes" : "No");
+	}
+#endif
 	sccp_conference_update_conflist(conference);
 }
 
@@ -1185,6 +1201,11 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	if (participant->channel && participant->device) {
 		sccp_dev_set_message(participant->device, participant->features.mute ? "You are muted" : "You are unmuted", 5, FALSE, FALSE);
 	}	
+#ifdef CS_MANAGER_EVENTS
+	if (GLOB(callevents)) {
+		manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantMute", "ConfId: %d\r\n" "PartId: %d\r\n" "Mute: %s\r\n", conference->id, participant->id, participant->features.mute ? "Yes" : "No");
+	}
+#endif
 	sccp_conference_update_conflist(conference);
 }
 
@@ -1254,6 +1275,11 @@ void sccp_conference_promote_demote_participant(sccp_conference_t * conference, 
 			}
 		}
 		sccp_dev_set_message(participant->device, participant->isModerator ? "You have been Promoted" : "You have been Demoted", 5, FALSE, FALSE);
+#ifdef CS_MANAGER_EVENTS
+		if (GLOB(callevents)) {
+			manager_event(EVENT_FLAG_CALL, "SCCPConfParticipantPromotion", "ConfId: %d\r\n" "PartId: %d\r\n" "Moderator: %s\r\n", conference->id, participant->id, participant->isModerator ? "Yes" : "No");
+		}
+#endif
 	} else {
 		sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "SCCPCONF/%04d: Only SCCP Channels can be moderators\n", conference->id);
 		if (moderator) {
