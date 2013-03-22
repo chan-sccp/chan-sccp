@@ -607,7 +607,7 @@ void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, co
 					sccp_config_object_setValue(obj, sccpDstConfig[i].name, value, 0, segment);
 				} else {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "clearing parameter %s\n", sccpDstConfig[i].name);
-					if (type == SCCP_CONFIG_DATATYPE_STRING || value != NULL) {
+					if (type == SCCP_CONFIG_DATATYPE_STRINGPTR || value != NULL) {
         					sccp_config_object_setValue(obj, sccpDstConfig[i].name, "", 0, segment);
 					}
 				}
