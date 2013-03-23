@@ -4028,8 +4028,10 @@ static uint8_t skSet_Offhookfeat[] = {
 static uint8_t skSet_InUseHint[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_NEWCALL,
+#ifdef CS_SCCP_PICKUP
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
+#endif
 	SKINNY_LBL_BARGE,
 };														/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
 
