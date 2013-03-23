@@ -203,7 +203,7 @@ EXIT:
  *        - see sccp_channel_set_active()
  *        - see sccp_indicate_nolock()
  */
-void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
+void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
 	sccp_channel_t *c;
 
@@ -238,7 +238,7 @@ void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_d
 	c = sccp_channel_allocate(l, d);
 
 	if (!c) {
-		pbx_log(LOG_ERROR, "%s: (handle_directpickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
+		pbx_log(LOG_ERROR, "%s: (handle_directed_pickup) Can't allocate SCCP channel for line %s\n", d->id, l->name);
 		return;
 	}
 
@@ -252,7 +252,7 @@ void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_d
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c, NULL)) {
-		pbx_log(LOG_WARNING, "%s: (handle_directpickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
+		pbx_log(LOG_WARNING, "%s: (handle_directed_pickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
 		return;
@@ -280,141 +280,134 @@ void sccp_feat_handle_directpickup(sccp_line_t * l, uint8_t lineInstance, sccp_d
  *      - asterisk channel
  *        - device
  */
-int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
+int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 {
-	int res = 0;
-	PBX_CHANNEL_TYPE *target = NULL;
-	PBX_CHANNEL_TYPE *original = NULL;
+	int res = -1;
+	PBX_CHANNEL_TYPE *target = NULL;		/* potential pickup target */
+	PBX_CHANNEL_TYPE *original = NULL;		/* destination */
 	PBX_CHANNEL_TYPE *tmp = NULL;
 	const char *ringermode = NULL;
 
 	sccp_device_t *d;
-	char *pickupexten;
-	char *name = NULL, *number = NULL;
+	char *context;
+	char *name = NULL;
+	char *number = NULL;
 	sccp_channel_t *tmpChannel;
 
+        if (!PBX(findPickupChannelByExtenLocked)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version\n");
+		return -1;
+        }
+
 	if (sccp_strlen_zero(exten)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) zero exten\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) zero exten\n");
 		return -1;
 	}
 
 	if (!c || !c->owner) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no channel\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) no channel\n");
 		return -1;
 	}
 
 	original = c->owner;
 
 	if (!c->line || !(d = sccp_channel_getDevice_retained(c))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) no device\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) no device\n");
 		return -1;
 	}
 
 	/* copying extension into our buffer */
-	pickupexten = strdup(exten);
+        if ((context = strchr(exten, '@'))) {
+               *context++ = '\0';
+	} else {
+                if (!sccp_strlen_zero(d->pickupcontext)) {
+                        context = (char *) strdup(d->pickupcontext);
+                } else {
+                        context = (char *) pbx_channel_context(original);
+                }
+        }
+        target = PBX(findPickupChannelByExtenLocked)(original, exten, context);
+        if (target) {
+                tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
 
-	while ((target = pbx_channel_walk_locked(target)) != NULL) {
-		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP LOOP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-		sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (directpickup)\n" "--------------------------------------------\n" "(pickup target)\n" "exten         = %s\n" "context       = %s\n" "pbx           = off\n" "state         = %d or %d\n" "(current chan)\n" "macro exten   = %s\n" "exten         = %s\n" "macro context = %s\n" "context       = %s\n"
-#if ASTERISK_VERSION_NUMBER >= 10400
-							      "dialcontext   = %s\n"
-#endif
-							      "pbx           = %s\n" "state         = %d\n" "--------------------------------------------\n",
-							      pickupexten, !sccp_strlen_zero(d->pickupcontext) ? d->pickupcontext : "(NULL)", AST_STATE_RINGING, AST_STATE_RING, pbx_channel_macroexten(target) ? pbx_channel_macroexten(target) : "(NULL)", pbx_channel_exten(target) ? pbx_channel_exten(target) : "(NULL)", pbx_channel_macrocontext(target) ? pbx_channel_macrocontext(target) : "(NULL)", pbx_channel_context(target) ? pbx_channel_context(target) : "(NULL)",
-#if ASTERISK_VERSION_NUMBER >= 10400
-							      pbx_channel_dialcontext(target) ? pbx_channel_dialcontext(target) : "(NULL)",
-#endif
-							      pbx_channel_pbx(target) ? "on" : "off", pbx_channel_state(target));
+                /* fixup callinfo */
+                tmpChannel = CS_AST_CHANNEL_PVT(target);
+                if (tmpChannel) {
+                        if (PBX(get_callerid_name))
+                                PBX(get_callerid_name) (tmpChannel, &name);
 
-		if ((!strcasecmp(pbx_channel_macrocontext(target), pickupexten) || !strcasecmp(pbx_channel_exten(target), pickupexten)) &&
-#if ASTERISK_VERSION_NUMBER < 10400
-		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_context(target), d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_macrocontext(target), d->pickupcontext)) : 1)) &&
-#else
-		    ((!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_dialcontext(target), d->pickupcontext)) : 1) || (!sccp_strlen_zero(d->pickupcontext) ? (!strcasecmp(pbx_channel_macrocontext(target), d->pickupcontext)) : 1)) &&
-#endif
-		    (!pbx_channel_pbx(target) && (pbx_channel_state(target) == AST_STATE_RINGING || pbx_channel_state(target) == AST_STATE_RING))) {
+                        if (PBX(get_callerid_number))
+                                PBX(get_callerid_number) (tmpChannel, &number);
+                }
+                pbx_log(LOG_NOTICE, "SCCP: (directed_pickup) %s callerid is ('%s'-'%s')\n", pbx_channel_name(tmp), name ? name : "", number ? number : "");
+                tmp = NULL;
+                res = 0;
+                if (d->pickupmodeanswer) {
+                        if ((res = ast_answer(c->owner))) {						// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Unable to answer '%s'\n", PBX(getChannelName) (c));
+                                res = -1;
+                        } else if ((res = PBX(queue_control) (c->owner, AST_CONTROL_ANSWER))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Unable to queue answer on '%s'\n", PBX(getChannelName) (c));
+                                res = -1;
+                        }
+                }
 
-			tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
+                if (res == 0) {
+                        SCCP_SCHED_DEL(c->scheduler.digittimeout);
+                        c->calltype = SKINNY_CALLTYPE_INBOUND;
+                        c->state = SCCP_CHANNELSTATE_PROCEED;
+                        c->answered_elsewhere = TRUE;
+                        
+                        res = ast_do_pickup(c->owner, target);
+                        if (!res) {
+                                /* directed pickup succeeded */
+                                sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
+                                sccp_rtp_stop(c);										/* stop previous audio */
+                                pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
+                                pbx_hangup(original);										/* hangup masqueraded zombie channel */
 
-			/* update callinfos */
-			tmpChannel = CS_AST_CHANNEL_PVT(target);
-			if (tmpChannel) {
-				if (PBX(get_callerid_name))
-					PBX(get_callerid_name) (tmpChannel, &name);
-
-				if (PBX(get_callerid_number))
-					PBX(get_callerid_number) (tmpChannel, &number);
-			}
-
-			pbx_log(LOG_NOTICE, "SCCP: %s callerid is ('%s'-'%s')\n", pbx_channel_name(tmp), name ? name : "", number ? number : "");
-			tmp = NULL;
-			pbx_channel_set_hangupcause(original, AST_CAUSE_CALL_REJECTED);
-
-			res = 0;
-			if (d->pickupmodeanswer) {
-				if ((res = ast_answer(c->owner))) {						// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
-
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to answer '%s'\n", PBX(getChannelName) (c));
-					res = -1;
-				} else if ((res = PBX(queue_control) (c->owner, AST_CONTROL_ANSWER))) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to queue answer on '%s'\n", PBX(getChannelName) (c));
-					res = -1;
-				}
-			}
-
-			if (res == 0) {
-				if ((res = pbx_channel_masquerade(target, c->owner))) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Unable to masquerade '%s' into '%s'\n", PBX(getChannelName) (c), pbx_channel_name(target));
-					res = -1;
-				} else {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) Pickup on '%s' by '%s'\n", pbx_channel_name(target), PBX(getChannelName) (c));
-					c->calltype = SKINNY_CALLTYPE_INBOUND;
-					sccp_channel_set_callingparty(c, name, number);
-					if (d->pickupmodeanswer) {
-						sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-					} else {
-						uint8_t instance;
-
-						instance = sccp_device_find_index_for_line(d, c->line->name);
-						sccp_dev_stoptone(d, instance, c->callid);
-						sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-
-						//                                              d->active_channel = sccp_channel_release(d->active_channel);
-						sccp_channel_set_active(d, NULL);
-
-						c->ringermode = SKINNY_STATION_OUTSIDERING;			// default ring
-						ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
-						if (ringermode && !sccp_strlen_zero(ringermode)) {
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
-							if (strcasecmp(ringermode, "inside") == 0)
-								c->ringermode = SKINNY_STATION_INSIDERING;
-							else if (strcasecmp(ringermode, "feature") == 0)
-								c->ringermode = SKINNY_STATION_FEATURERING;
-							else if (strcasecmp(ringermode, "silent") == 0)
-								c->ringermode = SKINNY_STATION_SILENTRING;
-							else if (strcasecmp(ringermode, "urgent") == 0)
-								c->ringermode = SKINNY_STATION_URGENTRING;
-						}
-						sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
-					}
-					pbx_channel_set_hangupcause(original, AST_CAUSE_NORMAL_CLEARING);
-					pbx_setstate(original, AST_STATE_DOWN);
-				}
-				pbx_channel_unlock(target);
-				pbx_queue_hangup(original);
-			} else {
-				pbx_channel_unlock(target);
-			}
-
-			break;
-		} else {
-			res = -1;
-		}
-		pbx_channel_unlock(target);
+                                pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);				/* reset picked up channel */
+                                sccp_channel_setDevice(c, d);
+                                sccp_channel_set_active(d, c);
+                                sccp_channel_updateChannelCapability(c);
+                                if (d->pickupmodeanswer) {
+                                        sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+                                } else {
+                                        uint8_t instance;
+                                        instance = sccp_device_find_index_for_line(d, c->line->name);
+                                        sccp_dev_stoptone(d, instance, c->callid);
+                                        sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+                                        sccp_channel_set_active(d, NULL);
+                                        c->ringermode = SKINNY_STATION_OUTSIDERING;			// default ring
+                                        ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
+                                        if (ringermode && !sccp_strlen_zero(ringermode)) {
+                                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
+                                                if (strcasecmp(ringermode, "inside") == 0)
+                                                        c->ringermode = SKINNY_STATION_INSIDERING;
+                                                else if (strcasecmp(ringermode, "feature") == 0)
+                                                        c->ringermode = SKINNY_STATION_FEATURERING;
+                                                else if (strcasecmp(ringermode, "silent") == 0)
+                                                        c->ringermode = SKINNY_STATION_SILENTRING;
+                                                else if (strcasecmp(ringermode, "urgent") == 0)
+                                                        c->ringermode = SKINNY_STATION_URGENTRING;
+                                        }
+                                        sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
+                                }
+                        }
+                        pbx_channel_unlock(target);
+                        target = pbx_channel_unref(target);
+                } else {
+                	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Giving Up\n");
+                        pbx_channel_unlock(target);
+                }
+        } else {
+                pbx_channel_unlock(target);
 	}
-	sccp_free(pickupexten);
-	pickupexten = NULL;
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directpickup) quit\n");
+	if (!res) {
+	        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Exten '%s@'%s' Picked up Succesfully\n", exten, context);
+        } else {
+	        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Failed to pickup up Exten '%s@'%s'\n", exten, context);
+        }
 	d = sccp_device_release(d);
 	return res;
 }
@@ -442,7 +435,7 @@ int sccp_feat_directpickup(sccp_channel_t * c, char *exten)
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 {
 	int res = 0;
-	PBX_CHANNEL_TYPE *target = NULL;
+	PBX_CHANNEL_TYPE *dest = NULL;
 	sccp_channel_t *c;
 
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
@@ -463,12 +456,12 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	/* create channel for pickup */
 	if ((c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) && !pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
         	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Already offhook, reusing callid %d\n", d->id, c->callid);
-		target = c->owner;
+		dest = c->owner;
 	} else {
 		/* emulate a new call so we end up in the same state as when a new call has been started */
         	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
 		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
-		target = c->owner;
+		dest = c->owner;
 	}
 	/* prepare for call pickup */
 	SCCP_SCHED_DEL(c->scheduler.digittimeout);
@@ -476,13 +469,13 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	c->state = SCCP_CHANNELSTATE_PROCEED;
 	c->answered_elsewhere = TRUE;
 
-	res = pbx_pickup_call(target);										/* Should be replaced with a PBX(feature_pickup) call, which could give information back why the pickup failed (elsewhere or no match) */
+	res = pbx_pickup_call(dest);										/* Should be replaced with a PBX(feature_pickup) call, which could give information back why the pickup failed (elsewhere or no match) */
 	if (!res) {
 		/* gpickup succeeded */
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
 		sccp_rtp_stop(c);										/* stop previous audio */
-		pbx_channel_set_hangupcause(target, AST_CAUSE_ANSWERED_ELSEWHERE);
-		pbx_hangup(target);										/* hangup masqueraded zombie channel */
+		pbx_channel_set_hangupcause(dest, AST_CAUSE_ANSWERED_ELSEWHERE);
+		pbx_hangup(dest);										/* hangup masqueraded zombie channel */
 
 		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);
 		sccp_channel_setDevice(c, d);

@@ -57,6 +57,7 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control);
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk18_devicestate(void *data);
+PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -1559,7 +1560,7 @@ static int sccp_wrapper_asterisk18_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 			}
 			ast_channel_unref(oldchan);
 			//! \todo force update of rtp_peer for directrtp
-			// sccp_wrapper_asterisk111_set_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
+			// sccp_wrapper_asterisk18_set_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
 
 			//! \todo update remote capabilities after fixup
 
@@ -3039,7 +3040,8 @@ sccp_pbx_cb sccp_pbx = {
 	
 	set_language:			sccp_wrapper_asterisk_setLanguage,
 
-	getExtensionState		sccp_wrapper_asterisk108_getExtensionState,
+	getExtensionState:		sccp_wrapper_asterisk108_getExtensionState,
+	findPickupChannelByExtenLocked:	sccp_wrapper_asterisk18_findPickupChannelByExtenLocked,
 	/* *INDENT-ON* */
 };
 #else
@@ -3156,6 +3158,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_language			= sccp_wrapper_asterisk_setLanguage,
 
 	.getExtensionState		= sccp_wrapper_asterisk108_getExtensionState,
+	.findPickupChannelByExtenLocked = sccp_wrapper_asterisk18_findPickupChannelByExtenLocked,
 	/* *INDENT-ON* */
 };
 #endif
@@ -3363,4 +3366,27 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 	}
 	ast_channel_iterator_destroy(iterator);
 	return remotePeer;
+}
+
+PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context)
+{
+        struct ast_channel *target = NULL;		/*!< Potential pickup target */
+        struct ast_channel_iterator *iter;
+ 
+        if (!(iter = ast_channel_iterator_by_exten_new(exten, context))) {
+                return NULL;
+        }
+ 
+        while ((target = ast_channel_iterator_next(iter))) {
+                ast_channel_lock(target);
+                if ((chan != target) && ast_can_pickup(target)) {
+                        ast_log(LOG_NOTICE, "%s pickup by %s\n", target->name, chan->name);
+                        break;
+                }
+                ast_channel_unlock(target);
+                target = ast_channel_unref(target);
+        }
+
+        ast_channel_iterator_destroy(iter);
+	return target;
 }
