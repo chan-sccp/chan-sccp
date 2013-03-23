@@ -334,7 +334,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #ifdef CS_SCCP_PICKUP
 	sccp_print_group(pickupgroup_buf, sizeof(pickupgroup_buf), GLOB(pickupgroup));
 	CLI_AMI_OUTPUT_PARAM("Pickupgroup", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
-	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer ", CLI_AMI_LIST_WIDTH, GLOB(pickupmodeanswer));
+	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer ", CLI_AMI_LIST_WIDTH, GLOB(directed_pickup_modeanswer));
 #endif
 	CLI_AMI_OUTPUT_PARAM("Codecs preference", CLI_AMI_LIST_WIDTH, "%s", pref_buf);
 	CLI_AMI_OUTPUT_BOOL("CFWDALL    ", CLI_AMI_LIST_WIDTH, GLOB(cfwdall));
@@ -598,9 +598,9 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("PendingUpdate", CLI_AMI_LIST_WIDTH, d->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("PendingDelete", CLI_AMI_LIST_WIDTH, d->pendingDelete);
 #ifdef CS_SCCP_PICKUP
-	CLI_AMI_OUTPUT_BOOL("Pickup Extension", CLI_AMI_LIST_WIDTH, d->pickupexten);
-	CLI_AMI_OUTPUT_PARAM("Pickup Context", CLI_AMI_LIST_WIDTH, "%s (%s)", d->pickupcontext, pbx_context_find(d->pickupcontext) ? "exists" : "does not exist !!");
-	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer", CLI_AMI_LIST_WIDTH, d->pickupmodeanswer);
+	CLI_AMI_OUTPUT_BOOL("Directed Pickup", CLI_AMI_LIST_WIDTH, d->directed_pickup);
+	CLI_AMI_OUTPUT_PARAM("Pickup Context", CLI_AMI_LIST_WIDTH, "%s (%s)", d->directed_pickup_context, pbx_context_find(d->directed_pickup_context) ? "exists" : "does not exist !!");
+	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer", CLI_AMI_LIST_WIDTH, d->directed_pickup_modeanswer);
 #endif
 #ifdef CS_CONFERENCE
 	CLI_AMI_OUTPUT_BOOL("allow_conference", CLI_AMI_LIST_WIDTH, d->allow_conference);

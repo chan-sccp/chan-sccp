@@ -900,9 +900,9 @@ struct sccp_device {
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
 
 #ifdef CS_SCCP_PICKUP
-	boolean_t pickupexten;											/*!< Pickup Extension Support (Boolean, default=on) */
-	char pickupcontext[SCCP_MAX_CONTEXT];									/*!< Pickup Context to Use in DialPlan */
-	boolean_t pickupmodeanswer;										/*!< Pickup Mode Answer */
+	boolean_t directed_pickup;										/*!< Directed Pickup Extension Support (Boolean, default=on) */
+	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
+	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup*/
 #endif
 	boolean_t dtmfmode;											/*!< DTMF Mode (0 inband - 1 outofband) */
 	boolean_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
@@ -1260,8 +1260,8 @@ struct sccp_global_vars {
 	boolean_t useoverlap;											/*!< Overlap Dial Support */
 	sccp_group_t callgroup;											/*!< Call Group */
 #ifdef CS_SCCP_PICKUP
-	sccp_group_t pickupgroup;										/*!< Pick Up Group */
-	boolean_t pickupmodeanswer;										/*!< Pick Up Mode Answer */
+	sccp_group_t pickupgroup;										/*!< PickUp Group */
+	boolean_t directed_pickup_modeanswer;									/*!< Directed PickUp Mode Answer (boolean, default" on) */
 #endif
 	int amaflags;												/*!< AmaFlags */
 	uint8_t protocolversion;										/*!< Skinny Protocol Version */

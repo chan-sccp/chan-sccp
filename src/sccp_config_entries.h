@@ -105,7 +105,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"callgroup", 			G_OBJ_REF(callgroup), 			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We are in caller groups 1,3,4. Valid for all lines\n"},
 #ifdef CS_SCCP_PICKUP	
 	{"pickupgroup", 		G_OBJ_REF(pickupgroup), 		TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We can do call pick-p for call group 1,3,4,5. Valid for all lines\n"},
-	{"pickupmodeanswer", 		G_OBJ_REF(pickupmodeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We can do call pick-p for call group 1,3,4,5. Valid for all lines\n"},
+	{"directed_pickup_modeanswer", 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup (Asterisks default is on) (Default: on)"},
+	{"pickupmodeanswer",	 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"Automatically Answer when using Directed Pickup (Deprecated use directed_pickup_modeanswer instead)"},
 #endif
 	{"amaflags", 			G_OBJ_REF(amaflags), 			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Sets the default AMA flag code stored in the CDR record\n"},
 	{"protocolversion", 		0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"20",				"skinny version protocol. (OBSOLETE)\n"},
@@ -207,9 +208,13 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"show the redial phone book list instead of dialing the last number (adv_feature)\n"},
 #endif
 #ifdef CS_SCCP_PICKUP
-	{"pickupexten", 		D_OBJ_REF(pickupexten), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"no",				"enable Pickup function to direct pickup an extension\n"},
-	{"pickupcontext", 		D_OBJ_REF(pickupcontext), 		TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccp",				"context where direct pickup search for extensions. if not set it will be ignored.\n"},
-	{"pickupmodeanswer", 		D_OBJ_REF(pickupmodeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up\n"},
+	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension (default: on)\n"},
+	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccp",				"context where direct pickup search for extensions. if not set current contect will be use.\n"},
+	{"directed_pickup_modeanswer", 	D_OBJ_REF(directed_pickup_modeanswer),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up (default: on)\n"},
+
+	{"pickupexten", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NEEDDEVICERESET,		"",				"enable Pickup function to direct pickup an extension (Deprecated use directed_pickup instead)\n"},
+	{"pickupcontext", 		D_OBJ_REF(directed_pickup_context), 	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"context where direct pickup search for extensions. if not set it will be ignored. (Deprecated use direct_pickup_context instead)\n"},
+	{"pickupmodeanswer", 		D_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"on = asterisk way, the call has been answered when picked up (Deprecated use direct_pickup_modeanswer instead)\n"},
 #endif
 	{"monitor", 			D_OBJ_REF(monitorFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				""},
 	{"allowoverlap", 		D_OBJ_REF(overlapFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Allow for Overlap dialing (Continue dialing after the first part of the number has already been send to the pstn)"},

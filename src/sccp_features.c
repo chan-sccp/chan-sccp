@@ -320,8 +320,8 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
         if ((context = strchr(exten, '@'))) {
                *context++ = '\0';
 	} else {
-                if (!sccp_strlen_zero(d->pickupcontext)) {
-                        context = (char *) strdup(d->pickupcontext);
+                if (!sccp_strlen_zero(d->directed_pickup_context)) {
+                        context = (char *) strdup(d->directed_pickup_context);
                 } else {
                         context = (char *) pbx_channel_context(original);
                 }
@@ -342,7 +342,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
                 pbx_log(LOG_NOTICE, "SCCP: (directed_pickup) %s callerid is ('%s'-'%s')\n", pbx_channel_name(tmp), name ? name : "", number ? number : "");
                 tmp = NULL;
                 res = 0;
-                if (d->pickupmodeanswer) {
+                if (d->directed_pickup_modeanswer) {
                         if ((res = ast_answer(c->owner))) {						// \todo: remove res in this line: Although the value stored to 'res' is used in the enclosing expression, the value is never actually read from 'res'
                                 sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Unable to answer '%s'\n", PBX(getChannelName) (c));
                                 res = -1;
@@ -370,7 +370,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
                                 sccp_channel_setDevice(c, d);
                                 sccp_channel_set_active(d, c);
                                 sccp_channel_updateChannelCapability(c);
-                                if (d->pickupmodeanswer) {
+                                if (d->directed_pickup_modeanswer) {
                                         sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
                                 } else {
                                         uint8_t instance;
