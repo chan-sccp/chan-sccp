@@ -883,13 +883,12 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 {
 	btnlist *btn;
 	int i;
-	uint8_t lastUsedButtonPosition = 0;
+	uint8_t buttonCount = 0, lastUsedButtonPosition = 0;
 
 	sccp_moo_t *r1;
 
 	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
-		//              pthread_cancel(s->session_thread);
 		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
@@ -902,7 +901,6 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
-		//              pthread_cancel(s->session_thread);
 		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 		return;
 	}
@@ -911,15 +909,15 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 
-		if (SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {
-			r1->msg.ButtonTemplateMessage.lel_buttonCount = i+1;
+		if (SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {		
+			//r1->msg.ButtonTemplateMessage.lel_buttonCount = i+1;
+		        buttonCount = i+1;
 			lastUsedButtonPosition = i;
 		}
 
 		switch (btn[i].type) {
 			case SCCP_BUTTONTYPE_HINT:
 			case SCCP_BUTTONTYPE_LINE:
-
 				/* we do not need a line if it is not configured */
 				if (r1->msg.ButtonTemplateMessage.definition[i].instanceNumber == 0) {
 					r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
@@ -941,8 +939,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 				break;
 
 			case SCCP_BUTTONTYPE_MULTI:
-				//                      r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
-				//                      break;
+				//r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_DISPLAY;
+				//break;
 
 			case SKINNY_BUTTONTYPE_UNUSED:
 				r1->msg.ButtonTemplateMessage.definition[i].buttonDefinition = SKINNY_BUTTONTYPE_UNDEFINED;
@@ -958,7 +956,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	}
 
 	r1->msg.ButtonTemplateMessage.lel_buttonOffset = 0;
-	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
+	//r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
+	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(buttonCount);
 	/* buttonCount is already in a little endian format so don't need to convert it now */
 	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(lastUsedButtonPosition+1);
 
