@@ -79,6 +79,7 @@ callanswerorder = oldestfirst				; oldestfirst or lastestfirst
 meetme = on						; enable/disable conferencing via app_meetme (on/off)
 meetmeopts = qxd					; options to send the app_meetme application (default "qd" = quiet,dynamic pin)
 							; Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation
+directed_pickup_modeanswer = on				; on = asterisk way, the call has been answered when picked up
 regcontext = sccpregistration				; SCCP Lines will we added to this context in asterisk for Dundi lookup purposes
 
 fallback = false						; Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)
@@ -139,9 +140,10 @@ park = on						; take a look to the compile howto. Park stuff is not compiled by
 cfwdall = off						; activate the callforward stuff and softkeys
 cfwdbusy = off
 cfwdnoanswer = off
-pickupexten = off					; enable Pickup function to direct pickup an extension
-pickupcontext = sccp					; context where direct pickup search for extensions. if not set it will be ignored.
-pickupmodeanswer = on					; on = asterisk way, the call has been answered when picked up
+;pickupexten = off					; (DEPRECATED) replaced by directed_pickup
+directed_pickup = on					; Enable [Pickup] Button used for Directed Pickup (Picking up a call from a specific extension) (default = on)
+directed_pickup_context = sccp				; context where direct pickup search for extensions. if not set it will be ignored.
+directed_pickup_modeanswer = on				; on = asterisk way, the call has been answered when picked up
 							; off = call manager way, the phone who picked up the call rings the call
 dtmfmode = inband					; inband or outofband. outofband is the native cisco dtmf tone play.
 							; Some phone model does not play dtmf tones while connected (bug?), so the default is inband
@@ -149,8 +151,8 @@ imageversion = P00405000700				; useful to upgrade old firmwares (the ones that 
 deny = 0.0.0.0/0.0.0.0					; Same as general
 permit = 192.168.1.0/255.255.255.0			; This device can register only using this ip address
 dndFeature = on						; allow/disallow usage of the dnd feature
-;nat = off							; Device NAT support (default Off)
-;directrtp = off 						; This option allow devices to do direct RTP sessions (default Off)								
+;nat = off						; Device NAT support (default Off)
+;directrtp = off 					; This option allow devices to do direct RTP sessions (default Off)								
 earlyrtp = none						; valid options: none, offhook, dial, ringout. default is none.
 							; The audio strem will be open in the progress and connected state.
 private = on						; permit the private function softkey for this device
@@ -252,9 +254,9 @@ park = off						; take a look to the compile howto. Park stuff is not compiled b
 cfwdall = on						; activate the callforward stuff and softkeys
 cfwdbusy = on
 cfwdnoanswer = on
-pickupexten = on					; enable Pickup function to direct pickup an extension
-pickupcontext = sccp					; context where direct pickup search for extensions. if not set it will be ignored.
-pickupmodeanswer = on					; on = asterisk way, the call has been answered when picked up
+directed_pickup = off					; Disable [Pickup] Button used for Directed Pickup (Picking up a call from a specific extension)
+directed_pickup_context = sccp				; context where direct pickup search for extensions. if not set it will be ignored.
+directed_pickup_modeanswer = on				; on = asterisk way, the call has been answered when picked up
 dtmfmode = inband					; inband or outofband. outofband is the native cisco dtmf tone play.
 imageversion = P00405000700				; useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)
 deny = 0.0.0.0/0.0.0.0					; Same as general

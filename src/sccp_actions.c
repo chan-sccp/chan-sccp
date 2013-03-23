@@ -1813,7 +1813,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: MEETME          is  %s\n", d->id, (meetme) ? "enabled" : "disabled");
 #ifdef CS_SCCP_PICKUP
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->pickupexten) ? "enabled" : "disabled");
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->directed_pickup) ? "enabled" : "disabled");
 #endif
 	for (i = 0; i < v_count; i++) {
 		const uint8_t *b = v->ptr;
@@ -1868,7 +1868,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 			}
 #endif
 #ifdef CS_SCCP_PICKUP
-			if ((b[c] == SKINNY_LBL_PICKUP) && (!d->pickupexten)) {
+			if ((b[c] == SKINNY_LBL_PICKUP) && (!d->directed_pickup)) {
 				continue;
 			}
 			if ((b[c] == SKINNY_LBL_GPICKUP) && (!pickupgroup)) {
