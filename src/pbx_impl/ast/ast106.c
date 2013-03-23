@@ -57,6 +57,7 @@ int sccp_asterisk_queue_control(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_c
 int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum ast_control_frame_type control, const void *data, size_t datalen);
 boolean_t sccp_asterisk_getForwarderPeerChannel(const sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel);
 static int sccp_wrapper_asterisk16_devicestate(void *data);
+PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 
@@ -2717,7 +2718,8 @@ sccp_pbx_cb sccp_pbx = {
 	
 	set_language:			sccp_wrapper_asterisk_setLanguage,
 
-	getExtensionState		sccp_wrapper_asterisk106_getExtensionState,
+	getExtensionState:		sccp_wrapper_asterisk106_getExtensionState,
+	findPickupChannelByExtenLocked: sccp_wrapper_asterisk16_findPickupChannelByExtenLocked,
 	/* *INDENT-ON* */
 };
 
@@ -2835,6 +2837,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_language			= sccp_wrapper_asterisk_setLanguage,
 
 	.getExtensionState		= sccp_wrapper_asterisk106_getExtensionState,
+	.findPickupChannelByExtenLocked	= sccp_wrapper_asterisk16_findPickupChannelByExtenLocked,
 	/* *INDENT-ON* */
 };
 #endif
@@ -3024,4 +3027,49 @@ PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANN
 
 	remotePeer = ast_channel_search_locked(found_cb, data);
 	return remotePeer;
+}
+
+
+/* sccp_wrapper_asterisk16_findPickupChannelByExtenLocked helper functions*/
+
+/* Helper function that determines whether a channel is capable of being picked up */
+static int can_pickup(struct ast_channel *chan)
+{
+        if (!chan->pbx && !chan->masq &&
+                !ast_test_flag(chan, AST_FLAG_ZOMBIE) &&
+                (chan->_state == AST_STATE_RINGING ||
+                 chan->_state == AST_STATE_RING ||
+                 chan->_state == AST_STATE_DOWN)) {
+                return 1;
+        }
+        return 0;
+}
+
+struct pickup_criteria {
+        const char *exten;
+        const char *context;
+        struct ast_channel *chan;
+};
+                        
+static int sccp_find_pbxchannel_by_exten(PBX_CHANNEL_TYPE *c, void *data)
+{
+        struct pickup_criteria *info = data;
+
+        return (!strcasecmp(c->macroexten, info->exten) || !strcasecmp(c->exten, info->exten)) &&
+                !strcasecmp(c->dialcontext, info->context) &&
+                (info->chan != c) && can_pickup(c);
+}
+/* end sccp_wrapper_asterisk16_findPickupChannelByExtenLocked helper functions*/
+
+PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_findPickupChannelByExtenLocked(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context)
+{
+        struct ast_channel *target = NULL;		/*!< Potential pickup target */
+        struct pickup_criteria search = {
+                .exten = exten,
+                .context = context,
+                .chan = chan,
+        };
+
+        target = ast_channel_search_locked(sccp_find_pbxchannel_by_exten, &search);
+	return target;
 }

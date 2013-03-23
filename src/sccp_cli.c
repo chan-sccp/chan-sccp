@@ -598,7 +598,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("PendingUpdate", CLI_AMI_LIST_WIDTH, d->pendingUpdate);
 	CLI_AMI_OUTPUT_BOOL("PendingDelete", CLI_AMI_LIST_WIDTH, d->pendingDelete);
 #ifdef CS_SCCP_PICKUP
-	CLI_AMI_OUTPUT_PARAM("Pickup Extension", CLI_AMI_LIST_WIDTH, "%d", d->pickupexten);
+	CLI_AMI_OUTPUT_BOOL("Pickup Extension", CLI_AMI_LIST_WIDTH, d->pickupexten);
 	CLI_AMI_OUTPUT_PARAM("Pickup Context", CLI_AMI_LIST_WIDTH, "%s (%s)", d->pickupcontext, pbx_context_find(d->pickupcontext) ? "exists" : "does not exist !!");
 	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer", CLI_AMI_LIST_WIDTH, d->pickupmodeanswer);
 #endif

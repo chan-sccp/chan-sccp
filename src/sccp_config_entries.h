@@ -207,7 +207,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"show the redial phone book list instead of dialing the last number (adv_feature)\n"},
 #endif
 #ifdef CS_SCCP_PICKUP
-	{"pickupexten", 		D_OBJ_REF(pickupexten), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"enable Pickup function to direct pickup an extension\n"},
+	{"pickupexten", 		D_OBJ_REF(pickupexten), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"no",				"enable Pickup function to direct pickup an extension\n"},
 	{"pickupcontext", 		D_OBJ_REF(pickupcontext), 		TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccp",				"context where direct pickup search for extensions. if not set it will be ignored.\n"},
 	{"pickupmodeanswer", 		D_OBJ_REF(pickupmodeanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up\n"},
 #endif

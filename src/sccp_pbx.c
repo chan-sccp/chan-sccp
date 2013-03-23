@@ -981,7 +981,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 			if (!sccp_strlen_zero(shortenedNumber)) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
-				if (sccp_feat_directpickup(c, shortenedNumber)) {
+				if (sccp_feat_directed_pickup(c, shortenedNumber)) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 				}
 			} else {

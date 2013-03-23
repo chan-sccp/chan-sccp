@@ -988,7 +988,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		line = sccp_line_retain(l);
 	}
 	if (line) {
-		sccp_feat_handle_directpickup(line, lineInstance, d);
+		sccp_feat_handle_directed_pickup(line, lineInstance, d);
 		line = sccp_line_release(line);
 		if (c && c->scheduler.digittimeout)
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);

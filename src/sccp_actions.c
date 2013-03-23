@@ -1380,9 +1380,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 #else
 			if (d->defaultLineInstance > 0) {
 				sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
-				/*! \todo use feature map or sccp_feat_handle_directpickup */
+				/*! \todo use feature map or sccp_feat_handle_directed_pickup */
 				if ((l = sccp_line_find_byid(d, d->defaultLineInstance))) {
-					//sccp_feat_handle_directpickup(l, d->defaultLineInstance, d);
+					//sccp_feat_handle_directed_pickup(l, d->defaultLineInstance, d);
 					channel = sccp_channel_newcall(l, d, (char *) pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
 					channel = channel ? sccp_channel_release(channel) : NULL;
 				}
@@ -1394,8 +1394,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 				al = sccp_line_find_byid(d, 1);
 			}
 			if (al) {
-				/*! \todo use feature map or sccp_feat_handle_directpickup */
-				//sccp_feat_handle_directpickup(l, 1, d);
+				/*! \todo use feature map or sccp_feat_handle_directed_pickup */
+				//sccp_feat_handle_directed_pickup(l, 1, d);
 				channel = sccp_channel_newcall(al, d, (char *) pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
 				channel = channel ? sccp_channel_release(channel) : NULL;
 			}

@@ -145,6 +145,9 @@ struct sccp_pbx_cb {
 	
 	/* devicestate / extension state */
 	sccp_BLFState_t (*const getExtensionState)(const char *extension, const char *context);
+	
+	PBX_CHANNEL_TYPE *(*const findPickupChannelByExtenLocked)(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
+	
 	/* *INDENT-ON* */
 };
 
