@@ -3120,10 +3120,16 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 
-AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, "Skinny Client Control Protocol (SCCP). SCCP-Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')",.load = load_module,.unload = unload_module,.reload = module_reload,.load_pri = AST_MODPRI_CHANNEL_DRIVER,.nonoptreq = "chan_local"
-		/* dependence on res_rtp_asterisk makes us unload to late */
-		/*              .nonoptreq = "res_rtp_asterisk,chan_local" */
-    );
+AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, 
+    "Skinny Client Control Protocol (SCCP). SCCP-Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "')",
+    .load = load_module,
+    .unload = unload_module,
+    .reload = module_reload,
+    .load_pri = AST_MODPRI_DEFAULT,			//AST_MODPRI_CHANNEL_DRIVER,
+    .nonoptreq = "chan_local"
+    /* dependence on res_rtp_asterisk makes us unload to late */
+    /* .nonoptreq = "res_rtp_asterisk,chan_local" */
+);
 #endif
 
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
