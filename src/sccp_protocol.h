@@ -765,6 +765,7 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7970, 			{ {298,168}, 	SCCP_COLOR, 	16 },	"Cisco 7970"				},
 	{ SKINNY_DEVICETYPE_CISCO7971, 			{ {298,168}, 	SCCP_COLOR, 	12 },	"Cisco 7971"				},
 	{ SKINNY_DEVICETYPE_CISCO7975, 			{ {298,168}, 	SCCP_COLOR, 	16 },	"Cisco 7975"				},
+	{ SKINNY_DEVICETYPE_CISCO7985, 			{ {0,0}, 	SCCP_COLOR, 	16 },	"Cisco 7985"				},
 	{ SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR, 	{ {298,168}, 	SCCP_COLOR, 	24 },	"Cisco IP Communicator"			},
 	{ SKINNY_DEVICETYPE_CISCO6901, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Cisco 6901"				},
 	{ SKINNY_DEVICETYPE_CISCO6921, 			{ {396,81}, 	SCCP_MONOCHROME,0  },	"Cisco 6921"				},
@@ -1443,12 +1444,12 @@ typedef enum {
 	AuditParticipantResMessage 			= 0x0040,
 	DeviceToUserDataVersion1Message 		= 0x0041,
 	DeviceToUserDataResponseVersion1Message 	= 0x0042,
-	MwiNotificationMessage 				= 0x004C,
 
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage 				= 0x0048,
 	AccessoryStatusMessage 				= 0x0049,
 	Unknown_0x004A_Message 				= 0x004A,
+	MwiNotificationMessage 				= 0x004C,
 
 	/* Server -> Client */
 	RegisterAckMessage 				= 0x0081,
