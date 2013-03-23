@@ -3322,6 +3322,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		memcpy(data, r->msg.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
+	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for %d '%s'\n", d->id, appID, data);
 	if (0 != appID && 0 != callReference && 0 != transactionID) {
 		switch (appID) {
 			case APPID_CONFERENCE:									// Handle Conference App
@@ -3330,6 +3331,15 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 				participantID = atoi(data);							// participantId is passed on in the data segment
 				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
+#endif
+				break;
+			case APPID_CONFERENCE_INVITE:									// Handle Conference App
+#ifdef CS_SCCP_CONFERENCE
+				conferenceID = lineInstance;							// conferenceId is passed on via lineInstance
+				participantID = atoi(data);							// participantId is passed on in the data segment
+				//phonenumber = atoi(data);
+				sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Handle ConferenceList Info for AppID %d , CallID %d, Transaction %d, Conference %d, Participant: %d\n", d->id, appID, callReference, transactionID, conferenceID, participantID);
+				//sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
 				break;
 				//                        case APPID_PROVISION:
