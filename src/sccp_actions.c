@@ -883,7 +883,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 {
 	btnlist *btn;
 	int i;
-	uint8_t totalButtonCount = 0;
+	uint8_t lastUsedButtonPosition = 0;
 
 	sccp_moo_t *r1;
 
@@ -912,8 +912,8 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 		r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 
 		if (SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {
-			r1->msg.ButtonTemplateMessage.lel_buttonCount++;
-			totalButtonCount++;
+			r1->msg.ButtonTemplateMessage.lel_buttonCount = i+1;
+			lastUsedButtonPosition = i;
 		}
 
 		switch (btn[i].type) {
@@ -960,7 +960,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	r1->msg.ButtonTemplateMessage.lel_buttonOffset = 0;
 	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
 	/* buttonCount is already in a little endian format so don't need to convert it now */
-	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(totalButtonCount);
+	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(lastUsedButtonPosition+1);
 
 	/* set speeddial for older devices like 7912 */
 	uint32_t speeddialInstance = 0;
