@@ -86,7 +86,6 @@ extern "C" {
 	void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, sccp_conference_participant_t * participant);
 	void sccp_conference_promote_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 	void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_channel_t * channel);
-	void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel);
 
 	/* cli functions */
 	char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state);

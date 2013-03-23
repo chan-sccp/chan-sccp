@@ -45,6 +45,7 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 static void sccp_conference_update_conflist(sccp_conference_t * conference);
 void __sccp_conference_hide_list(sccp_conference_participant_t * participant);
 void sccp_conference_promote_demote_participant(sccp_conference_t * conference, sccp_conference_participant_t *participant, sccp_conference_participant_t *moderator);
+void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_conference_participant_t *moderator);
  
 /*!
  * \brief Start Conference Module
@@ -1110,8 +1111,7 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			d->conferencelist_active = FALSE;
 #if CS_EXPERIMENTAL
 		} else if (!strcmp(d->dtu_softkey.action, "INVITE")) {
-			sccp_conference_show_list(conference, participant->channel);
-			sccp_conference_invite_participant(conference, participant->channel);
+			sccp_conference_invite_participant(conference, moderator);
 #endif
 		} else if (!strcmp(d->dtu_softkey.action, "MODERATE")) {
 			sccp_conference_promote_demote_participant(conference, participant, moderator);
@@ -1278,8 +1278,61 @@ void sccp_conference_promote_demote_participant(sccp_conference_t * conference, 
  *
  * \todo To Be Implemented
  */
-void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_channel_t * channel)
+void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_conference_participant_t *moderator)
 {
+	//sccp_channel_t *channel = NULL;
+	char xmlStr[2048] = "";
+	char xmlTmp[512] = "";
+
+	if (!conference) {
+		pbx_log(LOG_WARNING, "SCCPCONF: No conference\n");
+		return;
+	}
+	if (!moderator) {
+		pbx_log(LOG_WARNING, "SCCPCONF/%04d: No moderator\n", conference->id);
+		return;
+	}
+	if (conference->isLocked) {
+		pbx_log(LOG_WARNING, "SCCPCONF/%04d: Conference is currently locked\n", conference->id);
+		if (moderator->device) {
+			sccp_dev_set_message(moderator->device, "Conference is locked", 5, FALSE, FALSE);
+		}
+		return;
+	}
+
+	if (moderator->channel && moderator->device) {
+
+		if (moderator->device->protocolversion >= 17) {
+			sprintf(xmlTmp, "<CiscoIPPhoneInput appId=\"%d\">\n", appID);
+		} else {
+			sprintf(xmlTmp, "<CiscoIPPhoneInput>\n");
+		}		
+		strcat(xmlStr, xmlTmp);
+		sprintf(xmlTmp, "<Title>Conference %d Invite</Title>\n", conference->id);
+		strcat(xmlStr, "<Prompt>Enter the phone number to invite</Prompt>\n");
+		sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
+		strcat(xmlStr, xmlTmp);
+		
+		strcat(xmlStr, "<InputItem>\n");
+		strcat(xmlStr, "  <DisplayName>Phone Number</DisplayName>\n");
+		strcat(xmlStr, "  <QueryStringParam>NUMBER</QueryStringParam>\n");
+		strcat(xmlStr, "  <InputFlags>T</InputFlags>\n");
+		strcat(xmlStr, "</InputItem>\n");
+
+		// SoftKeys
+//		strcat(xmlStr, "<SoftKeyItem>\n");
+//		strcat(xmlStr, "  <Name>Exit</Name>\n");
+//		strcat(xmlStr, "  <Position>4</Position>\n");
+//		strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
+//		strcat(xmlStr, "</SoftKeyItem>\n");
+
+		strcat(xmlStr, "</CiscoIPPhoneInput>\n");
+		
+		sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: ShowList appID %d, lineInstance %d, callReference %d, transactionID %d\n", conference->id, appID, moderator->callReference, moderator->lineInstance, moderator->transactionID);
+		sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: XML-message:\n%s\n", conference->id, xmlStr);
+
+		moderator->device->protocol->sendUserToDeviceDataVersionMessage(moderator->device, APPID_CONFERENCE_INVITE, moderator->callReference, moderator->lineInstance, moderator->transactionID, xmlStr, 2);
+	}
 }
 
 /* =================================================================================================================================== CLI Functions === */
@@ -1497,10 +1550,8 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 							sccp_conference_kick_participant(conference, participant);
 						} else if (!strncasecmp(argv[2], "Mute", 4)) {							// Mute Action
 							sccp_conference_toggle_mute_participant(conference, participant);
-						} else if (!strncasecmp(argv[2], "Invite", 5)) {							// Invite Action
-							if (participant->channel) {
-								sccp_conference_invite_participant(conference, participant->channel);
-							}
+						} else if (!strncasecmp(argv[2], "Invite", 5)) {						// Invite Action
+							sccp_conference_invite_participant(conference, participant);
 						} else if (!strncasecmp(argv[2], "Moderate", 8)) {						// Moderate Action
 							sccp_conference_promote_demote_participant(conference, participant, NULL);
 						} else {
