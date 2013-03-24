@@ -130,6 +130,29 @@ static void sccp_device_setRingtoneNotSupported(const sccp_device_t *device, con
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
 }
 
+// static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
+// 	char xmlStr[2048];
+// 	unsigned int transactionID = random();
+// 	
+// 	
+// 	
+// 	strcat(xmlStr, "<startMedia>");
+// 	strcat(xmlStr, "<mediaStream>");
+// // 	strcat(xmlStr, "<onStopped></onStopped>"); //url
+// 	strcat(xmlStr, "<receiveVolume>50</receiveVolume>"); // 0-100
+// 	strcat(xmlStr, "<type>audio</type>"); // send|receive|sendReceive
+// 	strcat(xmlStr, "<mode>sendReceive</mode>"); // send|receive|sendReceive
+// 	strcat(xmlStr, "<codec>Wideband</codec>"); // "G.711" "G.722" "G.723" "G.728" "G.729" "GSM" "Wideband" "iLBC"
+// 	strcat(xmlStr, "<address>");
+// 	strcat(xmlStr, address);
+// 	strcat(xmlStr, "</address>");
+// 	strcat(xmlStr, "<port>20480</port>");
+// 	strcat(xmlStr, "</mediaStream>");
+// 	strcat(xmlStr, "</startMedia>\n\0");
+// 	
+// 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
+// }
+
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
@@ -1653,6 +1676,14 @@ void *sccp_dev_postregistration(void *data)
 		d->monitorFeature.status = TRUE;
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
+	
+	if(d->backgroundImage){
+		d->setBackgroundImage(d, d->backgroundImage);
+	}
+	
+	if(d->ringtone){
+		d->setRingTone(d, d->ringtone);
+	}
 
 	sccp_dev_check_displayprompt(d);
 
@@ -1714,6 +1745,22 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
 		if (!sccp_strlen_zero(d->lastNumber))
 			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
+		
+		
+		/* cleanup dynamic allocated strings */
+		/** normaly we should only remove this when removing the device from globals,
+		 *  in this case we can do this also when device unregistered, so we do not set this multiple times -MC
+		 */
+		if(d->backgroundImage){
+			sccp_free(d->backgroundImage);
+			d->backgroundImage = NULL;
+		}
+		
+		if(d->ringtone){
+			sccp_free(d->ringtone);
+			d->ringtone = NULL;
+		}
+		
 
 		/* unsubscribe hints */
 		/* prevent loop:sccp_dev_clean =>

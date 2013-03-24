@@ -854,6 +854,8 @@ struct sccp_device {
 	uint8_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
 	uint8_t accessorystatus;										/*!< Accessory Status */
 	uint8_t registrationState;										/*!< If the device has been fully registered yet */
+	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
+	char *ringtone;												/*!< ringtone we will set after device registered */
 
 	sccp_devicestate_t state;										/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
 	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */

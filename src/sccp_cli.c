@@ -545,70 +545,74 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 		}
 		astman_append(s, "\r\n");
 	}
-	CLI_AMI_OUTPUT_PARAM("MAC-Address", CLI_AMI_LIST_WIDTH, "%s", d->id);
-	CLI_AMI_OUTPUT_PARAM("Protocol Version", CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
-	CLI_AMI_OUTPUT_PARAM("Protocol In Use", CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
-	CLI_AMI_OUTPUT_PARAM("Tokenstate", CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
-	CLI_AMI_OUTPUT_PARAM("Keepalive", CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
-	CLI_AMI_OUTPUT_PARAM("Registration state", CLI_AMI_LIST_WIDTH, "%s(%d)", deviceregistrationstatus2str(d->registrationState), d->registrationState);
-	CLI_AMI_OUTPUT_PARAM("State", CLI_AMI_LIST_WIDTH, "%s(%d)", devicestatus2str(d->state), d->state);
-	CLI_AMI_OUTPUT_PARAM("MWI light", CLI_AMI_LIST_WIDTH, "%s(%d)", lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_BOOL("MWI handset light", CLI_AMI_LIST_WIDTH, d->mwilight);
-	CLI_AMI_OUTPUT_PARAM("Description", CLI_AMI_LIST_WIDTH, "%s", d->description);
-	CLI_AMI_OUTPUT_PARAM("Config Phone Type", CLI_AMI_LIST_WIDTH, "%s", d->config_type);
-	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type", CLI_AMI_LIST_WIDTH, "%s(%d)", devicetype2str(d->skinny_type), d->skinny_type);
-	CLI_AMI_OUTPUT_YES_NO("Softkey support", CLI_AMI_LIST_WIDTH, d->softkeysupport);
-	CLI_AMI_OUTPUT_PARAM("Softkeyset", CLI_AMI_LIST_WIDTH, "%s", d->softkeyDefinition);
-	CLI_AMI_OUTPUT_YES_NO("BTemplate support", CLI_AMI_LIST_WIDTH, d->buttonTemplate);
-	CLI_AMI_OUTPUT_YES_NO("linesRegistered", CLI_AMI_LIST_WIDTH, d->linesRegistered);
-	CLI_AMI_OUTPUT_PARAM("Image Version", CLI_AMI_LIST_WIDTH, "%s", d->imageversion);
-	CLI_AMI_OUTPUT_PARAM("Timezone Offset", CLI_AMI_LIST_WIDTH, "%d", d->tz_offset);
-	CLI_AMI_OUTPUT_PARAM("Capabilities", CLI_AMI_LIST_WIDTH, "%s", cap_buf);
-	CLI_AMI_OUTPUT_PARAM("Codecs preference", CLI_AMI_LIST_WIDTH, "%s", pref_buf);
-	CLI_AMI_OUTPUT_PARAM("Audio TOS", CLI_AMI_LIST_WIDTH, "%d", d->audio_tos);
-	CLI_AMI_OUTPUT_PARAM("Audio COS", CLI_AMI_LIST_WIDTH, "%d", d->audio_cos);
-	CLI_AMI_OUTPUT_PARAM("Video TOS", CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
-	CLI_AMI_OUTPUT_PARAM("Video COS", CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
-	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled", CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
-	CLI_AMI_OUTPUT_PARAM("DND Status", CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? dndmode2str(d->dndFeature.status) : "Disabled");
-	CLI_AMI_OUTPUT_BOOL("Can Transfer", CLI_AMI_LIST_WIDTH, d->transfer);
-	CLI_AMI_OUTPUT_BOOL("Can Park", CLI_AMI_LIST_WIDTH, d->park);
-	CLI_AMI_OUTPUT_BOOL("Can CFWDALL", CLI_AMI_LIST_WIDTH, d->cfwdall);
-	CLI_AMI_OUTPUT_BOOL("Can CFWBUSY", CLI_AMI_LIST_WIDTH, d->cfwdbusy);
-	CLI_AMI_OUTPUT_BOOL("Can CFWNOANSWER", CLI_AMI_LIST_WIDTH, d->cfwdnoanswer);
+	/* *INDENT-OFF* */
+	CLI_AMI_OUTPUT_PARAM("MAC-Address", 		CLI_AMI_LIST_WIDTH, "%s", d->id);
+	CLI_AMI_OUTPUT_PARAM("Protocol Version", 	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
+	CLI_AMI_OUTPUT_PARAM("Protocol In Use", 	CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
+	CLI_AMI_OUTPUT_PARAM("Tokenstate", 		CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
+	CLI_AMI_OUTPUT_PARAM("Keepalive", 		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
+	CLI_AMI_OUTPUT_PARAM("Registration state", 	CLI_AMI_LIST_WIDTH, "%s(%d)", deviceregistrationstatus2str(d->registrationState), d->registrationState);
+	CLI_AMI_OUTPUT_PARAM("State", 			CLI_AMI_LIST_WIDTH, "%s(%d)", devicestatus2str(d->state), d->state);
+	CLI_AMI_OUTPUT_PARAM("MWI light", 		CLI_AMI_LIST_WIDTH, "%s(%d)", lampmode2str(d->mwilamp), d->mwilamp);
+	CLI_AMI_OUTPUT_BOOL("MWI handset light", 	CLI_AMI_LIST_WIDTH, d->mwilight);
+	CLI_AMI_OUTPUT_PARAM("Description", 		CLI_AMI_LIST_WIDTH, "%s", d->description);
+	CLI_AMI_OUTPUT_PARAM("Config Phone Type", 	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
+	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type", 	CLI_AMI_LIST_WIDTH, "%s(%d)", devicetype2str(d->skinny_type), d->skinny_type);
+	CLI_AMI_OUTPUT_YES_NO("Softkey support", 	CLI_AMI_LIST_WIDTH, d->softkeysupport);
+	CLI_AMI_OUTPUT_PARAM("Softkeyset", 		CLI_AMI_LIST_WIDTH, "%s", d->softkeyDefinition);
+	CLI_AMI_OUTPUT_YES_NO("BTemplate support", 	CLI_AMI_LIST_WIDTH, d->buttonTemplate);
+	CLI_AMI_OUTPUT_YES_NO("linesRegistered", 	CLI_AMI_LIST_WIDTH, d->linesRegistered);
+	CLI_AMI_OUTPUT_PARAM("Image Version", 		CLI_AMI_LIST_WIDTH, "%s", d->imageversion);
+	CLI_AMI_OUTPUT_PARAM("Timezone Offset", 	CLI_AMI_LIST_WIDTH, "%d", d->tz_offset);
+	CLI_AMI_OUTPUT_PARAM("Capabilities", 		CLI_AMI_LIST_WIDTH, "%s", cap_buf);
+	CLI_AMI_OUTPUT_PARAM("Codecs preference", 	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
+	CLI_AMI_OUTPUT_PARAM("Audio TOS", 		CLI_AMI_LIST_WIDTH, "%d", d->audio_tos);
+	CLI_AMI_OUTPUT_PARAM("Audio COS", 		CLI_AMI_LIST_WIDTH, "%d", d->audio_cos);
+	CLI_AMI_OUTPUT_PARAM("Video TOS", 		CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
+	CLI_AMI_OUTPUT_PARAM("Video COS", 		CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
+	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled", 	CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
+	CLI_AMI_OUTPUT_PARAM("DND Status",		CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? dndmode2str(d->dndFeature.status) : "Disabled");
+	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, d->transfer);
+	CLI_AMI_OUTPUT_BOOL("Can Park",			CLI_AMI_LIST_WIDTH, d->park);
+	CLI_AMI_OUTPUT_BOOL("Can CFWDALL",		CLI_AMI_LIST_WIDTH, d->cfwdall);
+	CLI_AMI_OUTPUT_BOOL("Can CFWBUSY",		CLI_AMI_LIST_WIDTH, d->cfwdbusy);
+	CLI_AMI_OUTPUT_BOOL("Can CFWNOANSWER",		CLI_AMI_LIST_WIDTH, d->cfwdnoanswer);
 	CLI_AMI_OUTPUT_YES_NO("Allow ringin notification (e)", CLI_AMI_LIST_WIDTH, d->allowRinginNotification);
-	CLI_AMI_OUTPUT_BOOL("Private softkey", CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
-	CLI_AMI_OUTPUT_PARAM("Dtmf mode", CLI_AMI_LIST_WIDTH, "%s", (d->dtmfmode) ? "Out-of-Band" : "In-Band");
-	CLI_AMI_OUTPUT_PARAM("digit timeout", CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
-	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, d->nat);
-	CLI_AMI_OUTPUT_YES_NO("Videosupport?", CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
-	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, d->directrtp);
+	CLI_AMI_OUTPUT_BOOL("Private softkey", 		CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
+	CLI_AMI_OUTPUT_PARAM("Dtmf mode", 		CLI_AMI_LIST_WIDTH, "%s", (d->dtmfmode) ? "Out-of-Band" : "In-Band");
+	CLI_AMI_OUTPUT_PARAM("digit timeout", 		CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
+	CLI_AMI_OUTPUT_BOOL("Nat", 			CLI_AMI_LIST_WIDTH, d->nat);
+	CLI_AMI_OUTPUT_YES_NO("Videosupport?", 		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
+	CLI_AMI_OUTPUT_BOOL("Direct RTP", C		LI_AMI_LIST_WIDTH, d->directrtp);
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
-	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s:%d", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
-	CLI_AMI_OUTPUT_PARAM("Server Address", CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
-	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
-	CLI_AMI_OUTPUT_PARAM("Early RTP", CLI_AMI_LIST_WIDTH, "%s (%s)", d->earlyrtp ? "Yes" : "No", d->earlyrtp ? sccp_indicate2str(d->earlyrtp) : "none");
-	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)", CLI_AMI_LIST_WIDTH, "%s", accessorystatus2str(d->accessorystatus));
-	CLI_AMI_OUTPUT_PARAM("Last Used Accessory", CLI_AMI_LIST_WIDTH, "%s", accessory2str(d->accessoryused));
-	CLI_AMI_OUTPUT_PARAM("Last dialed number", CLI_AMI_LIST_WIDTH, "%s", d->lastNumber);
-	CLI_AMI_OUTPUT_PARAM("Default line instance", CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
+	CLI_AMI_OUTPUT_PARAM("Bind Address", 		CLI_AMI_LIST_WIDTH, "%s:%d", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
+	CLI_AMI_OUTPUT_PARAM("Server Address", 		CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
+	CLI_AMI_OUTPUT_PARAM("Deny/Permit", 		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
+	CLI_AMI_OUTPUT_PARAM("Early RTP", 		CLI_AMI_LIST_WIDTH, "%s (%s)", d->earlyrtp ? "Yes" : "No", d->earlyrtp ? sccp_indicate2str(d->earlyrtp) : "none");
+	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)",	CLI_AMI_LIST_WIDTH, "%s", accessorystatus2str(d->accessorystatus));
+	CLI_AMI_OUTPUT_PARAM("Last Used Accessory",	CLI_AMI_LIST_WIDTH, "%s", accessory2str(d->accessoryused));
+	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s", d->lastNumber);
+	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
+	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
+	CLI_AMI_OUTPUT_PARAM("Custom Ring Tone",	CLI_AMI_LIST_WIDTH, "%s", d->ringtone ? d->ringtone : "---");
 #ifdef CS_ADV_FEATURES
-	CLI_AMI_OUTPUT_BOOL("Use Placed Calls", CLI_AMI_LIST_WIDTH, d->useRedialMenu);
+	CLI_AMI_OUTPUT_BOOL("Use Placed Calls",		CLI_AMI_LIST_WIDTH, d->useRedialMenu);
 #endif
-	CLI_AMI_OUTPUT_BOOL("PendingUpdate", CLI_AMI_LIST_WIDTH, d->pendingUpdate);
-	CLI_AMI_OUTPUT_BOOL("PendingDelete", CLI_AMI_LIST_WIDTH, d->pendingDelete);
+	CLI_AMI_OUTPUT_BOOL("PendingUpdate",		CLI_AMI_LIST_WIDTH, d->pendingUpdate);
+	CLI_AMI_OUTPUT_BOOL("PendingDelete",		CLI_AMI_LIST_WIDTH, d->pendingDelete);
 #ifdef CS_SCCP_PICKUP
-	CLI_AMI_OUTPUT_BOOL("Directed Pickup", CLI_AMI_LIST_WIDTH, d->directed_pickup);
-	CLI_AMI_OUTPUT_PARAM("Pickup Context", CLI_AMI_LIST_WIDTH, "%s (%s)", d->directed_pickup_context, pbx_context_find(d->directed_pickup_context) ? "exists" : "does not exist !!");
-	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer", CLI_AMI_LIST_WIDTH, d->directed_pickup_modeanswer);
+	CLI_AMI_OUTPUT_BOOL("Directed Pickup",		CLI_AMI_LIST_WIDTH, d->directed_pickup);
+	CLI_AMI_OUTPUT_PARAM("Pickup Context",		CLI_AMI_LIST_WIDTH, "%s (%s)", d->directed_pickup_context, pbx_context_find(d->directed_pickup_context) ? "exists" : "does not exist !!");
+	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer",	CLI_AMI_LIST_WIDTH, d->directed_pickup_modeanswer);
 #endif
 #ifdef CS_CONFERENCE
-	CLI_AMI_OUTPUT_BOOL("allow_conference", CLI_AMI_LIST_WIDTH, d->allow_conference);
+	CLI_AMI_OUTPUT_BOOL("allow_conference",		CLI_AMI_LIST_WIDTH, d->allow_conference);
 	CLI_AMI_OUTPUT_BOOL("conf_play_general_announce", CLI_AMI_LIST_WIDTH, d->conf_play_general_announce);
-	CLI_AMI_OUTPUT_BOOL("conf_play_part_announce", CLI_AMI_LIST_WIDTH, d->conf_play_part_announce);
-	CLI_AMI_OUTPUT_BOOL("conf_mute_on_entry", CLI_AMI_LIST_WIDTH, d->conf_mute_on_entry);
-	CLI_AMI_OUTPUT_PARAM("conf_music_on_hold_class", CLI_AMI_LIST_WIDTH, d->conf_music_on_hold_class);
+	CLI_AMI_OUTPUT_BOOL("conf_play_part_announce",	CLI_AMI_LIST_WIDTH, d->conf_play_part_announce);
+	CLI_AMI_OUTPUT_BOOL("conf_mute_on_entry",	CLI_AMI_LIST_WIDTH, d->conf_mute_on_entry);
+	CLI_AMI_OUTPUT_PARAM("conf_music_on_hold_class",CLI_AMI_LIST_WIDTH, d->conf_music_on_hold_class);
 #endif
+	/* *INDENT-ON* */
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
 #define CLI_AMI_TABLE_NAME Buttons
