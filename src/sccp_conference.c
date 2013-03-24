@@ -832,6 +832,12 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
 
 /*!
  * \brief Show ConfList
+ *
+ * Cisco URL reference
+ * UserData:INTEGER:STRING
+ * UserDataSoftKey:STRING:INTEGER:STRING
+ * UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+ * UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  */
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * c)
 {
@@ -1277,6 +1283,12 @@ void sccp_conference_promote_demote_participant(sccp_conference_t * conference, 
  * usage: enter a phone number via conflist menu, number will be dialed and included into the conference without any further action
  *
  * \todo To Be Implemented
+ * 
+ * Cisco URL reference
+ * UserData:INTEGER:STRING
+ * UserDataSoftKey:STRING:INTEGER:STRING
+ * UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+ * UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  */
 void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_conference_participant_t *moderator)
 {
@@ -1310,7 +1322,9 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 		strcat(xmlStr, xmlTmp);
 		sprintf(xmlTmp, "<Title>Conference %d Invite</Title>\n", conference->id);
 		strcat(xmlStr, "<Prompt>Enter the phone number to invite</Prompt>\n");
-		sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
+//		sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
+//		sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID);
+		sprintf(xmlTmp, "<URL>UserData:%d:%s</URL>\n", appID, "invite");
 		strcat(xmlStr, xmlTmp);
 		
 		strcat(xmlStr, "<InputItem>\n");
