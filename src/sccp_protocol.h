@@ -765,7 +765,7 @@ static const struct skinny_devicetype {
 	{ SKINNY_DEVICETYPE_CISCO7970, 			{ {298,168}, 	SCCP_COLOR, 	16 },	"Cisco 7970"				},
 	{ SKINNY_DEVICETYPE_CISCO7971, 			{ {298,168}, 	SCCP_COLOR, 	12 },	"Cisco 7971"				},
 	{ SKINNY_DEVICETYPE_CISCO7975, 			{ {298,168}, 	SCCP_COLOR, 	16 },	"Cisco 7975"				},
-	{ SKINNY_DEVICETYPE_CISCO7985, 			{ {0,0}, 	SCCP_COLOR, 	16 },	"Cisco 7985"				},
+	{ SKINNY_DEVICETYPE_CISCO7985, 			{ {800,600}, 	SCCP_COLOR, 	24 },	"Cisco 7985"				},
 	{ SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR, 	{ {298,168}, 	SCCP_COLOR, 	24 },	"Cisco IP Communicator"			},
 	{ SKINNY_DEVICETYPE_CISCO6901, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Cisco 6901"				},
 	{ SKINNY_DEVICETYPE_CISCO6921, 			{ {396,81}, 	SCCP_MONOCHROME,0  },	"Cisco 6921"				},
