@@ -34,6 +34,8 @@
 #define SKINNY_PHONE_FEATURES_PROTOCOLVERSION 		0xFF
 #define SKINNY_PHONE_FEATURES_ABBRDIAL 			1<<31
 #define SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES 		1<<24
+#define SKINNY_MaxAnnouncementList			32
+#define SKINNY_StationMaxMonitorParties			16
 
 /*!
  * \brief Skinny Device Feature (ENUM)
@@ -1846,6 +1848,16 @@ typedef struct {
 	uint32_t dummy8;
 } videoParameter_t;												/*!< Video Parameter Structure */
 
+/*! 
+ * \brief xAnnouncementLis 
+ * \since 20130324
+ */
+typedef struct {
+	uint32_t lel_local;
+	uint32_t lel_country;
+	uint32_t lel_deviceTone;
+} skinny_announcementList_t;												/*!< Video Parameter Structure */
+
 /*!
  * \brief SCCP Data Union
  */
@@ -3572,12 +3584,21 @@ typedef union {
 	} StartMediaFailureDetection;
 
 	struct {
+		skinny_announcementList_t announcements[SKINNY_MaxAnnouncementList];
+		uint32_t lel_endOfAnnAck;
+		uint32_t lel_conferenceID;
+		uint32_t lel_matrixConfPartyID[SKINNY_StationMaxMonitorParties];
+		uint32_t lel_hearingConfPartyMask;
+		uint32_t lel_annPlayMode;
 	} StartAnnouncementMessage;
 
 	struct {
+		uint32_t lel_conferenceID;
 	} StopAnnouncementMessage;
 
 	struct {
+		uint32_t lel_conferenceID;
+		uint32_t lel_annPlayStatus;
 	} AnnouncementFinishMessage;
 
 	struct {
