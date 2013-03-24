@@ -62,6 +62,74 @@ static boolean_t sccp_device_falseResult(void)
 	return FALSE;
 }
 
+static void sccp_device_setBackgroundImage(const sccp_device_t *device, const char *url){
+	char xmlStr[2048];
+	unsigned int transactionID = random();
+	
+	if ( strncmp("http://", url, strlen("http://")) != 0 ){
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	}
+	
+	strcat(xmlStr, "<setBackground>");
+	strcat(xmlStr, "<background>");
+	strcat(xmlStr, "<image>");
+	strcat(xmlStr, url);
+	strcat(xmlStr, "</image>");
+	strcat(xmlStr, "<icon>");
+	strcat(xmlStr, url);
+	strcat(xmlStr, "</icon>");
+	strcat(xmlStr, "</background>");
+	strcat(xmlStr, "</setBackground>\n\0");
+	
+	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
+}
+
+static void sccp_device_setBackgroundImageNotSupported(const sccp_device_t *device, const char *url){
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
+}
+
+static void sccp_device_displayBackgroundImagePreview(const sccp_device_t *device, const char *url){
+	char xmlStr[2048];
+	unsigned int transactionID = random();
+	
+	if ( strncmp("http://", url, strlen("http://")) != 0 ){
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	}
+	
+	strcat(xmlStr, "<setBackgroundPreview>");
+	strcat(xmlStr, "<image>");
+	strcat(xmlStr, url);
+	strcat(xmlStr, "</image>");
+	strcat(xmlStr, "</setBackgroundPreview>\n\0");
+	
+	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
+}
+
+static void sccp_device_displayBackgroundImagePreviewNotSupported(const sccp_device_t *device, const char *url){
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
+}
+
+static void sccp_device_setRingtone(const sccp_device_t *device, const char *url){
+	char xmlStr[2048];
+	unsigned int transactionID = random();
+	
+	if ( strncmp("http://", url, strlen("http://")) != 0 ){
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	}
+	
+	strcat(xmlStr, "<setRingTone>");
+	strcat(xmlStr, "<ringTone>");
+	strcat(xmlStr, url);
+	strcat(xmlStr, "</ringTone>");
+	strcat(xmlStr, "</setRingTone>\n\0");
+	
+	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
+}
+
+static void sccp_device_setRingtoneNotSupported(const sccp_device_t *device, const char *url){
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
+}
+
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
@@ -310,6 +378,9 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
 	d->hasDisplayPrompt = sccp_device_trueResult;
+	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
+	d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreviewNotSupported;
+	d->setRingTone = sccp_device_setRingtoneNotSupported;
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
 	return d;
@@ -589,6 +660,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 				/* add text message support */
 				d->pushTextMessage = sccp_device_pushTextMessage;
 				d->pushURL = sccp_device_pushURL;
+				d->setBackgroundImage = sccp_device_setBackgroundImage;
+				d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
+				d->setRingTone = sccp_device_setRingtone;
 			}
 			break;
 		case SKINNY_DEVICETYPE_NOKIA_ICC:
