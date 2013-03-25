@@ -1543,6 +1543,16 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		pbx_log(LOG_NOTICE, "%s: HA Buffer: %s\n", argv[4], pbx_str_buffer(buf));
 		return RESULT_SUCCESS;
 	}
+	if (!strcasecmp(argv[3], "retrieveDeviceCapabilities")) {									/*  WIP */
+		sccp_device_t *d = NULL;
+		d = sccp_device_find_byid(argv[4], FALSE);
+		if (d) {
+			d->retrieveDeviceCapabilities(d);
+			pbx_log(LOG_NOTICE, "%s: Done\n", d->id);
+			d = sccp_device_release(d);
+		}
+		return RESULT_SUCCESS;
+	}
 #endif
 	return RESULT_FAILURE;
 }

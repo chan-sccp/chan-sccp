@@ -62,6 +62,12 @@ static boolean_t sccp_device_falseResult(void)
 	return FALSE;
 }
 
+static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t *device){
+	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
+	unsigned int transactionID = random();
+	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
+}
+
 static void sccp_device_setBackgroundImage(const sccp_device_t *device, const char *url){
 	char xmlStr[2048];
 	unsigned int transactionID = random();
@@ -403,6 +409,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->hasDisplayPrompt = sccp_device_trueResult;
 	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
 	d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreviewNotSupported;
+	d->retrieveDeviceCapabilities = sccp_device_retrieveDeviceCapabilities;
 	d->setRingTone = sccp_device_setRingtoneNotSupported;
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;

@@ -3333,7 +3333,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 				sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
 				break;
-			case APPID_CONFERENCE_INVITE:									// Handle Conference App
+			case APPID_CONFERENCE_INVITE:								// Handle Conference Invite
 #ifdef CS_SCCP_CONFERENCE
 				conferenceID = lineInstance;							// conferenceId is passed on via lineInstance
 				participantID = atoi(data);							// participantId is passed on in the data segment
@@ -3342,8 +3342,8 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 				//sccp_conference_handle_device_to_user(d, callReference, transactionID, conferenceID, participantID);
 #endif
 				break;
-				//                        case APPID_PROVISION:
-				//                                break;
+			case APPID_PROVISION:
+			        break;
 		}
 	} else {
 		// It has data -> must be a softkey
@@ -3392,6 +3392,10 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
 
 	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, data);
+	
+	if (appID == APPID_DEVICECAPABILITIES) {
+	        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Capabilities Response '%s'\n", d->id, data);
+	}
 }
 
 /*!
