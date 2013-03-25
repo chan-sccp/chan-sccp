@@ -1136,6 +1136,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	if ((d = sccp_channel_getDevice_retained(channel))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 
+#if !CS_EXPERIMENTAL
 		/**
 		 *	workaround to fix issue with 7960 and protocol version != 6
 		 *	7960 loses callplane when cancel transfer (end call on other channel).
@@ -1158,8 +1159,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
 			}
 		}
-		
-#if CS_EXPERIMENTAL
+#else		
 		/* Complete transfer when one is in progress */
 		if (channel->privateData->device) {
 			if (	
