@@ -164,7 +164,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 					"DeviceStatus", 
 					"ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", 
 					"REGISTERED", 
-					device->id
+					DEV_ID_LOG(device)
 				);
 			break;
 
@@ -175,7 +175,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 					"DeviceStatus",
 					"ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
 					"UNREGISTERED",
-					device->id
+					DEV_ID_LOG(device)
 				);
 			break;
 
@@ -186,7 +186,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 					"DeviceStatus",
 					"ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
 					"PREREGISTERED",
-					device->id
+					DEV_ID_LOG(device)
 				);
 			break;
 
@@ -198,7 +198,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 					"PeerStatus",
 					"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
 					"ATTACHED",
-					device->id,
+					DEV_ID_LOG(device),
 					linedevice && linedevice->line ? linedevice->line->name : "(null)",
 					linedevice && linedevice->line ? linedevice->line->label : "(null)",
 					linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)",
@@ -214,7 +214,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 					"PeerStatus",
 					"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
 					"DETACHED",
-					device->id,
+					DEV_ID_LOG(device),
 					linedevice && linedevice->line ? linedevice->line->name : "(null)",
 					linedevice && linedevice->line ? linedevice->line->label : "(null)",
 					linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)",
@@ -223,8 +223,8 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
-			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
-			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
+			device = event->event.featureChanged.device;						// already retained in the event
+			linedevice = event->event.featureChanged.linedevice;					// already retained in the event
 			sccp_feature_type_t featureType = event->event.featureChanged.featureType;
 			switch(featureType) {
 				case SCCP_FEATURE_DND:
@@ -234,7 +234,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 							"ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", 
 							featureType2str(SCCP_FEATURE_DND), 
 							dndmode2str(device->dndFeature.status), 
-							device->id
+							DEV_ID_LOG(device)
 						);
 					break;
 				case SCCP_FEATURE_CFWDALL:
@@ -245,8 +245,8 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 							"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: On\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
 							featureType2str(featureType),
 							(SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.enabled) ? linedevice->cfwdBusy.number : "(null)"),
-							linedevice->line ? linedevice->line->name : "(null)",
-							device->id
+							(linedevice && linedevice->line) ? linedevice->line->name : "(null)",
+							DEV_ID_LOG(device)
 						);
 					break;
 				case SCCP_FEATURE_CFWDNONE:
@@ -255,8 +255,8 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 							"CallForward",
 							"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
 							featureType2str(featureType),
-							linedevice->line ? linedevice->line->name : "(null)",
-							device->id
+							(linedevice && linedevice->line) ? linedevice->line->name : "(null)",
+							DEV_ID_LOG(device)
 						);
 					break;
 				default:
