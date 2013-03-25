@@ -583,7 +583,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("digit timeout", 		CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
 	CLI_AMI_OUTPUT_BOOL("Nat", 			CLI_AMI_LIST_WIDTH, d->nat);
 	CLI_AMI_OUTPUT_YES_NO("Videosupport?", 		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
-	CLI_AMI_OUTPUT_BOOL("Direct RTP",		LI_AMI_LIST_WIDTH, d->directrtp);
+	CLI_AMI_OUTPUT_BOOL("Direct RTP",		CLI_AMI_LIST_WIDTH, d->directrtp);
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
 	CLI_AMI_OUTPUT_PARAM("Bind Address", 		CLI_AMI_LIST_WIDTH, "%s:%d", (d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "???.???.???.???", (d->session) ? ntohs(d->session->sin.sin_port) : 0);
 	CLI_AMI_OUTPUT_PARAM("Server Address", 		CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
