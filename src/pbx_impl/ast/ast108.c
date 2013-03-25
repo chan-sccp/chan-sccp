@@ -1470,7 +1470,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 	if (requestor) {
 		/* set calling party */
 		sccp_channel_set_callingparty(channel, requestor->caller.id.name.str, requestor->caller.id.number.str);
-		sccp_channel_set_originalCalledparty(channel, requestor->redirecting.to.name.str, requestor->redirecting.to.number.str);
+		sccp_channel_set_originalCalledparty(channel, requestor->redirecting.orig.name.str, requestor->redirecting.orig.number.str);
 	}
 
 EXITFUNC:
