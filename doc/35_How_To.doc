@@ -464,7 +464,7 @@
  * Usage: SCCPSetCodec(codec)
  * Sets the preferred codec for dialing out with the next DIAL statemnet using an sccp channel.
  *
- * Previous function name SetSCCPCodec(codec) is now deprecated in favour of SCCPSetCodec.
+ * SCCPSetCodec(codec) is now deprecated in favour of generic channel method 'Set(CHANNEL(codec)=alaw)'. Please do not use SCCPSetCodec anymore.
  *
  * \subsection nf_sccp_dialplan_sccpsetcalledparty SCCPSetCalledParty
  * Usage: SCCPSetCalledParty("name" \<ext\>)
