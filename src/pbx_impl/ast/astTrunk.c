@@ -1332,7 +1332,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	if (requestor) {
 		/* set calling party */
 		sccp_channel_set_callingparty(channel, (char *) ast_channel_caller((PBX_CHANNEL_TYPE *) requestor)->id.name.str, (char *) ast_channel_caller((PBX_CHANNEL_TYPE *) requestor)->id.number.str);
-		sccp_channel_set_originalCalledparty(channel, (char *) ast_channel_redirecting((PBX_CHANNEL_TYPE *) requestor)->to.name.str, (char *) ast_channel_redirecting((PBX_CHANNEL_TYPE *) requestor)->to.number.str);
+		sccp_channel_set_originalCalledparty(channel, (char *) ast_channel_redirecting((PBX_CHANNEL_TYPE *) requestor)->orig.name.str, (char *) ast_channel_redirecting((PBX_CHANNEL_TYPE *) requestor)->orig.number.str);
 
 		if (ast_channel_linkedid(requestor)) {
 			ast_channel_linkedid_set(channel->owner, ast_channel_linkedid(requestor));
