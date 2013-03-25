@@ -45,6 +45,8 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `setvar` varchar(100) default NULL,
   `disallow` varchar(255) DEFAULT NULL,
   `allow` varchar(255) DEFAULT NULL,
+  `backgroundImage` varchar(255) DEFAULT NULL,
+  `ringtone` varchar(255) DEFAULT NULL,
   `name` varchar(15) NOT NULL default '',
   PRIMARY KEY  (`name`)
 ) ENGINE=INNODB DEFAULT CHARSET=latin1;

@@ -21,3 +21,6 @@ ALTER TABLE `sccpline` DROP COLUMN `audio_cos`;
 ALTER TABLE `sccpline` DROP COLUMN `video_tos`;
 ALTER TABLE `sccpline` DROP COLUMN `video_cos`;
 update sccpdevice set audio_tos="0xB8",audio_cos="6",video_tos="0x88",video_cos="5" where audio_tos=NULL or audio_tos="";
+
+ALTER TABLE `sccpdevice` ADD `backgroundImage` varchar(255) DEFAULT NULL;
+ALTER TABLE `sccpdevice` ADD `ringtone` varchar(255) DEFAULT NULL;
