@@ -609,6 +609,7 @@ static struct pbx_custom_function sccpchannel_function = {
  * \return      Success as int
  * 
  * \called_from_asterisk
+ * \deprecated
  */
 #if ASTERISK_VERSION_NUMBER >= 10800
 static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, const char *data)
@@ -627,14 +628,15 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 
 	res = sccp_channel_setPreferredCodec(c, data);
 	c = sccp_channel_release(c);
+	pbx_log(LOG_WARNING, "SCCPSetCodec: Is now deprecated. Please use 'Set(CHANNEL(codec)=%s)' insteadl.\n", data);
 	return res ? 0 : -1;
 }
 
 /*! \brief Stucture to declare a dialplan function: SETSCCPCODEC */
 static char *prefcodec_name = "SCCPSetCodec";
 static char *old_prefcodec_name = "SetSCCPCodec";
-static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel";
-static char *prefcodec_descr = "Usage: SCCPSetCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\n";
+static char *prefcodec_synopsis = "Sets the preferred codec for the current sccp channel (DEPRECATED use generic 'Set(CHANNEL(codec)=alaw)' instead)";
+static char *prefcodec_descr = "Usage: SCCPSetCodec(codec)" "Sets the preferred codec for dialing out with the current chan_sccp channel\nDEPRECATED use generic 'Set(CHANNEL(codec)=alaw)' instead\n";
 
 /*!
  * \brief       Set the Name and Number of the Called Party to the Calling Phone
