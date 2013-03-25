@@ -186,6 +186,7 @@ private = on						; permit the private function softkey for this device
 privacy = full						; full = disable hints notification on devices, on = hints showed depending on private key, off = hints always showed
 mwilamp = blink						; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
 mwioncall = on						; Set the MWI on call.
+useRedialMenu = on					; Show the redial phone book list instead of dialing the last number (adv_feature)
 
 [SEP001122334455](7960)					; Use Device Template 7960
 description = Phone Number One				; Give a description to the Phone (Displayed in the Right Top Corner on the phone)
