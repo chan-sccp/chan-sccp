@@ -47,7 +47,6 @@ static enum ast_bridge_result sccp_wrapper_asterisk18_rtpBridge(PBX_CHANNEL_TYPE
 static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE * ast, const char *text);
 static int sccp_wrapper_recvdigit_begin(PBX_CHANNEL_TYPE * ast, char digit);
 static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsigned int duration);
-static int sccp_wrapper_asterisk18_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel);
 boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId);
@@ -93,7 +92,7 @@ static struct ast_channel_tech sccp_tech = {
 	write_video:		sccp_wrapper_asterisk18_rtp_write,
 	write_text:		NULL,
 	bridged_channel:	NULL,
-	func_channel_read:	sccp_wrapper_asterisk18_channel_read,
+	func_channel_read:	sccp_wrapper_asterisk_channel_read,
 	func_channel_write:	sccp_asterisk_pbx_fktChannelWrite,
 	get_base_channel:	NULL,
 	set_base_channel:	NULL,
@@ -131,7 +130,7 @@ const struct ast_channel_tech sccp_tech = {
 	.send_html 		= sccp_pbx_sendHTML,
 	//.send_image           =
 
-	.func_channel_read 	= sccp_wrapper_asterisk18_channel_read,
+	.func_channel_read 	= sccp_wrapper_asterisk_channel_read,
 	.func_channel_write 	= sccp_asterisk_pbx_fktChannelWrite,
 
 	.send_digit_begin 	= sccp_wrapper_recvdigit_begin,
@@ -2553,49 +2552,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_findChannelWithCallback(int (*c
 	}
 	ast_channel_iterator_destroy(iterator);
 	return remotePeer;
-}
-
-/*!
- * \brief ACF Channel Read callback
- *
- * \param ast Asterisk Channel
- * \param funcname      functionname as const char *
- * \param args          arguments as char *
- * \param buf           buffer as char *
- * \param buflen        bufferlenght as size_t
- * \return result as int
- *
- * \called_from_asterisk
- * 
- * \test ACF Channel Read Needs to be tested
- */
-static int sccp_wrapper_asterisk18_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen)
-{
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
-	int res = 0;
-
-	if (!ast || ast->tech != &sccp_tech) {
-		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
-		return -1;
-	}
-
-	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
-		res = -1;
-	} else {
-		if (!strcasecmp(args, "peerip")) {
-			sccp_copy_string(buf, c->rtp.audio.phone_remote.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.phone_remote.sin_addr) : "", buflen);
-		} else if (!strcasecmp(args, "recvip")) {
-			sccp_copy_string(buf, c->rtp.audio.phone.sin_addr.s_addr ? pbx_inet_ntoa(c->rtp.audio.phone.sin_addr) : "", buflen);
-		} else if (!strcasecmp(args, "from") && (d = sccp_channel_getDevice_retained(c))) {
-			sccp_copy_string(buf, (char *) d->id, buflen);
-			d = sccp_device_release(d);
-		} else {
-			res = -1;
-		}
-		c = sccp_channel_release(c);
-	}
-	return res;
 }
 
 /*! \brief Set an option on a asterisk channel */

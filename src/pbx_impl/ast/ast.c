@@ -750,4 +750,53 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 #endif
 }
 
+/*!
+ * \brief ACF Channel Read callback
+ *
+ * \param ast Asterisk Channel
+ * \param funcname      functionname as const char *
+ * \param args          arguments as char *
+ * \param buf           buffer as char *
+ * \param buflen        bufferlenght as size_t
+ * \return result as int
+ *
+ * \called_from_asterisk
+ * 
+ * \test ACF Channel Read Needs to be tested
+ */
+int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen)
+{
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
+	int res = 0;
+
+	if (!ast || !CS_AST_CHANNEL_PVT_IS_SCCP(ast)) {
+		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
+		return -1;
+	}
+
+	if ((c = get_sccp_channel_from_pbx_channel(ast))) {
+		if ((d = sccp_channel_getDevice_retained(c))) {
+			if (!strcasecmp(args, "peerip")) {
+				ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), buflen);
+			} else if (!strcasecmp(args, "recvip")) {
+				ast_copy_string(buf, pbx_inet_ntoa(d->session->phone_sin.sin_addr), buflen);
+			} else if (!strcasecmp(args, "useragent")) {
+				sccp_copy_string(buf, devicetype2str(d->skinny_type), buflen);
+			} else if (!strcasecmp(args, "from")) {
+				sccp_copy_string(buf, (char *) d->id, buflen);
+			} else {
+				res = -1;
+			}
+			d = sccp_device_release(d);
+		} else {
+			res = -1;
+		}
+		c = sccp_channel_release(c);
+	} else {
+		res = -1;
+	}
+	return res;
+}
+
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
