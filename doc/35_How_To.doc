@@ -385,14 +385,17 @@
  * \subsection nf_sccp_dialplan_sccpdevice SCCPDEVICE
  *
  * Usage: SCCPDEVICE([deviceId|current],[option]);
+ * Use: core show functions SCCPDEVICE to find out all the options
  * 
  * the first param can be either "current" or a device ID like "SEP????????????" 
  * 
  * the second param defines the information to be retrieved and can be on of these:
  * ip, id, status, description, config_type, skinny_type, tz_offset, image_version, accessory_status, registration_state
  * codecs, state, lines_registered, lines_count, last_number, capability, early_rtp, channel_count, supported_protocol_version
- * used_protocol_version, mwi_light, dynamic|realtime, active_channel, transfer_channel, conference_channel, current_line
- * button_config, pending_update, pending_delete, chanvar[varname], codec[codecname]
+ * used_protocol_version, mwi_light, dynamic|realtime, active_channel, transfer_channel,
+ * conference_id, allow_conference, conf_play_general_announce, allow_conference, 
+ * conf_play_part_announce, conf_mute_on_entry, conf_music_on_hold_class,
+ * current_line button_config, pending_update, pending_delete, chanvar[varname], codec[codecname]
  * 
  * Within the dialplan you can use the function SCCPDEVICE to retrieve information about an SCCP Device like this:
  * \code
@@ -408,6 +411,7 @@
  * \subsection nf_sccp_dialplan_sccpline SCCPLINE
  *
  * Usage: SCCPLINE([current|parent|linename],[option]);
+ * Use: core show functions SCCPLINE to find out all the options
  * 
  * the first param can be either "current", "parent" or a line name assigned to the line. 
  * "parent" refers to the line who forwarded the call to you and is only filled if this channel has been forwarded.
@@ -431,14 +435,16 @@
  * \subsection nf_sccp_dialplan_sccpchannel SCCPCHANNEL
  *
  * Usage: SCCPCHANNEL([current|callid],[option]);
- * 
+ * Use: core show functions SCCPCHANNEL to find out all the options
+ *
  * the first param can be either "current" or a callid assigned to the channel. 
  * 
  * the second param defines the information to be retrieved and can be on of these:
  * callid, format, isCodecFix, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, callingPartyNumber
  * originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, originalCalledPartyNumber, lastRedirectingPartyName
  * lastRedirectingPartyNumber, cgpnVoiceMailbox, cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, 
- * passthrupartyid, state, previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, monitorEnabled, parent
+ * passthrupartyid, state, previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, monitorEnabled, parent, 
+ * recvip, peerip
  *
  * De carefull with SCCPCHANNEL, When calling this you must provide a valid SCCP Channel. So check if the channel is of 
  * type SCCP before calling this function !
@@ -458,6 +464,19 @@
  * \endcode
  * to put the information of the/a channel in a dialplan variable.
  *
+ * \subsection nf_sccp_dialplan_sccpchannel Generic CHANNEL
+ *
+ * Generic Dialplan Cmd CHANNEL information provided when used with an SCCP channel.
+ * 
+ * Usage: CHANNEL([option]);
+ *
+ * Possible Options:
+ *  - recvip: Current IP-Addres of the Connection to the Phone
+ *  - peerip: Real IP-Address of the Phone in question (Could be different if the phone is on a Natted Connection)
+ *  -  from: device type
+ *  - useragent: device name (a.k.a SEP00123456789)
+ *  .
+ * 
  *
  * Dialplan function to manipulate sccp channels and dial commands are:
  * \subsection nf_sccp_dialplan_sccpsetcodec SCCPSetCodec
