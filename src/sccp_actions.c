@@ -392,9 +392,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		ss = (struct sockaddr_storage *) &sin6;
 	}
 #endif
-#else
-        s->phone_sin.sin_family = AF_INET;
-        memcpy(&s->phone_sin.sin_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 4);
 #endif
 
 	// search for all devices including realtime
@@ -3216,6 +3213,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 #endif
 }
 
+
 /*!
  * \brief Handle Keep Alive Message
  * \param s SCCP Session
@@ -3224,18 +3222,8 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
  */
 void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-        if (s && s->device && s->device->registrationState > SKINNY_DEVICE_RS_NONE) {
-                sccp_moo_t *r1 = sccp_build_packet(KeepAliveAckMessage, 0);
-                sccp_session_send2(s, r1);
-                s->gone_missing = 0;
-	} else if (s && s->gone_missing < 2) {
-	        pbx_log(LOG_NOTICE, "SCCP: Received %d Keepalive from %s without a valid/complete registration. Answering\n", s->gone_missing, pbx_inet_ntoa(s->sin.sin_addr));
-                sccp_moo_t *r1 = sccp_build_packet(KeepAliveAckMessage, 0);
-	        sccp_session_send2(s, r1);
-	        s->gone_missing++;
-	} else {
-                pbx_log(LOG_NOTICE, "SCCP: Received 3rd Keepalive without a valid/complete registration. Not answering.\n");
-	}
+        sccp_moo_t *r1 = sccp_build_packet(KeepAliveAckMessage, 0);
+        sccp_session_send2(s, r1);
 }
 
 /*!
