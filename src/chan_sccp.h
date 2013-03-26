@@ -1052,6 +1052,8 @@ struct sccp_session {
 	uint32_t buffer_size;											/*!< Session Buffer Size */
 #ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage *ss;										/*!< Incoming Socket Address Storage */
+#else
+	struct sockaddr_in phone_sin;										/*!< Phone Socket Address */
 #endif
 	struct sockaddr_in sin;											/*!< Incoming Socket Address */
 	struct in_addr ourip;											/*!< Our IP is for rtp use */
