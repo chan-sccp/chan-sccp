@@ -577,7 +577,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if (!strcasecmp(colname, "parent")) {
 		snprintf(buf, len, "%d", c->parentChannel->callid);
 	} else if (!strcasecmp(colname, "bridgepeer")) {
-		snprintf(buf, len, "%s", (c->owner && ast_bridged_channel(c->owner)) ? ast_channel_name(ast_bridged_channel(c->owner)) : "<unknown>");
+		snprintf(buf, len, "%s", (c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ? pbx_channel_name(CS_AST_BRIDGED_CHANNEL(c->owner)) : "<unknown>");
 	} else if (!strcasecmp(colname, "peerip")) {	// NO-NAT (Ip-Address Associated with the Session->sin)
 		if ((d = sccp_channel_getDevice_retained(c))) {
 			ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), len);
@@ -656,7 +656,7 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 
 	res = sccp_channel_setPreferredCodec(c, data);
 	c = sccp_channel_release(c);
-	pbx_log(LOG_WARNING, "SCCPSetCodec: Is now deprecated. Please use 'Set(CHANNEL(codec)=%s)' insteadl.\n", data);
+	pbx_log(LOG_WARNING, "SCCPSetCodec: Is now deprecated. Please use 'Set(CHANNEL(codec)=%s)' insteadl.\n", (char *) data);
 	return res ? 0 : -1;
 }
 

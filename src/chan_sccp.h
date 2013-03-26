@@ -1066,6 +1066,7 @@ struct sccp_session {
 	pthread_t session_thread;										/*!< Session Thread */
 	volatile uint8_t session_stop;										/*!< Signal Session Stop */
 	uint8_t protocolType;
+	uint8_t gone_missing;											/*!< KeepAlive received from an unregistered device */
 };														/*!< SCCP Session Structure */
 
 /*!
