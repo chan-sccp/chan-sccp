@@ -53,6 +53,39 @@ void sccp_handle_alarm(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t *
  * \param no_s SCCP Session = NULL
  * \param no_d SCCP Device = NULL
  * \param r SCCP Moo
+ *
+ * Interesting values for Last = 
+ * 0 Phone Load Is Rejected
+ * 1 Phone Load TFTP Size Error
+ * 2 Phone Load Compressor Error
+ * 3 Phone Load Version Error
+ * 4 Disk Full Error
+ * 5 Checksum Error
+ * 6 Phone Load Not Found in TFTP Server
+ * 7 TFTP Timeout
+ * 8 TFTP Access Error
+ * 9 TFTP Error
+ * 10 CCM TCP Connection timeout
+ * 11 CCM TCP Connection Close because of bad Ack
+ * 12 CCM Resets TCP Connection
+ * 13 CCM Aborts TCP Connection
+ * 14 CCM TCP Connection Closed
+ * 15 CCM TCP Connection Closed because ICMP Unreachable
+ * 16 CCM Rejects TCP Connection
+ * 17 Keepalive Time Out
+ * 18 Fail Back to Primary CCM
+ * 20 User Resets Phone By Keypad
+ * 21 Phone Resets because IP configuration
+ * 22 CCM Resets Phone
+ * 23 CCM Restarts Phone
+ * 24 CCM Rejects Phone Registration
+ * 25 Phone Initializes
+ * 26 CCM TCP Connection Closed With Unknown Reason
+ * 27 Waiting For State From CCM
+ * 28 Waiting For Response From CCM
+ * 29 DSP Alarm
+ * 30 Phone Abort CCM TCP Connection
+ * 31 File Authorization Failed 
  */
 void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sccp_moo_t * r)
 {
@@ -392,6 +425,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		ss = (struct sockaddr_storage *) &sin6;
 	}
 #endif
+#else
         s->phone_sin.sin_family = AF_INET;
         memcpy(&s->phone_sin.sin_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 4);
 #endif
