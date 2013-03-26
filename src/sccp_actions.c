@@ -392,6 +392,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 		ss = (struct sockaddr_storage *) &sin6;
 	}
 #endif
+        s->phone_sin.sin_family = AF_INET;
+        memcpy(&s->phone_sin.sin_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 4);
 #endif
 
 	// search for all devices including realtime
