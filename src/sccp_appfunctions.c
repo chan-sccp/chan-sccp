@@ -37,7 +37,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
  */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 
 	char *colname;
 
@@ -64,8 +64,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		sccp_channel_t *c;
 
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-
-			/*                      pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n"); */
+			/*pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n"); */
 			return -1;
 		}
 
@@ -221,7 +220,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			buf[0] = '\0';
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCPDEVICE(): unknown function option: %s\n", data);
+		pbx_log(LOG_WARNING, "SCCPDEVICE(%s): unknown colname: %s\n", data, colname);
 		buf[0] = '\0';
 	}
 	sccp_device_release(d);
@@ -237,7 +236,14 @@ static struct pbx_custom_function sccpdevice_function = {
 	.desc = "DeviceId = Device Identifier (i.e. SEP0123456789)\n" "Option = One of the possible options mentioned in arguments\n",
 #if ASTERISK_VERSION_NUMBER > 10601
 	.arguments = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
-	    "Option = One of these possible options:\n" "ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n" "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" "mwi_light, dynamic, realtime, active_channel, transfer_channel, conference_channel, \n" "current_line, button_config, pending_delete, chanvar[], codec[]",
+	    "Option = One of these possible options:\n" 
+		    "ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n" 
+		    "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" 
+		    "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" 
+		    "mwi_light, dynamic, realtime, active_channel, transfer_channel, \n" 
+		    "conference_id, allow_conference, conf_play_general_announce, allow_conference, \n"
+		    "conf_play_part_announce, conf_mute_on_entry, conf_music_on_hold_class, \n"
+		    "current_line, button_config, pending_delete, chanvar[], codec[]",
 #endif
 };
 
@@ -260,9 +266,8 @@ static struct pbx_custom_function sccpdevice_function = {
  */
 static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
-	sccp_line_t *l;
-
-	sccp_channel_t *c;
+	sccp_line_t *l = NULL;
+	sccp_channel_t *c = NULL;
 
 	char *colname;
 	char tmp[1024] = "";
@@ -313,7 +318,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		c = sccp_channel_release(c);
 	} else {
 		if (!(l = sccp_line_find_byname_wo(data, TRUE))) {
-			pbx_log(LOG_WARNING, "sccp_func_sccpdevice: SCCP Line not available\n");
+			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
 			return -1;
 		}
 	}
@@ -434,7 +439,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			}
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCPLINE(): unknown function option: %s\n", data);
+		pbx_log(LOG_WARNING, "SCCPLINE(%s): unknown colname: %s\n", data, colname);
 		buf[0] = '\0';
 	}
 	sccp_line_release(l);
@@ -449,7 +454,12 @@ static struct pbx_custom_function sccpline_function = {
 	.read = sccp_func_sccpline,
 	.desc = "LineName = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
 #if ASTERISK_VERSION_NUMBER > 10601
-	.arguments = "LineName = use on off these: 'current', 'parent', actual linename\n" "Option = One of these possible options:\n" "id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n" "language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n" "incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n" "regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
+	.arguments = "LineName = use on off these: 'current', 'parent', actual linename\n" 
+	"Option = One of these possible options:\n" 
+		"id, name, description, label, vmnum, trnsfvm, meetme, meetmenum, meetmeopts, context, \n" 
+		"language, accountcode, musicclass, amaflags, callgroup, pickupgroup, cid_name, cid_num, \n" 
+		"incoming_limit, channel_count, dynamic, realtime, pending_delete, pending_update, \n" 
+		"regexten, regcontext, adhoc_number, newmsgs, oldmsgs, num_lines, cfwd, devices, chanvar[]"
 #endif
 };
 
@@ -469,7 +479,8 @@ static struct pbx_custom_function sccpline_function = {
  */
 static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
 
 	char *colname;
 
@@ -491,7 +502,6 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		}	
 	} else {
 		uint32_t callid = atoi(data);
-
 		if (!(c = sccp_channel_find_byid(callid))) {
 			pbx_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
 			return -1;
@@ -566,8 +576,18 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 #endif
 	} else if (!strcasecmp(colname, "parent")) {
 		snprintf(buf, len, "%d", c->parentChannel->callid);
-	} else if (!strcasecmp(colname, "peer")) {
-		/*! \todo needs to be implemented */
+	} else if (!strcasecmp(colname, "bridgepeer")) {
+		snprintf(buf, len, "%s", (c->owner && ast_bridged_channel(c->owner)) ? ast_channel_name(ast_bridged_channel(c->owner)) : "<unknown>");
+	} else if (!strcasecmp(colname, "peerip")) {	// NO-NAT (Ip-Address Associated with the Session->sin)
+		if ((d = sccp_channel_getDevice_retained(c))) {
+			ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), len);
+			d = sccp_device_release(d);
+		}
+	} else if (!strcasecmp(colname, "recvip")) {	// NAT (Actual Source IP-Address Reported by the phone upon registration)
+		if ((d = sccp_channel_getDevice_retained(c))) {
+			ast_copy_string(buf, pbx_inet_ntoa(d->session->phone_sin.sin_addr), len);
+			d = sccp_device_release(d);
+		}
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
 
@@ -583,7 +603,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			buf[0] = '\0';
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCPCHANNEL(): unknown function option: %s\n", data);
+		pbx_log(LOG_WARNING, "SCCPCHANNEL(%s): unknown colname: %s\n", data, colname);
 		buf[0] = '\0';
 	}
 	sccp_channel_release(c);
@@ -598,7 +618,15 @@ static struct pbx_custom_function sccpchannel_function = {
 	.read = sccp_func_sccpchannel,
 	.desc = "ChannelId = Name of the line to be queried.\n" "Option = One of the possible options mentioned in arguments\n",
 #if ASTERISK_VERSION_NUMBER > 10601
-	.arguments = "ChannelId = use on off these: 'current', actual callid\n" "Option = One of these possible options:\n" "callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n" "callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n" "originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n" "cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n" "previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n" "monitorEnabled, parent, codec[]"	// not implemented yet: "/*conference*/, /*peer*/"
+	.arguments = "ChannelId = use on off these: 'current', actual callid\n" 
+	"Option = One of these possible options:\n" 
+		"callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n"
+		"callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n"
+		"originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n"
+		"cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n"
+		"previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n"
+		"monitorEnabled, parent, bridgepeer, peerip, recvip, codec[]"
+		// not implemented yet: "/*conference*/"
 #endif
 };
 
