@@ -363,7 +363,7 @@ void sccp_conference_update_callInfo(sccp_channel_t *channel, PBX_CHANNEL_TYPE *
 	ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
 	
 // 	pbx_log(LOG_NOTICE, "%s: update connected line to %s\n", pbx_channel_name(channel->owner), confstr);
-// 	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 }
 
 /*!
