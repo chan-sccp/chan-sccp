@@ -261,24 +261,24 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
 
-	if (c && (d = sccp_channel_getDevice_retained(c))) {
-		if (c->line) {
-			l = c->line;
+	
+	d = sccp_channel_getDevice_retained(c);
+	l = c->line;
 
-			if (c->rtp.audio.rtp) {
-				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
-				PBX(rtp_destroy) (c->rtp.audio.rtp);
-				c->rtp.audio.rtp = NULL;
-			}
-
-			if (c->rtp.video.rtp) {
-				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", l ? l->name : "(null)", c->callid);
-				PBX(rtp_destroy) (c->rtp.video.rtp);
-				c->rtp.video.rtp = NULL;
-			}
-		}
-		d = sccp_device_release(d);
+	if (c->rtp.audio.rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid);
+		PBX(rtp_destroy) (c->rtp.audio.rtp);
+		c->rtp.audio.rtp = NULL;
 	}
+
+	if (c->rtp.video.rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid);
+		PBX(rtp_destroy) (c->rtp.video.rtp);
+		c->rtp.video.rtp = NULL;
+	}
+
+	
+	d = d ? sccp_device_release(d) : NULL;
 }
 
 /*!
