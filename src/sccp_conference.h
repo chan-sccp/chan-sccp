@@ -70,8 +70,7 @@ extern "C" {
 
 	void sccp_conference_module_start(void);
 	sccp_conference_t *sccp_conference_create(sccp_device_t *device, sccp_channel_t * channel);
-	void sccp_conference_update_callInfo(sccp_channel_t *channel);
-	void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE *pbxChannel);
+	void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t *originalSCCPChannel, PBX_CHANNEL_TYPE *pbxChannel);
 	void sccp_conference_resume(sccp_conference_t * conference);
 	void sccp_conference_start(sccp_conference_t * conference);
 	void sccp_conference_update(sccp_conference_t * conference);

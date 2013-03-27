@@ -29,6 +29,7 @@ static const uint32_t appID = APPID_CONFERENCE;
 
 SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
 static void *sccp_conference_thread(void *data);
+void sccp_conference_update_callInfo(sccp_channel_t *channel);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
 int playback_to_channel(sccp_conference_participant_t * participant, const char *filename, int say_number);
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
@@ -194,6 +195,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->playback_announcements = device->conf_play_part_announce;
 		
 		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
+		sccp_conference_update_callInfo(channel);
 		participant->isModerator = TRUE;
 		device->conferencelist_active = TRUE;				// Activate conflist
 		sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
@@ -320,21 +322,25 @@ static void sccp_conference_addParticipant_toList(sccp_conference_t * conference
  */
 void sccp_conference_update_callInfo(sccp_channel_t *channel)
 {
+	char *confstr="";
+	sprintf(confstr, "Conference %d", channel->conference_id);
+	
 	switch (channel->calltype) {	
 		case SKINNY_CALLTYPE_INBOUND:
 			sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.originalCallingPartyName));
 			channel->callInfo.originalCallingParty_valid = 1;
-			sprintf(channel->callInfo.callingPartyName, "Conference %d (%d)", channel->conference_id, channel->conference_participant_id);
+			sccp_copy_string(channel->callInfo.callingPartyName, confstr, sizeof(channel->callInfo.callingPartyName));
 			channel->callInfo.callingParty_valid = 1;
 			break;
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
 			sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.originalCallingPartyName));
 			channel->callInfo.originalCalledParty_valid = 1;
-			sprintf(channel->callInfo.calledPartyName, "Conference %d (%d)", channel->conference_id, channel->conference_participant_id);
+			sccp_copy_string(channel->callInfo.calledPartyName, confstr, sizeof(channel->callInfo.calledPartyName));
 			channel->callInfo.calledParty_valid = 1;
 			break;
 	}
+	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 }
 
 /*!
@@ -355,7 +361,7 @@ void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_n
 #if HAVE_PBX_CEL_H
 #  include <asterisk/cel.h>
 #endif
-void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX_CHANNEL_TYPE * pbxChannel)
+void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t *originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel)
 {
 	sccp_channel_t *channel = NULL;
 
@@ -366,6 +372,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, PBX
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Adding participant %d (Channel %s)\n", conference->id, participant->id, pbx_channel_name(pbxChannel));
 
 			sccp_device_t *device = NULL;
+			sccp_conference_update_callInfo(originalSCCPChannel);					// Update CallerId on originalChannel before masquerade
 
 			// if peer is sccp then retain peer_sccp_channel
 			channel = get_sccp_channel_from_pbx_channel(pbxChannel);
