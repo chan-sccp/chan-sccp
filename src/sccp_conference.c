@@ -29,7 +29,7 @@ static const uint32_t appID = APPID_CONFERENCE;
 
 SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
 static void *sccp_conference_thread(void *data);
-void sccp_conference_update_callInfo(sccp_channel_t *channel);
+void sccp_conference_update_callInfo(sccp_channel_t *channel, PBX_CHANNEL_TYPE * pbxChannel);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
 int playback_to_channel(sccp_conference_participant_t * participant, const char *filename, int say_number);
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
@@ -195,7 +195,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->playback_announcements = device->conf_play_part_announce;
 		
 		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
-		sccp_conference_update_callInfo(channel);
+		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer);
 		participant->isModerator = TRUE;
 		device->conferencelist_active = TRUE;				// Activate conflist
 		sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
@@ -320,7 +320,7 @@ static void sccp_conference_addParticipant_toList(sccp_conference_t * conference
 /*!
  * \brief Update the callinfo on the sccp channel
  */
-void sccp_conference_update_callInfo(sccp_channel_t *channel)
+void sccp_conference_update_callInfo(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbxChannel)
 {
 	char confstr[StationMaxNameSize] = "";
 	snprintf(confstr, StationMaxNameSize, "Conference %d", channel->conference_id);
@@ -340,7 +340,30 @@ void sccp_conference_update_callInfo(sccp_channel_t *channel)
 			channel->callInfo.calledParty_valid = 1;
 			break;
 	}
-	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+	
+	/* this is just a workaround to update sip and other channels also -MC */
+	/** @todo we should fix this workaround -MC */
+	struct ast_party_connected_line connected;
+	struct ast_set_party_connected_line update_connected;
+	memset(&update_connected, 0, sizeof(update_connected));
+	ast_party_connected_line_init(&connected);
+	
+	update_connected.id.number = 1;
+	connected.id.number.valid = 1;
+	connected.id.number.str = confstr;
+	connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	
+	update_connected.id.name = 1;
+	connected.id.name.valid = 1;
+	connected.id.name.str = confstr;
+	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
+	
+	ast_set_party_id_all(&update_connected.priv);
+	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
+	ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
+	
+// 	pbx_log(LOG_NOTICE, "%s: update connected line to %s\n", pbx_channel_name(channel->owner), confstr);
+// 	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 }
 
 /*!
@@ -372,7 +395,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Adding participant %d (Channel %s)\n", conference->id, participant->id, pbx_channel_name(pbxChannel));
 
 			sccp_device_t *device = NULL;
-			sccp_conference_update_callInfo(originalSCCPChannel);					// Update CallerId on originalChannel before masquerade
+			sccp_conference_update_callInfo(originalSCCPChannel, pbxChannel);					// Update CallerId on originalChannel before masquerade
 
 			// if peer is sccp then retain peer_sccp_channel
 			channel = get_sccp_channel_from_pbx_channel(pbxChannel);
@@ -383,6 +406,10 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
 			}
+			
+			
+			
+			
 
 			if (sccp_conference_masqueradeChannel(pbxChannel, conference, participant)) {
 				sccp_conference_addParticipant_toList(conference, participant);
