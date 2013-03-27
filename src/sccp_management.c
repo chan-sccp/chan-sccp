@@ -239,15 +239,18 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 					break;
 				case SCCP_FEATURE_CFWDALL:
 				case SCCP_FEATURE_CFWDBUSY:
-// 					manager_event(
-// 							EVENT_FLAG_CALL,
-// 							"CallForward",
-// 							"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: On\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-// 							featureType2str(featureType),
-// 							(SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.enabled) ? linedevice->cfwdBusy.number : "(null)"),
-// 							(linedevice && linedevice->line) ? linedevice->line->name : "(null)",
-// 							DEV_ID_LOG(device)
-// 					);
+					if(linedevice) {
+						manager_event(
+								EVENT_FLAG_CALL,
+								"CallForward",
+								"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
+								featureType2str(featureType),
+								(SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"),
+								(SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"),
+								(linedevice->line) ? linedevice->line->name : "(null)",
+								DEV_ID_LOG(device)
+						);
+					}
 					break;
 				case SCCP_FEATURE_CFWDNONE:
 					manager_event(
