@@ -322,8 +322,8 @@ static void sccp_conference_addParticipant_toList(sccp_conference_t * conference
  */
 void sccp_conference_update_callInfo(sccp_channel_t *channel)
 {
-	char *confstr="";
-	sprintf(confstr, "Conference %d", channel->conference_id);
+	char confstr[StationMaxNameSize] = "";
+	snprintf(confstr, StationMaxNameSize, "Conference %d", channel->conference_id);
 	
 	switch (channel->calltype) {	
 		case SKINNY_CALLTYPE_INBOUND:
