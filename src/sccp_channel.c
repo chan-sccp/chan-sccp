@@ -486,11 +486,6 @@ void sccp_channel_send_callinfo(sccp_device_t * device, sccp_channel_t * channel
 
 	if (device && channel && channel->callid) {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send callInfo of callid %d\n", DEV_ID_LOG(device), channel->callid);
-#ifdef CS_SCCP_CONFERENCE
-		if (channel->conference_id > 0) {
-			sccp_conference_update_callInfo(channel);
-		}
-#endif
 		if (device->protocol && device->protocol->sendCallInfo) {
 			instance = sccp_device_find_index_for_line(device, channel->line->name);
 			device->protocol->sendCallInfo(device, channel, instance);

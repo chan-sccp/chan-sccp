@@ -761,7 +761,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 
 			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
 				if (channel != d->active_channel) {
-					sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(c->owner));
+					sccp_conference_addParticipatingChannel(d->conference, c, CS_AST_BRIDGED_CHANNEL(c->owner));
 				}
 			}
 		}
@@ -780,7 +780,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 							if (channel != d->active_channel) {
 								sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
-								sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(channel->owner));
+								sccp_conference_addParticipatingChannel(d->conference, c, CS_AST_BRIDGED_CHANNEL(channel->owner));
 							}
 						}
 						SCCP_LIST_UNLOCK(&line->channels);
@@ -837,7 +837,7 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 			channel = d->active_channel;
 			pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
 			sccp_channel_hold(channel);
-			sccp_conference_addParticipatingChannel(d->conference, CS_AST_BRIDGED_CHANNEL(channel->owner));
+			sccp_conference_addParticipatingChannel(d->conference, channel, CS_AST_BRIDGED_CHANNEL(channel->owner));
 
 			sccp_channel_t *mod_chan = NULL;
 
