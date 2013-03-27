@@ -258,27 +258,21 @@ uint8_t sccp_rtp_get_sampleRate(skinny_codec_t codec)
  */
 void sccp_rtp_destroy(sccp_channel_t * c)
 {
-	sccp_device_t *d = NULL;
 	sccp_line_t *l = NULL;
 
-	
-	d = sccp_channel_getDevice_retained(c);
 	l = c->line;
 
 	if (c->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
 		PBX(rtp_destroy) (c->rtp.audio.rtp);
 		c->rtp.audio.rtp = NULL;
 	}
 
 	if (c->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", DEV_ID_LOG(d), l ? l->name : "(null)", c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
 		PBX(rtp_destroy) (c->rtp.video.rtp);
 		c->rtp.video.rtp = NULL;
 	}
-
-	
-	d = d ? sccp_device_release(d) : NULL;
 }
 
 /*!
