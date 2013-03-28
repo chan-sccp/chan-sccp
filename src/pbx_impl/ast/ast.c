@@ -799,4 +799,60 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 	return res;
 }
 
+static struct ast_frame *sccp_ast_kill_read(struct ast_channel *chan)
+{
+	/* Hangup channel. */
+	return NULL;
+}
+
+static struct ast_frame *sccp_ast_kill_exception(struct ast_channel *chan)
+{
+	/* Hangup channel. */
+	return NULL;
+}
+
+static int sccp_ast_kill_write(struct ast_channel *chan, struct ast_frame *frame)
+{
+	/* Hangup channel. */
+	return -1;
+}
+
+static int sccp_ast_kill_fixup(struct ast_channel *oldchan, struct ast_channel *newchan)
+{
+	/* No problem fixing up the channel. */
+	return 0;
+}
+
+static int sccp_ast_kill_hangup(struct ast_channel *chan)
+{
+#if ASTERISK_VERSION_GROUP < 100
+	chan->tech_pvt = NULL;
+#else
+	ast_channel_tech_set(chan, NULL);
+#endif
+	return 0;
+}
+
+/*!
+ * \brief Kill the channel channel driver technology descriptor.
+ *
+ * \details
+ * The purpose of this channel technology is to encourage the
+ * channel to hangup as quickly as possible.
+ *
+ * \note Used by DTMF atxfer and zombie channels.
+ */
+const struct ast_channel_tech sccp_kill_tech = {
+   .type = "SCCPKill",
+   .description = "Kill channel (should not see this)",
+#if ASTERISK_VERSION_GROUP < 100
+   .capabilities = -1,
+#endif
+   .read = sccp_ast_kill_read,
+   .exception = sccp_ast_kill_exception,
+   .write = sccp_ast_kill_write,
+   .fixup = sccp_ast_kill_fixup,
+   .hangup = sccp_ast_kill_hangup,
+};
+
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
