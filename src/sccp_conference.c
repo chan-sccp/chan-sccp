@@ -357,8 +357,9 @@ void sccp_conference_update_callInfo(sccp_channel_t *channel, PBX_CHANNEL_TYPE *
 	connected.id.name.valid = 1;
 	connected.id.name.str = confstr;
 	connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
-	
+#if ASTERISK_VERSION_GROUP >= 110
 	ast_set_party_id_all(&update_connected.priv);
+#endif
 	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 	ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
 	
