@@ -825,10 +825,10 @@ static int sccp_ast_kill_fixup(struct ast_channel *oldchan, struct ast_channel *
 
 static int sccp_ast_kill_hangup(struct ast_channel *chan)
 {
-#if ASTERISK_VERSION_GROUP < 100
-	chan->tech_pvt = NULL;
-#else
+#if ASTERISK_VERSION_GROUP > 110
 	ast_channel_tech_set(chan, NULL);
+#else
+	chan->tech_pvt = NULL;
 #endif
 	return 0;
 }
