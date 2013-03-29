@@ -1389,7 +1389,7 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, co
 	if (strcasecmp(str, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(dest, value, size);
-		if (!pbx_context_find((const char *) dest)) {
+		if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
 			pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
 		}
 	} else {
@@ -1580,9 +1580,18 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 
 				memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
 				composedLineRegistrationId = sccp_parseComposedId(name, 80);
+                		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", 
+                		        composedLineRegistrationId.mainId, 
+                		        composedLineRegistrationId.subscriptionId.number, 
+                		        composedLineRegistrationId.subscriptionId.name,
+                		        composedLineRegistrationId.subscriptionId.aux
+                                );
 
 				if (LINE == config->type &&
-				    sccp_strequals(config->label, name) && sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
+				    sccp_strequals(config->label, name) && sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && 
+				                                            sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && 
+				                                            sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && 
+				                                            sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 				    ) {
 					if (options && sccp_strequals(config->button.line.options, options)) {
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
