@@ -17,15 +17,15 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 
-    /*
-     * \brief itterate through locked pbx channels
-     * \note replacement for ast_channel_walk_locked
-     * \param ast_chan Asterisk Channel
-     * \return ast_chan Locked Asterisk Channel
-     *
-     * \todo implement pbx_channel_walk_locked or replace
-     * \warning marcello is this the right implementation for pbx_channel_walk_locked. Not sure if i replaced the iterator correctly
-     */
+/*
+ * \brief itterate through locked pbx channels
+ * \note replacement for ast_channel_walk_locked
+ * \param ast_chan Asterisk Channel
+ * \return ast_chan Locked Asterisk Channel
+ *
+ * \todo implement pbx_channel_walk_locked or replace
+ * \deprecated
+ */
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -63,6 +63,8 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
  * \param is_match match function
  * \param data paremeter data for match function
  * \return pbx_channel Locked Asterisk Channel
+ *
+ * \deprecated
  */
 PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *, void *), void *data)
 {
@@ -113,6 +115,8 @@ PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *,
  * \param path list of HAs
  * \param error Error as int
  * \return The head of the HA list
+ *
+ * \deprecated
  */
 struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast_ha *path, int *error)
 {
