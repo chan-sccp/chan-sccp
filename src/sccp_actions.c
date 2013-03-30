@@ -1931,6 +1931,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 		v++;
 		iKeySetCount++;
 	};
+	
+	/* disable videomode and join softkey for all softkeysets */
+	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
+		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
+		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
+	}
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "There are %d SoftKeySets.\n", iKeySetCount);
 
