@@ -397,11 +397,11 @@ sccp_device_t *sccp_device_create(const char *id)
 	sccp_mutex_unlock(&d->messageStackLock);
 #endif
 
-	/* disable videomode and join softkey for all softkeysets */
-	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
-		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
-		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
-	}
+// 	/* disable videomode and join softkey for all softkeysets */
+// 	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
+// 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
+// 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
+// 	}
 
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
