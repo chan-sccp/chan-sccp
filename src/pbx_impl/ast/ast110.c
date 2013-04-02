@@ -999,53 +999,6 @@ int sccp_wrapper_asterisk110_hangup(PBX_CHANNEL_TYPE * ast_channel)
 }
 
 /*!
- * \brief Parking Thread Arguments Structure
- */
-struct parkingThreadArg {
-	PBX_CHANNEL_TYPE *bridgedChannel;
-	PBX_CHANNEL_TYPE *hostChannel;
-	const sccp_device_t *device;
-};
-
-/*!
- * \brief Channel Park Thread
- * This thread doing the park magic and sends an displaynotify with the park position to the initial device (@see struct parkingThreadArg)
- * 
- * \param data struct parkingThreadArg with host and bridged channel together with initial device
- */
-static void *sccp_wrapper_asterisk110_park_thread(void *data)
-{
-	struct parkingThreadArg *arg;
-	PBX_FRAME_TYPE *f;
-
-	char extstr[20];
-	int ext;
-	int res;
-
-	arg = (struct parkingThreadArg *) data;
-
-	f = ast_read(arg->bridgedChannel);
-	if (f)
-		ast_frfree(f);
-
-	res = ast_park_call(arg->bridgedChannel, arg->hostChannel, 0, "", &ext);
-
-	if (!res) {
-		extstr[0] = 128;
-		extstr[1] = SKINNY_LBL_CALL_PARK_AT;
-		sprintf(&extstr[2], " %d", ext);
-
-		sccp_dev_displaynotify((sccp_device_t *) arg->device, extstr, 10);
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(arg->device), arg->bridgedChannel->name, ext);
-	}
-
-	ast_hangup(arg->hostChannel);
-	ast_free(arg);
-
-	return NULL;
-}
-
-/*!
  * \brief Park the bridge channel of hostChannel
  * This function prepares the host and the bridged channel to be ready for parking.
  * It clones the pbx channel of both sides forward them to the park_thread
@@ -1057,78 +1010,32 @@ static void *sccp_wrapper_asterisk110_park_thread(void *data)
  */
 static sccp_parkresult_t sccp_wrapper_asterisk110_park(const sccp_channel_t * hostChannel)
 {
-
-	pthread_t th;
-	struct parkingThreadArg *arg;
-	PBX_CHANNEL_TYPE *pbx_bridgedChannelClone, *pbx_hostChannelClone;
+	int extout;
+	char extstr[20];
+	sccp_device_t *device;
+	sccp_parkresult_t res = PARK_RESULT_FAIL;
 	PBX_CHANNEL_TYPE *bridgedChannel = NULL;
 
+	memset(extstr, 0, sizeof(extstr));
+
+	extstr[0] = 128;
+	extstr[1] = SKINNY_LBL_CALL_PARK_AT;
+
 	bridgedChannel = ast_bridged_channel(hostChannel->owner);
+	device = sccp_channel_getDevice_retained(hostChannel);
 
-	if (!bridgedChannel) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No PBX channel for parking");
-		return PARK_RESULT_FAIL;
+	ast_channel_lock(hostChannel->owner);									/* we have to lock our channel, otherwise asterisk crashes internally */
+	if (!ast_masq_park_call(bridgedChannel, hostChannel->owner, 0, &extout)) {
+		sprintf(&extstr[2], " %d", extout);
+
+		sccp_dev_displayprinotify(device, extstr, 1, 10);
+		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Parked channel %s on %d\n", DEV_ID_LOG(device), bridgedChannel->name, extout);
+
+		res = PARK_RESULT_SUCCESS;
 	}
-
-	pbx_bridgedChannelClone = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, hostChannel->owner->accountcode, bridgedChannel->exten, bridgedChannel->context, bridgedChannel->linkedid, bridgedChannel->amaflags, "Parking/%s", bridgedChannel->name);
-
-	pbx_hostChannelClone = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, hostChannel->owner->accountcode, hostChannel->owner->exten, hostChannel->owner->context, hostChannel->owner->linkedid, hostChannel->owner->amaflags, "SCCP/%s", hostChannel->owner->name);
-
-	if (pbx_hostChannelClone && pbx_bridgedChannelClone) {
-
-		/* restore codecs for bridged channel */
-		pbx_bridgedChannelClone->readformat = bridgedChannel->readformat;
-		pbx_bridgedChannelClone->writeformat = bridgedChannel->writeformat;
-		pbx_bridgedChannelClone->nativeformats = bridgedChannel->nativeformats;
-		ast_channel_masquerade(pbx_bridgedChannelClone, bridgedChannel);
-
-		/* restore context data */
-		ast_copy_string(pbx_bridgedChannelClone->context, bridgedChannel->context, sizeof(pbx_bridgedChannelClone->context));
-		ast_copy_string(pbx_bridgedChannelClone->exten, bridgedChannel->exten, sizeof(pbx_bridgedChannelClone->exten));
-		pbx_bridgedChannelClone->priority = bridgedChannel->priority;
-
-		/* restore codecs for host channel */
-		/* We need to clone the host part, for playing back the announcement */
-		pbx_hostChannelClone->readformat = hostChannel->owner->readformat;
-		pbx_hostChannelClone->writeformat = hostChannel->owner->writeformat;
-		pbx_hostChannelClone->nativeformats = hostChannel->owner->nativeformats;
-		ast_channel_masquerade(pbx_hostChannelClone, hostChannel->owner);
-
-		/* restore context data */
-		ast_copy_string(pbx_hostChannelClone->context, hostChannel->owner->context, sizeof(pbx_hostChannelClone->context));
-		ast_copy_string(pbx_hostChannelClone->exten, hostChannel->owner->exten, sizeof(pbx_hostChannelClone->exten));
-		pbx_hostChannelClone->priority = hostChannel->owner->priority;
-
-		/* start cloning */
-		if (ast_do_masquerade(pbx_hostChannelClone)) {
-			pbx_log(LOG_ERROR, "while doing masquerade\n");
-			ast_hangup(pbx_hostChannelClone);
-			return PARK_RESULT_FAIL;
-		}
-	} else {
-		if (pbx_bridgedChannelClone)
-			ast_hangup(pbx_bridgedChannelClone);
-
-		if (pbx_hostChannelClone)
-			ast_hangup(pbx_hostChannelClone);
-
-		return PARK_RESULT_FAIL;
-	}
-	if (!(arg = (struct parkingThreadArg *) ast_calloc(1, sizeof(struct parkingThreadArg)))) {
-		return PARK_RESULT_FAIL;
-	}
-
-	arg->bridgedChannel = pbx_bridgedChannelClone;
-	arg->hostChannel = pbx_hostChannelClone;
-	if ((arg->device = sccp_channel_getDevice_retained(hostChannel))) {
-		if (!ast_pthread_create_detached_background(&th, NULL, sccp_wrapper_asterisk110_park_thread, arg)) {
-			return PARK_RESULT_SUCCESS;
-		}
-		arg->device = sccp_device_release(arg->device);
-	}
-	sccp_free(arg);
-	return PARK_RESULT_FAIL;
-
+	ast_channel_unlock(hostChannel->owner);
+	device = sccp_device_release(device);
+	return res;
 }
 
 static boolean_t sccp_asterisk110_getFeatureExtension(const sccp_channel_t * channel, char **extension)
