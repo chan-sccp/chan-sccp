@@ -283,6 +283,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 {
 	int res = -1;
+#if CS_AST_DO_PICKUP
 	PBX_CHANNEL_TYPE *target = NULL;		/* potential pickup target */
 	PBX_CHANNEL_TYPE *original = NULL;		/* destination */
 	PBX_CHANNEL_TYPE *tmp = NULL;
@@ -409,6 +410,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 	        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Failed to pickup up Exten '%s@'%s'\n", exten, context);
         }
 	d = sccp_device_release(d);
+#endif	
 	return res;
 }
 
