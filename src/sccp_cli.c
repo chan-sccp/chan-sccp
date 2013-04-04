@@ -2542,7 +2542,7 @@ CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_
      * \lock
      *      - channel
      */
-static int sccp_set_hold(int fd, int argc, char *argv[])
+static int sccp_set_object(int fd, int argc, char *argv[])
 {
 	sccp_channel_t		*c 	= NULL;
 	sccp_device_t 		*device = NULL;
@@ -2618,6 +2618,10 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 	
 		if(!strcmp("ringtone", argv[4])){
 			device->setRingTone(device, argv[5]);
+
+		} else if(!strcmp("backgroundImage", argv[4])){
+			device->setBackgroundImage(device, argv[5]);
+
 		} else {
 			variable.name	= argv[4];
 			variable.value	= argv[5];
@@ -2626,6 +2630,7 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 			variable.lineno	= 0;
 		    
 			res = sccp_config_applyDeviceConfiguration(device, &variable);
+			
 			if (res & SCCP_CONFIG_NEEDDEVICERESET){
 				device->pendingUpdate = 1; 
 			}
@@ -2641,7 +2646,7 @@ static char set_hold_usage[] = "Usage: sccp set [hold|device] <channelId> <on/of
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
 #define CLI_COMPLETE SCCP_CLI_SET_COMPLETER
-CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel|device to hold/unhold", set_hold_usage, TRUE)
+CLI_ENTRY(cli_set_hold, sccp_set_object, "Set channel|device to hold/unhold", set_hold_usage, TRUE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
