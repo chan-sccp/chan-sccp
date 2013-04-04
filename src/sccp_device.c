@@ -75,6 +75,7 @@ static void sccp_device_setBackgroundImage(const sccp_device_t *device, const ch
 	if ( strncmp("http://", url, strlen("http://")) != 0 ){
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
 	}
+	memset(xmlStr, 0, sizeof(xmlStr));
 	
 	strcat(xmlStr, "<setBackground>");
 	strcat(xmlStr, "<background>");
@@ -101,6 +102,7 @@ static void sccp_device_displayBackgroundImagePreview(const sccp_device_t *devic
 	if ( strncmp("http://", url, strlen("http://")) != 0 ){
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
 	}
+	memset(xmlStr, 0, sizeof(xmlStr));
 	
 	strcat(xmlStr, "<setBackgroundPreview>");
 	strcat(xmlStr, "<image>");
@@ -122,6 +124,8 @@ static void sccp_device_setRingtone(const sccp_device_t *device, const char *url
 	if ( strncmp("http://", url, strlen("http://")) != 0 ){
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
 	}
+	
+	memset(xmlStr, 0, sizeof(xmlStr));
 	
 	strcat(xmlStr, "<setRingTone>");
 	strcat(xmlStr, "<ringTone>");
