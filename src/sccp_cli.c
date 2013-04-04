@@ -24,6 +24,21 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
+
+typedef enum sccp_cli_completer {
+	SCCP_CLI_NULL_COMPLETER,
+	SCCP_CLI_DEVICE_COMPLETER,
+	SCCP_CLI_CONNECTED_DEVICE_COMPLETER,
+	SCCP_CLI_LINE_COMPLETER,
+	SCCP_CLI_CONNECTED_LINE_COMPLETER,
+	SCCP_CLI_CHANNEL_COMPLETER,
+	SCCP_CLI_CONFERENCE_COMPLETER,
+	SCCP_CLI_DEBUG_COMPLETER,
+	SCCP_CLI_SET_COMPLETER,
+} sccp_cli_completer_t;
+
+static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state);
+
     /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
     /*!
      * \brief Complete Device
@@ -174,7 +189,8 @@ static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int
 static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	uint8_t i;
-	int wordlen = strlen(word), which = 0;
+	int wordlen = strlen(word);
+	int which = 0;
 	char *ret = NULL;
 	boolean_t debugno = 0;
 	char *extra_cmds[3] = { "no", "none", "all" };
@@ -214,7 +230,105 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	return ret;
 }
 
-char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
+/*!
+ * \brief Complete Debug
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ * 
+ * \called_from_asterisk
+ */
+static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos, int state)
+{
+	uint8_t i;
+	sccp_device_t *d;
+	sccp_channel_t *c;
+	sccp_line_t *l;
+	
+	int wordlen = strlen(word), which = 0;
+	char tmpname[80];
+	char *ret = NULL;
+	
+	char *actions[] = { "device", "channel", "line"};
+	
+	char *properties_channel[] = { "hold"};
+	char *properties_device[] = { "ringtone", "backgroundImage"};
+	
+	char *values_hold[] = { "on", "off"};
+	
+	
+	switch (pos) {
+		case 2:		// action
+			for (i = 0; i < ARRAY_LEN(actions); i++) {
+				if (!strncasecmp(word, actions[i], wordlen) && ++which > state) {
+					return strdup(actions[i]);
+				}
+			}
+			break;
+		case 3:		// conferenceid
+		  
+			if( strstr(line, "device") != NULL ){
+				SCCP_RWLIST_RDLOCK(&GLOB(devices));
+				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
+						ret = strdup(d->id);
+						break;
+					}
+				}
+				SCCP_RWLIST_UNLOCK(&GLOB(devices));
+				
+			} else if( strstr(line, "channel")  != NULL  ){
+				SCCP_RWLIST_RDLOCK(&GLOB(lines));
+				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+					SCCP_LIST_LOCK(&l->channels);
+					SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+						snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, c->callid);
+						if (!strncasecmp(word, tmpname, wordlen) && ++which > state) {
+							ret = strdup(tmpname);
+							break;
+						}
+					}
+					SCCP_LIST_UNLOCK(&l->channels);
+				}
+				SCCP_RWLIST_UNLOCK(&GLOB(lines));
+			}
+			break;
+		case 4:		// participantid
+		  
+			if( strstr(line, "device") != NULL  ){
+				for (i = 0; i < ARRAY_LEN(properties_device); i++) {
+					if (!strncasecmp(word, properties_device[i], wordlen) && ++which > state) {
+						return strdup(properties_device[i]);
+					}
+				}
+				
+			} else if( strstr(line, "channel") != NULL ){
+				for (i = 0; i < ARRAY_LEN(properties_channel); i++) {
+					if (!strncasecmp(word, properties_channel[i], wordlen) && ++which > state) {
+						return strdup(properties_channel[i]);
+					}
+				}
+			}
+			break;
+		case 5:		// participantid
+		  
+			if( strstr(line, "channel") != NULL && strstr(line, "hold") != NULL ){
+				for (i = 0; i < ARRAY_LEN(values_hold); i++) {
+					if (!strncasecmp(word, values_hold[i], wordlen) && ++which > state) {
+						return strdup(values_hold[i]);
+					}
+				}
+			}
+			break;
+		default:
+			break;
+	}
+	return ret;
+}
+
+static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	switch (completer) {
 		case SCCP_CLI_NULL_COMPLETER:
@@ -242,6 +356,9 @@ char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, O
 			break;
 		case SCCP_CLI_DEBUG_COMPLETER:
 			return sccp_complete_debug(line, word, pos, state);
+			break;
+		case SCCP_CLI_SET_COMPLETER:
+			return sccp_complete_set(line, word, pos, state);
 			break;
 	}
 	return NULL;
@@ -2437,34 +2554,39 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 
 	
 	
-	if (!strcmp("hold", argv[2])) {
-	
+	if (!strcmp("channel", argv[2])) {
+		// sccp set channel SCCP/test-123 hold on
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
-		      int line, channel;
+			int line, channel;
 
-		      sscanf(argv[3], "SCCP/%d-%d", &line, &channel);
-		      c = sccp_channel_find_byid(channel);
+			sscanf(argv[3], "SCCP/%d-%d", &line, &channel);
+			c = sccp_channel_find_byid(channel);
 		} else {
 			c = sccp_channel_find_byid(atoi(argv[3]));
 		}
 		
 		if (!c) {
-		pbx_cli(fd, "Can't find channel for ID %s\n", argv[3]);
-		return RESULT_FAILURE;
+			pbx_cli(fd, "Can't find channel for ID %s\n", argv[3]);
+			return RESULT_FAILURE;
 		}
-		if (!strcmp("on", argv[4])) {										/* check to see if enable hold */
-			pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
-			sccp_channel_hold(c);
-		} else if (!strcmp("off", argv[4])) {									/* check to see if disable hold */
-			pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
-			sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		
+		
+		if (!strcmp("hold", argv[4]) ){
+		
+			if (!strcmp("on", argv[5])) {										/* check to see if enable hold */
+				pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
+				sccp_channel_hold(c);
+			} else if (!strcmp("off", argv[5])) {									/* check to see if disable hold */
+				pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
+				sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
-			sccp_channel_resume(d, c, FALSE);
-			d = sccp_device_release(d);
-		} else {
-			/* wrong parameter value */
-			c = sccp_channel_release(c);
-			return RESULT_SHOWUSAGE;
+				sccp_channel_resume(d, c, FALSE);
+				d = sccp_device_release(d);
+			} else {
+				/* wrong parameter value */
+				c = sccp_channel_release(c);
+				return RESULT_SHOWUSAGE;
+			}
 		}
 		c = sccp_channel_release(c);
 	  
@@ -2491,6 +2613,7 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 		if (!device) {
 			pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
 // 			CLI_AMI_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+			return RESULT_FAILURE;
 		}
 	
 		if(!strcmp("ringtone", argv[4])){
@@ -2502,12 +2625,24 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 	return RESULT_SUCCESS;
 }
 
-static char set_hold_usage[] = "Usage: sccp set hold <channelId> <on/off>\n" "Set a channel to hold/unhold\n";
+static char set_hold_usage[] = "Usage: sccp set [hold|device] <channelId> <on/off>\n" "Set a channel to hold/unhold\n";
+
+// #define CLI_COMMAND "sccp", "conference"
+// //#define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
+// #define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
+// #define AMI_COMMAND "SCCPConference"
+// #define CLI_AMI_PARAMS "Action","ConferenceId","ParticipantId"
+// CLI_AMI_ENTRY(conference_action, sccp_cli_conference_action, "Conference Action", cli_conference_action_usage, TRUE)
+// #undef CLI_AMI_PARAMS
+// #undef CLI_COMPLETE
+// #undef AMI_COMMAND
+// #undef CLI_COMMAND
+
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
-#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
-CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel|device to hold/unhold", set_hold_usage, FALSE)
+#define CLI_COMPLETE SCCP_CLI_SET_COMPLETER
+CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel|device to hold/unhold", set_hold_usage, TRUE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
