@@ -20,18 +20,7 @@
 #define CLI_AMI_LIST_WIDTH 21
 #endif
 
-typedef enum sccp_cli_completer {
-	SCCP_CLI_NULL_COMPLETER,
-	SCCP_CLI_DEVICE_COMPLETER,
-	SCCP_CLI_CONNECTED_DEVICE_COMPLETER,
-	SCCP_CLI_LINE_COMPLETER,
-	SCCP_CLI_CONNECTED_LINE_COMPLETER,
-	SCCP_CLI_CHANNEL_COMPLETER,
-	SCCP_CLI_CONFERENCE_COMPLETER,
-	SCCP_CLI_DEBUG_COMPLETER,
-} sccp_cli_completer_t;
 
-char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state);
 
 void sccp_register_cli(void);
 void sccp_unregister_cli(void);
