@@ -2544,9 +2544,12 @@ CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_
      */
 static int sccp_set_hold(int fd, int argc, char *argv[])
 {
-	sccp_channel_t *c = NULL;
-	sccp_device_t *device = NULL;
-
+	sccp_channel_t		*c 	= NULL;
+	sccp_device_t 		*device = NULL;
+	PBX_VARIABLE_TYPE 	variable;
+	int res;
+	
+	
 	if (argc < 5)
 		return RESULT_SHOWUSAGE;
 	if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]))
@@ -2615,6 +2618,17 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 	
 		if(!strcmp("ringtone", argv[4])){
 			device->setRingTone(device, argv[5]);
+		} else {
+			variable.name	= argv[4];
+			variable.value	= argv[5];
+			variable.next	= NULL;
+			variable.file	= "cli";
+			variable.lineno	= 0;
+		    
+			res = sccp_config_applyDeviceConfiguration(device, &variable);
+			if (res & SCCP_CONFIG_NEEDDEVICERESET){
+				device->pendingUpdate = 1; 
+			}
 		}
 		
 		device = device ? sccp_device_release(device) : NULL;
