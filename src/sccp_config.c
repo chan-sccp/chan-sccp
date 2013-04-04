@@ -1728,9 +1728,44 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const
  *      - device
  *        - see sccp_device_changed()
  */
-sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * v, const char *deviceName, boolean_t isRealtime)
+sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE *variable, const char *deviceName, boolean_t isRealtime)
 {
+	PBX_VARIABLE_TYPE *v = variable;
+
+	/* apply configuration */
 	sccp_configurationchange_t res = sccp_config_applyDeviceConfiguration(d, v);
+	
+	/* set defaults */
+	v = variable;
+	sccp_config_applyDeviceDefaults(d, v);
+
+#ifdef CS_DEVSTATE_FEATURE
+	if ((d = sccp_device_retain(d))) {
+		sccp_buttonconfig_t *config = NULL;
+		sccp_devstate_specifier_t *dspec;
+
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			if (config->type == FEATURE) {
+				/* Check for the presence of a devicestate specifier and register in device list. */
+				if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
+					dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
+					if (!dspec) {
+						pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
+					} else {
+						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+						SCCP_LIST_LOCK(&d->devstateSpecifiers);
+						sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
+						SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
+						SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+					}
+				}
+			}
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		sccp_device_release(d);
+	}
+#endif
 
 #ifdef CS_SCCP_REALTIME
 	d->realtime = isRealtime;
@@ -2115,8 +2150,8 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 				alreadySetEntries[i] = 1;
 			}
 		}
-
 	}
+	
 	sccp_config_set_defaults(l, SCCP_CONFIG_LINE_SEGMENT, alreadySetEntries, ARRAY_LEN(alreadySetEntries));
 
 	return res;
@@ -2140,89 +2175,38 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v)
 {
 	sccp_configurationchange_t res = SCCP_CONFIG_NOUPDATENEEDED;
-	char *prev_var_name = NULL;
-	uint8_t alreadySetEntries[ARRAY_LEN(sccpDeviceConfigOptions)];
-	uint8_t i = 0;
 
-	memset(alreadySetEntries, 0, sizeof(alreadySetEntries));
+	
 	if (d->pendingDelete) {
-		// remove all addons before adding them again (to find differences later on in sccp_device_change)
-		sccp_addon_t *addon;
-
-		SCCP_LIST_LOCK(&d->addons);
-		while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
-			sccp_free(addon);
-			addon = NULL;
-		}
-		SCCP_LIST_UNLOCK(&d->addons);
-		SCCP_LIST_HEAD_DESTROY(&d->addons);
-		SCCP_LIST_HEAD_INIT(&d->addons);
-
-		/* removing variables */
-		if (d->variables) {
-			pbx_variables_destroy(d->variables);
-			d->variables = NULL;
-		}
-
-		/* removing permithosts */
-		sccp_hostname_t *permithost;
-
-		SCCP_LIST_LOCK(&d->permithosts);
-		while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {
-			sccp_free(permithost);
-			permithost = NULL;
-		}
-		SCCP_LIST_UNLOCK(&d->permithosts);
-		SCCP_LIST_HEAD_DESTROY(&d->permithosts);
-		SCCP_LIST_HEAD_INIT(&d->permithosts);
-
-		sccp_free_ha(d->ha);
-		d->ha = NULL;
+		sccp_dev_clean(d, FALSE, 0);
 	}
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(d, v->name, v->value, v->lineno, SCCP_CONFIG_DEVICE_SEGMENT);
-		//              sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Update Needed (%d)\n", d->id, res);
+	}
 
-		// mark entries as already set
+	return res;
+}
+
+sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t *device, PBX_VARIABLE_TYPE *variable) {
+	uint8_t i;
+	PBX_VARIABLE_TYPE *v;
+	uint8_t alreadySetEntries[ARRAY_LEN(sccpDeviceConfigOptions)];
+	sccp_configurationchange_t res = SCCP_CONFIG_NOUPDATENEEDED;
+	
+	memset(alreadySetEntries, 0, sizeof(alreadySetEntries));
+	
+	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "set defaults\n");
+	
+	for (v = variable; v; v = v->next) {
+		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s already set\n", v->name);
 		for (i = 0; i < ARRAY_LEN(sccpDeviceConfigOptions); i++) {
 			if (!strcasecmp(sccpDeviceConfigOptions[i].name, v->name)) {
 				alreadySetEntries[i] = 1;
 			}
 		}
 	}
-	if (prev_var_name)
-		sccp_free(prev_var_name);
-
-	sccp_config_set_defaults(d, SCCP_CONFIG_DEVICE_SEGMENT, alreadySetEntries, ARRAY_LEN(alreadySetEntries));
-
-#ifdef CS_DEVSTATE_FEATURE
-	if ((d = sccp_device_retain(d))) {
-		sccp_buttonconfig_t *config = NULL;
-		sccp_devstate_specifier_t *dspec;
-
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if (config->type == FEATURE) {
-				/* Check for the presence of a devicestate specifier and register in device list. */
-				if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
-					dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
-					if (!dspec) {
-						pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
-					} else {
-						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
-						SCCP_LIST_LOCK(&d->devstateSpecifiers);
-						sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
-						SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
-						SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-					}
-				}
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		sccp_device_release(d);
-	}
-#endif
-
+	
+	sccp_config_set_defaults(device, SCCP_CONFIG_DEVICE_SEGMENT, alreadySetEntries, ARRAY_LEN(alreadySetEntries));
 	return res;
 }
 

@@ -112,6 +112,7 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t reload);
 sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v);
+sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t *device, PBX_VARIABLE_TYPE *variable);
 
 void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
 uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data);
