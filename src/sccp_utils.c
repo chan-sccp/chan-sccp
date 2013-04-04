@@ -254,6 +254,8 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 		//              sccp_copy_string(d->id, name, sizeof(d->id));
 
 		sccp_config_applyDeviceConfiguration(d, v);		/** load configuration and set defaults */
+		v = variable;
+		sccp_config_applyDeviceDefaults(d, v);			/** set device defaults */
 
 		sccp_config_restoreDeviceFeatureStatus(d);		/** load device status from database */
 
