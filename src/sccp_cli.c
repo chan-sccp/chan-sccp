@@ -251,7 +251,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	char tmpname[80];
 	char *ret = NULL;
 	
-	char *actions[] = { "device", "channel", "line"};
+	char *types[] = { "device", "channel", "line"};
 	
 	char *properties_channel[] = { "hold"};
 	char *properties_device[] = { "ringtone", "backgroundImage"};
@@ -260,10 +260,10 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	
 	
 	switch (pos) {
-		case 2:		// action
-			for (i = 0; i < ARRAY_LEN(actions); i++) {
-				if (!strncasecmp(word, actions[i], wordlen) && ++which > state) {
-					return strdup(actions[i]);
+		case 2:		// type
+			for (i = 0; i < ARRAY_LEN(types); i++) {
+				if (!strncasecmp(word, types[i], wordlen) && ++which > state) {
+					return strdup(types[i]);
 				}
 			}
 			break;
@@ -295,7 +295,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				SCCP_RWLIST_UNLOCK(&GLOB(lines));
 			}
 			break;
-		case 4:		// participantid
+		case 4:		// properties
 		  
 			if( strstr(line, "device") != NULL  ){
 				for (i = 0; i < ARRAY_LEN(properties_device); i++) {
@@ -312,7 +312,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
-		case 5:		// participantid
+		case 5:		// values_hold
 		  
 			if( strstr(line, "channel") != NULL && strstr(line, "hold") != NULL ){
 				for (i = 0; i < ARRAY_LEN(values_hold); i++) {
@@ -2592,9 +2592,6 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 	  
 	} else if (!strcmp("device", argv[2])) {
 		// sccp set device SEP00000 ringtone http://1234
-		
-	  
-	  
 		if (argc < 6){
 			return RESULT_SHOWUSAGE;
 		} 
@@ -2626,18 +2623,6 @@ static int sccp_set_hold(int fd, int argc, char *argv[])
 }
 
 static char set_hold_usage[] = "Usage: sccp set [hold|device] <channelId> <on/off>\n" "Set a channel to hold/unhold\n";
-
-// #define CLI_COMMAND "sccp", "conference"
-// //#define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
-// #define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
-// #define AMI_COMMAND "SCCPConference"
-// #define CLI_AMI_PARAMS "Action","ConferenceId","ParticipantId"
-// CLI_AMI_ENTRY(conference_action, sccp_cli_conference_action, "Conference Action", cli_conference_action_usage, TRUE)
-// #undef CLI_AMI_PARAMS
-// #undef CLI_COMPLETE
-// #undef AMI_COMMAND
-// #undef CLI_COMMAND
-
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
