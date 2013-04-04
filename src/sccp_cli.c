@@ -2428,48 +2428,86 @@ CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_
 static int sccp_set_hold(int fd, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
+	sccp_device_t *device = NULL;
 
 	if (argc < 5)
 		return RESULT_SHOWUSAGE;
 	if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]))
 		return RESULT_SHOWUSAGE;
 
-	if (!strncasecmp("SCCP/", argv[3], 5)) {
-		int line, channel;
+	
+	
+	if (!strcmp("hold", argv[2])) {
+	
+		if (!strncasecmp("SCCP/", argv[3], 5)) {
+		      int line, channel;
 
-		sscanf(argv[3], "SCCP/%d-%d", &line, &channel);
-		c = sccp_channel_find_byid(channel);
-	} else {
-		c = sccp_channel_find_byid(atoi(argv[3]));
-	}
-	if (!c) {
+		      sscanf(argv[3], "SCCP/%d-%d", &line, &channel);
+		      c = sccp_channel_find_byid(channel);
+		} else {
+			c = sccp_channel_find_byid(atoi(argv[3]));
+		}
+		
+		if (!c) {
 		pbx_cli(fd, "Can't find channel for ID %s\n", argv[3]);
 		return RESULT_FAILURE;
-	}
-	if (!strcmp("on", argv[4])) {										/* check to see if enable hold */
-		pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
-		sccp_channel_hold(c);
-	} else if (!strcmp("off", argv[4])) {									/* check to see if disable hold */
-		pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
-		sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		}
+		if (!strcmp("on", argv[4])) {										/* check to see if enable hold */
+			pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
+			sccp_channel_hold(c);
+		} else if (!strcmp("off", argv[4])) {									/* check to see if disable hold */
+			pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
+			sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
-		sccp_channel_resume(d, c, FALSE);
-		d = sccp_device_release(d);
-	} else {
-		/* wrong parameter value */
+			sccp_channel_resume(d, c, FALSE);
+			d = sccp_device_release(d);
+		} else {
+			/* wrong parameter value */
+			c = sccp_channel_release(c);
+			return RESULT_SHOWUSAGE;
+		}
 		c = sccp_channel_release(c);
-		return RESULT_SHOWUSAGE;
-	}
-	c = sccp_channel_release(c);
+	  
+	} else if (!strcmp("device", argv[2])) {
+		// sccp set device SEP00000 ringtone http://1234
+		
+	  
+	  
+		if (argc < 6){
+			return RESULT_SHOWUSAGE;
+		} 
+		
+		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5]))
+			return RESULT_SHOWUSAGE;
+		}
+	
+		char *dev = sccp_strdupa(argv[3]);
+		if (pbx_strlen_zero(dev)) {
+			pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
+// 			CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		}
+		device = sccp_device_find_byid(dev, FALSE);
+
+		if (!device) {
+			pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
+// 			CLI_AMI_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		}
+	
+		if(!strcmp("ringtone", argv[4])){
+			device->setRingTone(device, argv[5]);
+		}
+		
+		device = device ? sccp_device_release(device) : NULL;
+	
 	return RESULT_SUCCESS;
 }
 
 static char set_hold_usage[] = "Usage: sccp set hold <channelId> <on/off>\n" "Set a channel to hold/unhold\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define CLI_COMMAND "sccp", "set", "hold"
+#define CLI_COMMAND "sccp", "set"
 #define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
-CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel to hold/unhold", set_hold_usage, FALSE)
+CLI_ENTRY(cli_set_hold, sccp_set_hold, "Set channel|device to hold/unhold", set_hold_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
