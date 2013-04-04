@@ -164,12 +164,12 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
  */
 static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"name", 			0, 				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device name\n"},
-	{"device", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"device type\n"},
+	{"device", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
 	{"devicetype", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
 //	{"type", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"used for device templates, value will be inherited.\n"},
 	{"type", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"used for device templates, value will be inherited.\n"},
-	{"description", 		D_OBJ_REF(description),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"device description\n"},
-	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"set keepalive to 60\n"},
+	{"description", 		D_OBJ_REF(description),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device description\n"},
+	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
 	{"disallow", 			D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_disallow_codec),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				""},
 	{"allow", 			D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_allow_codec),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				""},
@@ -185,12 +185,12 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"imageversion", 		D_OBJ_REF(imageversion), 		TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)\n"},
 	{"deny", 			D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"},
 	{"permit", 			D_OBJ_REF(ha), 				TYPE_PARSER(sccp_config_parse_permit),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"This device can register only using this ip address\n"},
-	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"sets the audio/rtp packets Type of Service (TOS)  (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"
+	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Type of Service (TOS)  (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"
 																																					"Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none\n"},
-	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
-	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"sets the video/rtp packets Type of Service (TOS)  (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
-	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"sets the video/rtp packets Class of Service (COS) (defaults to 5)\n"},
-	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
+	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
+	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the video/rtp packets Type of Service (TOS)  (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
+	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS) (defaults to 5)\n"},
+	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
 	{"nat", 			D_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support (default Off)\n"},
 	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions (default Off)								\n"},
@@ -208,11 +208,11 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"show the redial phone book list instead of dialing the last number (adv_feature)\n"},
 #endif
 #ifdef CS_SCCP_PICKUP
-	{"pickupexten", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NEEDDEVICERESET,		"",				"enable Pickup function to direct pickup an extension (Deprecated use directed_pickup instead)\n"},
+	{"pickupexten", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"enable Pickup function to direct pickup an extension (Deprecated use directed_pickup instead)\n"},
 	{"pickupcontext", 		D_OBJ_REF(directed_pickup_context), 	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"context where direct pickup search for extensions. if not set it will be ignored. (Deprecated use direct_pickup_context instead)\n"},
 	{"pickupmodeanswer", 		D_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"on = asterisk way, the call has been answered when picked up (Deprecated use direct_pickup_modeanswer instead)\n"},
 
-	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension (default: on)\n"},
+	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension (default: on)\n"},
 	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccp",				"context where direct pickup search for extensions. if not set current contect will be use.\n"},
 	{"directed_pickup_modeanswer", 	D_OBJ_REF(directed_pickup_modeanswer),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up (default: on)\n"},
 #endif
