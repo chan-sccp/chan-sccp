@@ -267,7 +267,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
-		case 3:		// conferenceid
+		case 3:		// device / channel / line
 		  
 			if( strstr(line, "device") != NULL ){
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
