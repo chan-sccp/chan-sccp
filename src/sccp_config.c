@@ -1695,7 +1695,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
  *      - line
  *        - see sccp_line_changed()
  */
-sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
+static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
 {
 	sccp_configurationchange_t res = sccp_config_applyLineConfiguration(l, v);
 
@@ -1711,7 +1711,6 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const
 	}
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "%s: Removing pendingDelete\n", l->name);
 	l->pendingDelete = 0;
-	return l;
 }
 
 /*!
@@ -1728,7 +1727,7 @@ sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const
  *      - device
  *        - see sccp_device_changed()
  */
-sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE *variable, const char *deviceName, boolean_t isRealtime)
+static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE *variable, const char *deviceName, boolean_t isRealtime)
 {
 	PBX_VARIABLE_TYPE *v = variable;
 
@@ -1740,31 +1739,28 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE *var
 	sccp_config_applyDeviceDefaults(d, v);
 
 #ifdef CS_DEVSTATE_FEATURE
-	if ((d = sccp_device_retain(d))) {
-		sccp_buttonconfig_t *config = NULL;
-		sccp_devstate_specifier_t *dspec;
+        sccp_buttonconfig_t *config = NULL;
+        sccp_devstate_specifier_t *dspec;
 
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if (config->type == FEATURE) {
-				/* Check for the presence of a devicestate specifier and register in device list. */
-				if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
-					dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
-					if (!dspec) {
-						pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
-					} else {
-						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
-						SCCP_LIST_LOCK(&d->devstateSpecifiers);
-						sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
-						SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
-						SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-					}
-				}
-			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		sccp_device_release(d);
-	}
+        SCCP_LIST_LOCK(&d->buttonconfig);
+        SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+                if (config->type == FEATURE) {
+                        /* Check for the presence of a devicestate specifier and register in device list. */
+                        if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
+                                dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
+                                if (!dspec) {
+                                        pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
+                                } else {
+                                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
+                                        SCCP_LIST_LOCK(&d->devstateSpecifiers);
+                                        sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
+                                        SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
+                                        SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
+                                }
+                        }
+                }
+        }
+        SCCP_LIST_UNLOCK(&d->buttonconfig);
 #endif
 
 #ifdef CS_SCCP_REALTIME
@@ -1777,7 +1773,6 @@ sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE *var
 		d->pendingUpdate = 0;
 	}
 	d->pendingDelete = 0;
-	return d;
 }
 
 /*!
