@@ -14,18 +14,20 @@
 #ifndef __SCCP_UTILS_H
 #define __SCCP_UTILS_H
 
-#define sccp_strdupa(s)                                               \
-        (__extension__                                                    \
-        ({                                                                \
-                const char *__old = (s);                                  \
-                size_t __len = strlen(__old) + 1;                         \
-                char *__new = __builtin_alloca(__len);                    \
-                memcpy (__new, __old, __len);                             \
-                __new;                                                    \
-        }))
-#ifndef strdupa
+#ifdef strdupa
+#define sccp_strdupa strdupa
+#else
+#define sccp_strdupa(s)						\
+	(__extension__						\
+	({							\
+		const char *__old = (s);			\
+		size_t __len = strlen(__old) + 1;		\
+		char *__new = __builtin_alloca(__len);		\
+		memcpy (__new, __old, __len);			\
+		__new;						\
+	}))
 #define strdupa sccp_strdupa
-#endif
+#endif	
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
 
