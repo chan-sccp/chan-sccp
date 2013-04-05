@@ -860,7 +860,7 @@ static int sccp_wrapper_asterisk111_setNativeVideoFormats(const sccp_channel_t *
 boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId)
 {
 	sccp_line_t *line = NULL;
-
+	
 	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, linkedId, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 	//      (*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 
@@ -868,9 +868,6 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 		return FALSE;
 	}
 
-	if (!channel || !channel->line) {
-		return FALSE;
-	}
 	line = channel->line;
 
 	ast_channel_tech_set((*pbx_channel), &sccp_tech);
@@ -1005,6 +1002,7 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	}													//after this moment c might have gone already
 
 	ast_channel_tech_pvt_set(ast_channel, NULL);
+	ast_channel_tech_set(ast_channel, &sccp_kill_tech);
 	c = c ? sccp_channel_release(c) : NULL;
 	if (channel_owner) {
 		channel_owner = ast_channel_unref(channel_owner);
@@ -1481,13 +1479,14 @@ static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYP
 		sc1->peerIsSCCP = TRUE;
 		// SCCP Key handle direction to asterisk is still to be implemented here
 		// sccp_pbx_senddigit
-		sc0 = sccp_channel_release(sc0);
-		sc1 = sccp_channel_release(sc1);
 	} else {
 		// Switch on DTMF between differing channels
 		ast_channel_undefer_dtmf(c0);
 		ast_channel_undefer_dtmf(c1);
 	}
+	
+	sc0 = sc0 ? sccp_channel_release(sc0) : NULL;
+	sc1 = sc1 ? sccp_channel_release(sc1) : NULL;
 
 	//res = ast_rtp_bridge(c0, c1, new_flags, fo, rc, timeoutms);
 	res = ast_rtp_instance_bridge(c0, c1, new_flags, fo, rc, timeoutms);
@@ -2124,9 +2123,10 @@ static void sccp_wrapper_asterisk111_updateConnectedLine(const sccp_channel_t * 
 		//              connected.id.tag = NULL;
 		connected.source = reason;
 		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
 	}
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
+	
 }
 
 /* // moved to ast.c
