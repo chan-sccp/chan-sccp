@@ -2778,13 +2778,10 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 	int local_total = 0;
 	const char *dev;
 
-	if (s) {
-		dev = sccp_strdupa(astman_get_header(m, "DeviceName"));
-	} else {
-		if (argc < 3)
-			return RESULT_SHOWUSAGE;
-		dev = sccp_strdupa(argv[2]);
-	}
+	if (argc < 3 || sccp_strlen_zero(argv[2])) {
+		return RESULT_SHOWUSAGE;
+	}	
+	dev = sccp_strdupa(argv[2]);
 	d = sccp_device_find_byid(dev, FALSE);
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
