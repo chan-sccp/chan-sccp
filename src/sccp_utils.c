@@ -1982,6 +1982,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 {
 	int32_t i;
 	char *res = NULL;
+	char *tmpres = NULL;
 	const char *sep = ",";
 	size_t size = 0;
 
@@ -1990,10 +1991,13 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 			size_t new_size = size;
 
 			new_size += strlen(sccp_debug_categories[i].key) + sizeof(sep) + 1;
-			res = sccp_realloc(res, new_size);
-			if (!res)
+			tmpres = sccp_realloc(res, new_size);
+			if (tmpres == NULL) {
+				pbx_log(LOG_ERROR, "Memory Allocation Error\n");
+				sccp_free(res);
 				return NULL;
-
+			}	
+			res = tmpres;
 			if (size == 0) {
 				strcpy(res, sccp_debug_categories[i].key);
 			} else {
