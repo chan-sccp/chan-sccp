@@ -87,8 +87,6 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 };
 
 sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, button_type_t type, const char *name, const char *option, const char *args);
-sccp_line_t *sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime);
-sccp_device_t *sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * v, const char *deviceName, boolean_t isRealtime);
 boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);
