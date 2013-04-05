@@ -207,10 +207,7 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
  */
 sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
 {
-//	assert(session);
-//	assert(device);
 	if (session && device && session->device != device) {
-//	if (session->device != device) {
 		sccp_session_lock(session);
 		if (session->device) {
 			sccp_device_t *remdevice = sccp_device_retain(session->device);
@@ -218,11 +215,12 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 			sccp_session_removeDevice(session);
 			remdevice = sccp_device_release(remdevice);
 		}
-		if ((session->device = sccp_device_retain(device)))
+		if ((session->device = sccp_device_retain(device))) {
 			session->device->session = session;
+		}	
 		sccp_session_unlock(session);
 	}
-	return session->device;
+	return (session && session->device) ? session->device : NULL;
 }
 
 /*!
@@ -231,8 +229,6 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
  */
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 {
-	//assert(session);
-	//assert(session->device);
 	if (session && session->device) {
 		if (session->device->session && session->device->session != session) {
 			// cleanup previous/crossover session
