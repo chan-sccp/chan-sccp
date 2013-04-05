@@ -221,14 +221,14 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
  */
 static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_conference_t * conference)
 {
-	sccp_conference_participant_t *participant = NULL;
-	int participantID = conference->participants.size + 1;
-	char participantIdentifier[REFCOUNT_INDENTIFIER_SIZE];
-
 	if (!conference) {
 		pbx_log(LOG_ERROR, "SCCPCONF: no conference / participantChannel provided.\n");
 		return NULL;
 	}
+
+	sccp_conference_participant_t *participant = NULL;
+	int participantID = conference->participants.size + 1;
+	char participantIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Creating new conference-participant %d\n", conference->id, participantID);
 
@@ -407,10 +407,6 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
 			}
-			
-			
-			
-			
 
 			if (sccp_conference_masqueradeChannel(pbxChannel, conference, participant)) {
 				sccp_conference_addParticipant_toList(conference, participant);
@@ -441,7 +437,9 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Conference is locked. Participant Denied.\n", conference->id);
-		pbx_stream_and_wait(channel->owner, "conf-locked", "");
+		if (pbxChannel) {
+			pbx_stream_and_wait(pbxChannel, "conf-locked", "");
+		}
 	}
 }
 
