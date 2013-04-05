@@ -1450,7 +1450,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYP
 	int new_flags = flags;
 
 	/* \note temporarily marked out until we figure out how to get directrtp back on track - DdG */
-	sccp_channel_t *sc0, *sc1;
+	sccp_channel_t *sc0 = NULL, *sc1 = NULL;
 
 	if ((sc0 = get_sccp_channel_from_pbx_channel(c0)) && (sc1 = get_sccp_channel_from_pbx_channel(c1))) {
 		// Switch off DTMF between SCCP phones
