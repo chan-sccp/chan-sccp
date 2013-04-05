@@ -596,7 +596,7 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 				c->setMicrophone(c, TRUE);
 			}
 		} else {
-			res = -1;
+			res = FALSE;
 		}
 		c = sccp_channel_release(c);
 	}
