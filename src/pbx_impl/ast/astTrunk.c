@@ -3085,7 +3085,7 @@ AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER,
     .load = load_module,
     .unload = unload_module,
     .reload = module_reload,
-    .load_pri = AST_MODPRI_DEFAULT,			//AST_MODPRI_CHANNEL_DRIVER,
+    .load_pri = AST_MODPRI_DEFAULT,
     .nonoptreq = "chan_local"
     /* dependence on res_rtp_asterisk makes us unload to late */
     /* .nonoptreq = "res_rtp_asterisk,chan_local" */
