@@ -20,6 +20,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
 int __sccp_lineDevice_destroy(const void *ptr);
+void sccp_line_delete_nolock(sccp_line_t * l);
+int sccp_line_destroy(const void *ptr);
 
 /*!
  * \brief run before reload is start on lines

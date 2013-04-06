@@ -22,6 +22,8 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 int __sccp_device_destroy(const void *ptr);
+sccp_device_t *sccp_device_removeFromGlobals(sccp_device_t * device);
+int sccp_device_destroy(const void *ptr);
 
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
 
@@ -1643,13 +1645,13 @@ int sccp_device_check_ringback(sccp_device_t * d)
  * \lock
  *      -see sccp_hint_eventListener() via sccp_event_fire()
  */
-void *sccp_dev_postregistration(void *data)
+void sccp_dev_postregistration(void *data)
 {
 	sccp_device_t *d = data;
 	sccp_event_t event;
 
 	if (!d)
-		return NULL;
+		return;
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
 
@@ -1701,7 +1703,7 @@ void *sccp_dev_postregistration(void *data)
 	sccp_mwi_check(d);
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Post registration process... done!\n", d->id);
-	return NULL;
+	return;
 }
 
 /*!
