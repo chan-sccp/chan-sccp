@@ -16,16 +16,13 @@
 #ifndef __SCCP_CHANNEL_H
 #define __SCCP_CHANNEL_H
 
-#define sccp_channel_release(x) 		__sccp_channel_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_channel_retain(x) 		__sccp_channel_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_channel_release(x) 	sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_channel_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
+/* live cycle */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
-inline sccp_channel_t *__sccp_channel_retain(sccp_channel_t * c, const char *filename, int lineno, const char *func);
-inline sccp_channel_t *__sccp_channel_release(sccp_channel_t * c, const char *filename, int lineno, const char *func);
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedid);
 
-//#    define sccp_channel_get_active_nolock sccp_channel_get_active                                            //temporary, removed -> could cause possible memory leak when refcount is not released properly
-//#    define sccp_channel_get_active_lock sccp_channel_get_active                                              //temporary
-//#    define sccp_channel_get_active sccp_channel_get_active                                                   //temporary
 sccp_channel_t *sccp_channel_get_active(const sccp_device_t * d);
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
@@ -50,18 +47,12 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel);
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedid);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
-
-// void sccp_channel_destroy(sccp_channel_t * c);
-
-//int sccp_channel_destroy_callback(const void *data);
 void sccp_channel_clean(sccp_channel_t * c);
-int sccp_channel_hold(sccp_channel_t * c);
-int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels);
-
 void sccp_channel_transfer(sccp_channel_t * c, sccp_device_t * device);
 void sccp_channel_transfer_complete(sccp_channel_t * c);
+int sccp_channel_hold(sccp_channel_t * c);
+int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * c, boolean_t swap_channels);
 int sccp_channel_forward(sccp_channel_t * parent, sccp_linedevices_t * lineDevice, char *fwdNumber);
 
 #if DEBUG
@@ -78,13 +69,7 @@ void sccp_channel_park(sccp_channel_t * c);
 #endif
 
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
-
 int sccp_channel_callwaiting_tone_interval(sccp_device_t * d, sccp_channel_t * c);
-
-/**
- * get linkedid from channel
- * \remark result can be NULL
- */
 const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
 
 #endif
