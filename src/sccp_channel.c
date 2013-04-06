@@ -98,7 +98,7 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 #else 												/* show how WITHREF / GETWITHREF would/could work */
 	sccp_device_t *d = NULL;
 	WITHREF(channel) {
-		GETWITHREF(d, sccp_channel_getDevice_retained(channel)) {
+		GETWITHREF(d, channel->privateData->device) {
 			channel->privateData->microphone = enabled;
 
 			switch (enabled) {
