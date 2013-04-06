@@ -1301,56 +1301,6 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 }
 
 /*!
- * \brief Convert SCCP/Skinny Types 2 String
- * \param type  SCCP/Skinny Type
- * \param value SCCP/Skinny Value
- * \return Converted String
- */
-const char *array2str(uint8_t type, uint32_t value)
-{
-	switch (type) {
-		case SCCP_MESSAGE:
-			message2str(value);
-		case SCCP_ACCESSORY:
-			accessory2str(value);
-		case SCCP_ACCESSORY_STATE:
-			accessorystatus2str(value);
-		case SCCP_EXTENSION_STATE:
-			extensionstatus2str(value);
-		case SCCP_DNDMODE:
-			dndmode2str(value);
-		case SKINNY_TONE:
-			tone2str(value);
-		case SKINNY_ALARM:
-			alarm2str(value);
-		case SKINNY_DEVICETYPE:
-			devicetype2str(value);
-		case SKINNY_STIMULUS:
-			stimulus2str(value);
-		case SKINNY_BUTTONTYPE:
-			buttontype2str(value);
-		case SKINNY_LAMPMODE:
-			lampmode2str(value);
-		case SKINNY_STATION:
-			station2str(value);
-		case SKINNY_LBL:
-			label2str(value);
-		case SKINNY_CALLTYPE:
-			calltype2str(value);
-		case SKINNY_KEYMODE:
-			keymode2str(value);
-		case SKINNY_DEVICE_RS:
-			deviceregistrationstatus2str(value);
-		case SKINNY_DEVICE_STATE:
-			devicestatus2str(value);
-		case SKINNY_CODEC:
-			codec2str(value);
-		default:
-			return "array2str: Type Not Found";
-	}
-}
-
-/*!
  * \brief Check if Skinny Codec is compatible with Skinny Capabilities Array
  */
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t length)
