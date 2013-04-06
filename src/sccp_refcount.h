@@ -39,7 +39,7 @@ void sccp_refcount_print_hashtable(int fd);
 
 /* *INDENT-OFF* */
 /* Automatically Retain/Release */
-#define __GET_WITH_REF(_dst,_src,_file,_line,_func) 												\
+#define __GET_WITH_REF1(_dst,_src,_file,_line,_func) 												\
         _dst = _src;																\
         int with_counter_##_line=4;														\
         while (with_counter_##_line-- > 0)													\
@@ -57,6 +57,7 @@ void sccp_refcount_print_hashtable(int fd);
                         break;															\
                 } else          				/* DO INBETWEEN*/
 
+#define __GET_WITH_REF(_dst,_src,_file,_line,_func) __GET_WITH_REF1(_dst,_src,_file,_line,_func)
 #define GETWITHREF(_dst,_src) __GET_WITH_REF(_dst,_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 
 /* Call with_get_ref after creating unique local variable to use during retain/release */

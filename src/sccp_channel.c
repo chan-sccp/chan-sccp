@@ -63,7 +63,7 @@ static boolean_t sccp_always_true(void)
  */
 static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t enabled)
 {
-#if 1
+#if 0
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 	
