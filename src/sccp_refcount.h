@@ -38,23 +38,34 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 void sccp_refcount_print_hashtable(int fd);
 
 /* *INDENT-OFF* */
-#define __WITH_REF(_a,_b,_c,_d) 										\
-  int with_counter_##_a##_c=3;										\
-  while (with_counter_##_a##_c-- > 0)									\
-          if (2 == with_counter_##_a##_c) {		/* ENTRY */					\
-                  if (!(_a = sccp_refcount_retain(_a,_b,_c,_d))) {					\
-                          pbx_log(LOG_NOTICE, "[%s:%d] %s: Failed to retain (%p)\n",  _b,_c,_d,_a);	\
-                          with_counter_##_a##_c=0;							\
-                          break;									\
-                  }											\
-          } else											\
-          if (1 == with_counter_##_a##_c) {		/* EXIT */					\
-                  if ((_a = sccp_refcount_release(_a,_b,_c,_d)) != NULL) {				\
-                          pbx_log(LOG_NOTICE, "[%s:%d] %s: Failed to release (%p)\n", _b,_c,_d,_a);	\
-                  }											\
-                  break;										\
-          } else          				/* DO */
+/* Automatically Retain/Release */
+#define __GET_WITH_REF(_dst,_src,_file,_line,_func) 												\
+        _dst = _src;																\
+        int with_counter_##_line=3;														\
+        while (with_counter_##_line-- > 0)													\
+                if (2 == with_counter_##_line) {		/* ENTRY */									\
+                        if (!_dst || !(_dst = sccp_refcount_retain(_dst,_file,_line,_func))) {							\
+                                pbx_log(LOG_NOTICE, "[%s:%d] %s: Failed to retain (%p)\n",  _file,_line,_func,_src);				\
+                                with_counter_##_line=0;												\
+                                break;														\
+                        }															\
+                } else																\
+                if (1 == with_counter_##_line) {		/* EXIT */									\
+                        if ((_dst = sccp_refcount_release(_dst,_file,_line,_func)) != NULL) {							\
+                                pbx_log(LOG_NOTICE, "[%s:%d] %s: Failed to release (%p)\n", _file,_line,_func,_src);				\
+                        }															\
+                        break;															\
+                } else          				/* DO */
 
-#define with_ref(_a) __WITH_REF(_a,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+#define GETWITHREF(_dst,_src) __GET_WITH_REF(_dst,_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+
+/* Call with_get_ref after creating unique local variable to use during retain/release */
+#define __TOKENPASTE(x, y) x ## y
+#define __TOKENPASTE2(x, y) __TOKENPASTE(x, y)
+#define __WITH_REF(_src,_file,_line,_func) 													\
+        typeof(_src) __TOKENPASTE(sccp_with_ref_,_line);												\
+        __GET_WITH_REF(__TOKENPASTE(sccp_with_ref_,_line),_src,_file,_line,_func)
+#define WITHREF(_src) __WITH_REF(_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+
 /* *INDENT-ON* */
 #endif														// __SCCP_REFCOUNT_H
