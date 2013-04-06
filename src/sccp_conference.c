@@ -1214,10 +1214,12 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	if (!participant->features.mute) {
 		participant->features.mute = 1;
 		playback_to_channel(participant, "conf-muted", -1);
+		participant->channel->setMicrophone(participant->channel, FALSE);
 		//sccp_dev_set_microphone(participant->device, SKINNY_STATIONMIC_OFF);
 	} else {
 		participant->features.mute = 0;
 		playback_to_channel(participant, "conf-unmuted", -1);
+		participant->channel->setMicrophone(participant->channel, TRUE);
 		//sccp_dev_set_microphone(participant->device, SKINNY_STATIONMIC_ON);
 	}
 	if (participant->channel && participant->device) {
