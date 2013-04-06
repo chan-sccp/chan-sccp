@@ -100,7 +100,7 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 	WITHREF(channel) {
 		GETWITHREF(d, channel->privateData->device) {
 			channel->privateData->microphone = enabled;
-
+			pbx_log(LOG_NOTICE, "Within retain section\n");
 			switch (enabled) {
 				case TRUE:
 					channel->isMicrophoneEnabled = sccp_always_true;

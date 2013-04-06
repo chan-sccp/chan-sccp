@@ -41,21 +41,21 @@ void sccp_refcount_print_hashtable(int fd);
 /* Automatically Retain/Release */
 #define __GET_WITH_REF(_dst,_src,_file,_line,_func) 												\
         _dst = _src;																\
-        int with_counter_##_line=3;														\
+        int with_counter_##_line=4;														\
         while (with_counter_##_line-- > 0)													\
-                if (2 == with_counter_##_line) {		/* ENTRY */									\
+                if (3 == with_counter_##_line) {		/* ENTRY */									\
                         if (!_dst || !(_dst = sccp_refcount_retain(_dst,_file,_line,_func))) {							\
                                 pbx_log(LOG_NOTICE, "[%s:%d] %s: Failed to retain (%p)\n",  _file,_line,_func,_src);				\
                                 with_counter_##_line=0;												\
                                 break;														\
-                        }															\
+                        } else { pbx_log(LOG_NOTICE, "retain  %p, %d, %d\n", _src, _line, with_counter_##_line); }				\
                 } else																\
                 if (1 == with_counter_##_line) {		/* EXIT */									\
                         if ((_dst = sccp_refcount_release(_dst,_file,_line,_func)) != NULL) {							\
                                 pbx_log(LOG_NOTICE, "[%s:%d] %s: Failed to release (%p)\n", _file,_line,_func,_src);				\
-                        }															\
+                        } else { pbx_log(LOG_NOTICE, "release %p, %d, %d\n", _src, _line, with_counter_##_line); }				\
                         break;															\
-                } else          				/* DO */
+                } else          				/* DO INBETWEEN*/
 
 #define GETWITHREF(_dst,_src) __GET_WITH_REF(_dst,_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 
@@ -63,7 +63,7 @@ void sccp_refcount_print_hashtable(int fd);
 #define __TOKENPASTE(x, y) x ## y
 #define __TOKENPASTE2(x, y) __TOKENPASTE(x, y)
 #define __WITH_REF(_src,_file,_line,_func) 													\
-        typeof(_src) __TOKENPASTE(sccp_with_ref_,_line);												\
+        typeof(_src) __TOKENPASTE(sccp_with_ref_,_line);											\
         __GET_WITH_REF(__TOKENPASTE(sccp_with_ref_,_line),_src,_file,_line,_func)
 #define WITHREF(_src) __WITH_REF(_src,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 
