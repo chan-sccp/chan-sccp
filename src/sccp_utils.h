@@ -201,7 +201,6 @@ const char *skinny_formatType2str(uint8_t value);
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);
 const char *skinny_ringermode2str(uint8_t type);
-const char *array2str(uint8_t type, uint32_t value);
 boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_t capabilities[], uint8_t lenght);
 const char *sccp_channel_toString(sccp_channel_t * c);
 
