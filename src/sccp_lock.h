@@ -129,7 +129,7 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
 #    ifdef SCCP_BUILTIN_CAS_PTR
 #      define CAS_PTR(_a,_b,_c, _d) 		__sync_bool_compare_and_swap(_a, _b, _c)
 #    else
-#      define CAS_PTR(_a,_b,_c, _d) ) 		AO_compare_and_swap((uintptr_t *)_a, (uintptr_t)_b, _(uintptr_t)_c)
+#      define CAS_PTR(_a,_b,_c, _d) 		AO_compare_and_swap((uintptr_t *)_a, (uintptr_t)_b, _(uintptr_t)_c)
 #    endif
 
 #  else														/* SCCP_ATOMIC */
@@ -156,9 +156,9 @@ int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, 
                 ast_mutex_unlock(_d);		\
                 res;				\
         })
-#    define CAS_PTR(_a,_b,_c) 			\
+#    define CAS_PTR(_a,_b,_c,_d) 		\
         ({					\
-                CAS32_TYPE res = 0;		\
+                boolean_t res = 0;		\
                 ast_mutex_lock(_d);		\
                 if (*_a == _b)	{		\
                         res = 1;		\
