@@ -215,7 +215,6 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 
 	/* not sure if we should fire an event like this ? */
-
 	/*      
 	   sccp_event_t event;
 	   memset(&event, 0, sizeof(sccp_event_t));
@@ -665,7 +664,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
 		if (device == NULL || linedevice->device == device) {
-			//              if (linedevice->device == device) {
 			regcontext_exten(l, &(linedevice->subscriptionId), 0);
 			SCCP_LIST_REMOVE_CURRENT(list);
 			l->statistic.numberOfActiveDevices--;
@@ -792,7 +790,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				}
 
 				/* register extension + subscriptionId */
-				/*                              if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
+				/* if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
 				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
 				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->name);
 				   if (!pbx_exists_extension(NULL, context, extension, 2, NULL) && pbx_add_extension(context, 0, extension, 2, NULL, NULL, "Noop", sccp_strdup(name), sccp_free_ptr, "SCCP")) {
@@ -810,9 +808,9 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				}
 
 				/* unregister extension + subscriptionId */
-				/*                              if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
+				/* if (subscriptionId && subscriptionId->number && !sccp_strlen_zero(subscriptionId->number) && !sccp_strlen_zero(subscriptionId->name)) {
 				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
-				   //                                   if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
+				   // if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
 				   if (pbx_find_extension(NULL, NULL, &q, context, extension, 2, NULL, "", E_MATCH)) {
 				   ast_context_remove_extension(context, extension, 2, NULL);
 				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, extension);
