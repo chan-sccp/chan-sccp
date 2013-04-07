@@ -441,9 +441,6 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
 	d->realtime = TRUE;
 	d->isAnonymous = TRUE;
 	d->checkACL = sccp_device_checkACLTrue;
-
-	//      sccp_copy_string(d->id, name, sizeof(d->id));
-
 	return d;
 }
 
@@ -513,7 +510,6 @@ void sccp_device_addToGlobals(sccp_device_t * device)
 	}
 	device = sccp_device_retain(device);
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	//      SCCP_RWLIST_INSERT_HEAD(&GLOB(devices), device, list);
 	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(devices), device, list, id);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Added device '%s' (%s) to Glob(devices)\n", device->id, device->config_type);
@@ -1479,87 +1475,34 @@ void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
  */
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
-	//sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: %s:%d %s: (sccp_dev_check_displayprompt) Send Current Options to Device\n", file, pretty_function, line, d->id);
+	//sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_dev_check_displayprompt)\n", DEV_ID_LOG(d));
 	if (!d || !d->session)
 		return;
 
+	boolean_t message_set=FALSE;
+	int i;
+
 	if (d->hasDisplayPrompt()) {
 		sccp_dev_clearprompt(d, 0, 0);
-
-		int i;
-
 #ifndef SCCP_ATOMIC
 		sccp_mutex_lock(&d->messageStackLock);
 #endif
 		for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 			if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
 				sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
-#ifndef SCCP_ATOMIC
-				sccp_mutex_unlock(&d->messageStackLock);
-#endif
-				goto DONE;
+				message_set=TRUE;
+				break;
 			}
 		}
 #ifndef SCCP_ATOMIC
 		sccp_mutex_unlock(&d->messageStackLock);
 #endif
-
-	/* when we are here, there's nothing to display */
+	}
+	if (!message_set) {		
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
+		sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);								/* this is for redial softkey */
 	}
-	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);								/* this is for redial softkey */
-
-DONE:
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
-}
-
-/*!
- * \brief Select Line on Device
- * \param d SCCP Device
- * \param wanted SCCP Line
- *
- * \note should be called with retained(wanted) and retained(d)
- * \note never used
- */
-void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * wanted)
-{
-	sccp_line_t *current;
-	sccp_channel_t *chan = NULL;
-
-	if (!d || !d->session)
-		return;
-
-	current = sccp_dev_get_activeline(d);
-
-	if (!wanted || !current)
-		return;
-
-	if (current == wanted) {
-		current = sccp_line_release(current);
-		return;
-	}
-	// If the current line isn't in a call, and neither is the target.
-	if (SCCP_LIST_FIRST(&current->channels) == NULL && SCCP_LIST_FIRST(&wanted->channels) == NULL) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: All lines seem to be inactive, SEIZEing selected line %s\n", d->id, wanted->name);
-		sccp_dev_set_activeline(d, wanted);
-
-		chan = sccp_channel_allocate(wanted, d);
-		if (!chan) {
-			pbx_log(LOG_ERROR, "%s: Failed to allocate SCCP channel.\n", d->id);
-			current = sccp_line_release(current);
-			return;
-		}
-		chan = sccp_channel_release(chan);
-	} else if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
-		// If the device is currently onhook, then we need to ...
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Selecing line %s while using line %s\n", d->id, wanted->name, current->name);
-		// \todo (1) Put current call on hold
-		// (2) Stop transmitting/receiving
-	} else {
-		// Otherwise, just select the callplane
-		pbx_log(LOG_WARNING, "%s: Unknown status while trying to select line %s.  Current line is %s\n", d->id, wanted->name, current->name);
-	}
-	current = sccp_line_release(current);
 }
 
 /*!
@@ -1773,17 +1716,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			sccp_free(d->ringtone);
 			d->ringtone = NULL;
 		}
-		
-
-		/* unsubscribe hints */
-		/* prevent loop:sccp_dev_clean =>
-		   sccp_line_removeDevice =>
-		   sccp_event_fire =>
-		   sccp_hint_eventListener =>
-		   sccp_hint_lineStatusChanged =>
-		   sccp_hint_hintStatusUpdate =>
-		   sccp_hint_notifySubscribers =>
-		   sccp_dev_speed_find_byindex */
 
 		/* hang up open channels and remove device from line */
 		sccp_device_t *tmpDevice = NULL;
@@ -2247,40 +2179,18 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, ui
  */
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message)
 {
+//	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_device_addMessageToStack), '%s' at priority %d \n", DEV_ID_LOG(device), message, priority);
+	if (ARRAY_LEN(device->messageStack) <= priority) {
+		return;
+	}
 	char *newValue = NULL;
 	char *oldValue = NULL;
 
-	if (ARRAY_LEN(device->messageStack) <= priority)
-		return;
-
 	newValue = strdup(message);
-#ifdef SCCP_ATOMIC
-#ifdef SCCP_BUILTIN_CAS_PTR											// lock-less, atomic implementation
-	char *yieldedValue;
 
 	do {
-
-		/** already a message for this priority */
 		oldValue = device->messageStack[priority];
-		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);	// Atomic Swap In newmsgptr
-	} while (yieldedValue != oldValue);
-#else
-	// only the boolean compare and swap is available in boemc implementation
-	boolean_t yieldedValue = FALSE;
-
-	do {
-
-		/** already a message for this priority */
-		oldValue = device->messageStack[priority];
-		yieldedValue = AO_compare_and_swap((uintptr_t *) & device->messageStack[priority], (uintptr_t) oldValue, (uintptr_t) newValue);	// Atomic Swap using boemc atomic_ops
-	} while (!yieldedValue);
-#endif
-#else
-	sccp_mutex_lock(&device->messageStackLock);
-	oldValue = device->messageStack[priority];
-	device->messageStack[priority] = newValue;
-	sccp_mutex_unlock(&device->messageStackLock);
-#endif
+	} while (!CAS_PTR(&device->messageStack[priority], oldValue, newValue, &device->messageStackLock));
 
 	if (oldValue) {
 		sccp_free(oldValue);
@@ -2293,38 +2203,18 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
  */
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
+	if (ARRAY_LEN(device->messageStack) <= priority) {
+		return;
+	}	
 
 	char *newValue = NULL;
 	char *oldValue = NULL;
 
-	if (ARRAY_LEN(device->messageStack) <= priority)
-		return;
-
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
-#ifdef SCCP_ATOMIC
-#ifdef SCCP_BUILTIN_CAS_PTR											// lock-less, atomic implementation
-	char *yieldedValue;
-
 	do {
 		oldValue = device->messageStack[priority];
-		yieldedValue = __sync_val_compare_and_swap(&device->messageStack[priority], oldValue, newValue);	// Atomic Swap In newmsgptr
-	} while (yieldedValue != oldValue);
-#else
-	// only the boolean compare and swap is available in boemc implementation
-	boolean_t yieldedValue = FALSE;
-
-	do {
-		oldValue = device->messageStack[priority];
-		yieldedValue = AO_compare_and_swap((uintptr_t *) & device->messageStack[priority], (uintptr_t) oldValue, (uintptr_t) newValue);	// Atomic Swap using boemc atomic_ops
-	} while (!yieldedValue);
-#endif
-#else
-	sccp_mutex_lock(&device->messageStackLock);
-	oldValue = device->messageStack[priority];
-	device->messageStack[priority] = newValue;
-	sccp_mutex_unlock(&device->messageStackLock);
-#endif
+	} while (!CAS_PTR(&device->messageStack[priority], oldValue, newValue, &device->messageStackLock));
 
 	if (oldValue) {
 		sccp_free(oldValue);

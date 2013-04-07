@@ -68,7 +68,6 @@ void sccp_dev_cleardisplaynotify(const sccp_device_t * d);
 void sccp_dev_cleardisplayprinotify(const sccp_device_t * d);
 void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type, sccp_speed_t * k);
 void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l);
-void sccp_dev_select_line(sccp_device_t * d, sccp_line_t * l);
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device);
 void sccp_dev_postregistration(void *data);
 void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
