@@ -146,49 +146,56 @@ sccp_line_t *sccp_line_create(const char *name)
  */
 sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
 {
-	sccp_line_t *l = NULL;
-
+	sccp_line_t *search_line = NULL;
+	sccp_line_t *return_line = NULL;
+	
 	if (!line) {
-		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
+		pbx_log(LOG_ERROR, "Adding a null line to global lines list is not allowed!\n");
 		return NULL;
 	}
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	/* does the line already exist (created by an other thread) ? */
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		if (!strcasecmp(l->name, line->name)) {
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), search_line, list) {
+		if (sccp_strequals(search_line->name, line->name)) {
 			break;
 		}
 	}
-
-	if (l) {
-		pbx_log(LOG_NOTICE, "SCCP: line '%s' was already created by an other thread, cleaning up new line\n", line->name);
-		//line = sccp_line_release(line);                                                               // do not release line, this will be automaticly done by calling thread
+	if (search_line) {
+		pbx_log(LOG_ERROR, "SCCP: line '%s' was already created by an other thread, returning previous instance %p (%s) (cleaning up new instance)\n", line->name, search_line, search_line->name);
+		if (!(return_line = sccp_line_retain(search_line))) {
+			pbx_log(LOG_ERROR, "SCCP: line '%s' could not be retained\n", search_line->name);
+			return_line = NULL;
+		}
+		sccp_line_release(line);	// auto destroy provided new line and return previous instance instead
 		SCCP_RWLIST_UNLOCK(&GLOB(lines));
-		return line;											// return previous instance
+		// return retained previous instance
+	} else {
+		/* line was not created */
+		if ((return_line = sccp_line_retain(line))) {
+			/* not the right location to do this but ok */	
+			if (sccp_strlen_zero(line->id) && !sccp_strlen_zero(line->name)) {
+				sccp_copy_string(line->id, line->name, sizeof(line->id));
+			}
+
+			//      SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
+			SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), line, list, cid_num);
+			SCCP_RWLIST_UNLOCK(&GLOB(lines));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", line->name);
+
+			sccp_event_t event;
+
+			memset(&event, 0, sizeof(sccp_event_t));
+			event.type = SCCP_EVENT_LINE_CREATED;
+			event.event.lineCreated.line = sccp_line_retain(line);
+			sccp_event_fire(&event);
+			// return retained line
+		} else {
+			pbx_log(LOG_ERROR, "SCCP: line '%s' could not be retained\n", return_line->name);
+			return_line = NULL;
+		}
 	}
-
-	/* line was not created */
-	line = sccp_line_retain(line);
-
-	/* not the right location to do this but ok */	
-	if (sccp_strlen_zero(line->id) && !sccp_strlen_zero(line->name)) {
-		sccp_copy_string(line->id, line->name, sizeof(line->id));
-	}
-
-	//      SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
-	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), line, list, cid_num);
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", line->name);
-
-	sccp_event_t event;
-
-	memset(&event, 0, sizeof(sccp_event_t));
-	event.type = SCCP_EVENT_LINE_CREATED;
-	event.event.lineCreated.line = sccp_line_retain(line);
-	sccp_event_fire(&event);
-
-	return line;
+	return return_line;
 }
 
 /*!
@@ -238,7 +245,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
  */
 void *sccp_create_hotline(void)
 {
-	sccp_line_t *hotline;
+	sccp_line_t *hotline = NULL;
 
 	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
 	if (!GLOB(hotline)) {
@@ -251,21 +258,16 @@ void *sccp_create_hotline(void)
 #ifdef CS_SCCP_REALTIME
 	hotline->realtime = TRUE;
 #endif
-	hotline = sccp_line_addToGlobals(hotline);								// can return previous line on doubles
-	if (hotline) {
-		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
-		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
-		sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
-		sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
-		sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
+	sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
+	sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
+	sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
+	sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
+	sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
+	sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
 
-		//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
-		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
-
-		GLOB(hotline)->line = sccp_line_retain(hotline);
+	if (!(GLOB(hotline)->line = sccp_line_addToGlobals(hotline))) {								// can return previous line on doubles
+		pbx_log(LOG_ERROR, "SCCP: addToGlobals returned NULL (refcount issue)");
 	}
-	sccp_line_release(hotline);
-
 	return NULL;
 }
 
