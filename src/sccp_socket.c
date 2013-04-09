@@ -495,6 +495,7 @@ static void sccp_accept_connection(void)
 		sccp_log(0) ("SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", pbx_inet_ntoa(s->sin.sin_addr), pbx_str_buffer(buf));
 		pbx_log(LOG_WARNING, "SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", pbx_inet_ntoa(s->sin.sin_addr), pbx_str_buffer(buf));
 		s = sccp_session_reject(s, "Device ip not authorized");
+		sccp_session_unlock(s);
 		return;
 	}
 
