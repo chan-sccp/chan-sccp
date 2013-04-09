@@ -400,7 +400,6 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
 	sccp_hint_list_t *hint = NULL;
 	sccp_hint_SubscribingDevice_t *subscriber;
-	sccp_device_t *d = NULL;
 
 	SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -411,10 +410,7 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 			if (subscriber->device && !strcasecmp(subscriber->device->id, deviceName)) {
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "%s: Freeing subscriber from hint exten: %s in %s\n", deviceName, hint->exten, hint->context);
 				SCCP_LIST_REMOVE_CURRENT(list);
-				if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
-					subscriber->device = sccp_device_release(subscriber->device);
-					d = sccp_device_release(d);
-				}
+				subscriber->device = sccp_device_release(subscriber->device);
 				sccp_free(subscriber);
 			}
 		}
