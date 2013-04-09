@@ -96,7 +96,11 @@ void sccp_line_post_reload(void)
 			SCCP_LIST_UNLOCK(&l->devices);
 
 			if (l->pendingDelete) {
+				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);
 				sccp_line_clean(l, TRUE);
+			} else {
+				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cleaning Line (post_reload)\n", l->name);
+				sccp_line_clean(l, FALSE);
 			}
 			l = sccp_line_release(l);
 		}

@@ -272,51 +272,47 @@ void sccp_device_pre_reload(void)
 boolean_t sccp_device_check_update(sccp_device_t * d)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
-	if (!d || (!d->pendingUpdate && !d->pendingDelete))
-		return FALSE;
+	boolean_t res = FALSE;
+	if (d && (d->pendingUpdate || d->pendingDelete)) {
+		do {
+			if ((d = sccp_device_retain(d))) {
+				if (sccp_device_numberOfChannels(d) > 0) {
+					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
+					break;
+				}
 
-	if (!(d = sccp_device_retain(d))) {
-		return FALSE;
-	}
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (Update:%d, Delete:%d)\n", d->id, d->pendingUpdate, d->pendingDelete);
 
-	if (sccp_device_numberOfChannels(d) > 0) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
-		d = sccp_device_release(d);
-		return FALSE;
-	}
+				d->pendingUpdate = 0;
+				if (d->pendingDelete) {
+					sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
+					sccp_dev_clean(d, TRUE, 0);
+				} else {
+					sccp_dev_clean(d, FALSE, 0);
+					sccp_buttonconfig_t *buttonconfig;
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (%d, %d)\n", d->id, d->pendingUpdate, d->pendingDelete);
-	sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-	if (d->session) {
-		pthread_cancel(d->session->session_thread);
-	}
-	d->pendingUpdate = 0;
+					SCCP_LIST_LOCK(&d->buttonconfig);
+					SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
+						if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
+							continue;
 
-	if (d->pendingDelete) {
-		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
-		sccp_dev_clean(d, TRUE, 0);
-	} else {
-		sccp_buttonconfig_t *buttonconfig;
-
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
-			if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate)
-				continue;
-
-			if (buttonconfig->pendingDelete) {
-				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-				SCCP_LIST_REMOVE_CURRENT(list);
-				sccp_free(buttonconfig);
-			} else {
-				buttonconfig->pendingUpdate = 0;
+						if (buttonconfig->pendingDelete) {
+							sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+							SCCP_LIST_REMOVE_CURRENT(list);
+							sccp_free(buttonconfig);
+						} else {
+							buttonconfig->pendingUpdate = 0;
+						}
+					}
+					SCCP_LIST_TRAVERSE_SAFE_END;
+					SCCP_LIST_UNLOCK(&d->buttonconfig);
+				}
+				d = sccp_device_release(d);
+				res = TRUE;
 			}
-		}
-		SCCP_LIST_TRAVERSE_SAFE_END;
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		} while (0);
 	}
-	d = sccp_device_release(d);
-
-	return TRUE;
+	return res;
 }
 
 /*!
@@ -1809,7 +1805,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			sccp_log(DEBUGCAT_FEATURE_BUTTON) (VERBOSE_PREFIX_1 "%s: Removed Devicestate Subscription: %s\n", d->id, devstateSpecifier->specifier);
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
-
 #endif
 
 		d = sccp_device_release(d);
