@@ -349,9 +349,7 @@ int __sccp_line_destroy(const void *ptr)
 	sccp_mutex_lock(&l->lock);
 
 	// cleanup linedevices
-	sccp_linedevices_t *linedevice = NULL;
-
-	sccp_line_removeDevice(linedevice->line, NULL);
+	sccp_line_removeDevice(l, NULL);
 	if (SCCP_LIST_EMPTY(&l->devices))
 		SCCP_LIST_HEAD_DESTROY(&l->devices);
 
