@@ -88,10 +88,7 @@ void sccp_line_post_reload(void)
 		if ((l = sccp_line_retain(l))) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-				if ((linedevice->device = sccp_device_retain(linedevice->device))) {
-					linedevice->device->pendingUpdate = 1;
-					linedevice->device = sccp_device_release(linedevice->device);
-				}
+				linedevice->device->pendingUpdate = 1;
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
 
@@ -293,9 +290,10 @@ void sccp_line_kill_channels(sccp_line_t * l)
 
 	//      SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
-		sccp_channel_retain(c);
-		sccp_channel_endcall(c);
-		sccp_channel_release(c);
+		if ((sccp_channel_retain(c))) {
+			sccp_channel_endcall(c);
+			sccp_channel_release(c);
+		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	//      SCCP_LIST_UNLOCK(&l->channels);
@@ -323,20 +321,8 @@ void sccp_line_kill_channels(sccp_line_t * l)
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
-	//      sccp_linedevices_t *linedevice;
-
 	sccp_line_kill_channels(l);
-
-	//SCCP_LIST_LOCK(&l->devices);
-	/*
-	   SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-	   sccp_line_removeDevice(linedevice->line, linedevice->device);
-	   }
-	   SCCP_LIST_TRAVERSE_SAFE_END;
-	 */
 	sccp_line_removeDevice(l, NULL);									// removing all devices from this line.
-	//SCCP_LIST_UNLOCK(&l->devices);
-
 	if (remove_from_global) {
 		sccp_line_destroy(l);
 	}
@@ -365,21 +351,15 @@ int __sccp_line_destroy(const void *ptr)
 	// cleanup linedevices
 	sccp_linedevices_t *linedevice = NULL;
 
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-		sccp_line_removeDevice(linedevice->line, linedevice->device);
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
-	SCCP_LIST_UNLOCK(&l->devices);
+	sccp_line_removeDevice(linedevice->line, NULL);
 	if (SCCP_LIST_EMPTY(&l->devices))
 		SCCP_LIST_HEAD_DESTROY(&l->devices);
 
 	// cleanup mailboxes
-	if (l->trnsfvm)
+	if (l->trnsfvm) {
 		sccp_free(l->trnsfvm);
-
+	}	
 	sccp_mailbox_t *mailbox = NULL;
-
 	SCCP_LIST_LOCK(&l->mailboxes);
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
 		if (!mailbox)
@@ -393,21 +373,22 @@ int __sccp_line_destroy(const void *ptr)
 		sccp_free(mailbox);
 	}
 	SCCP_LIST_UNLOCK(&l->mailboxes);
-	if (SCCP_LIST_EMPTY(&l->mailboxes))
+	if (SCCP_LIST_EMPTY(&l->mailboxes)) {
 		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
-
+	}
 	// cleanup channels
 	sccp_channel_t *c = NULL;
-
 	SCCP_LIST_LOCK(&l->channels);
 	while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
 		sccp_channel_endcall(c);
 		sccp_channel_release(c);									// release channel retain in list
 	}
 	SCCP_LIST_UNLOCK(&l->channels);
-	if (SCCP_LIST_EMPTY(&l->channels))
+	if (SCCP_LIST_EMPTY(&l->channels)) {
 		SCCP_LIST_HEAD_DESTROY(&l->channels);
+	}
 
+	// cleanup variables
 	if (l->variables) {
 		pbx_variables_destroy(l->variables);
 		l->variables = NULL;
@@ -434,7 +415,7 @@ int __sccp_lineDevice_destroy(const void *ptr)
 {
 	sccp_linedevices_t *linedevice = (sccp_linedevices_t *) ptr;
 
-	sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "LineDevice FREE %p\n", linedevice);
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: LineDevice FREE %p\n", DEV_ID_LOG(linedevice->device), linedevice);
 	if (linedevice->line)
 		linedevice->line = sccp_line_release(linedevice->line);
 	if (linedevice->device)
@@ -659,10 +640,9 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
 	sccp_linedevices_t *linedevice;
 
-	//      if (!l || !device)
-	if (!l)
+	if (!l) {
 		return;
-
+	}
 	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
 
 	SCCP_LIST_LOCK(&l->devices);
@@ -679,6 +659,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			event.type = SCCP_EVENT_DEVICE_DETACHED;
 			event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
 			sccp_event_fire(&event);
+			
 			sccp_linedevice_release(linedevice);
 		}
 	}
