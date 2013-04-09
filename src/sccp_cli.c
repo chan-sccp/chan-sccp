@@ -2183,6 +2183,7 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	sccp_readingtype_t readingtype;
+	boolean_t different_file = FALSE;
 	int returnval = RESULT_SUCCESS;
 
 	if (argc < 2 || argc > 3)
@@ -2197,6 +2198,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 	if (argc > 2) {
 		pbx_cli(fd, "Using config file '%s'\n", argv[2]);
+		if (!strncasecmp(GLOB(config_file_name), argv[2], strlen(GLOB(config_file_name)))) {
+			different_file=TRUE;
+		}
 		GLOB(config_file_name) = sccp_strdupa(argv[2]);
 	}
 
@@ -2204,9 +2208,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
-			returnval = RESULT_SUCCESS;
-			break;
+			if (!different_file) {
+				pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+				returnval = RESULT_SUCCESS;
+				break;
+			}
 		case CONFIG_STATUS_FILE_OK:
 			pbx_cli(fd, "SCCP reloading configuration.\n");
 			readingtype = SCCP_CONFIG_READRELOAD;
