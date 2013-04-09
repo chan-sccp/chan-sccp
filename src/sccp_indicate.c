@@ -258,8 +258,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		case SCCP_CHANNELSTATE_PROCEED:
 			if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {				// this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app)
 				sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-//				d = sccp_device_release(d);
-//				return;
 				break;
 			}
 			sccp_dev_stoptone(d, instance, c->callid);
