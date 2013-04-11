@@ -1704,7 +1704,7 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 #endif
 	//      if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id, l->name);
 		l->pendingUpdate = 1;
 	} else {
 		l->pendingUpdate = 0;
@@ -2148,10 +2148,8 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	
 	sccp_config_set_defaults(l, SCCP_CONFIG_LINE_SEGMENT, alreadySetEntries, ARRAY_LEN(alreadySetEntries));
 
-	/* moved from addToGLobals */
-	/* not the right location to do this but ok, not even sure if it is still necessary */	
-	if (sccp_strlen_zero(l->id) && !sccp_strlen_zero(l->name)) {
-		sccp_copy_string(l->id, l->name, sizeof(l->id));
+	if (sccp_strlen_zero(l->id)) {
+	        sprintf(l->id, "%04d", SCCP_LIST_GETSIZE(GLOB(lines)));
 	}
 
 	return res;
