@@ -666,7 +666,7 @@ int sccp_preUnload(void)
 	sccp_free(GLOB(hotline));
 
 	/* removing lines */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 		sccp_line_clean(l, TRUE);
@@ -674,7 +674,7 @@ int sccp_preUnload(void)
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines)))
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
-
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	usleep(500);												// wait for events to finalize
 
 	/* removing sessions */
