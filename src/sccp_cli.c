@@ -2197,22 +2197,21 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	}
 
 	if (argc > 2) {
-		pbx_cli(fd, "Using config file '%s'\n", argv[2]);
-		if (!strncasecmp(GLOB(config_file_name), argv[2], strlen(GLOB(config_file_name)))) {
+		pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[2], GLOB(config_file_name));
+		if (!sccp_strequals(GLOB(config_file_name), argv[2])) {
 			different_file=TRUE;
 		}
-		GLOB(config_file_name) = sccp_strdupa(argv[2]);
+		if (GLOB(config_file_name)) {
+			sccp_free(GLOB(config_file_name));
+		}	
+		GLOB(config_file_name) = sccp_strdup(argv[2]);
 	}
-
-	sccp_config_file_status_t cfg = sccp_config_getConfig(TRUE);
-
+	sccp_config_file_status_t cfg = sccp_config_getConfig(different_file);
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-			if (!different_file) {
-				pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
-				returnval = RESULT_SUCCESS;
-				break;
-			}
+			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+			returnval = RESULT_SUCCESS;
+			break;
 		case CONFIG_STATUS_FILE_OK:
 			pbx_cli(fd, "SCCP reloading configuration.\n");
 			readingtype = SCCP_CONFIG_READRELOAD;
