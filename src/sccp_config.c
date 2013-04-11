@@ -2022,19 +2022,18 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			v = ast_variable_browse(GLOB(cfg), cat);
 
 			/* check if we have this line already */
-			l = sccp_line_find_byname_wo(cat, FALSE);
-			if (!l) {
-				l = sccp_line_create(cat);
-				sccp_config_buildLine(l, v, cat, FALSE);
-
-				l = sccp_line_addToGlobals(l);				/** never add a line to globals, before configuration is done, this will cause issues with mwi and hint -MC */
-			} else {
+        		SCCP_RWLIST_RDLOCK(&GLOB(lines));
+			if ((l = sccp_line_find_byname_wo(cat, FALSE))) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
+			} else {
+				l = sccp_line_create(cat);
+				sccp_config_buildLine(l, v, cat, FALSE);
+                		sccp_line_addToGlobals(l);			/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
 			}
-
-			l = l ? sccp_line_release(l) : NULL;
-
+			l = l ? sccp_line_release(l) : NULL;			/* release either found / or newly created line. will remain retained in glob(lines) anyway. */
+        		SCCP_RWLIST_UNLOCK(&GLOB(lines));
+        		
 		} else if (!strcasecmp(utype, "softkeyset")) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "read set %s\n", cat);
 			v = ast_variable_browse(GLOB(cfg), cat);
@@ -2148,6 +2147,12 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	}
 	
 	sccp_config_set_defaults(l, SCCP_CONFIG_LINE_SEGMENT, alreadySetEntries, ARRAY_LEN(alreadySetEntries));
+
+	/* moved from addToGLobals */
+	/* not the right location to do this but ok, not even sure if it is still necessary */	
+	if (sccp_strlen_zero(l->id) && !sccp_strlen_zero(l->name)) {
+		sccp_copy_string(l->id, l->name, sizeof(l->id));
+	}
 
 	return res;
 }

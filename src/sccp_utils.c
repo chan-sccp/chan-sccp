@@ -319,12 +319,13 @@ sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t useRealtime)
 			break;
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 #ifdef CS_SCCP_REALTIME
-	if (!l && useRealtime)
+	if (!l && useRealtime) {
 		l = sccp_line_find_realtime_byname(name);							/* already retained */
+	}	
 #endif
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
@@ -377,11 +378,13 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
+
 		l = sccp_line_create(name);									/* already retained */
 		sccp_config_applyLineConfiguration(l, variable);
 		l->realtime = TRUE;
-		l = sccp_line_addToGlobals(l);									// can return previous instance on doubles
+		sccp_line_addToGlobals(l);									// can return previous instance on doubles
 		pbx_variables_destroy(v);
+		
 		if (!l) {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}

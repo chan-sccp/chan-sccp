@@ -144,51 +144,30 @@ sccp_line_t *sccp_line_create(const char *name)
  *      - lines
  *      - see sccp_mwi_linecreatedEvent() via sccp_event_fire()
  */
-sccp_line_t *sccp_line_addToGlobals(sccp_line_t * line)
+void sccp_line_addToGlobals(sccp_line_t * line)
 {
 	sccp_line_t *l = NULL;
+	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {					/* Upgrading to wrlock if possible */
+		usleep(100);								/* backoff on failure */
+	}
+	if ((l = sccp_line_retain(line))) {
+		/* add to list */
+		l = sccp_line_retain(l);						/* add retained line to the list */
+		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
 
-	if (!line) {
+		/* emit event */
+		sccp_event_t event;
+		memset(&event, 0, sizeof(sccp_event_t));
+		event.type = SCCP_EVENT_LINE_CREATED;
+		event.event.lineCreated.line = sccp_line_retain(l);
+		sccp_event_fire(&event);
+
+		l = sccp_line_release(l);
+	} else {
 		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
-		return NULL;
-	}
-
-	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	/* does the line already exist (created by an other thread) ? */
-	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		if (!strcasecmp(l->name, line->name)) {
-			break;
-		}
-	}
-
-	if (l) {
-		pbx_log(LOG_NOTICE, "SCCP: line '%s' was already created by an other thread, cleaning up new line\n", line->name);
-		//line = sccp_line_release(line);                                                               // do not release line, this will be automaticly done by calling thread
-		SCCP_RWLIST_UNLOCK(&GLOB(lines));
-		return line;											// return previous instance
-	}
-
-	/* line was not created */
-	line = sccp_line_retain(line);
-
-	/* not the right location to do this but ok */	
-	if (sccp_strlen_zero(line->id) && !sccp_strlen_zero(line->name)) {
-		sccp_copy_string(line->id, line->name, sizeof(line->id));
-	}
-
-	//      SCCP_RWLIST_INSERT_HEAD(&GLOB(lines), line, list);
-	SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), line, list, cid_num);
+	}	
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", line->name);
-
-	sccp_event_t event;
-
-	memset(&event, 0, sizeof(sccp_event_t));
-	event.type = SCCP_EVENT_LINE_CREATED;
-	event.event.lineCreated.line = sccp_line_retain(line);
-	sccp_event_fire(&event);
-
-	return line;
 }
 
 /*!
@@ -210,7 +189,10 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 		return NULL;
 	}
 
-	SCCP_RWLIST_WRLOCK(&GLOB(lines));
+//	SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {					/* Upgrading to wrlock if possible */
+		usleep(100);								/* backoff on failure */
+	}
 	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
@@ -247,11 +229,11 @@ void *sccp_create_hotline(void)
 	}
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	hotline = sccp_line_create("Hotline");
 #ifdef CS_SCCP_REALTIME
 	hotline->realtime = TRUE;
 #endif
-	hotline = sccp_line_addToGlobals(hotline);								// can return previous line on doubles
 	if (hotline) {
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
@@ -263,8 +245,10 @@ void *sccp_create_hotline(void)
 		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
 
 		GLOB(hotline)->line = sccp_line_retain(hotline);
+		sccp_line_addToGlobals(hotline);						// can return previous line on doubles
+		sccp_line_release(hotline);
 	}
-	sccp_line_release(hotline);
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return NULL;
 }
