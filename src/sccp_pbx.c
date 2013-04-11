@@ -411,10 +411,11 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	//              void __fn__ (void) 
 	{
 		sccp_linedevices_t *linedevice;
-		sccp_device_t *tmpDevice = NULL;
+		
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			sccp_device_t *tmpDevice = NULL;
 			if ((tmpDevice = sccp_device_retain(linedevice->device))) {
 				if (tmpDevice->transferChannels.transferer == c) {
 					tmpDevice->transferChannels.transferer = sccp_channel_release(tmpDevice->transferChannels.transferer);
@@ -427,9 +428,9 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 					tmpDevice->transferChannels.transferer = tmpDevice->transferChannels.transferer ? sccp_channel_release(tmpDevice->transferChannels.transferer) : NULL;
 					break;
 				}
+				sccp_device_release(tmpDevice);
 			}
 		}
-		tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
 		SCCP_LIST_UNLOCK(&l->devices);
 	}
 	//              __fn__;
