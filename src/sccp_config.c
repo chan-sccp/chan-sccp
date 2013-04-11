@@ -2214,13 +2214,13 @@ sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t *device
  * \brief Find the Correct Config File
  * \return Asterisk Config Object as ast_config
  */
-sccp_config_file_status_t sccp_config_getConfig(boolean_t reload)
+sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 {
 	//      struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS & CONFIG_FLAG_FILEUNCHANGED };
-	struct ast_flags config_flags = { reload ? CONFIG_FLAG_FILEUNCHANGED : 0 };
+	struct ast_flags config_flags = { !force ? CONFIG_FLAG_FILEUNCHANGED : 0};
 
 	if (sccp_strlen_zero(GLOB(config_file_name))) {
-		GLOB(config_file_name) = "sccp.conf";
+		GLOB(config_file_name) = strdup("sccp.conf");
 	}
 	GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
 	if (CONFIG_STATUS_FILEMISSING == GLOB(cfg)) {
@@ -2228,11 +2228,16 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t reload)
 		GLOB(cfg) = NULL;
 		return CONFIG_STATUS_FILE_NOT_FOUND;
 	} else if (CONFIG_STATUS_FILEUNCHANGED == GLOB(cfg)) {
-		pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting reload.\n", GLOB(config_file_name));
-		// ugly solution, original GLOB(cfg) is overwritten by CONFIG_STATUS_FILEUNCHANGED, which need to corrected before returning FILE_NOT_CHANGED
-		memset(&config_flags, 0, sizeof(config_flags));
-		GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
-		return CONFIG_STATUS_FILE_NOT_CHANGED;
+                // ugly solution, original GLOB(cfg) is overwritten by CONFIG_STATUS_FILEUNCHANGED, which need to corrected before returning FILE_NOT_CHANGED
+                memset(&config_flags, 0, sizeof(config_flags));
+                GLOB(cfg) = pbx_config_load(GLOB(config_file_name), "chan_sccp", config_flags);
+	        if (force) {
+                        pbx_log(LOG_NOTICE, "Config file '%s' has not changed, forcing reload.\n", GLOB(config_file_name));
+                        return CONFIG_STATUS_FILE_OK;
+		} else {
+                        pbx_log(LOG_NOTICE, "Config file '%s' has not changed, aborting reload.\n", GLOB(config_file_name));
+                        return CONFIG_STATUS_FILE_NOT_CHANGED;
+		}
 	} else if (CONFIG_STATUS_FILEINVALID == GLOB(cfg)) {
 		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;

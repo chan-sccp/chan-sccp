@@ -339,7 +339,7 @@ int load_config(void)
 #else
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : BIG ENDIAN\n");
 #endif
-	if (sccp_config_getConfig(FALSE) > CONFIG_STATUS_FILE_OK) {
+	if (sccp_config_getConfig(TRUE) > CONFIG_STATUS_FILE_OK) {
 		pbx_log(LOG_ERROR, "Error loading configfile !");
 		return FALSE;
 	}
@@ -721,6 +721,7 @@ int sccp_preUnload(void)
 	sccp_threadpool_destroy(GLOB(general_threadpool));
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
 	sccp_refcount_destroy();
+	sccp_free(GLOB(config_file_name));
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));
 	//      pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
@@ -743,7 +744,7 @@ int sccp_reload(void)
 		return 1;
 	}
 
-	sccp_config_file_status_t cfg = sccp_config_getConfig(TRUE);
+	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE);
 
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
