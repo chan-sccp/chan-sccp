@@ -164,11 +164,9 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		const char *id = astman_get_header(m, "ActionID");						\
 		static char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
 		static char *arguments[ARRAY_LEN(cli_ami_params)];						\
-		uint8_t x = 0; 											\
-		uint8_t i = 0; 											\
+		uint8_t x = 0, i = 0; 										\
 		for (x=0, i=0; x < ARRAY_LEN(cli_ami_params); x++) {						\
 			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){ 			\
-				/*arguments[i++]=sccp_strdupa(astman_get_header(m, cli_ami_params[x]));*/	\
 				arguments[i++]=(char *)astman_get_header(m, cli_ami_params[x]);		 	\
 			} 											\
 		}												\
@@ -230,10 +228,10 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	static char *_FUNCTION_NAME(struct ast_cli_entry *e, int cmd, struct ast_cli_args *a) {			\
 		const char *cli_command[] = { CLI_COMMAND, NULL };						\
 		static sccp_cli_completer_t cli_complete[] = { CLI_COMPLETE };					\
-		static char command[80]="";										\
+		static char command[80]="";									\
 		if (cmd == CLI_INIT) {										\
 		 	ast_join(command, sizeof(command), cli_command);					\
-			e->command = command;								\
+			e->command = command;									\
 			e->usage = _USAGE;									\
 			return NULL;										\
 		} else if (cmd == CLI_GENERATE) {								\
