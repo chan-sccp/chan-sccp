@@ -1,4 +1,380 @@
+2013-04-14  ddegroot
+
+	* [r4565] src/sccp_conference.c: Fix conference compilation against
+	  asterisk-1.6.2 (connected line update).
+
+	* [r4564] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/astTrunk.h: Sync cli
+	  macro's for all version (removed alloca in astTrunk 3 weeks ago,
+	  without negative side effects)
+
+2013-04-11  ddegroot
+
+	* [r4563] src/sccp_config.c: Using GETSIZE to generate a unique
+	  l->id instead of copying l->name if it was not provided in
+	  sccp.conf
+
+	* [r4562] src/chan_sccp.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_config.h: Force update when switching config files using
+	  sccp reload [...]
+
+	* [r4561] src/chan_sccp.c, src/sccp_config.c, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_utils.c: Update/Cleanup
+	  sccp_line_addToGlobals
+
+2013-04-11  marcelloceschia
+
+	* [r4560] src/sccp_pbx.c: fixes device refcount issue, cloese #100
+
+2013-04-10  marcelloceschia
+
+	* [r4559] src/sccp_conference.c: fixes conference issue
+
+2013-04-10  ddegroot
+
+	* [r4558] src/sccp_config.c, src/sccp_line.c, src/sccp_utils.c:
+	  Revert changes to sccp_line_addToGlobals
+
+2013-04-09  marcelloceschia
+
+	* [r4557] src/sccp_socket.c: fixes session unlock
+
+2013-04-09  ddegroot
+
+	* [r4556] src/sccp_config.c, src/sccp_utils.c: Update flow to use
+	  sccp_line_addToGlobals
+
+	* [r4555] src/sccp_line.c: Revised sccp_line_addToGlobals to have a
+	  single exit point and auto release new line that was going to be
+	  added, if it was already found in the globals list
+
+	* [r4554] src/sccp_indicate.c: cleanup return from sccp_indicate.c
+
+	* [r4553] src/sccp_line.c: Fix module line destroy
+
+	* [r4552] src/sccp_line.c: Fixing refcount when sccp reload for
+	  changes in line cid_name / label
+
+	* [r4551] src/sccp_hint.c: Wenn release retained device in a
+	  safe_loop, no need to retain a reference around it (we are
+	  releasing one remember) (saving multiple useless retain/releases)
+
+	* [r4550] src/sccp_cli.c: We reloading using a different file, no
+	  need to check file changed status
+
+	* [r4549] src/sccp_device.c, src/sccp_line.c: Fixing sccp reload
+	  for changes in line cid_name / label (one down, one to go)
+
+2013-04-08  ddegroot
+
+	* [r4548] src/sccp_channel.c: Fix transfer cleanup mistake
+	  (reported by Alena/Leonid)
+
+2013-04-07  ddegroot
+
+	* [r4547] src/sccp_indicate.c: Fix refcount issue in sccp_indicate
+	  (returning without release) (Thanks Pavel).
+
+	* [r4546] src/sccp_line.c: Cleanup / Refactor of sccp_line.c
+
+	* [r4545] src/sccp_device.c, src/sccp_device.h, src/sccp_lock.h:
+	  Cleanup / Refactor of sccp_device.c
+
+2013-04-06  ddegroot
+
+	* [r4544] src/sccp_channel.c: Cleanup / Refactor of sccp_channel.c
+
+	* [r4543] src/sccp_channel.c: Enabled WITHREF for experimental mode
+	  only (Mute/Unmute Conference Partitipant to test)
+
+	* [r4542] src/sccp_channel.c, src/sccp_refcount.h: Added some debug
+	  output to WITHREF macro's for testing purposes
+
+	* [r4541] src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_refcount.h: Added some debug output to WITHREF macro's
+	  for testing purposes
+
+	* [r4540] src/sccp_channel.c: Show WITHREF/GETWITHREF solution
+
+	* [r4539] src/sccp_channel.c, src/sccp_refcount.h: Show
+	  WITHREF/GETWITHREF solution
+
+	* [r4538] src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
+	  src/sccp_line.h: Sorted header by type of function. Removed local
+	  implementation of sccp_channel_retain/sccp_channel_release
+
+	* [r4537] src/sccp_utils.c, src/sccp_utils.h: Remove unused
+	  function array2str
+
+2013-04-05  marcelloceschia
+
+	* [r4536] src/pbx_impl/ast/astTrunk.c: fixes warnings
+
+	* [r4535] src/pbx_impl/ast/astTrunk.c: fixes posible refcount issue
+	  in sccp_wrapper_recvdigit_end
+
+	* [r4534] src/pbx_impl/ast/astTrunk.c: fixes posible refcount issue
+	  in sccp_wrapper_asterisk111_rtpBridge
+
+	* [r4533] src/pbx_impl/ast/ast.c: fixes refcount issue in
+	  sccp_asterisk_pbx_fktChannelWrite
+
+	* [r4532] src/pbx_impl/ast/ast.c: fixes refcount issue in
+	  sccp_asterisk_pbx_fktChannelWrite
+
+2013-04-05  ddegroot
+
+	* [r4531] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Copied
+	  loading order from astTrunk to other versions, so that
+	  chan-sccp-b is loaded later, and dialplan warnings should be
+	  reduced
+
+	* [r4530] src/pbx_impl/ast/astTrunk.h: Remove unnecessary call to
+	  strdupa. Pointer to astman_get_header should suffice (Needs to be
+	  copied to previous implementation when no side effects are noted)
+
+	* [r4529] src/sccp_cli.c: Use provided argv[2] instead of calling
+	  astman_get_header again
+
+	* [r4528] src/sccp_utils.h: Use gnu strdupa if available
+
+	* [r4527] src/sccp_config.c, src/sccp_config.h: Fixing possible
+	  null-pointer dereferences / Removed unnecessary retain/release
+
+	* [r4526] src/sccp_utils.c: Fixing free issue on return from
+	  re-alloc
+
+	* [r4525] src/sccp_conference.c: Fixing possible null-pointer
+	  dereferences
+
+	* [r4524] src/sccp_socket.c: Fixing possible null-pointer
+	  dereferences
+
+2013-04-04  marcelloceschia
+
+	* [r4523] src/sccp_cli.c: rename sccp_set_hold, add backgroundImage
+
+	* [r4522] src/sccp_config_entries.h: cleanup
+	  SCCP_CONFIG_NOUPDATENEEDED
+
+	* [r4521] src/sccp_cli.c: tests with set functions
+
+	* [r4520] src/sccp_utils.c: apply default configuration for
+	  realtime devices
+
+	* [r4519] src/sccp_config.c, src/sccp_config.h: splitt
+	  applyDeviceConfiguration and applyDeviceDefaults
+
+2013-04-04  ddegroot
+
+	* [r4518] src/sccp_cli.c: Renamed some of the completer properties
+
+	* [r4517] src/sccp_config_entries.h: Update sccp_config_entries for
+	  softkeyset (not really used yet)
+
+	* [r4516] src/sccp_cli.c: Renamed some of the completer properties
+
+2013-04-04  marcelloceschia
+
+	* [r4515] src/sccp_device.c: fixes xml messages
+
+	* [r4514] src/sccp_cli.c, src/sccp_cli.h: some test with set
+	  function
+
+	* [r4513] src/sccp_cli.c: some test with set function
+
+2013-04-03  ddegroot
+
+	* [r4512] src/sccp_features.c: Quick/Ugly fix for missing
+	  ast_do_pickup (Reported by Dmity)
+
+2013-04-02  ddegroot
+
+	* [r4511] src/pbx_impl/ast/ast110.c: Fixing park issue for
+	  asterisk-10-branch (Reported and tested by Mark Lemmo)
+
+2013-03-30  marcelloceschia
+
+	* [r4510] src/sccp_actions.c, src/sccp_device.c: move videomode and
+	  join default set to action
+
+2013-03-29  ddegroot
+
+	* [r4509] src/pbx_impl/ast/ast.c: Added deprecation to unused
+	  functions in ast.c
+
+	* [r4508] src/sccp_config.c, src/sccp_config_entries.h: Suppress
+	  warning about empty context (deprecated: pickupexten). Add
+	  logging output for subscriptionId.
+
+2013-03-28  ddegroot
+
+	* [r4507] src/pbx_impl/ast/ast.c, src/sccp_conference.c: Fix
+	  compilation on asterisk-10
+
+2013-03-28  marcelloceschia
+
+	* [r4506] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h: kill tech
+	  for asterisk, used after hangup
+
+	* [r4505] src/sccp_conference.c: fixes compile issue with asterisk
+	  < 11
+
+2013-03-27  ddegroot
+
+	* [r4504] src/sccp_rtp.c: Remove device dependency completely by
+	  using c->currentDeviceId (Related to destroying rtp server fix)
+
+2013-03-27  marcelloceschia
+
+	* [r4503] src/sccp_rtp.c: do not check for device whe destroying
+	  rtp server
+
+	* [r4502] src/sccp_conference.c: workaround to update other channel
+	  as well
+
+	* [r4501] src/sccp_conference.c: workaround to update other channel
+	  as well
+
+2013-03-27  ddegroot
+
+	* [r4500] src/sccp_conference.c: Fix setting confstr
+
+	* [r4499] src/sccp_channel.c, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_features.c: Using the right way
+	  to set the conference callerid (Thanks Marcello)
+
+2013-03-27  marcelloceschia
+
+	* [r4498] src/sccp_management.c: references #97;
+
+	* [r4497] src/sccp_management.c: fixes continuous cores on
+	  register, when device uses button=feature,x,cfwdall; fixes #97;
+
+2013-03-26  ddegroot
+
+	* [r4496] src/chan_sccp.h, src/sccp_appfunctions.c: Fix
+	  sccp_appfunctions.c (Ticket: #177)
+
+	* [r4495] src/sccp_actions.c: Added interesting last alarm messages
+
+	* [r4494] src/sccp_actions.c: Set phone_ip during register
+
+	* [r4493] src/sccp_appfunctions.c: Updated sccp_appfunctions to
+	  include the same information. To save reported ip address of the
+	  phone, phone_sin was added to the session.
+
+	* [r4492] src/sccp_actions.c: Reverted accidental update of
+	  sccp_actions.c.
+
+	* [r4491] src/sccp_actions.c: Updated sccp_appfunctions to include
+	  the same information. To save reported ip address of the phone,
+	  phone_sin was added to the session.
+
+	* [r4490] doc/35_How_To.doc: Updated acf_channel_read/ CHANNEL
+	  documentation. Updated SCCPDEVICE / SCCPCHANNEL documentation.
+
+	* [r4489] src/chan_sccp.h, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/astTrunk.c: Update acf_channel_read function to
+	  include recvip/peerip/agentname/from (moved the implementation to
+	  ast.c (same for all asterisk versions). Updated sccp_appfunctions
+	  to include the same information. To save reported ip address of
+	  the phone, phone_sin was added to the session.
+
+2013-03-25  ddegroot
+
+	* [r4488] src/sccp_channel.c: Update blind transfer patch
+	  (CS_EXPERIMENTAL)
+
+	* [r4487] src/sccp_management.c: Referencing the wrong event data /
+	  Added checks for linedevice, which does not always have to
+	  provided
+
+	* [r4486] src/pbx_impl/ast/ast110.c, src/sccp_management.c:
+	  Correcting asterisk-10 version mistake while setting
+	  originalCalledparty
+
+2013-03-25  marcelloceschia
+
+	* [r4485] src/pbx_impl/ast/ast108.c: asterisk 1.8 does not have a
+	  orig field in ast_party_redirecting, use from instead
+
+	* [r4484] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c:
+	  fixes wrong redirecting check
+
+2013-03-25  ddegroot
+
+	* [r4483] conf/sccp.conf.annotated: Show useRedialMenu (Advanced
+	  Option) in the sccp.conf.annotated file
+
+2013-03-25  marcelloceschia
+
+	* [r4482] src/pbx_impl/ast/astTrunk.c: fixes wrong redirecting
+	  check
+
+2013-03-25  ddegroot
+
+	* [r4481] doc/35_How_To.doc: SetSCCPCodec Deprecated. Instead use
+	  'Set(CHANNEL(codec)=alaw)'.
+
+	* [r4480] src/sccp_appfunctions.c: SetSCCPCodec Deprecated. Instead
+	  use 'Set(CHANNEL(codec)=alaw)'.
+
+	* [r4479] src/chan_sccp.h, src/sccp_actions.c, src/sccp_cli.c,
+	  src/sccp_device.c, src/sccp_protocol.h: Added
+	  d->retrieveDeviceCapabilities as a replacement for the
+	  sccp_protocol.h table extension
+
+2013-03-25  marcelloceschia
+
+	* [r4478] src/sccp_cli.c: indent
+
+	* [r4477] src/sccp_cli.c: fix compile issue
+
+	* [r4476] src/sccp_cli.c: fix compile issue
+
+	* [r4475] conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql, conf/mysql-v4.sql,
+	  conf/mysql-v5.sql, conf/postgres.sql: update database tables for
+	  backgroundImage and ringtone
+
+2013-03-24  marcelloceschia
+
+	* [r4474] src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config_entries.h, src/sccp_device.c: add device config
+	  option backgroundimage and ringtonne
+
+	* [r4473] src/sccp_protocol.h: define StartAnnouncementMessage,
+	  StopAnnouncementMessage, AnnouncementFinishMessage
+
+	* [r4472] src/sccp_device.c: add some device function callbacks
+
+	* [r4471] src/chan_sccp.h: add some device function callbacks
+
+2013-03-24  ddegroot
+
+	* [r4470] src/sccp_conference.c: Added CallData URL Reference
+
+	* [r4469] src/sccp_protocol.h: Completed CISCO7985
+
+2013-03-23  marcelloceschia
+
+	* [r4468] src/sccp_protocol.h: fixes #95, missing description for
+	  7985; needs to be reviewed by diederik
+
 2013-03-23  ddegroot
+
+	* [r4467] src/sccp_actions.c, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_protocol.h: Started adding
+	  conference invite function
+
+	* [r4466] ChangeLog, doc/30_Setup_Guide.doc: Update
+	  30_Setup_Guide.doc so that it automatically include the latest
+	  conf/sccp.conf sample file
 
 	* [r4465] conf/sccp.conf, conf/sccp.conf.annotated,
 	  conf/sccp_hardware.conf.freepbx, src/chan_sccp.h,
