@@ -88,4 +88,31 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device);
 
 boolean_t sccp_device_isVideoSupported(const sccp_device_t * device);
 boolean_t sccp_device_check_update(sccp_device_t * d);
+
+// find device
+#if DEBUG
+#define sccp_device_find_byid(_x,_y) __sccp_device_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+sccp_device_t *__sccp_device_find_byid(const char *name, boolean_t useRealtime, const char *filename, int lineno, const char *func);
+
+#define sccp_device_find_byname(_x) __sccp_device_find_byid(_x)
+#ifdef CS_SCCP_REALTIME
+#define sccp_device_find_realtime(_x) __sccp_device_find_realtime(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
+sccp_device_t *__sccp_device_find_realtime(const char *name, const char *filename, int lineno, const char *func);
+
+#define sccp_device_find_realtime_byid(_x) sccp_device_find_realtime(_x)
+#define sccp_device_find_realtime_byname(_x) sccp_device_find_realtime(_x)
+#endif
+#else
+sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime);
+
+#define sccp_device_find_byname(x) sccp_device_find_byid(x)
+#ifdef CS_SCCP_REALTIME
+sccp_device_t *sccp_device_find_realtime(const char *name);
+
+#define sccp_device_find_realtime_byid(x) sccp_device_find_realtime(x)
+#define sccp_device_find_realtime_byname(x) sccp_device_find_realtime(x)
+#endif
+#endif
+
+
 #endif														/* __SCCP_DEVICE_H */

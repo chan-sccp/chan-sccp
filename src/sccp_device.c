@@ -2348,3 +2348,123 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
 	}
 	return SCCP_PUSH_RESULT_SUCCESS;
 }
+
+/*=================================================================================== FIND FUNCTIONS ==============*/
+
+/*!
+ * \brief Find Device by ID
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ *      - devices
+ */
+#if DEBUG
+/*!
+ * \param name Device ID (hostname)
+ * \param useRealtime Use RealTime as Boolean
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Device - can bee null if device is not found
+ */
+sccp_device_t *__sccp_device_find_byid(const char *name, boolean_t useRealtime, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param name Device ID (hostname)
+ * \param useRealtime Use RealTime as Boolean
+ * \return SCCP Device - can bee null if device is not found
+ */
+sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
+#endif
+{
+	sccp_device_t *d = NULL;
+
+	if (sccp_strlen_zero(name)) {
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for device with name ''\n");
+		return NULL;
+	}
+
+	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		if (d && d->id && !strcasecmp(d->id, name)) {
+#if DEBUG
+			d = sccp_refcount_retain(d, filename, lineno, func);
+#else
+			d = sccp_device_retain(d);
+#endif
+			break;
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+
+#ifdef CS_SCCP_REALTIME
+	if (!d && useRealtime)
+		d = sccp_device_find_realtime_byid(name);
+#endif
+
+	return d;
+}
+
+#ifdef CS_SCCP_REALTIME
+
+/*!
+ * \brief Find Device via RealTime
+ *
+ * \callgraph
+ * \callergraph
+ */
+#if DEBUG
+/*!
+ * \param name Device ID (hostname)
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Device - can bee null if device is not found
+ */
+sccp_device_t *__sccp_device_find_realtime(const char *name, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param name Device ID (hostname)
+ * \return SCCP Device - can bee null if device is not found
+ */
+sccp_device_t *sccp_device_find_realtime(const char *name)
+#endif
+{
+	sccp_device_t *d = NULL;
+	PBX_VARIABLE_TYPE *v, *variable;
+
+	if (sccp_strlen_zero(GLOB(realtimedevicetable)) || sccp_strlen_zero(name))
+		return NULL;
+
+	if ((variable = pbx_load_realtime(GLOB(realtimedevicetable), "name", name, NULL))) {
+		v = variable;
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Device '%s' found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
+
+		d = sccp_device_create(name);		/** create new device */
+		if (!d) {
+			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime device '%s'\n", name);
+			return NULL;
+		}
+		//              sccp_copy_string(d->id, name, sizeof(d->id));
+
+		sccp_config_applyDeviceConfiguration(d, v);		/** load configuration and set defaults */
+		v = variable;
+		sccp_config_applyDeviceDefaults(d, v);			/** set device defaults */
+
+		sccp_config_restoreDeviceFeatureStatus(d);		/** load device status from database */
+
+		sccp_device_addToGlobals(d);				/** add to device to global device list */
+
+		d->realtime = TRUE;					/** set device as realtime device */
+		pbx_variables_destroy(v);
+
+		return d;
+	}
+
+	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Device '%s' not found in realtime table '%s'\n", name, GLOB(realtimedevicetable));
+	return NULL;
+}
+#endif
+

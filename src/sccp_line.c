@@ -835,3 +835,239 @@ sccp_channelState_t sccp_line_getDNDChannelState(sccp_line_t * line)
 	}													// if(line->devices.size > 1)
 	return state;
 }
+
+/*=================================================================================== FIND FUNCTIONS ==============*/
+
+/*!
+ * \brief Find Line by Name
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ *      - lines
+ */
+#if DEBUG
+/*!
+ * \param name Line Name
+ * \param useRealtime Use Realtime as Boolean
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line
+ */
+sccp_line_t *__sccp_line_find_byname(const char *name, uint8_t useRealtime, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param name Line Name
+ * \param useRealtime Use Realtime as Boolean
+ * \return SCCP Line
+ */
+sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
+#endif
+{
+	sccp_line_t *l = NULL;
+
+	//      sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
+	if (sccp_strlen_zero(name)) {
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
+		return NULL;
+	}
+
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
+		if (l && l->name && !strcasecmp(l->name, name)) {
+#if DEBUG
+			l = sccp_refcount_retain(l, filename, lineno, func);
+#else
+			l = sccp_line_retain(l);
+#endif
+			break;
+		}
+	}
+
+#ifdef CS_SCCP_REALTIME
+	if (!l && useRealtime) {
+		l = sccp_line_find_realtime_byname(name);							/* already retained */
+	}	
+#endif
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+
+	if (!l) {
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
+		return NULL;
+	}
+	//      sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
+
+	return l;
+}
+
+#ifdef CS_SCCP_REALTIME
+
+/*!
+ * \brief Find Line via Realtime
+ *
+ * \callgraph
+ * \callergraph
+ */
+#if DEBUG
+/*!
+ * \param name Line Name
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line
+ */
+sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param name Line Name
+ * \return SCCP Line
+ */
+sccp_line_t *sccp_line_find_realtime_byname(const char *name)
+#endif
+{
+	sccp_line_t *l = NULL;
+	PBX_VARIABLE_TYPE *v, *variable;
+
+	if (sccp_strlen_zero(GLOB(realtimelinetable)) || sccp_strlen_zero(name)) {
+		return NULL;
+	}
+
+	if (sccp_strlen_zero(name)) {
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
+		return NULL;
+	}
+
+	if ((variable = pbx_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
+		v = variable;
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+
+		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
+
+		l = sccp_line_create(name);									/* already retained */
+		sccp_config_applyLineConfiguration(l, variable);
+		l->realtime = TRUE;
+		sccp_line_addToGlobals(l);									// can return previous instance on doubles
+		pbx_variables_destroy(v);
+		
+		if (!l) {
+			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
+		}
+		return l;
+	}
+
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+	return NULL;
+}
+#endif
+
+/*!
+ * \brief Find Line by Instance on device
+ *
+ * \todo No ID Specified only instance, should this function be renamed ?
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \lock
+ *      - device->buttonconfig
+ *        - see sccp_line_find_byname_wo()
+ */
+#if DEBUG
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line (can be null)
+ */
+sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const char *filename, int lineno, const char *func)
+#else
+/*!
+ * \param d SCCP Device
+ * \param instance line instance as int
+ * \return SCCP Line (can be null)
+ */
+sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
+#endif
+{
+	sccp_line_t *l = NULL;
+	sccp_buttonconfig_t *config;
+
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
+
+	if (!d || instance == 0)
+		return NULL;
+
+	SCCP_LIST_LOCK(&d->buttonconfig);
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
+
+		if (config && config->type == LINE && config->instance == instance && !sccp_strlen_zero(config->button.line.name)) {
+#if DEBUG
+			l = __sccp_line_find_byname(config->button.line.name, TRUE, filename, lineno, func);
+#else
+			l = sccp_line_find_byname(config->button.line.name, TRUE);
+#endif
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&d->buttonconfig);
+
+	if (!l) {
+		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
+		return NULL;
+	}
+
+	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
+
+	return l;
+}
+
+/*!
+ * \brief Get Device Configuration
+ * \param device SCCP Device
+ * \param line SCCP Line
+ * \param filename Debug FileName
+ * \param lineno Debug LineNumber
+ * \param func Debug Function Name
+ * \return SCCP Line Devices
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ * \warning
+ *      - line->devices is not always locked
+ */
+sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
+{
+	if (!line) {
+		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
+		return NULL;
+	}
+	if (!device) {
+		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line ? line->name : "UNDEF");
+		return NULL;
+	}
+
+	sccp_linedevices_t *linedevice = NULL;
+	sccp_linedevices_t *ld = NULL;
+
+	SCCP_LIST_LOCK(&((sccp_line_t *) line)->devices);
+	SCCP_LIST_TRAVERSE(&((sccp_line_t *) line)->devices, linedevice, list) {
+		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "linedevice %p for device %s line %s\n", linedevice, DEV_ID_LOG(linedevice->device), linedevice->line->name);
+		if (device == linedevice->device) {
+			ld = sccp_linedevice_retain(linedevice);
+			sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: found linedevice for line %s. Returning linedevice %p\n", DEV_ID_LOG(device), ld->line->name, ld);
+			break;
+		}
+	}
+	SCCP_LIST_UNLOCK(&((sccp_line_t *) line)->devices);
+
+	if (!ld) {
+		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
+	}
+	return ld;
+}
