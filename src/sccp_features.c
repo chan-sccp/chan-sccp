@@ -734,7 +734,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
  *      - device->selectedChannels
  *        - see sccp_conference_addParticipant()
  *      - device->buttonconfig
- *        - see sccp_line_find_byname_wo()
+ *        - see sccp_line_find_byname()
  *        - line->channels
  *          - see sccp_conference_addParticipant()
  */

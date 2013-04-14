@@ -290,14 +290,14 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
  * \param func Debug Function Name
  * \return SCCP Line
  */
-sccp_line_t *__sccp_line_find_byname_wo(const char *name, uint8_t useRealtime, const char *filename, int lineno, const char *func)
+sccp_line_t *__sccp_line_find_byname(const char *name, uint8_t useRealtime, const char *filename, int lineno, const char *func)
 #else
 /*!
  * \param name Line Name
  * \param useRealtime Use Realtime as Boolean
  * \return SCCP Line
  */
-sccp_line_t *sccp_line_find_byname_wo(const char *name, uint8_t useRealtime)
+sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 #endif
 {
 	sccp_line_t *l = NULL;
@@ -441,9 +441,9 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 
 		if (config && config->type == LINE && config->instance == instance && !sccp_strlen_zero(config->button.line.name)) {
 #if DEBUG
-			l = __sccp_line_find_byname_wo(config->button.line.name, TRUE, filename, lineno, func);
+			l = __sccp_line_find_byname(config->button.line.name, TRUE, filename, lineno, func);
 #else
-			l = sccp_line_find_byname_wo(config->button.line.name, TRUE);
+			l = sccp_line_find_byname(config->button.line.name, TRUE);
 #endif
 			break;
 		}
@@ -660,7 +660,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
-			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
+			l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
 			if (l) {
 				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);
@@ -835,7 +835,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
-			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
+			l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
 			if (l) {
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 				SCCP_LIST_LOCK(&l->channels);

@@ -317,7 +317,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		l = c->parentChannel->line;
 		c = sccp_channel_release(c);
 	} else {
-		if (!(l = sccp_line_find_byname_wo(data, TRUE))) {
+		if (!(l = sccp_line_find_byname(data, TRUE))) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
 			return -1;
 		}

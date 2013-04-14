@@ -448,7 +448,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 		return 0;
 	}
 
-	line = sccp_line_find_byname_wo(lineName, TRUE);
+	line = sccp_line_find_byname(lineName, TRUE);
 	if (!line) {
 		astman_send_error(s, m, "Line not found");
 		d = sccp_device_release(d);
@@ -492,7 +492,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	line = sccp_line_find_byname_wo(lineName, TRUE);
+	line = sccp_line_find_byname(lineName, TRUE);
 	if (!line) {
 		pbx_log(LOG_WARNING, "%s: Line %s not found\n", deviceName, lineName);
 		astman_send_error(s, m, "Line not found");
@@ -712,7 +712,7 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 			line = sccp_dev_get_activeline(d);
 		}
 	} else {
-		line = sccp_line_find_byname_wo(lineName, FALSE);
+		line = sccp_line_find_byname(lineName, FALSE);
 	}
 
 	if (!line) {

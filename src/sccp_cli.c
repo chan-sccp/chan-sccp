@@ -758,7 +758,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_BEFORE_ITERATION 													\
 			if (buttonconfig->type == LINE) {										\
-				l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);					\
+				l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);					\
 				if (l) {												\
 					linedevice = sccp_linedevice_find(d, l);
 #define CLI_AMI_TABLE_AFTER_ITERATION 													\
@@ -1088,7 +1088,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 		CLI_AMI_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
 	}
 	line = sccp_strdupa(argv[3]);
-	l = sccp_line_find_byname(line);
+	l = sccp_line_find_byname(line, FALSE);
 
 	if (!l) {
 		pbx_log(LOG_WARNING, "Failed to get line %s\n", line);
@@ -2071,7 +2071,7 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 		return RESULT_SHOWUSAGE;
 
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-		l = sccp_line_find_byname(argv[4]);
+		l = sccp_line_find_byname(argv[4], FALSE);
 		if (!l) {
 			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
 			return RESULT_FAILURE;

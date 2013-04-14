@@ -495,11 +495,11 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
  * 
  * \lock
  *      - device->buttonconfig
- *        - see sccp_line_find_byname_wo()
+ *        - see sccp_line_find_byname()
  *        - line->channels
  *      - device
  *        - device->buttonconfig
- *          - see sccp_line_find_byname_wo()
+ *          - see sccp_line_find_byname()
  *        - see sccp_dev_send()
  *        - see sccp_dev_check_displayprompt()
  */
@@ -531,7 +531,7 @@ void sccp_mwi_check(sccp_device_t * device)
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
-			line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+			line = sccp_line_find_byname(config->button.line.name, FALSE);
 			if (!line) {
 				sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: NULL line retrieved from buttonconfig!\n", DEV_ID_LOG(device));
 				continue;

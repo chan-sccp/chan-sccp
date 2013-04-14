@@ -2023,7 +2023,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 			/* check if we have this line already */
         		SCCP_RWLIST_RDLOCK(&GLOB(lines));
-			if ((l = sccp_line_find_byname_wo(cat, FALSE))) {
+			if ((l = sccp_line_find_byname(cat, FALSE))) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
 			} else {

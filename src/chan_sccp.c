@@ -86,7 +86,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 
 	lineSubscriptionId = sccp_parseComposedId(lineName, 80);
 
-	l = sccp_line_find_byname(lineSubscriptionId.mainId);
+	l = sccp_line_find_byname(lineSubscriptionId.mainId, FALSE);
 
 	if (!l) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
