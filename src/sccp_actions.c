@@ -604,7 +604,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 					/* search line (create new line, if necessary (realtime)) */
 					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
-					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name))) {
+					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
 						buttonconfig->instance = btn[i].instance = lineInstance++;
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
@@ -1814,7 +1814,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
-			l = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
+			l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
 			if (l) {
 				if (!sccp_strlen_zero(l->trnsfvm))
 					trnsfvm = 1;
@@ -3060,7 +3060,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 				if (config->type == LINE) {
-					line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+					line = sccp_line_find_byname(config->button.line.name, FALSE);
 
 					if (line) {
 						sccp_line_cfwd(line, d, status, featureOption);

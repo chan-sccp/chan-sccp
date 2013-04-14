@@ -705,7 +705,7 @@ DONE:
  * 
  * \lock
  *      - hint
- *        - see sccp_line_find_byname_wo()
+ *        - see sccp_line_find_byname()
  */
 void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
 {
@@ -837,7 +837,7 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 					if (buttonconfig->type == LINE) {
-						line = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE);
+						line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
 						if (line) {
 							sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
 							sccp_hint_lineStatusChanged(line, d);

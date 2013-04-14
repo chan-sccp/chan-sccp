@@ -1412,7 +1412,7 @@ sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
 	if (!d->currentLine) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			if (buttonconfig->type == LINE) {
-				if ((d->currentLine = sccp_line_find_byname_wo(buttonconfig->button.line.name, FALSE))) {
+				if ((d->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
 					sccp_line_retain(d->currentLine);
 					break;
 				}
@@ -1663,7 +1663,7 @@ void sccp_dev_postregistration(void *data)
  *        - see sccp_dev_set_registered()
  *        - see sccp_hint_eventListener() via sccp_event_fire()
  *        - device->buttonconfig
- *          - see sccp_line_find_byname_wo()
+ *          - see sccp_line_find_byname()
  *          - see sccp_channel_endcall()
  *          - see sccp_line_removeDevice()
  *        - device->selectedChannels
@@ -1719,7 +1719,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
-				line = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+				line = sccp_line_find_byname(config->button.line.name, FALSE);
 				if (!line)
 					continue;
 
@@ -2091,7 +2091,7 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
-			l = sccp_line_find_byname_wo(config->button.line.name, FALSE);
+			l = sccp_line_find_byname(config->button.line.name, FALSE);
 			if (!l)
 				continue;
 
