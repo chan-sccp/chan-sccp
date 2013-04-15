@@ -418,7 +418,7 @@ void *sccp_socket_device_thread(void *session)
 				break;
 			}
 			if ((errno != EAGAIN) && (errno != EINTR)) {
-				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %s\n", errno, strerror(errno));
+				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), pbx_inet_ntoa(s->sin.sin_addr));
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
