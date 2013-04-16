@@ -238,8 +238,7 @@ button = feature,DND Silent,DND,silent			; Feature Button to send incoming calls
 type = device						; specifies that this template is for a device, it will be inherited
 devicetype = 7940					; device type (see below)
 description = Phone Number Three
-button = line, 98031
-button = line, Hotline
+button = line, 98031,default				; assign button 1 with line 98031 and use this line as default
 button = line, 98099					; Assign Shared Line 98099 to Device (no subscription id)
 							; Dial(SCCP/98099) to get the line to ring on all device using this shared line
 button = speeddial,Phone 1 Line 1, 98011, 98011@hints
