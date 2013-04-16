@@ -604,7 +604,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 					/* search line (create new line, if necessary (realtime)) */
 					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
-					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
+					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 						buttonconfig->instance = btn[i].instance = lineInstance++;
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
