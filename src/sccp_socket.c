@@ -475,8 +475,6 @@ static void sccp_accept_connection(void)
 	memcpy(&s->sin, &incoming, sizeof(s->sin));
 	sccp_mutex_init(&s->lock);
 
-	sccp_session_addToGlobals(s);
-
 	sccp_session_lock(s);
 	s->fds[0].events = POLLIN | POLLPRI;
 	s->fds[0].revents = 0;
@@ -494,11 +492,12 @@ static void sccp_accept_connection(void)
 		sccp_print_ha(buf, sizeof(buf), GLOB(ha));
 		sccp_log(0) ("SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", pbx_inet_ntoa(s->sin.sin_addr), pbx_str_buffer(buf));
 		pbx_log(LOG_WARNING, "SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", pbx_inet_ntoa(s->sin.sin_addr), pbx_str_buffer(buf));
-		s = sccp_session_reject(s, "Device ip not authorized");
+		sccp_session_reject(s, "Device ip not authorized");
 		sccp_session_unlock(s);
+		destroy_session(s,0);
 		return;
 	}
-
+	sccp_session_addToGlobals(s);
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
 	/** set default handler for registration to sccp */
