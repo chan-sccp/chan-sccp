@@ -3026,7 +3026,7 @@ static int unload_module(void)
 		io = NULL;
 	}
 	if (sched) {
-		usleep(SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT * 10);						// give enough time for all schedules to end and refcounted object to be cleanup completely
+		usleep(SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT);						// give enough time for all schedules to end and refcounted object to be cleanup completely
 		ast_sched_context_destroy(sched);
 		sched = NULL;
 	}

@@ -485,6 +485,13 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					int test_device_total = (int)AST_DEVICE_TOTAL;
 				], [CS_AST_DEVICE_TOTAL],['AST_DEVICE_TOTAL' available]
 			)
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_enable_distributed_devstate'...], [ac_cv_ast_enable_distributed_devstate], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/devicestate.h>
+				], [
+					int test_device_total = (int)ast_enable_distributed_devstate();
+				], [CS_AST_ENABLE_DISTRIBUTED_DEVSTATE],['CS_AST_ENABLE_DISTRIBUTED_DEVSTATE' available]
+			)
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
