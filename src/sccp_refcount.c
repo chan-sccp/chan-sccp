@@ -113,6 +113,8 @@ void sccp_refcount_destroy(void)
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) destroying...\n");
 	refcount_destroyed = TRUE;
 
+	sched_yield();				//make sure all other threads can finish their work first.
+	
 	// cleanup if necessary, if everything is well, this should not be necessary
 	ast_rwlock_wrlock(&objectslock);
 	for (x = 0; x < SCCP_HASH_PRIME; x++) {
@@ -319,6 +321,9 @@ static inline void remove_obj(const void *ptr)
 		SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 	}
 	if (obj) {
+		sched_yield();				// make sure all other threads can finish their work first.
+		                                        // should resolve lockless refcount SMP issues
+		                                        // BTW we are not allowed to sleep whilst haveing a reference
 		// fire destructor
 		sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (release) Destroying %p at hash: %d\n", obj, hash);
 		if ((&obj_info[obj->type])->destructor)
