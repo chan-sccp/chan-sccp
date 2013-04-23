@@ -902,18 +902,18 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			participant->callReference = channel->callid;
 			participant->lineInstance = conference->id;
 #if ASTERISK_VERSION_NUMBER >= 10400
-			participant->transactionID = pbx_random();
+			participant->transactionID = pbx_random() % 1000;
 #else
-			participant->transactionID = random();
+			participant->transactionID = random() % 1000;
 #endif
 		}
 		
 		char xmlStr[2048] = "";
 		char xmlTmp[512] = "";
 
-	//	sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">\n", appID);
+	//	sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
 		if (participant->device->protocolversion >= 17) {
-			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">\n", appID);
+			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">", appID);
 			strcat(xmlStr, xmlTmp);
 			if (conference->isLocked) {
 				sprintf(xmlTmp, "<Title IconIndex=\"5\">Conference %d</Title>\n", conference->id);
@@ -922,7 +922,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			}
 			strcat(xmlStr, xmlTmp);
 		} else {
-			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu>\n");
+			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu>");
 			strcat(xmlStr, xmlTmp);
 			sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
 			strcat(xmlStr, xmlTmp);
@@ -938,7 +938,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			if (part->pendingRemoval)
 				continue;
 
-			strcat(xmlStr, "<MenuItem>\n");
+			strcat(xmlStr, "<MenuItem>");
 
 			if (part->isModerator)
 				use_icon = 0;
@@ -948,12 +948,12 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			if (part->features.mute) {
 				++use_icon;
 			}
-			strcat(xmlStr, "  <IconIndex>");
+			strcat(xmlStr, "<IconIndex>");
 			sprintf(xmlTmp, "%d", use_icon);
 			strcat(xmlStr, xmlTmp);
-			strcat(xmlStr, "</IconIndex>\n");
+			strcat(xmlStr, "</IconIndex>");
 
-			strcat(xmlStr, "  <Name>");
+			strcat(xmlStr, "<Name>");
 			if (part->channel != NULL) {
 				switch (part->channel->calltype) {
 					case SKINNY_CALLTYPE_INBOUND:
@@ -977,8 +977,8 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 #endif
 				strcat(xmlStr, xmlTmp);
 			}
-			strcat(xmlStr, "</Name>\n");
-			sprintf(xmlTmp, "  <URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
+			strcat(xmlStr, "</Name>");
+			sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</MenuItem>\n");
 		}
@@ -986,59 +986,62 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		// SoftKeys
 		if (participant->isModerator) {
-			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>EndConf</Name>\n");
-			strcat(xmlStr, "  <Position>1</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, "<SoftKeyItem>");
+			strcat(xmlStr, "<Name>EndConf</Name>");
+			strcat(xmlStr, "<Position>1</Position>");
+//			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d</URL>", 1, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
-			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Mute</Name>\n");
-			strcat(xmlStr, "  <Position>2</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>\n", 2, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, "<SoftKeyItem>");
+			strcat(xmlStr, "<Name>Mute</Name>");
+			strcat(xmlStr, "<Position>2</Position>");
+//			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>", 2, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d</URL>", 2, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 
-			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Kick</Name>\n");
-			strcat(xmlStr, "  <Position>3</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>\n", 3, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, "<SoftKeyItem>");
+			strcat(xmlStr, "<Name>Kick</Name>");
+			strcat(xmlStr, "<Position>3</Position>");
+//			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>", 3, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d</URL>", 3, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 		}
-		strcat(xmlStr, "<SoftKeyItem>\n");
-		strcat(xmlStr, "  <Name>Exit</Name>\n");
-		strcat(xmlStr, "  <Position>4</Position>\n");
-		strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
+		strcat(xmlStr, "<SoftKeyItem>");
+		strcat(xmlStr, "<Name>Exit</Name>");
+		strcat(xmlStr, "<Position>4</Position>");
+		strcat(xmlStr, "<URL>SoftKey:Exit</URL>");
 		strcat(xmlStr, "</SoftKeyItem>\n");
 		if (participant->isModerator) {
-			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Moderate</Name>\n");
-			strcat(xmlStr, "  <Position>5</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:MODERATE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, "<SoftKeyItem>");
+			strcat(xmlStr, "<Name>Moderate</Name>");
+			strcat(xmlStr, "<Position>5</Position>");
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 #if CS_EXPERIMENTAL
-			strcat(xmlStr, "<SoftKeyItem>\n");
-			strcat(xmlStr, "  <Name>Invite</Name>\n");
-			strcat(xmlStr, "  <Position>6</Position>\n");
-			sprintf(xmlTmp, "  <URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>\n", 1, appID, participant->lineInstance, participant->transactionID);
+			strcat(xmlStr, "<SoftKeyItem>");
+			strcat(xmlStr, "<Name>Invite</Name>");
+			strcat(xmlStr, "<Position>6</Position>");
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 #endif
 		}
 		// CiscoIPPhoneIconMenu Icons
 		if (participant->device->protocolversion >= 17) {
-			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>\n");		// moderator
-			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted moderator
-			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>\n");	// participant
-			strcat(xmlStr, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>\n");		// muted participant
-			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:Icon.Speaker</URL></IconItem>\n");		// unlocked conference
+			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>");		// moderator
+			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");		// muted moderator
+			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>");	// participant
+			strcat(xmlStr, "<IconItem><Index>3</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");		// muted participant
+			strcat(xmlStr, "<IconItem><Index>4</Index><URL>Resource:Icon.Speaker</URL></IconItem>");		// unlocked conference
 			strcat(xmlStr, "<IconItem><Index>5</Index><URL>Resource:Icon.SecureCall</URL></IconItem>\n");		// locked conference
 		} else {
-			strcat(xmlStr, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data></IconItem>\n");// moderator
-			strcat(xmlStr, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data></IconItem>\n");// muted moderator
-			strcat(xmlStr, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data></IconItem>\n");// participant
+			strcat(xmlStr, "<IconItem><Index>0</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03F3000C03FF000C03FF003000FF00FFCFFF30FFCFFF303CC3FF300CC3F330000000000</Data></IconItem>");// moderator
+			strcat(xmlStr, "<IconItem><Index>1</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C03FF03CC03FF03CC03FF03C000FF03CFCFFF33CFCFFF33CCC3FF33CCC3FF33C00000000</Data></IconItem>");// muted moderator
+			strcat(xmlStr, "<IconItem><Index>2</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C0303000C030F000C030F003000FF00FFCF0F30F0C00F303CC30F300CC30330000000000</Data></IconItem>");// participant
 			strcat(xmlStr, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data></IconItem>\n");// muted participant
 		}
 
@@ -1164,8 +1167,6 @@ EXIT:
 		if (d->dtu_softkey.action) {
 			sccp_free(d->dtu_softkey.action);
 		}
-		d->dtu_softkey.appID = 0;
-		d->dtu_softkey.payload = 0;
 		d->dtu_softkey.transactionID = 0;
 	}
 	participant = participant ? sccp_participant_release(participant) : NULL;
@@ -1214,15 +1215,15 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	if (!participant->features.mute) {
 		participant->features.mute = 1;
 		playback_to_channel(participant, "conf-muted", -1);
-		if (participant->channel) {
-			participant->channel->setMicrophone(participant->channel, FALSE);
-		}
+//		if (participant->channel) {
+//			participant->channel->setMicrophone(participant->channel, FALSE);
+//		}
 	} else {
 		participant->features.mute = 0;
 		playback_to_channel(participant, "conf-unmuted", -1);
-		if (participant->channel) {
-			participant->channel->setMicrophone(participant->channel, TRUE);
-		}
+//		if (participant->channel) {
+//			participant->channel->setMicrophone(participant->channel, TRUE);
+//		}
 	}
 	if (participant->channel && participant->device) {
 		sccp_dev_set_message(participant->device, participant->features.mute ? "You are muted" : "You are unmuted", 5, FALSE, FALSE);
