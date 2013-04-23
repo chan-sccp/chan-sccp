@@ -992,8 +992,6 @@ struct sccp_device {
 
 	struct {
 		char *action;
-		uint32_t appID;
-		uint32_t payload;
 		uint32_t transactionID;
 	} dtu_softkey;
 

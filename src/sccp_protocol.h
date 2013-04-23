@@ -342,10 +342,10 @@ typedef enum {
 #define StationMaxXMLMessage				2048
 #define StationMaxImageVersionSize			32
 
-#define APPID_CONFERENCE				9000081
-#define APPID_CONFERENCE_INVITE				9000082
-#define APPID_PROVISION					9000083
-#define APPID_DEVICECAPABILITIES			9000084
+#define APPID_CONFERENCE				9081
+#define APPID_CONFERENCE_INVITE				9082
+#define APPID_PROVISION					9083
+#define APPID_DEVICECAPABILITIES			9084
 
 /* skinny tones skinny_tone2str */
 #    define SKINNY_TONE_SILENCE 			0
