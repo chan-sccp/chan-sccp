@@ -811,10 +811,9 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 	int msg_len = strlen(xmlData);
 	int hdr_len = sizeof(r->msg.UserToDeviceDataVersion1Message);
 	int padding = ((msg_len + hdr_len) % 4);
-
 	padding = (padding > 0) ? 4 - padding : 0;
 
-	if (device->protocolversion > 17 || (hdr_len + msg_len + padding) < 2048) {
+	if (device->protocolversion > 17 || msg_len < StationMaxXMLMessage) {
 		r = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
 		r->msg.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
 		r->msg.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
@@ -828,6 +827,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 			memcpy(&r->msg.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
 		}
 		sccp_dev_send(device, r);
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, r-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	} else {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (hdr_len: %d, msglen: %d, padding: %d, r-size: %d). Skipping !\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	}
