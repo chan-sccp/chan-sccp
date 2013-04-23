@@ -3392,12 +3392,10 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		// It has data -> must be a softkey
 		if (dataLength) {
 			/* split data by "/" */
-                        char str_action[10] = "", str_appID[10] = "", str_payload[10] = "", str_transactionID[10] = "";
-                        if (sscanf(data,"%[^/]/%[^/]/%[^/]/%[^/]/", str_action, str_appID, str_payload, str_transactionID) > 0) {
-                                sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s, %s, %s\n", d->id, str_action, str_appID, str_payload, str_transactionID);
+                        char str_action[10] = "", str_transactionID[10] = "";
+                        if (sscanf(data,"%[^/]/%s", str_action, str_transactionID) > 0) {
+                                sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
                                 d->dtu_softkey.action = strdup(str_action);
-                                d->dtu_softkey.appID = atoi(str_appID);
-                                d->dtu_softkey.payload = atoi(str_payload);						// For Conference Payload=Conference->ID
                                 d->dtu_softkey.transactionID = atoi(str_transactionID);
 			} else {
 			        pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
