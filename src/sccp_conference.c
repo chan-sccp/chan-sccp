@@ -288,7 +288,7 @@ static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participan
 		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
 			PBX(requestHangup) (participant->conferenceBridgePeer);
-			participant_ast_channel = pbx_channel_unref(participant_ast_channel);
+			//participant_ast_channel = pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
