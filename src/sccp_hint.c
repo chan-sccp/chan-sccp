@@ -979,7 +979,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	if (!&GLOB(module_running) || !sccp_refcount_isRunning()) {
+	if (!&GLOB(module_running) || SCCP_REF_RUNNING != sccp_refcount_isRunning()) {
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) Skip processing hint while we are shutting down.\n", hint->exten);
 		return;
 	}

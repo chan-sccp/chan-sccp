@@ -25,6 +25,12 @@ enum sccp_refcounted_types {
 	SCCP_REF_PARTICIPANT,
 };
 
+enum sccp_refcount_runstate {
+        SCCP_REF_RUNNING = 1,
+        SCCP_REF_STOPPED = 0,
+        SCCP_REF_DESTROYED = -1
+};
+
 typedef struct refcount_object RefCountedObject;
 
 void sccp_refcount_init(void);

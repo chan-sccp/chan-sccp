@@ -54,7 +54,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
 #define REF_FILE "/tmp/sccp_refs"
-boolean_t refcount_destroyed = TRUE;
+enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
 
 struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
@@ -101,8 +101,8 @@ static struct refcount_objentry {
 void sccp_refcount_init(void)
 {
 	sccp_log((DEBUGCAT_REFCOUNT | DEBUGCAT_HIGH)) ("SCCP: (Refcount) init\n");
-	refcount_destroyed = FALSE;
 	pbx_rwlock_init_notracking(&objectslock);								// No tracking to safe cpu cycles
+	runState = SCCP_REF_RUNNING;
 }
 
 void sccp_refcount_destroy(void)
@@ -111,7 +111,7 @@ void sccp_refcount_destroy(void)
 	RefCountedObject *obj;
 
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) destroying...\n");
-	refcount_destroyed = TRUE;
+	runState = SCCP_REF_STOPPED;
 
 	sched_yield();				//make sure all other threads can finish their work first.
 	
@@ -137,11 +137,12 @@ void sccp_refcount_destroy(void)
 	}
 	ast_rwlock_unlock(&objectslock);
 	pbx_rwlock_destroy(&objectslock);
+	runState = SCCP_REF_DESTROYED;
 }
 
 int sccp_refcount_isRunning(void)
 {
-	return !refcount_destroyed;
+	return runState;
 }
 
 // not really needed any more
