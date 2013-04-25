@@ -1448,6 +1448,8 @@ typedef enum {
 	DeviceToUserDataVersion1Message 		= 0x0041,
 	DeviceToUserDataResponseVersion1Message 	= 0x0042,
 
+	Unknown_0x0044_Message 				= 0x0044,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
+
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage 				= 0x0048,
 	AccessoryStatusMessage 				= 0x0049,
@@ -1569,7 +1571,7 @@ typedef enum {
 	CallHistoryInfoMessage 				= 0x0156,
 	ExtensionDeviceCaps 				= 0x0159,
 	XMLAlarmMessage 				= 0x015A,
-	Unknown_15E 					= 0x015E,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
+	Unknown_0x015E_Message				= 0x015E,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
 
 	/* SPCP client -> server */
 	SPCPRegisterTokenRequest 			= 0x8000,
@@ -1980,6 +1982,9 @@ typedef union {
 		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseVersion1Message;
 
+	struct {
+	} Unknown_0x0044_Message;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
+
 	/* AccessoryStatusMessage (0x0073):
 	 * This indicates the phone headset, handset or speaker status.
 	 *
@@ -2060,11 +2065,6 @@ typedef union {
 	} LineStatDynamicMessage;										/*!< Line Stat Dynmic Message Structure */
 
 	struct {
-		uint32_t lel_speedDialNumber;									/*!< Speed Dial Number */
-		uint32_t dummy;											/*!< Dummy */
-	} Unknown_0x0149_Message;										/*!< Unknown 0x0149 Message Structure */
-
-	struct {
 		uint32_t lel_lineId;										/*!< Line ID */
 		uint32_t lel_callRef;										/*!< Call Reference */
 		uint32_t lel_callType;										/*!< Call Type (INBOUND=1, OUTBOUND=2, FORWARD=3) */
@@ -2100,28 +2100,6 @@ typedef union {
 		 */
 	} CallInfoDynamicMessage;										/*!< Call Information Dynamic Message Structure */
 
-	/*
-	 * Unhandled SCCP Message: unknown(0x0159) 168 bytes length
-	 * 00000000 - 01 00 00 00 01 00 00 00 02 00 00 00 00 00 00 00 ................
-	 * 00000010 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000020 - 00 00 00 00 6D 61 78 2D 63 68 61 69 6E 65 64 3D ....max-chained=
-	 * 00000030 - 32 20 64 65 76 69 63 65 4C 69 6E 65 3D 31 34 00 2 deviceLine=14.
-	 * 00000040 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000050 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000060 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000070 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000080 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 00000090 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
-	 * 000000A0 - 00 00 00 00 00 00 00 00                         ........
-	 *
-	 *      This was sent by a single 7970 with one CP-7914 attached.
-	 *      Message is related to Addons and i suppose it notifies their
-	 *      number, capacity and index.
-	 */
-
-	struct {
-		char dummy[168];										/*!< Dummy */
-	} Unknown_0x0159_Message;										/*!< Unknown 0x0159 Message Strucute */
 
 	struct {
 		union {
@@ -3532,8 +3510,8 @@ typedef union {
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
 
 	struct {
-		uint32_t lel_unknown;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/?page=1 */
-	} Unknown_15E;
+		uint32_t lel_unknown;										
+	} Unknown_0x015E_Message;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/?page=1 */
 
 	/* SPA */
 	struct {
@@ -3551,8 +3529,26 @@ typedef union {
 		uint32_t lel_features;
 	} SPCPRegisterTokenReject;
 
+	/*
+	 * Unhandled SCCP Message: unknown(0x0159) 168 bytes length
+	 * 00000000 - 01 00 00 00 01 00 00 00 02 00 00 00 00 00 00 00 ................
+	 * 00000010 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000020 - 00 00 00 00 6D 61 78 2D 63 68 61 69 6E 65 64 3D ....max-chained=
+	 * 00000030 - 32 20 64 65 76 69 63 65 4C 69 6E 65 3D 31 34 00 2 deviceLine=14.
+	 * 00000040 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000050 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000060 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000070 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000080 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 00000090 - 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+	 * 000000A0 - 00 00 00 00 00 00 00 00                         ........
+	 *
+	 *      This was sent by a single 7970 with one CP-7914 attached.
+	 *      Message is related to Addons and i suppose it notifies their
+	 *      number, capacity and index.
+	 */
 	struct {
-		uint32_t lel_unknown;
+		char dummy[168];
 	} ExtensionDeviceCaps;
 
 	struct {
@@ -3721,7 +3717,6 @@ static const struct sccp_messagetype {
 	{DeviceToUserDataResponseVersion1Message, 	"Device To User Data Version1 Response", 	offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message)},
 	{DialedPhoneBookMessage, 			"Dialed PhoneBook Message", 			offsize(sccp_data_t, DialedPhoneBookMessage)},
 	{AccessoryStatusMessage, 			"Accessory Status Message", 			offsize(sccp_data_t, AccessoryStatusMessage)},
-	{Unknown_0x004A_Message, 			"Undefined 0x004A Message", 			offsize(sccp_data_t, Unknown_0x004A_Message)},
 	{RegisterAckMessage, 				"Register Acknowledge", 			offsize(sccp_data_t, RegisterAckMessage)},
 	{StartToneMessage, 				"Start Tone Message", 				offsize(sccp_data_t, StartToneMessage)},
 	{StopToneMessage, 				"Stop Tone Message", 				offsize(sccp_data_t, StopToneMessage)},
@@ -3822,7 +3817,10 @@ static const struct sccp_messagetype {
 	{CallHistoryInfoMessage, 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
 	{ExtensionDeviceCaps, 				"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	{XMLAlarmMessage, 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
-	{Unknown_15E, 					"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_15E)},
+	{Unknown_0x0044_Message,			"Unknown Message with ID 0x0044",		offsize(sccp_data_t, Unknown_0x0044_Message)},
+	{Unknown_0x004A_Message, 			"Unknwon Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
+	{Unknown_0x0141_Message, 			"Unknwon Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
+	{Unknown_0x015E_Message,			"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_0x015E_Message)},
 	
 	{SPCPRegisterTokenRequest, 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
 	{SPCPRegisterTokenAck, 				"SCPA RegisterMessageACK", 			offsize(sccp_data_t, SPCPRegisterTokenAck)},
