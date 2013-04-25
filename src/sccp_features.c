@@ -395,12 +395,11 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
                                         sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
                                 }
                         }
-                        pbx_channel_unlock(target);
-                        target = pbx_channel_unref(target);
                 } else {
                 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Giving Up\n");
-                        pbx_channel_unlock(target);
                 }
+                target = pbx_channel_unref(target);
+                pbx_channel_unlock(target);
         } else {
                 pbx_channel_unlock(target);
 	}
