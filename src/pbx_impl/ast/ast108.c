@@ -3235,6 +3235,10 @@ static int unload_module(void)
 		io = NULL;
 	}
 
+        while (SCCP_REF_DESTROYED != sccp_refcount_isRunning()) {
+	        usleep(SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT);						// give enough time for all schedules to end and refcounted object to be cleanup completely
+	}
+
 	if (sched) {
 		pbx_log(LOG_NOTICE, "Cleaning up scheduled items:\n");
 		int scheduled_items = 0;
@@ -3244,7 +3248,6 @@ static int unload_module(void)
 			pbx_log(LOG_NOTICE, "Cleaning up %d scheduled items... please wait\n", scheduled_items);
 			usleep(ast_sched_wait(sched));
 		}
-		//              usleep(SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT*10);  // give enough time for all schedules to end and refcounted object to be cleanup completely
 		sched_context_destroy(sched);
 		sched = NULL;
 	}
