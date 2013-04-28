@@ -716,8 +716,13 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
 			d->hasDisplayPrompt = sccp_device_falseResult;
-			for (i = 0; i < 10; i++)
+			for (i = 0; i < 10; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}	
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
 		case SKINNY_DEVICETYPE_SPA_521S:
 			for (i = 0; i < 1; i++)
