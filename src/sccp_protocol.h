@@ -2016,11 +2016,13 @@ typedef union {
 	01d0   00 00 00 00 0b 00 00 00 50 00 00 00 00 00 00 00  ........P.......
 	01e0   00 00 00 00 0c 00 00 00 50 00 00 00 00 00 00 00  ........P.......
 	01f0   00 00 00 00 01 01 00 00 01 00 00 00 00 00 00 00  ................
+	....
+	
 	*/
 	/* The 10 P's might be related to the 10 speeddial buttons (4 on the left of the display and 6 via the menu option */
 
 	struct {
-		uint32_t lel_unknown[125];									/*!< Unknown */
+		uint32_t lel_unknown[533];									/*!< Unknown */
 	} Unknown_0x0044_Message;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
 
 	/* AccessoryStatusMessage (0x0073):
