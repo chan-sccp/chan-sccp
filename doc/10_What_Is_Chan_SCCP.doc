@@ -24,7 +24,7 @@
  *
  * Chan_SCCP is a replacement Channel Driver for chan_skinny in the Asterisk Channel Driver Library. It delivers
  * better performance, scalability, interoperability and functionality than either chan_skinny or chan_sip on a 
- * SCCP capable phone. It is still under heavy development but a stable release is also available for you to use.
+ * SCCP/Skinny capable phone. It is still under heavy development but a stable release is also available for you to use.
  *
  * To read more about asterisk, you can find a nice introduction <a href="http://www.aosabook.org/en/asterisk.html">here</a>.
  * 
@@ -40,7 +40,7 @@
  *
  * \section 	what_sccp_ss2 		SCCP as a Protocol
  * 
- * The Skinny Call Control Protocol a.k.a Signalling Connection Control Part (SCCP, Q.713, or short Skinny) is a 
+ * The Skinny Client Control Protocol (SCCP, or short Skinny) is a 
  * proprietary network terminal control protocol originally developed by Selsius Corporation. The term "Skinny" 
  * reflects that SCCP is a simple and uncomplicated ("lightweight") protocol requiring relatively little computer 
  * processing. 
