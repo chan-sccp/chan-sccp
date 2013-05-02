@@ -559,10 +559,9 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	newPacketSize = packetSize;
 	mooMessageSize = message2size(messageId);
 
-	if (newPacketSize >= SCCP_MAX_PACKET) {									/* Make sure we don't read bigger then SCCP_MAX_PACKET */
-		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize);
+	if (newPacketSize > SCCP_MAX_PACKET) {									/* Make sure we don't read bigger then SCCP_MAX_PACKET */
+		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d, max packat size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize, SCCP_MAX_PACKET);
 		newPacketSize = SCCP_MAX_PACKET;
-
 	} else if (newPacketSize < mooMessageSize) {								/* Make sure we allocate enough to cover sccp_moo_t */
 		sccp_log((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) ("SCCP: Undersized message: %s (%02X), message size: %d, phone packet size: %d\n", message2str(messageId), messageId, mooMessageSize, newPacketSize);
 		newPacketSize = mooMessageSize;
