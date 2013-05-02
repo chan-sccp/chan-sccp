@@ -2006,7 +2006,7 @@ typedef union {
 		videoCap_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
 		dataCap_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
 
-		uint32_t unknown;										/*!< Unknown */
+		uint32_t unknown[42];										/*!< Unknown */
 	} DynamicUpdateCapabilitiesMessage;									/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
 
 	/* AccessoryStatusMessage (0x0073):
