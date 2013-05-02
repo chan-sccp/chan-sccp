@@ -464,12 +464,6 @@ AC_DEFUN([CS_WITH_PBX], [
 	
 	CS_CHECK_PBX
 
-	AC_ARG_WITH([astmoddir],
-	    [AC_HELP_STRING([--with-astmoddir=PATH],[Location of the Asterisk Module Directory])],
-	    [PBX_MODDIR="${withval}"],[PBX_MODDIR=${PBX_TEMPMODDIR}])
-        AC_SUBST([PBX_MODDIR]) 
-        printf "Asterisk module directory: ${PBX_MODDIR}\n"
-
 	if test "${PBX_TYPE}" = "Asterisk"; then
 	   AC_DEFINE_UNQUOTED([PBX_TYPE],ASTERISK,[PBX Type])
 	   AC_DEFINE([HAVE_ASTERISK], 1, [Uses Asterisk as PBX])
@@ -823,32 +817,35 @@ AC_DEFUN([CS_PARSE_WITH_LIBGC], [
 ])
 
 AC_DEFUN([CS_SETUP_MODULE_DIR], [
-	case "${host}" in
-        	*-*-darwin*)
-        		csmoddir='/Library/Application Support/Asterisk/Modules/modules'
-	             	;;
-           	*)
-                        if test "x${prefix}" != "xNONE"; then
-                          if test "${build_cpu}" = "x86_64"; then
-                                if test -d ${prefix}/lib64/asterisk/modules; then
-                                        csmoddir=${prefix}/lib64/asterisk/modules
-                                else
-                                        csmoddir=${prefix}/lib/asterisk/modules
+	AC_ARG_WITH([astmoddir],
+	    [AC_HELP_STRING([--with-astmoddir=PATH],[Location of the Asterisk Module Directory])],
+	    [PBX_MODDIR="${withval}"],
+	    [case "${host}" in
+                        *-*-darwin*)
+                                PBX_MODDIR='/Library/Application Support/Asterisk/Modules/modules'
+                                ;;
+                        *)
+                                if test -d "${PBX_TEMPMODDIR}"; then
+                                    PBX_MODDIR="${PBX_TEMPMODDIR}"
+                                elif test "x${prefix}" != "xNONE"; then
+                                    case "$build_cpu" in
+                                        x86_64|amd64|ppc64)
+                                            if test -d ${prefix}/lib64/asterisk/modules; then
+                                                    PBX_MODDIR=${prefix}/lib64/asterisk/modules
+                                            else
+                                                    PBX_MODDIR=${prefix}/lib/asterisk/modules
+                                            fi
+                                            ;;
+                                        *)
+                                            PBX_MODDIR=${prefix}/lib/asterisk/modules;
+                                            ;;
+                                    esac
                                 fi
-                          else
-                                csmoddir=${prefix}/lib/asterisk/modules;
-                          fi
-                        elif test -z "${csmoddir}"; then
-                           csmoddir="${DESTDIR}${PBX_MODDIR}"
-                           # directory for modules
-                           if test -z "${csmoddir}"; then
-                             # fallback to asterisk modules directory
-                             csmoddir="${PBX_LIB}/asterisk/modules"
-                           fi
-                        fi
-          		;;
-	esac
-	AC_SUBST([csmoddir])
+                                ;;
+             esac])
+        AC_SUBST([PBX_MODDIR]) 
+        csmoddir=${PBX_MODDIR}
+        AC_SUBST([csmoddir])
 ])
 
 AC_DEFUN([CS_PARSE_WITH_LIBEV], [

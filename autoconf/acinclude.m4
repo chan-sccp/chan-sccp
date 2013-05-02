@@ -66,7 +66,6 @@ AC_DEFUN([CS_CHECK_PBX], [
               fi
               ;;
          esac;
-         dnl printf "Asterisk tempmoddir: ${PBX_TEMPMODDIR}\n"
          HAVE_ASTERISK=yes
        fi
     fi
