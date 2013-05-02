@@ -446,8 +446,6 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 AC_DEFUN([CS_WITH_PBX], [
 	AC_ARG_WITH([asterisk],
 	    [AC_HELP_STRING([--with-asterisk=PATH],[Location of the Asterisk installation])],[NEW_PBX_PATH="${withval}"],)
-	AC_ARG_WITH([callweaver],
-	    [AC_HELP_STRING([--with-callwaver=PATH],[Location of the Callweaver installation])],[NEW_PBX_PATH="${withval}"],)
 
 	if test "x${NEW_PBX_PATH}" != "xyes" && test "x${NEW_PBX_PATH}" != "x"; then 
 		PBX_PATH="${NEW_PBX_PATH}";

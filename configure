@@ -1049,7 +1049,6 @@ with_ltdl_lib
 enable_ltdl_install
 with_changelog_oldest
 with_asterisk
-with_callweaver
 with_astmoddir
 enable_devdoc
 enable_doxygen_doc
@@ -1814,7 +1813,6 @@ Optional Packages:
                           Oldest revision to include in ChangeLog
 
   --with-asterisk=PATH    Location of the Asterisk installation
-  --with-callwaver=PATH   Location of the Callweaver installation
   --with-astmoddir=PATH   Location of the Asterisk Module Directory
   --with-libevent=yes|no  use garbage collector (libgc) as allocator
                           (experimental)
@@ -8222,13 +8220,13 @@ if ${lt_cv_nm_interface+:} false; then :
 else
   lt_cv_nm_interface="BSD nm"
   echo "int some_variable = 0;" > conftest.$ac_ext
-  (eval echo "\"\$as_me:8225: $ac_compile\"" >&5)
+  (eval echo "\"\$as_me:8223: $ac_compile\"" >&5)
   (eval "$ac_compile" 2>conftest.err)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8228: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+  (eval echo "\"\$as_me:8226: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
   (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
   cat conftest.err >&5
-  (eval echo "\"\$as_me:8231: output\"" >&5)
+  (eval echo "\"\$as_me:8229: output\"" >&5)
   cat conftest.out >&5
   if $GREP 'External.*some_variable' conftest.out > /dev/null; then
     lt_cv_nm_interface="MS dumpbin"
@@ -9422,7 +9420,7 @@ ia64-*-hpux*)
   ;;
 *-*-irix6*)
   # Find out which ABI we are using.
-  echo '#line 9425 "configure"' > conftest.$ac_ext
+  echo '#line 9423 "configure"' > conftest.$ac_ext
   if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
   (eval $ac_compile) 2>&5
   ac_status=$?
@@ -13059,11 +13057,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13062: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13060: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13066: \$? = $ac_status" >&5
+   echo "$as_me:13064: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13398,11 +13396,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13401: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13399: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:13405: \$? = $ac_status" >&5
+   echo "$as_me:13403: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -13503,11 +13501,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13506: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13504: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13510: \$? = $ac_status" >&5
+   echo "$as_me:13508: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -13558,11 +13556,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:13561: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:13559: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:13565: \$? = $ac_status" >&5
+   echo "$as_me:13563: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -15942,7 +15940,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 15945 "configure"
+#line 15943 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -16038,7 +16036,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 16041 "configure"
+#line 16039 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -17994,11 +17992,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:17997: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:17995: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>conftest.err)
    ac_status=$?
    cat conftest.err >&5
-   echo "$as_me:18001: \$? = $ac_status" >&5
+   echo "$as_me:17999: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s "$ac_outfile"; then
      # The compiler can only warn and ignore the option if not recognized
      # So say no if there are warnings other than the usual output.
@@ -18093,11 +18091,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18096: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18094: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18100: \$? = $ac_status" >&5
+   echo "$as_me:18098: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -18145,11 +18143,11 @@ else
    -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
    -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
    -e 's:$: $lt_compiler_flag:'`
-   (eval echo "\"\$as_me:18148: $lt_compile\"" >&5)
+   (eval echo "\"\$as_me:18146: $lt_compile\"" >&5)
    (eval "$lt_compile" 2>out/conftest.err)
    ac_status=$?
    cat out/conftest.err >&5
-   echo "$as_me:18152: \$? = $ac_status" >&5
+   echo "$as_me:18150: \$? = $ac_status" >&5
    if (exit $ac_status) && test -s out/conftest2.$ac_objext
    then
      # The compiler can only warn and ignore the option if not recognized
@@ -20034,7 +20032,7 @@ else
   lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
   lt_status=$lt_dlunknown
   cat > conftest.$ac_ext <<_LT_EOF
-#line 20037 "configure"
+#line 20035 "configure"
 #include "confdefs.h"
 
 #if HAVE_DLFCN_H
@@ -22688,12 +22686,6 @@ if test "${with_asterisk+set}" = set; then :
 fi
 
 
-# Check whether --with-callweaver was given.
-if test "${with_callweaver+set}" = set; then :
-  withval=$with_callweaver; NEW_PBX_PATH="${withval}"
-fi
-
-
 	if test "x${NEW_PBX_PATH}" != "xyes" && test "x${NEW_PBX_PATH}" != "x"; then
 		PBX_PATH="${NEW_PBX_PATH}";
 	else
@@ -22712,7 +22704,6 @@ fi
 
     found_pbx="no";
     found_asterisk="no";
-    found_callweaver="no";
     echo "Search Path: $PBX_PATH"
     for dir in $PBX_PATH; do
         if test "`echo $dir | cut -c1`" == "."; then
@@ -22745,35 +22736,11 @@ fi
             CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
             break
         fi
-        if test -f "$checkdir/include/callweaver/callweaver.h"; then
-            echo "yes"
-            found_pbx="yes";
-            found_callweaver="yes";
-            PBX_TYPE="Callweaver"
-            PBX_INCLUDE="$checkdir/include/callweaver"
-            PBX_CFLAGS="-I$checkdir/include -DHAVE_CALLWEAVER";
-            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_CALLWEAVER";
-            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
-            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
-            break;
-        fi
-        if test -f "$checkdir/include/callweaver.h"; then
-            echo "yes"
-            found_pbx="yes";
-            found_callweaver="yes";
-            PBX_TYPE="Callweaver"
-            PBX_INCLUDE="$checkdir/include/callweaver"
-            PBX_CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
-            PBX_CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
-            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
-            CPPFLAGS="$CFLAGS -I$checkdir/include -DHAVE_CALLWEAVER";
-            break
-        fi
         echo "no"
     done
     if test x_$found_pbx != x_yes; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install either the asterisk-devel or callweaver-devel package." >&5
-$as_echo "$as_me: Please install either the asterisk-devel or callweaver-devel package." >&6;}
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install either the asterisk-devel package." >&5
+$as_echo "$as_me: Please install either the asterisk-devel package." >&6;}
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&5
 $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&6;}
         as_fn_error $? "Cannot find pbx libraries - these are required." "$LINENO" 5
@@ -22784,7 +22751,7 @@ $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to 
          LDFLAGS="$LDFLAGS -L$checkdir/lib"
          PBX_MODDIR="$checkdir/lib/asterisk/modules"
          case "$build_cpu" in
-            x86_64|amd64)
+            x86_64|amd64|ppc64)
               if test -d "$checkdir/lib64/asterisk"; then
                 PBX_LIB="$checkdir/lib64"
                 PBX_MODDIR="$checkdir/lib64/asterisk/modules"
@@ -22793,23 +22760,8 @@ $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to 
               ;;
          esac;
          HAVE_ASTERISK=yes
-       elif test x_$found_callweaver = x_yes; then
-         printf "CallWeaver found in $checkdir\n";
-         PBX_LIB="$checkdir/lib"
-         LDFLAGS="$LDFLAGS -L$checkdir/lib"
-         PBX_MODDIR="$checkdir/lib/callweaver/modules"
-         case "$build_cpu" in
-            x86_64|amd64)
-              if test -d "$checkdir/lib64/callweaver"; then
-                PBX_LIB="$checkdir/lib64"
-                PBX_MODDIR="$checkdir/lib64/callweaver/modules"
-                LDFLAGS="$LDFLAGS -L$checkdir/lib64"
-              fi
-              ;;
-         esac;
-         HAVE_CALLWEAVER=yes
        fi
-     fi
+    fi
 
 
 
