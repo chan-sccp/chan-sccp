@@ -466,10 +466,9 @@ AC_DEFUN([CS_WITH_PBX], [
 
 	AC_ARG_WITH([astmoddir],
 	    [AC_HELP_STRING([--with-astmoddir=PATH],[Location of the Asterisk Module Directory])],
-	    [
-	        PBX_MODDIR="${withval}"
-	        AC_SUBST([PBX_MODDIR]) 
-            ],)
+	    [PBX_MODDIR="${withval}"],[PBX_MODDIR=${PBX_TEMPMODDIR}])
+        AC_SUBST([PBX_MODDIR]) 
+        printf "Asterisk module directory: ${PBX_MODDIR}\n"
 
 	if test "${PBX_TYPE}" = "Asterisk"; then
 	   AC_DEFINE_UNQUOTED([PBX_TYPE],ASTERISK,[PBX Type])

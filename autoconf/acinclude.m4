@@ -56,16 +56,17 @@ AC_DEFUN([CS_CHECK_PBX], [
          printf "Asterisk found in $checkdir\n";
          PBX_LIB="$checkdir/lib"
          LDFLAGS="$LDFLAGS -L$checkdir/lib"
-         PBX_MODDIR="$checkdir/lib/asterisk/modules"
+         PBX_TEMPMODDIR="$checkdir/lib/asterisk/modules"
          case "$build_cpu" in
             x86_64|amd64|ppc64)
               if test -d "$checkdir/lib64/asterisk"; then
                 PBX_LIB="$checkdir/lib64"
-                PBX_MODDIR="$checkdir/lib64/asterisk/modules"
+                PBX_TEMPMODDIR="$checkdir/lib64/asterisk/modules"
                 LDFLAGS="$LDFLAGS -L$checkdir/lib64"
               fi
               ;;
          esac;
+         dnl printf "Asterisk tempmoddir: ${PBX_TEMPMODDIR}\n"
          HAVE_ASTERISK=yes
        fi
     fi
@@ -74,7 +75,7 @@ AC_DEFUN([CS_CHECK_PBX], [
     AC_SUBST([HAVE_CALLWEAVER])
     AC_SUBST([PBX_LIB])
     AC_SUBST([PBX_INCLUDE])
-    AC_SUBST([PBX_MODDIR])
+    dnl AC_SUBST([PBX_TEMPMODDIR])
     AC_SUBST([PBX_CFLAGS])
     AC_SUBST([PBX_LDFLAGS])
 ])
