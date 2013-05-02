@@ -767,6 +767,7 @@ LTLIBOBJS
 LIBOBJS
 CPU_OPTIONS
 csmoddir
+PBX_MODDIR
 GCFLAGS
 GCLIBS
 strip_binaries
@@ -834,7 +835,6 @@ BUILD_AST_TRUE
 ASTERISK_REPOS_LOCATION
 ASTERISK_VERSION_NUMBER
 ASTERISK_VER_GROUP
-PBX_MODDIR
 PBX_LDFLAGS
 PBX_CFLAGS
 PBX_INCLUDE
@@ -1049,7 +1049,6 @@ with_ltdl_lib
 enable_ltdl_install
 with_changelog_oldest
 with_asterisk
-with_astmoddir
 enable_devdoc
 enable_doxygen_doc
 enable_doxygen_dot
@@ -1088,6 +1087,7 @@ enable_videolayer
 enable_distributed_devicestate
 enable_IPv6
 with_libgc
+with_astmoddir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1813,11 +1813,11 @@ Optional Packages:
                           Oldest revision to include in ChangeLog
 
   --with-asterisk=PATH    Location of the Asterisk installation
-  --with-astmoddir=PATH   Location of the Asterisk Module Directory
   --with-libevent=yes|no  use garbage collector (libgc) as allocator
                           (experimental)
   --with-libgc=yes|no     use garbage collector (libgc) as allocator
                           (experimental)
+  --with-astmoddir=PATH   Location of the Asterisk Module Directory
 
 Some influential environment variables:
   CC          C compiler command
@@ -22759,7 +22759,7 @@ $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to 
               fi
               ;;
          esac;
-                  HAVE_ASTERISK=yes
+         HAVE_ASTERISK=yes
        fi
     fi
 
@@ -22770,17 +22770,6 @@ $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to 
 
 
 
-
-
-# Check whether --with-astmoddir was given.
-if test "${with_astmoddir+set}" = set; then :
-  withval=$with_astmoddir; PBX_MODDIR="${withval}"
-else
-  PBX_MODDIR=${PBX_TEMPMODDIR}
-fi
-
-
-        printf "Asterisk module directory: ${PBX_MODDIR}\n"
 
 	if test "${PBX_TYPE}" = "Asterisk"; then
 
@@ -30786,31 +30775,38 @@ CPPFLAGS=${CPPFLAGS_saved}
 LDFLAGS=${LDFLAGS_saved}
 
 
-	case "${host}" in
-        	*-*-darwin*)
-        		csmoddir='/Library/Application Support/Asterisk/Modules/modules'
-	             	;;
-           	*)
-                        if test "x${prefix}" != "xNONE"; then
-                          if test "${build_cpu}" = "x86_64"; then
-                                if test -d ${prefix}/lib64/asterisk/modules; then
-                                        csmoddir=${prefix}/lib64/asterisk/modules
-                                else
-                                        csmoddir=${prefix}/lib/asterisk/modules
+
+# Check whether --with-astmoddir was given.
+if test "${with_astmoddir+set}" = set; then :
+  withval=$with_astmoddir; PBX_MODDIR="${withval}"
+else
+  case "${host}" in
+                        *-*-darwin*)
+                                PBX_MODDIR='/Library/Application Support/Asterisk/Modules/modules'
+                                ;;
+                        *)
+                                if test -d "${PBX_TEMPMODDIR}"; then
+                                    PBX_MODDIR="${PBX_TEMPMODDIR}"
+                                elif test "x${prefix}" != "xNONE"; then
+                                    case "$build_cpu" in
+                                        x86_64|amd64|ppc64)
+                                            if test -d ${prefix}/lib64/asterisk/modules; then
+                                                    PBX_MODDIR=${prefix}/lib64/asterisk/modules
+                                            else
+                                                    PBX_MODDIR=${prefix}/lib/asterisk/modules
+                                            fi
+                                            ;;
+                                        *)
+                                            PBX_MODDIR=${prefix}/lib/asterisk/modules;
+                                            ;;
+                                    esac
                                 fi
-                          else
-                                csmoddir=${prefix}/lib/asterisk/modules;
-                          fi
-                        elif test -z "${csmoddir}"; then
-                           csmoddir="${DESTDIR}${PBX_MODDIR}"
-                           # directory for modules
-                           if test -z "${csmoddir}"; then
-                             # fallback to asterisk modules directory
-                             csmoddir="${PBX_LIB}/asterisk/modules"
-                           fi
-                        fi
-          		;;
-	esac
+                                ;;
+             esac
+fi
+
+
+        csmoddir=${PBX_MODDIR}
 
 
 
@@ -33787,4 +33783,4 @@ echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "         PBX_LIB : ${PBX_LIB}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"
 echo "          config : /etc"
-echo "         modules : ${csmoddir}"
+echo "Module Directory : ${PBX_MODDIR}"
