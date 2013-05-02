@@ -466,6 +466,13 @@ AC_DEFUN([CS_WITH_PBX], [
 	
 	CS_CHECK_PBX
 
+	AC_ARG_WITH([astmoddir],
+	    [AC_HELP_STRING([--with-astmoddir=PATH],[Location of the Asterisk Module Directory])],
+	    [
+	        PBX_MODDIR="${withval}"
+	        AC_SUBST([PBX_MODDIR]) 
+            ],)
+
 	if test "${PBX_TYPE}" = "Asterisk"; then
 	   AC_DEFINE_UNQUOTED([PBX_TYPE],ASTERISK,[PBX Type])
 	   AC_DEFINE([HAVE_ASTERISK], 1, [Uses Asterisk as PBX])

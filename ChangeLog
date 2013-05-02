@@ -1,4 +1,125 @@
+2013-05-01  ddegroot
+
+	* [r4589] doc/10_What_Is_Chan_SCCP.doc: Update What is SCCP doc
+
+2013-04-28  ddegroot
+
+	* [r4588] src/sccp_device.c: Added hold, transfer, conference and
+	  redial buttons for 8941 phones
+
+	* [r4587] src/sccp_protocol.h: Extended capture of 0x0044 SPCP
+	  message (Thanks to Holger)
+
+	* [r4586] src/sccp_protocol.h: Added first capture of 0x0044 SPCP
+	  message (Thanks to Holger)
+
+2013-04-26  ddegroot
+
+	* [r4585] src/sccp_actions.c: Renamed d -> device / added single
+	  exit point for tokenAck / register functions. No change in
+	  handling.
+
+	* [r4584] src/sccp_device.c: Fix number of buttons on 8941
+	  (https://sourceforge.net/p/chan-sccp-b/bugs/181)
+
+	* [r4583] src/sccp_socket.c: Fix newPacketSize when it equals
+	  SCCP_MAX_PACKET (https://sourceforge.net/p/chan-sccp-b/bugs/181)
+
+2013-04-25  ddegroot
+
+	* [r4582] src/sccp_conference.c, src/sccp_features.c: Fix
+	  pbx_channel_unref in conference und pickup
+
+	* [r4581] src/sccp_protocol.h: Added dummy message 0x0044 as
+	  unknown (https://sourceforge.net/p/chan-sccp-b/bugs/181)
+
+	* [r4580] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_event.c, src/sccp_hint.c, src/sccp_refcount.c,
+	  src/sccp_refcount.h: Module unload /
+	  SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT (fixes #106)
+
+2013-04-23  ddegroot
+
+	* [r4579] src/sccp_protocol.c: Updated
+	  sendUserToDeviceDataVersion1Message
+
+	* [r4578] src/chan_sccp.h, src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Reduced the ConfList Message size, to cram
+	  in as much information as possible
+
+	* [r4577] src/sccp_conference.c: Prevent UserToDevice messages
+	  larger than 2048 being to old protocol devices (which would cause
+	  a buffer overflow and a subsequent full reset of the device
+	  (Reported by Alena Juk))
+
+2013-04-22  ddegroot
+
+	* [r4576] src/sccp_refcount.c: Added sched_yield during refcount
+	  object removal, to allow other threads to finish their work
+	  before cleaning out the object
+
+2013-04-20  ddegroot
+
+	* [r4575] src/pbx_impl/ast/astTrunk.c: Changing scheduled
+	  (SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT * 10) to
+	  (SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT * 3) for astTrunk only (for
+	  now).
+
+	* [r4574] autoconf/asterisk.m4, configure,
+	  src/pbx_impl/ast/astTrunk.c, src/sccp_config.c: Latest
+	  asterisk-trunk version removed the
+	  'ast_enable_distributed_devstate' command, added a test for it to
+	  configure and escaped this code in sccp_config.c. From reading
+	  the asterisk sources, i am assuming that distributed devstate is
+	  now always enabled (possibly when res_jabber or res_ais is
+	  loaded).
+
+2013-04-18  marcelloceschia
+
+	* [r4573] src/sccp_socket.c: fix segmentation fault after global ip
+	  reject, cloese #105
+
+2013-04-16  ddegroot
+
+	* [r4572] src/pbx_impl/ast/ast.h: commented out REF_DEBUG
+
+	* [r4571] src/pbx_impl/ast/ast.h, src/sccp_actions.c,
+	  src/sccp_socket.c: Fix for realtime devices (as per request by
+	  Marcello).
+
+2013-04-16  marcelloceschia
+
+	* [r4570] conf/sccp.conf.annotated: add a default line example
+
+2013-04-15  ddegroot
+
+	* [r4569] src/sccp_socket.c: Extended logging on 'poll returned 0,
+	  errno Success' to include device->id and ip-address
+
 2013-04-14  ddegroot
+
+	* [r4568] ChangeLog, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_utils.c, src/sccp_utils.h: Moved the
+	  sccp_...._find functions from sccp_utils to the appropriate
+	  locations
+
+	* [r4567] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_utils.h: Fix sccp_line_find_byname change
+
+	* [r4566] src/chan_sccp.c, src/sccp_actions.c,
+	  src/sccp_appfunctions.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_device.c, src/sccp_featureButton.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h: Removed
+	  sccp_line_find_realtime_byname. Renamed
+	  sccp_line_find_realtime_byname_wo to
+	  sccp_line_find_realtime_byname. Updated all function calls to
+	  sccp_line_find_realtime_byname to include realtime (TRUE/FALSE).
+	  Updated all function calls to sccp_line_find_realtime_byname_wo
+	  to use sccp_line_find_realtime_byname instead.
 
 	* [r4565] src/sccp_conference.c: Fix conference compilation against
 	  asterisk-1.6.2 (connected line update).
