@@ -1573,7 +1573,7 @@ typedef enum {
 
 	/* SPCP client -> server */
 	SPCPRegisterTokenRequest 			= 0x8000,
-	Unknown_0x0044_Message 				= 0x0044,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
+	DynamicUpdateCapabilitiesMessage		= 0x0044,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
 
 
 	/* SPCP server -> client */
@@ -1982,48 +1982,32 @@ typedef union {
 		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseVersion1Message;
 
-	/* SPCP : Message 0x0044 */
-	/*
-	0000   0c 00 00 00 ....
-	0010   01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0020   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0030   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0040   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0050   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0060   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0070   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0080   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0090   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	00a0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	00b0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	00c0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	00d0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	00e0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	00f0   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0100   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0110   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0120   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0130   00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-	0140   00 00 00 00 19 00 00 00 14 00 00 00 00 00 00 00  ................
-	0150   00 00 00 00 06 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	0160   00 00 00 00 04 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	0170   00 00 00 00 02 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	0180   00 00 00 00 07 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	0190   00 00 00 00 08 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	01a0   00 00 00 00 56 00 00 00 50 00 00 00 01 00 14 00  ....V...P.......
-	01b0   00 00 00 00 0f 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	01c0   00 00 00 00 10 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	01d0   00 00 00 00 0b 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	01e0   00 00 00 00 0c 00 00 00 50 00 00 00 00 00 00 00  ........P.......
-	01f0   00 00 00 00 01 01 00 00 01 00 00 00 00 00 00 00  ................
-	....
-	
-	*/
-	/* The 10 P's might be related to the 10 speeddial buttons (4 on the left of the display and 6 via the menu option */
-
+/*
 	struct {
-		uint32_t lel_unknown[533];									/*!< Unknown */
-	} Unknown_0x0044_Message;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
+		uint32_t lel_unknown[533];
+	} Unknown_0x0044_Message;
+*/
+	struct {
+		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
+		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
+		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
+		uint32_t RTPPayloadFormat;									/*!< RTP Payload Format */
+		uint32_t customPictureFormatCount;								/*!< Custom Picture Format Count */
+
+		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
+
+		uint32_t activeStreamsOnRegistration;								/*!< Active Streams on Registration */
+		uint32_t maxBW;											/*!< Max BW ?? */
+
+		uint32_t serviceResourceCount;									/*!< Service Resource Count */
+		serviceResource_t serviceResource[MAX_SERVICE_TYPE];						/*!< Service Resource */
+
+		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
+		videoCap_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
+		dataCap_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
+
+		uint32_t unknown;										/*!< Unknown */
+	} DynamicUpdateCapabilitiesMessage;									/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
 
 	/* AccessoryStatusMessage (0x0073):
 	 * This indicates the phone headset, handset or speaker status.
@@ -2156,7 +2140,6 @@ typedef union {
 				uint32_t bel_ipAddr;								/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_smtStatus;								/*!< Start Media Transmission Status */
-				uint32_t lel_unknown1;								/*!< Unknown 2 */
 			} v3;
 
 			/* this is from a 6911
@@ -2167,7 +2150,7 @@ typedef union {
 			   0030  11 6c d3 0c 00 00 01 01  08 0a 00 01 ce 04 01 65   .l...... .......e
 			   0040  cf 13 2c 00 00 00 11 00  00 00 54 01 00 00 00 00   ..,..... ..T.....   ; lel_reserved = 17 (11), message_id 0x154
 			   0050  00 00 00 00 00 00 15 00  00 00 00 00 00 00 c0 a8   ........ ........   ; callreference = 0, passthrupartyid=0, callreference1=21 (15), unknown=0
-			   0060  11 7b 00 00 00 00 00 00  00 00 00 00 00 00 98 2b   .{...... .......+   ; ip-address=c0a8117b, portnumber=982b0000, smtStatus=0, unknown2=undefined
+			   0060  11 7b 00 00 00 00 00 00  00 00 00 00 00 00 98 2b   .{...... .......+   ; ip-address=c0a8117b, portnumber=982b0000, smtStatus=0
 			   0070  00 00 00 00 00 00                                  ......           
 			 */
 			struct {
@@ -2178,7 +2161,6 @@ typedef union {
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_smtStatus;								/*!< startmediatransmission status */
-				uint32_t lel_unknown2;								/*!< Unknown */
 			} v17;
 		};
 	} StartMediaTransmissionAck;										/*!< Start Media Transmission Acknowledgement Structure */
@@ -3857,7 +3839,7 @@ static const struct sccp_messagetype {
 	{CallHistoryInfoMessage, 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
 	{ExtensionDeviceCaps, 				"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	{XMLAlarmMessage, 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
-	{Unknown_0x0044_Message,			"Unknown Message with ID 0x0044",		offsize(sccp_data_t, Unknown_0x0044_Message)},
+	{DynamicUpdateCapabilitiesMessage,		"Dynamic Update Capabilities Message",		offsize(sccp_data_t, DynamicUpdateCapabilitiesMessage)},
 	{Unknown_0x004A_Message, 			"Unknwon Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
 	{Unknown_0x0141_Message, 			"Unknwon Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
 	{Unknown_0x015E_Message,			"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_0x015E_Message)},
