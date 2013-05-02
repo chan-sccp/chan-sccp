@@ -296,7 +296,7 @@ EXITFUNC:
  */
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo_t * r)
 {
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
 
