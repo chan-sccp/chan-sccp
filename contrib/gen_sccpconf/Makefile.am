@@ -9,6 +9,7 @@
 AUTOMAKE_OPTS		= gnu silent-rules
 
 bin_PROGRAMS 		= gen_sccpconf
+man_MANS		= gen_sccpconf.1
 
 gen_sccpconf_SOURCES 	= gen_sccpconf.c gen_sccpconf.h  @top_srcdir@/src/sccp_config_entries.h
 
