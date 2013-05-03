@@ -155,8 +155,11 @@
 #define pbx_devstate_changed_literal(_a,_b) ast_device_state_changed_literal(_b)
 #endif
 
-//#    define pbx_device_state_changed ast_device_state_changed
-//#    define pbx_devstate_changed ast_devstate_changed
+#if defined(CS_AST_ENABLE_DISTRIBUTED_DEVSTATE)
+#define pbx_enable_distributed_devstate() ast_enable_distributed_devstate()
+#else
+#define pbx_enable_distributed_devstate()
+#endif
 
 #define pbx_devstate_val ast_devstate_val
 #define pbx_digit_usecs ast_digit_usecs

@@ -2519,9 +2519,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		   even then when otherwise the aggregate devicestate would obscure the change.
 		   However, we need to force distributed devstate even on single asterisk boxes so to get the desired events. (-DD) */
 #if defined(CS_DEVICESTATE) || defined(CS_CACHEABLE_DEVICESTATE)
-#if defined(CS_AST_ENABLE_DISTRIBUTED_DEVSTATE)
-		ast_enable_distributed_devstate();
-#endif		
+                pbx_enable_distributed_devstate();
 		specifier->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE, sccp_devstateFeatureState_cb, "devstate subscription", device, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, buf, AST_EVENT_IE_END);
 #endif
 	}
