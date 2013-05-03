@@ -1,0 +1,59 @@
+.\" Manpage for gen_sccpconf.
+.\" Contact Diederik de Groot <ddegroot@users.sf.net> to correct errors or typos
+.TH man 1 "03 May 2013" "1.0" "gen_sccpconf man page"
+.SH NAME
+gen_sccpconf \- Automatically generated conf/xml files based on the chan_sccp_b sources.
+.SH SYNOPSIS
+Usage: gen_sccpconf <config filename> <conf_type>
+       where conf_type is one of: (ALL | DEFAULTS | TEMPLATED | SHORT | XML | MYSQL | SQLITE | POSTGRES)
+.SH DESCRIPTION
+Automatically generated conf/xml files based on the chan_sccp_b sources.
+.SH OPTIONS
+.HP
+config filename : file name to send the output to.
+
+.HP
+conf_type: 
+ALL | DEFAULTS | TEMPLATED | SHORT | XML | MYSQL | SQLITE | POSTGRES
+
+.SH EXAMPLES
+.HP 
+To generate all possible entries, use:
+
+gen_sccpconf sccp.conf ALL
+
+.HP
+To generate default entries for a standard sccp.conf, use:
+
+gen_sccpconf sccp.conf DEFAULTS
+
+.HP
+To generate a templated version of the sccp.conf, use:
+
+gen_sccpconf sccp.conf TEMPLATED
+
+.HP
+To generate a short sccp.conf, use:
+
+gen_sccpconf sccp.conf SHORT
+
+.HP
+To generate an xml file with all the possible options and there formatting, use:
+
+gen_sccpconf sccp.xml XML
+
+.HP
+To generate an sql file for your realtime database, use on of:
+
+gen_sccpconf sccp.sql MYSQL
+
+gen_sccpconf sccp.sql SQLITE
+
+gen_sccpconf sccp.sql POSTGRES
+
+.SH BUGS
+None
+.SH AUTHOR
+Diederik de Groot <ddegroot@users.sf.net>
+.SH COPYRIGHT
+GPL-1.0+
