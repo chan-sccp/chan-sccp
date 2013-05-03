@@ -1,3 +1,45 @@
+2013-05-02  ddegroot
+
+	* [r4601] src/sccp_actions.c: Fix compile warning about device
+	  being used uninitalized (Reported by Holger Hornung)
+
+	* [r4600] src/sccp_channel.c: Fix transfer with
+	  local_channel->state = PROGRESS (Provided by Niklas Larsson)
+
+	* [r4599] src/sccp_socket.c: Fix debug statement in sccp_socket.c:
+	  sccp_process_data
+
+	* [r4598] autoconf/acinclude.m4, autoconf/extra.m4, configure,
+	  configure.ac: Fix --with-astmoddir configure option (By request:
+	  Marcello)
+
+	* [r4597] autoconf/acinclude.m4, autoconf/extra.m4, configure:
+	  Update --with-astmoddir configure option (By request: Marcello)
+
+	* [r4596] src/sccp_socket.c: Adapt sccp_socket_: sccp_process_data
+	  to handle DynamicUpdateCapabilitiesMessage correctly (Holger
+	  Hornung)
+
+	* [r4595] autoconf/acinclude.m4, autoconf/extra.m4, configure:
+	  Removed --with-callweaver option from configure. Added ppc64 to
+	  astmoddir setting using /usr/lib64 if it exists.
+
+	* [r4594] ChangeLog, autoconf/extra.m4, configure: Added
+	  --with-astmoddir configure option (By request: Marcello)
+
+	* [r4593] src/sccp_protocol.h: Extended
+	  DynamicUpdateCapabilitiesMessage to fix length (Holger Hornung)
+
+	* [r4592] src/sccp_protocol.h: Extended
+	  DynamicUpdateCapabilitiesMessage to fix length (Holger Hornung)
+
+	* [r4591] src/sccp_protocol.h: Extended
+	  DynamicUpdateCapabilitiesMessage to fix length
+
+	* [r4590] src/sccp_protocol.h: Replaced Unknown_0x0044_Message by
+	  DynamicUpdateCapabilitiesMessage (Follows previous
+	  UpdateCapabilitiesMessage exactly)
+
 2013-05-01  ddegroot
 
 	* [r4589] doc/10_What_Is_Chan_SCCP.doc: Update What is SCCP doc

@@ -485,13 +485,21 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					int test_device_total = (int)AST_DEVICE_TOTAL;
 				], [CS_AST_DEVICE_TOTAL],['AST_DEVICE_TOTAL' available]
 			)
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_enable_distributed_devstate'...], [ac_cv_ast_enable_distributed_devstate], [
-			               	$HEADER_INCLUDE
-					#include <asterisk/devicestate.h>
-				], [
-					int test_device_total = (int)ast_enable_distributed_devstate();
-				], [CS_AST_ENABLE_DISTRIBUTED_DEVSTATE],['CS_AST_ENABLE_DISTRIBUTED_DEVSTATE' available]
-			)
+dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_enable_distributed_devstate'...], [ac_cv_ast_enable_distributed_devstate], [
+dnl			               	$HEADER_INCLUDE
+dnl					#include <asterisk/devicestate.h>
+dnl				], [
+dnl					int test_device_total = (int)ast_enable_distributed_devstate();
+dnl				], [CS_AST_ENABLE_DISTRIBUTED_DEVSTATE],['CS_AST_ENABLE_DISTRIBUTED_DEVSTATE' available]
+dnl			)
+			AC_MSG_CHECKING([ - availability 'ast_enable_distributed_devstate'...])
+			AC_EGREP_HEADER([ast_enable_distributed_devstate], [asterisk/devicestate.h],
+			[
+				AC_DEFINE(CS_AST_ENABLE_DISTRIBUTED_DEVSTATE,1,[Found 'ast_enable_distributed_devstate' in asterisk/devicestate.h])
+				AC_MSG_RESULT(yes)
+			],[
+				AC_MSG_RESULT(no)
+			])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
