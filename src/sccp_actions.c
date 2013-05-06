@@ -2438,8 +2438,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	d->protocol->parseOpenReceiveChannelAck((const sccp_moo_t *) r, &status, &sin, &passThruPartyId, &callReference);
 
-	//      if (d->trustphoneip || d->directrtp) {
-	if (!d->directrtp) {
+
+	if (d->nat || !d->directrtp) {
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	}
 
