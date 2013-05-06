@@ -118,7 +118,7 @@ extern "C" {
 #define CHECK_LEAKS()
 #endif
 
-#if CS_LOW_MEMORY
+#if defined(LOW_MEMORY)
 #define SCCP_FILE_VERSION(file, version)
 #else
 #define SCCP_FILE_VERSION(file, version) \
