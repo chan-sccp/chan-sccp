@@ -126,7 +126,7 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 	int hdr_len = sizeof(r->msg.CallInfoDynamicMessage) + (dataSize - 4);
 	int padding = ((dummy_len + hdr_len) % 4);
 
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
 
 	r = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
 
@@ -208,7 +208,7 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 	int hdr_len = sizeof(r->msg.CallInfoDynamicMessage) + (dataSize - 4);
 	int padding = ((dummy_len + hdr_len) % 4);
 
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
 
 	r = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
 
@@ -321,7 +321,7 @@ static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device,
 	int hdr_len = sizeof(r->msg.DisplayDynamicPromptStatusMessage) - 3;
 	int padding = ((msg_len + hdr_len) % 4);
 
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
 	r = sccp_build_packet(DisplayDynamicPromptStatusMessage, hdr_len + msg_len + padding);
 	r->msg.DisplayDynamicPromptStatusMessage.lel_messageTimeout = htolel(timeout);
 	r->msg.DisplayDynamicPromptStatusMessage.lel_callReference = htolel(callid);
@@ -403,7 +403,7 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t * devi
 	int hdr_len = sizeof(r->msg.DisplayDynamicPriNotifyMessage) - 3;
 	int padding = ((msg_len + hdr_len) % 4);
 
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
 	r = sccp_build_packet(DisplayDynamicPriNotifyMessage, hdr_len + msg_len + padding);
 	r->msg.DisplayDynamicPriNotifyMessage.lel_displayTimeout = htolel(timeout);
 	r->msg.DisplayDynamicPriNotifyMessage.lel_priority = htolel(priority);
@@ -811,7 +811,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 	int msg_len = strlen(xmlData);
 	int hdr_len = sizeof(r->msg.UserToDeviceDataVersion1Message);
 	int padding = ((msg_len + hdr_len) % 4);
-	padding = (padding > 0) ? 4 - padding : 0;
+	padding = (padding > 0) ? 4 - padding : 4;
 
 	if (device->protocolversion > 17 || msg_len < StationMaxXMLMessage) {
 		r = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
