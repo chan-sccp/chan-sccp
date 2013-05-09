@@ -87,6 +87,8 @@ int sccp_register_management(void)
 
 #if HAVE_PBX_MANAGER_HOOK_H
 	ast_manager_register_hook(&sccp_manager_hook);
+#else
+#warning "manager_custom_hook not found, monitor indication does not work properly"
 #endif
 
 	return result;
@@ -918,12 +920,10 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
-
 			str = dupStr = sccp_strdupa(content); /** need a dup, because converter to message structure will modify the str */
 
 			sccp_asterisk_parseStrToAstMessage(str, &m); /** convert to message structure to use the astman_get_header function */
 			const char *channelName = astman_get_header(&m, "Channel");
-
 			pbxchannel = pbx_channel_get_by_name(channelName);
 
 			if (pbxchannel && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
@@ -934,7 +934,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 			if (channel) {
 				if ((d = sccp_channel_getDevice_retained(channel))) {
-					if (strcasecmp("MonitorStart", event)) {
+					if (!strcasecmp("MonitorStart", event)) {
 						d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					} else {
 						d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
