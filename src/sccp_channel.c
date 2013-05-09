@@ -477,7 +477,7 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
  *
  * \todo find a difference solution for sccp_conference callinfo update
  */
-void sccp_channel_send_callinfo(sccp_device_t * device, sccp_channel_t * channel)
+void sccp_channel_send_callinfo(const sccp_device_t *device, const sccp_channel_t * channel)
 {
 	uint8_t instance = 0;
 

@@ -25,9 +25,13 @@ int __sccp_device_destroy(const void *ptr);
 sccp_device_t *sccp_device_removeFromGlobals(sccp_device_t * device);
 int sccp_device_destroy(const void *ptr);
 
+/* indicate definition */
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
-
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
+static void sccp_device_indicate_offhook(const sccp_device_t *device, sccp_linedevices_t *linedevice, uint8_t callid);
+static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel);
+/* end indicate */
+
 
 static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone);
 static sccp_push_result_t sccp_device_pushURLNotSupported(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone)
@@ -42,11 +46,15 @@ static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_dev
 }
 
 static const struct sccp_device_indication_cb sccp_device_indication_newerDevices = {
-	.remoteHold = sccp_device_new_indicate_remoteHold,
+	.remoteHold	= sccp_device_new_indicate_remoteHold,
+	.offhook	= sccp_device_indicate_offhook,
+	.connected	= sccp_device_indicate_connected,
 };
 
 static const struct sccp_device_indication_cb sccp_device_indication_olderDevices = {
-	.remoteHold = sccp_device_old_indicate_remoteHold,
+	.remoteHold	= sccp_device_old_indicate_remoteHold,
+	.offhook	= sccp_device_indicate_offhook,
+	.connected	= sccp_device_indicate_connected,
 };
 
 static boolean_t sccp_device_checkACLTrue(sccp_device_t * device)
@@ -956,7 +964,7 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
  * \param d SCCP Device
  * \param mode Speaker Mode as uint8_t
  */
-void sccp_dev_set_speaker(sccp_device_t * d, uint8_t mode)
+void sccp_dev_set_speaker(const sccp_device_t * d, uint8_t mode)
 {
 	sccp_moo_t *r;
 
@@ -1004,12 +1012,9 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device, int status)
+void sccp_dev_set_cplane(const sccp_device_t *device, uint8_t lineInstance, int status)
 {
 	sccp_moo_t *r;
-
-	if (!l)
-		return;
 
 	if (!device)
 		return;
@@ -1080,7 +1085,7 @@ void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uin
  * \param line Line as uint8_t
  * \param callid Call ID as uint32_t
  */
-void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid)
+void sccp_dev_stoptone(const sccp_device_t * d, uint8_t line, uint32_t callid)
 {
 	sccp_moo_t *r;
 
@@ -1630,7 +1635,6 @@ void sccp_dev_postregistration(void *data)
 	}
 
 	if (PBX(feature_getFromDatabase) (family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		d->monitorFeature.status = TRUE;
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
 	
@@ -2172,6 +2176,29 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, ui
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callPriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, 0);
+}
+
+static void sccp_device_indicate_offhook(const sccp_device_t *device, sccp_linedevices_t *linedevice, uint8_t callid) {
+  
+	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
+	sccp_device_sendcallstate(device, linedevice->lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
+	sccp_dev_displayprompt(device, linedevice->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, 0);
+	sccp_dev_set_keyset(device, linedevice->lineInstance, callid, KEYMODE_OFFHOOK);
+	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, 0);
+}
+
+static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel){
+  
+	sccp_dev_set_ringer(device, SKINNY_STATION_RINGOFF, linedevice->lineInstance, channel->callid);
+	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
+	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
+	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_channel_send_callinfo(device, channel);
+	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
+	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_CONNECTED);
+	sccp_dev_displayprompt(device, linedevice->lineInstance, channel->callid, SKINNY_DISP_CONNECTED, 0);
+	
 }
 
 /*!

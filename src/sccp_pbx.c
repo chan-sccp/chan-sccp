@@ -354,7 +354,6 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	if (!(c = sccp_channel_retain(c))) {
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Asked to hangup channel. SCCP channel already deleted\n");
-		sccp_pbx_needcheckringback(d);
 		return -1;
 	}
 
@@ -443,29 +442,35 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	if (!d) {
 		/* channel is not answered, just ringin over all devices */
+		/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
 		sccp_linedevices_t *linedevice;
-
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState && (d = sccp_device_retain(linedevice->device))) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
-				d = sccp_device_release(d);
+			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
+				d = sccp_device_retain(linedevice->device);
+				break;
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-		d = NULL;											/* do not use any device within this loop, otherwise we get a "Major Logic Error" -MC */
-	} else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
-		c->state = SCCP_CHANNELSTATE_DOWN;								// device is reregistering
 	} else {
-		/* 
-		 * Really neccessary?
-		 * Test for 7910 (to remove the following line)
-		 *  (-DD)
-		 */
-		sccp_channel_send_callinfo(d, c);
-		sccp_pbx_needcheckringback(d);
-		sccp_dev_check_displayprompt(d);
+		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+		pbx_log(LOG_NOTICE, "reset monitor state after hangup\n");
+		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
+// 	else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
+// 		c->state = SCCP_CHANNELSTATE_DOWN;								// device is reregistering
+// 	} else {
+// 		/* 
+// 		 * Really neccessary?
+// 		 * Test for 7910 (to remove the following line)
+// 		 *  (-DD)
+// 		 */
+// 		sccp_channel_send_callinfo(d, c);
+// 		sccp_pbx_needcheckringback(d);
+// 		sccp_dev_check_displayprompt(d);
+// 	}
+	
+	sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 
 	sccp_channel_clean(c);
 
@@ -593,10 +598,15 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 		if ((d = sccp_channel_getDevice_retained(c))) {
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-			sccp_channel_send_callinfo(d, c);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
-			sccp_channel_send_callinfo(d, c);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+			
+			/** check for monitor request */
+			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED)  && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
+				sccp_feat_monitor(d, c->line, 0, c);
+			}
+			
 			d = sccp_device_release(d);
 		}
 
@@ -754,14 +764,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 
 	if (PBX(set_callerid_name))
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
-
-	/** check for monitor request */
-	if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED)
-	    && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
-
-		sccp_feat_monitor(d, c->line, 0, c);
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
-	}
 
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */

@@ -23,6 +23,8 @@
  */
 struct sccp_device_indication_cb {
 	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
+	void (*const offhook) (const sccp_device_t *device, sccp_linedevices_t *linedevice, uint8_t callid);
+	void (*const connected) (const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel);
 };
 
 #define sccp_dev_display(p,q) sccp_dev_display_debug(p, q, __FILE__, __LINE__, __PRETTY_FUNCTION__)
@@ -53,12 +55,12 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(const sccp_device_t * d);
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt);
-void sccp_dev_set_speaker(sccp_device_t * d, uint8_t opt);
+void sccp_dev_set_speaker(const sccp_device_t * d, uint8_t opt);
 void sccp_dev_set_microphone(sccp_device_t * d, uint8_t opt);
-void sccp_dev_set_cplane(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device, int status);
+void sccp_dev_set_cplane(const sccp_device_t *device, uint8_t lineInstance, int status);
 void sccp_dev_deactivate_cplane(sccp_device_t * d);
 void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uint32_t callid, uint32_t timeout);
-void sccp_dev_stoptone(sccp_device_t * d, uint8_t line, uint32_t callid);
+void sccp_dev_stoptone(const sccp_device_t * d, uint8_t line, uint32_t callid);
 void sccp_dev_clearprompt(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_display_debug(const sccp_device_t * d, const char *msg, const char *file, const int lineno, const char *pretty_function);
 void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineInstance, const uint32_t callid, const char *msg, int timeout, const char *file, const int lineno, const char *pretty_function);
