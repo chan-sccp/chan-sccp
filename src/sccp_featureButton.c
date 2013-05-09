@@ -137,7 +137,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 					}
 					break;
 				case SCCP_FEATURE_MONITOR:
-					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), config->button.feature.status);
+					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), device->monitorFeature.status);
 					buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 
 					switch (device->monitorFeature.status) {
