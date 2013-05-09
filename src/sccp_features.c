@@ -1443,7 +1443,7 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_
 		result = PBX(getFeatureExtension) (channel, &featureExtension);
 
 	if (result && featureExtension && channel) {
-		pbx_log(LOG_WARNING, "send digits %s\n", featureExtension);
+		sccp_pbx_senddigits(channel, featureExtension);
 		result = TRUE;
 	} else {
 		result = FALSE;
