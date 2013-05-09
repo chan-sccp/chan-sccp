@@ -470,10 +470,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 // 		sccp_dev_check_displayprompt(d);
 // 	}
 	
-        if (d) {
-                sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
-	}
-
+	sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	sccp_channel_clean(c);
 
 	d = d ? sccp_device_release(d) : NULL;
