@@ -1227,7 +1227,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 				sccp_dev_set_activeline(d, l);
-				sccp_dev_set_cplane(l, instance, d, 1);
+				sccp_dev_set_cplane(d, instance, 1);
 				tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 				tmpChannel = tmpChannel ? sccp_channel_release(tmpChannel) : NULL;
 
@@ -1242,11 +1242,11 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, channel->callid, instance);
 					sccp_dev_set_activeline(d, l);
 					sccp_channel_resume(d, channel, TRUE);
-					sccp_dev_set_cplane(l, instance, d, 1);
+					sccp_dev_set_cplane(d, instance, 1);
 				} else {
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
 					sccp_dev_set_activeline(d, l);
-					sccp_dev_set_cplane(l, instance, d, 1);
+					sccp_dev_set_cplane(d, instance, 1);
 				}
 			}
 			break;
@@ -2406,7 +2406,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 
 			/* disable callplane for this device */
 			sccp_device_sendcallstate(d, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_dev_set_cplane(l, lineInstance, d, 0);
+			sccp_dev_set_cplane(d, lineInstance, 0);
 			sccp_dev_set_keyset(d, lineInstance, callid, KEYMODE_ONHOOK);
 			break;
 		}
@@ -3084,7 +3084,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
-			d->monitorFeature.status = (d->monitorFeature.status) ? 0 : 1;
+
 			if (TRUE == toggleState) {
 
 				sccp_channel_t *channel = NULL;
