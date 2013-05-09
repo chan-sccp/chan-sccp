@@ -474,9 +474,9 @@ static const struct sccp_feature_type {
 };
 
 typedef enum {
-	SCCP_FEATURE_MONITOR_STATE_DISABLED = 0,
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE = 1 << 1,
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED = 1 << 2,
+	SCCP_FEATURE_MONITOR_STATE_DISABLED	= 0,
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE 	= 1 << 1,
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED	= 1 << 2,
 } sccp_feature_monitor_state_t;											/*!< monitor feature state */
 
 /*!
