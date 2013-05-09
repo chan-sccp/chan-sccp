@@ -2657,6 +2657,7 @@ sccp_pbx_cb sccp_pbx = {
 	feature_getFromDatabase:	sccp_asterisk_getFromDatabase,
 	feature_removeFromDatabase:	sccp_asterisk_removeFromDatabase,
 	feature_removeTreeFromDatabase:	sccp_asterisk_removeTreeFromDatabase,
+	feature_monitor:		sccp_wrapper_asterisk_featureMonitor,
 	getFeatureExtension:		NULL,
 	feature_pickup:			sccp_wrapper_asterisk16_pickupChannel,
 
@@ -2774,6 +2775,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.feature_getFromDatabase 	= sccp_asterisk_getFromDatabase,
 	.feature_removeFromDatabase     = sccp_asterisk_removeFromDatabase,	
 	.feature_removeTreeFromDatabase = sccp_asterisk_removeTreeFromDatabase,
+	.feature_monitor		= sccp_wrapper_asterisk_featureMonitor,
 	
 	
 	.feature_park			= sccp_wrapper_asterisk16_park,

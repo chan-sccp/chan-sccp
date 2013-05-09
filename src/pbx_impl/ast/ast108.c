@@ -2979,6 +2979,7 @@ sccp_pbx_cb sccp_pbx = {
 	feature_getFromDatabase:	sccp_asterisk_getFromDatabase,
 	feature_removeFromDatabase:	sccp_asterisk_removeFromDatabase,
 	feature_removeTreeFromDatabase:	sccp_asterisk_removeTreeFromDatabase,
+	feature_monitor:		sccp_wrapper_asterisk_featureMonitor,
 	getFeatureExtension:		sccp_wrapper_asterisk18_getFeatureExtension,
 	feature_pickup:			sccp_wrapper_asterisk18_pickupChannel,
 
@@ -3097,6 +3098,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	
 	
 	.feature_park			= sccp_wrapper_asterisk18_park,
+	.feature_monitor		= sccp_wrapper_asterisk_featureMonitor,
 	.getFeatureExtension		= sccp_wrapper_asterisk18_getFeatureExtension,
 	.feature_pickup			= sccp_wrapper_asterisk18_pickupChannel,
 	

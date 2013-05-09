@@ -125,6 +125,7 @@ struct sccp_pbx_cb {
 	boolean_t(*const feature_getFromDatabase) (const char *family, const char *key, char *out, int outlen);
 	boolean_t(*const feature_removeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_removeTreeFromDatabase) (const char *family, const char *key);
+	boolean_t(*const feature_monitor) (const sccp_channel_t *channel);
 	boolean_t(*const getFeatureExtension) (const sccp_channel_t * channel, char **featureExtension);
 	boolean_t(*const feature_pickup) (const sccp_channel_t *chan, PBX_CHANNEL_TYPE *target);
 
