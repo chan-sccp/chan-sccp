@@ -1407,16 +1407,16 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
 			 */
 			break;
 		case SCCP_CHANNELSTATE_DOWN:
-		case SCCP_CHANNELSTATE_ONHOOK:
-		case SCCP_CHANNELSTATE_BUSY:
-		case SCCP_CHANNELSTATE_CONGESTION:
-		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		case SCCP_CHANNELSTATE_ZOMBIE:
+// 		case SCCP_CHANNELSTATE_ONHOOK:
+// 		case SCCP_CHANNELSTATE_BUSY:
+// 		case SCCP_CHANNELSTATE_CONGESTION:
+// 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
+// 		case SCCP_CHANNELSTATE_ZOMBIE:
 			/* \todo: In the event a call is terminated,
 			   the channel monitor should be turned off (it implicitly is by ending the call),
 			   and the feature button should be reset to disabled state. */
-			device->monitorFeature.status = 0;
-			sccp_feat_changed(device, NULL, SCCP_FEATURE_MONITOR);
+// 			device->monitorFeature.status = 0;
+// 			sccp_feat_changed(device, NULL, SCCP_FEATURE_MONITOR);
 			break;
 
 		default:
@@ -1432,22 +1432,26 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
  * \param lineInstance LineInstance as uint32_t
  * \param channel SCCP Channel
  */
-void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)
+void sccp_feat_monitor(sccp_device_t *device, sccp_line_t *line, const uint32_t lineInstance, sccp_channel_t *channel)
 {
 	char *featureExtension = NULL;
-	boolean_t result = FALSE;
+	
 
 #ifdef CS_SCCP_FEATURE_MONITOR
 
+#if ASTERISK_VERSION_NUMBER < 11200
+	boolean_t result = FALSE;
 	if (PBX(getFeatureExtension))
 		result = PBX(getFeatureExtension) (channel, &featureExtension);
 
 	if (result && featureExtension && channel) {
 		sccp_pbx_senddigits(channel, featureExtension);
-		result = TRUE;
-	} else {
-		result = FALSE;
-	}
+		pbx_log(LOG_NOTICE, "%s: sccp_pbx_senddigits %s\n", device->id, featureExtension ? featureExtension : "---");
+	} 
+#else
+	struct ast_call_feature *feature = ast_find_call_feature("automon");
+	feature->operation(channel->owner, channel->owner, NULL, "*1", 0, NULL);
+#endif
 
 	if (featureExtension) {
 		sccp_free(featureExtension);
