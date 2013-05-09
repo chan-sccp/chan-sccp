@@ -685,13 +685,13 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), redirecting_from.name.valid ? redirecting_from.name.str : "", redirecting_from.number.valid ? redirecting_from.number.str : "", redirecting_to.name.valid ? redirecting_to.name.str : "", redirecting_to.number.valid ? redirecting_to.number.str : "");
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "", (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
-	if (redirecting_from.name.valid) {
+	if (redirecting_from.name.valid && redirecting_from.name.str) {
 		sccp_copy_string(channel->callInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
 	}
 
-	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, redirecting_from.number.valid ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
+	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
 	channel->callInfo.lastRedirectingParty_valid = 1;
 #else
 	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
