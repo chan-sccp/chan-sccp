@@ -559,7 +559,7 @@ dnl			)
     ])
     AC_CHECK_HEADER([asterisk/frame.h],
 		[
-			AC_DEFINE(HAVE_PBX_FRAME_H,1,[Found 'asterisk/frame.h'])			
+			AC_DEFINE(HAVE_PBX_FRAME_H,1,[Found 'asterisk/frame.h'])
 			AC_DEFINE(PBX_FRAME_TYPE,[struct ast_frame],[Define PBX_FRAME as 'struct ast_frame'])
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_frame.data.ptr'...], [ac_cv_ast_frame_data_ptr], [
 			               	$HEADER_INCLUDE
@@ -673,6 +673,13 @@ dnl			)
     AC_CHECK_HEADER([asterisk/manager.h],	
     		[
     			AC_DEFINE(HAVE_PBX_MANAGER_H,1,[Found 'asterisk/manager.h'])
+    			CS_CV_TRY_COMPILE_DEFINE([ - availability 'manager_custom_hook' is available...], [ac_cv_manager_custom_hook], [
+				$HEADER_INCLUDE
+				#include <asterisk/manager.h>
+				], [
+					struct manager_custom_hook sccp_manager_hook;
+				], [HAVE_PBX_MANAGER_HOOK_H], ['struct manager_custom_hook' available]
+			)
     		],,[
 	               	$HEADER_INCLUDE
 			#ifdef HAVE_PBX_STRINGFIELDS_H
