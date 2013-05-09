@@ -1002,7 +1002,6 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	}													//after this moment c might have gone already
 
 	ast_channel_tech_pvt_set(ast_channel, NULL);
-	ast_channel_tech_set(ast_channel, &sccp_kill_tech);
 	c = c ? sccp_channel_release(c) : NULL;
 	if (channel_owner) {
 		channel_owner = ast_channel_unref(channel_owner);

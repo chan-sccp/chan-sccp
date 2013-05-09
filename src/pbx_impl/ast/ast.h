@@ -103,7 +103,6 @@
 #endif
 
 extern struct sccp_pbx_cb sccp_pbx;
-extern const struct ast_channel_tech sccp_kill_tech;
 
 #define PBX(x) sccp_pbx.x
 #define AST_MODULE "chan_sccp"
