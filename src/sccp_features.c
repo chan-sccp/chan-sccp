@@ -1434,28 +1434,5 @@ void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * chan
  */
 void sccp_feat_monitor(sccp_device_t *device, sccp_line_t *line, const uint32_t lineInstance, sccp_channel_t *channel)
 {
-	char *featureExtension = NULL;
-	
-
-#ifdef CS_SCCP_FEATURE_MONITOR
-
-#if ASTERISK_VERSION_NUMBER < 11200
-	boolean_t result = FALSE;
-	if (PBX(getFeatureExtension))
-		result = PBX(getFeatureExtension) (channel, &featureExtension);
-
-	if (result && featureExtension && channel) {
-		sccp_pbx_senddigits(channel, featureExtension);
-		pbx_log(LOG_NOTICE, "%s: sccp_pbx_senddigits %s\n", device->id, featureExtension ? featureExtension : "---");
-	} 
-#else
-	struct ast_call_feature *feature = ast_find_call_feature("automon");
-	feature->operation(channel->owner, channel->owner, NULL, "*1", 0, NULL);
-#endif
-
-	if (featureExtension) {
-		sccp_free(featureExtension);
-		featureExtension = NULL;
-	}
-#endif
+	PBX(feature_monitor)(channel);
 }
