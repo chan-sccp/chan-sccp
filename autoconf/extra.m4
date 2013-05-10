@@ -820,7 +820,8 @@ AC_DEFUN([CS_SETUP_MODULE_DIR], [
 	AC_ARG_WITH([astmoddir],
 	    [AC_HELP_STRING([--with-astmoddir=PATH],[Location of the Asterisk Module Directory])],
 	    [PBX_MODDIR="${withval}"],
-	    [case "${host}" in
+	    [PBX_MODDIR=${PBX_TEMPMODDIR}
+	    case "${host}" in
                         *-*-darwin*)
                                 PBX_MODDIR='/Library/Application Support/Asterisk/Modules/modules'
                                 ;;
