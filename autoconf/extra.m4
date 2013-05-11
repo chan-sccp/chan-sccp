@@ -367,10 +367,10 @@ dnl with
                 AC_DEFINE(UI64FMT, ["%llu"], [Define UI64FMT as "%llu"])
                 AC_MSG_RESULT([no])
         ],  [
-                dnl assumming cross compilation for small device (mips)
-                AC_DEFINE(ULONG, [long unsigned int], [Define ULONG as long unsigned int])
-                AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%lu"])
-                AC_MSG_RESULT([yes])
+                dnl when cross compilation asume long long != long
+                AC_DEFINE(ULONG, [long long unsigned int], [Define ULONG as long long unsigned int])
+                AC_DEFINE(UI64FMT, ["%llu"], [Define UI64FMT as "%llu"])
+                AC_MSG_RESULT([no])
         ])
 dnl end replace
 	# Big Endian / Little Endian	
