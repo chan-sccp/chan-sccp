@@ -21753,10 +21753,16 @@ fi
         { $as_echo "$as_me:${as_lineno-$LINENO}: checking sizeof(long long) == sizeof(long)" >&5
 $as_echo_n "checking sizeof(long long) == sizeof(long)... " >&6; }
         if test "$cross_compiling" = yes; then :
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "cannot run test program while cross compiling
-See \`config.log' for more details" "$LINENO" 5; }
+
+
+$as_echo "#define ULONG long unsigned int" >>confdefs.h
+
+
+$as_echo "#define UI64FMT \"%lu\"" >>confdefs.h
+
+                { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
