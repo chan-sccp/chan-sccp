@@ -29,6 +29,9 @@
 
 #define pbx_manager_register ast_manager_register2
 
+#undef pbx_channel_get_by_name
+#define pbx_channel_get_by_name(_x) ast_get_channel_by_name_locked(_x)
+
 #ifndef CONFIG_STATUS_FILEMISSING
 #define CONFIG_STATUS_FILEMISSING (void *)-2
 #endif
