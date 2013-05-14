@@ -323,7 +323,9 @@ int load_config(void)
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
 
 	/* Setup the monitor thread default */
+#if ASTERISK_VERSION_GROUP < 110
 	GLOB(monitor_thread) = AST_PTHREADT_NULL;								// ADDED IN SVN 414 -FS
+#endif
 	GLOB(mwiMonitorThread) = AST_PTHREADT_NULL;
 
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
@@ -500,7 +502,9 @@ boolean_t sccp_prePBXLoad()
 
 	pbx_mutex_init(&GLOB(lock));
 	pbx_mutex_init(&GLOB(usecnt_lock));
+#if ASTERISK_VERSION_GROUP < 110
 	pbx_mutex_init(&GLOB(monitor_lock));
+#endif	
 
 	/* init refcount */
 	sccp_refcount_init();
