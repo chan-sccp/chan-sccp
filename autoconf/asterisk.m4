@@ -675,6 +675,7 @@ dnl			)
     			AC_DEFINE(HAVE_PBX_MANAGER_H,1,[Found 'asterisk/manager.h'])
     			CS_CV_TRY_COMPILE_DEFINE([ - availability 'manager_custom_hook' is available...], [ac_cv_manager_custom_hook], [
 				$HEADER_INCLUDE
+        			#include <asterisk/stringfields.h>
 				#include <asterisk/manager.h>
 				], [
 					struct manager_custom_hook sccp_manager_hook;
@@ -682,9 +683,7 @@ dnl			)
 			)
     		],,[
 	               	$HEADER_INCLUDE
-			#ifdef HAVE_PBX_STRINGFIELDS_H
 			#include <asterisk/stringfields.h>
-			#endif
 		]
     )
     AC_CHECK_HEADER([asterisk/module.h],
