@@ -2927,7 +2927,6 @@ static int unload_module(void)
 			pbx_log(LOG_NOTICE, "Cleaning up %d scheduled items... please wait\n", scheduled_items);
 			usleep(ast_sched_wait(sched));
 		}
-		ast_sched_context_destroy(sched);
 		sched = NULL;
 	}
 	sccp_globals_unlock(monitor_lock);
