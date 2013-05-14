@@ -26042,9 +26042,7 @@ fi
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/manager.h" "ac_cv_header_asterisk_manager_h" "
 	               	$HEADER_INCLUDE
-			#ifdef HAVE_PBX_STRINGFIELDS_H
 			#include <asterisk/stringfields.h>
-			#endif
 
 
 "
@@ -26070,6 +26068,7 @@ else
 /* end confdefs.h.  */
 
 				$HEADER_INCLUDE
+        			#include <asterisk/stringfields.h>
 				#include <asterisk/manager.h>
 
 int
