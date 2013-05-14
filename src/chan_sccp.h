@@ -1187,8 +1187,10 @@ struct sccp_channel {
 struct sccp_global_vars {
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 
+#if ASTERISK_VERSION_GROUP < 110
 	pthread_t monitor_thread;										/*!< Monitor Thread */// ADDED IN 414 -FS
 	sccp_mutex_t monitor_lock;										/*!< Monitor Asterisk Lock */// ADDED IN 414 -FS
+#endif	
 
 	sccp_threadpool_t *general_threadpool;									/*!< General Work Threadpool */
 

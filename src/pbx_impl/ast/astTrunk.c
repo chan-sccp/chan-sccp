@@ -341,47 +341,6 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 }
 
 /*!
- * \brief       start monitoring thread of chan_sccp
- * \param       data
- *
- * \lock
- *      - monitor_lock
- */
-void *sccp_do_monitor(void *data)
-{
-	int res;
-
-	/* This thread monitors all the interfaces which are not yet in use
-	   (and thus do not have a separate thread) indefinitely */
-	/* From here on out, we die whenever asked */
-	for (;;) {
-		pthread_testcancel();
-		/* Wait for sched or io */
-		res = ast_sched_wait(sched);
-		if ((res < 0) || (res > 1000)) {
-			res = 1000;
-		}
-		res = ast_io_wait(io, res);
-		if (res > 20) {
-			ast_debug(1, "SCCP: ast_io_wait ran %d all at once\n", res);
-		}
-		ast_mutex_lock(&GLOB(monitor_lock));
-
-		res = ast_sched_runq(sched);
-		if (res >= 20) {
-			ast_debug(1, "SCCP: ast_sched_runq ran %d all at once\n", res);
-		}
-		ast_mutex_unlock(&GLOB(monitor_lock));
-
-		if (GLOB(monitor_thread) == AST_PTHREADT_STOP) {
-			return 0;
-		}
-	}
-	/* Never reached */
-	return NULL;
-}
-
-/*!
  * \brief Read from an Asterisk Channel
  * \param ast Asterisk Channel as ast_channel
  *
@@ -1361,8 +1320,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	/** done */
 
 EXITFUNC:
-
-	sccp_restart_monitor();
 
 	if (channel) {
 		result_ast_channel = channel->owner;
@@ -2947,6 +2904,12 @@ static int load_module(void)
 		return AST_MODULE_LOAD_FAILURE;
 	}
 
+        if (ast_sched_start_thread(sched)) {
+                ast_sched_context_destroy(sched);
+                sched = NULL;
+                return AST_MODULE_LOAD_FAILURE;
+        }
+
 	/* make globals */
 	res = sccp_prePBXLoad();
 	if (!res) {
@@ -2979,36 +2942,8 @@ static int load_module(void)
 	sccp_register_management();
 	sccp_register_cli();
 	sccp_register_dialplan_functions();
-	/* And start the monitor for the first time */
-	sccp_restart_monitor();
 	sccp_postPBX_load();
 	return AST_MODULE_LOAD_SUCCESS;
-}
-
-int sccp_restart_monitor()
-{
-	/* If we're supposed to be stopped -- stay stopped */
-	if (GLOB(monitor_thread) == AST_PTHREADT_STOP)
-		return 0;
-	ast_mutex_lock(&GLOB(monitor_lock));
-	if (GLOB(monitor_thread) == pthread_self()) {
-		ast_mutex_unlock(&GLOB(monitor_lock));
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Cannot kill myself\n");
-		return -1;
-	}
-	if (GLOB(monitor_thread) != AST_PTHREADT_NULL) {
-		/* Wake up the thread */
-		pthread_kill(GLOB(monitor_thread), SIGURG);
-	} else {
-		/* Start a new monitor */
-		if (ast_pthread_create_background(&GLOB(monitor_thread), NULL, sccp_do_monitor, NULL) < 0) {
-			ast_mutex_unlock(&GLOB(monitor_lock));
-			sccp_log((DEBUGCAT_CORE | DEBUGCAT_SCCP)) (VERBOSE_PREFIX_3 "SCCP: (sccp_restart_monitor) Unable to start monitor thread.\n");
-			return -1;
-		}
-	}
-	ast_mutex_unlock(&GLOB(monitor_lock));
-	return 0;
 }
 
 static int unload_module(void)
@@ -3027,16 +2962,6 @@ static int unload_module(void)
 #ifdef HAVE_PBX_MESSAGE_H
 	ast_msg_tech_unregister(&sccp_msg_tech);
 #endif
-
-	sccp_globals_lock(monitor_lock);
-	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
-		pthread_cancel(GLOB(monitor_thread));
-		pthread_kill(GLOB(monitor_thread), SIGURG);
-#ifndef HAVE_LIBGC
-		pthread_join(GLOB(monitor_thread), NULL);
-#endif
-	}
-	GLOB(monitor_thread) = AST_PTHREADT_STOP;
 
 	if (io) {
 		io_context_destroy(io);
@@ -3060,8 +2985,6 @@ static int unload_module(void)
 		sched = NULL;
 	}
 
-	sccp_globals_unlock(monitor_lock);
-	sccp_mutex_destroy(&GLOB(monitor_lock));
 	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Running Cleanup\n");
 #ifdef HAVE_LIBGC
