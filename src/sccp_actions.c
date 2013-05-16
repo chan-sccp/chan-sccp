@@ -107,7 +107,7 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 {
 	uint32_t mid = letohl(r->header.lel_messageId);
 	char alarmName[101];
-	int reasonEnum;
+	int reasonEnum = 0;
 	char lastProtocolEventSent[101];
 	char lastProtocolEventReceived[101];
 
@@ -120,10 +120,10 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 	 */
 
 	char *xmlData = sccp_strdupa((char *) &r->msg.RegisterMessage);
-	char *state;
-	char *line;
+	char *state = "";
+	char *line = "";
 
-	for (line = strtok_r(xmlData, "\n", &state); line != NULL; line = strtok_r(NULL, "\n", &state)) {
+	while ((line = strtok_r(xmlData, "\n", &state)) != NULL) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s\n", line);
 
 		/*
