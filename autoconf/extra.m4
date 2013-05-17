@@ -923,32 +923,3 @@ AC_DEFUN([CS_PARSE_WITH_LIBEV], [
 	AC_SUBST([EVENT_CFLAGS])
 	AC_SUBST([EVENT_TYPE])
 ])
-
-AC_DEFUN([AX_COUNT_CPUS], [
-    AC_REQUIRE([AC_PROG_EGREP])
-    AC_MSG_CHECKING(the number of available CPUs)
-    CPU_COUNT="0"
-
-    if test -f /proc/cpuinfo; then
-        #On Linux
-        if test "x$CPU_COUNT" = "x0" -a -e /proc/cpuinfo; then
-            CPU_COUNT=`$EGREP -c '^processor' /proc/cpuinfo`
-        fi
-    else 
-        #On BSD/MacOS
-        if test -x /usr/sbin/sysctl -a `/sbin/sysctl -a 2>/dev/null| grep -c hw.cpu`; then
-            CPU_COUNT=`/usr/sbin/sysctl -n hw.ncpu`
-        fi
-        #On Sparc
-        if test "x${CPU_COUNT}" = "x0" -a -e /proc/cpuinfo; then
-            CPU_COUNT=`${EGREP} -c 'ClkTck' /proc/cpuinfo`
-        fi
-    fi
-    if test "x$CPU_COUNT" = "x0"; then
-        CPU_COUNT="1"
-        AC_MSG_RESULT( [unable to detect (assuming 1)] )
-    else
-        AC_MSG_RESULT( $CPU_COUNT )
-    fi
-    AC_DEFINE_UNQUOTED([CS_CPU_COUNT],`echo ${CPU_COUNT}`,[CS_CPU Count])
-])
