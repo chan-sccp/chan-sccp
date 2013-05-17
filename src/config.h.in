@@ -227,9 +227,6 @@
 /* Found 'AST_FORMAT_SIREN7' in asterisk/frame.h */
 #undef CS_CODEC_G722_1_24K
 
-/* CS_CPU Count */
-#undef CS_CPU_COUNT
-
 /* debug indications enabled */
 #undef CS_DEBUG_INDICATIONS
 
