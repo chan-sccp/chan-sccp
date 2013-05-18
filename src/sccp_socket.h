@@ -15,6 +15,9 @@
 #ifndef __SCCP_SOCKET_H
 #define __SCCP_SOCKET_H
 
+boolean_t socket_is_IPv6(struct sockaddr_storage *socketStorage);
+boolean_t socket_is_mapped_ipv4(struct sockaddr_storage *socketStorage);
+
 void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t);
 int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r);

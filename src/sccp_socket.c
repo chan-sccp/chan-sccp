@@ -34,17 +34,26 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #else
 #define sccp_socket_poll poll
 #endif
+
+
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
-
 void sccp_session_close(sccp_session_t * s);
-
 void sccp_socket_device_thread_exit(void *session);
-
 void *sccp_socket_device_thread(void *session);
 
 static sccp_moo_t *sccp_process_data(sccp_session_t * s);
+
+boolean_t socket_is_IPv6(struct sockaddr_storage *socketStorage){
+	return (socketStorage->ss_family == AF_INET6) ? TRUE : FALSE;
+}
+
+boolean_t socket_is_mapped_ipv4(struct sockaddr_storage *socketStorage){
+	const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)socketStorage;
+	return IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr);
+}
+
 
 /*!
  * \brief Exchange Socket Addres Information from them to us
