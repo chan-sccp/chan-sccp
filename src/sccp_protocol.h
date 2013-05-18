@@ -4130,10 +4130,10 @@ typedef struct {
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
 
 	/* parse received messages */
-	void (*const parseOpenReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_in * sin, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_in * sin, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in * sin);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in * sin);
+	void (*const parseOpenReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
+	void (*const parseStartMultiMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
 } sccp_deviceProtocol_t;
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
