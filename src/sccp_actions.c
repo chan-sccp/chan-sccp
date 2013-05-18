@@ -2433,17 +2433,33 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	struct sockaddr_in sin = { 0 };
+	uint32_t port = 0;
 	uint32_t status = 0, callReference = 0, passThruPartyId = 0;
 	sccp_channel_t *channel = NULL;
 
-	d->protocol->parseOpenReceiveChannelAck((const sccp_moo_t *) r, &status, &sin, &passThruPartyId, &callReference);
+	char iabuf[INET6_ADDRSTRLEN];
+	struct sockaddr_storage ss = { 0 };
+	d->protocol->parseOpenReceiveChannelAck((const sccp_moo_t *) r, &status, &ss, &passThruPartyId, &callReference);
 
+        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	if (ss.ss_family == AF_INET) {
+	        sin = *((struct sockaddr_in *)&ss);
+	        inet_ntop(AF_INET, &sin.sin_addr, iabuf, INET_ADDRSTRLEN);
+	        port = ntohs(sin.sin_port);
+//	        sccp_log(0)("SCCP: (sccp_handle_open_receive_channel_ack) IPv4 (%s:%d)\n", iabuf, port);
+	} else {
+	        struct sockaddr_in6 sin6 = *((struct sockaddr_in6 *)&ss);
+	        inet_ntop(AF_INET6, &sin6.sin6_addr, iabuf, INET6_ADDRSTRLEN);
+	        port = ntohs(sin6.sin6_port);
+	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment (%s:%d)\n", iabuf, port);
+	        return;
+	}
 
 	if (d->nat || !d->directrtp) {
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, status, iabuf, port, (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 
 	if (status) {
 		// rtp error from the phone 
@@ -2530,10 +2546,19 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	struct sockaddr_in sin = { 0 };
+	struct sockaddr_storage ss = { 0 };
 	sccp_channel_t *channel;
 	uint32_t status = 0, partyID = 0, passThruPartyId = 0, callReference;
 
-	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_moo_t *) r, &status, &sin, &passThruPartyId, &callReference);
+	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_moo_t *) r, &status, &ss, &passThruPartyId, &callReference);
+
+        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	if (ss.ss_family == AF_INET) {
+	        sin = *((struct sockaddr_in *)&ss);
+	} else {
+	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
+	        return;
+	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callReference);
 	if (status) {
@@ -3280,10 +3305,19 @@ void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_mo
 void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	struct sockaddr_in sin = { 0 };
+	struct sockaddr_storage ss = { 0 };
 	sccp_channel_t *channel = NULL;
 	uint32_t status = 0, partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
 
-	d->protocol->parseStartMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &sin);
+	d->protocol->parseStartMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &ss);
+
+        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	if (ss.ss_family == AF_INET) {
+	        sin = *((struct sockaddr_in *)&ss);
+	} else {
+	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
+	        return;
+	}
 
 	if (partyID)
 		passthrupartyid = partyID;
@@ -3448,13 +3482,22 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
 void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
 	struct sockaddr_in sin = { 0 };
+	struct sockaddr_storage ss = { 0 };
 
 	sccp_channel_t *c;
 
 	uint32_t status = 0, partyID = 0, callID = 0, callID1 = 0;
 
 	//      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
-	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &sin);
+	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &ss);
+
+        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	if (ss.ss_family == AF_INET) {
+	        sin = *((struct sockaddr_in *)&ss);
+	} else {
+	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
+	        return;
+	}
 
 	c = sccp_channel_find_bypassthrupartyid(partyID);
 	if (!c) {

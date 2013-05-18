@@ -840,130 +840,146 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 /*! \todo need a protocol implementation for ForwardStatMessage using Version 19 and higher */
 
 /* =================================================================================================================== Parse Received Messages */
+
 /*!
  * \brief OpenReceiveChannelAck
  */
-static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_moo_t * r, uint32_t * status, struct sockaddr_in *sin, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*status = letohl(r->msg.OpenReceiveChannelAck.v3.lel_status);
 	*callReference = letohl(r->msg.OpenReceiveChannelAck.v3.lel_callReference);
 	*passthrupartyid = letohl(r->msg.OpenReceiveChannelAck.v3.lel_passThruPartyId);
 
-	sin->sin_family = AF_INET;
-	//      memcpy(&sin->sin_addr, &r->msg.OpenReceiveChannelAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
-	memcpy(&sin->sin_addr, &r->msg.OpenReceiveChannelAck.v3.bel_ipAddr, 4);
+	ss->ss_family = AF_INET;
+	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
+	memcpy(&sin->sin_addr, &r->msg.OpenReceiveChannelAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
 	sin->sin_port = htons(htolel(r->msg.OpenReceiveChannelAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_moo_t * r, uint32_t * status, struct sockaddr_in *sin, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*status = letohl(r->msg.OpenReceiveChannelAck.v17.lel_status);
 	*callReference = letohl(r->msg.OpenReceiveChannelAck.v17.lel_callReference);
 	*passthrupartyid = letohl(r->msg.OpenReceiveChannelAck.v17.lel_passThruPartyId);
 
-	if (letohl(r->msg.OpenReceiveChannelAck.v17.lel_ipv46) == 0) {						// read ipv4 address
-		sin->sin_family = AF_INET;
+	if (letohl(r->msg.OpenReceiveChannelAck.v17.lel_ipv46) == 0) {					// read ipv4 address
+		ss->ss_family = AF_INET;
+		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 		memcpy(&sin->sin_addr, &r->msg.OpenReceiveChannelAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
 		sin->sin_port = htons(htolel(r->msg.OpenReceiveChannelAck.v17.lel_portNumber));
-	} else {												// read ipv6 address
-		/*! \todo This is not correct, we should be returning type sockaddr_storage instead of sockaddr_in */
-		sin->sin_family = AF_INET6;
-		memcpy(&sin->sin_addr, &r->msg.OpenReceiveChannelAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
-		sin->sin_port = htons(htolel(r->msg.OpenReceiveChannelAck.v17.lel_portNumber));
+	} else {											// read ipv6 address
+		/* what to do with IPv4-mapped IPv6 addresses */
+		ss->ss_family = AF_INET6;
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
+		memcpy(&sin6->sin6_addr, &r->msg.OpenReceiveChannelAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		sin6->sin6_port = htons(htolel(r->msg.OpenReceiveChannelAck.v17.lel_portNumber));
 	}
 }
 
-static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_moo_t * r, uint32_t * status, struct sockaddr_in *sin, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v3.lel_status);
 	*passthrupartyid = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v3.lel_passThruPartyId);
 	*callReference = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v3.lel_callReference);
 
-	sin->sin_family = AF_INET;
+	ss->ss_family = AF_INET;
+	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 	memcpy(&sin->sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.v3.bel_ipAddr, INET_ADDRSTRLEN);
 	sin->sin_port = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_moo_t * r, uint32_t * status, struct sockaddr_in *sin, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
 	*status = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_status);
 	*passthrupartyid = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_passThruPartyId);
 	*callReference = letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_callReference);
 
-	if (letohl(r->msg.OpenReceiveChannelAck.v17.lel_ipv46) == 0) {						// read ipv4 address
-		sin->sin_family = AF_INET;
+	if (letohl(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_ipv46) == 0) {			// read ipv4 address
+		ss->ss_family = AF_INET;
+		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 		memcpy(&sin->sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, INET_ADDRSTRLEN);
 		sin->sin_port = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_portNumber));
-	} else {												// read ipv6 address
-		/*! \todo This is not correct, we should be returning type sockaddr_storage instead of sockaddr_in */
-		sin->sin_family = AF_INET6;
-		memcpy(&sin->sin_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, INET6_ADDRSTRLEN);
-		sin->sin_port = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_portNumber));
+	} else {											// read ipv6 address
+		/* what to do with IPv4-mapped IPv6 addresses */
+		ss->ss_family = AF_INET6;
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
+		memcpy(&sin6->sin6_addr, &r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		sin6->sin6_port = htons(htolel(r->msg.OpenMultiMediaReceiveChannelAckMessage.v17.lel_portNumber));
 	}
 }
 
 /*!
  * \brief StartMediaTransmissionAck
  */
-static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in *sin)
+static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(r->msg.StartMediaTransmissionAck.v3.lel_passThruPartyId);
 	*callID = letohl(r->msg.StartMediaTransmissionAck.v3.lel_callReference);
 	*callID1 = letohl(r->msg.StartMediaTransmissionAck.v3.lel_callReference1);
 	*status = letohl(r->msg.StartMediaTransmissionAck.v3.lel_smtStatus);
 
-	sin->sin_family = AF_INET;
+	ss->ss_family = AF_INET;
+	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 	memcpy(&sin->sin_addr, &r->msg.StartMediaTransmissionAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
 	sin->sin_port = htons(htolel(r->msg.StartMediaTransmissionAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in *sin)
+static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(r->msg.StartMediaTransmissionAck.v17.lel_passThruPartyId);
 	*callID = letohl(r->msg.StartMediaTransmissionAck.v17.lel_callReference);
 	*callID1 = letohl(r->msg.StartMediaTransmissionAck.v17.lel_callReference1);
 	*status = letohl(r->msg.StartMediaTransmissionAck.v17.lel_smtStatus);
 
-	if (letohl(r->msg.StartMediaTransmissionAck.v17.lel_ipv46) == 0) {					// read ipv4 address
-		sin->sin_family = AF_INET;
+	if (letohl(r->msg.StartMediaTransmissionAck.v17.lel_ipv46) == 0) {				// read ipv4 address
+		ss->ss_family = AF_INET;
+		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 		memcpy(&sin->sin_addr, &r->msg.StartMediaTransmissionAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
-	} else {												// read ipv6 address
-		sin->sin_family = AF_INET6;
-		memcpy(&sin->sin_addr, &r->msg.StartMediaTransmissionAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		sin->sin_port = htons(htolel(r->msg.StartMediaTransmissionAck.v17.lel_portNumber));
+	} else {											// read ipv6 address
+		/* what to do with IPv4-mapped IPv6 addresses */
+		ss->ss_family = AF_INET6;
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
+		memcpy(&sin6->sin6_addr, &r->msg.StartMediaTransmissionAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		sin6->sin6_port = htons(htolel(r->msg.StartMediaTransmissionAck.v17.lel_portNumber));
 	}
-	sin->sin_port = htons(htolel(r->msg.StartMediaTransmissionAck.v17.lel_portNumber));
 }
 
 /*!
  * \brief StartMultiMediaTransmissionAck
  */
-static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in *sin)
+static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_passThruPartyId);
 	*callID = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_callReference);
 	*callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_callReference1);
 	*status = letohl(r->msg.StartMultiMediaTransmissionAck.v3.lel_smtStatus);
 
-	sin->sin_family = AF_INET;
+	ss->ss_family = AF_INET;
+	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 	memcpy(&sin->sin_addr, &r->msg.StartMultiMediaTransmissionAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
 	sin->sin_port = htons(htolel(r->msg.StartMultiMediaTransmissionAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_in *sin)
+static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_passThruPartyId);
 	*callID = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_callReference);
 	*callID1 = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_callReference1);
 	*status = letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_smtStatus);
 
-	if (letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_ipv46) == 0) {					// read ipv4 address
-		sin->sin_family = AF_INET;
+	if (letohl(r->msg.StartMultiMediaTransmissionAck.v17.lel_ipv46) == 0) {				// read ipv4 address
+		ss->ss_family = AF_INET;
+		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 		memcpy(&sin->sin_addr, &r->msg.StartMultiMediaTransmissionAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
-	} else {												// read ipv6 address
-		sin->sin_family = AF_INET6;
-		memcpy(&sin->sin_addr, &r->msg.StartMultiMediaTransmissionAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		sin->sin_port = htons(htolel(r->msg.StartMultiMediaTransmissionAck.v17.lel_portNumber));
+	} else {											// read ipv6 address
+		/* what to do with IPv4-mapped IPv6 addresses */
+		ss->ss_family = AF_INET6;
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
+		memcpy(&sin6->sin6_addr, &r->msg.StartMultiMediaTransmissionAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		sin6->sin6_port = htons(htolel(r->msg.StartMultiMediaTransmissionAck.v17.lel_portNumber));
 	}
-	sin->sin_port = htons(htolel(r->msg.StartMultiMediaTransmissionAck.v17.lel_portNumber));
 }
 
 /* =================================================================================================================== Map Messages to Protocol Version */
