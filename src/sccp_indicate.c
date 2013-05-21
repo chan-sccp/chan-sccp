@@ -58,21 +58,16 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		return;
 	}
 
-	if (!c->line) {
+	if (!(l = sccp_line_retain(c->line))) {
 		pbx_log(LOG_ERROR, "SCCP: The channel %d does not have a line\n", c->callid);
 		d = sccp_device_release(d);
 		return;
 	}
-	l = sccp_line_retain(c->line);
-
-	/* replaced with a trylock loop, because lock is taken out of order */
 	instance = sccp_device_find_index_for_line(d, l->name);
 	linedevice = sccp_linedevice_find(d, l);
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: 1-Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x\n", d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid);
-	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: 2-Indicate SCCP state %d (%s),previous channelState %d (%s) on call %s-%08x\n", d->id, state, sccp_indicate2str(state), c->previousChannelState, sccp_indicate2str(c->previousChannelState), l->name, c->callid);
-
+	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelState %d (%s))\n", d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_indicate2str(c->previousChannelState));
 	sccp_channel_setSkinnyCallstate(c, state);
 
 	switch (state) {
@@ -168,7 +163,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			PBX(set_callstate) (c, AST_STATE_RING);
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
-			/* clear all the display buffers */
 			sccp_dev_cleardisplaynotify(d);
 			sccp_dev_clearprompt(d, instance, 0);
 
@@ -215,22 +209,13 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		case SCCP_CHANNELSTATE_CONNECTED:
 		
 			d->indicate->connected(d, linedevice, c);
-		  
-			// if no rtp or was in old openreceivechannel (note that rtp doens't reinitialize as channel was in hold state or offhook state due to a transfer abort)
 			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_channel_openreceivechannel(c);
 			} else if (c->rtp.audio.rtp) {
 				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 			}
-			/* asterisk wants rtp open before AST_STATE_UP
-			 * so we set it in OPEN_CHANNEL_ACK in sccp_actions.c.
-			 */
-			//if (d->earlyrtp) {
-			//	PBX(set_callstate) (c, AST_STATE_UP);                   // cause 1 second delay in sound -> should not be done here (Marcello)
-			//}
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-			/* it will be emulated if the rtp audio stream is open */
 			if (!c->rtp.audio.rtp) {
 				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, instance, c->callid, 0);
 			}
@@ -242,7 +227,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			if (c->previousChannelState == SCCP_CHANNELSTATE_CONNECTED) {
 				/** this is a bug of asterisk 1.6 (it sends progress after a call is answered then diverted to some extensions with dial app) */
 				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
-				//c->state = SCCP_CHANNELSTATE_CONNECTED;
 			} else {
 				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n", sccp_indicate2str(c->previousChannelState));
 				if (!c->rtp.audio.rtp && d->earlyrtp) {
@@ -270,7 +254,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, 0);
-			//sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 			break;
@@ -279,10 +262,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			if (!c->rtp.audio.rtp) {
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			}
-			/** In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
-			   the newer Cisco phone models don't seem to like this at all, resulting in
-			   crashes. Federico observed that also congestion is affected. We have to find a
-			   signalling replacement for the display prompt if this is neccessary for some reason.(-DD) */
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, 0);
 			break;
@@ -349,29 +328,14 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 				sccp_channel_closereceivechannel(c);
 			}
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
-
-			/* 7936 does not like the skinny invalid message callstate
-			
-			   In fact, newer firmware versions (the 8 releases for the 7960 etc.) and
-			   the newer Cisco phone models don't seem to like this at all, resulting in
-			   crashes. Interestingly, the message imho does cause obvious effects anyway. (-DD) 
-			*/
-
-			/* if (d->skinny_type != SKINNY_DEVICETYPE_CISCO7936)
-				sccp_channel_send_callinfo(d, c); */
-				
-			/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
-			/* don't set AST_STATE_DOWN. we hangup only on onhook and endcall softkey */
 			break;
 		case SCCP_CHANNELSTATE_DIALING:
 			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
-			// sccp_dev_clearprompt(d,l->instance, c->callid);
 			if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio.rtp) {
 				sccp_channel_openreceivechannel(c);
 			}
-			//PBX(set_callstate) (c, AST_STATE_DIALING);                                      /* do not send dialing state back to asterisk, this will prevent signalling connected state when pickup a parked call */
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 			sccp_channel_send_callinfo(d, c);
@@ -387,17 +351,16 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 	/** notify all remote devices */
 	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: start remote device notification\n", DEV_ID_LOG(d));
-	__sccp_indicate_remote_device(device, c, state, debug, file, line, pretty_function);
+	__sccp_indicate_remote_device(d, c, state, debug, file, line, pretty_function);
 
 	/* notify features */
-	sccp_feat_channelStateChanged(device, c);
+	sccp_feat_channelStateChanged(d, c);
 
 	sccp_event_t event;
-
 	memset(&event, 0, sizeof(sccp_event_t));
 	event.type = SCCP_EVENT_LINESTATUS_CHANGED;
 	event.event.lineStatusChanged.line	= sccp_line_retain(l);
-	event.event.lineStatusChanged.device	= sccp_device_retain(device);
+	event.event.lineStatusChanged.device	= sccp_device_retain(d);
 	event.event.lineStatusChanged.state	= c->state;
 	sccp_event_fire(&event);
 
@@ -447,17 +410,16 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 	/* do not propagate status of hotline */
 	if (c->line == GLOB(hotline)->line) {
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "I'm a hotline, do not notify me!\n");
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) I'm a hotline, do not notify me!\n");
 		return;
 	}
 	sccp_linedevices_t *linedevice;
 
-	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: __sccp_indicate_remote_device: traverse linedevices\n");
+	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) Traverse linedevices\n");
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
-
 		if (!linedevice->device) {
-			pbx_log(LOG_NOTICE, "Strange to meet a linedevice (%p) here without a valid device connected to it !", linedevice);
-			break;
+			pbx_log(LOG_NOTICE, "Strange to find a linedevice (%p) here without a valid device connected to it !", linedevice);
+			continue;
 		}
 
 		if (device && linedevice->device == device) {
@@ -488,44 +450,21 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 				
 				case SCCP_CHANNELSTATE_ONHOOK:
 					/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
-					
 					if (c->answered_elsewhere && recordAsReceivedCall){
 						pbx_log(LOG_NOTICE, "%s: call was answered elsewhere, record this as received call\n", DEV_ID_LOG(remoteDevice));
-						
-						/* offhook */
-// 						sccp_dev_set_speaker(remoteDevice, SKINNY_STATIONSPEAKER_ON);
-// 						sccp_device_sendcallstate(remoteDevice, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-// 						sccp_dev_set_cplane(remoteDevice, linedevice->lineInstance, 1);
-// 						sccp_dev_set_keyset(remoteDevice, linedevice->lineInstance, c->callid, KEYMODE_OFFHOOK);
-
 						remoteDevice->indicate->offhook(remoteDevice, linedevice, c->callid);
-						/* end */
-						
-						/* connected */
-// 						sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
-// 						sccp_dev_set_speaker(remoteDevice, SKINNY_STATIONSPEAKER_ON);
-// 						sccp_dev_stoptone(remoteDevice, linedevice->lineInstance, c->callid);
-// 						sccp_device_sendcallstate(remoteDevice, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-// 						sccp_channel_send_callinfo(remoteDevice, c);
-// 						sccp_dev_set_cplane(remoteDevice, linedevice->lineInstance, 1);
-// 						sccp_dev_set_keyset(remoteDevice, linedevice->lineInstance, c->callid, KEYMODE_CONNECTED);
-// 						sccp_dev_displayprompt(remoteDevice, linedevice->lineInstance, c->callid, SKINNY_DISP_CONNECTED, 0);
 						remoteDevice->indicate->connected(remoteDevice, linedevice, c);
-						/* connected */
-						
 					} else if(c->answered_elsewhere && !recordAsReceivedCall){
 						sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					}
 				  
 					sccp_dev_cleardisplaynotify(remoteDevice);
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
-					
 					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
 					sccp_dev_set_speaker(remoteDevice, SKINNY_STATIONSPEAKER_OFF);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					sccp_dev_set_cplane(remoteDevice, linedevice->lineInstance, 1);
 					sccp_dev_set_keyset(remoteDevice, linedevice->lineInstance, c->callid, KEYMODE_ONHOOK);
-
 					break;
 				
 				case SCCP_CHANNELSTATE_CONNECTED:
@@ -536,17 +475,13 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 					   ringing if multiple calls are ringing concurrently on a shared line. */
 
 					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
-					//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN); /* 7985 dont like this command when in shared line */
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					sccp_channel_send_callinfo(remoteDevice, c);
-
 					sccp_dev_set_keyset(remoteDevice, instance, c->callid, KEYMODE_ONHOOKSTEALABLE);
-
 					break;
 				
 				case SCCP_CHANNELSTATE_HOLD:
-					//sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_HOLDRED, SKINNY_CALLPRIORITY_NORMAL, (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 					remoteDevice->indicate->remoteHold(remoteDevice, instance, c->callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					sccp_channel_send_callinfo(remoteDevice, c);
 					break;
