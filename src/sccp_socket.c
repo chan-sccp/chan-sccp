@@ -396,8 +396,21 @@ void *sccp_socket_device_thread(void *session)
 		res = sccp_socket_poll(s->fds, 1, pollTimeout);
 		pthread_testcancel();
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-		if (res > 0) {											/* poll data processing */
-			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
+		if (-1 == res) {											/* poll data processing */
+			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
+				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), pbx_inet_ntoa(s->sin.sin_addr));
+				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+				break;
+			}
+		} else if (0 == res) {											/* poll timeout */
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
+			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
+				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout);
+				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
+				break;
+			}
+		} else if (res > 0) {											/* poll data processing */
+			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {				/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				if (sccp_read_data(s) >= SCCP_PACKET_HEADER) {
@@ -414,23 +427,13 @@ void *sccp_socket_device_thread(void *session)
 						s->lastKeepAlive = time(0);
 					}
 				}
-			} else {										/* POLLHUP / POLLERR */
+			} else {											/* POLLHUP / POLLERR */
 				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
-		} else {											/* poll timeout */
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
-			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
-				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout);
-				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
-				break;
-			}
-			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
-				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), pbx_inet_ntoa(s->sin.sin_addr));
-				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-				break;
-			}
+		} else {												/* poll returned invalid res */
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
