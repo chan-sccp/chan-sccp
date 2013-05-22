@@ -173,6 +173,7 @@ devicetype = 7940					; device type (see below)
 transfer = off						; enable or disable the transfer capability. It does remove the transfer softkey
 park = on						; take a look to the compile howto. Park stuff is not compiled by default
 cfwdall = on						; activate the callforward stuff and softkeys
+allowRinginNotification = yes				; allow ringin notification for hinted extensions
 
 [7960](!,defaultdevice)					; add to default device template and create new template named 7960
 devicetype = 7960					; device type (see below)
