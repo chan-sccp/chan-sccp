@@ -17,7 +17,25 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function);
+static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t *line, uint8_t state);
+
+#if CS_EXPERIMENTAL
+struct sccp_indicate_conveyor {
+	sccp_device_t *device;
+	sccp_channel_t *channel;
+	sccp_line_t *line;
+	uint8_t state;
+};
+
+static void sccp_indicate_remote_device(void *data) {
+	struct sccp_indicate_conveyor *conveyor = data;
+	__sccp_indicate_remote_device(conveyor->device, conveyor->channel, conveyor->line, conveyor->state);
+	sccp_device_release(conveyor->device);
+	sccp_channel_release(conveyor->channel);
+	sccp_line_release(conveyor->line);
+	sccp_free(conveyor);
+}
+#endif
 
 /*!
  * \brief Indicate Without Lock
@@ -351,11 +369,24 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
-		/* notify all remote devices (if any) */
 		if (SCCP_RWLIST_GETSIZE(l->devices) > 1) {
+			/* notify all remote devices */
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: start remote device notification\n", DEV_ID_LOG(d));
-			__sccp_indicate_remote_device(d, c, state, debug, file, line, pretty_function);
-		}
+#if CS_EXPERIMENTAL
+			/** notify all remote devices (in a seperate thread) */
+			struct sccp_indicate_conveyor *conveyor = sccp_calloc(1, sizeof(struct sccp_indicate_conveyor));
+			if (conveyor) {
+				conveyor->device = sccp_device_retain(d);
+				conveyor->channel = sccp_channel_retain(c);
+				conveyor->line = sccp_line_retain(l);
+				conveyor->state = c->state;
+				sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_indicate_remote_device, (void *) conveyor);
+			}
+#else
+			/** notify all remote devices (within current thread) */
+			__sccp_indicate_remote_device(d, c, state, l);
+#endif		
+		}	
 
 		/* notify features (sccp_feat_channelStateChanged = empty function, skipping)*/
 		//	sccp_feat_channelStateChanged(d, c);
@@ -390,7 +421,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
  * \warning
  *      - line->devices is not always locked
  */
-static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
+static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t *line, uint8_t state)
 {
 	sccp_device_t *remoteDevice;
 	sccp_channel_t *activeChannel;
@@ -398,7 +429,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	boolean_t recordAsReceivedCall = FALSE;
 
 	//      uint32_t privacyStatus=0;
-	if (!c || !c->line) {
+	if (!c || !line) {
 		return;
 	}	
 
@@ -414,13 +445,14 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	//      }
 
 	/* do not propagate status of hotline */
-	if (c->line == GLOB(hotline)->line) {
+	if (line == GLOB(hotline)->line) {
 		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) I'm a hotline, do not notify me!\n");
 		return;
 	}
 	sccp_linedevices_t *linedevice;
 
-	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
+	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_indicate2str(state), state, c->designator, c->callid);
+	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
 		if (!linedevice->device) {
 			pbx_log(LOG_NOTICE, "Strange to find a linedevice (%p) here without a valid device connected to it !", linedevice);
 			continue;
@@ -441,11 +473,10 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			}
 			/* done */
 			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Notify remote device.\n", DEV_ID_LOG(remoteDevice));
-			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(c->line->channels));
+			sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: channelcount: %d\n", DEV_ID_LOG(remoteDevice), SCCP_RWLIST_GETSIZE(line->channels));
 
-			instance = sccp_device_find_index_for_line(remoteDevice, c->line->name);
+			instance = sccp_device_find_index_for_line(remoteDevice, line->name);
 			switch (state) {
-				
 				case SCCP_CHANNELSTATE_OFFHOOK:
 					if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING) {
 						sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
@@ -453,6 +484,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 					}
 					break;
 				
+				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
 					/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
 					if (c->answered_elsewhere && recordAsReceivedCall){
