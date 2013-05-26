@@ -351,9 +351,11 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
-		/* notify all remote devices */
-		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: start remote device notification\n", DEV_ID_LOG(d));
-		__sccp_indicate_remote_device(d, c, state, debug, file, line, pretty_function);
+		/* notify all remote devices (if any) */
+		if (SCCP_RWLIST_GETSIZE(l->devices) > 1) {
+			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: start remote device notification\n", DEV_ID_LOG(d));
+			__sccp_indicate_remote_device(d, c, state, debug, file, line, pretty_function);
+		}
 
 		/* notify features (sccp_feat_channelStateChanged = empty function, skipping)*/
 		//	sccp_feat_channelStateChanged(d, c);
