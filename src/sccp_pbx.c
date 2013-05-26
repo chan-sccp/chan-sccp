@@ -454,7 +454,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
 		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
-		pbx_log(LOG_NOTICE, "reset monitor state after hangup\n");
+		sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
 // 	else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
