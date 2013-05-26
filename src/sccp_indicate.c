@@ -348,22 +348,25 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE:default  %s (%d) -> %s (%d)\n", d->id, sccp_indicate2str(c->previousChannelState), c->previousChannelState, sccp_indicate2str(c->state), c->state);
 			break;
 	}
+	
+	/* if channel state has changed, notify the others */
+	if (c->state != c->previousChannelState) {
+		/* notify all remote devices */
+		sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: start remote device notification\n", DEV_ID_LOG(d));
+		__sccp_indicate_remote_device(d, c, state, debug, file, line, pretty_function);
 
-	/** notify all remote devices */
-	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: start remote device notification\n", DEV_ID_LOG(d));
-	__sccp_indicate_remote_device(d, c, state, debug, file, line, pretty_function);
+		/* notify features (sccp_feat_channelStateChanged = empty function, skipping)*/
+		//	sccp_feat_channelStateChanged(d, c);
 
-	/* notify features */
-	sccp_feat_channelStateChanged(d, c);
-
-	sccp_event_t event;
-	memset(&event, 0, sizeof(sccp_event_t));
-	event.type = SCCP_EVENT_LINESTATUS_CHANGED;
-	event.event.lineStatusChanged.line	= sccp_line_retain(l);
-	event.event.lineStatusChanged.device	= sccp_device_retain(d);
-	event.event.lineStatusChanged.state	= c->state;
-	sccp_event_fire(&event);
-
+		sccp_event_t event;
+		memset(&event, 0, sizeof(sccp_event_t));
+		event.type = SCCP_EVENT_LINESTATUS_CHANGED;
+		event.event.lineStatusChanged.line	= sccp_line_retain(l);
+		event.event.lineStatusChanged.device	= sccp_device_retain(d);
+		event.event.lineStatusChanged.state	= c->state;
+		sccp_event_fire(&event);
+	}
+	
 	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n", d->id, sccp_indicate2str(state), l->name, c->callid);
 	
 	d = sccp_device_release(d);
@@ -415,7 +418,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	}
 	sccp_linedevices_t *linedevice;
 
-	sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) Traverse linedevices\n");
 	SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
 		if (!linedevice->device) {
 			pbx_log(LOG_NOTICE, "Strange to find a linedevice (%p) here without a valid device connected to it !", linedevice);
@@ -427,6 +429,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		}	
 
 		if ((remoteDevice = sccp_device_retain(linedevice->device))) {
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_indicate2str(state), state, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
 			/* check if we have one part of the remote channel */
 			if ((activeChannel = sccp_channel_get_active(remoteDevice))) {
 				if (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
@@ -486,33 +489,14 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 					sccp_channel_send_callinfo(remoteDevice, c);
 					break;
 				
-				case SCCP_CHANNELSTATE_DOWN:
-				case SCCP_CHANNELSTATE_GETDIGITS:
-				case SCCP_CHANNELSTATE_SPEEDDIAL:
-				case SCCP_CHANNELSTATE_RINGOUT:
-				case SCCP_CHANNELSTATE_RINGING:
-				case SCCP_CHANNELSTATE_BUSY:
-				case SCCP_CHANNELSTATE_PROCEED:
-				case SCCP_CHANNELSTATE_CONGESTION:
-				case SCCP_CHANNELSTATE_CALLWAITING:
-				case SCCP_CHANNELSTATE_CALLTRANSFER:
-				case SCCP_CHANNELSTATE_CALLCONFERENCE:
-				case SCCP_CHANNELSTATE_CALLPARK:
-				case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-				case SCCP_CHANNELSTATE_INVALIDNUMBER:
-				case SCCP_CHANNELSTATE_DIALING:
-				case SCCP_CHANNELSTATE_DIGITSFOLL:
-				case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-				case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
-				case SCCP_CHANNELSTATE_BLINDTRANSFER:
-				case SCCP_CHANNELSTATE_ZOMBIE:
-				case SCCP_CHANNELSTATE_DND:
+				default:
 					break;
+
 			}
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_indicate2str(state), state, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
 			remoteDevice = sccp_device_release(remoteDevice);
 		}
 	}
-	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state remote device SCCP (%s) on call %08x\n", device->id, sccp_indicate2str(state), c->callid);
 }
 
 /*!
