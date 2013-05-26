@@ -384,7 +384,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			}
 #else
 			/** notify all remote devices (within current thread) */
-			__sccp_indicate_remote_device(d, c, state, l);
+			__sccp_indicate_remote_device(d, c, l, state);
 #endif		
 		}	
 
