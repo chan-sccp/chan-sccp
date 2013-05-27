@@ -1073,6 +1073,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 {
 	sccp_line_t *l;
 	sccp_linedevices_t *linedevice;
+	sccp_mailbox_t *mailbox;
 	PBX_VARIABLE_TYPE *v = NULL;
 	struct ast_str *callgroup_buf = pbx_str_alloca(512);
 
@@ -1160,14 +1161,28 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 		CLI_AMI_TABLE_FIELD(CfwdNumber,		s,	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
 #include "sccp_cli_table.h"
 
+	// Mailboxes connected to this line
+#define CLI_AMI_TABLE_NAME Mailboxes
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &l->mailboxes
+#define CLI_AMI_TABLE_LIST_ITER_VAR mailbox
+#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+
+#define CLI_AMI_TABLE_FIELDS 											\
+		CLI_AMI_TABLE_FIELD(mailbox,		s,	15,	mailbox->mailbox)			\
+		CLI_AMI_TABLE_FIELD(context,		s,	15,	mailbox->context)			
+#include "sccp_cli_table.h"
+
 	if (l->variables) {
 		// SERVICEURL
 #define CLI_AMI_TABLE_NAME Variables
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Variable
 #define CLI_AMI_TABLE_ITERATOR for(v = l->variables;v;v = v->next)
 #define CLI_AMI_TABLE_FIELDS 											\
-			CLI_AMI_TABLE_FIELD(Name,		s,	15,	v->name)			\
-			CLI_AMI_TABLE_FIELD(Value,		s,	29,	v->value)
+		CLI_AMI_TABLE_FIELD(Name,		s,	15,	v->name)				\
+		CLI_AMI_TABLE_FIELD(Value,		s,	29,	v->value)
 #include "sccp_cli_table.h"
 	}
 	sccp_line_release(l);
