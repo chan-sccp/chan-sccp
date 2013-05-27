@@ -1163,6 +1163,9 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, co
 
 	strsep(&context, "@");
 
+	if (sccp_strlen_zero(context)) {
+	        context = "default";
+	}
 	// Check mailboxes list
 	SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
 		if (sccp_strequals(mailbox->mailbox, mbox)) {
