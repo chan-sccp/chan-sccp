@@ -167,6 +167,9 @@
 /* 'ast_bridged_channel' available */
 #undef CS_AST_HAS_BRIDGED_CHANNEL
 
+/* 'ast_channel_get_bridge_channel' available */
+#undef CS_AST_HAS_CHANNEL_GET_BRIDGE_CHANNEL
+
 /* Found 'asterisk/endian.h' */
 #undef CS_AST_HAS_ENDIAN
 
@@ -212,6 +215,9 @@
 /* 'ast_rtp_change_source' available */
 #undef CS_AST_RTP_CHANGE_SOURCE
 
+/* Found 'ast_rtp_instance_bridge' in asterisk/bridging.h */
+#undef CS_AST_RTP_INSTANCE_BRIDGE
+
 /* Found 'void ast_rtp_instance_new' in asterisk/rtp_engine.h */
 #undef CS_AST_RTP_INSTANCE_NEW
 
@@ -220,6 +226,19 @@
 
 /* 'AST_SCHED_DEL' available */
 #undef CS_AST_SCHED_DEL
+
+/* Found 'ast_bridge_base_new' in asterisk/bridging.h */
+#undef CS_BRIDGE_BASE_NEW
+
+/* Found 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h */
+#undef CS_BRIDGE_CAPABILITY_MULTITHREADED
+
+/* 'ast_bridge_depart' only needs channel reference in asterisk/bridging.h */
+#undef CS_BRIDGE_DEPART_ONLY_CHANNEL
+
+/* Found 'pass_reference' in definition of ast_bridge_join' in
+   asterisk/bridging.h */
+#undef CS_BRIDGE_JOIN_PASSREFERENCE
 
 /* 'cacheable ast_devstate_changed' available */
 #undef CS_CACHEABLE_DEVICESTATE
@@ -540,6 +559,12 @@
 
 /* Found 'asterisk/astobj2.h' */
 #undef HAVE_PBX_ASTOBJ2_H
+
+/* Found 'asterisk/bridging_features.h' */
+#undef HAVE_PBX_BRIDGING_FEATURES_H
+
+/* Found 'asterisk/bridging_roles.h' */
+#undef HAVE_PBX_BRIDGING_ROLES_H
 
 /* Found 'asterisk/buildopts.h' */
 #undef HAVE_PBX_BUILDOPTS_H

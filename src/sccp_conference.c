@@ -16,6 +16,9 @@
 
 #include "asterisk/bridging.h"
 #include "asterisk/bridging_features.h"
+#ifdef HAVE_PBX_BRIDGING_ROLES_H
+#  include "asterisk/bridging_roles.h"
+#endif
 
 #define sccp_conference_release(x) 	(sccp_conference_t *)sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_conference_retain(x) 	(sccp_conference_t *)sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
@@ -153,7 +156,9 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 
 	//      bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;                             /* bridge_multiplexed */
 	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;							/* bridge_softmix */
+#ifdef CS_BRIDGE_CAPABILITY_MULTITHREADED
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;						/* bridge_softmix */
+#endif	
 #ifdef CS_SCCP_VIDEO
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_VIDEO;
 #endif
@@ -257,7 +262,11 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
  	struct ast_bridge_channel *bridge_channel = NULL;
 	sccp_conference_participant_t *participant = NULL;
  
+#ifndef CS_BRIDGE_BASE_NEW
 	sccp_log((DEBUGCAT_HIGH | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Searching Bridge Channel(num_channels: %d).\n",  conference->id, conference->bridge->num);
+#else	
+	sccp_log((DEBUGCAT_HIGH | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Searching Bridge Channel(num_channels: %d).\n",  conference->id, conference->bridge->num_channels);
+#endif	
 	ao2_lock(bridge);
  	AST_LIST_TRAVERSE(&bridge->channels, bridge_channel, entry) {
 		sccp_log((DEBUGCAT_HIGH | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Bridge Channel %p.\n", conference->id, bridge_channel);
