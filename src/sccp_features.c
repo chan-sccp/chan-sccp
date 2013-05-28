@@ -743,6 +743,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 	sccp_channel_t *channel = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	boolean_t selectedFound = FALSE;
+        PBX_CHANNEL_TYPE * bridged_channel = NULL;
 
 	if (!(d = sccp_device_retain(d)) || !c) {
 		return;
@@ -780,8 +781,13 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 						SCCP_LIST_LOCK(&line->channels);
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 							if (channel != d->active_channel) {
-								sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)), channelstate2str(channel->state));
-								sccp_conference_addParticipatingChannel(d->conference, c, CS_AST_BRIDGED_CHANNEL(channel->owner));
+                                                                if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
+ 								        sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
+//                                                                        sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
+                                                                        sccp_conference_addParticipatingChannel(d->conference, channel, bridged_channel);
+								} else {
+								        pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
+								}
 							}
 						}
 						SCCP_LIST_UNLOCK(&line->channels);
@@ -816,6 +822,7 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 {
 #if CS_SCCP_CONFERENCE
 	sccp_channel_t *channel = NULL;
+        PBX_CHANNEL_TYPE * bridged_channel = NULL;
 
 	if (!c)
 		return;
@@ -838,7 +845,12 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 			channel = d->active_channel;
 			pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
 			sccp_channel_hold(channel);
-			sccp_conference_addParticipatingChannel(d->conference, channel, CS_AST_BRIDGED_CHANNEL(channel->owner));
+                        if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
+                                sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
+                                sccp_conference_addParticipatingChannel(d->conference, channel, bridged_channel);
+                        } else {
+                                pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
+                        }
 
 			sccp_channel_t *mod_chan = NULL;
 

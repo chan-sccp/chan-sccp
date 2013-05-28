@@ -40,7 +40,9 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
 static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan);
+#ifdef CS_AST_RTP_INSTANCE_BRIDGE
 static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
+#endif
 static int sccp_pbx_sendtext(PBX_CHANNEL_TYPE * ast, const char *text);
 static int sccp_wrapper_recvdigit_begin(PBX_CHANNEL_TYPE * ast, char digit);
 static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsigned int duration);
@@ -163,7 +165,9 @@ struct ast_channel_tech sccp_tech = {
 	.indicate 		= sccp_wrapper_asterisk111_indicate,
 	.fixup 			= sccp_wrapper_asterisk111_fixup,
 	.transfer 		= sccp_pbx_transfer,
+#ifdef CS_AST_RTP_INSTANCE_BRIDGE
 	.bridge 		= sccp_wrapper_asterisk111_rtpBridge,
+#endif
 	//.early_bridge		= ast_rtp_early_bridge,
 	//.bridged_channel      =
 
@@ -351,16 +355,16 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 {
 	sccp_channel_t *c = NULL;
-	PBX_FRAME_TYPE *frame = NULL;
+	PBX_FRAME_TYPE *frame = &ast_null_frame;
 
-	//      if (!(c = get_sccp_channel_from_pbx_channel(ast))) {            // not following the refcount rules... channel is already retained
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {									// not following the refcount rules... channel is already retained
-		return &ast_null_frame;
+	        pbx_log(LOG_ERROR, "SCCP: (rtp_read) no channel pvt\n");
+		goto EXIT_FUNC;
 	}
 
 	if (!c->rtp.audio.rtp) {
-		//              c = sccp_channel_release(c);
-		return &ast_null_frame;
+	        pbx_log(LOG_NOTICE, "SCCP: (rtp_read) no rtp stream yet. skip\n");
+		goto EXIT_FUNC;
 	}
 
 	switch (ast_channel_fdno(ast)) {
@@ -382,27 +386,16 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 		default:
 			break;
 	}
-
-	if (!frame) {
-		pbx_log(LOG_WARNING, "%s: error reading frame == NULL\n", c->currentDeviceId);
-		//              c = sccp_channel_release(c);
-		return &ast_null_frame;
-	}
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 	if (frame->frametype == AST_FRAME_VOICE) {
-/*                if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast)))) {
-			ast_set_read_format_by_id(ast, AST_FORMAT_SLINEAR);
-		} else  if (!(ast_format_cap_iscompatible(ast_channel_nativeformats(ast), &frame->subclass.format))) {
-			sccp_wrapper_asterisk111_setReadFormat(c, c->rtp.audio.readFormat);  
-		}*/
 #ifdef CS_SCCP_CONFERENCE
 		if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast))) ) {
 			ast_set_read_format(ast, &slinFormat);
  		}
 #endif
 	}
-	//
-	//      c = sccp_channel_release(c);
+
+EXIT_FUNC:
 	return frame;
 }
 
@@ -1415,6 +1408,7 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 	return res;
 }
 
+#ifdef CS_AST_RTP_INSTANCE_BRIDGE
 static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms)
 {
 	enum ast_bridge_result res;
@@ -1478,6 +1472,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYP
 	/*! \todo Implement callback function queue upon completion */
 	return res;
 }
+#endif
 
 static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
