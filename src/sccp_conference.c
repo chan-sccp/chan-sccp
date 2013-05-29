@@ -371,7 +371,9 @@ void sccp_conference_update_callInfo(sccp_channel_t *channel, PBX_CHANNEL_TYPE *
 	ast_set_party_id_all(&update_connected.priv);
 #endif
 	connected.source = AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
-	ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
+	if(pbxChannel){
+		ast_channel_set_connected_line(pbxChannel, &connected, &update_connected); 
+	}
 #endif
 	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 }
