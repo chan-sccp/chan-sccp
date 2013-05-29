@@ -349,7 +349,7 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 					struct ast_channel *peerchannel = ast_channel_bridge_peer(testchannel);
 				], [
 				        AC_DEFINE([CS_AST_HAS_CHANNEL_BRIDGE_PEER],1,['ast_channel_bridge_peer' available])
-				        AC_MSG_RESULT([WARNING: Expect trouble with the asterisk-trunk above revision 389899 !!!!. We are working on this])
+				        AC_MSG_RESULT([WARNING: Expect trouble with the asterisk-trunk above revision 389378 !!!!. We are working on this])
 				        ASTERISK_INCOMPATIBLE=yes
 				]
 			)
