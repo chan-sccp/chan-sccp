@@ -20,9 +20,6 @@
 #ifdef HAVE_ASTERISK
 #include "ast/ast.h"
 #endif
-#ifdef HAVE_CALLWEAVER
-#include "cw/cw.h"
-#endif
 
 #define PBX_BRIDGE_TYPE struct ast_bridge
 

@@ -142,20 +142,40 @@ AC_DEFUN([AST_GET_VERSION], [
 		AC_CHECK_HEADER(
 			[asterisk/ast_version.h],
 			[
-				AC_MSG_CHECKING([version in asterisk/ast_version.h])
-				ASTERISK_VER_GROUP=112
-				ASTERISK_VERSION_NUMBER=11200
-				ASTERISK_REPOS_LOCATION=TRUNK
+                                AC_MSG_RESULT([found])
+                                AC_CHECK_HEADER(
+                                        [asterisk/uuid.h],
+                                        [
+                                                ASTERISK_VER_GROUP=112
+                                                ASTERISK_VERSION_NUMBER=11200
+                                                ASTERISK_REPOS_LOCATION=TRUNK
 
-				AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
-				AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
-				AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
-				AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+                                                AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12])
+                                                AC_DEFINE([ASTERISK_VERSION_NUMBER], [11200], [ASTERISK Version Number])
+                                                AC_DEFINE([ASTERISK_VERSION_GROUP], [112], [ASTERISK Version Group])
+                                                AC_DEFINE([ASTERISK_REPOS_LOCATION], ["TRUNK"],[ASTERISK Source Location])
+                                                
+                                                version_found=1
+                                                AC_MSG_RESULT([done])
+                                                AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'. Experimental at the moment. Anything might break.])
+                                        ],[
+                                                ASTERISK_VER_GROUP=111
+                                                ASTERISK_VERSION_NUMBER=11100
+                                                ASTERISK_REPOS_LOCATION=BRANCH
+
+                                                AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11])
+                                                AC_DEFINE([ASTERISK_VERSION_NUMBER], [11100], [ASTERISK Version Number])
+                                                AC_DEFINE([ASTERISK_VERSION_GROUP], [111], [ASTERISK Version Group])
+                                                AC_DEFINE([ASTERISK_REPOS_LOCATION], ["BRANCH"],[ASTERISK Source Location])
+                                                
+                                                version_found=1
+                                                AC_MSG_RESULT([done])
+                                                AC_MSG_RESULT([Found 'Asterisk Version 11'])
+                                        ]
+                                )
 				
-				version_found=1
-				AC_MSG_RESULT(done)
-	                        AC_MSG_RESULT([WARNING: Experimental at the moment. Anything might break.])
 			],[
+                                AC_MSG_RESULT([not found])
 				AC_MSG_RESULT(['ASTERISK_VERSION could not be established'])
 			]
 		)
@@ -341,28 +361,25 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				], [CS_AST_HAS_BRIDGED_CHANNEL],['ast_bridged_channel' available]
 			)
 
-			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_channel_bridge_peer'...],[ac_cv_ast_channel_bridge_peer], [
-        		               	$HEADER_INCLUDE
-	        			#include <asterisk/channel.h>
-				], [
-				        struct ast_channel *testchannel = {0};
-					struct ast_channel *peerchannel = ast_channel_bridge_peer(testchannel);
-				], [
-				        AC_DEFINE([CS_AST_HAS_CHANNEL_BRIDGE_PEER],1,['ast_channel_bridge_peer' available])
-				        AC_MSG_RESULT([WARNING: Expect trouble with the asterisk-trunk above revision 389378 !!!!. We are working on this])
-				        ASTERISK_INCOMPATIBLE=yes
-				]
-			)
+			AC_MSG_CHECKING([ - availability 'ast_channel_bridge_peer' in asterisk/channel.h...])
+			AC_EGREP_HEADER([ast_channel_bridge_peer], [asterisk/channel.h],
+			[
+                                AC_DEFINE([CS_AST_HAS_CHANNEL_BRIDGE_PEER],1,['ast_channel_bridge_peer' available])
+                                AC_MSG_RESULT([WARNING: Expect trouble with the asterisk-trunk above revision 389378 !!!!. We are working on this])
+                                ASTERISK_INCOMPATIBLE=yes
+				AC_MSG_RESULT(yes)
+			],[
+				AC_MSG_RESULT(no)
+			])
 
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_channel_get_bridge_channel'...],[ac_cv_ast_channel_get_bridge_channel], [
-		               	$HEADER_INCLUDE
-				#include <asterisk/channel.h>
-				], [
-				        struct ast_channel *testchannel = {0};
-					struct ast_bridge_channel *bridgechannel = ast_channel_get_bridge_channel(testchannel);
-				], [CS_AST_HAS_CHANNEL_GET_BRIDGE_CHANNEL],['ast_channel_get_bridge_channel' available]
-			)
-
+			AC_MSG_CHECKING([ - availability 'ast_channel_get_bridge_channel' in asterisk/channel.h...])
+			AC_EGREP_HEADER([ast_channel_get_bridge_channel], [asterisk/channel.h],
+			[
+                                AC_DEFINE([CS_AST_HAS_CHANNEL_GET_BRIDGE_CHANNEL], 1 ,['ast_channel_get_bridge_channel' available])
+				AC_MSG_RESULT(yes)
+			],[
+				AC_MSG_RESULT(no)
+			])
 			
 			CS_CHECK_AST_TYPEDEF([struct ast_callerid],[asterisk/channel.h],AC_DEFINE([CS_AST_CHANNEL_HAS_CID],1,['struct ast_callerid' available]))
 

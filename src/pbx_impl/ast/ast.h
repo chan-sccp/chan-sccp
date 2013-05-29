@@ -92,6 +92,9 @@
 #ifdef ASTERISK_CONF_1_10
 #	include "ast110.h"
 #endif
+#ifdef ASTERISK_CONF_1_11
+#	include "ast111.h"
+#endif
 #ifdef ASTERISK_CONF_1_12
 #	include "astTrunk.h"
 #endif

@@ -1575,13 +1575,13 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	sccp_channel_set_active(d, channel);
 	sccp_channel_setDevice(channel, d);
 
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP >= 111
 	// update callgroup / pickupgroup
 	ast_channel_callgroup_set(channel->owner, l->callgroup);
 #if CS_SCCP_PICKUP
 	ast_channel_pickupgroup_set(channel->owner, l->pickupgroup);
 #endif
-#endif														// ASTERISK_VERSION_GROUP >= 112
+#endif														// ASTERISK_VERSION_GROUP >= 111
 
 #ifdef CS_SCCP_CONFERENCE
 	if (d->conference) {

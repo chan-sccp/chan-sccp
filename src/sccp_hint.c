@@ -140,7 +140,7 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 }
 #endif
 
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP >= 111
 int sccp_hint_devstate_cb(char *context, char *id, struct ast_state_cb_info *info, void *data);
 #elif ASTERISK_VERSION_GROUP >= 110
 int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extension_states state, void *data);
@@ -219,7 +219,7 @@ void sccp_hint_module_stop()
 /*!
  * \brief asterisk callback for extension state changes (we subscribed with ast_extension_state_add)
  */
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP >= 111
 /*!
  * \param context extension context (char *)
  * \param id extension (char *)
@@ -255,7 +255,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	hint = (sccp_hint_list_t *) data;
 	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
 
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP >= 111
 	extensionState = info->exten_state;
 #else
 	extensionState = state;
@@ -552,7 +552,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	hint->device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_distributed_devstate_cb, "sccp_hint_distributed_devstate_cb", hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
 #endif
 
-#if ASTERISK_VERSION_GROUP >= 112
+#if ASTERISK_VERSION_GROUP >= 111
 	struct ast_state_cb_info info;
 
 	info.exten_state = pbx_extension_state(NULL, hint->context, hint->exten);
