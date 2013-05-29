@@ -341,13 +341,17 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 				], [CS_AST_HAS_BRIDGED_CHANNEL],['ast_bridged_channel' available]
 			)
 
-			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_channel_bridge_peer'...],[ac_cv_ast_channel_bridge_peer], [
-		               	$HEADER_INCLUDE
-				#include <asterisk/channel.h>
+			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_channel_bridge_peer'...],[ac_cv_ast_channel_bridge_peer], [
+        		               	$HEADER_INCLUDE
+	        			#include <asterisk/channel.h>
 				], [
 				        struct ast_channel *testchannel = {0};
 					struct ast_channel *peerchannel = ast_channel_bridge_peer(testchannel);
-				], [CS_AST_HAS_CHANNEL_BRIDGE_PEER],['ast_channel_bridge_peer' available]
+				], [
+				        AC_DEFINE([CS_AST_HAS_CHANNEL_BRIDGE_PEER],1,['ast_channel_bridge_peer' available])
+				        AC_MSG_RESULT([WARNING: Expect trouble with the asterisk-trunk above revision 389899 !!!!. We are working on this])
+				        ASTERISK_INCOMPATIBLE=yes
+				]
 			)
 
 			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_channel_get_bridge_channel'...],[ac_cv_ast_channel_get_bridge_channel], [

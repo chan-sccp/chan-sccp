@@ -167,6 +167,9 @@
 /* 'ast_bridged_channel' available */
 #undef CS_AST_HAS_BRIDGED_CHANNEL
 
+/* 'ast_channel_bridge_peer' available */
+#undef CS_AST_HAS_CHANNEL_BRIDGE_PEER
+
 /* 'ast_channel_get_bridge_channel' available */
 #undef CS_AST_HAS_CHANNEL_GET_BRIDGE_CHANNEL
 
