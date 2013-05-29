@@ -33,6 +33,7 @@ if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast106.h   pbx_impl/ast/ast106.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h   pbx_impl/ast/ast108.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h   pbx_impl/ast/ast110.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast111.h   pbx_impl/ast/ast111.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/astTrunk.h pbx_impl/ast/astTrunk.c
 endif
 
