@@ -763,7 +763,11 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 
 			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
 				if (channel != d->active_channel) {
-					sccp_conference_addParticipatingChannel(d->conference, c, CS_AST_BRIDGED_CHANNEL(c->owner));
+                                        if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
+   					        sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
+                                        } else {
+                                                pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
+                                        }
 				}
 			}
 		}
@@ -783,8 +787,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 							if (channel != d->active_channel) {
                                                                 if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
  								        sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
-//                                                                        sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
-                                                                        sccp_conference_addParticipatingChannel(d->conference, channel, bridged_channel);
+                                                                        sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
 								} else {
 								        pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
 								}
