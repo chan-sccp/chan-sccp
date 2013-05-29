@@ -157,3 +157,15 @@ echo "         PBX_LIB : ${PBX_LIB}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"
 echo "          config : /etc"
 echo "Module Directory : ${PBX_MODDIR}"
+
+if test -n "$ASTERISK_INCOMPATIBLE"; then
+	tput setab 1
+	tput setaf 3
+	tput bold
+	tput smso
+	echo ""
+	echo -e "WARNING: The provided asterisk version is not compatible to current sources. Expects trouble !!"
+	echo ""
+	tput sgr0
+	echo ""
+fi
