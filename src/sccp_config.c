@@ -1810,6 +1810,10 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
 
 	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT, alreadySetEntries, ARRAY_LEN(sccpGlobalConfigOptions));
+	
+	if (GLOB(keepalive) < SCCP_MIN_KEEPALIVE) {
+	        GLOB(keepalive) = SCCP_MIN_KEEPALIVE;
+        }
 
 	return res;
 }
@@ -2208,6 +2212,11 @@ sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t *device
 	}
 	
 	sccp_config_set_defaults(device, SCCP_CONFIG_DEVICE_SEGMENT, alreadySetEntries, ARRAY_LEN(alreadySetEntries));
+	
+	if (device->keepalive < SCCP_MIN_KEEPALIVE) {
+	        device->keepalive = SCCP_MIN_KEEPALIVE;
+        }
+	
 	return res;
 }
 
