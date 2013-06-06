@@ -74,6 +74,7 @@ extern "C" {
 #define SCCP_BRANCH "trunk"
 #endif
 
+#define SCCP_MIN_KEEPALIVE 30
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 #define SCCP_MIN_DTMF_DURATION 80										// 80 ms
