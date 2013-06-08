@@ -992,7 +992,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	sccp_copy_string(tmpChannel.callInfo.calledPartyName, hint->callInfo.partyName, sizeof(tmpChannel.callInfo.calledPartyName));
 	sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.callInfo.callingPartyNumber));
 	sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.callInfo.calledPartyNumber));
-	tmpChannel.calltype = hint->callInfo.calltype;
+	tmpChannel.calltype = (hint->callInfo.calltype == SKINNY_CALLTYPE_OUTBOUND) ? SKINNY_CALLTYPE_OUTBOUND : SKINNY_CALLTYPE_INBOUND;
 	/* done */
 
 	SCCP_LIST_LOCK(&hint->subscribers);
