@@ -3474,6 +3474,7 @@ typedef union {
 	} DisplayPriNotifyMessage;										/*!< Display Priority Notify Message Structure */
 
 	struct {
+		uint32_t lel_priority;										/*!< Priority */
 	} ClearPriNotifyMessage;										/*!< Clear Priority Notify Message Structure */
 
 	struct {

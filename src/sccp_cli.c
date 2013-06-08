@@ -1511,7 +1511,51 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	sccp_log(0) (VERBOSE_PREFIX_4 "Thread: %d Done\n", (unsigned int) pthread_self());
 	return 0;
 }
+
+static void sccp_update_statusbar(const sccp_device_t * d, const char *msg, const uint8_t priority, const uint8_t timeout, uint8_t level, boolean_t clear, const uint8_t lineInstance, const uint32_t callid)
+{
+	sccp_moo_t *r;
+	
+	if (!d || !d->protocol) {
+		return;
+	}
+	
+	switch (level) {
+		case 0:
+			if (!clear) {
+				REQ(r, DisplayTextMessage);
+				sccp_copy_string(r->msg.DisplayTextMessage.displayMessage, msg, sizeof(r->msg.DisplayTextMessage.displayMessage));
+				sccp_dev_send(d, r);
+			} else {
+				sccp_dev_sendmsg(d, ClearDisplay);
+			}
+		case 1:
+			if (!clear) {
+				d->protocol->displayNotify(d, timeout, msg);
+			} else {
+				sccp_dev_sendmsg(d, ClearNotifyMessage);
+			}
+		case 2:
+			if (!clear) {
+				d->protocol->displayPriNotify(d, priority, timeout, msg);
+			} else {
+				REQ(r, ClearPriNotifyMessage);
+				r->msg.ClearPriNotifyMessage.lel_priority = htolel(priority);
+				sccp_dev_send(d, r);
+			}
+		case 3:
+			if (!clear) {
+				d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
+			} else {
+				REQ(r, ClearPromptStatusMessage);
+				r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
+				r->msg.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
+				sccp_dev_send(d, r);
+			}
+	}
+}
 #endif
+
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1681,6 +1725,101 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		if (d) {
 			d->retrieveDeviceCapabilities(d);
 			pbx_log(LOG_NOTICE, "%s: Done\n", d->id);
+			d = sccp_device_release(d);
+		}
+		return RESULT_SUCCESS;
+	}
+	if (!strcasecmp(argv[3], "StatusBar")) {											/*  WIP */
+		sccp_device_t *d = NULL;
+		d = sccp_device_find_byid(argv[4], FALSE);
+		if (d) {
+			//sccp_update_statusbar(d, *msg, priority, timeout, level, clear, lineInstance, callid)
+			pbx_log(LOG_NOTICE, "%s: Base\n", d->id);
+			sccp_update_statusbar(d, "BASE", 0, 0, 0, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
+			sleep(1);
+
+			/* Level 1 */
+			pbx_log(LOG_NOTICE, "%s: Base\n", d->id);
+			sccp_update_statusbar(d, "BASE", 0, 0, 0, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Level 1\n", d->id);
+			sccp_update_statusbar(d, "LEVEL 1", 0, 0, 1, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Back to BASE\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 1, TRUE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
+			sleep(1);
+
+			/* Level 2 */
+			pbx_log(LOG_NOTICE, "%s: Base\n", d->id);
+			sccp_update_statusbar(d, "BASE", 0, 0, 0, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Level 1\n", d->id);
+			sccp_update_statusbar(d, "LEVEL 1", 0, 0, 1, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 1\n", d->id);
+			sccp_update_statusbar(d, "Level 2, Prio 1", 1, 0, 2, FALSE, 0, 0);
+			sleep(1);
+
+/*			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 4\n", d->id);
+			sccp_update_statusbar(d, "Level 2, Prio 4", 4, 0, 2, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Back to Level 2, Prio 4\n", d->id);
+			sccp_update_statusbar(d, "", 4, 0, 2, TRUE, 0, 0);
+			sleep(1);*/
+
+			pbx_log(LOG_NOTICE, "%s: Back to Level 1\n", d->id);
+			sccp_update_statusbar(d, "", 1, 0, 2, TRUE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Back to Base\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 1, TRUE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
+			sleep(1);
+			
+			/* Level 3 */
+/*			pbx_log(LOG_NOTICE, "%s: Level 1\n", d->id);
+			sccp_update_statusbar(d, "LEVEL 1", 0, 0, 1, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Level 2\n", d->id);
+			sccp_update_statusbar(d, "Level 2", 0, 0, 2, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Level 3\n", d->id);
+			sccp_update_statusbar(d, "Level 2", 0, 0, 3, FALSE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Back to Level 2\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 3, TRUE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Back to Level 1\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 2, TRUE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Back to Base\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 1, TRUE, 0, 0);
+			sleep(1);
+
+			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
+			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
+			sleep(1);*/
 			d = sccp_device_release(d);
 		}
 		return RESULT_SUCCESS;
