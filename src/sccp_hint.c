@@ -269,7 +269,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
 		case AST_EXTENSION_UNAVAILABLE:
-			hint->currentState = SCCP_CHANNELSTATE_DOWN;
+			hint->currentState = SCCP_CHANNELSTATE_ZOMBIE;
 			break;
 		case AST_EXTENSION_NOT_INUSE:
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
@@ -723,7 +723,8 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 
 	/* no line, or line without devices */
 	if (!line || (line && 0 == line->devices.size)) {
-		lineState->state = SCCP_CHANNELSTATE_CONGESTION;
+//		lineState->state = SCCP_CHANNELSTATE_CONGESTION;
+		lineState->state = SCCP_CHANNELSTATE_ZOMBIE;
 
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_updateLineStateForSingleLine) no line or register on 0 devices; linename: %s\n", (line) ? line->name : "null");
 		goto DONE;
@@ -897,10 +898,12 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		case SCCP_CHANNELSTATE_DND:
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
+		case SCCP_CHANNELSTATE_ZOMBIE:
+			newDeviceState = AST_DEVICE_UNKNOWN;
+			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-		case SCCP_CHANNELSTATE_ZOMBIE:
 			newDeviceState = AST_DEVICE_UNAVAILABLE;
 			break;
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
@@ -962,7 +965,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	sccp_device_t *d;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
-	uint32_t state;												/* used to fall back to old behavior */
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
@@ -984,7 +986,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscribers of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState));
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState));
 
 	/* use a temporary channel as fallback for non dynamic speeddial devices */
 	memset(&tmpChannel, 0, sizeof(sccp_channel_t));
@@ -998,8 +1000,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
 		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
-			state = hint->currentState;
-			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(state));
+			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState), hint->currentState);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
@@ -1016,6 +1017,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
 							break;
 
+						case SCCP_CHANNELSTATE_ZOMBIE:
 						case SCCP_CHANNELSTATE_DOWN:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
@@ -1075,43 +1077,45 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				   we have dynamic speeddial enabled, but subscriber can not handle this.
 				   We have to switch back to old hint style and send old state.
 				 */
-				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) can not handle dynamic speeddial, fall back to old behavior using state %d\n", DEV_ID_LOG(d), state);
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) can not handle dynamic speeddial, fall back to old behavior using state %s (%d)\n", DEV_ID_LOG(d), channelstate2str(hint->currentState), hint->currentState);
 
 				/*
 				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
 				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
 				 */
-
+				uint32_t iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;  //Defaulting to Call Remote Multi Line
 				switch (hint->currentState) {
+//					case SCCP_CHANNELSTATE_ZOMBIE:
+//					case SCCP_CHANNELSTATE_DOWN:
 					case SCCP_CHANNELSTATE_ONHOOK:
-						state = SCCP_CHANNELSTATE_ONHOOK;
+						iconstate = SKINNY_CALLSTATE_ONHOOK;
+						break;
+					case SCCP_CHANNELSTATE_CONNECTED:
+						iconstate = SKINNY_CALLSTATE_CONNECTED;
 						break;
 					case SCCP_CHANNELSTATE_RINGING:
 						if (d->allowRinginNotification) {
-							state = SCCP_CHANNELSTATE_RINGING;
-						} else {
-							state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
+							iconstate = SKINNY_CALLSTATE_RINGIN;
 						}
 						break;
 					default:
-						state = SCCP_CHANNELSTATE_CALLREMOTEMULTILINE;
 						break;
 				}
+				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), channelstate2str(iconstate), iconstate);
 
 				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
 					/* we send a congestion to the phone, so call will not be marked as missed call */
 					sccp_device_sendcallstate(d, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 				}
 
-				sccp_device_sendcallstate(d, subscriber->instance, 0, state, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** do not set visibility to COLLAPSED, this will hidde callInfo in state CALLREMOTEMULTILINE */
-				d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
+				sccp_device_sendcallstate(d, subscriber->instance, 0, iconstate, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** do not set visibility to COLLAPSED, this will hidde callInfo in state CALLREMOTEMULTILINE */
 
-				if (state == SCCP_CHANNELSTATE_ONHOOK) {
+				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK || hint->currentState == SCCP_CHANNELSTATE_ZOMBIE) {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
 				} else {
+					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
-
 			}
 			d = sccp_device_release(d);
 		} else {
