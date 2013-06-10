@@ -8,6 +8,7 @@
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS		= gnu silent-rules
 csmod_LTLIBRARIES	= chan_sccp.la
+MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
 
 chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		\
                                 sccp_labels.h		sccp_utils.h		sccp_adv_features.h	sccp_channel.h  	\
@@ -39,9 +40,9 @@ endif
 
 chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
-chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS)
+chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS) $(COVERAGE_CFLAGS)
 chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(EVENT_CFLAGS) $(EVENT_LIBS)
-chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS)
+chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)

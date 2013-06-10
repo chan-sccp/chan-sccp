@@ -15,6 +15,8 @@ EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)
+MOSTLYCLEANFILES		= coverage
+
 distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
 	
 # Update libtool if necessary	
@@ -105,6 +107,18 @@ gen_sccpconf_install:
 	cd contrib/gen_sccpconf && $(MAKE) $(AM_MAKEFLAGS) install
 
 isntall: install
+
+rmcoverage:
+	rm -rf coverage;
+
+coverage:
+	mkdir coverage; \
+	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info; \
+	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
+	
+coverage-zero:
+	lcov --directory src/.libs -b src -z;
+	rmcoverage
 
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
