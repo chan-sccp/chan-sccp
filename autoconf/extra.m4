@@ -578,6 +578,22 @@ AC_DEFUN([CS_ENABLE_DEBUG], [
 	AC_SUBST([strip_binaries])
 ])
 
+AC_DEFUN([CS_ENABLE_GCOV], [
+	AC_ARG_ENABLE([gcov],
+	  [AS_HELP_STRING([--enable-gcov], [enable Gcov to profile sources])],
+	    [], [ac_cv_enable_gcov=no])
+	AS_IF([test '!' "${enable_gcov}" = no], [
+		COVERAGE_CFLAGS='-fprofile-arcs -ftest-coverage'
+		COVERAGE_LDFLAGS='--coverage --no-inline'
+	],[
+		COVERAGE_CFLAGS=''
+		COVERAGE_LDFLAGS=''
+	])
+	AC_MSG_NOTICE([--enable-gcov: ${ac_cv_refcount_debug}])
+	AC_SUBST([COVERAGE_CFLAGS])
+	AC_SUBST([COVERAGE_LDFLAGS])
+])
+
 AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 	AC_ARG_ENABLE(refcount_debug, 
 	  AC_HELP_STRING([--enable-refcount-debug], [enable refcount debug]), 
@@ -774,6 +790,7 @@ AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_OPTIMIZATION
 	CS_ENABLE_DEBUG  
+	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
 	CS_DISABLE_PICKUP
 	CS_DISABLE_PARK
