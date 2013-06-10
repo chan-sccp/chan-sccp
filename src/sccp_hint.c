@@ -862,6 +862,8 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyPBX) %s <==> %s \n", channelName, hint->hint_dialplan);
 			sccp_copy_string(hint->callInfo.partyName, lineState->callInfo.partyName, sizeof(hint->callInfo.partyName));
 			sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
+			
+			hint->callInfo.calltype = lineState->callInfo.calltype;
 			break;
 		}
 	}
