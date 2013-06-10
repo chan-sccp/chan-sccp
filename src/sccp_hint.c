@@ -1142,7 +1142,8 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 	sccp_linedevices_t *lineDevice;
 	sccp_line_t *line = lineState->line;
 
-	if (line->devices.size > 1) {
+// 	if (line->devices.size > 1) 
+	{
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 
@@ -1158,17 +1159,18 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 		if (allDevicesInDND) {
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
-	} else {
-		SCCP_LIST_LOCK(&line->devices);
-		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
-
-		if (lineDevice && lineDevice->device) {
-			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-				lineState->state = SCCP_CHANNELSTATE_DND;
-			}
-		}
-		SCCP_LIST_UNLOCK(&line->devices);
 	}
+// 	else {
+// 		SCCP_LIST_LOCK(&line->devices);
+// 		sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
+// 
+// 		if (lineDevice && lineDevice->device) {
+// 			if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
+// 				lineState->state = SCCP_CHANNELSTATE_DND;
+// 			}
+// 		}
+// 		SCCP_LIST_UNLOCK(&line->devices);
+// 	}
 
 	if (lineState->state == SCCP_CHANNELSTATE_DND) {
 		sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
