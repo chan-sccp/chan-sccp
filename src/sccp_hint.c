@@ -269,7 +269,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
 		case AST_EXTENSION_UNAVAILABLE:
-			hint->currentState = SCCP_CHANNELSTATE_ZOMBIE;
+			hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
 			break;
 		case AST_EXTENSION_NOT_INUSE:
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
@@ -618,7 +618,7 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 		
 			/* no line, or line without devices */
 		if ( 0 == line->devices.size ) {
-			lineState->state = SCCP_CHANNELSTATE_ZOMBIE;
+			lineState->state = SCCP_CHANNELSTATE_CONGESTION;
 			lineState->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 			
 			sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyName));
@@ -889,8 +889,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
 		case SCCP_CHANNELSTATE_ZOMBIE:
-			newDeviceState = AST_DEVICE_UNKNOWN;
-			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 		case SCCP_CHANNELSTATE_SPEEDDIAL:
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
@@ -917,7 +915,8 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	}
 
 	// if pbx devicestate does not change, no need to inform asterisk */
-	if (hint && lineState->state == hint->currentState) {
+//	if (hint && lineState->state == hint->currentState) {
+	if (hint && hint->previousState == hint->currentState) {
 		sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers */
 	} else {
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
@@ -1004,7 +1003,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_IDLE);
 							break;
 
-						case SCCP_CHANNELSTATE_ZOMBIE:
 						case SCCP_CHANNELSTATE_DOWN:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
 							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SCCP_BLF_STATUS_UNKNOWN);	/* default state */
@@ -1070,10 +1068,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
 				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
 				 */
-				uint32_t iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;  //Defaulting to Call Remote Multi Line
+				uint32_t iconstate;
 				switch (hint->currentState) {
-//					case SCCP_CHANNELSTATE_ZOMBIE:
-//					case SCCP_CHANNELSTATE_DOWN:
 					case SCCP_CHANNELSTATE_ONHOOK:
 						iconstate = SKINNY_CALLSTATE_ONHOOK;
 						break;
@@ -1086,6 +1082,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 						}
 						break;
 					default:
+						iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 						break;
 				}
 				sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), channelstate2str(iconstate), iconstate);
@@ -1097,7 +1094,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				sccp_device_sendcallstate(d, subscriber->instance, 0, iconstate, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** do not set visibility to COLLAPSED, this will hidde callInfo in state CALLREMOTEMULTILINE */
 
-				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK || hint->currentState == SCCP_CHANNELSTATE_ZOMBIE) {
+				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK || hint->currentState == SCCP_CHANNELSTATE_CONGESTION) {
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
 				} else {
 					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
