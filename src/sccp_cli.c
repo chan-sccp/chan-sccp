@@ -2337,7 +2337,7 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	sccp_readingtype_t readingtype;
-	boolean_t different_file = FALSE;
+	boolean_t force_reload = FALSE;
 	int returnval = RESULT_SUCCESS;
 
 	if (argc < 2 || argc > 3)
@@ -2353,11 +2353,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	if (argc > 2) {
 		if (sccp_strequals("force", argv[2])) {\
 			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
-			different_file=TRUE;
+			force_reload=TRUE;
 		} else {
 			pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[2], GLOB(config_file_name));
 			if (!sccp_strequals(GLOB(config_file_name), argv[2])) {
-				different_file=TRUE;
+				force_reload=TRUE;
 			}
 			if (GLOB(config_file_name)) {
 				sccp_free(GLOB(config_file_name));
@@ -2365,27 +2365,32 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			GLOB(config_file_name) = sccp_strdup(argv[2]);
 		}
 	}
-	sccp_config_file_status_t cfg = sccp_config_getConfig(different_file);
+	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload);
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
-			returnval = RESULT_SUCCESS;
-			break;
+//			if (!force_reload) {
+				pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+				returnval = RESULT_SUCCESS;
+				break;
+//			}
+			/* fall through */
 		case CONFIG_STATUS_FILE_OK:
-			pbx_cli(fd, "SCCP reloading configuration.\n");
-			readingtype = SCCP_CONFIG_READRELOAD;
-			GLOB(reload_in_progress) = TRUE;
-			pbx_mutex_unlock(&GLOB(lock));
-			if (!sccp_config_general(readingtype)) {
-				pbx_cli(fd, "Unable to reload configuration.\n");
-				GLOB(reload_in_progress) = FALSE;
+			if (GLOB(cfg)) {
+				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
+				readingtype = SCCP_CONFIG_READRELOAD;
+				GLOB(reload_in_progress) = TRUE;
 				pbx_mutex_unlock(&GLOB(lock));
-				return RESULT_FAILURE;
+				if (!sccp_config_general(readingtype)) {
+					pbx_cli(fd, "Unable to reload configuration.\n");
+					GLOB(reload_in_progress) = FALSE;
+					pbx_mutex_unlock(&GLOB(lock));
+					return RESULT_FAILURE;
+				}
+				sccp_config_readDevicesLines(readingtype);
+				pbx_mutex_lock(&GLOB(lock));
+				GLOB(reload_in_progress) = FALSE;
+				returnval = RESULT_SUCCESS;
 			}
-			sccp_config_readDevicesLines(readingtype);
-			pbx_mutex_lock(&GLOB(lock));
-			GLOB(reload_in_progress) = FALSE;
-			returnval = RESULT_SUCCESS;
 			break;
 		case CONFIG_STATUS_FILE_OLD:
 			pbx_cli(fd, "Error reloading from '%s'\n", GLOB(config_file_name));
