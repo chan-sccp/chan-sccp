@@ -1769,16 +1769,16 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 			sleep(1);
 
 			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 1\n", d->id);
-			sccp_update_statusbar(d, "Level 2, Prio 1", 1, 0, 2, FALSE, 0, 0);
+			sccp_update_statusbar(d, "Level 2, Prio 1", 1, 3, 2, FALSE, 0, 0);
 			sleep(1);
 
-/*			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 4\n", d->id);
-			sccp_update_statusbar(d, "Level 2, Prio 4", 4, 0, 2, FALSE, 0, 0);
+			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 4\n", d->id);
+			sccp_update_statusbar(d, "Level 2, Prio 4", 4, 3, 2, FALSE, 0, 0);
 			sleep(1);
 
 			pbx_log(LOG_NOTICE, "%s: Back to Level 2, Prio 4\n", d->id);
 			sccp_update_statusbar(d, "", 4, 0, 2, TRUE, 0, 0);
-			sleep(1);*/
+			sleep(1);
 
 			pbx_log(LOG_NOTICE, "%s: Back to Level 1\n", d->id);
 			sccp_update_statusbar(d, "", 1, 0, 2, TRUE, 0, 0);
@@ -2351,14 +2351,19 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	}
 
 	if (argc > 2) {
-		pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[2], GLOB(config_file_name));
-		if (!sccp_strequals(GLOB(config_file_name), argv[2])) {
+		if (sccp_strequals("force", argv[2])) {\
+			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
 			different_file=TRUE;
+		} else {
+			pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[2], GLOB(config_file_name));
+			if (!sccp_strequals(GLOB(config_file_name), argv[2])) {
+				different_file=TRUE;
+			}
+			if (GLOB(config_file_name)) {
+				sccp_free(GLOB(config_file_name));
+			}	
+			GLOB(config_file_name) = sccp_strdup(argv[2]);
 		}
-		if (GLOB(config_file_name)) {
-			sccp_free(GLOB(config_file_name));
-		}	
-		GLOB(config_file_name) = sccp_strdup(argv[2]);
 	}
 	sccp_config_file_status_t cfg = sccp_config_getConfig(different_file);
 	switch (cfg) {
@@ -2407,7 +2412,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	return returnval;
 }
 
-static char reload_usage[] = "Usage: SCCP reload [filename]\n" "       Reloads SCCP configuration from sccp.conf or optional [filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
+static char reload_usage[] = "Usage: SCCP reload [force|filename]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "reload"
