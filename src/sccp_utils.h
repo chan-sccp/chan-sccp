@@ -88,7 +88,6 @@ const char *transmitModes2str(skinny_transmitOrReceive_t value);
 const char *sccp_buttontype2str(uint32_t value);
 const char *callforward2str(uint32_t value);
 const char *callforward2longstr(uint32_t value);
-const char *event2str(sccp_event_type_t event_type);
 
 // SKINNY Lookups
 const char *tone2str(uint32_t value);

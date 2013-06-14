@@ -135,19 +135,17 @@ typedef enum {
 } sccp_miscCommandType_t;											/*!< misccommand types */
 
 static const struct sccp_miscCommandType {
-	uint8_t id;
 	const char *const text;
-} skinny_miscCommandType[] = {
+} sccp_miscCommandTypes[] = {
 	/* *INDENT-OFF* */
-	{0,						"videoFreezePicture"}, 
-	{1, 						"videoFastUpdatePicture"}, 
-	{2, 						"videoFastUpdateGOB"}, 
-	{3, 						"videoFastUpdateMB"}, 
-	{4, 						"lostPicture"}, 
-	{5, 						"lostPartialPicture"}, 
-	{6, 						"recoveryReferencePicture"}, 
-	{7, 						"temporalSpatialTradeOff"}, 
-	{0, 						NULL}
+	[SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE]	= {"videoFreezePicture"}, 
+	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE]	= {"videoFastUpdatePicture"}, 
+	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB]	= {"videoFastUpdateGOB"}, 
+	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB]	= {"videoFastUpdateMB"}, 
+	[SKINNY_MISCCOMMANDTYPE_LOSTPICTURE]		= {"lostPicture"}, 
+	[SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE]	= {"lostPartialPicture"}, 
+	[SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE]= {"recoveryReferencePicture"}, 
+	[SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF]= {"temporalSpatialTradeOff"}, 
 	/* *INDENT-ON* */
 };
 
@@ -3841,8 +3839,8 @@ static const struct sccp_messagetype {
 	{ExtensionDeviceCaps, 				"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	{XMLAlarmMessage, 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
 	{DynamicUpdateCapabilitiesMessage,		"Dynamic Update Capabilities Message",		offsize(sccp_data_t, DynamicUpdateCapabilitiesMessage)},
-	{Unknown_0x004A_Message, 			"Unknwon Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
-	{Unknown_0x0141_Message, 			"Unknwon Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
+	{Unknown_0x004A_Message, 			"Unknown Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
+	{Unknown_0x0141_Message, 			"Unknown Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
 	{Unknown_0x015E_Message,			"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_0x015E_Message)},
 	
 	{SPCPRegisterTokenRequest, 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
