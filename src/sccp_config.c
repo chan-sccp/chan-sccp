@@ -477,6 +477,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 	/* set changed value if changed */
 	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
 		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
+		
+		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
         	if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
         	        int x;
         	        for (x=0; x < sccpConfigSegment->config_size; x++) {
@@ -545,7 +547,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
 	for (i = 0; i < arraySize; i++) {
 
-		// if has already been set, skip setting default value
+		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the alreadySetEntries array and check the boolean flag, skip if true */
 		skip = FALSE;
                 for (x=0; x<sccpConfigSegment->config_size; x++) {
                         if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && alreadySetEntries[x]) {
@@ -554,7 +556,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
                                 break;
                         }
                 }
-                if (skip) {
+                if (skip) {	// skip default value if already set
                         continue;
                 }
 		flags = sccpDstConfig[i].flags;
