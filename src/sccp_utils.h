@@ -112,6 +112,7 @@ const char *featureType2str(uint32_t value);
 const char *debugcat_keys(void);
 uint32_t debugcat2int(const char *str);
 const char *skinny_formatType2str(uint8_t value);
+inline const char *sccp_miscCommandType2str(sccp_miscCommandType_t type);
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);
@@ -153,10 +154,10 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 void gc_warn_handler(char *msg, GC_word p);
 #endif
 int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
-size_t sccp_strlen(const char *data);
-boolean_t sccp_strlen_zero(const char *data);
-boolean_t sccp_strequals(const char *data1, const char *data2);
-boolean_t sccp_strcaseequals(const char *data1, const char *data2);
+inline size_t sccp_strlen(const char *data);
+inline boolean_t sccp_strlen_zero(const char *data);
+inline boolean_t sccp_strequals(const char *data1, const char *data2);
+inline boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 int sccp_strIsNumeric(const char *s);
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
 

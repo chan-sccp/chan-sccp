@@ -383,6 +383,16 @@ const char *skinny_formatType2str(uint8_t value)
 	_ARR2STR(skinny_formatTypes, id, value, text);
 }
 
+inline const char *sccp_miscCommandType2str(sccp_miscCommandType_t type) 
+{
+	if (SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE >= type && type <=SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF) {
+		return sccp_miscCommandTypes[type].text;
+	} else {
+	        pbx_log(LOG_ERROR, "SCCP: (%s) Lookup Failed for =%i\n", __PRETTY_FUNCTION__, type);
+	        return "ERROR";
+	}
+}
+
 /*!
  * \brief Retrieve the string of format numbers and names from an array of formats
  * Buffer needs to be declared and freed afterwards
@@ -1231,7 +1241,7 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
  * \retval FALSE on non zero length
  * \retval TRUE on zero length
  */
-boolean_t sccp_strlen_zero(const char *data)
+inline boolean_t sccp_strlen_zero(const char *data)
 {
 	if (!data || (*data == '\0')) {
 		return TRUE;
@@ -1245,7 +1255,7 @@ boolean_t sccp_strlen_zero(const char *data)
  * \param data String to be checked
  * \return length as int
  */
-size_t sccp_strlen(const char *data)
+inline size_t sccp_strlen(const char *data)
 {
 	if (!data || (*data == '\0')) {
 		return 0;
@@ -1264,7 +1274,7 @@ size_t sccp_strlen(const char *data)
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strequals(const char *data1, const char *data2)
+inline boolean_t sccp_strequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
@@ -1285,7 +1295,7 @@ boolean_t sccp_strequals(const char *data1, const char *data2)
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-boolean_t sccp_strcaseequals(const char *data1, const char *data2)
+inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
