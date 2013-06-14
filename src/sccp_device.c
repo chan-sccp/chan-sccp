@@ -649,8 +649,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
 
-			for (i = 0; i < 2 + sccp_addons_taps(d); i++)
+			for (i = 2 + sccp_addons_taps(d); i>0 ; i--) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}	
 			break;
 		case SKINNY_DEVICETYPE_CISCO7920:
 		case SKINNY_DEVICETYPE_CISCO7921:
@@ -676,8 +677,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
 
-			for (i = 0; i < 6 + sccp_addons_taps(d); i++)
+			for (i = 6 + sccp_addons_taps(d); i>0 ; i--) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}	
 			break;
 		case SKINNY_DEVICETYPE_CISCO7970:
 		case SKINNY_DEVICETYPE_CISCO7971:
@@ -687,9 +689,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			} else {
-				uint8_t addonsTaps = sccp_addons_taps(d);
-
-				for (i = 0; i < 8 + addonsTaps; i++) {
+				for (i = 8 + sccp_addons_taps(d); i>0 ; i--) {
 					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 				}
 
