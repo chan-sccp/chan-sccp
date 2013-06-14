@@ -9,6 +9,7 @@
 AUTOMAKE_OPTS		= gnu silent-rules
 csmod_LTLIBRARIES	= chan_sccp.la
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
+EXTRA_DIST = sccp_config_entries.hh
 
 chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		\
                                 sccp_labels.h		sccp_utils.h		sccp_adv_features.h	sccp_channel.h  	\
@@ -17,7 +18,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		
                                 pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h 		sccp_lock.h		\
                                 sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
                                 sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
-                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_config_entries.h	
+                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h
                                 
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
