@@ -278,11 +278,6 @@ const char *callforward2longstr(uint32_t value)
 	_ARR2STR(sccp_callforwardstates, callforwardstate, value, longtext);
 }
 
-const char *event2str(sccp_event_type_t event_type)
-{
-	_ARR2STR(sccp_event_types, event_type, event_type, text);
-}
-
 const char *tone2str(uint32_t value)
 {
 	_ARR2STR(skinny_tones, tone, value, text);

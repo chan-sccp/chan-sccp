@@ -66,6 +66,10 @@
 ///////////////////////////////
 // The actual enum declarations
 ///////////////////////////////
+/*!
+ * \brief SCCP Event Type ENUM
+ */
+
 BEGIN_ENUM(event)
         ENUM_ELEMENT(SCCP_EVENT_LINE_CREATED,		=1<<0,	"Line Created")
         ENUM_ELEMENT(SCCP_EVENT_LINE_CHANGED,		=1<<1,	"Line Changed")

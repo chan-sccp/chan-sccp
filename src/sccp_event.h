@@ -16,47 +16,7 @@
 //#include <config.h>
 #include "common.h"
 
-/* structures */
-
-/* event types to notify modular systems */
-
-/*!
- * \brief SCCP Event Type ENUM
- */
-typedef enum {
-        /* *INDENT-OFF* */
-	SCCP_EVENT_LINE_CREATED 	= 1 << 0,
-	SCCP_EVENT_LINE_CHANGED 	= 1 << 1,
-	SCCP_EVENT_LINE_DELETED 	= 1 << 2,
-	SCCP_EVENT_DEVICE_ATTACHED 	= 1 << 3,				/*!< device attached to line */
-	SCCP_EVENT_DEVICE_DETACHED 	= 1 << 4,				/*!< device removed from line */
-	SCCP_EVENT_DEVICE_PREREGISTERED = 1 << 5,				/*!< device preregistered (tokenReq) */
-	SCCP_EVENT_DEVICE_REGISTERED 	= 1 << 6,				/*!< device registers successfully */
-	SCCP_EVENT_DEVICE_UNREGISTERED 	= 1 << 7,				/*!< device isnt registered any more */
-	SCCP_EVENT_FEATURE_CHANGED 	= 1 << 8,				/*!< some feature (e.g. cfwd, dnd) is changed */
-	SCCP_EVENT_LINESTATUS_CHANGED 	= 1 << 9				/*!< the status of a line is changed is changed */
-	/* *INDENT-ON* */
-} sccp_event_type_t;												/*!< SCCP Event Type ENUM */
-
 #define NUMBER_OF_EVENT_TYPES 10
-
-static const struct sccp_event_type {
-	sccp_event_type_t event_type;
-	const char *const text;
-} sccp_event_types[] = {
-	/* *INDENT-OFF* */
-	{SCCP_EVENT_LINE_CREATED,		"Line Created"},
-	{SCCP_EVENT_LINE_CHANGED,		"Line Changed"},
-	{SCCP_EVENT_LINE_DELETED,		"Line Deleted"},
-	{SCCP_EVENT_DEVICE_ATTACHED,		"Device Attached"},
-	{SCCP_EVENT_DEVICE_DETACHED,		"Device Detached"},
-	{SCCP_EVENT_DEVICE_PREREGISTERED,	"Device Preregistered"},
-	{SCCP_EVENT_DEVICE_REGISTERED,		"Device Registered"},
-	{SCCP_EVENT_DEVICE_UNREGISTERED,	"Device Unregistered"},
-	{SCCP_EVENT_FEATURE_CHANGED,		"Feature Changed"},
-	{SCCP_EVENT_LINESTATUS_CHANGED,		"LineStatus Changed"},
-	/* *INDENT-ON* */
-};
 
 #define sccp_event_retain(_x) 		sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_event_release(_x) 		sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)

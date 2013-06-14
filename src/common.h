@@ -67,6 +67,7 @@ extern "C" {
 #include "sccp_refcount.h"
 #include "sccp_dllists.h"
 #include "sccp_threadpool.h"
+#include "sccp_enum.h"
 #include "chan_sccp.h"
 #include "sccp_event.h"
 #include "pbx_impl/pbx_impl.h"

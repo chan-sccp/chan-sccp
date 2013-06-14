@@ -195,7 +195,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t s
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 
-#include "sccp_config_entries.h"
+#include "sccp_config_entries.hh"
 
 /*!
  * \brief SCCP Config Option Struct
