@@ -294,7 +294,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
  *
  * Called when we want to return a state change of a device
  */
-#ifdef CS_DEVSTATE_FEATURE
+#if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 {
 	/* parse the devstate string */
