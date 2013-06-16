@@ -484,7 +484,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 	const char *forwardType = astman_get_header(m, "Forwardtype");
 	const char *Disable = astman_get_header(m, "Disable");
 	const char *number = astman_get_header(m, "Number");
-	uint8_t cfwd_type = SCCP_CFWD_NONE;
+	sccp_callforward_t cfwd_type = SCCP_CFWD_NONE;
 	char cbuf[64] = "";
 
 	d = sccp_device_find_byid(deviceName, TRUE);

@@ -14,7 +14,7 @@
 #define __SCCP_FEATURES_H
 
 // callforward
-void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8_t type);
+void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type);
 
 #ifdef CS_SCCP_PICKUP
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d);

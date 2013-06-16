@@ -452,7 +452,7 @@ void sccp_line_delete_nolock(sccp_line_t * l)
  *
  * \todo implement cfwd_noanswer
  */
-void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, uint8_t type, char *number)
+void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward_t type, char *number)
 {
 	sccp_linedevices_t *linedevice = NULL;
 

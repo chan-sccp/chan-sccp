@@ -3004,7 +3004,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 {
 	sccp_buttonconfig_t *config = NULL;
 	sccp_line_t *line = NULL;
-	uint8_t status = 0;											/* state of cfwd */
+	sccp_callforward_t status = 0;											/* state of cfwd */
 	uint32_t featureStat1 = 0;
 	uint32_t featureStat2 = 0;
 	uint32_t featureStat3 = 0;
@@ -3231,7 +3231,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
 			char transmitReceiveStr[5];
-			sprintf(transmitReceiveStr, "%c-%c", (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_STATION_RECEIVE) ? '<' : ' ', (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_STATION_TRANSMIT) ? '>' : ' ');
+			sprintf(transmitReceiveStr, "%c-%c", (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
 			uint8_t video_levels = 0, video_level = 0;
@@ -3245,7 +3245,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 				int minBitRate = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].levelPreference[video_level].minBitRate);
 
 				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s transmitPreference: %d\n", DEV_ID_LOG(d), "", "", transmitPreference);
-				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d: %s\n", DEV_ID_LOG(d), "", "", video_format, skinny_formatType2str(video_format));
+				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d: %s\n", DEV_ID_LOG(d), "", "", video_format, skinny_videoformat2str(video_format));
 				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
 				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s minBitRate: %d\n", DEV_ID_LOG(d), "", "", minBitRate);
 				sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
