@@ -117,11 +117,6 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin);
 
-#if ASTERISK_VERSION_NUMBER >= 10600
-#ifdef HAVE_PBX_DEVICESTATE_H
-enum ast_device_state sccp_channelstate2AstDeviceState(sccp_channelstate_t state);
-#endif
-#endif
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
