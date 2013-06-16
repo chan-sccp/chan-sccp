@@ -296,13 +296,13 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 #include "pbx_impl/ast/ast.h"
 #endif
 
-	/*!
-	 * \brief SCCP ButtonType Structure
-	 */
-	static const struct sccp_buttontype {
-		button_type_t buttontype;
-		const char *const text;
-	} sccp_buttontypes[] = {
+/*!
+ * \brief SCCP ButtonType Structure
+ */
+static const struct sccp_buttontype {
+	button_type_t buttontype;
+	const char *const text;
+} sccp_buttontypes[] = {
         /* *INDENT-OFF* */
 	{LINE, 		"LINE"},
 	{SPEEDDIAL, 	"SPEEDDIAL"},
@@ -310,21 +310,21 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 	{FEATURE, 	"FEATURE"},
 	{EMPTY, 	"EMPTY"}
 	/* *INDENT-ON* */
-	};
+};
 
-	/*!
-	 * \brief SCCP Conference Structure
-	 */
-	typedef struct sccp_conference sccp_conference_t;
+/*!
+ * \brief SCCP Conference Structure
+ */
+typedef struct sccp_conference sccp_conference_t;
 
-	/*!
-	 * \brief SCCP Private Channel Data Structure
-	 */
-	struct sccp_private_channel_data;
+/*!
+ * \brief SCCP Private Channel Data Structure
+ */
+struct sccp_private_channel_data;
 
-	/*!
-	 * \brief SCCP Debug Category Enum
-	 */
+/*!
+ * \brief SCCP Debug Category Enum
+ */
 /* *INDENT-OFF* */
 typedef enum {
 	DEBUGCAT_CORE 		= 1 << 0,
@@ -911,7 +911,7 @@ struct sccp_device {
 	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
 	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup*/
 #endif
-	boolean_t dtmfmode;											/*!< DTMF Mode (0 inband - 1 outofband) */
+	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
 	boolean_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
 	boolean_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
 	boolean_t allowRinginNotification;									/*!< allow ringin notification for hinted extensions (Boolean, default=on) */
@@ -1159,7 +1159,7 @@ struct sccp_channel {
 	} rtp;
 
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
-	sccp_autoanswer_type_t autoanswer_type;									/*!< Auto Answer Type */
+	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 	uint8_t autoanswer_cause;										/*!< Auto Answer Cause */
 	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 
@@ -1344,7 +1344,7 @@ extern struct sccp_global_vars *sccp_globals;
 
 uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s);
 
-sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_type_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
+sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
 
 int sccp_sched_free(void *ptr);
 

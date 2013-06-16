@@ -76,42 +76,21 @@ void sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-const char *message2str(uint32_t value);
-size_t message2size(uint32_t value);
-const char *channelstate2str(uint32_t value);
-const char *pbxdevicestate2str(uint32_t value);
-const char *accessory2str(uint32_t value);
-const char *accessorystatus2str(uint32_t value);
-const char *extensionstatus2str(uint32_t value);
-const char *dndmode2str(uint32_t value);
-const char *transmitModes2str(skinny_transmitOrReceive_t value);
-const char *sccp_buttontype2str(uint32_t value);
-const char *callforward2str(uint32_t value);
-const char *callforward2longstr(uint32_t value);
+inline const char *message2str(sccp_message_t type);
+inline size_t message2size(sccp_message_t type);
+inline const char *sccp_buttontype2str(button_type_t type);
+inline const char *pbxdevicestate2str(uint32_t value);
+inline const char *extensionstatus2str(uint32_t value);
 
 // SKINNY Lookups
-const char *tone2str(uint32_t value);
-const char *alarm2str(uint32_t value);
-const char *devicetype2str(uint32_t value);
-const char *stimulus2str(uint32_t value);
-const char *buttontype2str(uint32_t value);
-const char *lampmode2str(uint32_t value);
-const char *station2str(uint32_t value);
-const char *label2str(uint32_t value);
-const char *calltype2str(uint32_t value);
-const char *keymode2str(uint32_t value);
-const char *keymode2description(uint32_t value);
-const char *deviceregistrationstatus2str(uint32_t value);
-const char *devicestatus2str(uint32_t value);
-const char *codec2str(skinny_codec_t value);
-int codec2payload(skinny_codec_t value);
-const char *codec2key(uint32_t value);
-const char *codec2name(uint32_t value);
-const char *featureType2str(uint32_t value);
-const char *debugcat_keys(void);
-uint32_t debugcat2int(const char *str);
-const char *skinny_formatType2str(uint8_t value);
-inline const char *sccp_miscCommandType2str(sccp_miscCommandType_t type);
+inline const char *label2str(uint16_t value);
+inline const char *codec2str(skinny_codec_t value);
+inline int codec2payload(skinny_codec_t value);
+inline const char *codec2key(skinny_codec_t value);
+inline const char *codec2name(skinny_codec_t value);
+inline const char *featureType2str(sccp_feature_type_t value);
+inline const char *debugcat_keys(void);
+inline uint32_t debugcat2int(const char *str);
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);

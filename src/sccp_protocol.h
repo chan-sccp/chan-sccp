@@ -37,289 +37,6 @@
 #define SKINNY_MaxAnnouncementList			32
 #define SKINNY_StationMaxMonitorParties			16
 
-/*!
- * \brief Skinny Device Feature (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_DEVFEATURE_DYNAMIC_MESSAGE 		= 1 << 24,
-	SKINNY_DEVFEATURE_ABBREVIATED_DIAL 		= 1 << 31,
-	/* *INDENT-ON* */
-} skinny_devfeature_t;												/*!< Skinny Device Feature Enum */
-
-/*! 
- * \brief internal chan_sccp call state (c->callstate) (Enum)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_CHANNELSTATE_DOWN 				= 0,
-	SCCP_CHANNELSTATE_OFFHOOK 			= 1,
-	SCCP_CHANNELSTATE_ONHOOK 			= 2,
-	SCCP_CHANNELSTATE_RINGOUT 			= 3,
-	SCCP_CHANNELSTATE_RINGING 			= 4,
-	SCCP_CHANNELSTATE_CONNECTED 			= 5,
-	SCCP_CHANNELSTATE_BUSY 				= 6,
-	SCCP_CHANNELSTATE_CONGESTION 			= 7,
-	SCCP_CHANNELSTATE_HOLD 				= 8,
-	SCCP_CHANNELSTATE_CALLWAITING 			= 9,
-	SCCP_CHANNELSTATE_CALLTRANSFER 			= 10,
-	SCCP_CHANNELSTATE_CALLPARK 			= 11,
-	SCCP_CHANNELSTATE_PROCEED 			= 12,
-	SCCP_CHANNELSTATE_CALLREMOTEMULTILINE 		= 13,
-	SCCP_CHANNELSTATE_INVALIDNUMBER 		= 14,
-	SCCP_CHANNELSTATE_DIALING 			= 20,
-	SCCP_CHANNELSTATE_PROGRESS 			= 21,
-	SCCP_CHANNELSTATE_GETDIGITS 			= 0xA0,
-	SCCP_CHANNELSTATE_CALLCONFERENCE 		= 0xA1,
-	SCCP_CHANNELSTATE_SPEEDDIAL 			= 0xA2,
-	SCCP_CHANNELSTATE_DIGITSFOLL 			= 0xA3,
-	SCCP_CHANNELSTATE_INVALIDCONFERENCE 		= 0xA4,
-	SCCP_CHANNELSTATE_CONNECTEDCONFERENCE 		= 0xA5,
-	SCCP_CHANNELSTATE_BLINDTRANSFER 		= 0xA6,
-	SCCP_CHANNELSTATE_ZOMBIE 			= 0xFE,
-	SCCP_CHANNELSTATE_DND 				= 0xFF
-	/* *INDENT-ON* */
-} sccp_channelState_t;												/*!< internal Chan_SCCP Call State c->callstate */
-
-/*!
- * \brief SCCP ChannelState Structure
- */
-static const struct sccp_channelstate {
-	sccp_channelState_t channelstate;
-	const char *const text;
-} sccp_channelstates[] = {
-	/* *INDENT-OFF* */
-	{SCCP_CHANNELSTATE_DOWN, 			"DOWN"},
-	{SCCP_CHANNELSTATE_OFFHOOK, 			"OFFHOOK"},
-	{SCCP_CHANNELSTATE_ONHOOK, 			"ONHOOK"},
-	{SCCP_CHANNELSTATE_RINGOUT, 			"RINGOUT"},
-	{SCCP_CHANNELSTATE_RINGING, 			"RINGING"},
-	{SCCP_CHANNELSTATE_CONNECTED, 			"CONNECTED"},
-	{SCCP_CHANNELSTATE_BUSY, 			"BUSY	"},
-	{SCCP_CHANNELSTATE_CONGESTION, 			"CONGESTION"},
-	{SCCP_CHANNELSTATE_HOLD, 			"HOLD	"},
-	{SCCP_CHANNELSTATE_CALLWAITING, 		"CALLWAITING"},
-	{SCCP_CHANNELSTATE_CALLTRANSFER,		"CALLTRANSFER"},
-	{SCCP_CHANNELSTATE_CALLPARK, 			"CALLPARK"},
-	{SCCP_CHANNELSTATE_PROCEED, 			"PROCEED"},
-	{SCCP_CHANNELSTATE_CALLREMOTEMULTILINE, 	"CALLREMOTEMULTILINE"},
-	{SCCP_CHANNELSTATE_INVALIDNUMBER, 		"INVALIDNUMBER"},
-	{SCCP_CHANNELSTATE_DIALING, 			"DIALING"},
-	{SCCP_CHANNELSTATE_PROGRESS, 			"PROGRESS"},
-	{SCCP_CHANNELSTATE_GETDIGITS, 			"GETDIGITS"},
-	{SCCP_CHANNELSTATE_CALLCONFERENCE, 		"CALLCONFERENCE"},
-	{SCCP_CHANNELSTATE_SPEEDDIAL, 			"SPEEDDIAL"},
-	{SCCP_CHANNELSTATE_DIGITSFOLL, 			"DIGITSFOLL"},
-	{SCCP_CHANNELSTATE_INVALIDCONFERENCE, 		"INVALIDCONFERENCE"},
-	{SCCP_CHANNELSTATE_CONNECTEDCONFERENCE, 	"CONNECTEDCONFERENCE"},
-	{SCCP_CHANNELSTATE_BLINDTRANSFER, 		"BLINDTRANSFER"},
-	{SCCP_CHANNELSTATE_ZOMBIE, 			"ZOMBIE"},
-	{SCCP_CHANNELSTATE_DND, 			"DND"}
-	/* *INDENT-ON* */
-};
-
-/*!
- * \brief Skinny Miscellaneous Command Type (Enum)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE 	= 0,
-	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE,
-	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB,
-	SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB,
-	SKINNY_MISCCOMMANDTYPE_LOSTPICTURE,
-	SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE,
-	SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE,
-	SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF
-	/* *INDENT-ON* */
-} sccp_miscCommandType_t;											/*!< misccommand types */
-
-static const struct sccp_miscCommandType {
-	const char *const text;
-} sccp_miscCommandTypes[] = {
-	/* *INDENT-OFF* */
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE]	= {"videoFreezePicture"}, 
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE]	= {"videoFastUpdatePicture"}, 
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB]	= {"videoFastUpdateGOB"}, 
-	[SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB]	= {"videoFastUpdateMB"}, 
-	[SKINNY_MISCCOMMANDTYPE_LOSTPICTURE]		= {"lostPicture"}, 
-	[SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE]	= {"lostPartialPicture"}, 
-	[SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE]= {"recoveryReferencePicture"}, 
-	[SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF]= {"temporalSpatialTradeOff"}, 
-	/* *INDENT-ON* */
-};
-
-static const struct sccp_formatTypes {
-	uint8_t id;
-	const char *const text;
-} skinny_formatTypes[] = {
-	/* *INDENT-OFF* */
-	{0, 						""}, 
-	{1, 						"sqcif (128x96)"}, 
-	{2, 						"qcif (176x144)"}, 
-	{3, 						"cif (352x288)"}, 
-	{4, 						"4cif (704x576)"}, 
-	{5, 						"16cif (1408x1152)"}, 
-	{6, 						"custom_base"}, 
-	{232, 						"unknown"},						// Cisco 7985 under protocol version 5 (Robert: SEP00506003273B)
-	/* *INDENT-ON* */
-};
-
-/*!
- * \brief SCCP BLF States for Dynamic Speeddials (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_BLF_STATUS_UNKNOWN 			= 0,							/*!< unknown status - default */
-	SCCP_BLF_STATUS_IDLE 				= 1,							/*!< not in use */
-	SCCP_BLF_STATUS_INUSE 				= 2,							/*!< in use */
-	SCCP_BLF_STATUS_DND 				= 3,							/*!< dnd */
-	SCCP_BLF_STATUS_ALERTING 			= 4							/*!< alerting */
-	/* *INDENT-ON* */
-} sccp_BLFState_t;												/*!< Busy Lamp Field States for Dynamic Speeddials */
-
-#define SCCP_CFWD_NONE					0
-#define SCCP_CFWD_ALL					1
-#define SCCP_CFWD_BUSY					2
-#define SCCP_CFWD_NOANSWER				3
-
-/*!
- * \brief SCCP CallForwardState Structure
- */
-static const struct sccp_callforwardstate {
-	uint8_t callforwardstate;
-	const char *const text;
-	const char *const longtext;
-} sccp_callforwardstates[] = {
-	/* *INDENT-OFF* */
-	{SCCP_CFWD_NONE, 				"None", 	"No Call Forward"},
-	{SCCP_CFWD_ALL, 				"All",		"All Calls are forwarded"},
-	{SCCP_CFWD_BUSY, 				"Busy", 	"Call is forwarded when busy"}, 
-	{SCCP_CFWD_NOANSWER, 				"NoAnswer", 	"Call is forwarded when no-answer"},
-	/* *INDENT-ON* */
-};
-
-/*
- * SCCP/Skinny Lookup Types
- */
-#define SCCP_MESSAGE 					0
-#define SCCP_ACCESSORY 					1
-#define SCCP_ACCESSORY_STATE				2
-#define SCCP_EXTENSION_STATE				3
-#define SCCP_DNDMODE					4
-#define SKINNY_TONE 					5
-#define SKINNY_ALARM					6
-#define SKINNY_DEVICETYPE				7
-#define SKINNY_DEVICE_RS				8
-#define SKINNY_STIMULUS					9
-#define SKINNY_BUTTONTYPE				10
-#define SKINNY_LAMPMODE					11
-#define SKINNY_STATION					12
-#define SKINNY_LBL					13
-#define SKINNY_CALLTYPE					14
-#define SKINNY_KEYMODE					15
-#define SKINNY_DEVICE_STATE				16
-#define SKINNY_CODEC					17
-
-/*!
- * \brief Skinny Protocol Call States (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_CALLSTATE_OFFHOOK 			= 1,
-	SKINNY_CALLSTATE_ONHOOK 			= 2,
-	SKINNY_CALLSTATE_RINGOUT 			= 3,
-	SKINNY_CALLSTATE_RINGIN 			= 4,
-	SKINNY_CALLSTATE_CONNECTED 			= 5,
-	SKINNY_CALLSTATE_BUSY 				= 6,
-	SKINNY_CALLSTATE_CONGESTION 			= 7,
-	SKINNY_CALLSTATE_HOLD 				= 8,
-	SKINNY_CALLSTATE_CALLWAITING 			= 9,
-	SKINNY_CALLSTATE_CALLTRANSFER 			= 10,
-	SKINNY_CALLSTATE_CALLPARK 			= 11,
-	SKINNY_CALLSTATE_PROCEED 			= 12,
-	SKINNY_CALLSTATE_CALLREMOTEMULTILINE 		= 13,
-	SKINNY_CALLSTATE_INVALIDNUMBER			= 14,
-	SKINNY_CALLSTATE_HOLDYELLOW			= 15,
-	SKINNY_CALLSTATE_INTERCOMONEWAY			= 16,
-	SKINNY_CALLSTATE_HOLDRED			= 17
-	/* *INDENT-ON* */
-} skinny_callstate_t;
-
-/*!
- * \brief Skinny Protocol Call Type (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_CALLTYPE_INBOUND				= 1,
-	SKINNY_CALLTYPE_OUTBOUND			= 2,
-	SKINNY_CALLTYPE_FORWARD				= 3
-	/* *INDENT-ON* */
-} skinny_calltype_t;												/*!< Skinny Calltype */
-
-/*!
- * \brief Skinny CallType Structure
- */
-static const struct skinny_calltype {
-	skinny_calltype_t calltype;
-	const char *const text;
-} skinny_calltypes[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_CALLTYPE_INBOUND,			"Inbound"},
-	{SKINNY_CALLTYPE_OUTBOUND,			"Outbound"}, 
-	{SKINNY_CALLTYPE_FORWARD,			"Forward"},
-	/* *INDENT-ON* */
-};
-
-/*!
- * \brief Skinny Device Feature Structure
- */
-static const struct skinny_devfeature {
-	skinny_devfeature_t device_feature;
-	const char *const text;
-} skinny_devfeatures[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_DEVFEATURE_DYNAMIC_MESSAGE, 		"Dynamic Messages"}, 
-	{SKINNY_DEVFEATURE_ABBREVIATED_DIAL, 		"Abbreviated Dial"},
-	/* *INDENT-ON* */
-};
-
-/*!
- * \brief Skinny Call Priority (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_CALLPRIORITY_HIGHEST			= 0,
-	SKINNY_CALLPRIORITY_HIGH			= 1,
-	SKINNY_CALLPRIORITY_MEDIUM			= 2,
-	SKINNY_CALLPRIORITY_LOW				= 3,
-	SKINNY_CALLPRIORITY_NORMAL			= 4
-	/* *INDENT-ON* */
-} skinny_callPriority_t;											/*!< Skinny Call Priority */
-
-/*!
- * \brief Skinny Call Visibility (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_CALLINFO_VISIBILITY_DEFAULT 		= 0,
-	SKINNY_CALLINFO_VISIBILITY_COLLAPSED 		= 1,
-	SKINNY_CALLINFO_VISIBILITY_HIDDEN 		= 2
-	/* *INDENT-ON* */
-} skinny_callinfo_visibility_t;											/*!< Skinny Call Info Visibility */
-
-/*!
- * \brief Skinny Call Security (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_CALLSECURITYSTATE_UNKNOWN 		= 0,
-	SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED 	= 1,
-	SKINNY_CALLSECURITYSTATE_AUTHENTICATED 		= 2
-	/* *INDENT-ON* */
-} skinny_callstate_security_t;											/*!< Skinny CallSecurityInfo */
-
-/* *INDENT-OFF* */
 #define StationMaxDeviceNameSize			16
 #define StationMaxButtonTemplateSize			56
 #define StationMaxButtonTemplateNameSize		44
@@ -345,777 +62,18 @@ typedef enum {
 #define APPID_PROVISION					9083
 #define APPID_DEVICECAPABILITIES			9084
 
-/* skinny tones skinny_tone2str */
-#    define SKINNY_TONE_SILENCE 			0
-#    define SKINNY_TONE_DTMF1				1
-#    define SKINNY_TONE_DTMF2				2
-#    define SKINNY_TONE_DTMF3				3
-#    define SKINNY_TONE_DTMF4				4
-#    define SKINNY_TONE_DTMF5				5
-#    define SKINNY_TONE_DTMF6				6
-#    define SKINNY_TONE_DTMF7				7
-#    define SKINNY_TONE_DTMF8				8
-#    define SKINNY_TONE_DTMF9				9
-#    define SKINNY_TONE_DTMF0				0xa
-#    define SKINNY_TONE_DTMFSTAR			0xe
-#    define SKINNY_TONE_DTMFPOUND			0xf
-#    define SKINNY_TONE_DTMFA				0x10
-#    define SKINNY_TONE_DTMFB				0x11
-#    define SKINNY_TONE_DTMFC				0x12
-#    define SKINNY_TONE_DTMFD				0x13
-#    define SKINNY_TONE_INSIDEDIALTONE			0x21
-#    define SKINNY_TONE_OUTSIDEDIALTONE 		0x22
-#    define SKINNY_TONE_LINEBUSYTONE			0x23
-#    define SKINNY_TONE_ALERTINGTONE			0x24
-#    define SKINNY_TONE_REORDERTONE 			0x25
-#    define SKINNY_TONE_RECORDERWARNINGTONE 		0x26
-#    define SKINNY_TONE_RECORDERDETECTEDTONE		0x27
-#    define SKINNY_TONE_REVERTINGTONE			0x28
-#    define SKINNY_TONE_RECEIVEROFFHOOKTONE 		0x29
-#    define SKINNY_TONE_PARTIALDIALTONE 		0x2a
-#    define SKINNY_TONE_NOSUCHNUMBERTONE		0x2b
-#    define SKINNY_TONE_BUSYVERIFICATIONTONE		0x2c
-#    define SKINNY_TONE_CALLWAITINGTONE 		0x2d
-#    define SKINNY_TONE_CONFIRMATIONTONE		0x2e
-#    define SKINNY_TONE_CAMPONINDICATIONTONE		0x2f
-#    define SKINNY_TONE_RECALLDIALTONE			0x30
-#    define SKINNY_TONE_ZIPZIP				0x31
-#    define SKINNY_TONE_ZIP 				0x32
-#    define SKINNY_TONE_BEEPBONK			0x33
-#    define SKINNY_TONE_MUSICTONE			0x34
-#    define SKINNY_TONE_HOLDTONE			0x35
-#    define SKINNY_TONE_TESTTONE			0x36
-#    define SKINNY_TONE_DTMONITORWARNINGTONE		0x37
-#    define SKINNY_TONE_ADDCALLWAITING			0x40
-#    define SKINNY_TONE_PRIORITYCALLWAIT		0x41
-#    define SKINNY_TONE_RECALLDIAL			0x42
-#    define SKINNY_TONE_BARGIN				0x43
-#    define SKINNY_TONE_DISTINCTALERT			0x44
-#    define SKINNY_TONE_PRIORITYALERT			0x45
-#    define SKINNY_TONE_REMINDERRING			0x46
-#    define SKINNY_TONE_PRECEDENCE_RINGBACK		0x47
-#    define SKINNY_TONE_PREEMPTIONTONE			0x48
-#    define SKINNY_TONE_MF1 				0x50
-#    define SKINNY_TONE_MF2 				0x51
-#    define SKINNY_TONE_MF3 				0x52
-#    define SKINNY_TONE_MF4 				0x53
-#    define SKINNY_TONE_MF5 				0x54
-#    define SKINNY_TONE_MF6 				0x55
-#    define SKINNY_TONE_MF7 				0x56
-#    define SKINNY_TONE_MF8 				0x57
-#    define SKINNY_TONE_MF9 				0x58
-#    define SKINNY_TONE_MF0 				0x59
-#    define SKINNY_TONE_MFKP1				0x5a
-#    define SKINNY_TONE_MFST				0x5b
-#    define SKINNY_TONE_MFKP2				0x5c
-#    define SKINNY_TONE_MFSTP				0x5d
-#    define SKINNY_TONE_MFST3P				0x5e
-#    define SKINNY_TONE_MILLIWATT			0x5f
-#    define SKINNY_TONE_MILLIWATTTEST			0x60
-#    define SKINNY_TONE_HIGHTONE			0x61
-#    define SKINNY_TONE_FLASHOVERRIDE			0x62
-#    define SKINNY_TONE_FLASH				0x63
-#    define SKINNY_TONE_PRIORITY			0x64
-#    define SKINNY_TONE_IMMEDIATE			0x65
-#    define SKINNY_TONE_PREAMPWARN			0x66
-#    define SKINNY_TONE_2105HZ				0x67
-#    define SKINNY_TONE_2600HZ				0x68
-#    define SKINNY_TONE_440HZ				0x69
-#    define SKINNY_TONE_300HZ				0x6a
-#    define SKINNY_TONE_MLPP_PALA			0x77
-#    define SKINNY_TONE_MLPP_ICA			0x78
-#    define SKINNY_TONE_MLPP_VCA			0x79
-#    define SKINNY_TONE_MLPP_BPA			0x7A
-#    define SKINNY_TONE_MLPP_BNEA			0x7B
-#    define SKINNY_TONE_MLPP_UPA			0x7C
-#    define SKINNY_TONE_NOTONE				0x7f
-/* *INDENT-ON* */
-
-/*!
- * \brief Skinny Tone Structure
+/*
+ * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define
  */
-static const struct skinny_tone {
-	uint8_t tone;
-	const char *const text;
-} skinny_tones[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_TONE_SILENCE,				"Silence"},
-	{SKINNY_TONE_DTMF1,				"DTMF 1"},
-	{SKINNY_TONE_DTMF2,				"DTMF 2"},
-	{SKINNY_TONE_DTMF3,				"DTMF 3"},
-	{SKINNY_TONE_DTMF4,				"DTMF 4"},
-	{SKINNY_TONE_DTMF5,				"DTMF 5"},
-	{SKINNY_TONE_DTMF6,				"DTMF 6"},
-	{SKINNY_TONE_DTMF7,				"DTMF 7"},
-	{SKINNY_TONE_DTMF8,				"DTMF 8"},
-	{SKINNY_TONE_DTMF9,				"DTMF 9"},
-	{SKINNY_TONE_DTMF0,				"DTMF 0"},
-	{SKINNY_TONE_DTMFSTAR,				"DTMF Star"},
-	{SKINNY_TONE_DTMFPOUND,				"DTMF Pound"},
-	{SKINNY_TONE_DTMFA,				"DTMF A"},
-	{SKINNY_TONE_DTMFB,				"DTMF B"},
-	{SKINNY_TONE_DTMFC,				"DTMF C"},
-	{SKINNY_TONE_DTMFD,				"DTMF D"},
-	{SKINNY_TONE_INSIDEDIALTONE,			"Inside Dial Tone"},
-	{SKINNY_TONE_OUTSIDEDIALTONE,			"Outside Dial Tone"},
-	{SKINNY_TONE_LINEBUSYTONE,			"Line Busy Tone"},
-	{SKINNY_TONE_ALERTINGTONE,			"Alerting Tone"},
-	{SKINNY_TONE_REORDERTONE,			"Reorder Tone"},
-	{SKINNY_TONE_RECORDERWARNINGTONE,		"Recorder Warning Tone"},
-	{SKINNY_TONE_RECORDERDETECTEDTONE,		"Recorder Detected Tone"},
-	{SKINNY_TONE_REVERTINGTONE,			"Reverting Tone"},
-	{SKINNY_TONE_RECEIVEROFFHOOKTONE,		"Receiver OffHook Tone"},
-	{SKINNY_TONE_PARTIALDIALTONE,			"Partial Dial Tone"},
-	{SKINNY_TONE_NOSUCHNUMBERTONE,			"No Such Number Tone"},
-	{SKINNY_TONE_BUSYVERIFICATIONTONE,		"Busy Verification Tone"},
-	{SKINNY_TONE_CALLWAITINGTONE,			"Call Waiting Tone"},
-	{SKINNY_TONE_CONFIRMATIONTONE,			"Confirmation Tone"},
-	{SKINNY_TONE_CAMPONINDICATIONTONE,		"Camp On Indication Tone"},
-	{SKINNY_TONE_RECALLDIALTONE,			"Recall Dial Tone"},
-	{SKINNY_TONE_ZIPZIP,				"Zip Zip"},
-	{SKINNY_TONE_ZIP,				"Zip"},
-	{SKINNY_TONE_BEEPBONK,				"Beep Bonk"},
-	{SKINNY_TONE_MUSICTONE,				"Music Tone"},
-	{SKINNY_TONE_HOLDTONE,				"Hold Tone"},
-	{SKINNY_TONE_TESTTONE,				"Test Tone"},
-	{SKINNY_TONE_DTMONITORWARNINGTONE,		"DT Monitor Warning Tone"},
-	{SKINNY_TONE_ADDCALLWAITING,			"Add Call Waiting"},
-	{SKINNY_TONE_PRIORITYCALLWAIT,			"Priority Call Wait"},
-	{SKINNY_TONE_RECALLDIAL,			"Recall Dial"},
-	{SKINNY_TONE_BARGIN,				"Barg In"},
-	{SKINNY_TONE_DISTINCTALERT,			"Distinct Alert"},
-	{SKINNY_TONE_PRIORITYALERT,			"Priority Alert"},
-	{SKINNY_TONE_REMINDERRING,			"Reminder Ring"},
-	{SKINNY_TONE_PRECEDENCE_RINGBACK,		"Precedence RingBank"},
-	{SKINNY_TONE_PREEMPTIONTONE,			"Pre-EmptionTone"},
-	{SKINNY_TONE_MF1,				"MF1"},
-	{SKINNY_TONE_MF2,				"MF2"},
-	{SKINNY_TONE_MF3,				"MF3"},
-	{SKINNY_TONE_MF4,				"MF4"},
-	{SKINNY_TONE_MF5,				"MF5"},
-	{SKINNY_TONE_MF6,				"MF6"},
-	{SKINNY_TONE_MF7,				"MF7"},
-	{SKINNY_TONE_MF8,				"MF8"},
-	{SKINNY_TONE_MF9,				"MF9"},
-	{SKINNY_TONE_MF0,				"MF0"},
-	{SKINNY_TONE_MFKP1,				"MFKP1"},
-	{SKINNY_TONE_MFST,				"MFST"},
-	{SKINNY_TONE_MFKP2,				"MFKP2"},
-	{SKINNY_TONE_MFSTP,				"MFSTP"},
-	{SKINNY_TONE_MFST3P,				"MFST3P"},
-	{SKINNY_TONE_MILLIWATT,				"MILLIWATT"},
-	{SKINNY_TONE_MILLIWATTTEST,			"MILLIWATT TEST"},
-	{SKINNY_TONE_HIGHTONE,				"HIGH TONE"},
-	{SKINNY_TONE_FLASHOVERRIDE,			"FLASH OVERRIDE"},
-	{SKINNY_TONE_FLASH,				"FLASH"},
-	{SKINNY_TONE_PRIORITY,				"PRIORITY"},
-	{SKINNY_TONE_IMMEDIATE,				"IMMEDIATE"},
-	{SKINNY_TONE_PREAMPWARN,			"PRE-AMP WARN"},
-	{SKINNY_TONE_2105HZ,				"2105 HZ"},
-	{SKINNY_TONE_2600HZ,				"2600 HZ"},
-	{SKINNY_TONE_440HZ,				"440 HZ"},
-	{SKINNY_TONE_300HZ,				"300 HZ"},
-	{SKINNY_TONE_MLPP_PALA,				"MLPP Pala"},
-	{SKINNY_TONE_MLPP_ICA,				"MLPP Ica"},
-	{SKINNY_TONE_MLPP_VCA,				"MLPP Vca"},
-	{SKINNY_TONE_MLPP_BPA,				"MLPP Bpa"},
-	{SKINNY_TONE_MLPP_BNEA,				"MLPP Bnea"},
-	{SKINNY_TONE_MLPP_UPA,				"MLPP Upa"}, 
-	{SKINNY_TONE_NOTONE,				"No Tone"},
-	/* *INDENT-ON* */
-};
-
-/* alarm skinny_alarm2str */
-#define SKINNY_ALARM_CRITICAL				0
-#define SKINNY_ALARM_WARNING				1
-#define SKINNY_ALARM_INFORMATIONAL			2
-#define SKINNY_ALARM_UNKNOWN				4
-#define SKINNY_ALARM_MAJOR				7
-#define SKINNY_ALARM_MINOR				8
-#define SKINNY_ALARM_MARGINAL				10
-#define SKINNY_ALARM_TRACEINFO				20
-
-/*!
- * \brief Skinny Alarm Structure
- */
-static const struct skinny_alarm {
-	uint8_t alarm;
-	const char *const text;
-} skinny_alarms[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_ALARM_CRITICAL,				"Critical"},
-	{SKINNY_ALARM_WARNING,				"Warning"},
-	{SKINNY_ALARM_INFORMATIONAL,			"Informational"},
-	{SKINNY_ALARM_UNKNOWN,				"Unknown"},
-	{SKINNY_ALARM_MAJOR,				"Major"},
-	{SKINNY_ALARM_MINOR,				"Minor"},
-	{SKINNY_ALARM_MARGINAL,				"Marginal"}, 
-	{SKINNY_ALARM_TRACEINFO,			"TraceInfo"},
-	/* *INDENT-ON* */
-};
-
-/* devices type */
-#define SKINNY_DEVICETYPE_UNDEFINED			0
-#define SKINNY_DEVICETYPE_30SPPLUS			1
-#define SKINNY_DEVICETYPE_12SPPLUS			2
-#define SKINNY_DEVICETYPE_12SP				3
-#define SKINNY_DEVICETYPE_12				4
-#define SKINNY_DEVICETYPE_30VIP 			5
-//#define SKINNY_DEVICETYPE_TELECASTER                  6
-//#define SKINNY_DEVICETYPE_TELECASTER_MGR              7
-//#define SKINNY_DEVICETYPE_TELECASTER_BUS              8
-//#define SKINNY_DEVICETYPE_POLYCOM                     9
-#define SKINNY_DEVICETYPE_VGC				10
-#define SKINNY_DEVICETYPE_ATA186			12
-#define SKINNY_DEVICETYPE_ATA188			12							/*!< ATA188 -FS */
-#define SKINNY_DEVICETYPE_VIRTUAL30SPPLUS		20
-#define SKINNY_DEVICETYPE_PHONEAPPLICATION		21
-#define SKINNY_DEVICETYPE_ANALOGACCESS			30
-#define SKINNY_DEVICETYPE_DIGITALACCESSPRI		40
-#define SKINNY_DEVICETYPE_DIGITALACCESST1		41
-#define SKINNY_DEVICETYPE_DIGITALACCESSTITAN2		42
-#define SKINNY_DEVICETYPE_DIGITALACCESSLENNON		43
-#define SKINNY_DEVICETYPE_ANALOGACCESSELVIS 		47
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGE		50
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO		51
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND	52
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT	53
-#define SKINNY_DEVICETYPE_H225				60
-#define SKINNY_DEVICETYPE_H323PHONE 			61
-#define SKINNY_DEVICETYPE_H323TRUNK 			62
-#define SKINNY_DEVICETYPE_MUSICONHOLD			70
-#define SKINNY_DEVICETYPE_PILOT 			71
-#define SKINNY_DEVICETYPE_TAPIPORT			72
-#define SKINNY_DEVICETYPE_TAPIROUTEPOINT		73
-#define SKINNY_DEVICETYPE_VOICEINBOX			80
-#define SKINNY_DEVICETYPE_VOICEINBOXADMIN		81
-#define SKINNY_DEVICETYPE_LINEANNUNCIATOR		82
-#define SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND		83
-#define SKINNY_DEVICETYPE_CISCOMEDIASERVER		84
-#define SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT 	85
-#define SKINNY_DEVICETYPE_ROUTELIST 			90
-#define SKINNY_DEVICETYPE_LOADSIMULATOR 		100
-#define SKINNY_DEVICETYPE_MEDIA_TERM_POINT 		110
-#define SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO		111
-#define SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND 	112
-#define SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT	113
-#define SKINNY_DEVICETYPE_MGCPSTATION			120
-#define SKINNY_DEVICETYPE_MGCPTRUNK 			121
-#define SKINNY_DEVICETYPE_RASPROXY			122
-#define SKINNY_DEVICETYPE_TRUNK				125
-#define SKINNY_DEVICETYPE_ANNUNCIATOR			126
-#define SKINNY_DEVICETYPE_MONITORBRIDGE			127
-#define SKINNY_DEVICETYPE_RECORDER			128
-#define SKINNY_DEVICETYPE_MONITORBRIDGEYOKO		129
-#define SKINNY_DEVICETYPE_SIPTRUNK			131
-#define SKINNY_DEVICETYPE_NOTDEFINED			255
-#define SKINNY_DEVICETYPE_CISCO7902 			30008
-#define SKINNY_DEVICETYPE_CISCO7905 			20000
-#define SKINNY_DEVICETYPE_CISCO7906			369							/*!< 7906 -FS */
-#define SKINNY_DEVICETYPE_CISCO7910			6							/*!< 7910 */
-#define SKINNY_DEVICETYPE_CISCO7911 			307
-#define SKINNY_DEVICETYPE_CISCO7912			30007
-#define SKINNY_DEVICETYPE_CISCO7920 			30002
-#define SKINNY_DEVICETYPE_CISCO7921 			365
-#define SKINNY_DEVICETYPE_CISCO7925 			484							/*!< 7925 -FS */
-#define SKINNY_DEVICETYPE_CISCO7931			348
-#define SKINNY_DEVICETYPE_CISCO7935 			9
-#define SKINNY_DEVICETYPE_CISCO7936 			30019
-#define SKINNY_DEVICETYPE_CISCO7937			431
-#define SKINNY_DEVICETYPE_CISCO7940			8							/*!< 7940 */
-#define SKINNY_DEVICETYPE_CISCO7941 			115
-#define SKINNY_DEVICETYPE_CISCO7941GE 			309
-#define SKINNY_DEVICETYPE_CISCO7942			434
-#define SKINNY_DEVICETYPE_CISCO7945			435
-#define SKINNY_DEVICETYPE_CISCO7960			7							/*!< 7960 */
-#define SKINNY_DEVICETYPE_CISCO7961 			30018
-#define SKINNY_DEVICETYPE_CISCO7961GE 			308
-#define SKINNY_DEVICETYPE_CISCO7962			404
-#define SKINNY_DEVICETYPE_CISCO7965 			436
-#define SKINNY_DEVICETYPE_CISCO7970 			30006
-#define SKINNY_DEVICETYPE_CISCO7971 			119
-#define SKINNY_DEVICETYPE_CISCO7975			437
-#define SKINNY_DEVICETYPE_CISCO7985			302
-#define SKINNY_DEVICETYPE_NOKIA_E_SERIES		275							/*!< Nokia S60 */
-#define SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR		30016
-#define SKINNY_DEVICETYPE_GATEWAY_AN 			30027							/*!< Analog gateway */
-#define SKINNY_DEVICETYPE_GATEWAY_BRI 			30028							/*!< BRI gateway */
-#define SKINNY_DEVICETYPE_NOKIA_ICC 			376							/*!< nokia icc client V2 */
-#define SKINNY_DEVICETYPE_CISCO6901			547
-#define SKINNY_DEVICETYPE_CISCO6911			548
-#define SKINNY_DEVICETYPE_CISCO6921			495
-#define SKINNY_DEVICETYPE_CISCO6941			496
-#define SKINNY_DEVICETYPE_CISCO6945			564
-#define SKINNY_DEVICETYPE_CISCO6961			497
-#define SKINNY_DEVICETYPE_CISCO8941             	586
-#define SKINNY_DEVICETYPE_CISCO8945			585
-#define SKINNY_DEVICETYPE_CISCO8961                	540
-
-//#define SKINNY_DEVICETYPE_CISCO7926                   ???
-
-/* SPA Devices */
-#define SKINNY_DEVICETYPE_SPA_521S			80000							/*!< SPA 521G */
-#define SKINNY_DEVICETYPE_SPA_525G                  	80005							/*!< SPA 525G */
-#define SKINNY_DEVICETYPE_SPA_525G2			80009							/*!< SPA 525G2 */
-
-/* Extension Modules */
-#define SKINNY_DEVICETYPE_CISCO7914 			124							/*!< Expansion module */
-#define SKINNY_DEVICETYPE_CISCO7915_12BUTTONS		227							/*!< 7915 12-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7915			228							/*!< 7915 24-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7916_12BUTTONS		229							/*!< 7916 12-Button Line Expansion Module */
-#define SKINNY_DEVICETYPE_CISCO7916			230							/*!< 7916 24-Button Line Expansion Module */
-
-typedef struct sccp_display_capability {
-	struct {
-		int width;
-		int height;
-	} size;
-	enum {
-		SCCP_COLOR,
-		SCCP_GRAYSCALE,
-		SCCP_MONOCHROME,
-		SCCP_NONE,
-	} cgm;
-	int depth;
-} sccp_display_capability_t;
-
-/*!
- * \brief Skinny DeviceType Structure
- */
-static const struct skinny_devicetype {
-	uint32_t devicetype;
-	sccp_display_capability_t display_capabilty;
-	const char *const text;
-} skinny_devicetypes[] = {
-	/* *INDENT-OFF* */
-
-	/* SCCP Devices */
-	{ SKINNY_DEVICETYPE_UNDEFINED, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Undefined: Maybe you forgot the devicetype in your config"},
-//      { SKINNY_DEVICETYPE_TELECASTER, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Telecaster"                            },
-//      { SKINNY_DEVICETYPE_TELECASTER_MGR, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Telecaster Manager"                    },
-//      { SKINNY_DEVICETYPE_TELECASTER_BUS, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Telecaster Bus"                        },
-//      { SKINNY_DEVICETYPE_POLYCOM, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Polycom"                               },
-	{ SKINNY_DEVICETYPE_VGC, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"VGC"					},
-	{ SKINNY_DEVICETYPE_ATA186, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Cisco Ata 186"				},
-	{ SKINNY_DEVICETYPE_ATA188, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Cisco Ata 188"				},
-	{ SKINNY_DEVICETYPE_VIRTUAL30SPPLUS, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Virtual 30SP plus"			},
-	{ SKINNY_DEVICETYPE_PHONEAPPLICATION, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Phone Application"			},
-	{ SKINNY_DEVICETYPE_ANALOGACCESS, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Analog Access"				},
-	{ SKINNY_DEVICETYPE_DIGITALACCESSPRI, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Digital Access PRI"			},
-	{ SKINNY_DEVICETYPE_DIGITALACCESST1, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Digital Access T1"			},
-	{ SKINNY_DEVICETYPE_DIGITALACCESSTITAN2, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Digital Access Titan2"			},
-	{ SKINNY_DEVICETYPE_ANALOGACCESSELVIS, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Analog Access Elvis"			},
-	{ SKINNY_DEVICETYPE_DIGITALACCESSLENNON, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Digital Access Lennon"			},
-	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGE, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Conference Bridge"			},
-	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Conference Bridge Yoko"		},
-	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Conference Bridge Dixieland"		},
-	{ SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Conference Bridge Summit"		},
-	{ SKINNY_DEVICETYPE_H225, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"H225"					},
-	{ SKINNY_DEVICETYPE_H323PHONE, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"H323 Phone"				},
-	{ SKINNY_DEVICETYPE_H323TRUNK, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"H323 Trunk"				},
-	{ SKINNY_DEVICETYPE_MUSICONHOLD, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Music On Hold"				},
-	{ SKINNY_DEVICETYPE_PILOT, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Pilot"					},
-	{ SKINNY_DEVICETYPE_TAPIPORT, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Tapi Port"				},
-	{ SKINNY_DEVICETYPE_TAPIROUTEPOINT, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Tapi Route Point"			},
-	{ SKINNY_DEVICETYPE_VOICEINBOX, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Voice In Box"				},
-	{ SKINNY_DEVICETYPE_VOICEINBOXADMIN, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Voice Inbox Admin"			},
-	{ SKINNY_DEVICETYPE_LINEANNUNCIATOR, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Line Annunciator"			},
-	{ SKINNY_DEVICETYPE_ROUTELIST, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Route List"				},
-	{ SKINNY_DEVICETYPE_LOADSIMULATOR, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Load Simulator"			},
-	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINT, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Media Termination Point"		},
-	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Media Termination Point Yoko"		},
-	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Media Termination Point Dixieland"	},
-	{ SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT, 	{ {0,0}, 	SCCP_NONE, 	0  }, 	"Media Termination Point Summit"	},
-	{ SKINNY_DEVICETYPE_MGCPSTATION, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"MGCP Station"				},
-	{ SKINNY_DEVICETYPE_MGCPTRUNK, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"MGCP Trunk"				},
-	{ SKINNY_DEVICETYPE_RASPROXY, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"RAS Proxy"				},
-	{ SKINNY_DEVICETYPE_TRUNK, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Trunk"					},
-	{ SKINNY_DEVICETYPE_ANNUNCIATOR, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Annuciator"				},
-	{ SKINNY_DEVICETYPE_MONITORBRIDGE, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Monitor Bridge"			},
-	{ SKINNY_DEVICETYPE_RECORDER, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Recorder"				},
-	{ SKINNY_DEVICETYPE_MONITORBRIDGEYOKO, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Monitor Bridge Yoko"			},
-	{ SKINNY_DEVICETYPE_SIPTRUNK, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Sip Trunk"				},
-	
-	/* SCCP Phones */
-	{ SKINNY_DEVICETYPE_30SPPLUS, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"30SP plus"				},
-	{ SKINNY_DEVICETYPE_12SPPLUS, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"12SP plus"				},
-	{ SKINNY_DEVICETYPE_12SP, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"12SP"					},
-	{ SKINNY_DEVICETYPE_12, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"12"					},
-	{ SKINNY_DEVICETYPE_30VIP, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"30 VIP"				},
-	{ SKINNY_DEVICETYPE_CISCO7905,			{ {0,0}, 	SCCP_NONE, 	0  },	"Cisco 7905" 				},
-	{ SKINNY_DEVICETYPE_CISCO7906,			{ {0,0}, 	SCCP_NONE, 	0  },	"Cisco 7906"				},
-	{ SKINNY_DEVICETYPE_CISCO7911, 			{ {0,0}, 	SCCP_NONE, 	0  },	"Cisco 7911"				},
-	{ SKINNY_DEVICETYPE_CISCO7912, 			{ {0,0}, 	SCCP_NONE, 	0  },	"Cisco 7912"				},
-	{ SKINNY_DEVICETYPE_CISCO7931, 			{ {0,0}, 	SCCP_NONE, 	0  },	"Cisco 7931"				},
-	{ SKINNY_DEVICETYPE_CISCO7920, 			{ {128,59}, 	SCCP_NONE, 	1  },	"Cisco 7920"				},
-	{ SKINNY_DEVICETYPE_CISCO7921, 			{ {176,140}, 	SCCP_COLOR, 	16 },	"Cisco 7921"				},
-	{ SKINNY_DEVICETYPE_CISCO7925, 			{ {176,140}, 	SCCP_COLOR, 	16 },	"Cisco 7925"				},
-//	{ SKINNY_DEVICETYPE_CISCO7926, 			{ {176,140}, 	SCCP_COLOR, 	16 },	"Cisco 7926"				},
-	{ SKINNY_DEVICETYPE_CISCO7936, 			{ {128,64}, 	SCCP_MONOCHROME,0  },	"Cisco 7936 Conference"			},
-	{ SKINNY_DEVICETYPE_CISCO7937, 			{ {255,128}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7937 Conference"			},
-	{ SKINNY_DEVICETYPE_CISCO7940, 			{ {133,65}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7940"				},
-	{ SKINNY_DEVICETYPE_CISCO7960, 			{ {133,65}, 	SCCP_GRAYSCALE, 2  },	"Cisco 7960"				},
-	{ SKINNY_DEVICETYPE_CISCO7941, 			{ {298,144}, 	SCCP_GRAYSCALE, 4  },	"Cisco 7941"				},
-	{ SKINNY_DEVICETYPE_CISCO7941GE, 		{ {298,144},    SCCP_GRAYSCALE, 4  },	"Cisco 7941 GE"				},
-	{ SKINNY_DEVICETYPE_CISCO7942, 			{ {298,144}, 	SCCP_GRAYSCALE, 4  },	"Cisco 7942"				},
-	{ SKINNY_DEVICETYPE_CISCO7961, 			{ {298,144}, 	SCCP_GRAYSCALE, 4  },	"Cisco 7961"				},
-	{ SKINNY_DEVICETYPE_CISCO7961GE, 		{ {298,144},    SCCP_GRAYSCALE, 4  },	"Cisco 7961 GE"				},
-	{ SKINNY_DEVICETYPE_CISCO7962, 			{ {298,144}, 	SCCP_GRAYSCALE, 4  },	"Cisco 7962"				},
-	{ SKINNY_DEVICETYPE_CISCO7945, 			{ {298,156}, 	SCCP_COLOR, 	16 },	"Cisco 7945"				},
-	{ SKINNY_DEVICETYPE_CISCO7965, 			{ {298,156}, 	SCCP_COLOR, 	16 },	"Cisco 7965"				},
-	{ SKINNY_DEVICETYPE_CISCO7970, 			{ {298,168}, 	SCCP_COLOR, 	16 },	"Cisco 7970"				},
-	{ SKINNY_DEVICETYPE_CISCO7971, 			{ {298,168}, 	SCCP_COLOR, 	12 },	"Cisco 7971"				},
-	{ SKINNY_DEVICETYPE_CISCO7975, 			{ {298,168}, 	SCCP_COLOR, 	16 },	"Cisco 7975"				},
-	{ SKINNY_DEVICETYPE_CISCO7985, 			{ {800,600}, 	SCCP_COLOR, 	24 },	"Cisco 7985"				},
-	{ SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR, 	{ {298,168}, 	SCCP_COLOR, 	24 },	"Cisco IP Communicator"			},
-	{ SKINNY_DEVICETYPE_CISCO6901, 			{ {0,0}, 	SCCP_NONE, 	0  }, 	"Cisco 6901"				},
-	{ SKINNY_DEVICETYPE_CISCO6921, 			{ {396,81}, 	SCCP_MONOCHROME,0  },	"Cisco 6921"				},
-	{ SKINNY_DEVICETYPE_CISCO6961, 			{ {396,81}, 	SCCP_MONOCHROME,0  },	"Cisco 6961"				},
-	{ SKINNY_DEVICETYPE_CISCO6941, 			{ {396,162}, 	SCCP_MONOCHROME,0  },	"Cisco 6941"				},
-	{ SKINNY_DEVICETYPE_CISCO6945, 			{ {396,162}, 	SCCP_MONOCHROME,0  },	"Cisco 6945"				},
-	{ SKINNY_DEVICETYPE_CISCO8961, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 8961"				},
-	{ SKINNY_DEVICETYPE_CISCO8941, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 8941"				},
-	{ SKINNY_DEVICETYPE_CISCO8945, 			{ {498,289}, 	SCCP_COLOR, 	24 },	"Cisco 8945"				},
-	{ SKINNY_DEVICETYPE_NOKIA_ICC, 			{ {320,240}, 	SCCP_COLOR, 	16 }, 	"Nokia ICC client"			},
-
-	/* SPCP Phones */
-	{ SKINNY_DEVICETYPE_SPA_521S, 			{ {128,64},     SCCP_MONOCHROME,0  },	"Cisco SPA 521S"			},
-	{ SKINNY_DEVICETYPE_SPA_525G, 			{ {320,240},     SCCP_COLOR,	16 }, 	"Cisco SPA 525G"			},
-	{ SKINNY_DEVICETYPE_SPA_525G2, 			{ {320,240},    SCCP_COLOR,	16 }, 	"Cisco SPA 525G2"			},
-	{ SKINNY_DEVICETYPE_NOTDEFINED, 		{ {0,0}, 	SCCP_NONE, 	0  }, 	"Not Defined"				},
-	/* *INDENT-ON* */
-};
-
-#define SKINNY_DEVICE_RS_FAILED 			0
-#define SKINNY_DEVICE_RS_TIMEOUT			1
-#define SKINNY_DEVICE_RS_NONE				2
-#define SKINNY_DEVICE_RS_TOKEN				3
-#define SKINNY_DEVICE_RS_PROGRESS			4
-#define SKINNY_DEVICE_RS_OK 				5
-
-/*!
- * \brief Skinny Device RS Structure
- */
-static const struct skinny_device_registrationstate {
-	uint8_t device_registrationstate;
-	const char *const text;
-} skinny_device_registrationstates[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_DEVICE_RS_FAILED,			"Failed"	},
-	{SKINNY_DEVICE_RS_TIMEOUT,			"Time Out"	},
-	{SKINNY_DEVICE_RS_NONE,				"None"		},
-	{SKINNY_DEVICE_RS_TOKEN,			"Token"		},
-	{SKINNY_DEVICE_RS_PROGRESS,			"Progress"	},
-	{SKINNY_DEVICE_RS_OK,				"OK"		}, 
-	/* *INDENT-ON* */
-};
-
-/*!
- * \brief SCCP Device State (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_DEVICESTATE_ONHOOK 			= 0,
-	SCCP_DEVICESTATE_OFFHOOK 			= 1,
-	SCCP_DEVICESTATE_UNAVAILABLE 			= 2,
-	SCCP_DEVICESTATE_DND 				= 3,
-	SCCP_DEVICESTATE_FWDALL 			= 4
-	/* *INDENT-ON* */
-} sccp_devicestate_t;												/*!< Internal Chan_SCCP Device State */
-
-/*!
- * \brief Skinny Device State Structure
- */
-static const struct skinny_device_state {
-	sccp_devicestate_t device_state;
-	const char *const text;
-} skinny_device_states[] = {
-	/* *INDENT-OFF* */
-	{SCCP_DEVICESTATE_ONHOOK,			"On Hook"	},
-	{SCCP_DEVICESTATE_OFFHOOK,			"Off Hook"	},
-	{SCCP_DEVICESTATE_UNAVAILABLE,			"Unavailable"	},
-	{SCCP_DEVICESTATE_DND,				"Do Not Disturb"}, 
-	{SCCP_DEVICESTATE_FWDALL,			"Forward All"	},
-	/* *INDENT-ON* */
-};
-
-/* stimulus / same as SKINNY_BUTTONTYPE */
-/*! \todo choose one */
-#define SKINNY_STIMULUS_UNUSED				0x00
-#define SKINNY_STIMULUS_LASTNUMBERREDIAL		0x1
-#define SKINNY_STIMULUS_SPEEDDIAL			0x2
-#define SKINNY_STIMULUS_HOLD				0x3
-#define SKINNY_STIMULUS_TRANSFER			0x4
-#define SKINNY_STIMULUS_FORWARDALL			0x5
-#define SKINNY_STIMULUS_FORWARDBUSY 			0x6
-#define SKINNY_STIMULUS_FORWARDNOANSWER 		0x7
-#define SKINNY_STIMULUS_DISPLAY 			0x8
-#define SKINNY_STIMULUS_LINE				0x9
-#define SKINNY_STIMULUS_T120CHAT			0xA
-#define SKINNY_STIMULUS_T120WHITEBOARD			0xB
-#define SKINNY_STIMULUS_T120APPLICATIONSHARING		0xC
-#define SKINNY_STIMULUS_T120FILETRANSFER		0xD
-#define SKINNY_STIMULUS_VIDEO				0xE
-#define SKINNY_STIMULUS_VOICEMAIL			0xF
-#define SKINNY_STIMULUS_AUTOANSWERRELEASE		0x10
-#define SKINNY_STIMULUS_AUTOANSWER			0x11
-#define SKINNY_STIMULUS_SELECT				0x12
-#define SKINNY_STIMULUS_DEV_FEATURE			0x13
-#define SKINNY_STIMULUS_SERVICEURL			0x14
-#define SKINNY_STIMULUS_BLF				0x15
-#define SKINNY_STIMULUS_MALICIOUSCALL			0x1B
-#define SKINNY_STIMULUS_GENERICAPPB1			0x21
-#define SKINNY_STIMULUS_GENERICAPPB2			0x22
-#define SKINNY_STIMULUS_GENERICAPPB3			0x23
-#define SKINNY_STIMULUS_GENERICAPPB4			0x24
-#define SKINNY_STIMULUS_GENERICAPPB5			0x25
-#define SKINNY_STIMULUS_MULTIBLINKFEATURE		0x26
-#define SKINNY_STIMULUS_MEETMECONFERENCE		0x7B
-#define SKINNY_STIMULUS_CONFERENCE			0x7D
-#define SKINNY_STIMULUS_CALLPARK			0x7E
-#define SKINNY_STIMULUS_CALLPICKUP			0x7F
-#define SKINNY_STIMULUS_GROUPCALLPICKUP 		0x80
-#define SKINNY_STIMULUS_MOBILITY			0x81
-#define SKINNY_STIMULUS_TEST6				0x82
-#define SKINNY_STIMULUS_TEST8				0x85
-#define SKINNY_STIMULUS_TEST9				0x86
-#define SKINNY_STIMULUS_TESTA				0x87
-#define SKINNY_STIMULUS_TESTB				0x88
-#define SKINNY_STIMULUS_TESTC				0x89
-#define SKINNY_STIMULUS_TESTD				0x8A
-#define SKINNY_STIMULUS_TEST7				0x8B
-#define SKINNY_STIMULUS_TESTE				0xC0
-#define SKINNY_STIMULUS_TESTF				0xC1
-#define SKINNY_STIMULUS_TESTI				0xC4
-#define SKINNY_STIMULUS_MESSAGES			0xC2
-#define SKINNY_STIMULUS_DIRECTORY			0xC3
-#define SKINNY_STIMULUS_APPLICATION			0xC5
-#define SKINNY_STIMULUS_HEADSET				0xC6
-#define SKINNY_STIMULUS_KEYPAD				0xF0
-#define SKINNY_STIMULUS_AEC				0xFd
-#define SKINNY_STIMULUS_UNDEFINED 			0xFF
-
-/*!
- * \brief Skinny Stimulus Structure
- */
-static const struct skinny_stimulus {
-	uint8_t stimulus;
-	const char *const text;
-} skinny_stimuly[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_STIMULUS_UNUSED, 			"Unused"			},
-	{SKINNY_STIMULUS_LASTNUMBERREDIAL, 		"Last Number Redial"		},
-	{SKINNY_STIMULUS_SPEEDDIAL, 			"SpeedDial"			},
-	{SKINNY_STIMULUS_HOLD, 				"Hold"				},
-	{SKINNY_STIMULUS_TRANSFER, 			"Transfer"			},
-	{SKINNY_STIMULUS_FORWARDALL, 			"Forward All"			},
-	{SKINNY_STIMULUS_FORWARDBUSY, 			"Forward Busy"			},
-	{SKINNY_STIMULUS_FORWARDNOANSWER,		"Forward No Answer"		},
-	{SKINNY_STIMULUS_DISPLAY,			"Display"			},
-	{SKINNY_STIMULUS_LINE,				"Line"				},
-	{SKINNY_STIMULUS_T120CHAT,			"T120 Chat"			},
-	{SKINNY_STIMULUS_T120WHITEBOARD,		"T120 Whiteboard"		},
-	{SKINNY_STIMULUS_T120APPLICATIONSHARING,	"T120 Application Sharing"	},
-	{SKINNY_STIMULUS_T120FILETRANSFER,		"T120 File Transfer"		},
-	{SKINNY_STIMULUS_VIDEO,				"Video"				},
-	{SKINNY_STIMULUS_VOICEMAIL,			"VoiceMail"			},
-	{SKINNY_STIMULUS_AUTOANSWERRELEASE,		"Auto Answer Release"		},
-	{SKINNY_STIMULUS_AUTOANSWER,			"Auto Answer"			},
-	{SKINNY_STIMULUS_SELECT,			"Select"			},
-	{SKINNY_STIMULUS_DEV_FEATURE,			"DevFeature"			},
-	{SKINNY_STIMULUS_SERVICEURL,			"ServiceURL"			},
-	{SKINNY_STIMULUS_BLF,				"Busy Lamp Field"		},
-	{SKINNY_STIMULUS_MALICIOUSCALL,			"Malicious Call"		},
-	{SKINNY_STIMULUS_GENERICAPPB1,			"Generic App B1"		},
-	{SKINNY_STIMULUS_GENERICAPPB2,			"Generic App B2"		},
-	{SKINNY_STIMULUS_GENERICAPPB3,			"Generic App B3"		},
-	{SKINNY_STIMULUS_GENERICAPPB4,			"Generic App B4"		},
-	{SKINNY_STIMULUS_GENERICAPPB5,			"Generic App B5"		},
-	{SKINNY_STIMULUS_MULTIBLINKFEATURE,		"Monitor/Multiblink"		},
-	{SKINNY_STIMULUS_MEETMECONFERENCE,		"Meet Me Conference"		},
-	{SKINNY_STIMULUS_CONFERENCE,			"Conference"			},
-	{SKINNY_STIMULUS_CALLPARK,			"Call Park"			},
-	{SKINNY_STIMULUS_CALLPICKUP,			"Call Pickup"			}, 
-	{SKINNY_STIMULUS_GROUPCALLPICKUP,		"Group Call Pickup"		},
-	{SKINNY_STIMULUS_MOBILITY,			"Mobility"			},
-	{SKINNY_STIMULUS_TEST6,				"Test 6"			},
-	{SKINNY_STIMULUS_TEST8,				"Test 8"			},
-	{SKINNY_STIMULUS_TEST9,				"Test 9"			},
-	{SKINNY_STIMULUS_TESTA,				"Test A"			},
-	{SKINNY_STIMULUS_TESTB,				"Test B"			},
-	{SKINNY_STIMULUS_TESTC,				"Test C"			},
-	{SKINNY_STIMULUS_TESTD,				"Test D"			},
-	{SKINNY_STIMULUS_TEST7,				"Test 7"			},
-	{SKINNY_STIMULUS_TESTE,				"Test E"			},
-	{SKINNY_STIMULUS_TESTF,				"Test F"			},
-	{SKINNY_STIMULUS_TESTI,				"Test I"			},
-	{SKINNY_STIMULUS_MESSAGES,			"Messages"			},
-	{SKINNY_STIMULUS_DIRECTORY,			"Directory"			},
-	{SKINNY_STIMULUS_APPLICATION,			"Application"			},
-	{SKINNY_STIMULUS_HEADSET,			"Headset"			},
-	{SKINNY_STIMULUS_KEYPAD,			"Keypad"			},
-	{SKINNY_STIMULUS_AEC,				"Aec"				},
-	{SKINNY_STIMULUS_UNDEFINED, 			"Undefined"			},
-	/* *INDENT-ON* */
-
-};
-
-/* stimulus / same as SKINNY_BUTTONTYPE */
-/*! \todo choose one */
-#define SKINNY_BUTTONTYPE_UNUSED			0x00
-#define SKINNY_BUTTONTYPE_LASTNUMBERREDIAL		0x01
-#define SKINNY_BUTTONTYPE_SPEEDDIAL 			0x02
-#define SKINNY_BUTTONTYPE_HOLD				0x03
-#define SKINNY_BUTTONTYPE_TRANSFER			0x04
-#define SKINNY_BUTTONTYPE_FORWARDALL			0x05
-#define SKINNY_BUTTONTYPE_FORWARDBUSY			0x06
-#define SKINNY_BUTTONTYPE_FORWARDNOANSWER		0x07
-#define SKINNY_BUTTONTYPE_DISPLAY			0x08
-#define SKINNY_BUTTONTYPE_LINE				0x09
-#define SKINNY_BUTTONTYPE_T120CHAT			0x0a
-#define SKINNY_BUTTONTYPE_T120WHITEBOARD		0x0b
-#define SKINNY_BUTTONTYPE_T120APPLICATIONSHARING	0x0c
-#define SKINNY_BUTTONTYPE_T120FILETRANSFER		0x0d
-#define SKINNY_BUTTONTYPE_VIDEO 			0x0e
-#define SKINNY_BUTTONTYPE_VOICEMAIL 			0x0f
-#define SKINNY_BUTTONTYPE_ANSWERRELEASE 		0x10
-#define SKINNY_BUTTONTYPE_AUTOANSWER			0x11
-#define SKINNY_BUTTONTYPE_FEATURE        		0x13
-#define SKINNY_BUTTONTYPE_SERVICEURL			0x14
-#define SKINNY_BUTTONTYPE_BLFSPEEDDIAL			0x15
-#define SKINNY_BUTTONTYPE_GENERICAPPB1			0x21
-#define SKINNY_BUTTONTYPE_GENERICAPPB2			0x22
-#define SKINNY_BUTTONTYPE_GENERICAPPB3			0x23
-#define SKINNY_BUTTONTYPE_GENERICAPPB4			0x24
-#define SKINNY_BUTTONTYPE_GENERICAPPB5			0x25
-#define SKINNY_BUTTONTYPE_MULTIBLINKFEATURE		0x26
-
-#define SKINNY_BUTTONTYPE_MEETMECONFERENCE		0x7B
-#define SKINNY_BUTTONTYPE_CONFERENCE			0x7D
-#define SKINNY_BUTTONTYPE_CALLPARK			0x7E
-#define SKINNY_BUTTONTYPE_CALLPICKUP			0x7F
-#define SKINNY_BUTTONTYPE_GROUPCALLPICKUP		0x80
-
-#define SKINNY_BUTTONTYPE_MOBILITY			0x81
-#define SKINNY_BUTTONTYPE_TEST6				0x82
-#define SKINNY_BUTTONTYPE_TEST8				0x85
-#define SKINNY_BUTTONTYPE_TEST9				0x86
-#define SKINNY_BUTTONTYPE_TESTA				0x87
-#define SKINNY_BUTTONTYPE_TESTB				0x88
-#define SKINNY_BUTTONTYPE_TESTC				0x89
-#define SKINNY_BUTTONTYPE_TESTD				0x8A
-#define SKINNY_BUTTONTYPE_TEST7				0x8B
-
-#define SKINNY_BUTTONTYPE_TESTE				0xC0
-#define SKINNY_BUTTONTYPE_TESTF				0xC1
-#define SKINNY_BUTTONTYPE_TESTI				0xC4
-#define SKINNY_BUTTONTYPE_MESSAGES			0xC2
-#define SKINNY_BUTTONTYPE_DIRECTORY			0xC3
-#define SKINNY_BUTTONTYPE_APPLICATION			0xC5
-#define SKINNY_BUTTONTYPE_HEADSET			0xC6
-
-#define SKINNY_BUTTONTYPE_KEYPAD			0xF0
-#define SKINNY_BUTTONTYPE_AEC				0xFd
-#define SKINNY_BUTTONTYPE_UNDEFINED 			0xFF
-
-/* this is not a skinny button type. Used for speeddial/line buttons */
 #define SCCP_BUTTONTYPE_MULTI				0xF1
 #define SCCP_BUTTONTYPE_LINE				0xF2
 #define SCCP_BUTTONTYPE_SPEEDDIAL			0xF3
 #define SCCP_BUTTONTYPE_HINT				0xF4
 
-/*!
- * \brief Skinny ButtonType Structure
- */
-static const struct skinny_buttontype {
-	uint8_t buttontype;
-	const char *const text;
-} skinny_buttontypes[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_BUTTONTYPE_UNUSED, 			"Unused"			},
-	{SKINNY_BUTTONTYPE_LASTNUMBERREDIAL, 		"Last Number Redial"		},
-	{SKINNY_BUTTONTYPE_SPEEDDIAL, 			"SpeedDial"			},
-	{SKINNY_BUTTONTYPE_HOLD, 			"Hold"				},
-	{SKINNY_BUTTONTYPE_TRANSFER, 			"Transfer"			},
-	{SKINNY_BUTTONTYPE_FORWARDALL, 			"Forward All"			},
-	{SKINNY_BUTTONTYPE_FORWARDBUSY, 		"Forward Busy"			},
-	{SKINNY_BUTTONTYPE_FORWARDNOANSWER, 		"Forward No Answer"		},
-	{SKINNY_BUTTONTYPE_DISPLAY, 			"Display"			},
-	{SKINNY_BUTTONTYPE_LINE, 			"Line"				},
-	{SKINNY_BUTTONTYPE_T120CHAT, 			"T120 Chat"			},
-	{SKINNY_BUTTONTYPE_T120WHITEBOARD, 		"T120 Whiteboard"		},
-	{SKINNY_BUTTONTYPE_T120APPLICATIONSHARING, 	"T120 Application Sharing"	},
-	{SKINNY_BUTTONTYPE_T120FILETRANSFER, 		"T120 File Transfer"		},
-	{SKINNY_BUTTONTYPE_VIDEO, 			"Video"				},
-	{SKINNY_BUTTONTYPE_VOICEMAIL, 			"Voicemail"			},
-	{SKINNY_BUTTONTYPE_ANSWERRELEASE, 		"Answer Release"		},
-	{SKINNY_BUTTONTYPE_AUTOANSWER, 			"Auto Answer"			},
-	{SKINNY_BUTTONTYPE_GENERICAPPB1, 		"Generic App B1"		},
-	{SKINNY_BUTTONTYPE_GENERICAPPB2, 		"Generic App B2"		},
-	{SKINNY_BUTTONTYPE_GENERICAPPB3, 		"Generic App B3"		},
-	{SKINNY_BUTTONTYPE_GENERICAPPB4, 		"Generic App B4"		},
-	{SKINNY_BUTTONTYPE_GENERICAPPB5, 		"Generic App B5"		},
-	{SKINNY_BUTTONTYPE_MULTIBLINKFEATURE,		"Monitor/Multiblink"		},
-	{SKINNY_BUTTONTYPE_MEETMECONFERENCE, 		"Meet Me Conference"		},
-	{SKINNY_BUTTONTYPE_CONFERENCE, 			"Conference"			},
-	{SKINNY_BUTTONTYPE_CALLPARK, 			"Call Park"			},
-	{SKINNY_BUTTONTYPE_CALLPICKUP, 			"Call Pickup"			},
-	{SKINNY_BUTTONTYPE_GROUPCALLPICKUP, 		"Group Call Pickup"		},
-	{SKINNY_BUTTONTYPE_MOBILITY,			"Mobility"			},
-	{SKINNY_BUTTONTYPE_TEST6,			"Test 6"			},
-	{SKINNY_BUTTONTYPE_TEST8,			"Test 8"			},
-	{SKINNY_BUTTONTYPE_TEST9,			"Test 9"			},
-	{SKINNY_BUTTONTYPE_TESTA,			"Test A"			},
-	{SKINNY_BUTTONTYPE_TESTB,			"Test B"			},
-	{SKINNY_BUTTONTYPE_TESTC,			"Test C"			},
-	{SKINNY_BUTTONTYPE_TESTD,			"Test D"			},
-	{SKINNY_BUTTONTYPE_TEST7,			"Test 7"			},
-	{SKINNY_BUTTONTYPE_TESTE,			"Test E"			},
-	{SKINNY_BUTTONTYPE_TESTF,			"Test F"			},
-	{SKINNY_BUTTONTYPE_TESTI,			"Test I"			},
-	{SKINNY_BUTTONTYPE_MESSAGES,			"Messages"			},
-	{SKINNY_BUTTONTYPE_DIRECTORY,			"Directory"			},
-	{SKINNY_BUTTONTYPE_APPLICATION,			"Application"			},
-	{SKINNY_BUTTONTYPE_HEADSET,			"Headset"			},
-	{SKINNY_BUTTONTYPE_KEYPAD,			"Keypad"			},
-	{SKINNY_BUTTONTYPE_AEC,				"Aec"				},
-	{SKINNY_BUTTONTYPE_UNDEFINED, 			"Undefined"			},
-	/* *INDENT-ON* */
-};
-
 /* unregister */
 #define SKINNY_UNREGISTERSTATUS_OK			0
 #define SKINNY_UNREGISTERSTATUS_ERROR			1
 #define SKINNY_UNREGISTERSTATUS_NAK 			2							/*!< we have an active channel */
-
-/*!
- * \brief Skinny Lamp Mode (ENUM) 
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_LAMP_OFF					= 1,							/*!< Lamp Off, 0% Duty */
-	SKINNY_LAMP_ON 					= 2,							/*!< Lamp On, 100% Duty */
-	SKINNY_LAMP_WINK 				= 3,							/*!< Lamp slow blink, ~90% Duty */
-	SKINNY_LAMP_FLASH 				= 4,							/*!< Lamp very fast blink, ~70% Duty */
-	SKINNY_LAMP_BLINK 				= 5							/*!< Lamp slow blink, ~50% Duty */
-	/* *INDENT-ON* */
-} sccp_lampMode_t;
-
-/*!
- * \brief Skinny Lamp Structure
- */
-static const struct skinny_lampmode {
-	sccp_lampMode_t lampmode;
-	const char *const text;
-} skinny_lampmodes[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_LAMP_OFF, 				"Lamp Off"},
-	{SKINNY_LAMP_ON, 				"Lamp On"},
-	{SKINNY_LAMP_WINK, 				"Lamp Wink"},
-	{SKINNY_LAMP_FLASH, 				"Lamp Flash"}, 
-	{SKINNY_LAMP_BLINK, 				"Lamp Blink"},
-	/* *INDENT-ON* */
-};
 
 /* media silence suppression */
 #define SKINNY_MEDIA_SILENCESUPPRESSION_OFF 		0
@@ -1137,36 +95,6 @@ static const struct skinny_lampmode {
 /* statistic processing */
 #define SKINNY_STATSPROCESSING_CLEAR			0
 #define SKINNY_STATSPROCESSING_DONOTCLEAR		1
-
-/* ringer types */
-#define SKINNY_STATION_RINGOFF				1
-#define SKINNY_STATION_INSIDERING			2
-#define SKINNY_STATION_OUTSIDERING			3
-#define SKINNY_STATION_FEATURERING			4
-#define SKINNY_STATION_SILENTRING			5
-#define SKINNY_STATION_URGENTRING			6
-#define SKINNY_STATION_BELLCORE_1 			7
-#define SKINNY_STATION_BELLCORE_2			8
-#define SKINNY_STATION_BELLCORE_3			9
-#define SKINNY_STATION_BELLCORE_4			10
-#define SKINNY_STATION_BELLCORE_5			11
-
-/*!
- * \brief Skinny Station Structure
- */
-static const struct skinny_station {
-	uint8_t station;
-	const char *const text;
-} skinny_stations[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_STATION_RINGOFF,			"Ring Off"},
-	{SKINNY_STATION_INSIDERING, 			"Inside"},
-	{SKINNY_STATION_OUTSIDERING, 			"Outside"},
-	{SKINNY_STATION_FEATURERING, 			"Feature"},
-	{SKINNY_STATION_SILENTRING, 			"Silent"}, 
-	{SKINNY_STATION_URGENTRING, 			"Urgent"},
-	/* *INDENT-ON* */
-};
 
 /* speaker status */
 #define SKINNY_STATIONSPEAKER_ON			1
@@ -1299,65 +227,6 @@ static const struct skinny_codec {
 	{SKINNY_CODEC_DATA_64K, 	"data",		"data/64k",	"Data 64k", 			SKINNY_CODEC_TYPE_DATA,		NULL,		1000,	1,	0},	//payload unknown
 	{SKINNY_CODEC_DATA_56K, 	"data",		"data/56k",	"Data 56k", 			SKINNY_CODEC_TYPE_DATA,		NULL,		1000,	1,	0},	//payload unknown
 	{SKINNY_CODEC_AAC, 		"aac",		"aac",		"AAC", 				SKINNY_CODEC_TYPE_DATA,		NULL,		1000,	1,	0},	//payload unknown
-	/* *INDENT-ON* */
-};
-
-/* device dtmfmode */
-#define SCCP_DTMFMODE_INBAND				0
-#define SCCP_DTMFMODE_OUTOFBAND 			1
-
-/*!
- * \brief SCCP AutoAnswer Mode (ENUM)
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_AUTOANSWER_NONE 				= 0,							/*!< 1 way audio - MIC OFF */
-	SCCP_AUTOANSWER_1W 				= 1,							/*!< 1 way audio - MIC OFF */
-	SCCP_AUTOANSWER_2W 				= 2,							/*!< 2 way audio - MIC ON */
-	/* *INDENT-ON* */
-} sccp_autoanswer_type_t;
-
-#define SCCP_DNDMODE_OFF				0							/*!< dnd not permitted on the device */
-#define SCCP_DNDMODE_REJECT				1							/*!< busy signal */
-#define SCCP_DNDMODE_SILENT				2							/*!< ringing state with no ringer tone */
-#define SCCP_DNDMODE_USERDEFINED			3							/*!< the user defines the mode by pressing the softkey */
-
-/*!
- * \brief Skinny Transmit or Receive flag
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SKINNY_STATION_RECEIVE 				= (1 << 0),
-	SKINNY_STATION_TRANSMIT 			= (1 << 1),
-	/* *INDENT-ON* */
-} skinny_transmitOrReceive_t;
-
-/*!
- * \brief SCCP DNDMode Structure
- */
-static const struct skinny_transmitOrReceiveModes {
-	uint8_t mode;
-	const char *const text;
-} skinny_transmitOrReceiveModes[] = {
-	/* *INDENT-OFF* */
-	{SKINNY_STATION_RECEIVE, 				"Receive only"},
-	{SKINNY_STATION_TRANSMIT, 				"Transmit only"},
-	{SKINNY_STATION_TRANSMIT | SKINNY_STATION_RECEIVE, 	"Transmit and Receive"}, 
-	/* *INDENT-ON* */
-};
-
-/*!
- * \brief SCCP DNDMode Structure
- */
-static const struct sccp_dndmode {
-	uint8_t dndmode;
-	const char *const text;
-} sccp_dndmodes[] = {
-	/* *INDENT-OFF* */
-	{SCCP_DNDMODE_OFF, 				"Off"},
-	{SCCP_DNDMODE_REJECT, 				"Reject"},
-	{SCCP_DNDMODE_SILENT, 				"Silent"}, 
-	{SCCP_DNDMODE_USERDEFINED, 			"User Defined"},
 	/* *INDENT-ON* */
 };
 
@@ -1579,44 +448,6 @@ typedef enum {
 	SPCPRegisterTokenReject 			= 0x8101,
 	/* *INDENT-ON* */
 } sccp_message_t;												/*!< SCCP Message Types Enum */
-
-#define SCCP_ACCESSORY_NONE				0x00							/*!< Added for compatibility with old phones -FS */
-#define SCCP_ACCESSORY_HEADSET				0x01
-#define SCCP_ACCESSORY_HANDSET				0x02
-#define SCCP_ACCESSORY_SPEAKER				0x03
-
-/*!
- * \brief SCCP Accessory Structure
- */
-static const struct sccp_accessory {
-	uint8_t accessory;
-	const char *const text;
-} sccp_accessories[] = {
-	/* *INDENT-OFF* */
-	{SCCP_ACCESSORY_NONE, 				"None"},
-	{SCCP_ACCESSORY_HEADSET, 			"Headset"},
-	{SCCP_ACCESSORY_HANDSET, 			"Handset"}, 
-	{SCCP_ACCESSORY_SPEAKER, 			"Speaker"},
-	/* *INDENT-ON* */
-};
-
-#define SCCP_ACCESSORYSTATE_NONE			0x00							/*!< Added for compatibility with old phones -FS */
-#define SCCP_ACCESSORYSTATE_OFFHOOK			0x01
-#define SCCP_ACCESSORYSTATE_ONHOOK			0x02
-
-/*!
- * \brief SCCP Accessory State Structure
- */
-static const struct sccp_accessory_state {
-	uint8_t accessory_state;
-	const char *const text;
-} sccp_accessory_states[] = {
-	/* *INDENT-OFF* */
-	{SCCP_ACCESSORYSTATE_NONE, 			"None"},
-	{SCCP_ACCESSORYSTATE_ONHOOK, 			"On Hook"}, 
-	{SCCP_ACCESSORYSTATE_OFFHOOK, 			"Off Hook"},
-	/* *INDENT-ON* */
-};
 
 /*=====================================================================================================*/
 
@@ -2040,7 +871,7 @@ typedef union {
 	struct {
 		uint32_t lel_instance;										/*!< Instance */
 		uint32_t lel_type;										/*!< always 0x15 */
-		uint32_t lel_status;										/*!< status */
+		uint32_t lel_status;										/*!< skinny_busylampfield_state_t */
 		char DisplayName[StationMaxNameSize];								/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
 
@@ -3683,169 +2514,168 @@ typedef struct {
  */
 #define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
 static const struct sccp_messagetype {
-	sccp_message_t type;
 	const char *const text;
 	const size_t size;
 } sccp_messagetypes[] = {
 	/* *INDENT-OFF* */
-	{KeepAliveMessage, 				"Keep Alive Message", 				offsize(sccp_data_t, StationKeepAliveMessage)},
-	{RegisterMessage, 				"Register Message", 				offsize(sccp_data_t, RegisterMessage)},
-	{IpPortMessage, 				"Ip-Port Message", 				offsize(sccp_data_t, IpPortMessage)},
-	{KeypadButtonMessage, 				"Keypad Button Message", 			offsize(sccp_data_t, KeypadButtonMessage)},
-	{EnblocCallMessage, 				"Enbloc Call Message", 				offsize(sccp_data_t, EnblocCallMessage)},
-	{StimulusMessage, 				"Stimulus Message", 				offsize(sccp_data_t, StimulusMessage)},
-	{OffHookMessage, 				"Off-Hook Message", 				offsize(sccp_data_t, OffHookMessage)},
-	{OnHookMessage, 				"On-Hook Message", 				offsize(sccp_data_t, OnHookMessage)},
-	{HookFlashMessage, 				"Hook-Flash Message", 				offsize(sccp_data_t, HookFlashMessage)},
-	{ForwardStatReqMessage, 			"Forward State Request", 			offsize(sccp_data_t, ForwardStatReqMessage)},
-	{SpeedDialStatReqMessage, 			"Speed-Dial State Request", 			offsize(sccp_data_t, SpeedDialStatReqMessage)},
-	{LineStatReqMessage, 				"Line State Request", 				offsize(sccp_data_t, LineStatReqMessage)},
-	{ConfigStatReqMessage, 				"Config State Request", 			offsize(sccp_data_t, ConfigStatReqMessage)},
-	{TimeDateReqMessage, 				"Time Date Request", 				offsize(sccp_data_t, TimeDateReqMessage)},
-	{ButtonTemplateReqMessage, 			"Button Template Request", 			offsize(sccp_data_t, ButtonTemplateReqMessage)},
-	{VersionReqMessage, 				"Version Request", 				offsize(sccp_data_t, VersionReqMessage)},
-	{CapabilitiesResMessage, 			"Capabilities Response Message", 		offsize(sccp_data_t, CapabilitiesResMessage)},
-	{MediaPortListMessage, 				"Media Port List Message", 			offsize(sccp_data_t, MediaPortListMessage)},
-	{ServerReqMessage, 				"Server Request", 				offsize(sccp_data_t, ServerReqMessage)},
-	{AlarmMessage, 					"Alarm Message", 				offsize(sccp_data_t, AlarmMessage)},
-	{MulticastMediaReceptionAck, 			"Multicast Media Reception Acknowledge", 	offsize(sccp_data_t, MulticastMediaReceptionAck)},
-	{OpenReceiveChannelAck, 			"Open Receive Channel Acknowledge", 		offsize(sccp_data_t, OpenReceiveChannelAck)},
-	{ConnectionStatisticsRes, 			"Connection Statistics Response", 		offsize(sccp_data_t, ConnectionStatisticsRes)},
-	{OffHookWithCgpnMessage, 			"Off-Hook With Cgpn Message", 			offsize(sccp_data_t, OffHookWithCgpnMessage)},
-	{SoftKeySetReqMessage, 				"SoftKey Set Request", 				offsize(sccp_data_t, SoftKeySetReqMessage)},
-	{SoftKeyEventMessage, 				"SoftKey Event Message", 			offsize(sccp_data_t, SoftKeyEventMessage)},
-	{UnregisterMessage, 				"Unregister Message", 				offsize(sccp_data_t, UnregisterMessage)},
-	{SoftKeyTemplateReqMessage, 			"SoftKey Template Request", 			offsize(sccp_data_t, SoftKeyTemplateReqMessage)},
-	{RegisterTokenRequest, 				"Register Token Request", 			offsize(sccp_data_t, RegisterTokenRequest)},
-	{MediaTransmissionFailure, 			"Media Transmission Failure", 			offsize(sccp_data_t, MediaTransmissionFailure)}, 
-	{HeadsetStatusMessage, 				"Headset Status Message", 			offsize(sccp_data_t, HeadsetStatusMessage)},
-	{MediaResourceNotification, 			"Media Resource Notification", 			offsize(sccp_data_t, MediaResourceNotification)},
-	{RegisterAvailableLinesMessage, 		"Register Available Lines Message", 		offsize(sccp_data_t, RegisterAvailableLinesMessage)},
-	{DeviceToUserDataMessage, 			"Device To User Data Message", 			offsize(sccp_data_t, DeviceToUserDataMessage)},
-	{DeviceToUserDataResponseMessage, 		"Device To User Data Response", 		offsize(sccp_data_t, DeviceToUserDataResponseMessage)},
-	{UpdateCapabilitiesMessage, 			"Update Capabilities Message", 			offsize(sccp_data_t, UpdateCapabilitiesMessage)},
-	{OpenMultiMediaReceiveChannelAckMessage,	"Open MultiMedia Receive Channel Acknowledge", 	offsize(sccp_data_t, OpenMultiMediaReceiveChannelAckMessage)},
-	{ClearConferenceMessage, 			"Clear Conference Message", 			offsize(sccp_data_t, ClearConferenceMessage)},
-	{ServiceURLStatReqMessage, 			"Service URL State Request", 			offsize(sccp_data_t, ServiceURLStatReqMessage)},
-	{FeatureStatReqMessage, 			"Feature State Request", 			offsize(sccp_data_t, FeatureStatReqMessage)},
-	{CreateConferenceResMessage, 			"Create Conference Response", 			offsize(sccp_data_t, CreateConferenceResMessage)},
-	{DeleteConferenceResMessage, 			"Delete Conference Response", 			offsize(sccp_data_t, DeleteConferenceResMessage)},
-	{ModifyConferenceResMessage, 			"Modify Conference Response", 			offsize(sccp_data_t, ModifyConferenceResMessage)},
-	{AddParticipantResMessage, 			"Add Participant Response", 			offsize(sccp_data_t, AddParticipantResMessage)},
-	{AuditConferenceResMessage, 			"Audit Conference Response", 			offsize(sccp_data_t, AuditConferenceResMessage)},
-	{AuditParticipantResMessage, 			"Audit Participant Response", 			offsize(sccp_data_t, AuditParticipantResMessage)},
-	{DeviceToUserDataVersion1Message, 		"Device To User Data Version1 Message", 	offsize(sccp_data_t, DeviceToUserDataVersion1Message)},
-	{DeviceToUserDataResponseVersion1Message, 	"Device To User Data Version1 Response", 	offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message)},
-	{DialedPhoneBookMessage, 			"Dialed PhoneBook Message", 			offsize(sccp_data_t, DialedPhoneBookMessage)},
-	{AccessoryStatusMessage, 			"Accessory Status Message", 			offsize(sccp_data_t, AccessoryStatusMessage)},
-	{RegisterAckMessage, 				"Register Acknowledge", 			offsize(sccp_data_t, RegisterAckMessage)},
-	{StartToneMessage, 				"Start Tone Message", 				offsize(sccp_data_t, StartToneMessage)},
-	{StopToneMessage, 				"Stop Tone Message", 				offsize(sccp_data_t, StopToneMessage)},
-	{SetRingerMessage, 				"Set Ringer Message", 				offsize(sccp_data_t, SetRingerMessage)},
-	{SetLampMessage, 				"Set Lamp Message", 				offsize(sccp_data_t, SetLampMessage)},
-	{SetHkFDetectMessage, 				"Set HkF Detect Message", 			offsize(sccp_data_t, SetHkFDetectMessage)},
-	{SetSpeakerModeMessage, 			"Set Speaker Mode Message", 			offsize(sccp_data_t, SetSpeakerModeMessage)},
-	{SetMicroModeMessage, 				"Set Micro Mode Message", 			offsize(sccp_data_t, SetMicroModeMessage)},
-	{StartMediaTransmission, 			"Start Media Transmission", 			offsize(sccp_data_t, StartMediaTransmission)},
-	{StopMediaTransmission, 			"Stop Media Transmission", 			offsize(sccp_data_t, StopMediaTransmission)},
-	{StartMediaReception, 				"Start Media Reception", 			offsize(sccp_data_t, StartMediaReception)},
-	{StopMediaReception, 				"Stop Media Reception", 			offsize(sccp_data_t, StopMediaReception)},
-	{CallInfoMessage, 				"Call Information Message", 			offsize(sccp_data_t, CallInfoMessage)},
-	{ForwardStatMessage, 				"Forward State Message", 			offsize(sccp_data_t, ForwardStatMessage)},
-	{SpeedDialStatMessage, 				"SpeedDial State Message", 			offsize(sccp_data_t, SpeedDialStatMessage)},
-	{LineStatMessage, 				"Line State Message", 				offsize(sccp_data_t, LineStatMessage)},
-	{ConfigStatMessage, 				"Config State Message", 			offsize(sccp_data_t, ConfigStatMessage)},
-	{DefineTimeDate, 				"Define Time Date", 				offsize(sccp_data_t, DefineTimeDate)},
-	{StartSessionTransmission, 			"Start Session Transmission", 			offsize(sccp_data_t, StartSessionTransmission)},
-	{StopSessionTransmission, 			"Stop Session Transmission", 			offsize(sccp_data_t, StopSessionTransmission)},
-	{ButtonTemplateMessage, 			"Button Template Message", 			offsize(sccp_data_t, ButtonTemplateMessage)},
-	{ButtonTemplateMessageSingle, 			"Button Template Message Single", 		offsize(sccp_data_t, ButtonTemplateMessageSingle)},
-	{VersionMessage, 				"Version Message", 				offsize(sccp_data_t, VersionMessage)},
-	{DisplayTextMessage, 				"Display Text Message", 			offsize(sccp_data_t, DisplayTextMessage)},
-	{ClearDisplay, 					"Clear Display", 				offsize(sccp_data_t, ClearDisplay)},
-	{CapabilitiesReqMessage, 			"Capabilities Request", 			offsize(sccp_data_t, CapabilitiesReqMessage)},
-	{EnunciatorCommandMessage, 			"Enunciator Command Message", 			offsize(sccp_data_t, EnunciatorCommandMessage)},
-	{RegisterRejectMessage, 			"Register Reject Message", 			offsize(sccp_data_t, RegisterRejectMessage)},
-	{ServerResMessage, 				"Server Response", 				offsize(sccp_data_t, ServerResMessage)},
-	{Reset, 					"Reset", 					offsize(sccp_data_t, Reset)},
-	{KeepAliveAckMessage, 				"Keep Alive Acknowledge", 			offsize(sccp_data_t, KeepAliveAckMessage)},
-	{StartMulticastMediaReception, 			"Start MulticastMedia Reception", 		offsize(sccp_data_t, StartMulticastMediaReception)},
-	{StartMulticastMediaTransmission, 		"Start MulticastMedia Transmission", 		offsize(sccp_data_t, StartMulticastMediaTransmission)},
-	{StopMulticastMediaReception, 			"Stop MulticastMedia Reception", 		offsize(sccp_data_t, StopMulticastMediaReception)},
-	{StopMulticastMediaTransmission, 		"Stop MulticastMedia Transmission", 		offsize(sccp_data_t, StopMulticastMediaTransmission)},
-	{OpenReceiveChannel, 				"Open Receive Channel", 			offsize(sccp_data_t, OpenReceiveChannel)},
-	{CloseReceiveChannel, 				"Close Receive Channel", 			offsize(sccp_data_t, CloseReceiveChannel)},
-	{ConnectionStatisticsReq, 			"Connection Statistics Request", 		offsize(sccp_data_t, ConnectionStatisticsReq)},
-	{SoftKeyTemplateResMessage, 			"SoftKey Template Response", 			offsize(sccp_data_t, SoftKeyTemplateResMessage)},
-	{SoftKeySetResMessage, 				"SoftKey Set Response", 			offsize(sccp_data_t, SoftKeySetResMessage)},
-	{SelectSoftKeysMessage, 			"Select SoftKeys Message", 			offsize(sccp_data_t, SelectSoftKeysMessage)},
-	{CallStateMessage, 				"Call State Message", 				offsize(sccp_data_t, CallStateMessage)},
-	{DisplayPromptStatusMessage, 			"Display Prompt Status Message", 		offsize(sccp_data_t, DisplayPromptStatusMessage)},
-	{ClearPromptStatusMessage, 			"Clear Prompt Status Message", 			offsize(sccp_data_t, ClearPromptStatusMessage)},
-	{DisplayNotifyMessage, 				"Display Notify Message", 			offsize(sccp_data_t, DisplayNotifyMessage)},
-	{ClearNotifyMessage, 				"Clear Notify Message", 			offsize(sccp_data_t, ClearNotifyMessage)},
-	{ActivateCallPlaneMessage, 			"Activate Call Plane Message", 			offsize(sccp_data_t, ActivateCallPlaneMessage)},
-	{DeactivateCallPlaneMessage, 			"Deactivate Call Plane Message", 		offsize(sccp_data_t, DeactivateCallPlaneMessage)},
-	{UnregisterAckMessage, 				"Unregister Acknowledge", 			offsize(sccp_data_t, UnregisterAckMessage)},
-	{BackSpaceReqMessage, 				"Back Space Request", 				offsize(sccp_data_t, BackSpaceReqMessage)},
-	{RegisterTokenAck, 				"Register Token Acknowledge", 			offsize(sccp_data_t, RegisterTokenAck)},
-	{RegisterTokenReject, 				"Register Token Reject", 			offsize(sccp_data_t, RegisterTokenReject)},
-	{StartMediaFailureDetection, 			"Start Media Failure Detection", 		offsize(sccp_data_t, StartMediaFailureDetection)},
-	{DialedNumberMessage, 				"Dialed Number Message", 			offsize(sccp_data_t, DialedNumberMessage)},
-	{UserToDeviceDataMessage, 			"User To Device Data Message", 			offsize(sccp_data_t, UserToDeviceDataMessage)},
-	{FeatureStatMessage, 				"Feature State Message", 			offsize(sccp_data_t, FeatureStatMessage)},
-	{DisplayPriNotifyMessage, 			"Display Pri Notify Message", 			offsize(sccp_data_t, DisplayPriNotifyMessage)},
-	{ClearPriNotifyMessage, 			"Clear Pri Notify Message", 			offsize(sccp_data_t, ClearPriNotifyMessage)},
-	{StartAnnouncementMessage, 			"Start Announcement Message", 			offsize(sccp_data_t, StartAnnouncementMessage)},
-	{StopAnnouncementMessage, 			"Stop Announcement Message", 			offsize(sccp_data_t, StopAnnouncementMessage)},
-	{AnnouncementFinishMessage, 			"Announcement Finish Message", 			offsize(sccp_data_t, AnnouncementFinishMessage)},
-	{NotifyDtmfToneMessage, 			"Notify DTMF Tone Message", 			offsize(sccp_data_t, NotifyDtmfToneMessage)},
-	{SendDtmfToneMessage, 				"Send DTMF Tone Message", 			offsize(sccp_data_t, SendDtmfToneMessage)},
-	{SubscribeDtmfPayloadReqMessage, 		"Subscribe DTMF Payload Request", 		offsize(sccp_data_t, SubscribeDtmfPayloadReqMessage)},
-	{SubscribeDtmfPayloadResMessage, 		"Subscribe DTMF Payload Response", 		offsize(sccp_data_t, SubscribeDtmfPayloadResMessage)},
-	{SubscribeDtmfPayloadErrMessage, 		"Subscribe DTMF Payload Error Message", 	offsize(sccp_data_t, SubscribeDtmfPayloadErrMessage)},
-	{UnSubscribeDtmfPayloadReqMessage, 		"UnSubscribe DTMF Payload Request", 		offsize(sccp_data_t, UnSubscribeDtmfPayloadReqMessage)},
-	{UnSubscribeDtmfPayloadResMessage, 		"UnSubscribe DTMF Payload Response", 		offsize(sccp_data_t, UnSubscribeDtmfPayloadResMessage)},
-	{UnSubscribeDtmfPayloadErrMessage, 		"UnSubscribe DTMF Payload Error Message", 	offsize(sccp_data_t, UnSubscribeDtmfPayloadErrMessage)},
-	{ServiceURLStatMessage, 			"ServiceURL State Message", 			offsize(sccp_data_t, ServiceURLStatMessage)},
-	{CallSelectStatMessage, 			"Call Select State Message", 			offsize(sccp_data_t, CallSelectStatMessage)},
-	{OpenMultiMediaChannelMessage, 			"Open MultiMedia Channel Message", 		offsize(sccp_data_t, OpenMultiMediaChannelMessage)},
-	{StartMultiMediaTransmission, 			"Start MultiMedia Transmission", 		offsize(sccp_data_t, StartMultiMediaTransmission)},
-	{StopMultiMediaTransmission, 			"Stop MultiMedia Transmission", 		offsize(sccp_data_t, StopMultiMediaTransmission)},
-	{MiscellaneousCommandMessage, 			"Miscellaneous Command Message", 		offsize(sccp_data_t, MiscellaneousCommandMessage)},
-	{FlowControlCommandMessage, 			"Flow Control Command Message", 		offsize(sccp_data_t, FlowControlCommandMessage)},
-	{CloseMultiMediaReceiveChannel, 		"Close MultiMedia Receive Channel", 		offsize(sccp_data_t, CloseMultiMediaReceiveChannel)},
-	{CreateConferenceReqMessage, 			"Create Conference Request", 			offsize(sccp_data_t, CreateConferenceReqMessage)},
-	{DeleteConferenceReqMessage, 			"Delete Conference Request", 			offsize(sccp_data_t, DeleteConferenceReqMessage)},
-	{ModifyConferenceReqMessage, 			"Modify Conference Request", 			offsize(sccp_data_t, ModifyConferenceReqMessage)},
-	{AddParticipantReqMessage, 			"Add Participant Request", 			offsize(sccp_data_t, AddParticipantReqMessage)},
-	{DropParticipantReqMessage, 			"Drop Participant Request", 			offsize(sccp_data_t, DropParticipantReqMessage)},
-	{AuditConferenceReqMessage, 			"Audit Conference Request", 			offsize(sccp_data_t, AuditConferenceReqMessage)},
-	{AuditParticipantReqMessage, 			"Audit Participant Request", 			offsize(sccp_data_t, AuditParticipantReqMessage)},
-	{UserToDeviceDataVersion1Message, 		"User To Device Data Version1 Message", 	offsize(sccp_data_t, UserToDeviceDataVersion1Message)},
-	{DisplayDynamicNotifyMessage, 			"Display Dynamic Notify Message", 		offsize(sccp_data_t, DisplayDynamicNotifyMessage)},
-	{DisplayDynamicPriNotifyMessage, 		"Display Dynamic Priority Notify Message", 	offsize(sccp_data_t, DisplayDynamicPriNotifyMessage)},
-	{DisplayDynamicPromptStatusMessage, 		"Display Dynamic Prompt Status Message", 	offsize(sccp_data_t, DisplayDynamicPromptStatusMessage)},
-	{FeatureStatDynamicMessage, 			"SpeedDial State Dynamic Message", 		offsize(sccp_data_t, FeatureStatDynamicMessage)},
-	{LineStatDynamicMessage, 			"Line State Dynamic Message", 			offsize(sccp_data_t, LineStatDynamicMessage)},
-	{ServiceURLStatDynamicMessage, 			"Service URL Stat Dynamic Messages", 		offsize(sccp_data_t, ServiceURLStatDynamicMessage)},
-	{SpeedDialStatDynamicMessage, 			"SpeedDial Stat Dynamic Message", 		offsize(sccp_data_t, SpeedDialStatDynamicMessage)},
-	{CallInfoDynamicMessage, 			"Call Information Dynamic Message", 		offsize(sccp_data_t, CallInfoDynamicMessage)},
-	{DialedPhoneBookAckMessage, 			"Dialed PhoneBook Ack Message", 		offsize(sccp_data_t, DialedPhoneBookAckMessage)},
-	{CallListStateUpdate, 				"CallList Status Update Message", 		offsize(sccp_data_t, CallListStateUpdate)},
-	{StartMediaTransmissionAck, 			"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
-	{StartMultiMediaTransmissionAck, 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
-	{CallHistoryInfoMessage, 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
-	{ExtensionDeviceCaps, 				"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
-	{XMLAlarmMessage, 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
-	{DynamicUpdateCapabilitiesMessage,		"Dynamic Update Capabilities Message",		offsize(sccp_data_t, DynamicUpdateCapabilitiesMessage)},
-	{Unknown_0x004A_Message, 			"Unknown Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
-	{Unknown_0x0141_Message, 			"Unknown Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
-	{Unknown_0x015E_Message,			"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_0x015E_Message)},
+	[KeepAliveMessage] = { 				"Keep Alive Message", 				offsize(sccp_data_t, StationKeepAliveMessage)},
+	[RegisterMessage] = { 				"Register Message", 				offsize(sccp_data_t, RegisterMessage)},
+	[IpPortMessage] = { 				"Ip-Port Message", 				offsize(sccp_data_t, IpPortMessage)},
+	[KeypadButtonMessage] = { 			"Keypad Button Message", 			offsize(sccp_data_t, KeypadButtonMessage)},
+	[EnblocCallMessage] = { 			"Enbloc Call Message", 				offsize(sccp_data_t, EnblocCallMessage)},
+	[StimulusMessage] = { 				"Stimulus Message", 				offsize(sccp_data_t, StimulusMessage)},
+	[OffHookMessage] = { 				"Off-Hook Message", 				offsize(sccp_data_t, OffHookMessage)},
+	[OnHookMessage] = { 				"On-Hook Message", 				offsize(sccp_data_t, OnHookMessage)},
+	[HookFlashMessage] = { 				"Hook-Flash Message", 				offsize(sccp_data_t, HookFlashMessage)},
+	[ForwardStatReqMessage] = { 			"Forward State Request", 			offsize(sccp_data_t, ForwardStatReqMessage)},
+	[SpeedDialStatReqMessage] = { 			"Speed-Dial State Request", 			offsize(sccp_data_t, SpeedDialStatReqMessage)},
+	[LineStatReqMessage] = { 			"Line State Request", 				offsize(sccp_data_t, LineStatReqMessage)},
+	[ConfigStatReqMessage] = { 			"Config State Request", 			offsize(sccp_data_t, ConfigStatReqMessage)},
+	[TimeDateReqMessage] = { 			"Time Date Request", 				offsize(sccp_data_t, TimeDateReqMessage)},
+	[ButtonTemplateReqMessage] = { 			"Button Template Request", 			offsize(sccp_data_t, ButtonTemplateReqMessage)},
+	[VersionReqMessage] = { 			"Version Request", 				offsize(sccp_data_t, VersionReqMessage)},
+	[CapabilitiesResMessage] = { 			"Capabilities Response Message", 		offsize(sccp_data_t, CapabilitiesResMessage)},
+	[MediaPortListMessage] = { 			"Media Port List Message", 			offsize(sccp_data_t, MediaPortListMessage)},
+	[ServerReqMessage] = { 				"Server Request", 				offsize(sccp_data_t, ServerReqMessage)},
+	[AlarmMessage] = { 				"Alarm Message", 				offsize(sccp_data_t, AlarmMessage)},
+	[MulticastMediaReceptionAck] = { 		"Multicast Media Reception Acknowledge", 	offsize(sccp_data_t, MulticastMediaReceptionAck)},
+	[OpenReceiveChannelAck] = { 			"Open Receive Channel Acknowledge", 		offsize(sccp_data_t, OpenReceiveChannelAck)},
+	[ConnectionStatisticsRes] = { 			"Connection Statistics Response", 		offsize(sccp_data_t, ConnectionStatisticsRes)},
+	[OffHookWithCgpnMessage] = { 			"Off-Hook With Cgpn Message", 			offsize(sccp_data_t, OffHookWithCgpnMessage)},
+	[SoftKeySetReqMessage] = { 			"SoftKey Set Request", 				offsize(sccp_data_t, SoftKeySetReqMessage)},
+	[SoftKeyEventMessage] = { 			"SoftKey Event Message", 			offsize(sccp_data_t, SoftKeyEventMessage)},
+	[UnregisterMessage] = { 			"Unregister Message", 				offsize(sccp_data_t, UnregisterMessage)},
+	[SoftKeyTemplateReqMessage] = { 		"SoftKey Template Request", 			offsize(sccp_data_t, SoftKeyTemplateReqMessage)},
+	[RegisterTokenRequest] = { 			"Register Token Request", 			offsize(sccp_data_t, RegisterTokenRequest)},
+	[MediaTransmissionFailure] = { 			"Media Transmission Failure", 			offsize(sccp_data_t, MediaTransmissionFailure)}, 
+	[HeadsetStatusMessage] = { 			"Headset Status Message", 			offsize(sccp_data_t, HeadsetStatusMessage)},
+	[MediaResourceNotification] = { 		"Media Resource Notification", 			offsize(sccp_data_t, MediaResourceNotification)},
+	[RegisterAvailableLinesMessage] = { 		"Register Available Lines Message", 		offsize(sccp_data_t, RegisterAvailableLinesMessage)},
+	[DeviceToUserDataMessage] = { 			"Device To User Data Message", 			offsize(sccp_data_t, DeviceToUserDataMessage)},
+	[DeviceToUserDataResponseMessage] = { 		"Device To User Data Response", 		offsize(sccp_data_t, DeviceToUserDataResponseMessage)},
+	[UpdateCapabilitiesMessage] = { 		"Update Capabilities Message", 			offsize(sccp_data_t, UpdateCapabilitiesMessage)},
+	[OpenMultiMediaReceiveChannelAckMessage] = {	"Open MultiMedia Receive Channel Acknowledge", 	offsize(sccp_data_t, OpenMultiMediaReceiveChannelAckMessage)},
+	[ClearConferenceMessage] = { 			"Clear Conference Message", 			offsize(sccp_data_t, ClearConferenceMessage)},
+	[ServiceURLStatReqMessage] = { 			"Service URL State Request", 			offsize(sccp_data_t, ServiceURLStatReqMessage)},
+	[FeatureStatReqMessage] = { 			"Feature State Request", 			offsize(sccp_data_t, FeatureStatReqMessage)},
+	[CreateConferenceResMessage] = { 		"Create Conference Response", 			offsize(sccp_data_t, CreateConferenceResMessage)},
+	[DeleteConferenceResMessage] = { 		"Delete Conference Response", 			offsize(sccp_data_t, DeleteConferenceResMessage)},
+	[ModifyConferenceResMessage] = { 		"Modify Conference Response", 			offsize(sccp_data_t, ModifyConferenceResMessage)},
+	[AddParticipantResMessage] = { 			"Add Participant Response", 			offsize(sccp_data_t, AddParticipantResMessage)},
+	[AuditConferenceResMessage] = { 		"Audit Conference Response", 			offsize(sccp_data_t, AuditConferenceResMessage)},
+	[AuditParticipantResMessage] = { 		"Audit Participant Response", 			offsize(sccp_data_t, AuditParticipantResMessage)},
+	[DeviceToUserDataVersion1Message] = { 		"Device To User Data Version1 Message", 	offsize(sccp_data_t, DeviceToUserDataVersion1Message)},
+	[DeviceToUserDataResponseVersion1Message] = { 	"Device To User Data Version1 Response", 	offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message)},
+	[DialedPhoneBookMessage] = { 			"Dialed PhoneBook Message", 			offsize(sccp_data_t, DialedPhoneBookMessage)},
+	[AccessoryStatusMessage] = { 			"Accessory Status Message", 			offsize(sccp_data_t, AccessoryStatusMessage)},
+	[RegisterAckMessage] = { 			"Register Acknowledge", 			offsize(sccp_data_t, RegisterAckMessage)},
+	[StartToneMessage] = { 				"Start Tone Message", 				offsize(sccp_data_t, StartToneMessage)},
+	[StopToneMessage] = { 				"Stop Tone Message", 				offsize(sccp_data_t, StopToneMessage)},
+	[SetRingerMessage] = { 				"Set Ringer Message", 				offsize(sccp_data_t, SetRingerMessage)},
+	[SetLampMessage] = { 				"Set Lamp Message", 				offsize(sccp_data_t, SetLampMessage)},
+	[SetHkFDetectMessage] = { 			"Set HkF Detect Message", 			offsize(sccp_data_t, SetHkFDetectMessage)},
+	[SetSpeakerModeMessage] = { 			"Set Speaker Mode Message", 			offsize(sccp_data_t, SetSpeakerModeMessage)},
+	[SetMicroModeMessage] = { 			"Set Micro Mode Message", 			offsize(sccp_data_t, SetMicroModeMessage)},
+	[StartMediaTransmission] = { 			"Start Media Transmission", 			offsize(sccp_data_t, StartMediaTransmission)},
+	[StopMediaTransmission] = { 			"Stop Media Transmission", 			offsize(sccp_data_t, StopMediaTransmission)},
+	[StartMediaReception] = { 			"Start Media Reception", 			offsize(sccp_data_t, StartMediaReception)},
+	[StopMediaReception] = { 			"Stop Media Reception", 			offsize(sccp_data_t, StopMediaReception)},
+	[CallInfoMessage] = { 				"Call Information Message", 			offsize(sccp_data_t, CallInfoMessage)},
+	[ForwardStatMessage] = { 			"Forward State Message", 			offsize(sccp_data_t, ForwardStatMessage)},
+	[SpeedDialStatMessage] = { 			"SpeedDial State Message", 			offsize(sccp_data_t, SpeedDialStatMessage)},
+	[LineStatMessage] = { 				"Line State Message", 				offsize(sccp_data_t, LineStatMessage)},
+	[ConfigStatMessage] = { 			"Config State Message", 			offsize(sccp_data_t, ConfigStatMessage)},
+	[DefineTimeDate] = { 				"Define Time Date", 				offsize(sccp_data_t, DefineTimeDate)},
+	[StartSessionTransmission] = { 			"Start Session Transmission", 			offsize(sccp_data_t, StartSessionTransmission)},
+	[StopSessionTransmission] = { 			"Stop Session Transmission", 			offsize(sccp_data_t, StopSessionTransmission)},
+	[ButtonTemplateMessage] = { 			"Button Template Message", 			offsize(sccp_data_t, ButtonTemplateMessage)},
+	[ButtonTemplateMessageSingle] = { 		"Button Template Message Single", 		offsize(sccp_data_t, ButtonTemplateMessageSingle)},
+	[VersionMessage] = { 				"Version Message", 				offsize(sccp_data_t, VersionMessage)},
+	[DisplayTextMessage] = { 			"Display Text Message", 			offsize(sccp_data_t, DisplayTextMessage)},
+	[ClearDisplay] = { 				"Clear Display", 				offsize(sccp_data_t, ClearDisplay)},
+	[CapabilitiesReqMessage] = { 			"Capabilities Request", 			offsize(sccp_data_t, CapabilitiesReqMessage)},
+	[EnunciatorCommandMessage] = { 			"Enunciator Command Message", 			offsize(sccp_data_t, EnunciatorCommandMessage)},
+	[RegisterRejectMessage] = { 			"Register Reject Message", 			offsize(sccp_data_t, RegisterRejectMessage)},
+	[ServerResMessage] = { 				"Server Response", 				offsize(sccp_data_t, ServerResMessage)},
+	[Reset] = { 					"Reset", 					offsize(sccp_data_t, Reset)},
+	[KeepAliveAckMessage] = { 			"Keep Alive Acknowledge", 			offsize(sccp_data_t, KeepAliveAckMessage)},
+	[StartMulticastMediaReception] = { 		"Start MulticastMedia Reception", 		offsize(sccp_data_t, StartMulticastMediaReception)},
+	[StartMulticastMediaTransmission] = { 		"Start MulticastMedia Transmission", 		offsize(sccp_data_t, StartMulticastMediaTransmission)},
+	[StopMulticastMediaReception] = { 		"Stop MulticastMedia Reception", 		offsize(sccp_data_t, StopMulticastMediaReception)},
+	[StopMulticastMediaTransmission] = { 		"Stop MulticastMedia Transmission", 		offsize(sccp_data_t, StopMulticastMediaTransmission)},
+	[OpenReceiveChannel] = { 			"Open Receive Channel", 			offsize(sccp_data_t, OpenReceiveChannel)},
+	[CloseReceiveChannel] = { 			"Close Receive Channel", 			offsize(sccp_data_t, CloseReceiveChannel)},
+	[ConnectionStatisticsReq] = { 			"Connection Statistics Request", 		offsize(sccp_data_t, ConnectionStatisticsReq)},
+	[SoftKeyTemplateResMessage] = { 		"SoftKey Template Response", 			offsize(sccp_data_t, SoftKeyTemplateResMessage)},
+	[SoftKeySetResMessage] = { 			"SoftKey Set Response", 			offsize(sccp_data_t, SoftKeySetResMessage)},
+	[SelectSoftKeysMessage] = { 			"Select SoftKeys Message", 			offsize(sccp_data_t, SelectSoftKeysMessage)},
+	[CallStateMessage] = { 				"Call State Message", 				offsize(sccp_data_t, CallStateMessage)},
+	[DisplayPromptStatusMessage] = { 		"Display Prompt Status Message", 		offsize(sccp_data_t, DisplayPromptStatusMessage)},
+	[ClearPromptStatusMessage] = { 			"Clear Prompt Status Message", 			offsize(sccp_data_t, ClearPromptStatusMessage)},
+	[DisplayNotifyMessage] = { 			"Display Notify Message", 			offsize(sccp_data_t, DisplayNotifyMessage)},
+	[ClearNotifyMessage] = { 			"Clear Notify Message", 			offsize(sccp_data_t, ClearNotifyMessage)},
+	[ActivateCallPlaneMessage] = { 			"Activate Call Plane Message", 			offsize(sccp_data_t, ActivateCallPlaneMessage)},
+	[DeactivateCallPlaneMessage] = { 		"Deactivate Call Plane Message", 		offsize(sccp_data_t, DeactivateCallPlaneMessage)},
+	[UnregisterAckMessage] = { 			"Unregister Acknowledge", 			offsize(sccp_data_t, UnregisterAckMessage)},
+	[BackSpaceReqMessage] = { 			"Back Space Request", 				offsize(sccp_data_t, BackSpaceReqMessage)},
+	[RegisterTokenAck] = { 				"Register Token Acknowledge", 			offsize(sccp_data_t, RegisterTokenAck)},
+	[RegisterTokenReject] = { 			"Register Token Reject", 			offsize(sccp_data_t, RegisterTokenReject)},
+	[StartMediaFailureDetection] = { 		"Start Media Failure Detection", 		offsize(sccp_data_t, StartMediaFailureDetection)},
+	[DialedNumberMessage] = { 			"Dialed Number Message", 			offsize(sccp_data_t, DialedNumberMessage)},
+	[UserToDeviceDataMessage] = { 			"User To Device Data Message", 			offsize(sccp_data_t, UserToDeviceDataMessage)},
+	[FeatureStatMessage] = { 			"Feature State Message", 			offsize(sccp_data_t, FeatureStatMessage)},
+	[DisplayPriNotifyMessage] = { 			"Display Pri Notify Message", 			offsize(sccp_data_t, DisplayPriNotifyMessage)},
+	[ClearPriNotifyMessage] = { 			"Clear Pri Notify Message", 			offsize(sccp_data_t, ClearPriNotifyMessage)},
+	[StartAnnouncementMessage] = { 			"Start Announcement Message", 			offsize(sccp_data_t, StartAnnouncementMessage)},
+	[StopAnnouncementMessage] = { 			"Stop Announcement Message", 			offsize(sccp_data_t, StopAnnouncementMessage)},
+	[AnnouncementFinishMessage] = { 		"Announcement Finish Message", 			offsize(sccp_data_t, AnnouncementFinishMessage)},
+	[NotifyDtmfToneMessage] = { 			"Notify DTMF Tone Message", 			offsize(sccp_data_t, NotifyDtmfToneMessage)},
+	[SendDtmfToneMessage] = { 			"Send DTMF Tone Message", 			offsize(sccp_data_t, SendDtmfToneMessage)},
+	[SubscribeDtmfPayloadReqMessage] = { 		"Subscribe DTMF Payload Request", 		offsize(sccp_data_t, SubscribeDtmfPayloadReqMessage)},
+	[SubscribeDtmfPayloadResMessage] = { 		"Subscribe DTMF Payload Response", 		offsize(sccp_data_t, SubscribeDtmfPayloadResMessage)},
+	[SubscribeDtmfPayloadErrMessage] = { 		"Subscribe DTMF Payload Error Message", 	offsize(sccp_data_t, SubscribeDtmfPayloadErrMessage)},
+	[UnSubscribeDtmfPayloadReqMessage] = { 		"UnSubscribe DTMF Payload Request", 		offsize(sccp_data_t, UnSubscribeDtmfPayloadReqMessage)},
+	[UnSubscribeDtmfPayloadResMessage] = { 		"UnSubscribe DTMF Payload Response", 		offsize(sccp_data_t, UnSubscribeDtmfPayloadResMessage)},
+	[UnSubscribeDtmfPayloadErrMessage] = { 		"UnSubscribe DTMF Payload Error Message", 	offsize(sccp_data_t, UnSubscribeDtmfPayloadErrMessage)},
+	[ServiceURLStatMessage] = { 			"ServiceURL State Message", 			offsize(sccp_data_t, ServiceURLStatMessage)},
+	[CallSelectStatMessage] = { 			"Call Select State Message", 			offsize(sccp_data_t, CallSelectStatMessage)},
+	[OpenMultiMediaChannelMessage] = { 		"Open MultiMedia Channel Message", 		offsize(sccp_data_t, OpenMultiMediaChannelMessage)},
+	[StartMultiMediaTransmission] = { 		"Start MultiMedia Transmission", 		offsize(sccp_data_t, StartMultiMediaTransmission)},
+	[StopMultiMediaTransmission] = { 		"Stop MultiMedia Transmission", 		offsize(sccp_data_t, StopMultiMediaTransmission)},
+	[MiscellaneousCommandMessage] = { 		"Miscellaneous Command Message", 		offsize(sccp_data_t, MiscellaneousCommandMessage)},
+	[FlowControlCommandMessage] = { 		"Flow Control Command Message", 		offsize(sccp_data_t, FlowControlCommandMessage)},
+	[CloseMultiMediaReceiveChannel] = { 		"Close MultiMedia Receive Channel", 		offsize(sccp_data_t, CloseMultiMediaReceiveChannel)},
+	[CreateConferenceReqMessage] = { 		"Create Conference Request", 			offsize(sccp_data_t, CreateConferenceReqMessage)},
+	[DeleteConferenceReqMessage] = { 		"Delete Conference Request", 			offsize(sccp_data_t, DeleteConferenceReqMessage)},
+	[ModifyConferenceReqMessage] = { 		"Modify Conference Request", 			offsize(sccp_data_t, ModifyConferenceReqMessage)},
+	[AddParticipantReqMessage] = { 			"Add Participant Request", 			offsize(sccp_data_t, AddParticipantReqMessage)},
+	[DropParticipantReqMessage] = { 		"Drop Participant Request", 			offsize(sccp_data_t, DropParticipantReqMessage)},
+	[AuditConferenceReqMessage] = { 		"Audit Conference Request", 			offsize(sccp_data_t, AuditConferenceReqMessage)},
+	[AuditParticipantReqMessage] = { 		"Audit Participant Request", 			offsize(sccp_data_t, AuditParticipantReqMessage)},
+	[UserToDeviceDataVersion1Message] = { 		"User To Device Data Version1 Message", 	offsize(sccp_data_t, UserToDeviceDataVersion1Message)},
+	[DisplayDynamicNotifyMessage] = { 		"Display Dynamic Notify Message", 		offsize(sccp_data_t, DisplayDynamicNotifyMessage)},
+	[DisplayDynamicPriNotifyMessage] = { 		"Display Dynamic Priority Notify Message", 	offsize(sccp_data_t, DisplayDynamicPriNotifyMessage)},
+	[DisplayDynamicPromptStatusMessage] = { 	"Display Dynamic Prompt Status Message", 	offsize(sccp_data_t, DisplayDynamicPromptStatusMessage)},
+	[FeatureStatDynamicMessage] = { 		"SpeedDial State Dynamic Message", 		offsize(sccp_data_t, FeatureStatDynamicMessage)},
+	[LineStatDynamicMessage] = { 			"Line State Dynamic Message", 			offsize(sccp_data_t, LineStatDynamicMessage)},
+	[ServiceURLStatDynamicMessage] = { 		"Service URL Stat Dynamic Messages", 		offsize(sccp_data_t, ServiceURLStatDynamicMessage)},
+	[SpeedDialStatDynamicMessage] = { 		"SpeedDial Stat Dynamic Message", 		offsize(sccp_data_t, SpeedDialStatDynamicMessage)},
+	[CallInfoDynamicMessage] = { 			"Call Information Dynamic Message", 		offsize(sccp_data_t, CallInfoDynamicMessage)},
+	[DialedPhoneBookAckMessage] = { 		"Dialed PhoneBook Ack Message", 		offsize(sccp_data_t, DialedPhoneBookAckMessage)},
+	[CallListStateUpdate] = { 			"CallList Status Update Message", 		offsize(sccp_data_t, CallListStateUpdate)},
+	[StartMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
+	[StartMultiMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
+	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
+	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
+	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
+	[DynamicUpdateCapabilitiesMessage] = {		"Dynamic Update Capabilities Message",		offsize(sccp_data_t, DynamicUpdateCapabilitiesMessage)},
+	[Unknown_0x004A_Message] = { 			"Unknown Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
+	[Unknown_0x0141_Message] = { 			"Unknown Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
+	[Unknown_0x015E_Message] = {			"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_0x015E_Message)},
 	
-	{SPCPRegisterTokenRequest, 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
-	{SPCPRegisterTokenAck, 				"SCPA RegisterMessageACK", 			offsize(sccp_data_t, SPCPRegisterTokenAck)},
-	{SPCPRegisterTokenReject, 			"SCPA RegisterMessageReject", 			offsize(sccp_data_t, SPCPRegisterTokenReject)},
+	[SPCPRegisterTokenRequest] = { 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
+	[SPCPRegisterTokenAck] = { 			"SCPA RegisterMessageACK", 			offsize(sccp_data_t, SPCPRegisterTokenAck)},
+	[SPCPRegisterTokenReject] = { 			"SCPA RegisterMessageReject", 			offsize(sccp_data_t, SPCPRegisterTokenReject)},
 	/* *INDENT-ON* */
 };
 
@@ -3897,43 +2727,6 @@ typedef struct {
 	uint8_t *ptr;												/*!< Point to next Mode */
 	uint8_t count;												/*!< Soft Key Count */
 } softkey_modes;												/*!< Soft Key Modes Structure */
-
-#define KEYMODE_ONHOOK					0
-#define KEYMODE_CONNECTED				1
-#define KEYMODE_ONHOLD					2
-#define KEYMODE_RINGIN					3
-#define KEYMODE_OFFHOOK 				4
-#define KEYMODE_CONNTRANS				5
-#define KEYMODE_DIGITSFOLL				6
-#define KEYMODE_CONNCONF				7
-#define KEYMODE_RINGOUT 				8
-#define KEYMODE_OFFHOOKFEAT 				9
-#define KEYMODE_INUSEHINT				10
-#define KEYMODE_ONHOOKSTEALABLE				11
-
-/*!
- * \brief Skinny KeyMode Structure
- */
-static const struct skinny_keymode {
-	uint8_t keymode;
-	const char *const text;
-	const char *const description;
-} skinny_keymodes[] = {
-        /* *INDENT-OFF* */
-        {KEYMODE_ONHOOK, 				"ONHOOK", 		"On Hook"},
-        {KEYMODE_CONNECTED, 				"CONNECTED", 		"Connected"},
-        {KEYMODE_ONHOLD, 				"ONHOLD", 		"On Hold"},
-        {KEYMODE_RINGIN, 				"RINGIN", 		"Ringin"},
-        {KEYMODE_OFFHOOK, 				"OFFHOOK", 		"Off Hook"},
-        {KEYMODE_CONNTRANS, 				"CONNTRANS", 		"Connected with Transfer"},
-        {KEYMODE_DIGITSFOLL, 				"DIGITSFOLL", 		"Digits after dialing first digit "},
-        {KEYMODE_CONNCONF, 				"CONNCONF", 		"Connected with Conference"},
-        {KEYMODE_RINGOUT, 				"RINGOUT", 		"Ring Out"},
-        {KEYMODE_OFFHOOKFEAT, 				"OFFHOOKFEAT", 		"Off Hook with Features"},
-        {KEYMODE_INUSEHINT, 				"INUSEHINT", 		"In Use Hint"},
-        {KEYMODE_ONHOOKSTEALABLE, 			"OKHOOKSTEALABLE", 	"On Hook with Stealable Remote Call"},
-        /* *INDENT-ON* */
-};
 
 static uint8_t skSet_Onhook[] = {
 	SKINNY_LBL_REDIAL,

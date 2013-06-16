@@ -956,7 +956,7 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	r->msg.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	r->msg.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, r);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), station2str(opt), opt);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), ringtype2str(opt), opt);
 }
 
 /*!
@@ -1372,7 +1372,7 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \lock
  *      - device->buttonconfig
  */
-void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type, sccp_speed_t * k)
+void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, button_type_t type, sccp_speed_t * k)
 {
 	sccp_buttonconfig_t *config;
 

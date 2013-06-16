@@ -1030,11 +1030,11 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, con
 
 	// checking if addontype is known
 	if (!strcasecmp(value, "7914"))
-		addon_type = SKINNY_DEVICETYPE_CISCO7914;
+		addon_type = SKINNY_DEVICETYPE_CISCO_ADDON_7914;
 	else if (!strcasecmp(value, "7915"))
-		addon_type = SKINNY_DEVICETYPE_CISCO7915;
+		addon_type = SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
 	else if (!strcasecmp(value, "7916"))
-		addon_type = SKINNY_DEVICETYPE_CISCO7916;
+		addon_type = SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
 	else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", value);
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;

@@ -72,7 +72,7 @@ struct sccp_global_vars *sccp_globals = 0;
  * 
  * \called_from_asterisk
  */
-sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_type_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
+sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel)
 {
 	struct composedId lineSubscriptionId;
 	sccp_channel_t *my_sccp_channel = NULL;

@@ -99,9 +99,11 @@ int sccp_addons_taps(sccp_device_t * d)
 
 	SCCP_LIST_LOCK(&d->addons);
 	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
-		if (cur->type == SKINNY_DEVICETYPE_CISCO7914)
+		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7914)
 			taps += 14;
-		if (cur->type == SKINNY_DEVICETYPE_CISCO7915 || cur->type == SKINNY_DEVICETYPE_CISCO7916)
+		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON)
+			taps += 12;
+		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON)
 			taps += 24;
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id ? d->id : "SCCP"), taps, cur->type);
 	}
@@ -210,182 +212,64 @@ void sccp_dev_dbclean()
 		pbx_db_freetree(entry);
 }
 
-const char *message2str(uint32_t value)
+inline const char *message2str(sccp_message_t type)		/* sccp_protocol.h */
 {
-	_ARR2STR(sccp_messagetypes, type, value, text);
+	return sccp_messagetypes[type].text;
 }
 
-size_t message2size(uint32_t value)
+inline size_t message2size(sccp_message_t type)			/* sccp_protocol.h */
 {
-	uint32_t i;
-
-	for (i = 0; i < ARRAY_LEN(sccp_messagetypes); i++) {
-		if (sccp_messagetypes[i].type == value) {
-			return sccp_messagetypes[i].size + SCCP_PACKET_HEADER;
-		}
-	}
-	pbx_log(LOG_NOTICE, "SCCP: Unknown SCCP Message with %02X\n", value);
-	return SCCP_MAX_PACKET;
+	return sccp_messagetypes[type].size;
 }
 
-const char *channelstate2str(uint32_t value)
+inline const char *sccp_buttontype2str(button_type_t type)	/* chan_sccp.h */
 {
-	_ARR2STR(sccp_channelstates, channelstate, value, text);
+	_ARR2STR(sccp_buttontypes, buttontype, type, text);
 }
 
-const char *pbxdevicestate2str(uint32_t value)
+inline const char *pbxdevicestate2str(uint32_t value)		/* pbx_impl/ast/ast.h */
 {
 	_ARR2STR(pbx_devicestates, devicestate, value, text);
 }
 
-const char *accessory2str(uint32_t value)
-{
-	_ARR2STR(sccp_accessories, accessory, value, text);
-}
-
-const char *accessorystatus2str(uint32_t value)
-{
-	_ARR2STR(sccp_accessory_states, accessory_state, value, text);
-}
-
-const char *extensionstatus2str(uint32_t value)
+inline const char *extensionstatus2str(uint32_t value)		/* pbx_impl/ast/ast.h */
 {
 	_ARR2STR(sccp_extension_states, extension_state, value, text);
 }
 
-const char *dndmode2str(uint32_t value)
-{
-	_ARR2STR(sccp_dndmodes, dndmode, value, text);
-}
-
-const char *transmitModes2str(skinny_transmitOrReceive_t value)
-{
-	_ARR2STR(skinny_transmitOrReceiveModes, mode, value, text);
-}
-
-const char *sccp_buttontype2str(uint32_t value)
-{
-	_ARR2STR(sccp_buttontypes, buttontype, value, text);
-}
-
-const char *callforward2str(uint32_t value)
-{
-	_ARR2STR(sccp_callforwardstates, callforwardstate, value, text);
-}
-
-const char *callforward2longstr(uint32_t value)
-{
-	_ARR2STR(sccp_callforwardstates, callforwardstate, value, longtext);
-}
-
-const char *tone2str(uint32_t value)
-{
-	_ARR2STR(skinny_tones, tone, value, text);
-}
-
-const char *alarm2str(uint32_t value)
-{
-	_ARR2STR(skinny_alarms, alarm, value, text);
-}
-
-const char *devicetype2str(uint32_t value)
-{
-	_ARR2STR(skinny_devicetypes, devicetype, value, text);
-}
-
-const char *stimulus2str(uint32_t value)
-{
-	_ARR2STR(skinny_stimuly, stimulus, value, text);
-}
-
-const char *buttontype2str(uint32_t value)
-{
-	_ARR2STR(skinny_buttontypes, buttontype, value, text);
-}
-
-const char *lampmode2str(uint32_t value)
-{
-	_ARR2STR(skinny_lampmodes, lampmode, value, text);
-}
-
-const char *station2str(uint32_t value)
-{
-	_ARR2STR(skinny_stations, station, value, text);
-}
-
-const char *label2str(uint32_t value)
+inline const char *label2str(uint16_t value)			/* sccp_labels.h */
 {
 	_ARR2STR(skinny_labels, label, value, text);
 }
 
-const char *calltype2str(uint32_t value)
-{
-	_ARR2STR(skinny_calltypes, calltype, value, text);
-}
-
-const char *keymode2str(uint32_t value)
-{
-	_ARR2STR(skinny_keymodes, keymode, value, text);
-}
-
-const char *keymode2description(uint32_t value)
-{
-	_ARR2STR(skinny_keymodes, keymode, value, description);
-}
-
-const char *deviceregistrationstatus2str(uint32_t value)
-{
-	_ARR2STR(skinny_device_registrationstates, device_registrationstate, value, text);
-}
-
-const char *devicestatus2str(uint32_t value)
-{
-	_ARR2STR(skinny_device_states, device_state, value, text);
-}
-
-const char *codec2str(skinny_codec_t value)
+inline const char *codec2str(skinny_codec_t value)		/* sccp_protocol.h */
 {
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
-int codec2payload(skinny_codec_t value)
+inline int codec2payload(skinny_codec_t value)			/* sccp_protocol.h */
 {
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
 }
 
-const char *codec2key(uint32_t value)
+inline const char *codec2key(skinny_codec_t value)		/* sccp_protocol.h */
 {
 	_ARR2STR(skinny_codecs, codec, value, key);
 }
 
-const char *codec2name(uint32_t value)
+inline const char *codec2name(skinny_codec_t value)		/* sccp_protocol.h */
 {
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
-const char *featureType2str(uint32_t value)
+inline const char *featureType2str(sccp_feature_type_t value)		/* chan_sccp.h */
 {
 	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
 
-uint32_t debugcat2int(const char *str)
+inline uint32_t debugcat2int(const char *str)			/* chan_sccp.h */
 {
 	_STRARR2INT(sccp_debug_categories, key, str, category);
-}
-
-const char *skinny_formatType2str(uint8_t value)
-{
-	_ARR2STR(skinny_formatTypes, id, value, text);
-}
-
-inline const char *sccp_miscCommandType2str(sccp_miscCommandType_t type) 
-{
-	if (SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE >= type && type <=SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF) {
-		return sccp_miscCommandTypes[type].text;
-	} else {
-	        pbx_log(LOG_ERROR, "SCCP: (%s) Lookup Failed for =%i\n", __PRETTY_FUNCTION__, type);
-	        return "ERROR";
-	}
 }
 
 /*!

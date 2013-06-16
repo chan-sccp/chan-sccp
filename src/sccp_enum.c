@@ -14,10 +14,29 @@
  */
 
 #include <config.h>
-#include "common.h"
+#include "sccp_enum.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 4618 $")
-#define GENERATE_ENUM_STRINGS  // Start string generation
+/* enum macro definitions */
+#  ifdef DEBUG														// switch/case on index (Debug mode)
+    #define ENUM_ELEMENT( element, index, str) case element: return str;
+    #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) 											\
+        inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { 						\
+                switch(index) {												
+    #define END_ENUM( NAMESPACE, ENUM_NAME ) 	};										\
+     		return "SCCP: ERROR lookup in " #NAMESPACE "_" #ENUM_NAME "_t";								\
+        };
+#  else 														// return array[index] directly (Non-Debug Mode)
+    #define ENUM_ELEMENT( element, index, str ) [element] = str,
+    #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) char* NAMESPACE ##_##ENUM_NAME##_map_enum2str[] = {
+    #define END_ENUM( NAMESPACE, ENUM_NAME ) }; 											\
+        inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { return NAMESPACE##_##ENUM_NAME##_map_enum2str[index]; }
+#  endif
+/* end enum macro definitions */
+
 #include "sccp_enum_entries.hh"
-#undef GENERATE_ENUM_STRINGS   // Stop string generation
+
+#undef ENUM_ELEMENT
+#undef BEGIN_ENUM
+#undef END_ENUM
+
 

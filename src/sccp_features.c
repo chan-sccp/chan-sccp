@@ -42,7 +42,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  *        - see sccp_channel_set_active()
  *        - see sccp_indicate_nolock()
  */
-void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, uint8_t type)
+void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type)
 {
 	sccp_channel_t *c = NULL;
 	sccp_linedevices_t *linedevice = NULL;
