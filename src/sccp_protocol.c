@@ -14,6 +14,12 @@
 #include <config.h>
 #include "common.h"
 
+#define GENERATE_ENUM_STRINGS
+#include "sccp_enum_macro.h"
+#include "sccp_protocol_enums.hh"
+#undef GENERATE_ENUM_STRINGS
+
+
 /* CallInfo Message */
 
 /* =================================================================================================================== Send Messages */

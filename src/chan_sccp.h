@@ -27,6 +27,9 @@ extern "C" {
 #include <config.h>
 #include "common.h"
 
+#include "sccp_enum_macro.h"
+#include "chan_sccp_enums.hh"
+
 #define sccp_mutex_t ast_mutex_t
 
 	/* Add bswap function if necessary */

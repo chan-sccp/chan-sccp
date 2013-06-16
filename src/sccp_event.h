@@ -16,6 +16,9 @@
 //#include <config.h>
 #include "common.h"
 
+#include "sccp_enum_macro.h"
+#include "sccp_event_enums.hh"
+
 #define NUMBER_OF_EVENT_TYPES 10
 
 #define sccp_event_retain(_x) 		sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)

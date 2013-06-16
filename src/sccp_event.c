@@ -22,6 +22,11 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
+#define GENERATE_ENUM_STRINGS
+#include "sccp_enum_macro.h"
+#include "sccp_event_enums.hh"
+#undef GENERATE_ENUM_STRINGS
+
 void sccp_event_destroy(sccp_event_t * event);
 
 /*!
