@@ -19,6 +19,9 @@
 
 #include "sccp_labels.h"
 
+#include "sccp_enum_macro.h"
+#include "sccp_protocol_enums.hh"
+
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		20							/*!< We support up to protocol V.17 */
 

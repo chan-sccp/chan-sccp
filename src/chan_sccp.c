@@ -23,6 +23,11 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
+#define GENERATE_ENUM_STRINGS
+#include "sccp_enum_macro.h"
+#include "chan_sccp_enums.hh"
+#undef GENERATE_ENUM_STRINGS
+
 /*!
  * \brief       Buffer for Jitterbuffer use
  */
