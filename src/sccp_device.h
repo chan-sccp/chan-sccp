@@ -22,7 +22,7 @@
  * \brief SCCP Device Indication Callback Structure
  */
 struct sccp_device_indication_cb {
-	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callPriority, uint8_t callPrivacy);
+	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 	void (*const offhook) (const sccp_device_t *device, sccp_linedevices_t *linedevice, uint8_t callid);
 	void (*const connected) (const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel);
 };
@@ -79,7 +79,7 @@ void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb);
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message);
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority);
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
-void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callPriority_t priority, skinny_callinfo_visibility_t visibility);
+void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility);
 
 int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r);
 int sccp_device_check_ringback(sccp_device_t * d);

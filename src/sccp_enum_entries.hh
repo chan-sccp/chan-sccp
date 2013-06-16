@@ -292,13 +292,13 @@ END_ENUM(skinny,tone)
 /*!
  * \brief Skinny Protocol Call Priority (ENUM)
  */
-BEGIN_ENUM(skinny,callPriority)												// change to callpriority later
+BEGIN_ENUM(skinny,callpriority)
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_HIGHEST			,,	"highest priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_HIGH				,,	"high priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_MEDIUM				,,	"medium priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_LOW				,,	"low priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_NORMAL				,,	"normal priority")
-END_ENUM(skinny,callPriority)
+END_ENUM(skinny,callpriority)
 
 /*!
  * \brief Skinny Protocol CallInfo Visibility (ENUM)
