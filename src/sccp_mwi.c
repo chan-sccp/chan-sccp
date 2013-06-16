@@ -191,7 +191,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	}
 
 	/* reschedule my self */
-	if ((subscription->schedUpdate = sccp_sched_add(sched, SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+	if ((subscription->schedUpdate = sccp_sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 		pbx_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 	}
 	return 0;
@@ -372,7 +372,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
                         pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
 #else
-		if ((subscription->schedUpdate = sccp_sched_add(sched, SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+		if ((subscription->schedUpdate = sccp_sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
 #endif
@@ -655,14 +655,24 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
  			snprintf(linebuf,sizeof(linebuf),"%30s",line->name);							\
  		}
 
+#ifdef CS_AST_HAS_EVENT
 #define CLI_AMI_TABLE_FIELDS 													\
  		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
  		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
  		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
  		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
  		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)\
- 		CLI_AMI_TABLE_FIELD(Subscribed,			s,	3,	subscription->event_sub ? "YES" : "NO")
+ 		CLI_AMI_TABLE_FIELD(Sub,			s,	3,	subscription->event_sub ? "YES" : "NO")
 #include "sccp_cli_table.h"
+#else
+#define CLI_AMI_TABLE_FIELDS 													\
+ 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
+ 		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
+ 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
+ 		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
+ 		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
+#include "sccp_cli_table.h"
+#endif
 
 	if (s) {
 		*total = local_total;
