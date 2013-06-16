@@ -322,7 +322,7 @@ END_ENUM(skinny,callsecuritystate)
  * \brief Skinny Lamp Mode (ENUM)
  */
 BEGIN_ENUM(skinny,lampmode)
-	ENUM_ELEMENT(SKINNY_LAMP_OFF					,,	"Lamp Off")
+	ENUM_ELEMENT(SKINNY_LAMP_OFF					,=1,	"Lamp Off")
 	ENUM_ELEMENT(SKINNY_LAMP_ON					,,	"Lamp On")
 	ENUM_ELEMENT(SKINNY_LAMP_WINK					,,	"Lamp Wink")
 	ENUM_ELEMENT(SKINNY_LAMP_FLASH					,,	"Lamp Flash")
