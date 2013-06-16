@@ -358,7 +358,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	}
 
 	d = sccp_channel_getDevice_retained(c);
-	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SCCP_DEVICE_RS_OK == d->registrationState) {
+	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
 		//if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))           /* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel) {
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
@@ -377,7 +377,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 #endif														// CS_SCCP_CONFERENCE
 
 	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-		if (d && SCCP_DEVICE_RS_OK == d->registrationState) {
+		if (d && SKINNY_DEVICE_RS_OK == d->registrationState) {
 			sccp_channel_closereceivechannel(c);
 		}
 		sccp_rtp_destroy(c);
@@ -446,7 +446,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		sccp_linedevices_t *linedevice;
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device && SCCP_DEVICE_RS_OK == linedevice->device->registrationState) {
+			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
 				d = sccp_device_retain(linedevice->device);
 				break;
 			}
@@ -457,7 +457,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
-// 	else if (SCCP_DEVICE_RS_OK != d->registrationState) {
+// 	else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
 // 		c->state = SCCP_CHANNELSTATE_DOWN;								// device is reregistering
 // 	} else {
 // 		/* 
