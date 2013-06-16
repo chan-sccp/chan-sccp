@@ -385,7 +385,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
-	d->registrationState = SKINNY_DEVICE_RS_NONE;
+	d->registrationState = SCCP_DEVICE_RS_NONE;
 
 	// set minimum protocol levels
 	//      d->protocolversion = SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW;
@@ -844,7 +844,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	d->registrationState = opt;
 
 	/* Handle registration completion. */
-	if (opt == SKINNY_DEVICE_RS_OK) {
+	if (opt == SCCP_DEVICE_RS_OK) {
 		/* this message is mandatory to finish process */
 		REQ(r, SetLampMessage);
 
@@ -862,7 +862,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			d->linesRegistered = TRUE;
 		}
 		sccp_dev_postregistration(d);
-	} else if (opt == SKINNY_DEVICE_RS_PROGRESS) {
+	} else if (opt == SCCP_DEVICE_RS_PROGRESS) {
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_DEVICE_PREREGISTERED;
 		event.event.deviceRegistered.device = sccp_device_retain(d);
@@ -1533,7 +1533,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	//! \todo check for forward status during registration -MC
 	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
-	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
+	if (device->registrationState != SCCP_DEVICE_RS_OK) {
 		if (!device->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
 			sccp_handle_AvailableLines(device->session, device, NULL);
@@ -1695,7 +1695,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 
 	if ((d = sccp_device_retain(d))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
-		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);						/* set correct register state */
+		sccp_dev_set_registered(d, SCCP_DEVICE_RS_NONE);						/* set correct register state */
 		if (remove_from_global) {
 			sccp_device_removeFromGlobals(d);
 		}

@@ -225,14 +225,14 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 
 	if (device->checkACL(device) == FALSE) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		device->registrationState = SCCP_DEVICE_RS_FAILED;
 		s = sccp_session_reject(s, "IP Not Authorized");
 		goto EXITFUNC;
 	}
 
 	if (device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		device->registrationState = SCCP_DEVICE_RS_FAILED;
 		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 		s = sccp_session_reject(s, "Crossover session not allowed");
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
@@ -262,7 +262,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	/* some test to detect active calls */
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverInstance: %d, unknown: %d, active call? %s\n", deviceName, serverInstance, letohl(r->msg.RegisterTokenRequest.unknown), (letohl(r->msg.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
-	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
+	device->registrationState = SCCP_DEVICE_RS_TOKEN;
 	if (sendAck) {
 		sccp_log((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
 		sccp_session_tokenAck(s);
@@ -315,7 +315,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
 	if (device) {
 		if (device->session && device->session != s) {
-			device->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
+			device->registrationState = SCCP_DEVICE_RS_TIMEOUT;
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", device->id);
 			device->session->session_stop = 1;							/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", device->id);
@@ -351,7 +351,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 
 	if (device->checkACL(device) == FALSE) {
 		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		device->registrationState = SCCP_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
 		s = sccp_session_reject(s, "IP Not Authorized");
 		goto EXITFUNC;
@@ -359,7 +359,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 
 	if (device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		device->registrationState = SCCP_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
 		s = sccp_session_reject(s, "Crossover session not allowed");
 		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
@@ -368,7 +368,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 
 	/* all checks passed, assign session to device */
 	//      device->session = s;
-	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
+	device->registrationState = SCCP_DEVICE_RS_TOKEN;
 	device->status.token = SCCP_TOKEN_STATE_ACK;
 
 	sccp_session_tokenAckSPCP(s, 65535);
@@ -454,8 +454,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_moo_
 	if (device) {
 		if (device->session && device->session != s) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration! Fixing up to new session\n", DEV_ID_LOG(device));
-			sccp_socket_stop_sessionthread(device->session, SKINNY_DEVICE_RS_FAILED);
-			//                      device->session->device->registrationState = SKINNY_DEVICE_RS_FAILED;
+			sccp_socket_stop_sessionthread(device->session, SCCP_DEVICE_RS_FAILED);
+			//                      device->session->device->registrationState = SCCP_DEVICE_RS_FAILED;
 			//                      s->device = sccp_session_addDevice(s, d);
 		}
 
@@ -467,7 +467,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_moo_
 		/* check ACLs for this device */
 		if (device->checkACL(device) == FALSE) {
 			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", r->msg.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
-			device->registrationState = SKINNY_DEVICE_RS_FAILED;
+			device->registrationState = SCCP_DEVICE_RS_FAILED;
 			s = sccp_session_reject(s, "IP Not Authorized");
 			goto EXITFUNC;
 		}
@@ -542,7 +542,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_moo_
 	sccp_device_setIndicationProtocol(device);
 	device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval, GLOB(dateformat));
 
-	sccp_dev_set_registered(device, SKINNY_DEVICE_RS_PROGRESS);
+	sccp_dev_set_registered(device, SCCP_DEVICE_RS_PROGRESS);
 
 	/* 
 	   Ask for the capabilities of the device
@@ -898,7 +898,7 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * 
 	r1->msg.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;
 	sccp_session_send2(s, r1);										// send directly to session, skipping device check
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: unregister request sent\n", DEV_ID_LOG(d));
-	sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
+	sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_NONE);
 }
 
 /*!
@@ -923,9 +923,9 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	sccp_moo_t *r1;
 
-	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
+	if (d->registrationState != SCCP_DEVICE_RS_PROGRESS && d->registrationState != SCCP_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+		sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 		return;
 	}
 
@@ -937,7 +937,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+		sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 		return;
 	}
 
@@ -2047,8 +2047,8 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	   concludes the device registration process.
 	   This is included even in the minimal subset of device registration commands.
 	 */
-	if (d->registrationState == SKINNY_DEVICE_RS_PROGRESS) {
-		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+	if (d->registrationState == SCCP_DEVICE_RS_PROGRESS) {
+		sccp_dev_set_registered(s->device, SCCP_DEVICE_RS_OK);
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(d, servername, 5);
 	}
