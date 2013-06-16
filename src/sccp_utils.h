@@ -119,7 +119,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin);
 
 #if ASTERISK_VERSION_NUMBER >= 10600
 #ifdef HAVE_PBX_DEVICESTATE_H
-enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state);
+enum ast_device_state sccp_channelstate2AstDeviceState(sccp_channelstate_t state);
 #endif
 #endif
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);

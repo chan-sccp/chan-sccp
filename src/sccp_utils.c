@@ -582,7 +582,7 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
  * \param state SCCP Channel State
  * \return asterisk device state
  */
-enum ast_device_state sccp_channelState2AstDeviceState(sccp_channelState_t state)
+enum ast_device_state sccp_channelstate2AstDeviceState(sccp_channelstate_t state)
 {
 	switch (state) {
 		case SCCP_CHANNELSTATE_CALLWAITING:

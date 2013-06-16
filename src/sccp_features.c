@@ -1404,7 +1404,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, 
  * \param device SCCP Device
  * \param channel SCCP Channel
  */
-void sccp_feat_channelStateChanged(sccp_device_t * device, sccp_channel_t * channel)
+void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * channel)
 {
 	uint8_t state;
 

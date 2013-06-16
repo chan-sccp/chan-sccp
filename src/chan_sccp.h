@@ -880,7 +880,7 @@ struct sccp_device {
 	} preferences;
 
 	//uint8_t earlyrtp;                                                                                     /*!< RTP Channel State where to open the RTP Media Stream */
-	sccp_channelState_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
+	sccp_channelstate_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
 	int keepalive;												/*!< Station Specific Keepalive Timeout */
@@ -895,7 +895,7 @@ struct sccp_device {
 	boolean_t meetme;											/*!< Meetme on/off */
 	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
 
-	sccp_lampMode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
+	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
 	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */
 	uint32_t mwilight;											/*!< MWI/Light bit field to to store mwi light for each line and device (offset 0 is current device state) */
@@ -1260,10 +1260,10 @@ struct sccp_global_vars {
 	boolean_t echocancel;											/*!< Echo Canel Support (Boolean, default=on) */
 	boolean_t silencesuppression;										/*!< Silence Suppression Support (Boolean, default=on)  */
 	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=on) */
-	sccp_channelState_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
+	sccp_channelstate_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
 	uint8_t dndmode;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
 	boolean_t privacy;											/*!< Privacy Support (Length=2) */
-	sccp_lampMode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
+	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
 	boolean_t blindtransferindication;									/*!< Blind Transfer Indication Support (Boolean, default=on = SCCP_BLINDTRANSFER_MOH) */
 	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */

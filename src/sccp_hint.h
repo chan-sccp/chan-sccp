@@ -13,7 +13,7 @@
 #ifndef SCCP_HINT_H_
 #define SCCP_HINT_H_
 
-sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
+sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *deviceId);
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 

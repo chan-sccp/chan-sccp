@@ -52,7 +52,7 @@ struct sccp_hint_SubscribingDevice {
  */
 struct sccp_hint_lineState {
 	sccp_line_t *line;
-	sccp_channelState_t state;
+	sccp_channelstate_t state;
 
 	/*!
 	 * \brief Call Information Structure
@@ -76,8 +76,8 @@ struct sccp_hint_list {
 	char context[SCCP_MAX_CONTEXT];										/*!< Context for Hint */
 	char hint_dialplan[256];										/*!< e.g. IAX2/station123 */
 
-	sccp_channelState_t currentState;									/*!< current State */
-	sccp_channelState_t previousState;									/*!< current State */
+	sccp_channelstate_t currentState;									/*!< current State */
+	sccp_channelstate_t previousState;									/*!< current State */
 
 	/*!
 	 * \brief Call Information Structure
@@ -869,7 +869,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	}
 #endif
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(sccp_channelState2AstDeviceState(lineState->state)), sccp_channelState2AstDeviceState(lineState->state), lineState->line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(sccp_channelstate2AstDeviceState(lineState->state)), sccp_channelstate2AstDeviceState(lineState->state), lineState->line->name);
 
 	switch (lineState->state) {
 		case SCCP_CHANNELSTATE_DOWN:
@@ -1175,10 +1175,10 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 	}
 }
 
-sccp_channelState_t sccp_hint_getLinestate(const char *linename, const char *deviceId)
+sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *deviceId)
 {
 	struct sccp_hint_lineState *lineState = NULL;
-	sccp_channelState_t state = SCCP_CHANNELSTATE_CONGESTION;
+	sccp_channelstate_t state = SCCP_CHANNELSTATE_CONGESTION;
 
 	SCCP_LIST_LOCK(&lineStates);
 	SCCP_LIST_TRAVERSE(&lineStates, lineState, list) {

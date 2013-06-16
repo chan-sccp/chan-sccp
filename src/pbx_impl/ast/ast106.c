@@ -156,7 +156,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 	int res = AST_DEVICE_UNKNOWN;
 	char *lineName = (char *) data;
 	char *deviceId = NULL;
-	sccp_channelState_t state;
+	sccp_channelstate_t state;
 
 	if ((deviceId = strchr(lineName, '@'))) {
 		*deviceId = '\0';
