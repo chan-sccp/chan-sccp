@@ -116,9 +116,8 @@ coverage:
 	lcov --directory src/.libs -b src -c --o coverage/chan-sccp-b.info; \
 	genhtml -o coverage -f -t chan-sccp-b coverage/chan-sccp-b.info
 	
-coverage-zero:
+coverage-zero: rmcoverage
 	lcov --directory src/.libs -b src -z;
-	rmcoverage
 
 #install-exec-hook:
 #	@if test "$(DEBUG)" == "1" && test -n "$(GDB)" && test tools/chan-sccp-b_backtrace -nt /usr/bin/chan-sccp-b_backtrace; then	\
