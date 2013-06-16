@@ -2190,7 +2190,7 @@ static void sccp_device_indicate_offhook(const sccp_device_t *device, sccp_lined
 
 static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel){
   
-	sccp_dev_set_ringer(device, SKINNY_STATION_RINGOFF, linedevice->lineInstance, channel->callid);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
 	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);

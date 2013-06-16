@@ -109,7 +109,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_cleardisplaynotify(d);
 			sccp_dev_clearprompt(d, 0, 0);
 
-			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 0);
@@ -133,7 +133,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 			}
 
-			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_set_cplane(d, instance, 0);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOOK);
@@ -144,7 +144,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			}
 
 			if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING){
-				sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			}
 
 			break;
@@ -169,9 +169,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(d, c);
 
-			if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT && c->ringermode != SKINNY_STATION_URGENTRING)) {
+			if ((d->dndFeature.enabled && d->dndFeature.status == SCCP_DNDMODE_SILENT && c->ringermode != SKINNY_RINGTYPE_URGENT)) {
 				sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
-				sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
+				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 			} else {
 				sccp_linedevices_t *ownlinedevice;
 				sccp_device_t *remoteDevice;
@@ -183,7 +183,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 						sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found matching linedevice. Aux parameter = %s\n", d->id, ownlinedevice->subscriptionId.aux);
 						/** Check the auxiliary parameter of the linedevice to enable silent ringing for certain devices on a certain line.**/
 						if (0 == strncmp(ownlinedevice->subscriptionId.aux, "silent", 6)) {
-							sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
+							sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 							sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Forcing silent ring for specific device.\n", d->id);
 						} else {
 							sccp_dev_set_ringer(d, c->ringermode, instance, c->callid);
@@ -197,7 +197,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 			char prompt[100];
 
-			if (c->ringermode == SKINNY_STATION_URGENTRING) {
+			if (c->ringermode == SKINNY_RINGTYPE_URGENT) {
 				snprintf(prompt, sizeof(prompt), "Urgent Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
 			} else {
 				snprintf(prompt, sizeof(prompt), "Incoming Call from: %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
@@ -271,7 +271,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGIN, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, 0);
-			sccp_dev_set_ringer(d, SKINNY_STATION_SILENTRING, instance, c->callid);
+			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 			PBX(set_callstate) (c, AST_STATE_RINGING);
 #ifdef CS_SCCP_CONFERENCE
@@ -282,7 +282,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TRANSFER, 0);
-			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_channel_send_callinfo(d, c);
 			break;
@@ -295,7 +295,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:							
 			sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
-			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -315,7 +315,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLPARK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			break;
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-			sccp_dev_set_ringer(d, SKINNY_STATION_RINGOFF, instance, c->callid);
+			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_dev_clearprompt(d, instance, c->callid);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/** send connected, so it is not listed as missed call */
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -448,7 +448,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			switch (state) {
 				case SCCP_CHANNELSTATE_OFFHOOK:
 					if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING) {
-						sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+						sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, instance, c->callid);
 						sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);	/* send connected, so it is not listed as missed call */
 					}
 					break;
@@ -466,7 +466,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 				  
 					sccp_dev_cleardisplaynotify(remoteDevice);
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
-					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, instance, c->callid);
 					sccp_dev_set_speaker(remoteDevice, SKINNY_STATIONSPEAKER_OFF);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					sccp_dev_set_cplane(remoteDevice, linedevice->lineInstance, 1);
@@ -480,7 +480,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 					   So I removed the if clause below. Hopefully, this will not cause other calls to stop
 					   ringing if multiple calls are ringing concurrently on a shared line. */
 
-					sccp_dev_set_ringer(remoteDevice, SKINNY_STATION_RINGOFF, instance, c->callid);
+					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, instance, c->callid);
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					sccp_channel_send_callinfo(remoteDevice, c);
