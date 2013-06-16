@@ -1131,13 +1131,13 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 	if (alert_info && !sccp_strlen_zero(alert_info)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
 		if (strcasecmp(alert_info, "inside") == 0)
-			ringermode = SKINNY_STATION_INSIDERING;
+			ringermode = SKINNY_RINGTYPE_INSIDE;
 		else if (strcasecmp(alert_info, "feature") == 0)
-			ringermode = SKINNY_STATION_FEATURERING;
+			ringermode = SKINNY_RINGTYPE_FEATURE;
 		else if (strcasecmp(alert_info, "silent") == 0)
-			ringermode = SKINNY_STATION_SILENTRING;
+			ringermode = SKINNY_RINGTYPE_SILENT;
 		else if (strcasecmp(alert_info, "urgent") == 0)
-			ringermode = SKINNY_STATION_URGENTRING;
+			ringermode = SKINNY_RINGTYPE_URGENT;
 	}
 	/* done ALERT_INFO parsing */
 
@@ -1182,17 +1182,17 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;
 				if (!strcasecmp(optv[opti], "inside"))
-					ringermode = SKINNY_STATION_INSIDERING;
+					ringermode = SKINNY_RINGTYPE_INSIDE;
 				else if (!strcasecmp(optv[opti], "outside"))
-					ringermode = SKINNY_STATION_OUTSIDERING;
+					ringermode = SKINNY_RINGTYPE_OUTSIDE;
 				else if (!strcasecmp(optv[opti], "feature"))
-					ringermode = SKINNY_STATION_FEATURERING;
+					ringermode = SKINNY_RINGTYPE_FEATURE;
 				else if (!strcasecmp(optv[opti], "silent"))
-					ringermode = SKINNY_STATION_SILENTRING;
+					ringermode = SKINNY_RINGTYPE_SILENT;
 				else if (!strcasecmp(optv[opti], "urgent"))
-					ringermode = SKINNY_STATION_URGENTRING;
+					ringermode = SKINNY_RINGTYPE_URGENT;
 				else
-					ringermode = SKINNY_STATION_OUTSIDERING;
+					ringermode = SKINNY_RINGTYPE_OUTSIDE;
 			} else {
 				pbx_log(LOG_WARNING, "Wrong option %s\n", optv[opti]);
 			}

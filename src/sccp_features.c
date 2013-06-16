@@ -379,18 +379,18 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
                                         sccp_dev_stoptone(d, instance, c->callid);
                                         sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
                                         sccp_channel_set_active(d, NULL);
-                                        c->ringermode = SKINNY_STATION_OUTSIDERING;			// default ring
+                                        c->ringermode = SKINNY_RINGTYPE_OUTSIDE;			// default ring
                                         ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
                                         if (ringermode && !sccp_strlen_zero(ringermode)) {
                                                 sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
                                                 if (strcasecmp(ringermode, "inside") == 0)
-                                                        c->ringermode = SKINNY_STATION_INSIDERING;
+                                                        c->ringermode = SKINNY_RINGTYPE_INSIDE;
                                                 else if (strcasecmp(ringermode, "feature") == 0)
-                                                        c->ringermode = SKINNY_STATION_FEATURERING;
+                                                        c->ringermode = SKINNY_RINGTYPE_FEATURE;
                                                 else if (strcasecmp(ringermode, "silent") == 0)
-                                                        c->ringermode = SKINNY_STATION_SILENTRING;
+                                                        c->ringermode = SKINNY_RINGTYPE_SILENT;
                                                 else if (strcasecmp(ringermode, "urgent") == 0)
-                                                        c->ringermode = SKINNY_STATION_URGENTRING;
+                                                        c->ringermode = SKINNY_RINGTYPE_URGENT;
                                         }
                                         sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
                                 }

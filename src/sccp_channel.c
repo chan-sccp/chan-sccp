@@ -189,8 +189,8 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 
 	channel->owner = NULL;
-	/* default ringermode SKINNY_STATION_OUTSIDERING. Change it with SCCPRingerMode app */
-	channel->ringermode = SKINNY_STATION_OUTSIDERING;
+	/* default ringermode SKINNY_RINGTYPE_OUTSIDE. Change it with SCCPRingerMode app */
+	channel->ringermode = SKINNY_RINGTYPE_OUTSIDE;
 	/* inbound for now. It will be changed later on outgoing calls */
 	channel->calltype = SKINNY_CALLTYPE_INBOUND;
 	channel->answered_elsewhere = FALSE;

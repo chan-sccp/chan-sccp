@@ -201,7 +201,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_channel_display_callInfo(c);
 
 	if (!c->ringermode) {
-		c->ringermode = SKINNY_STATION_OUTSIDERING;
+		c->ringermode = SKINNY_RINGTYPE_OUTSIDE;
 	}
 	boolean_t isRinging = FALSE;
 	boolean_t hasDNDParticipant = FALSE;
@@ -260,7 +260,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		} else {
 
 			/** check if ringermode is not urgent and device enabled dnd in reject mode */
-			if (SKINNY_STATION_URGENTRING != c->ringermode && linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
+			if (SKINNY_RINGTYPE_URGENT != c->ringermode && linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 			        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
 				hasDNDParticipant = TRUE;
 				continue;
