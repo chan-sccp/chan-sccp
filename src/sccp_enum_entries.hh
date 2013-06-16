@@ -21,11 +21,11 @@
 // /* and this in sccp_enum.c */
 // inline const char* Months2str(sccp_Months_t index) { 
 // 	switch(index) { 
-// 		default: printf("ERROR: element %d could not be found in sccp_" "Months" "_t", index); return "ERROR";
 //         	case january: return "jan";
 //         	case february: return "feb";
 //         	case march: return "mrch";
 // 	};
+//	return "SCCP: ERROR lookup in " "skinny" "_" "Months" "_t"; };
 // };
 
 //
