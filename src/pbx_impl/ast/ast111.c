@@ -1107,7 +1107,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	//! \todo parse request
 	char *lineName;
 	skinny_codec_t codec = SKINNY_CODEC_G711_ULAW_64K;
-	sccp_autoanswer_type_t autoanswer_type = SCCP_AUTOANSWER_NONE;
+	sccp_autoanswer_t autoanswer_type = SCCP_AUTOANSWER_NONE;
 	uint8_t autoanswer_cause = AST_CAUSE_NOTDEFINED;
 	int ringermode = 0;
 
@@ -2504,9 +2504,9 @@ int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum 
 /*!
  * \brief Get Hint Extension State and return the matching Busy Lamp Field State 
  */
-static sccp_BLFState_t sccp_wrapper_asterisk111_getExtensionState(const char *extension, const char *context)
+static skinny_busylampfield_state_t sccp_wrapper_asterisk111_getExtensionState(const char *extension, const char *context)
 {
-	sccp_BLFState_t result = SCCP_BLF_STATUS_UNKNOWN;
+	skinny_busylampfield_state_t result = SCCP_BLF_STATUS_UNKNOWN;
 
 	if (sccp_strlen_zero(extension) || sccp_strlen_zero(context)) {
 		pbx_log(LOG_ERROR, "SCCP: PBX(getExtensionState): Either extension:'%s' or context:;%s' provided is empty\n", extension, context);

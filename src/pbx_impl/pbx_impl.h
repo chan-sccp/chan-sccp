@@ -142,7 +142,7 @@ struct sccp_pbx_cb {
 	boolean_t(*const set_language)(PBX_CHANNEL_TYPE *pbxChannel, const char *language);
 	
 	/* devicestate / extension state */
-	sccp_BLFState_t (*const getExtensionState)(const char *extension, const char *context);
+	skinny_busylampfield_state_t (*const getExtensionState)(const char *extension, const char *context);
 	
 	PBX_CHANNEL_TYPE *(*const findPickupChannelByExtenLocked)(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
 	

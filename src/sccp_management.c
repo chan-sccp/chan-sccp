@@ -308,7 +308,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 		astman_append(s, "ObjectType: device\r\n");
 		astman_append(s, "Description: %s\r\n", device->description);
 		astman_append(s, "IPaddress: %s\r\n", (device->session) ? pbx_inet_ntoa(device->session->sin.sin_addr) : "--");
-		astman_append(s, "Reg_Status: %s\r\n", deviceregistrationstatus2str(device->registrationState));
+		astman_append(s, "Reg_Status: %s\r\n", registrationstate2str(device->registrationState));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
 		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");
 		astman_append(s, "NumLines: %d\r\n", device->configurationStatistic.numberOfLines);

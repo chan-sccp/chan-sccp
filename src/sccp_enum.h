@@ -26,11 +26,4 @@
 #undef ENUM_ELEMENT
 #undef BEGIN_ENUM
 #undef END_ENUM
-
-// TEMP / Compatibility between source changes
-#define sccp_BLFState_t skinny_busylampfield_state_t
-#define deviceregistrationstatus2str registrationstate2str
-#define sccp_autoanswer_type_t sccp_autoanswer_t
-#define accessorystatus2str accessorystate2str
-#define keymode2description keymode2str
 #endif // __SCCP_ENUM_H

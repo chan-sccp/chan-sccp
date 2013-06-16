@@ -570,7 +570,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_TABLE_FIELD(Name,		s,	40,	d->description)										\
 		CLI_AMI_TABLE_FIELD(Address,		s,	20,	(d->session) ? pbx_inet_ntoa(d->session->sin.sin_addr) : "--")				\
 		CLI_AMI_TABLE_FIELD(Mac,		s,	16,	d->id)											\
-		CLI_AMI_TABLE_FIELD(RegState,		s,	10, 	deviceregistrationstatus2str(d->registrationState))					\
+		CLI_AMI_TABLE_FIELD(RegState,		s,	10, 	registrationstate2str(d->registrationState))					\
 		CLI_AMI_TABLE_FIELD(Token,		s,	5,	d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Ack" : "Rej") : "None") \
 		CLI_AMI_TABLE_FIELD(RegTime,		s, 	25, 	regtime)										\
 		CLI_AMI_TABLE_FIELD(Act,		s,  	3, 	(d->active_channel) ? "Yes" : "No")							\
@@ -668,7 +668,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
-	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", deviceregistrationstatus2str(d->registrationState), d->registrationState);
+	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", registrationstate2str(d->registrationState), d->registrationState);
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", devicestate2str(d->state), d->state);
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_BOOL("MWI handset light", 	CLI_AMI_LIST_WIDTH, d->mwilight);
@@ -706,7 +706,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Server Address",		CLI_AMI_LIST_WIDTH, "%s", (d->session) ? ast_inet_ntoa(d->session->ourip) : "???.???.???.???");
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s (%s)", d->earlyrtp ? "Yes" : "No", d->earlyrtp ? sccp_indicate2str(d->earlyrtp) : "none");
-	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)",	CLI_AMI_LIST_WIDTH, "%s", accessorystatus2str(d->accessorystatus));
+	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)",	CLI_AMI_LIST_WIDTH, "%s", accessorystate2str(d->accessorystatus));
 	CLI_AMI_OUTPUT_PARAM("Last Used Accessory",	CLI_AMI_LIST_WIDTH, "%s", accessory2str(d->accessoryused));
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s", d->lastNumber);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
@@ -1341,7 +1341,7 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(Device,			s,	15,	(d) ? d->id : "--")						\
 		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestate2str(d->state) : "--")			\
 		CLI_AMI_TABLE_FIELD(Type,			s,	15,	(d) ? devicetype2str(d->skinny_type) : "--")			\
-		CLI_AMI_TABLE_FIELD(RegState,			s,	10,	(d) ? deviceregistrationstatus2str(d->registrationState) : "--")	\
+		CLI_AMI_TABLE_FIELD(RegState,			s,	10,	(d) ? registrationstate2str(d->registrationState) : "--")	\
 		CLI_AMI_TABLE_FIELD(Token,			s,	10,	(d && d->status.token ) ?  (SCCP_TOKEN_STATE_ACK == d->status.token ? "Ack" : (SCCP_TOKEN_STATE_REJ == d->status.token ? "Reject" : "--")) : "--")
 #include "sccp_cli_table.h"
 
@@ -1910,7 +1910,7 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 #define CLI_AMI_TABLE_FIELDS													\
 				CLI_AMI_TABLE_FIELD(Set,			s,	15,	softkeyset->name)		\
 				CLI_AMI_TABLE_FIELD(Mode,			s,	12,	keymode2str(i))			\
-				CLI_AMI_TABLE_FIELD(Description,		s,	40,	keymode2description(i))		\
+				CLI_AMI_TABLE_FIELD(Description,		s,	40,	keymode2str(i))		\
 				CLI_AMI_TABLE_FIELD(LblID,			d,	5,	c)				\
 				CLI_AMI_TABLE_FIELD(Label,			s,	15,	label2str(b[c]))
 

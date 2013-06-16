@@ -880,7 +880,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
 			break;
 	}
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystatus2str(d->accessorystatus), unknown);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystate2str(d->accessorystatus), unknown);
 }
 
 /*!
@@ -1657,7 +1657,7 @@ void sccp_handle_headset(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 
 	uint32_t headsetmode = letohl(r->msg.HeadsetStatusMessage.lel_hsMode);
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), accessory2str(SCCP_ACCESSORY_HEADSET), accessorystatus2str(headsetmode), 0);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(s->device), accessory2str(SCCP_ACCESSORY_HEADSET), accessorystate2str(headsetmode), 0);
 }
 
 /*!

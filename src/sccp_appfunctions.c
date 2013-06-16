@@ -101,9 +101,9 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strcasecmp(colname, "image_version")) {
 		sccp_copy_string(buf, d->imageversion, len);
 	} else if (!strcasecmp(colname, "accessory_status")) {
-		sccp_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
+		sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
 	} else if (!strcasecmp(colname, "registration_state")) {
-		sccp_copy_string(buf, deviceregistrationstatus2str(d->registrationState), len);
+		sccp_copy_string(buf, registrationstate2str(d->registrationState), len);
 	} else if (!strcasecmp(colname, "codecs")) {
 		//              pbx_codec_pref_string(&d->codecs, buf, sizeof(buf) - 1);
 		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
@@ -111,7 +111,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		//              pbx_getformatname_multiple(buf, len - 1, d->capability);
 		sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	} else if (!strcasecmp(colname, "state")) {
-		sccp_copy_string(buf, accessorystatus2str(d->accessorystatus), len);
+		sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
 	} else if (!strcasecmp(colname, "lines_registered")) {
 		sccp_copy_string(buf, d->linesRegistered ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "lines_count")) {

@@ -836,7 +836,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	sccp_event_t event;
 	sccp_moo_t *r;
 
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), deviceregistrationstatus2str(d->registrationState), deviceregistrationstatus2str(opt));
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), registrationstate2str(d->registrationState), registrationstate2str(opt));
 
 	if (d->registrationState == opt)
 		return;
