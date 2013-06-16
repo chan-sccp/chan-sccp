@@ -869,8 +869,6 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	}
 #endif
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(sccp_channelstate2AstDeviceState(lineState->state)), sccp_channelstate2AstDeviceState(lineState->state), lineState->line->name);
-
 	switch (lineState->state) {
 		case SCCP_CHANNELSTATE_DOWN:
 		case SCCP_CHANNELSTATE_ONHOOK:
@@ -913,6 +911,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
 	}
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
 //	if (hint && lineState->state == hint->currentState) {
