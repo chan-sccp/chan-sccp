@@ -109,15 +109,6 @@ BEGIN_ENUM(sccp,callforward)
 	ENUM_ELEMENT(SCCP_CFWD_NOANSWER 				,,	"NoAnswer")
 END_ENUM(sccp,callforward)
 
-BEGIN_ENUM(sccp,registrationstate)
-	ENUM_ELEMENT(SCCP_DEVICE_RS_FAILED				,,	"Failed")
-	ENUM_ELEMENT(SCCP_DEVICE_RS_TIMEOUT				,,	"Time Out")
-	ENUM_ELEMENT(SCCP_DEVICE_RS_NONE				,,	"None")
-	ENUM_ELEMENT(SCCP_DEVICE_RS_TOKEN				,,	"Token")
-	ENUM_ELEMENT(SCCP_DEVICE_RS_PROGRESS				,,	"Progress")
-	ENUM_ELEMENT(SCCP_DEVICE_RS_OK					,,	"OK") 
-END_ENUM(sccp,registrationstate)
-
 /*!
  * \brief SCCP Dtmf Mode (ENUM)
  */
@@ -647,3 +638,16 @@ BEGIN_ENUM(skinny,keymode)
         ENUM_ELEMENT(KEYMODE_INUSEHINT	 				,,	"INUSEHINT")
         ENUM_ELEMENT(KEYMODE_ONHOOKSTEALABLE	 			,,	"OKHOOKSTEALABLE")
 END_ENUM(skinny,keymode)
+
+/*!
+ * \brief Skinny Device Registration (ENUM)
+ */
+BEGIN_ENUM(skinny,registrationstate)
+	ENUM_ELEMENT(SKINNY_DEVICE_RS_FAILED				,,	"Failed")
+	ENUM_ELEMENT(SKINNY_DEVICE_RS_TIMEOUT				,,	"Time Out")
+	ENUM_ELEMENT(SKINNY_DEVICE_RS_NONE				,,	"None")
+	ENUM_ELEMENT(SKINNY_DEVICE_RS_TOKEN				,,	"Token")
+	ENUM_ELEMENT(SKINNY_DEVICE_RS_PROGRESS				,,	"Progress")
+	ENUM_ELEMENT(SKINNY_DEVICE_RS_OK				,,	"OK") 
+END_ENUM(skinny,registrationstate)
+
