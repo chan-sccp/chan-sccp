@@ -333,11 +333,11 @@ END_ENUM(skinny,lampmode)
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
 BEGIN_ENUM(skinny,busylampfield_state)
-	ENUM_ELEMENT(SCCP_BLF_STATUS_UNKNOWN 				,,	"Unknown")				// change to SKINNY_ later
-	ENUM_ELEMENT(SCCP_BLF_STATUS_IDLE 				,,	"Not-in-use")
-	ENUM_ELEMENT(SCCP_BLF_STATUS_INUSE 				,,	"In-use")
-	ENUM_ELEMENT(SCCP_BLF_STATUS_DND 				,,	"DND")
-	ENUM_ELEMENT(SCCP_BLF_STATUS_ALERTING				,,	"Alerting")
+	ENUM_ELEMENT(SKINNY_BLF_STATUS_UNKNOWN 				,,	"Unknown")
+	ENUM_ELEMENT(SKINNY_BLF_STATUS_IDLE 				,,	"Not-in-use")
+	ENUM_ELEMENT(SKINNY_BLF_STATUS_INUSE 				,,	"In-use")
+	ENUM_ELEMENT(SKINNY_BLF_STATUS_DND 				,,	"DND")
+	ENUM_ELEMENT(SKINNY_BLF_STATUS_ALERTING				,,	"Alerting")
 END_ENUM(skinny,busylampfield_state)
 
 /*!

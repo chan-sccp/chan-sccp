@@ -2761,7 +2761,7 @@ int sccp_asterisk_queue_control_data(const PBX_CHANNEL_TYPE * pbx_channel, enum 
  */
 static skinny_busylampfield_state_t sccp_wrapper_asterisk108_getExtensionState(const char *extension, const char *context)
 {
-	skinny_busylampfield_state_t result = SCCP_BLF_STATUS_UNKNOWN;
+	skinny_busylampfield_state_t result = SKINNY_BLF_STATUS_UNKNOWN;
 
 	if (sccp_strlen_zero(extension) || sccp_strlen_zero(context)) {
 		pbx_log(LOG_ERROR, "SCCP: PBX(getExtensionState): Either extension:'%s' or context:;%s' provided is empty\n", extension, context);
@@ -2774,20 +2774,20 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk108_getExtensionState(c
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
 		case AST_EXTENSION_UNAVAILABLE:
-			result = SCCP_BLF_STATUS_UNKNOWN;
+			result = SKINNY_BLF_STATUS_UNKNOWN;
 			break;
 		case AST_EXTENSION_NOT_INUSE:
-			result = SCCP_BLF_STATUS_IDLE;
+			result = SKINNY_BLF_STATUS_IDLE;
 			break;
 		case AST_EXTENSION_INUSE:
 		case AST_EXTENSION_ONHOLD:
 		case AST_EXTENSION_ONHOLD + AST_EXTENSION_INUSE:
 		case AST_EXTENSION_BUSY:
-			result = SCCP_BLF_STATUS_INUSE;
+			result = SKINNY_BLF_STATUS_INUSE;
 			break;
 		case AST_EXTENSION_RINGING + AST_EXTENSION_INUSE:
 		case AST_EXTENSION_RINGING:
-			result = SCCP_BLF_STATUS_ALERTING;
+			result = SKINNY_BLF_STATUS_ALERTING;
 			break;
 	}
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (getExtensionState) extension: %s@%s, extension_state: '%s (%d)' -> blf state '%d'\n", extension, context, ast_extension_state2str(state), state, result);
