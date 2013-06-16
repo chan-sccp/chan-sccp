@@ -1804,7 +1804,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			sccp_free(d->buttonTemplate);
 			d->buttonTemplate = NULL;
 		}
-#if defined(CS_DEVSTATE_FEATURE) && defined(S_AST_HAS_EVENT)
+#if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 		/* Unregister event subscriptions originating from devstate feature */
 		SCCP_LIST_LOCK(&d->devstateSpecifiers);
 		while ((devstateSpecifier = SCCP_LIST_REMOVE_HEAD(&d->devstateSpecifiers, list))) {
