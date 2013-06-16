@@ -124,7 +124,7 @@ static int sccp_read_data(sccp_session_t * s)
 			pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
 		} else {											/* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: device closed connection or network unreachable. closing connection.\n", DEV_ID_LOG(s->device));
-			sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+			sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 		}
 		return 0;
 	} else {												/* move s->buffer content to the beginning */
@@ -244,7 +244,7 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 			sccp_session_removeFromGlobals(session->device->session);
 		}
 		sccp_session_lock(session);
-		session->device->registrationState = SKINNY_DEVICE_RS_NONE;
+		session->device->registrationState = SCCP_DEVICE_RS_NONE;
 		session->device->session = NULL;
 		session->device = sccp_device_release(session->device);
 		sccp_session_unlock(session);
@@ -306,7 +306,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	/* cleanup device if this session is not a crossover session */
 	if (s->device && (d = sccp_device_retain(s->device))) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), pbx_inet_ntoa(s->sin.sin_addr));
-		d->registrationState = SKINNY_DEVICE_RS_NONE;
+		d->registrationState = SCCP_DEVICE_RS_NONE;
 		d->needcheckringback = 0;
 		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
 		sccp_device_release(d);
@@ -399,14 +399,14 @@ void *sccp_socket_device_thread(void *session)
 		if (-1 == res) {											/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), pbx_inet_ntoa(s->sin.sin_addr));
-				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+				sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 				break;
 			}
 		} else if (0 == res) {											/* poll timeout */
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
 			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
 				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout);
-				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
+				sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_TIMEOUT);
 				break;
 			}
 		} else if (res > 0) {											/* poll data processing */
@@ -419,7 +419,7 @@ void *sccp_socket_device_thread(void *session)
 							if (s->device) {
 								sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 							}
-							sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+							sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 							sccp_free(m);
 							break;
 						}
@@ -429,7 +429,7 @@ void *sccp_socket_device_thread(void *session)
 				}
 			} else {											/* POLLHUP / POLLERR */
 				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
-				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+				sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 				break;
 			}
 		} else {												/* poll returned invalid res */
@@ -714,7 +714,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 	if (!s || s->fds[0].fd <= 0) {
 		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		if (s) {
-			sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+			sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 		}
 		sccp_free(r);
 		r = NULL;
@@ -747,7 +747,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 			pbx_log(LOG_ERROR, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int) res, strerror(errno), errno, (int) bytesSent, (int) bufLen, message2str(letohl(r->header.lel_messageId)), letohl(r->header.length)
 			    );
 			if (s) {
-				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+				sccp_socket_stop_sessionthread(s, SCCP_DEVICE_RS_FAILED);
 			}
 			res = -1;
 			break;
@@ -812,7 +812,7 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 	sccp_session_send2(session, r);
 
 	/* if we reject the connection during accept connection, thread is not ready */
-	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
+	sccp_socket_stop_sessionthread(session, SCCP_DEVICE_RS_FAILED);
 	return NULL;
 }
 
@@ -828,7 +828,7 @@ sccp_session_t *sccp_session_crossdevice_cleanup(sccp_session_t * session, sccp_
 	sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
 
 	/* if we reject the connection during accept connection, thread is not ready */
-	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_NONE);
+	sccp_socket_stop_sessionthread(session, SCCP_DEVICE_RS_NONE);
 
 	return NULL;
 }

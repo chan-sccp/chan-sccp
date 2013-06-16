@@ -79,7 +79,7 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (!strncasecmp(word, d->id, wordlen) && d->registrationState != SKINNY_DEVICE_RS_NONE && ++which > state) {
+		if (!strncasecmp(word, d->id, wordlen) && d->registrationState != SCCP_DEVICE_RS_NONE && ++which > state) {
 			ret = strdup(d->id);
 			break;
 		}
@@ -2539,7 +2539,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 		return RESULT_FAILURE;
 	}
 
-	if (!d->session || d->registrationState != SKINNY_DEVICE_RS_OK) {
+	if (!d->session || d->registrationState != SCCP_DEVICE_RS_OK) {
 		pbx_cli(fd, "%s: device not registered\n", argv[2]);
 		d = sccp_device_release(d);
 		return RESULT_FAILURE;
