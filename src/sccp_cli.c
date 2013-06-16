@@ -669,7 +669,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", deviceregistrationstatus2str(d->registrationState), d->registrationState);
-	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", devicestatus2str(d->state), d->state);
+	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", devicestate2str(d->state), d->state);
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_BOOL("MWI handset light", 	CLI_AMI_LIST_WIDTH, d->mwilight);
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description);
@@ -1339,7 +1339,7 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(KA,				d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))			\
 		CLI_AMI_TABLE_FIELD(KAI,			d,	4,	d->keepaliveinterval)						\
 		CLI_AMI_TABLE_FIELD(Device,			s,	15,	(d) ? d->id : "--")						\
-		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestatus2str(d->state) : "--")			\
+		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestate2str(d->state) : "--")			\
 		CLI_AMI_TABLE_FIELD(Type,			s,	15,	(d) ? devicetype2str(d->skinny_type) : "--")			\
 		CLI_AMI_TABLE_FIELD(RegState,			s,	10,	(d) ? deviceregistrationstatus2str(d->registrationState) : "--")	\
 		CLI_AMI_TABLE_FIELD(Token,			s,	10,	(d && d->status.token ) ?  (SCCP_TOKEN_STATE_ACK == d->status.token ? "Ack" : (SCCP_TOKEN_STATE_REJ == d->status.token ? "Reject" : "--")) : "--")

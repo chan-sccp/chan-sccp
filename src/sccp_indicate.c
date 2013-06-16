@@ -67,7 +67,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	linedevice = sccp_linedevice_find(d, l);
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelState %d (%s))\n", d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_indicate2str(c->previousChannelState));
+	sccp_log((DEBUGCAT_INDICATE | DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_indicate2str(c->previousChannelState));
 	sccp_channel_setSkinnyCallstate(c, state);
 
 	switch (state) {
@@ -359,8 +359,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			__sccp_indicate_remote_device(d, c, l, state);
 		}	
 
-		/* notify features (sccp_feat_channelStateChanged = empty function, skipping)*/
-		//	sccp_feat_channelStateChanged(d, c);
+		/* notify features (sccp_feat_channelstateChanged = empty function, skipping)*/
+		//	sccp_feat_channelstateChanged(d, c);
 
 		sccp_event_t event;
 		memset(&event, 0, sizeof(sccp_event_t));

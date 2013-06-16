@@ -1102,7 +1102,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	sccp_channelState_t earlyrtp = 0;
+	sccp_channelstate_t earlyrtp = 0;
 
 	if (!strcasecmp(value, "none")) {
 		earlyrtp = 0;
@@ -1119,8 +1119,8 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, c
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
-	if (*(sccp_channelState_t *) dest != earlyrtp) {
-		*(sccp_channelState_t *) dest = earlyrtp;
+	if (*(sccp_channelstate_t *) dest != earlyrtp) {
+		*(sccp_channelstate_t *) dest = earlyrtp;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
@@ -1156,7 +1156,7 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, c
 sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	sccp_lampMode_t mwilamp = SKINNY_LAMP_OFF;
+	skinny_lampmode_t mwilamp = SKINNY_LAMP_OFF;
 
 	if (!strcasecmp(value, "wink")) {
 		mwilamp = SKINNY_LAMP_WINK;
@@ -1173,8 +1173,8 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, co
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
-	if (*(sccp_lampMode_t *) dest != mwilamp) {
-		*(sccp_lampMode_t *) dest = mwilamp;
+	if (*(skinny_lampmode_t *) dest != mwilamp) {
+		*(skinny_lampmode_t *) dest = mwilamp;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;

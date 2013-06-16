@@ -1,7 +1,7 @@
 /*!
  * \file        sccp_enum.h
  * \brief       SCCP Enum Header
- * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \author      Diederik de Groot <ddegroot [at] sf.net>
  * \note        Reworked, but based on chan_sccp code.
  *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *              Modified by Jan Czmok and Julien Goodwin
@@ -28,10 +28,6 @@
 #undef END_ENUM
 
 // TEMP / Compatibility between source changes
-#define channelstate2str channelState2str 
-#define devicestatus2str devicestate2str
-#define sccp_lampMode_t skinny_lampMode_t
-#define lampmode2str lampMode2str
 #define sccp_BLFState_t skinny_busylampfield_state_t
 #define deviceregistrationstatus2str registrationstate2str
 #define sccp_autoanswer_type_t sccp_autoanswer_t

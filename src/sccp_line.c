@@ -797,10 +797,10 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
  * 
  * \param line  SCCP Line (locked)
  */
-sccp_channelState_t sccp_line_getDNDChannelState(sccp_line_t * line)
+sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 {
 	sccp_linedevices_t *lineDevice = NULL;
-	sccp_channelState_t state = SCCP_CHANNELSTATE_CONGESTION;
+	sccp_channelstate_t state = SCCP_CHANNELSTATE_CONGESTION;
 
 	if (!line) {
 		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_getDNDState) Either no hint or line provided\n");

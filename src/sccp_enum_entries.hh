@@ -51,7 +51,7 @@ END_ENUM(sccp,event_type)
 /*! 
  * \brief internal chan_sccp call state (c->callstate) (Enum)
  */
-BEGIN_ENUM(sccp,channelState)
+BEGIN_ENUM(sccp,channelstate)
         ENUM_ELEMENT(SCCP_CHANNELSTATE_DOWN 				,=0, 	"DOWN")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_OFFHOOK 				,=1, 	"OFFHOOK")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_ONHOOK 				,=2, 	"ONHOOK")
@@ -78,7 +78,7 @@ BEGIN_ENUM(sccp,channelState)
         ENUM_ELEMENT(SCCP_CHANNELSTATE_BLINDTRANSFER 			,=0xA6,	"BLINDTRANSFER")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_ZOMBIE 				,=0xFE,	"ZOMBIE")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_DND 				,=0xFF,	"DND")
-END_ENUM(sccp,channelState)												/*!< internal Chan_SCCP Call State c->callstate */
+END_ENUM(sccp,channelstate)												/*!< internal Chan_SCCP Call State c->callstate */
 
 /*!
  * \brief Skinny Miscellaneous Command Type (Enum)
@@ -321,13 +321,13 @@ END_ENUM(skinny,callsecuritystate)
 /*!
  * \brief Skinny Lamp Mode (ENUM)
  */
-BEGIN_ENUM(skinny,lampMode)												// change to lampmode later
+BEGIN_ENUM(skinny,lampmode)
 	ENUM_ELEMENT(SKINNY_LAMP_OFF					,,	"Lamp Off")
 	ENUM_ELEMENT(SKINNY_LAMP_ON					,,	"Lamp On")
 	ENUM_ELEMENT(SKINNY_LAMP_WINK					,,	"Lamp Wink")
 	ENUM_ELEMENT(SKINNY_LAMP_FLASH					,,	"Lamp Flash")
 	ENUM_ELEMENT(SKINNY_LAMP_BLINK					,,	"Lamp Blink")
-END_ENUM(skinny,lampMode)
+END_ENUM(skinny,lampmode)
 
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)

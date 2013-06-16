@@ -89,7 +89,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strcasecmp(colname, "id")) {
 		sccp_copy_string(buf, d->id, len);
 	} else if (!strcasecmp(colname, "status")) {
-		sccp_copy_string(buf, devicestatus2str(d->state), len);
+		sccp_copy_string(buf, devicestate2str(d->state), len);
 	} else if (!strcasecmp(colname, "description")) {
 		sccp_copy_string(buf, d->description, len);
 	} else if (!strcasecmp(colname, "config_type")) {
