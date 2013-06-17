@@ -921,8 +921,10 @@ sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, con
 	}
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Permit: %s\n", value);
 
-	if (!error)
+	if (!error) {
 		*(struct sccp_ha **) dest = ha;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}	
 
 	return changed;
 }
@@ -943,8 +945,10 @@ sccp_value_changed_t sccp_config_parse_deny(void *dest, const size_t size, const
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Deny: %s\n", value);
 
-	if (!error)
+	if (!error) {
 		*(struct sccp_ha **) dest = ha;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}	
 
 	return changed;
 }
@@ -1352,6 +1356,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 				}
 			} else {
 				*(PBX_VARIABLE_TYPE **) dest = prevvar;
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_config_parse_variables) Error Parsing Variables (value=%s)\n", value);
