@@ -479,6 +479,10 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
 		
 		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
+		changes = sccpConfigOption->change;
+	}
+	
+	if (SCCP_CONFIG_CHANGE_INVALIDVALUE != changed) {
         	if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
         	        int x;
         	        for (x=0; x < sccpConfigSegment->config_size; x++) {
@@ -488,8 +492,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
         	                }
         	        }
 	        }	
-		changes = sccpConfigOption->change;
-	}
+        } 
 
 	return changes;
 }
@@ -923,7 +926,7 @@ sccp_value_changed_t sccp_config_parse_permit(void *dest, const size_t size, con
 
 	if (!error) {
 		*(struct sccp_ha **) dest = ha;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		//changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}	
 
 	return changed;
@@ -947,7 +950,7 @@ sccp_value_changed_t sccp_config_parse_deny(void *dest, const size_t size, const
 
 	if (!error) {
 		*(struct sccp_ha **) dest = ha;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		//changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}	
 
 	return changed;
@@ -1356,7 +1359,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 				}
 			} else {
 				*(PBX_VARIABLE_TYPE **) dest = prevvar;
-				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				//changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_config_parse_variables) Error Parsing Variables (value=%s)\n", value);
