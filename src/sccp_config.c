@@ -1139,7 +1139,7 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, c
 sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	boolean_t dtmfmode = 0;
+	sccp_dtmfmode_t dtmfmode = 0;
 
 	if (!strcasecmp(value, "outofband")) {
 		dtmfmode = SCCP_DTMFMODE_OUTOFBAND;
@@ -1150,8 +1150,8 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, c
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
-	if (*(boolean_t *) dest != dtmfmode) {
-		*(boolean_t *) dest = dtmfmode;
+	if (*(sccp_dtmfmode_t *) dest != dtmfmode) {
+		*(sccp_dtmfmode_t *) dest = dtmfmode;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
