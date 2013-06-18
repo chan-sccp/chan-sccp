@@ -907,7 +907,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 
 	sprintf(channelName, "SCCP/%s", lineState->line->name);
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
-	enum ast_device_state oldDeviceState = SCCP_CHANNELSTATE_DOWN;
+	enum ast_device_state oldDeviceState = AST_DEVICE_NOT_INUSE;
 
 #ifndef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -1002,7 +1002,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
-				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SKINNY_BUTTONTYPE_SPEEDDIAL, &k);
+				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SCCP_BUTTONTYPE_SPEEDDIAL, &k);
 
 				REQ(r, FeatureStatDynamicMessage);
 				if (r) {
@@ -1080,20 +1080,40 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
 				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
 				 */
-				uint32_t iconstate;
+				uint32_t iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 				switch (hint->currentState) {
+					case SCCP_CHANNELSTATE_DOWN:
 					case SCCP_CHANNELSTATE_ONHOOK:
+					case SCCP_CHANNELSTATE_ZOMBIE:
+					case SCCP_CHANNELSTATE_CONGESTION:
 						iconstate = SKINNY_CALLSTATE_ONHOOK;
-						break;
-					case SCCP_CHANNELSTATE_CONNECTED:
-						iconstate = SKINNY_CALLSTATE_CONNECTED;
 						break;
 					case SCCP_CHANNELSTATE_RINGING:
 						if (d->allowRinginNotification) {
 							iconstate = SKINNY_CALLSTATE_RINGIN;
 						}
 						break;
-					default:
+					case SCCP_CHANNELSTATE_CONNECTED:
+					case SCCP_CHANNELSTATE_OFFHOOK:
+					case SCCP_CHANNELSTATE_RINGOUT:
+					case SCCP_CHANNELSTATE_BUSY:
+					case SCCP_CHANNELSTATE_HOLD:
+					case SCCP_CHANNELSTATE_CALLWAITING:
+					case SCCP_CHANNELSTATE_CALLTRANSFER: 
+					case SCCP_CHANNELSTATE_CALLPARK:
+					case SCCP_CHANNELSTATE_PROCEED:
+					case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+					case SCCP_CHANNELSTATE_INVALIDNUMBER:
+					case SCCP_CHANNELSTATE_DIALING:
+					case SCCP_CHANNELSTATE_PROGRESS:
+					case SCCP_CHANNELSTATE_GETDIGITS:
+					case SCCP_CHANNELSTATE_CALLCONFERENCE:
+					case SCCP_CHANNELSTATE_SPEEDDIAL:
+					case SCCP_CHANNELSTATE_DIGITSFOLL:
+					case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+					case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
+					case SCCP_CHANNELSTATE_BLINDTRANSFER:
+					case SCCP_CHANNELSTATE_DND:
 						iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 						break;
 				}
