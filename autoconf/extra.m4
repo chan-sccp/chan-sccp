@@ -579,16 +579,15 @@ AC_DEFUN([CS_ENABLE_DEBUG], [
 ])
 
 AC_DEFUN([CS_ENABLE_GCOV], [
+	COVERAGE_CFLAGS=''
+	COVERAGE_LDFLAGS=''
 	AC_ARG_ENABLE([gcov],
 	  [AS_HELP_STRING([--enable-gcov], [enable Gcov to profile sources])],
-	    [], [ac_cv_enable_gcov=no])
-	AS_IF([test '!' "${enable_gcov}" = no], [
+	    ac_cv_enable_gcov=$enableval, ac_cv_enable_gcov=no)
+	AS_IF([test "_${ac_cv_enable_gcov}" = "_yes"], [
 		COVERAGE_CFLAGS='-fprofile-arcs -ftest-coverage'
 		COVERAGE_LDFLAGS='--coverage --no-inline'
-	],[
-		COVERAGE_CFLAGS=''
-		COVERAGE_LDFLAGS=''
-	])
+	],[])
 	AC_MSG_NOTICE([--enable-gcov: ${ac_cv_refcount_debug}])
 	AC_SUBST([COVERAGE_CFLAGS])
 	AC_SUBST([COVERAGE_LDFLAGS])
