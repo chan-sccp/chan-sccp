@@ -13,6 +13,12 @@
 extern "C" {
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define gcc_inline inline
+#else
+#define gcc_inline
+#endif
+
 #if HAVE_SYS_SIGNAL_H
 #include <sys/signal.h>
 #endif

@@ -27,12 +27,12 @@
     #define ENUM_ELEMENT( element, index, str) element index,
     #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) typedef enum tag_##ENUM_NAME {
     #define END_ENUM( NAMESPACE, ENUM_NAME ) } NAMESPACE##_##ENUM_NAME##_t; 								\
-        inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index);
+        gcc_inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index);
 #else															// class definition (2nd pass)
 #  ifdef DEBUG														// switch/case on index (Debug mode)
     #define ENUM_ELEMENT( element, index, str) case element: return str;
     #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) 											\
-        inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { 						\
+        gcc_inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { 						\
                 switch(index) {												
     #define END_ENUM( NAMESPACE, ENUM_NAME ) 	};										\
      		return "SCCP: ERROR lookup in " #NAMESPACE "_" #ENUM_NAME "_t";								\
@@ -41,7 +41,7 @@
     #define ENUM_ELEMENT( element, index, str ) [element] = str,
     #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) char* NAMESPACE ##_##ENUM_NAME##_map_enum2str[] = {
     #define END_ENUM( NAMESPACE, ENUM_NAME ) }; 											\
-        inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { return NAMESPACE##_##ENUM_NAME##_map_enum2str[index]; }
+        gcc_inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { return NAMESPACE##_##ENUM_NAME##_map_enum2str[index]; }
 #  endif
 #endif
 
