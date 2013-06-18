@@ -848,7 +848,7 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 	}
 }
 
-enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelState_t state){
+static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t state){
         enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN;
         switch (state) {
                 case SCCP_CHANNELSTATE_DOWN:
