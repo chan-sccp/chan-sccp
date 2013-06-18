@@ -1037,8 +1037,9 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_moo_t *
 	l = sccp_line_find_byid(d, lineNumber);
 
 	/* if we find no regular line - it can be a speeddial with hint */
-	if (!l)
-		sccp_dev_speed_find_byindex(d, lineNumber, SCCP_BUTTONTYPE_HINT, &k);
+	if (!l) {
+		sccp_dev_speed_find_byindex(d, lineNumber, TRUE, &k);
+	}
 
 	REQ(r1, LineStatMessage);
 	if (!l && !k.valid) {
@@ -1102,7 +1103,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
 	REQ(r1, SpeedDialStatMessage);
 	r1->msg.SpeedDialStatMessage.lel_speedDialNumber = htolel(wanted);
 
-	sccp_dev_speed_find_byindex(s->device, wanted, SCCP_BUTTONTYPE_SPEEDDIAL, &k);
+	sccp_dev_speed_find_byindex(s->device, wanted, FALSE, &k);
 	if (k.valid) {
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(r1->msg.SpeedDialStatMessage.speedDialDirNumber));
 		sccp_copy_string(r1->msg.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(r1->msg.SpeedDialStatMessage.speedDialDisplayName));
@@ -1191,7 +1192,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			l = sccp_line_find_byid(d, instance);
 			if (!l) {
 				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
-				sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT, &k);
+				sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
 				if (k.valid)
 					sccp_handle_speeddial(d, &k);
 				else
@@ -1252,7 +1253,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
-			sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_SPEEDDIAL, &k);
+			sccp_dev_speed_find_byindex(d, instance, FALSE, &k);
 			if (k.valid)
 				sccp_handle_speeddial(d, &k);
 			else
@@ -1403,7 +1404,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			break;
 
 		case SKINNY_BUTTONTYPE_BLFSPEEDDIAL:								//busy lamp field type speeddial
-			sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT, &k);
+			sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
 			if (k.valid)
 				sccp_handle_speeddial(d, &k);
 			else
@@ -2916,7 +2917,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	sccp_speed_t k;
 
 	if ((unknown == 1 && d->inuseprotocolversion >= 15)) {
-		sccp_dev_speed_find_byindex(d, instance, SCCP_BUTTONTYPE_HINT, &k);
+		sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
 
 		if (k.valid) {
 			sccp_moo_t *r1;
