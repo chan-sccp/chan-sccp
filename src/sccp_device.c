@@ -1365,12 +1365,14 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \brief Find SpeedDial by Index
  * \param d SCCP Device
  * \param instance Instance as uint8_t
- * \param type Type as uint8_t
+ * \param type Type as button_type_t (casting the button_type_t to int should be fixed -MC)
  * \param k SCCP Speeddial (Returned by Ref)
  * \return Void
  * 
  * \lock
  *      - device->buttonconfig
+ *
+ * \todo casting the button_type_t to int should be fixed -MC
  */
 void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, button_type_t type, sccp_speed_t * k)
 {
