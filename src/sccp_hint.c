@@ -963,7 +963,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
  */
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
 
@@ -1091,8 +1091,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_RINGING:
 						if (d->allowRinginNotification) {
 							iconstate = SKINNY_CALLSTATE_RINGIN;
+							break;
 						}
-						break;
 					case SCCP_CHANNELSTATE_CONNECTED:
 					case SCCP_CHANNELSTATE_OFFHOOK:
 					case SCCP_CHANNELSTATE_RINGOUT:
