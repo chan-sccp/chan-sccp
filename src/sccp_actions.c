@@ -3235,7 +3235,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
 			uint8_t video_levels = 0, video_level = 0;
-			uint8_t video_format = 0;
+			skinny_videoformat_t video_format = 0;
 
 			video_levels = letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_levelPreferenceCount);
 			for (video_level = 0; video_level < video_levels; video_level++) {
