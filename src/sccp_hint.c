@@ -147,6 +147,7 @@ int sccp_hint_devstate_cb(const char *context, const char *id, enum ast_extensio
 #else
 int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states state, void *data);
 #endif
+
 /* ========================================================================================================================= List Declarations */
 SCCP_LIST_HEAD (, struct sccp_hint_lineState) lineStates;
 SCCP_LIST_HEAD (, sccp_hint_list_t) sccp_hint_subscriptions;
@@ -264,6 +265,10 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	cidName = hint->callInfo.partyName;
 	//      cidNumber       = hint->callInfo.partyNumber;
 
+	
+	/* save previousState */
+	hint->previousState = hint->currentState;
+	
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_2 "%s: (sccp_hint_devstate_cb) Got new hint event %s, state: %d (%s), cidname: %s, cidnum: %s\n", hint->exten, hint->hint_dialplan, extensionState, ast_extension_state2str(extensionState), hint->callInfo.partyName, hint->callInfo.partyNumber);
 	switch (extensionState) {
 		case AST_EXTENSION_REMOVED:
@@ -843,6 +848,53 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 	}
 }
 
+enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelState_t state){
+        enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN;
+        switch (state) {
+                case SCCP_CHANNELSTATE_DOWN:
+                case SCCP_CHANNELSTATE_ONHOOK:
+                        newDeviceState = AST_DEVICE_NOT_INUSE;
+                        break;
+                case SCCP_CHANNELSTATE_RINGING:
+                        newDeviceState = AST_DEVICE_RINGING;
+                        break;
+                case SCCP_CHANNELSTATE_HOLD:
+                        newDeviceState = AST_DEVICE_ONHOLD;
+                        break;
+                case SCCP_CHANNELSTATE_BUSY:
+                        newDeviceState = AST_DEVICE_BUSY;
+                        break;
+                case SCCP_CHANNELSTATE_DND:
+                        newDeviceState = AST_DEVICE_BUSY;
+                        break;
+                case SCCP_CHANNELSTATE_ZOMBIE:
+                case SCCP_CHANNELSTATE_CONGESTION:
+                case SCCP_CHANNELSTATE_SPEEDDIAL:
+                case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+                        newDeviceState = AST_DEVICE_UNAVAILABLE;
+                        break;
+                case SCCP_CHANNELSTATE_INVALIDNUMBER:
+                case SCCP_CHANNELSTATE_PROCEED:
+                case SCCP_CHANNELSTATE_RINGOUT:
+                case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
+                case SCCP_CHANNELSTATE_OFFHOOK:
+                case SCCP_CHANNELSTATE_GETDIGITS:
+                case SCCP_CHANNELSTATE_CONNECTED:
+                case SCCP_CHANNELSTATE_DIALING:
+                case SCCP_CHANNELSTATE_DIGITSFOLL:
+                case SCCP_CHANNELSTATE_PROGRESS:
+                case SCCP_CHANNELSTATE_BLINDTRANSFER:
+                case SCCP_CHANNELSTATE_CALLWAITING:
+                case SCCP_CHANNELSTATE_CALLTRANSFER:
+                case SCCP_CHANNELSTATE_CALLCONFERENCE:
+                case SCCP_CHANNELSTATE_CALLPARK:
+                case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+                        newDeviceState = AST_DEVICE_INUSE;
+                        break;
+        }
+        return newDeviceState;
+}
+
 /* ========================================================================================================================= PBX Notify */
 /*!
  * \brief Notify Asterisk of Hint State Change
@@ -854,7 +906,8 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	sccp_hint_list_t *hint = NULL;
 
 	sprintf(channelName, "SCCP/%s", lineState->line->name);
-	enum ast_device_state newDeviceState = AST_DEVICE_UNKNOWN;
+	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
+	enum ast_device_state oldDeviceState = SCCP_CHANNELSTATE_DOWN;
 
 #ifndef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -864,59 +917,19 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
 			
 			hint->callInfo.calltype = lineState->callInfo.calltype;
+			oldDeviceState = sccp_hint_hint2DeviceState(hint->currentState);
 			break;
 		}
 	}
 #endif
 
-	switch (lineState->state) {
-		case SCCP_CHANNELSTATE_DOWN:
-		case SCCP_CHANNELSTATE_ONHOOK:
-			newDeviceState = AST_DEVICE_NOT_INUSE;
-			break;
-		case SCCP_CHANNELSTATE_RINGING:
-			newDeviceState = AST_DEVICE_RINGING;
-			break;
-		case SCCP_CHANNELSTATE_HOLD:
-			newDeviceState = AST_DEVICE_ONHOLD;
-			break;
-		case SCCP_CHANNELSTATE_BUSY:
-			newDeviceState = AST_DEVICE_BUSY;
-			break;
-		case SCCP_CHANNELSTATE_DND:
-			newDeviceState = AST_DEVICE_BUSY;
-			break;
-		case SCCP_CHANNELSTATE_ZOMBIE:
-		case SCCP_CHANNELSTATE_CONGESTION:
-		case SCCP_CHANNELSTATE_SPEEDDIAL:
-		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
-			newDeviceState = AST_DEVICE_UNAVAILABLE;
-			break;
-		case SCCP_CHANNELSTATE_INVALIDNUMBER:
-		case SCCP_CHANNELSTATE_PROCEED:
-		case SCCP_CHANNELSTATE_RINGOUT:
-		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
-		case SCCP_CHANNELSTATE_OFFHOOK:
-		case SCCP_CHANNELSTATE_GETDIGITS:
-		case SCCP_CHANNELSTATE_CONNECTED:
-		case SCCP_CHANNELSTATE_DIALING:
-		case SCCP_CHANNELSTATE_DIGITSFOLL:
-		case SCCP_CHANNELSTATE_PROGRESS:
-		case SCCP_CHANNELSTATE_BLINDTRANSFER:
-		case SCCP_CHANNELSTATE_CALLWAITING:
-		case SCCP_CHANNELSTATE_CALLTRANSFER:
-		case SCCP_CHANNELSTATE_CALLCONFERENCE:
-		case SCCP_CHANNELSTATE_CALLPARK:
-		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-			newDeviceState = AST_DEVICE_INUSE;
-			break;
-	}
+	
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
 //	if (hint && lineState->state == hint->currentState) {
-	if (hint && hint->previousState == hint->currentState) {
-		sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers */
+	if (newDeviceState == oldDeviceState) {
+		sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about changes e.g. cid update */
 	} else {
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 		pbx_event_t *event;
