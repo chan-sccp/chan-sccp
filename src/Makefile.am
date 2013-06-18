@@ -9,7 +9,7 @@
 AUTOMAKE_OPTS		= gnu silent-rules
 csmod_LTLIBRARIES	= chan_sccp.la
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
-EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh
+EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 
 chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		\
                                 sccp_labels.h		sccp_utils.h		sccp_adv_features.h	sccp_channel.h  	\
