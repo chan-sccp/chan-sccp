@@ -413,8 +413,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2013-06-10 17:35:07 +0200 (Mon, 10 Jun 2013) $
-# REVISION: $Revision: 4671 $
+# DATE:     $Date: 2013-06-16 16:53:22 +0200 (Sun, 16 Jun 2013) $
+# REVISION: $Revision: 4689 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules
 #EXTRA_DIST 			= .version tools conf

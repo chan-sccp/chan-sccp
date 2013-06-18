@@ -30586,22 +30586,19 @@ fi
 
 
 
+	COVERAGE_CFLAGS=''
+	COVERAGE_LDFLAGS=''
 	# Check whether --enable-gcov was given.
 if test "${enable_gcov+set}" = set; then :
-  enableval=$enable_gcov;
+  enableval=$enable_gcov; ac_cv_enable_gcov=$enableval
 else
   ac_cv_enable_gcov=no
 fi
 
-	if test '!' "${enable_gcov}" = no; then :
+	if test "_${ac_cv_enable_gcov}" = "_yes"; then :
 
 		COVERAGE_CFLAGS='-fprofile-arcs -ftest-coverage'
 		COVERAGE_LDFLAGS='--coverage --no-inline'
-
-else
-
-		COVERAGE_CFLAGS=''
-		COVERAGE_LDFLAGS=''
 
 fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-gcov: ${ac_cv_refcount_debug}" >&5
