@@ -68,7 +68,7 @@ void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, cons
 void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function);
 void sccp_dev_cleardisplaynotify(const sccp_device_t * d);
 void sccp_dev_cleardisplayprinotify(const sccp_device_t * d);
-void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, button_type_t type, sccp_speed_t * k);
+void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t withHint, sccp_speed_t * k);
 void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l);
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device);
 void sccp_dev_postregistration(void *data);

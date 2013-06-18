@@ -928,7 +928,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 
 	// if pbx devicestate does not change, no need to inform asterisk */
 //	if (hint && lineState->state == hint->currentState) {
-	if (newDeviceState == oldDeviceState) {
+	if (hint && newDeviceState == oldDeviceState) {
 		sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about changes e.g. cid update */
 	} else {
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
@@ -963,7 +963,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
  */
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
-	sccp_device_t *d = NULL;
+	sccp_device_t *d;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_moo_t *r;
 
@@ -1002,7 +1002,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
-				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, SCCP_BUTTONTYPE_SPEEDDIAL, &k);
+				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
 
 				REQ(r, FeatureStatDynamicMessage);
 				if (r) {
@@ -1091,8 +1091,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_RINGING:
 						if (d->allowRinginNotification) {
 							iconstate = SKINNY_CALLSTATE_RINGIN;
-							break;
 						}
+						break;
 					case SCCP_CHANNELSTATE_CONNECTED:
 					case SCCP_CHANNELSTATE_OFFHOOK:
 					case SCCP_CHANNELSTATE_RINGOUT:

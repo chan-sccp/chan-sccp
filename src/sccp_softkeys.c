@@ -285,7 +285,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey NewCall Pressed\n", DEV_ID_LOG(d));
 	if (!l || instance != lineInstance) {
 		/* handle dummy speeddial */
-		sccp_dev_speed_find_byindex(d, lineInstance, SCCP_BUTTONTYPE_HINT, &k);
+		sccp_dev_speed_find_byindex(d, lineInstance, TRUE, &k);
 		if (strlen(k.ext) > 0) {
 			adhocNumber = k.ext;
 		}
