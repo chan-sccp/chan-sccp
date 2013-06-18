@@ -212,62 +212,62 @@ void sccp_dev_dbclean()
 		pbx_db_freetree(entry);
 }
 
-inline const char *message2str(sccp_message_t type)		/* sccp_protocol.h */
+gcc_inline const char *message2str(sccp_message_t type)		/* sccp_protocol.h */
 {
 	return sccp_messagetypes[type].text;
 }
 
-inline size_t message2size(sccp_message_t type)			/* sccp_protocol.h */
+gcc_inline size_t message2size(sccp_message_t type)			/* sccp_protocol.h */
 {
 	return sccp_messagetypes[type].size;
 }
 
-inline const char *sccp_buttontype2str(button_type_t type)	/* chan_sccp.h */
+gcc_inline const char *sccp_buttontype2str(button_type_t type)	/* chan_sccp.h */
 {
 	_ARR2STR(sccp_buttontypes, buttontype, type, text);
 }
 
-inline const char *pbxdevicestate2str(uint32_t value)		/* pbx_impl/ast/ast.h */
+gcc_inline const char *pbxdevicestate2str(uint32_t value)		/* pbx_impl/ast/ast.h */
 {
 	_ARR2STR(pbx_devicestates, devicestate, value, text);
 }
 
-inline const char *extensionstatus2str(uint32_t value)		/* pbx_impl/ast/ast.h */
+gcc_inline const char *extensionstatus2str(uint32_t value)		/* pbx_impl/ast/ast.h */
 {
 	_ARR2STR(sccp_extension_states, extension_state, value, text);
 }
 
-inline const char *label2str(uint16_t value)			/* sccp_labels.h */
+gcc_inline const char *label2str(uint16_t value)			/* sccp_labels.h */
 {
 	_ARR2STR(skinny_labels, label, value, text);
 }
 
-inline const char *codec2str(skinny_codec_t value)		/* sccp_protocol.h */
+gcc_inline const char *codec2str(skinny_codec_t value)		/* sccp_protocol.h */
 {
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
-inline int codec2payload(skinny_codec_t value)			/* sccp_protocol.h */
+gcc_inline int codec2payload(skinny_codec_t value)			/* sccp_protocol.h */
 {
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
 }
 
-inline const char *codec2key(skinny_codec_t value)		/* sccp_protocol.h */
+gcc_inline const char *codec2key(skinny_codec_t value)		/* sccp_protocol.h */
 {
 	_ARR2STR(skinny_codecs, codec, value, key);
 }
 
-inline const char *codec2name(skinny_codec_t value)		/* sccp_protocol.h */
+gcc_inline const char *codec2name(skinny_codec_t value)		/* sccp_protocol.h */
 {
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
-inline const char *featureType2str(sccp_feature_type_t value)		/* chan_sccp.h */
+gcc_inline const char *featureType2str(sccp_feature_type_t value)		/* chan_sccp.h */
 {
 	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
 
-inline uint32_t debugcat2int(const char *str)			/* chan_sccp.h */
+gcc_inline uint32_t debugcat2int(const char *str)			/* chan_sccp.h */
 {
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
@@ -1047,7 +1047,7 @@ int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
  * \retval FALSE on non zero length
  * \retval TRUE on zero length
  */
-inline boolean_t sccp_strlen_zero(const char *data)
+gcc_inline boolean_t sccp_strlen_zero(const char *data)
 {
 	if (!data || (*data == '\0')) {
 		return TRUE;
@@ -1061,7 +1061,7 @@ inline boolean_t sccp_strlen_zero(const char *data)
  * \param data String to be checked
  * \return length as int
  */
-inline size_t sccp_strlen(const char *data)
+gcc_inline size_t sccp_strlen(const char *data)
 {
 	if (!data || (*data == '\0')) {
 		return 0;
@@ -1080,7 +1080,7 @@ inline size_t sccp_strlen(const char *data)
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-inline boolean_t sccp_strequals(const char *data1, const char *data2)
+gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
@@ -1101,7 +1101,7 @@ inline boolean_t sccp_strequals(const char *data1, const char *data2)
  * \retval TRUE on both zero length
  * \retval FALSE on one of the the parameters being zero length
  */
-inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
+gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;

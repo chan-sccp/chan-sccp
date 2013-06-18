@@ -76,21 +76,21 @@ void sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-inline const char *message2str(sccp_message_t type);
-inline size_t message2size(sccp_message_t type);
-inline const char *sccp_buttontype2str(button_type_t type);
-inline const char *pbxdevicestate2str(uint32_t value);
-inline const char *extensionstatus2str(uint32_t value);
+gcc_inline const char *message2str(sccp_message_t type);
+gcc_inline size_t message2size(sccp_message_t type);
+gcc_inline const char *sccp_buttontype2str(button_type_t type);
+gcc_inline const char *pbxdevicestate2str(uint32_t value);
+gcc_inline const char *extensionstatus2str(uint32_t value);
 
 // SKINNY Lookups
-inline const char *label2str(uint16_t value);
-inline const char *codec2str(skinny_codec_t value);
-inline int codec2payload(skinny_codec_t value);
-inline const char *codec2key(skinny_codec_t value);
-inline const char *codec2name(skinny_codec_t value);
-inline const char *featureType2str(sccp_feature_type_t value);
-inline const char *debugcat_keys(void);
-inline uint32_t debugcat2int(const char *str);
+gcc_inline const char *label2str(uint16_t value);
+gcc_inline const char *codec2str(skinny_codec_t value);
+gcc_inline int codec2payload(skinny_codec_t value);
+gcc_inline const char *codec2key(skinny_codec_t value);
+gcc_inline const char *codec2name(skinny_codec_t value);
+gcc_inline const char *featureType2str(sccp_feature_type_t value);
+gcc_inline const char *debugcat_keys(void);
+gcc_inline uint32_t debugcat2int(const char *str);
 
 char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length);
 int sccp_parse_allow_disallow(skinny_codec_t * sccp_codecs, skinny_codec_t * mask, const char *list, int allowing);
@@ -127,10 +127,10 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 void gc_warn_handler(char *msg, GC_word p);
 #endif
 int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
-inline size_t sccp_strlen(const char *data);
-inline boolean_t sccp_strlen_zero(const char *data);
-inline boolean_t sccp_strequals(const char *data1, const char *data2);
-inline boolean_t sccp_strcaseequals(const char *data1, const char *data2);
+gcc_inline size_t sccp_strlen(const char *data);
+gcc_inline boolean_t sccp_strlen_zero(const char *data);
+gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
+gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 int sccp_strIsNumeric(const char *s);
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
 
