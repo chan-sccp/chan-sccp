@@ -1365,14 +1365,14 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \brief Find SpeedDial by Index
  * \param d SCCP Device
  * \param instance Instance as uint8_t
- * \param type Type as uint8_t
+ * \param type Type as uint8_t of either SCCP_BUTTONTYPE_* / SKINNY_BUTTONTYPE_*
  * \param k SCCP Speeddial (Returned by Ref)
  * \return Void
  * 
  * \lock
  *      - device->buttonconfig
  */
-void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, button_type_t type, sccp_speed_t * k)
+void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type /*SCCP_BUTTONTYPE / SKINNY_BUTTONTYPE*/, sccp_speed_t * k)
 {
 	sccp_buttonconfig_t *config;
 
