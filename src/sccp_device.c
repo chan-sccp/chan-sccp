@@ -1365,14 +1365,14 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \brief Find SpeedDial by Index
  * \param d SCCP Device
  * \param instance Instance as uint8_t
- * \param type Type as uint8_t of either SCCP_BUTTONTYPE_* / SKINNY_BUTTONTYPE_*
+ * \param type Type as uint8_t
  * \param k SCCP Speeddial (Returned by Ref)
  * \return Void
  * 
  * \lock
  *      - device->buttonconfig
  */
-void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t type /*SCCP_BUTTONTYPE / SKINNY_BUTTONTYPE*/, sccp_speed_t * k)
+void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, button_type_t type, sccp_speed_t * k)
 {
 	sccp_buttonconfig_t *config;
 
@@ -1388,7 +1388,7 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, uint8_t t
 		if (config->type == SPEEDDIAL && config->instance == instance) {
 
 			/* we are searching for hinted speeddials */
-			if (type == SCCP_BUTTONTYPE_HINT && sccp_strlen_zero(config->button.speeddial.hint))
+			if (((uint8_t)type) == SCCP_BUTTONTYPE_HINT && sccp_strlen_zero(config->button.speeddial.hint))		//TODO casting the button_type_t to int should be fixed -MC
 				continue;
 
 			k->valid = TRUE;
