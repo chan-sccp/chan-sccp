@@ -407,12 +407,24 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 		for (segment = SCCP_CONFIG_GLOBAL_SEGMENT; segment <= SCCP_CONFIG_SOFTKEY_SEGMENT; segment++) {
 			sccpConfigSegment = sccp_find_segment(segment);
 			printf("info:" "adding [%s] section\n", sccpConfigSegment->name);
-			if (CONFIG_TYPE_TEMPLATED == config_type && SCCP_CONFIG_DEVICE_SEGMENT == segment) {
-				fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                              ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
-			} else if (CONFIG_TYPE_TEMPLATED == config_type && SCCP_CONFIG_LINE_SEGMENT == segment) {
-				fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                                ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
-			} else {
-				fprintf(f, "\n;\n; %s section\n;\n[%s]\n", sccpConfigSegment->name, sccpConfigSegment->name);
+			switch (segment) {
+				case SCCP_CONFIG_DEVICE_SEGMENT:
+					if (CONFIG_TYPE_TEMPLATED == config_type) {
+						fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                              ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
+					} else {
+						fprintf(f, "\n;\n; %s section\n;\n[SEP0123456789]\n", sccpConfigSegment->name);
+					}
+					break;
+				case SCCP_CONFIG_LINE_SEGMENT:
+					if (CONFIG_TYPE_TEMPLATED == config_type) {
+						fprintf(f, "\n;\n; %s section\n;\n[%s_template](!)                                                                ; create new template\n", sccpConfigSegment->name, sccpConfigSegment->name);
+					} else {
+						fprintf(f, "\n;\n; %s section\n;\n[1234]\n", sccpConfigSegment->name);
+					}
+					break;
+				default:
+					fprintf(f, "\n;\n; %s section\n;\n[%s]\n", sccpConfigSegment->name, sccpConfigSegment->name);
+					break;
 			}
 
 			config = sccpConfigSegment->config;
@@ -448,7 +460,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 						}
 						linelen = (int) strlen(name_and_value);
 						fprintf(f, "%s", name_and_value);
-						if (CONFIG_TYPE_SHORT != config_type && config[sccp_option].description && strlen(config[sccp_option].description) != 0) {
+						if (CONFIG_TYPE_DEFAULTS < config_type && config[sccp_option].description && strlen(config[sccp_option].description) != 0) {
 							description = malloc(sizeof(char) * strlen(config[sccp_option].description));
 							description = strdup(config[sccp_option].description);
 							while ((description_part = strsep(&description, "\n"))) {
