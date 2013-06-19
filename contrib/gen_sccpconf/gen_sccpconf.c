@@ -1,4 +1,3 @@
-
 /*!
  * \file        sccp_config.c
  * \brief       SCCP Config Class
@@ -460,7 +459,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 						}
 						linelen = (int) strlen(name_and_value);
 						fprintf(f, "%s", name_and_value);
-						if (CONFIG_TYPE_DEFAULTS < config_type && config[sccp_option].description && strlen(config[sccp_option].description) != 0) {
+						if (config_type < CONFIG_TYPE_TEMPLATED && config[sccp_option].description && strlen(config[sccp_option].description) != 0) {
 							description = malloc(sizeof(char) * strlen(config[sccp_option].description));
 							description = strdup(config[sccp_option].description);
 							while ((description_part = strsep(&description, "\n"))) {
