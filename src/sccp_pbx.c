@@ -902,7 +902,11 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		goto EXIT_FUNC;
 	}
 
-	pbx_channel = c->owner;
+	if (!c->owner) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) c->owner == NULL. Exiting\n");
+        	goto EXIT_FUNC;
+        }
+        pbx_channel = ast_channel_ref(c->owner);
 
 	/* removing scheduled dialing */
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
@@ -1170,6 +1174,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) quit\n", DEV_ID_LOG(d));
 
 EXIT_FUNC:
+	if (pbx_channel) {
+		ast_channel_unref(pbx_channel);
+	}
 	l = l ? sccp_line_release(l) : NULL;
 	c = c ? sccp_channel_release(c) : NULL;
 	d = d ? sccp_device_release(d) : NULL;
