@@ -902,12 +902,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		goto EXIT_FUNC;
 	}
 
-	if (!c->owner) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) c->owner == NULL. Exiting\n");
-        	goto EXIT_FUNC;
-        }
-        pbx_channel = ast_channel_ref(c->owner);
-
+        if (c->owner) {
+        	pbx_channel = ast_channel_ref(c->owner);
+	}
+	
 	/* removing scheduled dialing */
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
