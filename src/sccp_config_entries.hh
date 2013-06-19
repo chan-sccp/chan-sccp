@@ -166,7 +166,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"name", 			0, 				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device name\n"},
 	{"device", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
 	{"devicetype", 			D_OBJ_REF(config_type),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device type\n"},
-	{"type", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"used for device templates, value will be inherited.\n"},
+	{"type", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"device",			"used for device templates, value will be inherited.\n"},
 	{"description", 		D_OBJ_REF(description),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device description\n"},
 	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
@@ -221,7 +221,15 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
 	{"permithost", 			D_OBJ_REF(permithosts), 		TYPE_PARSER(sccp_config_parse_permithosts),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"permit/deny but by resolved hostname"},
 	{"addon", 			D_OBJ_REF(addons),	 		TYPE_PARSER(sccp_config_parse_addons),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"One of 7914, 7915, 7916"},
-	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				""},
+	{"button", 			D_OBJ_REF(buttonconfig), 		TYPE_PARSER(sccp_config_parse_button),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"Buttons come in the following flavours (empty, line, speeddial, service, feature).\n"
+																																					"Examples (read the documentation for more examples/combinations):\n"
+																																					" - button = line,1234\n"
+																																					" - button = line,1234,default\n"
+																																					" - button = empty\n"
+																																					" - button = line,98099@11:Phone1\n"
+																																					" - button = line,98099@12:Phone2!silent\n"
+																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
+																																					" - button = feature,cfwdall,1234\n"},
 	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},
 	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions (Boolean, default=no). experimental configuration param that may be removed in further version \n"},
 #ifdef CS_SCCP_CONFERENCE
@@ -241,7 +249,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"name", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"line name\n"},
 	{"line", 			0,	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"line name\n"},
-	{"type", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"line\n"},
+	{"type", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_IGNORE,					SCCP_CONFIG_NOUPDATENEEDED,		"line",				"used for line templates, value will be inherited.\n"},
 	{"id", 				L_OBJ_REF(id),				TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"id\n"},
 	{"pin", 			L_OBJ_REF(pin), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"pin\n"},
 	{"label", 			L_OBJ_REF(label), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED, 					SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"label\n"},
