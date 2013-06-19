@@ -1003,9 +1003,8 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
 
 /*!
  * \brief Set Call Plane to Active on  Line on Device
- * \param l SCCP Line
- * \param lineInstance lineInstance as unint8_t
  * \param device SCCP Device
+ * \param lineInstance lineInstance as unint8_t
  * \param status Status as int
  * \todo What does this function do exactly (ActivateCallPlaneMessage) ?
  *
@@ -1365,7 +1364,7 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \brief Find SpeedDial by Index
  * \param d SCCP Device
  * \param instance Instance as uint8_t
- * \param type Type as uint8_t
+ * \param withHint With Hint as boolean_t
  * \param k SCCP Speeddial (Returned by Ref)
  * \return Void
  * 

@@ -53,10 +53,10 @@
  * 
  * \section dv_locking Get familiar and follow the sccp locking and refcounting rules
  * 
- * Please check out the refcounted object types used by chan-sccp-b to see when and how the are used (see: \ref refcount).
+ * Please check out the refcounted object types used by chan-sccp-b to see when and how the are used (see: \ref sccp_refcount).
  *
  * When submitting patches or developing within the chan-sccp-b team, regard, follow and obey by these refcount rules at all times:
- * - \ref refcount
+ * - \ref sccp_refcount
  * .
  **/
 

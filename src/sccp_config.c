@@ -1760,7 +1760,7 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 /*!
  * \brief Build Device
  * \param d SCCP Device
- * \param v Asterisk Variable
+ * \param variable Asterisk Variable
  * \param deviceName Name of device as char
  * \param isRealtime is Realtime as Boolean
  *

@@ -382,11 +382,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
  * \brief Indicate to Remote Device
  * \param device SCCP Device
  * \param c SCCP Channel
+ * \param line SCCP Line
  * \param state State as int
- * \param debug Debug as int
- * \param file File as char
- * \param line Line as int
- * \param pretty_function Pretty Function as char
  * \todo Explain Pretty Function
  * 
  * \warning

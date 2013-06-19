@@ -1,4 +1,142 @@
+2013-06-19  ddegroot
+
+	* [r4720] conf/sccp.conf.annotated: Update conf/sccp.conf.annotated
+	  to use the information produced by gen_sccpconf
+	  sccp.conf.annotated ALL instead
+
+	* [r4719] src/sccp_config_entries.hh: Add description information
+	  for buttons
+
+	* [r4718] contrib/gen_sccpconf/gen_sccpconf.c: Fix description
+	  generation for gen_sccpconf
+
+	* [r4717] contrib/gen_sccpconf/Makefile.am,
+	  contrib/gen_sccpconf/Makefile.in,
+	  contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix/update gen_sccp
+
+2013-06-18  marcelloceschia
+
+	* [r4716] src/sccp_device.c: remove comment
+
+	* [r4715] Makefile.in, aclocal.m4, configure,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_hint.c, src/sccp_softkeys.c: use
+	  boolean indicator in sccp_dev_speed_find_byindex
+
+2013-06-18  ddegroot
+
+	* [r4714] src/sccp_device.c, src/sccp_device.h: finish: revert the
+	  revert of void sccp_dev_speed_find_byindex
+
+	* [r4713] src/sccp_pbx.c: Check existance of pbx_channel before
+	  running pbx_check_hangup (reported by Leonid)
+
+	* [r4712] src/sccp_actions.c: Fix videoformat2str compile warning
+
+2013-06-18  marcelloceschia
+
+	* [r4711] src/sccp_device.c: revert the revert
+
+2013-06-18  ddegroot
+
+	* [r4710] src/sccp_hint.c: Fix warning about non-initalized
+	  iconstate, when d->allowRinginNotification is false, by moving
+	  the break, inside the check
+
+	* [r4709] Makefile.in, autoconf/extra.m4, configure: fix configure
+	  --enable-gcov
+
+	* [r4708] src/common.h, src/sccp_enum_macro.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Replaced inline with gcc_inline when using
+	  non-gcc compiler
+
+	* [r4707] src/sccp_config.c: Fix warning about enum-conversion for
+	  dtmfmode
+
+	* [r4706] src/sccp_actions.c: Fix implicit-function-declaration for
+	  sccp_videoformat2str
+
+	* [r4705] src/sccp_device.c, src/sccp_device.h: reverting
+	  sccp_dev_speed_find_byindex changes back to unspefic uint8_t
+	  type, passing either SCCP_BUTTONTYPE or SKINNY_BUTTONTYPE to this
+	  function
+
+2013-06-18  marcelloceschia
+
+	* [r4704] src/sccp_hint.c: fixes compile warnings in hint, do not
+	  use default state for switch
+
+2013-06-18  ddegroot
+
+	* [r4703] src/Makefile.in, src/sccp_protocol.h: Commented out
+	  ButtonTemplateMessageSingle (which was a special single instance
+	  of ButtonTemplateMessage, not used anywhere and conflicting
+	  MsgId)
+
+	* [r4702] src/Makefile.am, src/Makefile.in: Add sccp_enum_macro.h
+	  to EXTRA_DIST so that it will included during make release
+
+	* [r4701] src/sccp_hint.c: Fix sccp_hint.c compile (after last
+	  commit)
+
+2013-06-18  marcelloceschia
+
+	* [r4700] src/sccp_hint.c: set hint->previousState in asterisk
+	  callback
+
+2013-06-17  ddegroot
+
+	* [r4699] src/sccp_config.c: Pervious Permit/Deny config parser
+	  return value change, causes sccp reload to restart all devices
+	  every time. Because it is difficult evaluate if ha changed
+	  between reloads. Instead of setting alreadySetEntries on
+	  SCCP_CONFIG_CHANGE_CHANGED it is now set on
+	  \!SCCP_CONFIG_CHANGE_INVALIDVALUE, which yields the correct
+	  behaviour (though less precise)
+
+	* [r4698] src/sccp_config.c: Permit/Deny config parser did not
+	  include SCCP_CONFIG_CHANGE_CHANGED upon successfully setting the
+	  new value
+
 2013-06-16  ddegroot
+
+	* [r4697] src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/chan_sccp_enums.hh[ADD], src/common.h,
+	  src/sccp_enum.c[DEL], src/sccp_enum.h[DEL],
+	  src/sccp_enum_entries.hh[DEL], src/sccp_enum_macro.h[ADD],
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_event_enums.hh[ADD],
+	  src/sccp_protocol.c, src/sccp_protocol.h,
+	  src/sccp_protocol_enums.hh[ADD]: Split sccp_enum_entries.hh based
+	  on their namespaces / allegiance to
+	  chan_sccp_enums.hh/sccp_event_enums.hh/sccp_protocol_enums.hh.
+	  Created sccp_enum_macro.h to cope with this split.
+
+	* [r4696] src/sccp_enum_entries.hh: Updated enum sample to follow
+	  the current macro code
+
+	* [r4695] src/sccp_enum_entries.hh: Added simple verification
+	  method comment to sccp_enum_entries.hh (+Reindent)
+
+	* [r4694] src/chan_sccp.c, src/sccp_actions.c, src/sccp_cli.c,
+	  src/sccp_device.c, src/sccp_enum_entries.hh, src/sccp_pbx.c,
+	  src/sccp_socket.c: Reverted: Rename of SKINNY_DEVICE_RS_* enum
+	  entries to SCCP_DEVICE_RS_* (Back to SKINNY_DEVICE_RS_*)
+
+	* [r4693] src/sccp_hint.c, src/sccp_utils.c, src/sccp_utils.h:
+	  Removed sccp_channelstate2AstDeviceState from sccp_utils
+
+	* [r4692] src/sccp_device.c: Fix compilation when compiles without
+	  CS_AST_HAS_EVENT
+
+	* [r4691] src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_featureButton.c, src/sccp_mwi.c: Fix compilation when
+	  compiles without CS_AST_HAS_EVENT
+
+	* [r4690] src/sccp_enum_entries.hh: Fix lampmode index
+
+	* [r4689] ChangeLog, Makefile.am, Makefile.in: Update ChangeLog
 
 	* [r4688] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
 	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,

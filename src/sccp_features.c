@@ -648,9 +648,10 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 
 /*!
  * \brief Handle 3-Way Phone Based Conferencing on a Device
+ * \param d SCCP Device
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
- * \param d SCCP Device
+ * \param c SCCP Channel
  * \return SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
@@ -1376,6 +1377,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 /*!
  * \brief Handler to Notify Features have Changed
  * \param device SCCP Device
+ * \param linedevice SCCP LineDevice
  * \param featureType SCCP Feature Type
  * 
  * \lock
