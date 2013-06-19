@@ -380,7 +380,7 @@ EXITFUNC:
 /*!
  * \brief Handle Device Registration
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param maybe_d SCCP Device
  * \param r SCCP Moo
  *
  * \callgraph

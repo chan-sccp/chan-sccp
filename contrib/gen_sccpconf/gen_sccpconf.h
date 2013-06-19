@@ -1,14 +1,9 @@
 /*!
- * \file 	sccp_config_entries.h
- * \brief 	SCCP Config Entries Header
- * \author 	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *        	The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *        	Modified by Jan Czmok and Julien Goodwin
+ * \file 	gen_sccpconf.h
+ * \brief 	SCCP Config Generator Header
+ * \author      Diederik de Groot <ddegroot [at] sf.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * \note 	To find out more about the reload function see \ref sccp_config_reload
- * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
  * $Date: 2010-11-17 18:10:34 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2154 $

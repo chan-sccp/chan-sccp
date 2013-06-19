@@ -437,7 +437,7 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 
 /*!
  * \brief Set a Call Forward on a specific Line
- * \param l SCCP Line
+ * \param line SCCP Line
  * \param device device that requested the forward
  * \param type Call Forward Type as uint8_t
  * \param number Number to which should be forwarded
