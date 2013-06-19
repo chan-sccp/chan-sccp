@@ -145,7 +145,7 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_jbflags_force "(jbflags_force)=on|off"
 #define sccp_config_parse_jbflags_log "(jbflags_log)=on|off"
 
-#include "../../src/sccp_config_entries.h"
+#include "../../src/sccp_config_entries.hh"
 
 /*!
  * \brief SCCP Config Option Struct
