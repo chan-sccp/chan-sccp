@@ -139,4 +139,12 @@ BEGIN_ENUM(sccp,accessorystate)
         ENUM_ELEMENT(SCCP_ACCESSORYSTATE_OFFHOOK	 		,,	"Off Hook")
 END_ENUM(sccp,accessorystate)
 
+BEGIN_ENUM(sccp,config_buttontype)
+        ENUM_ELEMENT(LINE			 			,,	"Line")
+        ENUM_ELEMENT(SPEEDDIAL	 					,,	"Speeddial") 
+        ENUM_ELEMENT(SERVICE				 		,,	"Service")
+        ENUM_ELEMENT(FEATURE	 					,,	"Feature")
+        ENUM_ELEMENT(EMPTY	 					,,	"Empty")
+END_ENUM(sccp,config_buttontype)
+
 

@@ -85,7 +85,7 @@ static const softkeyConfigurationTemplate softKeyTemplate[] = {
 /* *INDENT-ON* */
 };
 
-sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, button_type_t type, const char *name, const char *option, const char *args);
+sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *option, const char *args);
 boolean_t sccp_config_general(sccp_readingtype_t readingtype);
 void cleanup_stale_contexts(char *newContext, char *oldContext);
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype);

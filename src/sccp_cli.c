@@ -742,7 +742,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 														\
 			CLI_AMI_TABLE_FIELD(Id,			d,	4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(TypeStr,		s,	30,	sccp_buttontype2str(buttonconfig->type))		\
+			CLI_AMI_TABLE_FIELD(TypeStr,		s,	30,	config_buttontype2str(buttonconfig->type))		\
 			CLI_AMI_TABLE_FIELD(Type,		d,	24,	buttonconfig->type)					\
 			CLI_AMI_TABLE_FIELD(pendUpdt,		s,	8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(pendDel,		s, 	8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\

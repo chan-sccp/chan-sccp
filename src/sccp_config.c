@@ -969,7 +969,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, con
 	char k_button[256];
 	char *splitter;
 
-	button_type_t type;
+	sccp_config_buttontype_t type;
 	unsigned i;
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", value);
 	sccp_copy_string(k_button, value, sizeof(k_button));
@@ -1561,7 +1561,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size
  *
  * \todo Build a check to see if the button has changed
  */
-sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, button_type_t type, const char *name, const char *options, const char *args)
+sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
 {
 	sccp_buttonconfig_t *config = NULL;
 
@@ -1601,7 +1601,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 		}
 
 		config->index = index;
-		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", sccp_buttontype2str(type), name, index, config->index);
+		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "New %s Button %s at : %d:%d\n", config_buttontype2str(type), name, index, config->index);
 		SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
 		//              is_new = TRUE;
 	} else {
@@ -1612,7 +1612,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, b
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s\n", config->index, sccp_buttontype2str(type), name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s\n", config->index, config_buttontype2str(type), name);
 		type = EMPTY;
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}

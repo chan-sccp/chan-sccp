@@ -232,11 +232,7 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
 #define FALSE B_FALSE
 #define TRUE B_TRUE
 #endif
-	typedef enum { ON, OFF } light_t;									/*!< Enum Light Status */
-	typedef enum { NO_CHANGES = 0, MINOR_CHANGES = 1, CHANGES_NEED_RESET = 2 } sccp_diff_t;			/*!< SCCP Diff Structure */
-
 	typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
-	typedef enum { LINE, SPEEDDIAL, SERVICE, FEATURE, EMPTY } button_type_t;				/*!< Enum Button Type */
 	typedef enum { ANSWER_LAST_FIRST = 1, ANSWER_OLDEST_FIRST = 2 } call_answer_order_t;			/*!< Enum Call Answer Order */
 	typedef enum { PARK_RESULT_FAIL = 0, PARK_RESULT_SUCCESS = 1 } sccp_parkresult_t;			/*!< Enum Park Result */
 	typedef enum {
@@ -303,7 +299,7 @@ static void __attribute__((destructor)) __unregister_file_version(void) \
  * \brief SCCP ButtonType Structure
  */
 static const struct sccp_buttontype {
-	button_type_t buttontype;
+	sccp_config_buttontype_t buttontype;
 	const char *const text;
 } sccp_buttontypes[] = {
         /* *INDENT-OFF* */
@@ -682,7 +678,7 @@ struct sccp_buttonconfig {
 	uint8_t instance;											/*!< Instance on device */
 	uint16_t index;												/*!< Button position on device */
 	char label[StationMaxNameSize];										/*!< Button Name/Label */
-	button_type_t type;											/*!< Button type (e.g. line, speeddial, feature, empty) */
+	sccp_config_buttontype_t type;										/*!< Button type (e.g. line, speeddial, feature, empty) */
 	SCCP_LIST_ENTRY (sccp_buttonconfig_t) list;								/*!< Button Linked List Entry */
 
 	unsigned int pendingDelete:1;
@@ -960,7 +956,7 @@ struct sccp_device {
 	unsigned int pendingUpdate:1;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 
 	boolean_t isAnonymous;											/*!< Device is connected Anonymously (Guest) */
-	light_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
+	boolean_t mwiLight;											/*!< MWI/Light \todo third MWI/light entry in device ? */
 
 	struct {
 		int newmsgs;											/*!< New Messages */
