@@ -254,15 +254,6 @@ typedef struct {
 } btnlist;													/*!< Button List Structure */
 
 /*!
- * \brief Button Modes Structure
- */
-typedef struct {
-	const char *type;											/*!< Button Type */
-	int buttonCount;											/*!< Button Count */
-	const btnlist *buttons;											/*!< Button List */
-} button_modes;													/*!< Button Modes Structure */
-
-/*!
  * \brief SCCP Message Types Enum
  */
 typedef enum {
