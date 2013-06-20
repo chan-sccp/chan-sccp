@@ -222,11 +222,6 @@ gcc_inline size_t message2size(sccp_message_t type)			/* sccp_protocol.h */
 	return sccp_messagetypes[type].size;
 }
 
-gcc_inline const char *sccp_buttontype2str(button_type_t type)	/* chan_sccp.h */
-{
-	_ARR2STR(sccp_buttontypes, buttontype, type, text);
-}
-
 gcc_inline const char *pbxdevicestate2str(uint32_t value)		/* pbx_impl/ast/ast.h */
 {
 	_ARR2STR(pbx_devicestates, devicestate, value, text);

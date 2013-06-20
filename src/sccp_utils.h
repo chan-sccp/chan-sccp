@@ -78,7 +78,6 @@ void sccp_dev_dbclean(void);
 // SCCP Lookups
 gcc_inline const char *message2str(sccp_message_t type);
 gcc_inline size_t message2size(sccp_message_t type);
-gcc_inline const char *sccp_buttontype2str(button_type_t type);
 gcc_inline const char *pbxdevicestate2str(uint32_t value);
 gcc_inline const char *extensionstatus2str(uint32_t value);
 
