@@ -2441,7 +2441,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 	int returnval = RESULT_SUCCESS;
 	char *config_file = "sccp.conf.test";
 
-	if (argc < 2 || argc > 3)
+	if (argc < 2 || argc > 4)
 		return RESULT_SHOWUSAGE;
 
 	pbx_cli(fd, "SCCP: Creating config file.\n");
