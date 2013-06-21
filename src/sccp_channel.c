@@ -1118,11 +1118,13 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 			 */
 			if (channel->privateData->device->transferChannels.transferee && channel->privateData->device->transferChannels.transferee != channel) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Denied Receipt of Transferee by receiving party (EndCall). Switch transfered channel to Hold Status\n", DEV_ID_LOG(d));
-				uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transferChannels.transferee->line->name);
-
-				sccp_device_sendcallstate(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_dev_set_keyset(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, KEYMODE_ONHOLD);
+				sccp_rtp_stop( channel->privateData->device->transferChannels.transferee);
+				sccp_channel_set_active(channel->privateData->device, NULL);
+				sccp_dev_set_activeline(channel->privateData->device, NULL);
+				sccp_indicate(channel->privateData->device, channel->privateData->device->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
+				sccp_channel_setDevice(channel->privateData->device->transferChannels.transferee,NULL);
 				channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
+				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
 			}
 
 			/* request a hangup for channel that are part of a transfer call  */

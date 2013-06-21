@@ -416,10 +416,13 @@ int sccp_pbx_hangup(sccp_channel_t * c)
                  */
                 if (d && d->transferChannels.transferee && d->transferChannels.transferee != c) {
                         sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_hangup) Denied Receipt of Transferee by receiving party. Switch transfered channel to Hold Status\n", DEV_ID_LOG(d));
-                        uint8_t instance = sccp_device_find_index_for_line(d, d->transferChannels.transferee->line->name);
-                        sccp_device_sendcallstate(d, instance, d->transferChannels.transferee->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-                        sccp_dev_set_keyset(d, instance, d->transferChannels.transferee->callid, KEYMODE_ONHOLD);
+                        sccp_rtp_stop( d->transferChannels.transferee);
+                        sccp_channel_set_active(d, NULL);
+                        sccp_dev_set_activeline(d, NULL);
+                        sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
+                        sccp_channel_setDevice(d->transferChannels.transferee,NULL);
                         d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
+			d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
                         sccp_channel_setDevice(c,NULL);
                 }
 
