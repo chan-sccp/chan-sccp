@@ -409,9 +409,22 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	//      ({
 	//              void __fn__ (void) 
 	{
+                /**
+                 * workaround to fix issue with 7960 and protocol version != 6
+                 * 7960 loses callplane when cancel transfer (end call on other channel).
+                 * This script set the hold state for transfer_channel explicitly -MC
+                 */
+                if (d && d->transferChannels.transferee && d->transferChannels.transferee != c) {
+                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_hangup) Denied Receipt of Transferee by receiving party. Switch transfered channel to Hold Status\n", DEV_ID_LOG(d));
+                        uint8_t instance = sccp_device_find_index_for_line(d, d->transferChannels.transferee->line->name);
+                        sccp_device_sendcallstate(d, instance, d->transferChannels.transferee->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+                        sccp_dev_set_keyset(d, instance, d->transferChannels.transferee->callid, KEYMODE_ONHOLD);
+                        d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
+                        sccp_channel_setDevice(c,NULL);
+                }
+
 		sccp_linedevices_t *linedevice;
 		
-
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			sccp_device_t *tmpDevice = NULL;

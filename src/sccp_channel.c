@@ -1098,33 +1098,9 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	/* this is a station active endcall or onhook */
 	if ((d = sccp_channel_getDevice_retained(channel))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
-
-#if !CS_EXPERIMENTAL
-		/**
-		 *	workaround to fix issue with 7960 and protocol version != 6
-		 *	7960 loses callplane when cancel transfer (end call on other channel).
-		 *	This script set the hold state for transfer_channel explicitly -MC
-		 */
-		 
-		if (channel->privateData->device && channel->privateData->device->transferChannels.transferee && channel->privateData->device->transferChannels.transferee != channel) {
-			uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transferChannels.transferee->line->name);
-
-			sccp_device_sendcallstate(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_dev_set_keyset(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, KEYMODE_ONHOLD);
-			channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
-		}
-
-		// request a hangup for channel that are part of a transfer call 
 		if (channel->privateData->device) {
-			if ((channel->privateData->device->transferChannels.transferee && channel == channel->privateData->device->transferChannels.transferee) || (channel->privateData->device->transferChannels.transferer && channel == channel->privateData->device->transferChannels.transferer)
-			    ) {
-				channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
-				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
-			}
-		}
-#else		
-		/* Complete transfer when one is in progress */
-		if (channel->privateData->device) {
+#if CS_EXPERIMENTAL
+			/* Complete transfer when one is in progress */
 			if (	
 				((channel->privateData->device->transferChannels.transferee) && (channel->privateData->device->transferChannels.transferer)) && 
 				((channel == channel->privateData->device->transferChannels.transferee) || (channel == channel->privateData->device->transferChannels.transferer))
@@ -1134,8 +1110,27 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 			    d = sccp_device_release(d);
 			    return;
 			}
+#endif		
+			/**
+			 *	workaround to fix issue with 7960 and protocol version != 6
+			 *	7960 loses callplane when cancel transfer (end call on other channel).
+			 *	This script set the hold state for transfer_channel explicitly -MC
+			 */
+			if (channel->privateData->device->transferChannels.transferee && channel->privateData->device->transferChannels.transferee != channel) {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Denied Receipt of Transferee by receiving party (EndCall). Switch transfered channel to Hold Status\n", DEV_ID_LOG(d));
+				uint8_t instance = sccp_device_find_index_for_line(channel->privateData->device, channel->privateData->device->transferChannels.transferee->line->name);
+
+				sccp_device_sendcallstate(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+				sccp_dev_set_keyset(channel->privateData->device, instance, channel->privateData->device->transferChannels.transferee->callid, KEYMODE_ONHOLD);
+				channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
+			}
+
+			/* request a hangup for channel that are part of a transfer call  */
+			if ( (channel->privateData->device->transferChannels.transferee && channel == channel->privateData->device->transferChannels.transferee) || (channel->privateData->device->transferChannels.transferer && channel == channel->privateData->device->transferChannels.transferer) ) {
+				channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
+				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
+			}
 		}
-#endif
 		
 		if (channel->owner) {
 			PBX(requestHangup) (channel->owner);
