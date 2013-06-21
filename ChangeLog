@@ -1,4 +1,50 @@
+2013-06-21  ddegroot
+
+	* [r4728] src/sccp_channel.c, src/sccp_pbx.c: Fix Transfer Issue
+	  Part 2: When the receiver of a transfered channel hangs up,
+	  without accepting the transfered channel, older SCCP phones would
+	  not display the callplane of the transfered call upon hangup
+	  (Reported by Sander Smeenk: 'Transfer Bug?'). Updated previous
+	  fix, to simulate sccp_channel_hold more closely and take care of
+	  the device refcount being of by +1
+
+	* [r4727] src/sccp_channel.c, src/sccp_pbx.c: Fix Transfer Issue:
+	  When the receiver of a transfered channel hangsup, without
+	  accepting the transfered channel, older SCCP phones would not
+	  display the callplane of the transfered call upon hangup. There
+	  was/is a previous work around in sccp_channel_endcall, but this
+	  would only be run when the transferer hungup before transfering
+	  the call (Reported by Sander Smeenk: 'Transfer Bug?')
+
+2013-06-20  ddegroot
+
+	* [r4726] src/chan_sccp.h, src/chan_sccp_enums.hh,
+	  src/sccp_appfunctions.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_config.h, src/sccp_utils.c, src/sccp_utils.h: renamed
+	  button_type_t to sccp_config_buttontype_t (chan_sccp_enums.hh).
+	  removed sccp_diff_t and light_t enums.
+
+	* [r4725] src/sccp_cli.c: Fix cli:sccp config generate, to accept
+	  arbitrairy file name
+
+	* [r4724] src/sccp_protocol.h: Removed button_modes struct, because
+	  it is never used anywhere
+
 2013-06-19  ddegroot
+
+	* [r4723] src/sccp_pbx.c: revert handling of sccp_pbx_softswitch in
+	  case \!c->owner (keep the added ast_channel_refcount)
+
+	* [r4722] src/sccp_pbx.c: Remedy loss of pbx_channel during
+	  sccp_pbx_softswitch, by taking an extra reference for the time of
+	  this function
+
+	* [r4721] ChangeLog, contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h, doc/00_Index.doc,
+	  doc/35_How_To.doc, doc/90_Developers_Guide.doc,
+	  src/sccp_actions.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_line.c:
+	  Update/fix doxygen warnings
 
 	* [r4720] conf/sccp.conf.annotated: Update conf/sccp.conf.annotated
 	  to use the information produced by gen_sccpconf

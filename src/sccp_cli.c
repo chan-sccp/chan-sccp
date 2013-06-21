@@ -477,6 +477,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("AutoAnswer tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(autoanswer_tone));
 	CLI_AMI_OUTPUT_PARAM("RemoteHangup tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(remotehangup_tone));
 	CLI_AMI_OUTPUT_PARAM("Transfer tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(transfer_tone));
+	CLI_AMI_OUTPUT_BOOL("Transfer on hangup", CLI_AMI_LIST_WIDTH, GLOB(transfer_on_hangup));
 	CLI_AMI_OUTPUT_PARAM("Callwaiting tone", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_tone));
 	CLI_AMI_OUTPUT_PARAM("Callwaiting interval", CLI_AMI_LIST_WIDTH, "%d", GLOB(callwaiting_interval));
 	CLI_AMI_OUTPUT_PARAM("Registration Context", CLI_AMI_LIST_WIDTH, "%s", GLOB(regcontext) ? GLOB(regcontext) : "Unset");

@@ -921,8 +921,8 @@ struct sccp_device {
 	sccp_channel_t *active_channel;										/*!< Active SCCP Channel */
 	//sccp_channel_t *transfer_channel;                                                                     /*!< SCCP Channel being Transfered */
 	struct {
-		sccp_channel_t *transferee;									/*!< SCCP Channel that will be transferred */
-		sccp_channel_t *transferer;									/*!< SCCP Channel that transfers transferee  */
+		sccp_channel_t *transferee;									/*!< SCCP Channel which will be transferred */
+		sccp_channel_t *transferer;									/*!< SCCP Channel which initiated the transferee */
 	} transferChannels;
 
 	sccp_line_t *currentLine;										/*!< Current Line */
@@ -1238,6 +1238,7 @@ struct sccp_global_vars {
 	uint8_t autoanswer_tone;										/*!< Auto Answer Tone */
 	uint8_t remotehangup_tone;										/*!< Remote Hangup Tone */
 	uint8_t transfer_tone;											/*!< Transfer Tone */
+	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
 

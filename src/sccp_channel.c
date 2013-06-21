@@ -1099,18 +1099,17 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	if ((d = sccp_channel_getDevice_retained(channel))) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 		if (channel->privateData->device) {
-#if CS_EXPERIMENTAL
-			/* Complete transfer when one is in progress */
-			if (	
-				((channel->privateData->device->transferChannels.transferee) && (channel->privateData->device->transferChannels.transferer)) && 
-				((channel == channel->privateData->device->transferChannels.transferee) || (channel == channel->privateData->device->transferChannels.transferer))
-			    ) {
-			    sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
-			    sccp_channel_transfer_complete(channel->privateData->device->transferChannels.transferer);
-			    d = sccp_device_release(d);
-			    return;
+			if (GLOB(transfer_on_hangup)) {		/* Complete transfer when one is in progress */
+				if (	
+					((channel->privateData->device->transferChannels.transferee) && (channel->privateData->device->transferChannels.transferer)) && 
+					((channel == channel->privateData->device->transferChannels.transferee) || (channel == channel->privateData->device->transferChannels.transferer))
+				    ) {
+				    sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
+				    sccp_channel_transfer_complete(channel->privateData->device->transferChannels.transferer);
+				    d = sccp_device_release(d);
+				    return;
+				}
 			}
-#endif		
 			/**
 			 *	workaround to fix issue with 7960 and protocol version != 6
 			 *	7960 loses callplane when cancel transfer (end call on other channel).
