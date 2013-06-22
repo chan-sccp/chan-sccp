@@ -402,56 +402,20 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	SCCP_LIST_UNLOCK(&l->channels);
 	/* done - end callforwards */
 
+	/* cancel transfer if in progress */
+        sccp_channel_transfer_cancel(d, c);
+        
 	/* remove call from transferee, transferer */
-
-	/** \todo we should discuse to use a helper variable in channel, e.g. channel->transferingDevice.transferer / channel->transferingDevice.transferee */
-	//      void (*removeTransferedDevice)(void) =
-	//      ({
-	//              void __fn__ (void) 
-	{
-                /**
-                 * workaround to fix issue with 7960 and protocol version != 6
-                 * 7960 loses callplane when cancel transfer (end call on other channel).
-                 * This script set the hold state for transfer_channel explicitly -MC
-                 */
-                if (d && d->transferChannels.transferee && d->transferChannels.transferee != c) {
-                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_hangup) Denied Receipt of Transferee by receiving party. Switch transfered channel to Hold Status\n", DEV_ID_LOG(d));
-                        sccp_rtp_stop( d->transferChannels.transferee);
-                        sccp_channel_set_active(d, NULL);
-                        sccp_dev_set_activeline(d, NULL);
-                        sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
-                        sccp_channel_setDevice(d->transferChannels.transferee,NULL);
-                        d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
-			d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
-                        sccp_channel_setDevice(c,NULL);
+        sccp_linedevices_t *linedevice;
+        SCCP_LIST_LOCK(&l->devices);
+        SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+                sccp_device_t *tmpDevice = NULL;
+                if ((tmpDevice = sccp_device_retain(linedevice->device))) {
+                        sccp_channel_transfer_release(tmpDevice, c);
+                        sccp_device_release(tmpDevice);
                 }
-
-		sccp_linedevices_t *linedevice;
-		
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			sccp_device_t *tmpDevice = NULL;
-			if ((tmpDevice = sccp_device_retain(linedevice->device))) {
-				if (tmpDevice->transferChannels.transferer == c) {
-					tmpDevice->transferChannels.transferer = sccp_channel_release(tmpDevice->transferChannels.transferer);
-					break;
-				}
-				if (tmpDevice->transferChannels.transferee == c) {
-					tmpDevice->transferChannels.transferee = sccp_channel_release(tmpDevice->transferChannels.transferee);
-
-					/* also remove transferer */
-					tmpDevice->transferChannels.transferer = tmpDevice->transferChannels.transferer ? sccp_channel_release(tmpDevice->transferChannels.transferer) : NULL;
-					break;
-				}
-				sccp_device_release(tmpDevice);
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
-	}
-	//              __fn__;
-	//      });
-	//      removeTransferedDevice();
-
+        }
+        SCCP_LIST_UNLOCK(&l->devices);
 	/* done - remove call from transferee, transferer */
 
 	sccp_line_removeChannel(l, c);
