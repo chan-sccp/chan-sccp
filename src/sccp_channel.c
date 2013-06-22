@@ -1110,27 +1110,8 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 				    return;
 				}
 			}
-			/**
-			 *	workaround to fix issue with 7960 and protocol version != 6
-			 *	7960 loses callplane when cancel transfer (end call on other channel).
-			 *	This script set the hold state for transfer_channel explicitly -MC
-			 */
-			if (channel->privateData->device->transferChannels.transferee && channel->privateData->device->transferChannels.transferee != channel) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Denied Receipt of Transferee by receiving party (EndCall). Switch transfered channel to Hold Status\n", DEV_ID_LOG(d));
-				sccp_rtp_stop( channel->privateData->device->transferChannels.transferee);
-				sccp_channel_set_active(channel->privateData->device, NULL);
-				sccp_dev_set_activeline(channel->privateData->device, NULL);
-				sccp_indicate(channel->privateData->device, channel->privateData->device->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
-				sccp_channel_setDevice(channel->privateData->device->transferChannels.transferee,NULL);
-				channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
-				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
-			}
-
-			/* request a hangup for channel that are part of a transfer call  */
-			if ( (channel->privateData->device->transferChannels.transferee && channel == channel->privateData->device->transferChannels.transferee) || (channel->privateData->device->transferChannels.transferer && channel == channel->privateData->device->transferChannels.transferer) ) {
-				channel->privateData->device->transferChannels.transferee = channel->privateData->device->transferChannels.transferee ? sccp_channel_release(channel->privateData->device->transferChannels.transferee) : NULL;
-				channel->privateData->device->transferChannels.transferer = channel->privateData->device->transferChannels.transferer ? sccp_channel_release(channel->privateData->device->transferChannels.transferer) : NULL;
-			}
+			sccp_channel_transfer_cancel(channel->privateData->device,channel);
+			sccp_channel_transfer_release(channel->privateData->device,channel);
 		}
 		
 		if (channel->owner) {
@@ -1557,12 +1538,8 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		return 0;
 	}
 
-	/* check if we are in the middle of a transfer */
-	if (d->transferChannels.transferee == channel) {
-		d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
-		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X\n", d->id, l->name, channel->callid);
-	}
+	/* release transfer if we are in the middle of a transfer */
+	sccp_channel_transfer_release(d, channel);
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 
@@ -1702,12 +1679,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		/* deactive the active call if needed */
 		if (d->active_channel == channel)
 			sccp_channel_set_active(d, NULL);
-		if (d->transferChannels.transferee == channel) {
-			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
-		}
-		if (d->transferChannels.transferer == channel) {
-			d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);
-		}
+		sccp_channel_transfer_release(d, channel);
 #ifdef CS_SCCP_CONFERENCE
 		if (d->conference && d->conference == channel->conference) {
 			d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -1865,6 +1837,53 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 	}
 	d = sccp_device_release(d);
 }
+
+/*!
+ * \brief Release Transfer Variables
+ */
+void sccp_channel_transfer_release(sccp_device_t *d, sccp_channel_t *c)
+{
+	if (!d | !c) {
+		return;
+	}
+	
+	if ( (d->transferChannels.transferee && c == d->transferChannels.transferee) || (d->transferChannels.transferer && c == d->transferChannels.transferer) ) {
+		d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
+		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X released\n", d->id, c->line->name, c->callid);
+	}
+}
+
+/*!
+ * \brief Cancel Transfer
+ */
+void sccp_channel_transfer_cancel(sccp_device_t *d, sccp_channel_t * c)
+{
+	if (!d || !c || !d->transferChannels.transferee) {
+		return;
+	}
+
+	/**
+	 * workaround to fix issue with 7960 and protocol version != 6
+	 * 7960 loses callplane when cancel transfer (end call on other channel).
+	 * This script sets the hold state for transfered channel explicitly -MC
+	 */
+	if (d && d->transferChannels.transferee && d->transferChannels.transferee != c) {
+		if (d->transferChannels.transferer && d->transferChannels.transferer != c) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_hangup) Denied Receipt of Transferee %d %s by the Receiving Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_hangup) Denied Receipt of Transferee %d %s by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
+		}
+		sccp_rtp_stop( d->transferChannels.transferee);
+		sccp_channel_set_active(d, NULL);
+		sccp_dev_set_activeline(d, NULL);
+		sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
+		sccp_channel_setDevice(d->transferChannels.transferee,NULL);
+		sccp_channel_transfer_release(d, d->transferChannels.transferee);
+	}
+}
+
+
 
 /*!
  * \brief Bridge Two Channels
@@ -2031,8 +2050,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		return;
 	}
 
-	d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
-	d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
+	sccp_channel_transfer_release(d, d->transferChannels.transferee);
 
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
