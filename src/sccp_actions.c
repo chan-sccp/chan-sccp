@@ -27,8 +27,12 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <math.h>
+
 #if ASTERISK_VERSION_NUMBER < 10400
-* !*\brief Host Access Rule Structure * /struct ast_ha {
+/* !
+ *\brief Host Access Rule Structure 
+ */
+struct ast_ha {
 	/* Host access rule */
 	struct in_addr netaddr;
 	struct in_addr netmask;
@@ -322,7 +326,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 		}
 	}
 	device = device ? sccp_device_release(device) : NULL;
-	
+
 	// search for all devices including realtime
 	device = sccp_device_find_byid(r->msg.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
 	if (!device && GLOB(allowAnonymous)) {
@@ -388,7 +392,7 @@ EXITFUNC:
  */
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_moo_t * r)
 {
-        sccp_device_t *device;
+	sccp_device_t *device;
 	uint8_t protocolVer = letohl(r->msg.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
 	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 	uint32_t deviceInstance = 0;
@@ -425,8 +429,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_moo_
 	}
 #endif
 #else
-        s->phone_sin.sin_family = AF_INET;
-        memcpy(&s->phone_sin.sin_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 4);
+	s->phone_sin.sin_family = AF_INET;
+	memcpy(&s->phone_sin.sin_addr, &r->msg.RegisterMessage.lel_stationIpAddr, 4);
 #endif
 
 	// search for all devices including realtime
@@ -945,9 +949,9 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		r1->msg.ButtonTemplateMessage.definition[i].instanceNumber = btn[i].instance;
 
-		if (SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {		
+		if (SKINNY_BUTTONTYPE_UNUSED != btn[i].type) {
 			//r1->msg.ButtonTemplateMessage.lel_buttonCount = i+1;
-		        buttonCount = i+1;
+			buttonCount = i + 1;
 			lastUsedButtonPosition = i;
 		}
 
@@ -995,7 +999,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	//r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(r1->msg.ButtonTemplateMessage.lel_buttonCount);
 	r1->msg.ButtonTemplateMessage.lel_buttonCount = htolel(buttonCount);
 	/* buttonCount is already in a little endian format so don't need to convert it now */
-	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(lastUsedButtonPosition+1);
+	r1->msg.ButtonTemplateMessage.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
 
 	/* set speeddial for older devices like 7912 */
 	uint32_t speeddialInstance = 0;
@@ -1932,7 +1936,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 		v++;
 		iKeySetCount++;
 	};
-	
+
 	/* disable videomode and join softkey for all softkeysets */
 	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
@@ -2005,7 +2009,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 	sccp_dev_send(d, r1);
 	sccp_log((DEBUGCAT_HINT | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send CallListStateUpdate for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), number, line->context, state);
 	sccp_log((DEBUGCAT_HINT | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, r->msg.DialedPhoneBookMessage.phonenumber, unknown2, lineInstance);
-	
+
 	line = sccp_line_release(line);
 }
 
@@ -2175,7 +2179,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 			int minimum_digit_before_check = SCCP_SIM_ENBLOC_MIN_DIGIT;
 			int lpbx_digit_usecs = 0;
 			int number_of_digits = len;
-			int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;								// new timeout if we have established we should enbloc dialing 
+			int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;					// new timeout if we have established we should enbloc dialing 
 
 			sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, PBX(sched_wait) (channel->scheduler.digittimeout));
 			if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {	// skip the first digit (first digit had longer delay than the rest)
@@ -2285,7 +2289,7 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 
 	if (!channel) {
 		return;
-	}	
+	}
 
 	if (!(l = sccp_line_retain(channel->line))) {
 		return;
@@ -2293,7 +2297,7 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 
 	if (!(d = sccp_channel_getDevice_retained(channel))) {
 		return;
-	}	
+	}
 
 	callid = channel->callid;
 	lenDialed = strlen(channel->dialedNumber);
@@ -2309,9 +2313,9 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 	 * etc.
 	 * */
 
-	if (channel->ss_action != SCCP_SS_DIAL)  {
-		l = sccp_line_release(l);	
-		d = sccp_device_release(d);	
+	if (channel->ss_action != SCCP_SS_DIAL) {
+		l = sccp_line_release(l);
+		d = sccp_device_release(d);
 		return;
 	}
 
@@ -2442,18 +2446,19 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	struct sockaddr_storage ss = { 0 };
 	d->protocol->parseOpenReceiveChannelAck((const sccp_moo_t *) r, &status, &ss, &passThruPartyId, &callReference);
 
-        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
 	if (ss.ss_family == AF_INET) {
-	        sin = *((struct sockaddr_in *)&ss);
-	        inet_ntop(AF_INET, &sin.sin_addr, iabuf, INET_ADDRSTRLEN);
-	        port = ntohs(sin.sin_port);
-//	        sccp_log(0)("SCCP: (sccp_handle_open_receive_channel_ack) IPv4 (%s:%d)\n", iabuf, port);
+		sin = *((struct sockaddr_in *) &ss);
+		inet_ntop(AF_INET, &sin.sin_addr, iabuf, INET_ADDRSTRLEN);
+		port = ntohs(sin.sin_port);
+		//              sccp_log(0)("SCCP: (sccp_handle_open_receive_channel_ack) IPv4 (%s:%d)\n", iabuf, port);
 	} else {
-	        struct sockaddr_in6 sin6 = *((struct sockaddr_in6 *)&ss);
-	        inet_ntop(AF_INET6, &sin6.sin6_addr, iabuf, INET6_ADDRSTRLEN);
-	        port = ntohs(sin6.sin6_port);
-	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment (%s:%d)\n", iabuf, port);
-	        return;
+		struct sockaddr_in6 sin6 = *((struct sockaddr_in6 *) &ss);
+
+		inet_ntop(AF_INET6, &sin6.sin6_addr, iabuf, INET6_ADDRSTRLEN);
+		port = ntohs(sin6.sin6_port);
+		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment (%s:%d)\n", iabuf, port);
+		return;
 	}
 
 	if (d->nat || !d->directrtp) {
@@ -2510,7 +2515,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			/* update status */
 			channel->rtp.audio.writeState |= SCCP_RTP_STATUS_ACTIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE)) ) {
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
 		} else {
@@ -2553,12 +2558,12 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 
 	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_moo_t *) r, &status, &ss, &passThruPartyId, &callReference);
 
-        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
 	if (ss.ss_family == AF_INET) {
-	        sin = *((struct sockaddr_in *)&ss);
+		sin = *((struct sockaddr_in *) &ss);
 	} else {
-	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
-	        return;
+		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
+		return;
 	}
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callReference);
@@ -2636,7 +2641,6 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 	sccp_dev_send(d, r1);
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending version number: %s\n", d->id, d->imageversion);
 }
-
 
 #define CALC_AVG(_newval, _mean, _numval) ( ( (_mean * (_numval) ) + _newval ) / (_numval + 1))
 /*!
@@ -3005,7 +3009,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 {
 	sccp_buttonconfig_t *config = NULL;
 	sccp_line_t *line = NULL;
-	sccp_callforward_t status = 0;											/* state of cfwd */
+	sccp_callforward_t status = 0;										/* state of cfwd */
 	uint32_t featureStat1 = 0;
 	uint32_t featureStat2 = 0;
 	uint32_t featureStat3 = 0;
@@ -3232,6 +3236,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
 			char transmitReceiveStr[5];
+
 			sprintf(transmitReceiveStr, "%c-%c", (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(r->msg.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
@@ -3281,7 +3286,6 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 #endif
 }
 
-
 /*!
  * \brief Handle Keep Alive Message
  * \param s SCCP Session
@@ -3290,8 +3294,9 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
  */
 void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-        sccp_moo_t *r1 = sccp_build_packet(KeepAliveAckMessage, 0);
-        sccp_session_send2(s, r1);
+	sccp_moo_t *r1 = sccp_build_packet(KeepAliveAckMessage, 0);
+
+	sccp_session_send2(s, r1);
 }
 
 /*!
@@ -3312,12 +3317,12 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 
 	d->protocol->parseStartMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &ss);
 
-        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
 	if (ss.ss_family == AF_INET) {
-	        sin = *((struct sockaddr_in *)&ss);
+		sin = *((struct sockaddr_in *) &ss);
 	} else {
-	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
-	        return;
+		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
+		return;
 	}
 
 	if (partyID)
@@ -3421,19 +3426,20 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 #endif
 				break;
 			case APPID_PROVISION:
-			        break;
+				break;
 		}
 	} else {
 		// It has data -> must be a softkey
 		if (dataLength) {
 			/* split data by "/" */
-                        char str_action[10] = "", str_transactionID[10] = "";
-                        if (sscanf(data,"%[^/]/%s", str_action, str_transactionID) > 0) {
-                                sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
-                                d->dtu_softkey.action = strdup(str_action);
-                                d->dtu_softkey.transactionID = atoi(str_transactionID);
+			char str_action[10] = "", str_transactionID[10] = "";
+
+			if (sscanf(data, "%[^/]/%s", str_action, str_transactionID) > 0) {
+				sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle DTU Softkey Button:%s, %s\n", d->id, str_action, str_transactionID);
+				d->dtu_softkey.action = strdup(str_action);
+				d->dtu_softkey.transactionID = atoi(str_transactionID);
 			} else {
-			        pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
+				pbx_log(LOG_NOTICE, "%s: Failure parsing DTU Softkey Button: %s\n", d->id, data);
 			}
 		}
 	}
@@ -3468,9 +3474,9 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
 
 	sccp_log((DEBUGCAT_ACTION | DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: DTU Response: Data %s\n", d->id, data);
-	
+
 	if (appID == APPID_DEVICECAPABILITIES) {
-	        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Capabilities Response '%s'\n", d->id, data);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Capabilities Response '%s'\n", d->id, data);
 	}
 }
 
@@ -3492,12 +3498,12 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	//      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
 	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &ss);
 
-        /* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
+	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
 	if (ss.ss_family == AF_INET) {
-	        sin = *((struct sockaddr_in *)&ss);
+		sin = *((struct sockaddr_in *) &ss);
 	} else {
-	        pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
-	        return;
+		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
+		return;
 	}
 
 	c = sccp_channel_find_bypassthrupartyid(partyID);
@@ -3561,12 +3567,12 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 						  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(r->msg.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 			    );
 			break;
-//		case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
-//      	case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
-//		case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
-//		case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
-//		case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
-//		case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
+			//              case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+			//              case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
+			//              case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
+			//              case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
+			//              case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
+			//              case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
 		default:
 
 			break;
