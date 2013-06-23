@@ -1,6 +1,6 @@
 /*!
- * \file        sccp_config.c
- * \brief 	SCCP Config Generator Header
+ * \file 	gen_sccpconf.c
+ * \brief 	SCCP Config Generator Class
  * \author      Diederik de Groot <ddegroot [at] sf.net>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
