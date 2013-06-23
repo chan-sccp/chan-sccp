@@ -633,7 +633,8 @@ struct sccp_cfwd_information {
 };
 
 /*!
- * \brief for addressing individual devices on shared line
+ * \brief SCCP device-line subscriptionId
+ * \note for addressing individual devices on shared line
  */
 struct subscriptionId {
 	char number[SCCP_MAX_EXTENSION];									/*!< will be added to cid */
@@ -642,7 +643,8 @@ struct subscriptionId {
 };
 
 /*!
- * \brief string identifier with additional subscription id
+ * \brief SCCP device-line composedId
+ * \note string identifier with additional subscription id
  */
 struct composedId {
 	char mainId[StationMaxServiceURLSize];
@@ -1317,13 +1319,6 @@ struct sccp_hotline {
 };														/*!< SCCP Hotline Structure */
 
 /*!
- * \brief Simple Switch Modes
- * \note Used in simple switch tread to distinguish dial from other number collects
- * \note (Moved here from protocol.h)
- */
-
-
-/*!
  * \brief Scheduler Tasks
  * \note (NEW) Scheduler Implementation (NEW)
  */
@@ -1351,7 +1346,7 @@ int sccp_sched_free(void *ptr);
 typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */
 
 /*!
- * \brief SoftKeySet Configuration Structure
+ * \brief SCCP SoftKeySet Configuration Structure
  */
 struct softKeySetConfiguration {
 	char name[50];												/*!< Name for this configuration */

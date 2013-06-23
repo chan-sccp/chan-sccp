@@ -989,16 +989,17 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 }
 
 /*!
- * \brief Meetme Application Config Structure
+ * \brief SCCP Meetme Application Config Structure
  */
 struct meetmeAppConfig {
 	char *appName;
 	char *defaultMeetmeOption;
 } meetmeApps[] = {
-	{
-	"MeetMe", "qd"}, {
-	"ConfBridge", "Mac"}, {
-	"Konference", "MTV"}
+	/* *INDENT-OFF* */
+	{"MeetMe", 	"qd"}, 
+	{"ConfBridge", 	"Mac"}, 
+	{"Konference", 	"MTV"}
+	/* *INDENT-ON* */
 };
 
 /*!

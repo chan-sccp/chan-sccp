@@ -1,6 +1,6 @@
 
 /*!
- * \file        astTrunk.c
+ * \file        ast111.c
  * \brief       SCCP PBX Asterisk Wrapper Class
  * \author      Marcello Ceshia
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
