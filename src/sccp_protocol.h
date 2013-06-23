@@ -112,7 +112,7 @@
 #define SKINNY_STATIONHEADSET_OFF			2
 
 /*!
- * \brief Skinny Codecs (ENUM) 
+ * \brief SKINNY Codecs (ENUM) 
  */
 typedef enum {
 	/* *INDENT-OFF* */
@@ -161,7 +161,7 @@ typedef enum {
 } skinny_codec_t;
 
 /*! 
- * \brief Skinny codec types (ENUM)
+ * \brief SKINNY Codec Types (ENUM)
  */
 typedef enum {
 	/* *INDENT-OFF* */
@@ -175,7 +175,7 @@ typedef enum {
 } skinny_payload_type_t;
 
 /*!
- * \brief Skinny Codec Structure
+ * \brief SKINNY Codec Structure
  */
 static const struct skinny_codec {
 	skinny_codec_t codec;
@@ -245,7 +245,7 @@ static const struct skinny_codec {
 #define MAX_LEVEL_PREFERENCE		 		4
 
 /*!
- * \brief Button List Structure
+ * \brief SCCP Device->Button List Structure
  */
 typedef struct {
 	uint8_t instance;											/*!< Button Instance */
@@ -254,7 +254,7 @@ typedef struct {
 } btnlist;													/*!< Button List Structure */
 
 /*!
- * \brief SCCP Message Types Enum
+ * \brief SKINNY Message Types Enum
  */
 typedef enum {
 	/* *INDENT-OFF* */
@@ -441,29 +441,29 @@ typedef enum {
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
 	/* *INDENT-ON* */
-} sccp_message_t;												/*!< SCCP Message Types Enum */
+} sccp_message_t;												/*!< SKINNY Message Types Enum */
 
 /*=====================================================================================================*/
 
 /*!
- * \brief Station Identifier Structure
+ * \brief SKINNY Station Identifier Structure
  */
 typedef struct {
 	char deviceName[StationMaxDeviceNameSize];								/*!< Device name */
 	uint32_t lel_userid;											/*!< User ID */
 	uint32_t lel_instance;											/*!< Instance */
-} StationIdentifier;												/*!< Station Identifier Structure */
+} StationIdentifier;												/*!< SKINNY Station Identifier Structure */
 
 /*!
- * \brief Station Button Definition Structure
+ * \brief SKINNY Station Button Definition Structure
  */
 typedef struct {
 	uint8_t instanceNumber;											/*!< set to instance number or StationKeyPadButton value */
 	uint8_t buttonDefinition;										/*!< set to one of the preceding Bt values */
-} StationButtonDefinition;											/*!< Station Button Definition Structure */
+} StationButtonDefinition;											/*!< SKINNY Station Button Definition Structure */
 
 /*!
- * \brief Media Payload Capability Structure
+ * \brief SKINNY Media Payload Capability Structure
  */
 typedef struct {
 	skinny_codec_t lel_payloadCapability;									/*!< Payload Capability (Codec Used) */
@@ -471,42 +471,43 @@ typedef struct {
 	union {
 		uint8_t futureUse[8];
 		uint8_t lel_g723BitRate;									/*!< g723 Bit Rate (1=5.3 Kbps, 2=6.4 Kbps) */
-	} PAYLOADS;												/*!< Payloads */
-} MediaCapabilityStructure;											/*!< Media Payload Capability Structure */
+	} PAYLOADS;												/*!< SKINNY Media Payload Capability Payloads Union */
+} MediaCapabilityStructure;											/*!< SKINNY Media Payload Capability Structure */
 
 /*!
- * \brief Station Soft Key Definition Structure
+ * \brief SKINNY Station Soft Key Definition Structure
  */
 typedef struct {
 	char softKeyLabel[StationMaxSoftKeyLabelSize];								/*!< Soft Key Label */
 	uint32_t lel_softKeyEvent;										/*!< Soft Key Event */
-} StationSoftKeyDefinition;											/*!< Station Soft Key Definition Structure */
+} StationSoftKeyDefinition;											/*!< SKINNY Station Soft Key Definition Structure */
 
 /*!
- * \brief Station Soft Key Set Definition Structure
+ * \brief SKINNY Station Soft Key Set Definition Structure
  */
 typedef struct {
 	uint8_t softKeyTemplateIndex[StationMaxSoftKeyIndex];							/*!< Soft Key Template Index */
 	uint16_t les_softKeyInfoIndex[StationMaxSoftKeyIndex];							/*!< Soft Key Info Index */
-} StationSoftKeySetDefinition;											/*!< Station Soft Key Set Definition Structure */
+} StationSoftKeySetDefinition;											/*!< SKINNY Station Soft Key Set Definition Structure */
 
 /*!
- * \brief Station Identifier Structure
+ * \brief SKINNY Server Identifier Structure
  */
 typedef struct {
 	char serverName[ServerMaxNameSize];									/*!< Server Name */
-} ServerIdentifier;												/*!< Server Identifier Structure */
+} ServerIdentifier;												/*!< SKINNY Server Identifier Structure */
 
 /*! 
- * \brief Layout Config Structure (Update Capabilities Message Struct)
+ * \brief SKINNY Layout Config Structure
+ * \note Part of Update Capabilities Message Struct
  * \since 20080111
  */
 typedef struct {
 	uint32_t layout;											/*!< Layout \todo what is layout? */
-} layoutConfig_t;												/*!< Layout Config Structure */
+} layoutConfig_t;												/*!< SKINNY Layout Config Structure */
 
 /*!
- * \brief Video Level Preference Structure
+ * \brief SKINNY Video Level Preference Structure
  */
 typedef struct {
 	uint32_t transmitPreference;										/*!< Transmit Preference */
@@ -515,10 +516,10 @@ typedef struct {
 	uint32_t minBitRate;											/*!< Minimum BitRate */
 	uint32_t MPI;												/*!<  */
 	uint32_t serviceNumber;											/*!< Service Number */
-} levelPreference_t;												/*!< Level Preference Structure */
+} levelPreference_t;												/*!< SKINNY Level Preference Structure */
 
 /*!
- * \brief Service Resource Structure
+ * \brief SKINNY Service Resource Structure
  */
 typedef struct {
 	uint32_t layoutCount;											/*!< Layout Count */
@@ -527,10 +528,10 @@ typedef struct {
 	uint32_t maxStreams;											/*!< Maximum number of Streams */
 	uint32_t maxConferences;										/*!< Maximum number of Conferences */
 	uint32_t activeConferenceOnRegistration;								/*!< Active Conference On Registration */
-} serviceResource_t;												/*!< Service Resource Structure */
+} serviceResource_t;												/*!< SKINNY Service Resource Structure */
 
 /*!
- * \brief Picture Format Structure
+ * \brief SKINNY Picture Format Structure
  */
 typedef struct {
 	uint32_t customPictureFormatWidth;									/*!< Picture Width */
@@ -538,19 +539,19 @@ typedef struct {
 	uint32_t customPictureFormatpixelAspectRatio;								/*!< Picture Pixel Aspect Ratio */
 	uint32_t customPictureFormatpixelclockConversionCode;							/*!< Picture Pixel Conversion Code  */
 	uint32_t customPictureFormatpixelclockDivisor;								/*!< Picture Pixel Divisor */
-} customPictureFormat_t;											/*!< Picture Format Structure */
+} customPictureFormat_t;											/*!< SKINNY Picture Format Structure */
 
 /*!
- * \brief Audio Capabilities Structure
+ * \brief SKINNY Audio Capabilities Structure
  */
 typedef struct {
 	skinny_codec_t lel_payloadCapability;									/*!< PayLoad Capability */
 	uint32_t lel_maxFramesPerPacket;									/*!< Maximum Number of Frames per IP Packet */
 	uint32_t lel_unknown[2];										/*!< this are related to G.723 */
-} audioCap_t;													/*!< Audio Capabilities Structure */
+} audioCap_t;													/*!< SKINNY Audio Capabilities Structure */
 
 /*!
- * \brief Video Capabilities Structure
+ * \brief SKINNY Video Capabilities Structure
  */
 typedef struct {
 	skinny_codec_t lel_payloadCapability;									/*!< PayLoad Capability */
@@ -588,69 +589,69 @@ typedef struct {
         uint32_t		lel_modelNumber;
         uint32_t		lel_bandwidth;
         */
-} videoCap_t;													/*!< Video Capabilities Structure */
+} videoCap_t;													/*!< SKINNY Video Capabilities Structure */
 
 /*!
- * \brief Data Capabilities Structure
+ * \brief SKINNY Data Capabilities Structure
  */
 typedef struct {
 	uint32_t payloadCapability;										/*!< Payload Capability */
 	uint32_t transmitOrReceive;										/*!< Transmit or Receive */
 	uint32_t protocolDependentData;										/*!< Protocol Dependent Data */
 	uint32_t maxBitRate;											/*!< Maximum BitRate */
-} dataCap_t;													/*!< Data Capabilities Structure */
+} dataCap_t;													/*!< SKINNY Data Capabilities Structure */
 
 /*!
- * \brief Audio Parameters Structure
+ * \brief SKINNY Audio Parameters Structure
  */
 typedef struct {
 	uint32_t millisecondPacketSize;										/*!< Packet Size per Milli Second */
 	uint32_t lel_echoCancelType;										/*!< Echo Cancelation Type */
 	uint32_t lel_g723BitRate;										/*!< only used with G.723 payload */
-} audioParameter_t;												/*!< Audio Parameters Structure */
+} audioParameter_t;												/*!< SKINNY Audio Parameters Structure */
 
 /*!
- * \brief Picture Format Structure
+ * \brief SKINNY Picture Format Structure
  */
 typedef struct {
 	uint32_t format;											/*!< Picture Format */
 	uint32_t mpi;												/*!< MPI */
-} pictureFormat_t;												/*!< Picture Format Structure */
+} pictureFormat_t;												/*!< SKINNY Picture Format Structure */
 
 /*!
- * \brief H261 Video Capability Structure
+ * \brief SKINNY H261 Video Capability Structure
  */
 typedef struct {
 	uint32_t temporalSpatialTradeOffCapability;								/*!< Temporal Spatial Trade Off Capability */
 	uint32_t stillImageTransmission;									/*!< Still Image Transmission */
-} h261VideoCapability_t;											/*!< H261 Video Capability Structure */
+} h261VideoCapability_t;											/*!< SKINNY H261 Video Capability Structure */
 
 /*!
- * \brief H263 Video Capability Structure
+ * \brief SKINNY H263 Video Capability Structure
  */
 typedef struct {
 	uint32_t h263CapabilityBitfield;									/*!< H263 Capability Bit-Field */
 	uint32_t annexNandwFutureUse;										/*!< Annex Nandw for Future Use */
-} h263VideoCapability_t;											/*!< H262 Vidio Capability Structure */
+} h263VideoCapability_t;											/*!< SKINNY H262 Video Capability Structure */
 
 /*!
- * \brief vieo Video Capability Structure
+ * \brief SKINNY vieo Video Capability Structure
  */
 typedef struct {
 	uint32_t modelNumber;											/*!< Model Number */
 	uint32_t bandwidth;											/*!< BandWidth */
-} vieoVideoCapability_t;											/*!< vieo Video Capability Structure */
+} vieoVideoCapability_t;											/*!< SKINNY vieo Video Capability Structure */
 
 /*!
- * \brief Data Parameter Structure
+ * \brief SKINNY Data Parameter Structure
  */
 typedef struct {
 	uint32_t protocolDependentData;										/*!< Protocol Dependent Data */
 	uint32_t maxBitRate;											/*!< Maximum BitRate */
-} dataParameter_t;												/*!< Data Parameter Structure */
+} dataParameter_t;												/*!< SKINNY Data Parameter Structure */
 
 /*! 
- * \brief Video Parameter Structure 
+ * \brief SKINNY Video Parameter Structure 
  * \since 20110718
  */
 typedef struct {
@@ -672,20 +673,19 @@ typedef struct {
 	uint32_t dummy6;
 	uint32_t dummy7;
 	uint32_t dummy8;
-} videoParameter_t;												/*!< Video Parameter Structure */
+} videoParameter_t;												/*!< SKINNY Video Parameter Structure */
 
 /*! 
- * \brief xAnnouncementLis 
- * \since 20130324
+ * \brief SKINNY AnnouncementList Structure
  */
 typedef struct {
 	uint32_t lel_local;
 	uint32_t lel_country;
 	uint32_t lel_deviceTone;
-} skinny_announcementList_t;												/*!< Video Parameter Structure */
+} skinny_announcementList_t;											/*!< SKINNY AnnouncementList Structure */
 
 /*!
- * \brief SCCP Data Union
+ * \brief SKINNY Protocol Message Data Union
  */
 typedef union {
 
@@ -2483,21 +2483,24 @@ typedef union {
 
 	struct {
 	} AuditParticipantReqMessage;
-} sccp_data_t;													/*!< SCCP Data Structure */
+} sccp_data_t;													/*!< SKINNY Data Structure */
 
 /*!
- * \brief SCCP MOO Message Structure
+ * \brief SKINNY Message Header Structure
  */
 typedef struct {
 	uint32_t length;											/*!< Message Length */
 	uint32_t lel_protocolVer;										/*!< Protocol Version Message */
 	uint32_t lel_messageId;											/*!< Message ID */
-} sccp_header_t;												/*!< MOO Message Structure */
+} sccp_header_t;
 
+/*!
+ * \brief SKINNY Message Structure
+ */
 typedef struct {
 	sccp_header_t header;											/*!< Message Header */
 	sccp_data_t msg;											/*!< Message [SCCP Data] */
-} sccp_moo_t;													/*!< MOO Message Structure */
+} sccp_moo_t;
 
 /* So in theory, a message should never be bigger than this.
  * If it is, we abort the connection */
@@ -2711,17 +2714,16 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_EMPTY,
 	SKINNY_LBL_DIAL,
 	//      SKINNY_LBL_CBARGE,
-};														/*!< Soft Keys Map as INT */
+};														/*!< SKINNY Soft Keys Map as INT */
 
 /*!
- * \brief Soft Key Modes Structure
+ * \brief SKINNY Soft Key Modes Structure
  */
-
 typedef struct {
 	uint8_t id;												/*!< Soft Key ID */
 	uint8_t *ptr;												/*!< Point to next Mode */
 	uint8_t count;												/*!< Soft Key Count */
-} softkey_modes;												/*!< Soft Key Modes Structure */
+} softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
 
 static uint8_t skSet_Onhook[] = {
 	SKINNY_LBL_REDIAL,
@@ -2892,7 +2894,7 @@ static const softkey_modes SoftKeyModes[] = {
 };														/*!< SoftKey Modes Constants */
 
 /*!
- * \brief SCCP Device Protocol Structure
+ * \brief SCCP Device Protocol Callback Structure
  *
  * Connect Specific CallBack-Functions to Particular SCCP Protocol Versions
  */
@@ -2921,7 +2923,7 @@ typedef struct {
 	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
 	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
 	void (*const parseStartMultiMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
-} sccp_deviceProtocol_t;
+} sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);

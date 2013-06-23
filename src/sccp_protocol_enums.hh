@@ -1,3 +1,13 @@
+/*!
+ * \file        sccp_protocol_enums.hh
+ * \brief       SKINNY Enums
+ * \author      Diederik de Groot <ddegroot [at] users.sf.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ *
+ * $Date: 2013-04-04 12:59:26 +0200 (Thu, 04 Apr 2013) $
+ * $Revision: 4514 $
+ */
 ///////////////////////////////
 // The enum examples
 ///////////////////////////////
