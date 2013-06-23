@@ -147,17 +147,19 @@ sccp_line_t *sccp_line_create(const char *name)
 void sccp_line_addToGlobals(sccp_line_t * line)
 {
 	sccp_line_t *l = NULL;
-	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {					/* Upgrading to wrlock if possible */
-		usleep(100);								/* backoff on failure */
+
+	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {								/* Upgrading to wrlock if possible */
+		usleep(100);											/* backoff on failure */
 	}
 	if ((l = sccp_line_retain(line))) {
 		/* add to list */
-		l = sccp_line_retain(l);						/* add retained line to the list */
+		l = sccp_line_retain(l);									/* add retained line to the list */
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
 
 		/* emit event */
 		sccp_event_t event;
+
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_LINE_CREATED;
 		event.event.lineCreated.line = sccp_line_retain(l);
@@ -166,7 +168,7 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 		l = sccp_line_release(l);
 	} else {
 		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
-	}	
+	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 }
 
@@ -188,10 +190,9 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
 		return NULL;
 	}
-
-//	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {					/* Upgrading to wrlock if possible */
-		usleep(100);								/* backoff on failure */
+	//      SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {								/* Upgrading to wrlock if possible */
+		usleep(100);											/* backoff on failure */
 	}
 	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
@@ -245,7 +246,7 @@ void *sccp_create_hotline(void)
 		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
 
 		GLOB(hotline)->line = sccp_line_retain(hotline);
-		sccp_line_addToGlobals(hotline);						// can return previous line on doubles
+		sccp_line_addToGlobals(hotline);								// can return previous line on doubles
 		sccp_line_release(hotline);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
@@ -340,8 +341,9 @@ int __sccp_line_destroy(const void *ptr)
 	// cleanup mailboxes
 	if (l->trnsfvm) {
 		sccp_free(l->trnsfvm);
-	}	
+	}
 	sccp_mailbox_t *mailbox = NULL;
+
 	SCCP_LIST_LOCK(&l->mailboxes);
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
 		if (!mailbox)
@@ -360,6 +362,7 @@ int __sccp_line_destroy(const void *ptr)
 	}
 	// cleanup channels
 	sccp_channel_t *c = NULL;
+
 	SCCP_LIST_LOCK(&l->channels);
 	while ((c = SCCP_LIST_REMOVE_HEAD(&l->channels, list))) {
 		sccp_channel_endcall(c);
@@ -369,7 +372,6 @@ int __sccp_line_destroy(const void *ptr)
 	if (SCCP_LIST_EMPTY(&l->channels)) {
 		SCCP_LIST_HEAD_DESTROY(&l->channels);
 	}
-
 	// cleanup variables
 	if (l->variables) {
 		pbx_variables_destroy(l->variables);
@@ -492,7 +494,7 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 		linedevice = sccp_linedevice_release(linedevice);
 	} else {
 		pbx_log(LOG_ERROR, "%s: Device does not have line configured (linedevice not found)\n", DEV_ID_LOG(device));
-	}	
+	}
 }
 
 /*!
@@ -641,7 +643,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			event.type = SCCP_EVENT_DEVICE_DETACHED;
 			event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
 			sccp_event_fire(&event);
-			
+
 			sccp_linedevice_release(linedevice);
 		}
 	}
@@ -889,7 +891,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
 		l = sccp_line_find_realtime_byname(name);							/* already retained */
-	}	
+	}
 #endif
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
@@ -950,7 +952,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		l->realtime = TRUE;
 		sccp_line_addToGlobals(l);									// can return previous instance on doubles
 		pbx_variables_destroy(v);
-		
+
 		if (!l) {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}

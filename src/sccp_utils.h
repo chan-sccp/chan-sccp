@@ -27,7 +27,7 @@
 		__new;						\
 	}))
 #define strdupa sccp_strdupa
-#endif	
+#endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
 void sccp_permithost_addnew(sccp_device_t * d, const char *config_string);

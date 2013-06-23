@@ -1,13 +1,13 @@
 
 /*!
- * \file        sccp_pbx.c
+ * \file	sccp_pbx.c
  * \brief       SCCP PBX Asterisk Wrapper Class
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \note	Reworked, but based on chan_sccp code.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -20,9 +20,9 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-    /*!
-     * \brief SCCP Structure to pass data to the pbx answer thread 
-     */
+/*!
+ * \brief SCCP Structure to pass data to the pbx answer thread 
+ */
 struct sccp_answer_conveyor_struct {
 	uint32_t callid;
 	sccp_linedevices_t *linedevice;
@@ -70,9 +70,9 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		instance = sccp_device_find_index_for_line(device, c->line->name);
 		sccp_dev_starttone(device, GLOB(autoanswer_tone), instance, c->callid, 0);
 	}
-	if (c->autoanswer_type == SCCP_AUTOANSWER_1W)
+	if (c->autoanswer_type == SCCP_AUTOANSWER_1W) {
 		sccp_dev_set_microphone(device, SKINNY_STATIONMIC_OFF);
-
+	}
 FINAL:
 	c = c ? sccp_channel_release(c) : NULL;
 	device = device ? sccp_device_release(device) : NULL;
@@ -160,12 +160,11 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	/* Reinstated this call instead of the following lines */
 	if (strlen(c->callInfo.callingPartyName) > 0) {
 		cid_name = strdup(c->callInfo.callingPartyName);
-	}	
+	}
 
 	if (strlen(c->callInfo.callingPartyNumber) > 0) {
 		cid_number = strdup(c->callInfo.callingPartyNumber);
 	}
-
 	//! \todo implement dnid, ani, ani2 and rdnis
 	sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_call) asterisk callerid='%s <%s>'\n", (cid_number) ? cid_number : "", (cid_name) ? cid_name : "");
 
@@ -184,9 +183,9 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			suffixedNumber[strlen(cid_number) + 0] = '#';
 			suffixedNumber[strlen(cid_number) + 1] = '\0';
 			sccp_channel_set_callingparty(c, cid_name, suffixedNumber);
-		} else
+		} else {
 			sccp_channel_set_callingparty(c, cid_name, cid_number);
-
+		}
 	} else {
 		sccp_channel_set_callingparty(c, cid_name, cid_number);
 	}
@@ -240,7 +239,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			continue;
 		}
 
-		if (!linedevice->device->session){
+		if (!linedevice->device->session) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: line device has no session\n", DEV_ID_LOG(linedevice->device));
 			continue;
 		}
@@ -261,7 +260,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 			/** check if ringermode is not urgent and device enabled dnd in reject mode */
 			if (SKINNY_RINGTYPE_URGENT != c->ringermode && linedevice->device->dndFeature.enabled && linedevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-			        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: DND active on line %s, returning Busy\n", linedevice->device->id, linedevice->line->name);
 				hasDNDParticipant = TRUE;
 				continue;
 			}
@@ -403,19 +402,21 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	/* done - end callforwards */
 
 	/* cancel transfer if in progress */
-        sccp_channel_transfer_cancel(d, c);
-        
+	sccp_channel_transfer_cancel(d, c);
+
 	/* remove call from transferee, transferer */
-        sccp_linedevices_t *linedevice;
-        SCCP_LIST_LOCK(&l->devices);
-        SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-                sccp_device_t *tmpDevice = NULL;
-                if ((tmpDevice = sccp_device_retain(linedevice->device))) {
-                        sccp_channel_transfer_release(tmpDevice, c);
-                        sccp_device_release(tmpDevice);
-                }
-        }
-        SCCP_LIST_UNLOCK(&l->devices);
+	sccp_linedevices_t *linedevice;
+
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+		sccp_device_t *tmpDevice = NULL;
+
+		if ((tmpDevice = sccp_device_retain(linedevice->device))) {
+			sccp_channel_transfer_release(tmpDevice, c);
+			sccp_device_release(tmpDevice);
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
 	/* done - remove call from transferee, transferer */
 
 	sccp_line_removeChannel(l, c);
@@ -424,6 +425,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		/* channel is not answered, just ringin over all devices */
 		/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
 		sccp_linedevices_t *linedevice;
+
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
@@ -434,22 +436,22 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
 		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
-		sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
+		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
-// 	else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
-// 		c->state = SCCP_CHANNELSTATE_DOWN;								// device is reregistering
-// 	} else {
-// 		/* 
-// 		 * Really neccessary?
-// 		 * Test for 7910 (to remove the following line)
-// 		 *  (-DD)
-// 		 */
-// 		sccp_channel_send_callinfo(d, c);
-// 		sccp_pbx_needcheckringback(d);
-// 		sccp_dev_check_displayprompt(d);
-// 	}
-	
+	//      else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
+	//              c->state = SCCP_CHANNELSTATE_DOWN;                                                              // device is reregistering
+	//      } else {
+	//              /* 
+	//               * Really neccessary?
+	//               * Test for 7910 (to remove the following line)
+	//               *  (-DD)
+	//               */
+	//              sccp_channel_send_callinfo(d, c);
+	//              sccp_pbx_needcheckringback(d);
+	//              sccp_dev_check_displayprompt(d);
+	//      }
+
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 	sccp_channel_clean(c);
 
@@ -579,13 +581,13 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-			
+
 			/** check for monitor request */
-			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED)  && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
 				sccp_feat_monitor(d, c->line, 0, c);
 			}
-			
+
 			d = sccp_device_release(d);
 		}
 
@@ -801,11 +803,11 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		}
 	}
 
-	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM) 
+	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM)
 #ifdef CS_SCCP_CONFERENCE
-	  && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)
+	    && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)
 #endif
-	) {
+	    ) {
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
@@ -882,10 +884,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		goto EXIT_FUNC;
 	}
 
-        if (c->owner) {
-        	pbx_channel = ast_channel_ref(c->owner);
+	if (c->owner) {
+		pbx_channel = ast_channel_ref(c->owner);
 	}
-	
+
 	/* removing scheduled dialing */
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 

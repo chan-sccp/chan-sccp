@@ -34,8 +34,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #else
 #define sccp_socket_poll poll
 #endif
-
-
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device);
 
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime);
@@ -45,15 +43,17 @@ void *sccp_socket_device_thread(void *session);
 
 static sccp_moo_t *sccp_process_data(sccp_session_t * s);
 
-boolean_t socket_is_IPv6(struct sockaddr_storage *socketStorage){
+boolean_t socket_is_IPv6(struct sockaddr_storage *socketStorage)
+{
 	return (socketStorage->ss_family == AF_INET6) ? TRUE : FALSE;
 }
 
-boolean_t socket_is_mapped_ipv4(struct sockaddr_storage *socketStorage){
-	const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)socketStorage;
+boolean_t socket_is_mapped_ipv4(struct sockaddr_storage *socketStorage)
+{
+	const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) socketStorage;
+
 	return IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr);
 }
-
 
 /*!
  * \brief Exchange Socket Addres Information from them to us
@@ -79,7 +79,7 @@ static int sccp_socket_getOurAddressfor(struct in_addr *them, struct in_addr *us
 		return -1;
 	}
 	close(s);
-//	*us = sin.sin_addr;
+	//      *us = sin.sin_addr;
 	memcpy(us, &sin.sin_addr, sizeof(struct in_addr));
 	return 0;
 }
@@ -226,7 +226,7 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 		}
 		if ((session->device = sccp_device_retain(device))) {
 			session->device->session = session;
-		}	
+		}
 		sccp_session_unlock(session);
 	}
 	return (session && session->device) ? session->device : NULL;
@@ -396,21 +396,21 @@ void *sccp_socket_device_thread(void *session)
 		res = sccp_socket_poll(s->fds, 1, pollTimeout);
 		pthread_testcancel();
 		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
-		if (-1 == res) {											/* poll data processing */
+		if (-1 == res) {										/* poll data processing */
 			if (errno > 0 && (errno != EAGAIN) && (errno != EINTR)) {
 				pbx_log(LOG_ERROR, "%s: poll() returned %d. errno: %s, (ip-address: %s)\n", DEV_ID_LOG(s->device), errno, strerror(errno), pbx_inet_ntoa(s->sin.sin_addr));
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
-		} else if (0 == res) {											/* poll timeout */
+		} else if (0 == res) {										/* poll timeout */
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
 			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
 				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout);
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
-		} else if (res > 0) {											/* poll data processing */
-			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {				/* POLLIN | POLLPRI */
+		} else if (res > 0) {										/* poll data processing */
+			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				if (sccp_read_data(s) >= SCCP_PACKET_HEADER) {
@@ -427,12 +427,12 @@ void *sccp_socket_device_thread(void *session)
 						s->lastKeepAlive = time(0);
 					}
 				}
-			} else {											/* POLLHUP / POLLERR */
+			} else {										/* POLLHUP / POLLERR */
 				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 				break;
 			}
-		} else {												/* poll returned invalid res */
+		} else {											/* poll returned invalid res */
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
@@ -506,7 +506,7 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_WARNING, "SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", pbx_inet_ntoa(s->sin.sin_addr), pbx_str_buffer(buf));
 		sccp_session_reject(s, "Device ip not authorized");
 		sccp_session_unlock(s);
-		destroy_session(s,0);
+		destroy_session(s, 0);
 		return;
 	}
 	sccp_session_addToGlobals(s);
@@ -572,7 +572,7 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	mooMessageSize = message2size(messageId);
 
 	if (newPacketSize > SCCP_MAX_PACKET) {									/* Make sure we don't read bigger then SCCP_MAX_PACKET */
-		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d, max packat size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize, (uint32_t)SCCP_MAX_PACKET);
+		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d, max packat size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize, (uint32_t) SCCP_MAX_PACKET);
 		newPacketSize = SCCP_MAX_PACKET;
 	} else if (newPacketSize < mooMessageSize) {								/* Make sure we allocate enough to cover sccp_moo_t */
 		sccp_log((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) ("SCCP: Undersized message: %s (%02X), message size: %d, phone packet size: %d\n", message2str(messageId), messageId, mooMessageSize, newPacketSize);

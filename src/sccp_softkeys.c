@@ -18,8 +18,9 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-/* private prototypes */
+    /* private prototypes */
 void sccp_sk_videomode(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
+
 /* done */
 
 /*!
@@ -456,7 +457,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 		}
 	}
 
-	sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);									/* notify the modules the the DND-feature changed state */
+	sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);								/* notify the modules the the DND-feature changed state */
 	sccp_dev_check_displayprompt(d);									/*! \todo we should use the feature changed event to check displayprompt */
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
 }
@@ -854,7 +855,7 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineI
 #ifdef CS_SCCP_CONFERENCE
 	sccp_feat_handle_conference(d, l, lineInstance, c);
 #else
-       	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Conference was not compiled in\n");
 #endif
 }
