@@ -140,6 +140,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		my_sccp_channel->preferences.audio[0] = requestedCodec;
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
 	}
+
 	/** done */
 
 	my_sccp_channel->autoanswer_type = autoanswer_type;
@@ -509,7 +510,7 @@ boolean_t sccp_prePBXLoad()
 	pbx_mutex_init(&GLOB(usecnt_lock));
 #if ASTERISK_VERSION_GROUP < 110
 	pbx_mutex_init(&GLOB(monitor_lock));
-#endif	
+#endif
 
 	/* init refcount */
 	sccp_refcount_init();
