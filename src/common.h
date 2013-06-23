@@ -11,6 +11,7 @@
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
+/* *INDENT-OFF* */
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
@@ -103,6 +104,7 @@ extern "C" {
 #include "sccp_rtp.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
+/* *INDENT-ON* */
 }
 #endif
 #endif														// CHAN_SCCP_COMMON_H

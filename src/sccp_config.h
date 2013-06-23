@@ -18,18 +18,16 @@
  * \brief Enum for Config Value Change Status
  */
 typedef enum {
-/* *INDENT-OFF* */
-	SCCP_CONFIG_CHANGE_NOCHANGE			= 0,
+	SCCP_CONFIG_CHANGE_NOCHANGE,
 	SCCP_CONFIG_CHANGE_CHANGED,
 	SCCP_CONFIG_CHANGE_INVALIDVALUE,
-/* *INDENT-ON* */
 } sccp_value_changed_t;
 
 /*!
  * \brief Enum for Config Option Blocks
  */
 typedef enum {
-	SCCP_CONFIG_GLOBAL_SEGMENT = 0,
+	SCCP_CONFIG_GLOBAL_SEGMENT,
 	SCCP_CONFIG_DEVICE_SEGMENT,
 	SCCP_CONFIG_LINE_SEGMENT,
 	SCCP_CONFIG_SOFTKEY_SEGMENT,
@@ -48,41 +46,41 @@ typedef struct {
 } softkeyConfigurationTemplate;											/*!< Soft Key Configuration Template Structure */
 
 static const softkeyConfigurationTemplate softKeyTemplate[] = {
-/* *INDENT-OFF* */
-	{"redial", 	SKINNY_LBL_REDIAL},
-	{"newcall", 	SKINNY_LBL_NEWCALL},
-	{"cfwdall", 	SKINNY_LBL_CFWDALL},
-	{"cfwdbusy", 	SKINNY_LBL_CFWDBUSY},
-	{"cfwdnoanswer",SKINNY_LBL_CFWDNOANSWER},
-	{"pickup", 	SKINNY_LBL_PICKUP},
-	{"gpickup", 	SKINNY_LBL_GPICKUP},
-	{"conflist", 	SKINNY_LBL_CONFLIST},
-	{"dnd", 	SKINNY_LBL_DND},
-	{"hold", 	SKINNY_LBL_HOLD},
-	{"endcall", 	SKINNY_LBL_ENDCALL},
-	{"park", 	SKINNY_LBL_PARK},
-	{"select", 	SKINNY_LBL_SELECT},
-	{"idivert", 	SKINNY_LBL_IDIVERT},
-	{"resume", 	SKINNY_LBL_RESUME},
-	{"newcall", 	SKINNY_LBL_NEWCALL},
-	{"transfer", 	SKINNY_LBL_TRANSFER},
-	{"dirtrfr", 	SKINNY_LBL_DIRTRFR},
-	{"answer", 	SKINNY_LBL_ANSWER},
-	{"transvm", 	SKINNY_LBL_TRNSFVM},
-	{"private", 	SKINNY_LBL_PRIVATE},
-	{"meetme", 	SKINNY_LBL_MEETME},
-	{"barge", 	SKINNY_LBL_BARGE},
-	{"cbarge", 	SKINNY_LBL_CBARGE},
-	{"conf", 	SKINNY_LBL_CONFRN},
-	{"confrn",	SKINNY_LBL_CONFRN},
-	{"back", 	SKINNY_LBL_BACKSPACE},
-	{"join", 	SKINNY_LBL_JOIN},
-	{"intrcpt", 	SKINNY_LBL_INTRCPT},
-        {"monitor", 	SKINNY_LBL_MONITOR},  
-	{"dial", 	SKINNY_LBL_DIAL},
-	{"vidmode", 	SKINNY_LBL_VIDEO_MODE},
-	{"empty", 	SKINNY_LBL_EMPTY},
-/* *INDENT-ON* */
+	/* *INDENT-OFF* */
+	{"redial", 			SKINNY_LBL_REDIAL},
+	{"newcall", 			SKINNY_LBL_NEWCALL},
+	{"cfwdall", 			SKINNY_LBL_CFWDALL},
+	{"cfwdbusy", 			SKINNY_LBL_CFWDBUSY},
+	{"cfwdnoanswer",		SKINNY_LBL_CFWDNOANSWER},
+	{"pickup", 			SKINNY_LBL_PICKUP},
+	{"gpickup", 			SKINNY_LBL_GPICKUP},
+	{"conflist", 			SKINNY_LBL_CONFLIST},
+	{"dnd", 			SKINNY_LBL_DND},
+	{"hold", 			SKINNY_LBL_HOLD},
+	{"endcall", 			SKINNY_LBL_ENDCALL},
+	{"park", 			SKINNY_LBL_PARK},
+	{"select", 			SKINNY_LBL_SELECT},
+	{"idivert", 			SKINNY_LBL_IDIVERT},
+	{"resume", 			SKINNY_LBL_RESUME},
+	{"newcall", 			SKINNY_LBL_NEWCALL},
+	{"transfer", 			SKINNY_LBL_TRANSFER},
+	{"dirtrfr", 			SKINNY_LBL_DIRTRFR},
+	{"answer", 			SKINNY_LBL_ANSWER},
+	{"transvm", 			SKINNY_LBL_TRNSFVM},
+	{"private", 			SKINNY_LBL_PRIVATE},
+	{"meetme", 			SKINNY_LBL_MEETME},
+	{"barge", 			SKINNY_LBL_BARGE},
+	{"cbarge", 			SKINNY_LBL_CBARGE},
+	{"conf", 			SKINNY_LBL_CONFRN},
+	{"confrn",			SKINNY_LBL_CONFRN},
+	{"back", 			SKINNY_LBL_BACKSPACE},
+	{"join", 			SKINNY_LBL_JOIN},
+	{"intrcpt", 			SKINNY_LBL_INTRCPT},
+	{"monitor", 			SKINNY_LBL_MONITOR},  
+	{"dial", 			SKINNY_LBL_DIAL},
+	{"vidmode", 			SKINNY_LBL_VIDEO_MODE},
+	{"empty", 			SKINNY_LBL_EMPTY},
+	/* *INDENT-ON* */
 };
 
 sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *option, const char *args);
@@ -95,21 +93,21 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
  * \brief Enum for Config File Status (Return Values)
  */
 typedef enum {
-/* *INDENT-OFF* */
-	CONFIG_STATUS_FILE_NOT_CHANGED = -1,
-	CONFIG_STATUS_FILE_OK = 0,
-	CONFIG_STATUS_FILE_OLD = 1,
-	CONFIG_STATUS_FILE_NOT_SCCP = 2,
-	CONFIG_STATUS_FILE_NOT_FOUND = 3,
-	 CONFIG_STATUS_FILE_INVALID = 5,
-/* *INDENT-ON* */
+	/* *INDENT-OFF* */
+	CONFIG_STATUS_FILE_NOT_CHANGED 	= -1,
+	CONFIG_STATUS_FILE_OK 		= 0,
+	CONFIG_STATUS_FILE_OLD 		= 1,
+	CONFIG_STATUS_FILE_NOT_SCCP 	= 2,
+	CONFIG_STATUS_FILE_NOT_FOUND 	= 3,
+	CONFIG_STATUS_FILE_INVALID 	= 5,
+	/* *INDENT-ON* */
 } sccp_config_file_status_t;
 
 sccp_config_file_status_t sccp_config_getConfig(boolean_t force);
 sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v);
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v);
-sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t *device, PBX_VARIABLE_TYPE *variable);
+sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t * device, PBX_VARIABLE_TYPE * variable);
 
 void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
 uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data);

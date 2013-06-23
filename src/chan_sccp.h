@@ -22,6 +22,7 @@
 
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
+/* *INDENT-OFF* */
 #endif
 
 #include <config.h>
@@ -32,7 +33,7 @@ extern "C" {
 
 #define sccp_mutex_t ast_mutex_t
 
-	/* Add bswap function if necessary */
+/* Add bswap function if necessary */
 #ifdef HAVE_BYTESWAP_H
 #include <byteswap.h>
 #endif
@@ -56,7 +57,7 @@ static inline unsigned long long bswap_64(unsigned long long x)
 }
 #endif
 
-	/* Byte swap based on platform endianes */
+/* Byte swap based on platform endianes */
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
 #define letohl(x) (x)
 #define letohs(x) (x)
@@ -71,7 +72,7 @@ static inline unsigned long long bswap_64(unsigned long long x)
 
 #define SCCP_TECHTYPE_STR "SCCP"
 
-	/* Versioning */
+/* Versioning */
 #ifndef SCCP_VERSION
 #define SCCP_VERSION "custom"
 #endif
@@ -87,7 +88,7 @@ static inline unsigned long long bswap_64(unsigned long long x)
 
 #define SCCP_SOCKET_ACCEPT_TIMEOUT 2000
 
-	/* Simulated Enbloc Dialing */
+/* Simulated Enbloc Dialing */
 #define SCCP_SIM_ENBLOC_DEVIATION 3.5
 #define SCCP_SIM_ENBLOC_MAX_PER_DIGIT 400
 #define SCCP_SIM_ENBLOC_MIN_DIGIT 3
@@ -100,10 +101,10 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #define CHANNEL_DESIGNATOR_SIZE 20
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 
-	/*! \todo I don't like the -1 returned value */
+/*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 
-	// When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
+// When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
 #define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
 #define sccp_log(_x) if ((sccp_globals->debug & (_x)) == _x) sccp_log1
 
@@ -115,7 +116,8 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #define GC_THREADS
 #undef _REENTRANT
 #define _REENTRANT
-	//#            define GC_REDIRECT_TO_LOCAL
+
+//#            define GC_REDIRECT_TO_LOCAL
 #include <gc/gc_local_alloc.h>
 #include <gc/gc_backptr.h>
 #endif
@@ -231,7 +233,8 @@ typedef struct sccp_callinfo sccp_callinfo_t;									/*!< SCCP Call Information
 #ifndef SOLARIS
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
 #else
-	// solaris already has a defintion for boolean_t, having B_FALSE and B_TRUE as members
+
+// solaris already has a defintion for boolean_t, having B_FALSE and B_TRUE as members
 #define FALSE B_FALSE
 #define TRUE B_TRUE
 #endif
@@ -1388,6 +1391,7 @@ int sccp_sched_add(int when, sccp_sched_cb callback, const void *data);
 int sccp_sched_del(int id);
 
 #if defined(__cplusplus) || defined(c_plusplus)
+/* *INDENT-ON* */
 }
 #endif
 
