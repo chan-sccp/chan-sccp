@@ -212,58 +212,58 @@ void sccp_dev_dbclean()
 		pbx_db_freetree(entry);
 }
 
-gcc_inline const char *message2str(sccp_message_t type)		/* sccp_protocol.h */
-{
+gcc_inline const char *message2str(sccp_message_t type)
+{														/* sccp_protocol.h */
 	return sccp_messagetypes[type].text;
 }
 
-gcc_inline size_t message2size(sccp_message_t type)			/* sccp_protocol.h */
-{
+gcc_inline size_t message2size(sccp_message_t type)
+{														/* sccp_protocol.h */
 	return sccp_messagetypes[type].size;
 }
 
-gcc_inline const char *pbxdevicestate2str(uint32_t value)		/* pbx_impl/ast/ast.h */
-{
+gcc_inline const char *pbxdevicestate2str(uint32_t value)
+{														/* pbx_impl/ast/ast.h */
 	_ARR2STR(pbx_devicestates, devicestate, value, text);
 }
 
-gcc_inline const char *extensionstatus2str(uint32_t value)		/* pbx_impl/ast/ast.h */
-{
+gcc_inline const char *extensionstatus2str(uint32_t value)
+{														/* pbx_impl/ast/ast.h */
 	_ARR2STR(sccp_extension_states, extension_state, value, text);
 }
 
-gcc_inline const char *label2str(uint16_t value)			/* sccp_labels.h */
-{
+gcc_inline const char *label2str(uint16_t value)
+{														/* sccp_labels.h */
 	_ARR2STR(skinny_labels, label, value, text);
 }
 
-gcc_inline const char *codec2str(skinny_codec_t value)		/* sccp_protocol.h */
-{
+gcc_inline const char *codec2str(skinny_codec_t value)
+{														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, text);
 }
 
-gcc_inline int codec2payload(skinny_codec_t value)			/* sccp_protocol.h */
-{
+gcc_inline int codec2payload(skinny_codec_t value)
+{														/* sccp_protocol.h */
 	_ARR2INT(skinny_codecs, codec, value, rtp_payload_type);
 }
 
-gcc_inline const char *codec2key(skinny_codec_t value)		/* sccp_protocol.h */
-{
+gcc_inline const char *codec2key(skinny_codec_t value)
+{														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, key);
 }
 
-gcc_inline const char *codec2name(skinny_codec_t value)		/* sccp_protocol.h */
-{
+gcc_inline const char *codec2name(skinny_codec_t value)
+{														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, name);
 }
 
-gcc_inline const char *featureType2str(sccp_feature_type_t value)		/* chan_sccp.h */
-{
+gcc_inline const char *featureType2str(sccp_feature_type_t value)
+{														/* chan_sccp.h */
 	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
 
-gcc_inline uint32_t debugcat2int(const char *str)			/* chan_sccp.h */
-{
+gcc_inline uint32_t debugcat2int(const char *str)
+{														/* chan_sccp.h */
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
 
@@ -622,8 +622,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
 			if ((linedevice = event->event.featureChanged.linedevice)) {
-				sccp_line_t *line = linedevice->line;	
+				sccp_line_t *line = linedevice->line;
 				uint8_t instance = linedevice->lineInstance;
+
 				sccp_dev_forward_status(line, instance, device);
 				sprintf(cfwdLineStore, "%s/%s", family, line->name);
 				switch (event->event.featureChanged.featureType) {
@@ -655,7 +656,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			}
 			break;
 		case SCCP_FEATURE_DND:
-//			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
+			//                      sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
 			if (device->dndFeature.previousStatus != device->dndFeature.status) {
 				if (!device->dndFeature.status) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to off\n", DEV_ID_LOG(device));
@@ -829,7 +830,7 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	   only if a non-trivial subscription id is specified with the calling channel,
 	   which is not the default subscription id of the shared line denoting all devices,
 	   the phones are addressed individually. (-DD) */
-	filterPhones = FALSE;							/* set the default to call all phones */
+	filterPhones = FALSE;											/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
 	if (strlen(channel->subscriptionId.number) != 0) {
@@ -842,11 +843,10 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	if (FALSE == filterPhones) {
 		/* Accept phone for calling if all phones shall be called. */
 		result = TRUE;
-	} else if (0 != strlen(subscriptionIdNum)				/* We already know that we won't search for a trivial subscriptionId. */
+	} else if (0 != strlen(subscriptionIdNum)								/* We already know that we won't search for a trivial subscriptionId. */
 		   &&0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))) {	/* Do the match! */
 		result = FALSE;
 	}
-
 #if 0
 	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
 	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? strlen(subscriptionIdNum) : -1);
@@ -856,7 +856,6 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 #endif
 	return result;
 }
-
 
 /*!
  * \brief Parse a debug categories line to debug int
@@ -939,7 +938,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 				pbx_log(LOG_ERROR, "Memory Allocation Error\n");
 				sccp_free(res);
 				return NULL;
-			}	
+			}
 			res = tmpres;
 			if (size == 0) {
 				strcpy(res, sccp_debug_categories[i].key);
@@ -1141,7 +1140,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
 		return SKINNY_CODEC_NONE;
 
-	} 
+	}
 
 	/* iterate over our codec preferences */
 	for (p = 0; p < pLength; p++) {

@@ -90,7 +90,7 @@ void sccp_mwi_module_stop()
  *          - line->devices is not always locked
  *          - see sccp_mwi_setMWILineStatus()
  */
-static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t *subscription) 
+static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 {
 	sccp_mailboxLine_t *mailboxLine = NULL;
 	sccp_line_t *line = NULL;
@@ -150,8 +150,8 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 	subscription->currentVoicemailStatistic.oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
 
 	if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-        	sccp_mwi_updatecount(subscription);
-        }
+		sccp_mwi_updatecount(subscription);
+	}
 }
 #else
 
@@ -181,13 +181,14 @@ int sccp_mwi_checksubscription(const void *ptr)
 	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
 	char buffer[512];
+
 	sprintf(buffer, "%s@%s", subscription->mailbox, subscription->context);
 	sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
 	pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 
 	/* update devices if something changed */
 	if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-        	sccp_mwi_updatecount(subscription);
+		sccp_mwi_updatecount(subscription);
 	}
 
 	/* reschedule my self */
@@ -337,39 +338,34 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 		/* get initial value */
 #ifdef CS_AST_HAS_EVENT
-                struct ast_event *event = ast_event_get_cached(AST_EVENT_MWI,
-                        AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox,
-                        AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context,
-                        AST_EVENT_IE_END);
-                if (event) {
-                        subscription->currentVoicemailStatistic.newmsgs = ast_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
-                        subscription->currentVoicemailStatistic.oldmsgs = ast_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
-                        ast_event_destroy(event);
-                } else 
+		struct ast_event *event = ast_event_get_cached(AST_EVENT_MWI,
+							       AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox,
+							       AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context,
+							       AST_EVENT_IE_END);
+
+		if (event) {
+			subscription->currentVoicemailStatistic.newmsgs = ast_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
+			subscription->currentVoicemailStatistic.oldmsgs = ast_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
+			ast_event_destroy(event);
+		} else
 #endif
-		{ /* Fall back on checking the mailbox directly */
-                        char buffer[512];
-                        sprintf(buffer, "%s@%s", subscription->mailbox, subscription->context);
-                        pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
-                }
+		{												/* Fall back on checking the mailbox directly */
+			char buffer[512];
+
+			sprintf(buffer, "%s@%s", subscription->mailbox, subscription->context);
+			pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
+		}
 
 #ifdef CS_AST_HAS_EVENT
 		/* register asterisk event */
 		//struct pbx_event_sub *pbx_event_subscribe(enum ast_event_type event_type, ast_event_cb_t cb, char *description, void *userdata, ...);
 #if ASTERISK_VERSION_NUMBER >= 10800
-		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, "mailbox subscription", subscription, 
-		        AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, 
-		        AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, 
-                        AST_EVENT_IE_NEWMSGS, AST_EVENT_IE_PLTYPE_EXISTS,
-		        AST_EVENT_IE_END);
+		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, "mailbox subscription", subscription, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, AST_EVENT_IE_NEWMSGS, AST_EVENT_IE_PLTYPE_EXISTS, AST_EVENT_IE_END);
 #else
-		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, subscription, 
-		        AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, 
-		        AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, 
-		        AST_EVENT_IE_END);
+		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, subscription, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, AST_EVENT_IE_END);
 #endif
 		if (!subscription->event_sub) {
-                        pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
+			pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
 #else
 		if ((subscription->schedUpdate = sccp_sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
@@ -612,6 +608,7 @@ void sccp_mwi_check(sccp_device_t * device)
 	/* we should check the display only once, maybe we need a priority stack -MC */
 	if (newmsgs > 0) {
 		char buffer[StationMaxDisplayTextSize];
+
 		sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, newmsgs, oldmsgs);
 		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
 	} else {
@@ -676,6 +673,6 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
 
 	if (s) {
 		*total = local_total;
-	}	
+	}
 	return RESULT_SUCCESS;
 }

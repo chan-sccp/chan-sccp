@@ -26,8 +26,8 @@ static char management_device_update_desc[] = "Description: restart a given devi
 static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: on (busy) / off / reject/ silent";
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n" "  option: OptionName (if empty returns all options in sement).";
-static char management_startcall_desc[] = "Description: start a new call on a device/line\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n"  "  Linename: Name of the line\n"  "  number: Number to call";
-static char management_answercall_desc[] = "Description: answer a ringing channel\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n"  "  channelId: Id of the channel to pickup\n";
+static char management_startcall_desc[] = "Description: start a new call on a device/line\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  Linename: Name of the line\n" "  number: Number to call";
+static char management_answercall_desc[] = "Description: answer a ringing channel\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  channelId: Id of the channel to pickup\n";
 static char management_hangupcall_desc[] = "Description: hangup a channel/call\n" "\n" "Variables:\n" "  channelId: Id of the Channel to hangup\n";
 static char management_hold_desc[] = "Description: hold/resume a call\n" "\n" "Variables:\n" "  channelId: Id of the channel to hold/unhold\n" "  hold: hold=true / resume=false\n" "  Devicename: Name of the Device\n" "  SwapChannels: Swap channels when resuming and an active channel is present (true/false)\n";
 
@@ -124,14 +124,7 @@ int sccp_unregister_management(void)
  */
 void sccp_manager_module_start()
 {
-	sccp_event_subscribe(	SCCP_EVENT_DEVICE_ATTACHED | 
-				SCCP_EVENT_DEVICE_DETACHED | 
-				SCCP_EVENT_DEVICE_PREREGISTERED | 
-				SCCP_EVENT_DEVICE_REGISTERED | 
-				SCCP_EVENT_DEVICE_UNREGISTERED | 
-				SCCP_EVENT_FEATURE_CHANGED, 
-				sccp_manager_eventListener, TRUE
-	);
+	sccp_event_subscribe(SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_PREREGISTERED | SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_FEATURE_CHANGED, sccp_manager_eventListener, TRUE);
 }
 
 /*!
@@ -161,108 +154,63 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
-			manager_event(
-					EVENT_FLAG_CALL, 
-					"DeviceStatus", 
-					"ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", 
-					"REGISTERED", 
-					DEV_ID_LOG(device)
-				);
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "REGISTERED", DEV_ID_LOG(device)
+			    );
 			break;
 
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
-			manager_event(
-					EVENT_FLAG_CALL,
-					"DeviceStatus",
-					"ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
-					"UNREGISTERED",
-					DEV_ID_LOG(device)
-				);
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "UNREGISTERED", DEV_ID_LOG(device)
+			    );
 			break;
 
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
-			manager_event(
-					EVENT_FLAG_CALL,
-					"DeviceStatus",
-					"ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n",
-					"PREREGISTERED",
-					DEV_ID_LOG(device)
-				);
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "PREREGISTERED", DEV_ID_LOG(device)
+			    );
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
 			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
-			manager_event(
-					EVENT_FLAG_CALL,
-					"PeerStatus",
-					"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-					"ATTACHED",
-					DEV_ID_LOG(device),
-					linedevice && linedevice->line ? linedevice->line->name : "(null)",
-					linedevice && linedevice->line ? linedevice->line->label : "(null)",
-					linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)",
-					linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)"
-				);
+			manager_event(EVENT_FLAG_CALL,
+				      "PeerStatus",
+				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+				      "ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
 			break;
 
 		case SCCP_EVENT_DEVICE_DETACHED:
 			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
 			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
-			manager_event(
-					EVENT_FLAG_CALL,
-					"PeerStatus",
-					"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-					"DETACHED",
-					DEV_ID_LOG(device),
-					linedevice && linedevice->line ? linedevice->line->name : "(null)",
-					linedevice && linedevice->line ? linedevice->line->label : "(null)",
-					linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)",
-					linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)"
-				);
+			manager_event(EVENT_FLAG_CALL,
+				      "PeerStatus",
+				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+				      "DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
 			device = event->event.featureChanged.device;						// already retained in the event
 			linedevice = event->event.featureChanged.linedevice;					// already retained in the event
 			sccp_feature_type_t featureType = event->event.featureChanged.featureType;
-			switch(featureType) {
+
+			switch (featureType) {
 				case SCCP_FEATURE_DND:
-					manager_event(	
-							EVENT_FLAG_CALL, 
-							"DND", 
-							"ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", 
-							featureType2str(SCCP_FEATURE_DND), 
-							dndmode2str(device->dndFeature.status), 
-							DEV_ID_LOG(device)
-						);
+					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", featureType2str(SCCP_FEATURE_DND), dndmode2str(device->dndFeature.status), DEV_ID_LOG(device)
+					    );
 					break;
 				case SCCP_FEATURE_CFWDALL:
 				case SCCP_FEATURE_CFWDBUSY:
-					if(linedevice) {
-						manager_event(
-								EVENT_FLAG_CALL,
-								"CallForward",
-								"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-								featureType2str(featureType),
-								(SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"),
-								(SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"),
-								(linedevice->line) ? linedevice->line->name : "(null)",
-								DEV_ID_LOG(device)
-						);
+					if (linedevice) {
+						manager_event(EVENT_FLAG_CALL,
+							      "CallForward",
+							      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
+							      featureType2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"), (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
+						    );
 					}
 					break;
 				case SCCP_FEATURE_CFWDNONE:
-					manager_event(
-							EVENT_FLAG_CALL,
-							"CallForward",
-							"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-							featureType2str(featureType),
-							(linedevice && linedevice->line) ? linedevice->line->name : "(null)",
-							DEV_ID_LOG(device)
-						);
+					manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n", featureType2str(featureType), (linedevice && linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
+					    );
 					break;
 				default:
 					break;
@@ -380,7 +328,7 @@ int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 	const char *type = astman_get_header(m, "Type");
 
 	pbx_log(LOG_WARNING, "Attempt to get device %s\n", deviceName);
-	if (sccp_strlen_zero(deviceName)) {		
+	if (sccp_strlen_zero(deviceName)) {
 		astman_send_error(s, m, "Please specify the name of device to be reset");
 		return 0;
 	}
@@ -523,7 +471,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 	}
 
 	if (line) {
-		if ((linedevice  = sccp_linedevice_find(d, line))) {
+		if ((linedevice = sccp_linedevice_find(d, line))) {
 			if (sccp_strcaseequals("all", forwardType)) {
 				if (sccp_strcaseequals("yes", Disable)) {
 					linedevice->cfwdAll.enabled = 0;
@@ -552,16 +500,16 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 			switch (cfwd_type) {
 				case SCCP_CFWD_ALL:
 					sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDALL);
-					snprintf (cbuf, sizeof(cbuf), "Line %s CallForward ALL set to %s", lineName, linedevice->cfwdAll.number);
+					snprintf(cbuf, sizeof(cbuf), "Line %s CallForward ALL set to %s", lineName, linedevice->cfwdAll.number);
 					break;
 				case SCCP_CFWD_BUSY:
 					sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDBUSY);
-					snprintf (cbuf, sizeof(cbuf), "Line %s CallForward BUSY set to %s", lineName, linedevice->cfwdBusy.number);
+					snprintf(cbuf, sizeof(cbuf), "Line %s CallForward BUSY set to %s", lineName, linedevice->cfwdBusy.number);
 					break;
 				case SCCP_CFWD_NONE:
 				default:
 					sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDNONE);
-					snprintf (cbuf, sizeof(cbuf), "Line %s Call Forward Disabled", lineName);
+					snprintf(cbuf, sizeof(cbuf), "Line %s Call Forward Disabled", lineName);
 					break;
 			}
 			sccp_dev_forward_status(line, linedevice->lineInstance, linedevice->device);
@@ -630,7 +578,7 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
  * 
  * \called_from_asterisk
  */
-static int sccp_manager_device_set_dnd(struct mansession *s, const struct message *m) 
+static int sccp_manager_device_set_dnd(struct mansession *s, const struct message *m)
 {
 	sccp_device_t *d = NULL;
 	const char *deviceName = astman_get_header(m, "Devicename");
@@ -647,11 +595,10 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 		astman_send_error(s, m, "DNDState variable is required.");
 		return 0;
 	}
-	
 	//astman_append(s, "remove channel '%s' from hold\n", channelId);
 	if ((d = sccp_device_find_byid(deviceName, FALSE))) {
-		if (d->dndFeature.enabled) {	
-			prevStatus = d->dndFeature.status;	
+		if (d->dndFeature.enabled) {
+			prevStatus = d->dndFeature.status;
 			if (sccp_strcaseequals("on", DNDState) || sccp_strcaseequals("reject", DNDState)) {
 				d->dndFeature.status = SCCP_DNDMODE_REJECT;
 			} else if (sccp_strcaseequals("silent", DNDState)) {
@@ -681,7 +628,6 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 	astman_send_ack(s, m, retValStr);
 	return 0;
 }
-
 
 /*!
  * \brief Start Call on Device, Line to Number
@@ -821,7 +767,6 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	const char *swap = astman_get_header(m, "SwapChannels");
 	char *retValStr = "Channel was resumed";
 	boolean_t errorMessage = TRUE;
-	
 
 	c = sccp_channel_find_byid(atoi(channelId));
 	if (!c) {
@@ -832,7 +777,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 		sccp_channel_hold(c);
 		retValStr = "Channel was put on hold";
 		errorMessage = FALSE;
-	
+
 	} else if (sccp_strcaseequals("off", hold)) {								/* check to see if disable hold */
 
 		/** we need the device for resuming calls */
@@ -855,20 +800,21 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	} else {
 		retValStr = "Invalid value for hold, use 'on' or 'off' only.";
 	}
-	
+
 SEND_RESPONSE:
-	if (errorMessage){
+	if (errorMessage) {
 		astman_send_error(s, m, retValStr);
 	} else {
 		astman_send_ack(s, m, retValStr);
 	}
-	
+
 	d = d ? sccp_device_release(d) : NULL;
-	c = c ? sccp_channel_release(c): NULL;
+	c = c ? sccp_channel_release(c) : NULL;
 	return 0;
 }
 
 #if HAVE_PBX_MANAGER_HOOK_H
+
 /**
  * parse string from management hook to struct message
  * 
@@ -918,14 +864,16 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
+
 			str = dupStr = sccp_strdupa(content); /** need a dup, because converter to message structure will modify the str */
 
 			sccp_asterisk_parseStrToAstMessage(str, &m); /** convert to message structure to use the astman_get_header function */
 			const char *channelName = astman_get_header(&m, "Channel");
+
 			pbxchannel = pbx_channel_get_by_name(channelName);
 #if ASTERISK_VERSION_GROUP == 106
 			pbx_channel_unlock(pbxchannel);
-#endif			
+#endif
 
 			if (pbxchannel && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
 				channel = get_sccp_channel_from_pbx_channel(pbxchannel);

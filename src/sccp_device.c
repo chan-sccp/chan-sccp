@@ -28,11 +28,10 @@ int sccp_device_destroy(const void *ptr);
 /* indicate definition */
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
-static void sccp_device_indicate_offhook(const sccp_device_t *device, sccp_linedevices_t *linedevice, uint8_t callid);
-static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel);
+static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid);
+static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+
 /* end indicate */
-
-
 static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone);
 static sccp_push_result_t sccp_device_pushURLNotSupported(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone)
 {
@@ -46,15 +45,15 @@ static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_dev
 }
 
 static const struct sccp_device_indication_cb sccp_device_indication_newerDevices = {
-	.remoteHold	= sccp_device_new_indicate_remoteHold,
-	.offhook	= sccp_device_indicate_offhook,
-	.connected	= sccp_device_indicate_connected,
+	.remoteHold = sccp_device_new_indicate_remoteHold,
+	.offhook = sccp_device_indicate_offhook,
+	.connected = sccp_device_indicate_connected,
 };
 
 static const struct sccp_device_indication_cb sccp_device_indication_olderDevices = {
-	.remoteHold	= sccp_device_old_indicate_remoteHold,
-	.offhook	= sccp_device_indicate_offhook,
-	.connected	= sccp_device_indicate_connected,
+	.remoteHold = sccp_device_old_indicate_remoteHold,
+	.offhook = sccp_device_indicate_offhook,
+	.connected = sccp_device_indicate_connected,
 };
 
 static boolean_t sccp_device_checkACLTrue(sccp_device_t * device)
@@ -72,21 +71,24 @@ static boolean_t sccp_device_falseResult(void)
 	return FALSE;
 }
 
-static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t *device){
+static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t * device)
+{
 	char *xmlStr = "<getDeviceCaps></getDeviceCaps>";
 	unsigned int transactionID = random();
+
 	device->protocol->sendUserToDeviceDataVersionMessage(device, APPID_DEVICECAPABILITIES, 1, 0, transactionID, xmlStr, 2);
 }
 
-static void sccp_device_setBackgroundImage(const sccp_device_t *device, const char *url){
+static void sccp_device_setBackgroundImage(const sccp_device_t * device, const char *url)
+{
 	char xmlStr[2048];
 	unsigned int transactionID = random();
-	
-	if ( strncmp("http://", url, strlen("http://")) != 0 ){
+
+	if (strncmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
 	}
 	memset(xmlStr, 0, sizeof(xmlStr));
-	
+
 	strcat(xmlStr, "<setBackground>");
 	strcat(xmlStr, "<background>");
 	strcat(xmlStr, "<image>");
@@ -97,80 +99,85 @@ static void sccp_device_setBackgroundImage(const sccp_device_t *device, const ch
 	strcat(xmlStr, "</icon>");
 	strcat(xmlStr, "</background>");
 	strcat(xmlStr, "</setBackground>\n\0");
-	
+
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
-static void sccp_device_setBackgroundImageNotSupported(const sccp_device_t *device, const char *url){
+static void sccp_device_setBackgroundImageNotSupported(const sccp_device_t * device, const char *url)
+{
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
 }
 
-static void sccp_device_displayBackgroundImagePreview(const sccp_device_t *device, const char *url){
+static void sccp_device_displayBackgroundImagePreview(const sccp_device_t * device, const char *url)
+{
 	char xmlStr[2048];
 	unsigned int transactionID = random();
-	
-	if ( strncmp("http://", url, strlen("http://")) != 0 ){
+
+	if (strncmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
 	}
 	memset(xmlStr, 0, sizeof(xmlStr));
-	
+
 	strcat(xmlStr, "<setBackgroundPreview>");
 	strcat(xmlStr, "<image>");
 	strcat(xmlStr, url);
 	strcat(xmlStr, "</image>");
 	strcat(xmlStr, "</setBackgroundPreview>\n\0");
-	
+
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
-static void sccp_device_displayBackgroundImagePreviewNotSupported(const sccp_device_t *device, const char *url){
+static void sccp_device_displayBackgroundImagePreviewNotSupported(const sccp_device_t * device, const char *url)
+{
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
 }
 
-static void sccp_device_setRingtone(const sccp_device_t *device, const char *url){
+static void sccp_device_setRingtone(const sccp_device_t * device, const char *url)
+{
 	char xmlStr[2048];
 	unsigned int transactionID = random();
-	
-	if ( strncmp("http://", url, strlen("http://")) != 0 ){
+
+	if (strncmp("http://", url, strlen("http://")) != 0) {
 		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
 	}
-	
+
 	memset(xmlStr, 0, sizeof(xmlStr));
-	
+
 	strcat(xmlStr, "<setRingTone>");
 	strcat(xmlStr, "<ringTone>");
 	strcat(xmlStr, url);
 	strcat(xmlStr, "</ringTone>");
 	strcat(xmlStr, "</setRingTone>\n\0");
-	
+
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
-static void sccp_device_setRingtoneNotSupported(const sccp_device_t *device, const char *url){
+static void sccp_device_setRingtoneNotSupported(const sccp_device_t * device, const char *url)
+{
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
 }
 
 // static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
-// 	char xmlStr[2048];
-// 	unsigned int transactionID = random();
-// 	
-// 	
-// 	
-// 	strcat(xmlStr, "<startMedia>");
-// 	strcat(xmlStr, "<mediaStream>");
-// // 	strcat(xmlStr, "<onStopped></onStopped>"); //url
-// 	strcat(xmlStr, "<receiveVolume>50</receiveVolume>"); // 0-100
-// 	strcat(xmlStr, "<type>audio</type>"); // send|receive|sendReceive
-// 	strcat(xmlStr, "<mode>sendReceive</mode>"); // send|receive|sendReceive
-// 	strcat(xmlStr, "<codec>Wideband</codec>"); // "G.711" "G.722" "G.723" "G.728" "G.729" "GSM" "Wideband" "iLBC"
-// 	strcat(xmlStr, "<address>");
-// 	strcat(xmlStr, address);
-// 	strcat(xmlStr, "</address>");
-// 	strcat(xmlStr, "<port>20480</port>");
-// 	strcat(xmlStr, "</mediaStream>");
-// 	strcat(xmlStr, "</startMedia>\n\0");
-// 	
-// 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
+//      char xmlStr[2048];
+//      unsigned int transactionID = random();
+//      
+//      
+//      
+//      strcat(xmlStr, "<startMedia>");
+//      strcat(xmlStr, "<mediaStream>");
+// //   strcat(xmlStr, "<onStopped></onStopped>"); //url
+//      strcat(xmlStr, "<receiveVolume>50</receiveVolume>"); // 0-100
+//      strcat(xmlStr, "<type>audio</type>"); // send|receive|sendReceive
+//      strcat(xmlStr, "<mode>sendReceive</mode>"); // send|receive|sendReceive
+//      strcat(xmlStr, "<codec>Wideband</codec>"); // "G.711" "G.722" "G.723" "G.728" "G.729" "GSM" "Wideband" "iLBC"
+//      strcat(xmlStr, "<address>");
+//      strcat(xmlStr, address);
+//      strcat(xmlStr, "</address>");
+//      strcat(xmlStr, "<port>20480</port>");
+//      strcat(xmlStr, "</mediaStream>");
+//      strcat(xmlStr, "</startMedia>\n\0");
+//      
+//      device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 // }
 
 /*!
@@ -281,6 +288,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
 	boolean_t res = FALSE;
+
 	if (d && (d->pendingUpdate || d->pendingDelete)) {
 		do {
 			if ((d = sccp_device_retain(d))) {
@@ -407,11 +415,11 @@ sccp_device_t *sccp_device_create(const char *id)
 	sccp_mutex_unlock(&d->messageStackLock);
 #endif
 
-// 	/* disable videomode and join softkey for all softkeysets */
-// 	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
-// 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
-// 		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
-// 	}
+	//      /* disable videomode and join softkey for all softkeysets */
+	//      for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
+	//              sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
+	//              sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
+	//      }
 
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
@@ -649,9 +657,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
 
-			for (i = 2 + sccp_addons_taps(d); i>0 ; i--) {
+			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			}	
+			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7920:
 		case SKINNY_DEVICETYPE_CISCO7921:
@@ -677,9 +685,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
 
-			for (i = 6 + sccp_addons_taps(d); i>0 ; i--) {
+			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			}	
+			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7970:
 		case SKINNY_DEVICETYPE_CISCO7971:
@@ -689,7 +697,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			} else {
-				for (i = 8 + sccp_addons_taps(d); i>0 ; i--) {
+				for (i = 8 + sccp_addons_taps(d); i > 0; i--) {
 					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 				}
 
@@ -726,7 +734,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			for (i = 0; i < 10; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
-			}	
+			}
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
@@ -1011,7 +1019,7 @@ void sccp_dev_set_microphone(sccp_device_t * d, uint8_t mode)
  * \callgraph
  * \callergraph
  */
-void sccp_dev_set_cplane(const sccp_device_t *device, uint8_t lineInstance, int status)
+void sccp_dev_set_cplane(const sccp_device_t * device, uint8_t lineInstance, int status)
 {
 	sccp_moo_t *r;
 
@@ -1387,7 +1395,7 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
 		if (config->type == SPEEDDIAL && config->instance == instance) {
 
 			/* we are searching for hinted speeddials */
-			if (TRUE == withHint && sccp_strlen_zero(config->button.speeddial.hint)){
+			if (TRUE == withHint && sccp_strlen_zero(config->button.speeddial.hint)) {
 				continue;
 			}
 
@@ -1485,7 +1493,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 	if (!d || !d->session)
 		return;
 
-	boolean_t message_set=FALSE;
+	boolean_t message_set = FALSE;
 	int i;
 
 	if (d->hasDisplayPrompt()) {
@@ -1496,7 +1504,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 			if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
 				sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
-				message_set=TRUE;
+				message_set = TRUE;
 				break;
 			}
 		}
@@ -1504,9 +1512,9 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
 		sccp_mutex_unlock(&d->messageStackLock);
 #endif
 	}
-	if (!message_set) {		
+	if (!message_set) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
-		sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);								/* this is for redial softkey */
+		sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);							/* this is for redial softkey */
 	}
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finish DisplayPrompt\n", d->id);
 }
@@ -1637,12 +1645,12 @@ void sccp_dev_postregistration(void *data)
 	if (PBX(feature_getFromDatabase) (family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
-	
-	if(d->backgroundImage){
+
+	if (d->backgroundImage) {
 		d->setBackgroundImage(d, d->backgroundImage);
 	}
-	
-	if(d->ringtone){
+
+	if (d->ringtone) {
 		d->setRingTone(d, d->ringtone);
 	}
 
@@ -1706,18 +1714,18 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
 		if (!sccp_strlen_zero(d->lastNumber))
 			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
-		
-		
+
 		/* cleanup dynamic allocated strings */
+
 		/** normaly we should only remove this when removing the device from globals,
 		 *  in this case we can do this also when device unregistered, so we do not set this multiple times -MC
 		 */
-		if(d->backgroundImage){
+		if (d->backgroundImage) {
 			sccp_free(d->backgroundImage);
 			d->backgroundImage = NULL;
 		}
-		
-		if(d->ringtone){
+
+		if (d->ringtone) {
 			sccp_free(d->ringtone);
 			d->ringtone = NULL;
 		}
@@ -1788,7 +1796,7 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			usleep(20);
 			if (d->session) {
 				sccp_session_removeDevice(d->session);
-			}	
+			}
 			d->session = NULL;
 		}
 
@@ -2178,8 +2186,9 @@ static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, ui
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, 0);
 }
 
-static void sccp_device_indicate_offhook(const sccp_device_t *device, sccp_linedevices_t *linedevice, uint8_t callid) {
-  
+static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid)
+{
+
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_device_sendcallstate(device, linedevice->lineInstance, callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
@@ -2188,8 +2197,9 @@ static void sccp_device_indicate_offhook(const sccp_device_t *device, sccp_lined
 	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, 0);
 }
 
-static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_linedevices_t *linedevice, const sccp_channel_t *channel){
-  
+static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
+{
+
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
@@ -2198,7 +2208,7 @@ static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_lin
 	sccp_dev_set_cplane(device, linedevice->lineInstance, 1);
 	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_CONNECTED);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, channel->callid, SKINNY_DISP_CONNECTED, 0);
-	
+
 }
 
 /*!
@@ -2206,7 +2216,7 @@ static void sccp_device_indicate_connected(const sccp_device_t *device, sccp_lin
  */
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message)
 {
-//	sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_device_addMessageToStack), '%s' at priority %d \n", DEV_ID_LOG(device), message, priority);
+	//      sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE | DEBUGCAT_MESSAGE))(VERBOSE_PREFIX_1 "%s: (sccp_device_addMessageToStack), '%s' at priority %d \n", DEV_ID_LOG(device), message, priority);
 	if (ARRAY_LEN(device->messageStack) <= priority) {
 		return;
 	}
@@ -2232,7 +2242,7 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 {
 	if (ARRAY_LEN(device->messageStack) <= priority) {
 		return;
-	}	
+	}
 
 	char *newValue = NULL;
 	char *oldValue = NULL;
@@ -2287,6 +2297,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			if ((linedevice = event->event.featureChanged.linedevice)) {
 				sccp_line_t *line = linedevice->line;
 				uint8_t instance = linedevice->lineInstance;
+
 				sccp_dev_forward_status(line, instance, device);
 				switch (event->event.featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
@@ -2497,4 +2508,3 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 	return NULL;
 }
 #endif
-

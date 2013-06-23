@@ -17,15 +17,15 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 
-/*
- * \brief itterate through locked pbx channels
- * \note replacement for ast_channel_walk_locked
- * \param ast_chan Asterisk Channel
- * \return ast_chan Locked Asterisk Channel
- *
- * \todo implement pbx_channel_walk_locked or replace
- * \deprecated
- */
+    /*
+     * \brief itterate through locked pbx channels
+     * \note replacement for ast_channel_walk_locked
+     * \param ast_chan Asterisk Channel
+     * \return ast_chan Locked Asterisk Channel
+     *
+     * \todo implement pbx_channel_walk_locked or replace
+     * \deprecated
+     */
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -685,7 +685,8 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	struct ast_party_id redirecting_from = pbx_channel_redirecting_effective_from(ast);
 	struct ast_party_id redirecting_to = pbx_channel_redirecting_effective_to(ast);
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "", (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got redirecting update. From %s<%s>; To %s<%s>\n", pbx_channel_name(ast), (redirecting_from.name.valid && redirecting_from.name.str) ? redirecting_from.name.str : "", (redirecting_from.number.valid && redirecting_from.number.str) ? redirecting_from.number.str : "", (redirecting_to.name.valid && redirecting_to.name.str) ? redirecting_to.name.str : "",
+				  (redirecting_to.number.valid && redirecting_to.number.str) ? redirecting_to.number.str : "");
 
 	if (redirecting_from.name.valid && redirecting_from.name.str) {
 		sccp_copy_string(channel->callInfo.lastRedirectingPartyName, redirecting_from.name.str, sizeof(channel->callInfo.callingPartyName));
@@ -803,16 +804,17 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 	return res;
 }
 
-boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t *channel)
+boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
 
 	struct ast_call_feature *feature = ast_find_call_feature("automon");
-	if(feature){
+
+	if (feature) {
 		feature->operation(channel->owner, channel->owner, NULL, "*1", 0, NULL);
 		return TRUE;
 	}
 	return FALSE;
-	
+
 }
 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
