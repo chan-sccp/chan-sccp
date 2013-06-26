@@ -436,20 +436,20 @@ static void sccp_wrapper_asterisk110_connectedline(sccp_channel_t * channel, con
 {
 	PBX_CHANNEL_TYPE *ast = channel->owner;
 
-	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), ast_channel_connected(ast)->id.number.str ? ast_channel_connected(ast)->id.number.str : "(nil)", ast_channel_connected(ast)->id.name.str ? ast_channel_connected(ast)->id.name.str : "(nil)", ast_channel_connected(ast)->source);
+	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), ast->connected.id.number.str ? ast->connected.id.number.str : "(nil)", ast->connected.id.name.str ? ast->connected.id.name.str : "(nil)", ast->connected.source);
 
 //	sccp_channel_display_callInfo(channel);
 
 	/* set the original calling/called party if the reason is a transfer */
-	if (ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
+	if (ast->connected.source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast->connected.source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 		        sccp_log(DEBUGCAT_CHANNEL)("SCCP: (connectedline) Destination\n");
-		        if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str)) {
-                                sccp_copy_string(channel->callInfo.originalCallingPartyNumber,  ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.originalCallingPartyNumber));
+		        if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str)) {
+                                sccp_copy_string(channel->callInfo.originalCallingPartyNumber, ast->connected.id.number.str, sizeof(channel->callInfo.originalCallingPartyNumber));
                                 channel->callInfo.originalCallingParty_valid = 1;
                         }
-                        if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str)) {
-                                sccp_copy_string(channel->callInfo.originalCallingPartyName, ast_channel_connected(ast)->id.name.str, sizeof(channel->callInfo.originalCallingPartyName));
+                        if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str)) {
+                                sccp_copy_string(channel->callInfo.originalCallingPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.originalCallingPartyName));
                         }
                         if (channel->callInfo.callingParty_valid) {
                                 sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
@@ -480,21 +480,17 @@ static void sccp_wrapper_asterisk110_connectedline(sccp_channel_t * channel, con
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-		if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str)) {
-			sccp_copy_string(channel->callInfo.callingPartyNumber, ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.callingPartyNumber));
-			channel->callInfo.callingParty_valid = 1;
-		}
-		if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str)) {
-			sccp_copy_string(channel->callInfo.callingPartyName, ast_channel_connected(ast)->id.name.str, sizeof(channel->callInfo.callingPartyName));
-		}
+		if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str))
+			sccp_copy_string(channel->callInfo.callingPartyNumber, ast->connected.id.number.str, sizeof(channel->callInfo.callingPartyNumber));
+
+		if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str))
+			sccp_copy_string(channel->callInfo.callingPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.callingPartyName));
 	} else {
-		if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str)) {
-			sccp_copy_string(channel->callInfo.calledPartyNumber, ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.calledPartyNumber));
-			channel->callInfo.callingParty_valid = 1;
-		}
-		if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str)) {
-			sccp_copy_string(channel->callInfo.calledPartyName, ast_channel_connected(ast)->id.name.str, sizeof(channel->callInfo.calledPartyName));
-		}
+		if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str))
+			sccp_copy_string(channel->callInfo.calledPartyNumber, ast->connected.id.number.str, sizeof(channel->callInfo.calledPartyNumber));
+
+		if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str))
+			sccp_copy_string(channel->callInfo.calledPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.calledPartyName));
 	}
 
 	sccp_channel_display_callInfo(channel);
