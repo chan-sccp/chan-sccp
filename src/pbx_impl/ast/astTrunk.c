@@ -433,41 +433,63 @@ static void sccp_wrapper_asterisk111_connectedline(sccp_channel_t * channel, con
 
 	sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Got connected line update, connected.id.number=%s, connected.id.name=%s, reason=%d\n", pbx_channel_name(ast), ast_channel_connected(ast)->id.number.str ? ast_channel_connected(ast)->id.number.str : "(nil)", ast_channel_connected(ast)->id.name.str ? ast_channel_connected(ast)->id.name.str : "(nil)", ast_channel_connected(ast)->source);
 
+//	sccp_channel_display_callInfo(channel);
+
 	/* set the original calling/called party if the reason is a transfer */
 	if (ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER || ast_channel_connected(ast)->source == AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING) {
-                sccp_copy_string(channel->callInfo.originalCallingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCallingPartyNumber));
-                sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.originalCallingPartyName));
-                channel->callInfo.originalCallingParty_valid = 1;
-                sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
-                sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.originalCalledPartyName));
-                channel->callInfo.originalCalledParty_valid = 1;
 		if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
 		        sccp_log(DEBUGCAT_CHANNEL)("SCCP: (connectedline) Destination\n");
-                        sccp_copy_string(channel->callInfo.lastRedirectingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.lastRedirectingPartyName));
-                        sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.lastRedirectingPartyNumber));
-                        channel->callInfo.lastRedirectingParty_valid = 1;
+		        if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str)) {
+                                sccp_copy_string(channel->callInfo.originalCallingPartyNumber,  ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.originalCallingPartyNumber));
+                                channel->callInfo.originalCallingParty_valid = 1;
+                        }
+                        if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str)) {
+                                sccp_copy_string(channel->callInfo.originalCallingPartyName, ast_channel_connected(ast)->id.name.str, sizeof(channel->callInfo.originalCallingPartyName));
+                        }
+                        if (channel->callInfo.callingParty_valid) {
+                                sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
+                                sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCalledPartyName));
+                                channel->callInfo.originalCalledParty_valid = 1;
+                                sccp_copy_string(channel->callInfo.lastRedirectingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.lastRedirectingPartyName));
+                                sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.lastRedirectingPartyNumber));
+                                channel->callInfo.lastRedirectingParty_valid = 1;
+                        }
                 } else {
 		        sccp_log(DEBUGCAT_CHANNEL)("SCCP: (connectedline) Transferee\n");
-                        sccp_copy_string(channel->callInfo.lastRedirectingPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.lastRedirectingPartyName));
-                        sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.lastRedirectingPartyNumber));
-                        channel->callInfo.lastRedirectingParty_valid = 1;
+		        if (channel->callInfo.callingParty_valid) {
+                                sccp_copy_string(channel->callInfo.originalCallingPartyNumber, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCallingPartyNumber));
+                                sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyNumber, sizeof(channel->callInfo.originalCallingPartyName));
+                                channel->callInfo.originalCallingParty_valid = 1;
+                        }
+                        if (channel->callInfo.calledParty_valid) {
+                                sccp_copy_string(channel->callInfo.originalCalledPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.originalCalledPartyNumber));
+                                sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.originalCalledPartyName));
+                                channel->callInfo.originalCalledParty_valid = 1;
+                                sccp_copy_string(channel->callInfo.lastRedirectingPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.lastRedirectingPartyName));
+                                sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, channel->callInfo.calledPartyNumber, sizeof(channel->callInfo.lastRedirectingPartyNumber));
+                                channel->callInfo.lastRedirectingParty_valid = 1;
+                        }
                 }
                 channel->callInfo.originalCdpnRedirectReason = channel->callInfo.lastRedirectingReason;
-                channel->callInfo.lastRedirectingReason = 2;	// need to figure out these codes
+                channel->callInfo.lastRedirectingReason = 0;	// need to figure out these codes
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-		if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str))
+		if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str)) {
 			sccp_copy_string(channel->callInfo.callingPartyNumber, ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.callingPartyNumber));
-
-		if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str))
+			channel->callInfo.callingParty_valid = 1;
+		}
+		if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str)) {
 			sccp_copy_string(channel->callInfo.callingPartyName, ast_channel_connected(ast)->id.name.str, sizeof(channel->callInfo.callingPartyName));
+		}
 	} else {
-		if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str))
+		if (ast_channel_connected(ast)->id.number.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.number.str)) {
 			sccp_copy_string(channel->callInfo.calledPartyNumber, ast_channel_connected(ast)->id.number.str, sizeof(channel->callInfo.calledPartyNumber));
-
-		if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str))
+			channel->callInfo.callingParty_valid = 1;
+		}
+		if (ast_channel_connected(ast)->id.name.str && !sccp_strlen_zero(ast_channel_connected(ast)->id.name.str)) {
 			sccp_copy_string(channel->callInfo.calledPartyName, ast_channel_connected(ast)->id.name.str, sizeof(channel->callInfo.calledPartyName));
+		}
 	}
 
 	sccp_channel_display_callInfo(channel);
