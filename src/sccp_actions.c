@@ -307,7 +307,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 	deviceInstance = letohl(r->msg.SPCPRegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.SPCPRegisterTokenRequest.lel_deviceType);
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_2 "%s: is requestin a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_2 "%s: is requesting a token, Instance: %d, Type: %s (%d)\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
 	/* ip address range check */
 	if (GLOB(ha) && !sccp_apply_ha(GLOB(ha), &s->sin)) {
