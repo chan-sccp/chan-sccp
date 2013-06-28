@@ -1,5 +1,40 @@
 Version: 4.1.0_RC1
 ==================
+
+New features with V4.1:
+ - Compatible with multitute of asterisk versions from asterisk-1.6.2 up to asterisk-11, using one code base
+ - New sccp.conf handling system, using a flexible TABLE as the basis for all config parsing
+ - Integrated Conference implementation / Conference List
+ - Connected Line Update -> More accurate callerid information
+ - Call List State Update (Showing hint status in PhoneBook Entries)
+ - New and Improved AMI/Manager Functions
+ - Removed most of the old locking implementation in favor of reference counting
+
+Bug Fixes:
+ - Updated audio/video/codec handling
+ - Reworked hint handling / callinfo on hinted speeddial
+ - auto select line
+ - Audio issues during transfer
+ - Updated for asterisk devstate api change
+ - sccp reload issues
+ - socket / poll issues
+ - permit/deny issues / global ip reject
+ - realtime line updates
+ - module unload taking a lot of time
+ - refcount issues
+ - asterisk module dependency / load order
+ - park call crash / group pickup with active call
+ - voicemail message not cleared
+ - linkedid not set correctly
+ - passthrupartyid without a valid channel
+ - monitor feature
+ - memory leaks
+ - sccp_dump_packet
+ - 1 second audio delay
+ - ami/manager output formatting
+
+Version: 4.1.0_RC1
+==================
  - Updated audio/video/codec handling
  - Reworked hint handling
  - Updated refcount system
