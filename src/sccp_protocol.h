@@ -1858,6 +1858,13 @@ typedef union {
 		uint32_t lel_totalButtonCount;									/*!< Total Number of Buttons */
 		StationButtonDefinition definition[StationMaxButtonTemplateSize];				/*!< Station Button Definition */
 	} ButtonTemplateMessage;										/*!< Button Template Message Structure */
+	
+	struct {
+		uint32_t lel_buttonOffset;									/*!< Button OffSet */
+		uint32_t lel_buttonCount;									/*!< Button Count */
+		uint32_t lel_totalButtonCount;									/*!< Total Number of Buttons */
+		uint32_t dummy;											/*!< Station Button Definition */
+	} ButtonTemplateMessageDynamic;
 
 	// never used & special case of ButtonTemplateMessage
 	//struct {
