@@ -32,7 +32,7 @@ chan-sccp-b (4.1.0-3) stable; urgency=high
     - 1 second audio delay
     - ami/manager output formatting
 
- -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 28 Jun 2013 15:00:00 +0100
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 28 Jun 2013 15:54:50 +0200
 
 chan-sccp-b (4.1.0-2) unstable; urgency=low
 
