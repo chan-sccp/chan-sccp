@@ -1,6 +1,5 @@
-Version: 4.1.0_RC1
+Version: V4.1_STABLE
 ==================
-
 New features with V4.1:
  - Compatible with multitute of asterisk versions from asterisk-1.6.2 up to asterisk-11, using one code base
  - New sccp.conf handling system, using a flexible TABLE as the basis for all config parsing
@@ -96,7 +95,5 @@ Fixed/Improved:
  - Direct transfer
  - Group pickup
  - Call parking
-
-Version: 3.0_PreRC3
 
 

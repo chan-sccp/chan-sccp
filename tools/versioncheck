@@ -7,7 +7,7 @@ if test -d .svn || test -d ../.svn || test -d ../../.svn;then
   if test ! -z "`which svn`"; then
     if test "`basename $(svn info .| grep -i ^URL: | cut -d ' ' -f 2)`" != "trunk"; then
         SCCP_VERSION=`basename $(svnpath)`
-        SCCP_BRANCH=`basename $(svnpath)`
+        SCCP_BRANCH="STABLE"
     else
       if test -f .version; then
         SCCP_VERSION="`cat .version|cut -d_ -f1`"
