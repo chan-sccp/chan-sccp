@@ -885,7 +885,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	}
 
 	if (c->owner) {
-		pbx_channel = ast_channel_ref(c->owner);
+		pbx_channel = pbx_channel_ref(c->owner);
 	}
 
 	/* removing scheduled dialing */
@@ -1155,7 +1155,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 EXIT_FUNC:
 	if (pbx_channel) {
-		ast_channel_unref(pbx_channel);
+		pbx_channel_unref(pbx_channel);
 	}
 	l = l ? sccp_line_release(l) : NULL;
 	c = c ? sccp_channel_release(c) : NULL;
