@@ -809,6 +809,10 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		return;
 
 	btn = d->buttonTemplate;
+	
+	if(!btn){ 
+		btn = d->buttonTemplate = sccp_make_button_template(d); 
+	}
 
 	if (!btn) {
 		sccp_log(DEBUGCAT_BUTTONTEMPLATE) (VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
@@ -1016,24 +1020,24 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	}
 	/* done */
 
-// 	sccp_dev_send(d, r1);
+	sccp_dev_send(d, r1);
 	
-	sccp_moo_t *dynamicR;
-	
-	int hdr_len = sizeof(dynamicR->msg.ButtonTemplateMessageDynamic) - sizeof(dynamicR->msg.ButtonTemplateMessageDynamic.dummy);
-	int dummy_len = (lastUsedButtonPosition + 1) * sizeof(StationButtonDefinition);
-	int padding = ((dummy_len + hdr_len) % 4);
-
-	padding = (padding > 0) ? 4 - padding : 4;
-
-	dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len + padding);
-	dynamicR->msg.ButtonTemplateMessageDynamic.lel_buttonOffset = 0;
-	dynamicR->msg.ButtonTemplateMessageDynamic.lel_buttonCount = htolel(buttonCount);
-	dynamicR->msg.ButtonTemplateMessageDynamic.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
-	memcpy(&dynamicR->msg.ButtonTemplateMessageDynamic.dummy, &r1->msg.ButtonTemplateMessage.definition, dummy_len);
-	
-	sccp_dev_send(d, dynamicR);
-	sccp_free(r1);
+// 	sccp_moo_t *dynamicR;
+// 	
+// 	int hdr_len = sizeof(dynamicR->msg.ButtonTemplateMessageDynamic) - sizeof(dynamicR->msg.ButtonTemplateMessageDynamic.dummy);
+// 	int dummy_len = (lastUsedButtonPosition + 1) * sizeof(StationButtonDefinition);
+// 	int padding = ((dummy_len + hdr_len) % 4);
+// 
+// 	padding = (padding > 0) ? 4 - padding : 4;
+// 
+// 	dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len + padding);
+// 	dynamicR->msg.ButtonTemplateMessageDynamic.lel_buttonOffset = 0;
+// 	dynamicR->msg.ButtonTemplateMessageDynamic.lel_buttonCount = htolel(buttonCount);
+// 	dynamicR->msg.ButtonTemplateMessageDynamic.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
+// 	memcpy(&dynamicR->msg.ButtonTemplateMessageDynamic.dummy, &r1->msg.ButtonTemplateMessage.definition, dummy_len);
+// 	
+// 	sccp_dev_send(d, dynamicR);
+// 	sccp_free(r1);
 }
 
 /*!
