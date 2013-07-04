@@ -124,7 +124,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			if (c == d->active_channel) {
 				sccp_dev_stoptone(d, instance, c->callid);
 			}
-
+			
+			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_dev_cleardisplaynotify(d);
 			sccp_dev_clearprompt(d, instance, c->callid);
 
