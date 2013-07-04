@@ -111,7 +111,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
 #define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
 #define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
 
-static int buttonindex;
+static int buttonindex = 0;
 /*!
  * \brief Enum for Config Option Types
  */
@@ -523,6 +523,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	// already Set
 	int x;
 	boolean_t skip = FALSE;
+	buttonindex = 0;
 
 	/* check if not already set using it's own parameter in the sccp.conf file */
 	switch (segment) {
@@ -1551,7 +1552,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 		// check if the button is to be deleted to see if we need to replace it
                 if (index == -1 && config->pendingDelete && config->index == buttonindex) {
-                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Found Existing button at %d (Being Replaced)\n", config->index);
+                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Found Existing button at %d:%d (Being Replaced)\n", config->index, buttonindex);
                         index = config->index;
                         break;
                 }
@@ -1726,6 +1727,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
  */
 static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
 {
+        buttonindex=0;
 	sccp_configurationchange_t res = sccp_config_applyLineConfiguration(l, v);
 
 #ifdef CS_SCCP_REALTIME
