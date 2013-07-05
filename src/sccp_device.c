@@ -745,8 +745,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_SPA_504G:
-			for (i = 0; i < 4; i++)
+			for (i = 0; i < 4; i++){
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_525G2:
 			for (i = 0; i < 8; i++)
@@ -1545,13 +1546,13 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	//! \todo check for forward status during registration -MC
 	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
-	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
-		if (!device->linesRegistered) {
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
-			sccp_handle_AvailableLines(device->session, device, NULL);
-			device->linesRegistered = TRUE;
-		}
-	}
+// 	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
+// 		if (!device->linesRegistered) {
+// 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
+// 			sccp_handle_AvailableLines(device->session, device, NULL);
+// 			device->linesRegistered = TRUE;
+// 		}
+// 	}
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
