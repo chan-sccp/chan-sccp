@@ -938,10 +938,11 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	}
 
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
-	if (d->buttonTemplate) {
-		sccp_free(d->buttonTemplate);
+	if (!d->buttonTemplate) {
+		d->buttonTemplate = sccp_make_button_template(d);
 	}
-	btn = d->buttonTemplate = sccp_make_button_template(d);
+	
+	btn = d->buttonTemplate;
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
