@@ -856,7 +856,6 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 
 	d->registrationState = opt;
 
-	/* Handle registration completion. */
 	if (opt == SKINNY_DEVICE_RS_OK) {
 		/* this message is mandatory to finish process */
 		REQ(r, SetLampMessage);
@@ -866,14 +865,15 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			r->msg.SetLampMessage.lel_stimulusInstance = 0;
 			r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
 			//                      d->mwilight &= ~(1 << 0);
+			/* Handle registration completion. */
+			if (!d->linesRegistered) {
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
+				sccp_handle_AvailableLines(d->session, d, NULL);
+				d->linesRegistered = TRUE;
+			}
 			sccp_dev_send(d, r);
 		}
 
-		if (!d->linesRegistered) {
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
-			sccp_handle_AvailableLines(d->session, d, NULL);
-			d->linesRegistered = TRUE;
-		}
 		sccp_dev_postregistration(d);
 	} else if (opt == SKINNY_DEVICE_RS_PROGRESS) {
 		memset(&event, 0, sizeof(sccp_event_t));
@@ -1544,21 +1544,10 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 
-	//! \todo check for forward status during registration -MC
-	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
-// 	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
-// 		if (!device->linesRegistered) {
-// 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
-// 			sccp_handle_AvailableLines(device->session, device, NULL);
-// 			device->linesRegistered = TRUE;
-// 		}
-// 	}
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
 		sccp_linedevice_release(linedevice);
-	} else {
-		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
 	}
 }
 
