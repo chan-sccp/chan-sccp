@@ -311,6 +311,14 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 		messageMap_cb->messageHandler_cb(s, device, r);
 	}
 	s->lastKeepAlive = time(0);
+	
+	
+	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId ) {
+		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
+		char servername[StationMaxDisplayNotifySize];
+		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
+		sccp_dev_displaynotify(device, servername, 5);
+	}
 
 	device = device ? sccp_device_release(device) : NULL;
 	return 1;
