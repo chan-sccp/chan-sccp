@@ -2908,6 +2908,7 @@ static const softkey_modes SoftKeyModes[] = {
 typedef struct {
 	const char *name;
 	const uint8_t version;
+	const uint16_t registrationFinishedMessageId;
 
 	/* protocol callbacks */
 	/* send messages */
