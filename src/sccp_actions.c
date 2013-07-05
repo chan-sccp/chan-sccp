@@ -2040,7 +2040,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 {
 	time_t timer = 0;
 	struct tm *cmtime = NULL;
-	char servername[StationMaxDisplayNotifySize];
+//	char servername[StationMaxDisplayNotifySize];
 	sccp_moo_t *r1;
 
 	if (!s)
@@ -2885,7 +2885,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 }
 
 /*!
- * \brief Handle Forward Status Reques for Session
+ * \brief Handle Forward Status Request for Session
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
@@ -2898,8 +2898,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	uint32_t instance = letohl(r->msg.ForwardStatReqMessage.lel_lineNumber);
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Got Forward Status Request.  Line: %d\n", d->id, instance);
-	l = sccp_line_find_byid(d, instance);
-	if (l) {
+	if ((l = sccp_line_find_byid(d, instance))) {
 		sccp_dev_forward_status(l, instance, d);
 		l = sccp_line_release(l);
 	} else {
