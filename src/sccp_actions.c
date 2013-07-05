@@ -809,10 +809,6 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		return;
 
 	btn = d->buttonTemplate;
-	
-	if(!btn){ 
-		btn = d->buttonTemplate = sccp_make_button_template(d); 
-	}
 
 	if (!btn) {
 		sccp_log(DEBUGCAT_BUTTONTEMPLATE) (VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
@@ -938,11 +934,10 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	}
 
 	/* pre-attach lines. We will wait for button template req if the phone does support it */
-	if (!d->buttonTemplate) {
-		d->buttonTemplate = sccp_make_button_template(d);
+	if (d->buttonTemplate) {
+		sccp_free(d->buttonTemplate);
 	}
-	
-	btn = d->buttonTemplate;
+	btn = d->buttonTemplate = sccp_make_button_template(d);
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
@@ -2074,11 +2069,11 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	   concludes the device registration process.
 	   This is included even in the minimal subset of device registration commands.
 	 */
-	if (d->registrationState == SKINNY_DEVICE_RS_PROGRESS) {
-		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
-		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
-		sccp_dev_displaynotify(d, servername, 5);
-	}
+// 	if (d->registrationState == SKINNY_DEVICE_RS_PROGRESS) {
+// 		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
+// 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
+// 		sccp_dev_displaynotify(d, servername, 5);
+// 	}
 }
 
 /*!
