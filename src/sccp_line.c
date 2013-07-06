@@ -1042,7 +1042,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 #else
-	if (d->lineButtons.size > instance && instance > 0 && d->lineButtons.instance[instance]->line ){
+	if (d->lineButtons.size > instance && instance > 0 && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line ){
 		l = sccp_line_retain( d->lineButtons.instance[instance]->line );
 	}
 #endif
