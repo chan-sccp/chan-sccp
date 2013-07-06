@@ -800,7 +800,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		memset(d->lineButtons.instance, 0x0, d->lineButtons.size * sizeof(sccp_line_t *));
 		
 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (btn[i].type == SKINNY_BUTTONTYPE_LINE  ) {
+			if (btn[i].type == SKINNY_BUTTONTYPE_LINE  && btn[i].ptr ) {
 				linedevice = sccp_linedevice_find(d, (sccp_line_t *)btn[i].ptr );
 				d->lineButtons.instance[ btn[i].instance ] = linedevice;
 			} 
