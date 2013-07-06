@@ -2012,6 +2012,7 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_
  */
 uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lineName)
 {
+#if 0
 	sccp_buttonconfig_t *config;
 
 	if (!d || !lineName)
@@ -2028,6 +2029,16 @@ uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lin
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_device_find_index_for_line return: %d\n", DEV_ID_LOG(d), config ? config->instance : -2);
 	return (config) ? config->instance : -2;
+#else
+	uint8_t i;
+	for (i = SCCP_FIRST_LINEINSTANCE; i < d->lineButtons.size; i++){
+		if( d->lineButtons.instance[i]->line && !strcasecmp(d->lineButtons.instance[i]->line->name, lineName) ){
+			return i;
+		}
+	}
+	return 0;
+#endif
+	
 }
 
 /*!
