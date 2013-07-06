@@ -865,13 +865,13 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			r->msg.SetLampMessage.lel_stimulusInstance = 0;
 			r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
 			//                      d->mwilight &= ~(1 << 0);
-			/* Handle registration completion. */
-			if (!d->linesRegistered) {
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
-				sccp_handle_AvailableLines(d->session, d, NULL);
-				d->linesRegistered = TRUE;
-			}
 			sccp_dev_send(d, r);
+		}
+		
+		/* Handle registration completion. */
+		if (!d->linesRegistered) {
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
+			sccp_handle_AvailableLines(d->session, d, NULL);
 		}
 
 		sccp_dev_postregistration(d);
@@ -1806,6 +1806,17 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 			sccp_free(d->buttonTemplate);
 			d->buttonTemplate = NULL;
 		}
+		
+		if(d->lineButtons.instance){
+			for (i = 1; i < d->lineButtons.size; i++) {
+				sccp_linedevice_release(d->lineButtons.instance[i]);
+			}
+			sccp_free(d->lineButtons.instance);
+			d->lineButtons.size = 0;
+		}
+		
+		
+		
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 		/* Unregister event subscriptions originating from devstate feature */
 		SCCP_LIST_LOCK(&d->devstateSpecifiers);

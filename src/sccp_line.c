@@ -562,6 +562,29 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	linedevice->line->statistic.numberOfActiveDevices++;
 	linedevice->device->configurationStatistic.numberOfLines++;
+	
+	
+// 	/* rebuild line button pointer array*/
+// 	if( device->lineButtons.size < lineInstance){
+// 		sccp_linedevices_t **instance = device->lineButtons.instance;
+// 		uint8_t oldSize = device->lineButtons.size;
+// 		
+//   
+// 		device->lineButtons.size = lineInstance + 1;									/* use one more, so we can explicit call this position */
+// 		device->lineButtons.instance = calloc(device->lineButtons.size, sizeof(sccp_linedevices_t *) );
+// 		memset(device->lineButtons.instance, 0, device->lineButtons.size * sizeof(sccp_linedevices_t *) );
+// 		
+// 		if(oldSize > 0){
+// 			uint8_t i;
+// 			for(i=0; i < oldSize;i++){
+// 				device->lineButtons.instance[i] = instance[i];
+// 			}
+// 		  
+// 			sccp_free(instance);
+// 		}
+// 	}
+// 	device->lineButtons.instance[ lineInstance ] = sccp_linedevice_retain( linedevice );
+
 
 	/* read cfwd status from db */
 #ifndef ASTDB_FAMILY_KEY_LEN
@@ -996,13 +1019,14 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 #endif
 {
 	sccp_line_t *l = NULL;
-	sccp_buttonconfig_t *config;
+	
 
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 
 	if (!d || instance == 0)
 		return NULL;
-
+#if 0
+	sccp_buttonconfig_t *config;
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
@@ -1017,6 +1041,13 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
+#else
+	if (d->lineButtons.size > instance && instance > 0 && d->lineButtons.instance[instance]->line ){
+		l = sccp_line_retain( d->lineButtons.instance[instance]->line );
+	}
+#endif
+	
+
 
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
@@ -1072,4 +1103,27 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
 	}
 	return ld;
+}
+
+sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func)
+{
+	sccp_linedevices_t *linedevice = NULL;
+  
+	if (instance < 1) {
+		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
+		return NULL;
+	}
+	if (!device) {
+		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (lineinstance: %d)\n", filename, lineno, instance);
+		return NULL;
+	}
+	
+	if (instance < device->lineButtons.size) {
+		linedevice = sccp_linedevice_retain( device->lineButtons.instance[ instance ] ) ;
+	}
+
+	if (!linedevice) {
+		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for lineinstance %d could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, instance);
+	}
+	return linedevice;
 }
