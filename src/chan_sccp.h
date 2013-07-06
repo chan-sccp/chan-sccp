@@ -85,6 +85,9 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
 #define SCCP_MIN_DTMF_DURATION 80										// 80 ms
+#define SCCP_FIRST_LINEINSTANCE 1										/* whats the instance of the first line */
+#define SCCP_FIRST_SERVICEINSTANCE 1										/* whats the instance of the first service button */
+#define SCCP_FIRST_SPEEDDIALINSTANCE 1										/* whats the instance of the first speeddial button */
 
 #define SCCP_SOCKET_ACCEPT_TIMEOUT 2000
 
