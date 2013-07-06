@@ -1003,6 +1003,16 @@ struct sccp_device {
 		uint8_t size;											/*!< how many softkeysets are provided by modes */
 		uint32_t activeMask[16];									/*!< enabled softkeys mask */
 	} softKeyConfiguration;											/*!< SoftKeySet configuration */
+	
+	struct {
+		sccp_linedevices_t **instance;									/*!< used softkeySet */
+		uint8_t size;											/*!< how many softkeysets are provided by modes */
+	} lineButtons;
+
+	struct {
+		btnlist *instance;										/*!< used softkeySet */
+		uint8_t size;											/*!< how many softkeysets are provided by modes */
+	} speeddialButtons;	
 
 	struct {
 		int free;

@@ -586,6 +586,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	uint16_t speeddialInstance = 1;										/* starting instance for speeddial is 1 */
 	uint16_t lineInstance = 1;
 	uint16_t serviceInstance = 1;
+	boolean_t defaultLineSet = FALSE;
 
 	if (!d->isAnonymous) {
 		SCCP_LIST_LOCK(&d->buttonconfig);
@@ -610,6 +611,11 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
 					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 						buttonconfig->instance = btn[i].instance = lineInstance++;
+						sccp_line_addDevice( (sccp_line_t *)btn[i].ptr, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
+						if (FALSE == defaultLineSet && !d->defaultLineInstance) {
+							d->defaultLineInstance = buttonconfig->instance;
+							defaultLineSet = TRUE;
+						}
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
 						buttonconfig->instance = btn[i].instance = 0;
@@ -644,12 +650,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						} else {
 							btn[i].type = SKINNY_BUTTONTYPE_LINE;
-							buttonconfig->instance = btn[i].instance = lineInstance++;;
+							buttonconfig->instance = btn[i].instance = lineInstance++;
 
 						}
 #else
 						btn[i].type = SKINNY_BUTTONTYPE_LINE;
-						buttonconfig->instance = btn[i].instance = lineInstance++;;
+						buttonconfig->instance = btn[i].instance = lineInstance++;
 #endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
@@ -775,6 +781,33 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = 1;
 	}
+	
+	
+	/* create linebutton array */
+	{
+		sccp_linedevices_t *linedevice;
+		uint8_t lineInstances = 0;
+		
+		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances &&  btn[i].ptr) {
+				lineInstances = btn[i].instance;
+			} 
+		}
+		
+		
+		d->lineButtons.size = lineInstances + 1;
+		d->lineButtons.instance = calloc(d->lineButtons.size, sizeof(sccp_line_t *) );
+		memset(d->lineButtons.instance, 0x0, d->lineButtons.size * sizeof(sccp_line_t *));
+		
+		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+			if (btn[i].type == SKINNY_BUTTONTYPE_LINE  ) {
+				linedevice = sccp_linedevice_find(d, (sccp_line_t *)btn[i].ptr );
+				d->lineButtons.instance[ btn[i].instance ] = linedevice;
+			} 
+		}
+	}
+	    
+	
 
 	return btn;
 }
@@ -798,9 +831,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	uint8_t i = 0, line_count = 0;
 	btnlist *btn;
 	sccp_line_t *l = NULL;
-	sccp_buttonconfig_t *buttonconfig = NULL;
-
-	boolean_t defaultLineSet = FALSE;
+	
 
 	line_count = 0;
 
@@ -829,27 +860,29 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 		l = GLOB(hotline)->line;
 		sccp_line_addDevice(l, d, 1, NULL);
 	} else {
-		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
-				if ((l = sccp_line_retain(btn[i].ptr))) {
-					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, btn[i].instance);
-
-					SCCP_LIST_LOCK(&d->buttonconfig);
-					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-						if (btn[i].instance == buttonconfig->instance && buttonconfig->type == LINE) {
-							sccp_line_addDevice(l, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
-							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
-								d->defaultLineInstance = buttonconfig->instance;
-								defaultLineSet = TRUE;
-							}
-						}
-					}
-					SCCP_LIST_UNLOCK(&d->buttonconfig);
-					l = sccp_line_release(l);
-				}
-			}
-
-		}
+// 		sccp_buttonconfig_t *buttonconfig = NULL;
+// 		boolean_t defaultLineSet = FALSE;
+// 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+// 			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
+// 				if ((l = sccp_line_retain(btn[i].ptr))) {
+// 					sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Attaching line %s with instance %d to this device\n", d->id, l->name, btn[i].instance);
+// 
+// 					SCCP_LIST_LOCK(&d->buttonconfig);
+// 					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+// 						if (btn[i].instance == buttonconfig->instance && buttonconfig->type == LINE) {
+// 							sccp_line_addDevice(l, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
+// 							if (FALSE == defaultLineSet && !d->defaultLineInstance) {
+// 								d->defaultLineInstance = buttonconfig->instance;
+// 								defaultLineSet = TRUE;
+// 							}
+// 						}
+// 					}
+// 					SCCP_LIST_UNLOCK(&d->buttonconfig);
+// 					l = sccp_line_release(l);
+// 				}
+// 			}
+// 
+// 		}		
 	}
 	d->linesRegistered = TRUE;
 }
@@ -2063,17 +2096,6 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_moo_t
 	sccp_dev_send(d, r1);
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Send date/time\n", DEV_ID_LOG(d));
 
-	/*
-	   According to SCCP protocol since version 3,
-	   the first instance of asking for time and date
-	   concludes the device registration process.
-	   This is included even in the minimal subset of device registration commands.
-	 */
-// 	if (d->registrationState == SKINNY_DEVICE_RS_PROGRESS) {
-// 		sccp_dev_set_registered(s->device, SKINNY_DEVICE_RS_OK);
-// 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
-// 		sccp_dev_displaynotify(d, servername, 5);
-// 	}
 }
 
 /*!
