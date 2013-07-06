@@ -1809,7 +1809,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		
 		if(d->lineButtons.instance){
 			for (i = SCCP_FIRST_LINEINSTANCE; i < d->lineButtons.size; i++) {
-				sccp_linedevice_release(d->lineButtons.instance[i]);
+				if(d->lineButtons.instance[i]){ 
+					sccp_linedevice_release(d->lineButtons.instance[i]);
+				}
 			}
 			sccp_free(d->lineButtons.instance);
 			d->lineButtons.size = 0;
