@@ -212,7 +212,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 		sccp_config_applyDeviceConfiguration(device, NULL);
 		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
-		device->defaultLineInstance = 1;
+		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
 	}
 
@@ -335,7 +335,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_moo
 		sccp_config_applyDeviceConfiguration(device, NULL);
 		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.SPCPRegisterTokenRequest.sId.deviceName, GLOB(hotline)->line->name);
-		device->defaultLineInstance = 1;
+		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
 	}
 
@@ -451,7 +451,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_moo_
 		sccp_config_applyDeviceConfiguration(device, NULL);
 		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", r->msg.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
-		device->defaultLineInstance = 1;
+		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 		sccp_device_addToGlobals(device);
 	}
 
@@ -583,9 +583,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	memset(btn, 0, sizeof(btnlist) * StationMaxButtonTemplateSize);
 	sccp_dev_build_buttontemplate(d, btn);
 
-	uint16_t speeddialInstance = 1;										/* starting instance for speeddial is 1 */
-	uint16_t lineInstance = 1;
-	uint16_t serviceInstance = 1;
+	uint16_t speeddialInstance = SCCP_FIRST_SPEEDDIALINSTANCE;								/* starting instance for speeddial is 1 */
+	uint16_t lineInstance = SCCP_FIRST_LINEINSTANCE;
+	uint16_t serviceInstance = SCCP_FIRST_SERVICEINSTANCE;
 	boolean_t defaultLineSet = FALSE;
 
 	if (!d->isAnonymous) {
@@ -779,7 +779,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	} else {
 		/* reserve one line as hotline */
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
-		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = 1;
+		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
 	}
 	
 	
@@ -795,7 +795,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		}
 		
 		
-		d->lineButtons.size = lineInstances + 1;
+		d->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
 		d->lineButtons.instance = calloc(d->lineButtons.size, sizeof(sccp_line_t *) );
 		memset(d->lineButtons.instance, 0x0, d->lineButtons.size * sizeof(sccp_line_t *));
 		
@@ -1215,7 +1215,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			goto func_exit;
 		}
 		// \todo set index
-		instance = 1;
+		instance = SCCP_FIRST_LINEINSTANCE;
 	}
 
 	switch (stimulus) {
@@ -1390,7 +1390,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			l = sccp_dev_get_activeline(d);
 			if (!l) {
 				if (!instance)
-					instance = 1;
+					instance = SCCP_FIRST_LINEINSTANCE;
 
 				l = sccp_line_find_byid(d, instance);
 				if (!l) {
@@ -1411,7 +1411,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			l = sccp_dev_get_activeline(d);
 			if (!l) {
 				if (!instance)
-					instance = 1;
+					instance = SCCP_FIRST_LINEINSTANCE;
 
 				l = sccp_line_find_byid(d, instance);
 				if (!l) {
@@ -1432,7 +1432,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 			l = sccp_dev_get_activeline(d);
 			if (!l) {
 				if (!instance)
-					instance = 1;
+					instance = SCCP_FIRST_LINEINSTANCE;
 
 				l = sccp_line_find_byid(d, instance);
 				if (!l) {
