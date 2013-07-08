@@ -781,33 +781,6 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
 	}
-	
-	
-	/* create linebutton array */
-	{
-		sccp_linedevices_t *linedevice;
-		uint8_t lineInstances = 0;
-		
-		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances &&  btn[i].ptr) {
-				lineInstances = btn[i].instance;
-			} 
-		}
-		
-		
-		d->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
-		d->lineButtons.instance = calloc(d->lineButtons.size, sizeof(sccp_line_t *) );
-		memset(d->lineButtons.instance, 0x0, d->lineButtons.size * sizeof(sccp_line_t *));
-		
-		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-			if (btn[i].type == SKINNY_BUTTONTYPE_LINE  && btn[i].ptr ) {
-				linedevice = sccp_linedevice_find(d, (sccp_line_t *)btn[i].ptr );
-				d->lineButtons.instance[ btn[i].instance ] = linedevice;
-			} 
-		}
-	}
-	    
-	
 
 	return btn;
 }
@@ -971,6 +944,9 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 		sccp_free(d->buttonTemplate);
 	}
 	btn = d->buttonTemplate = sccp_make_button_template(d);
+	
+	/* update lineButtons array */
+	sccp_line_createLineButtonsArray(d);
 
 	if (!btn) {
 		pbx_log(LOG_ERROR, "%s: No memory allocated for button template\n", d->id);
