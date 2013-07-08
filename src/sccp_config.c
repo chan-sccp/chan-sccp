@@ -1600,15 +1600,11 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 				if (LINE == config->type && 
 				    sccp_strequals(config->label, name) && sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 				    ) {
-					if (options && sccp_strequals(config->button.line.options, options)) {
-                				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Line Button Definition remained the same\n");
-						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-						break;
-					} else {
-                				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Line Button Definition remained the same\n");
-						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-						break;
-					}
+					if ((!options && !config->button.line.options)|| sccp_strequals(config->button.line.options, options)) {
+                                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Line Button Definition remained the same\n");
+                                                changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+                                                break;
+                                        }
 				}
        				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Line Button Definition changed\n");
 				config->type = LINE;
@@ -1628,17 +1624,11 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			}
 		case SPEEDDIAL:
 			/* \todo check if values change */
-			if (SPEEDDIAL == config->type &&
-			        sccp_strequals(config->label, name) && sccp_strequals(config->button.speeddial.ext, options)
-			    ) {
-				if (args && sccp_strequals(config->button.speeddial.hint, args)) {
-               				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Speeddial Button Definition remained the same\n");
-					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-					break;
-				} else {
-               				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Speeddial Button Definition remained the same\n");
-					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-					break;
+			if (SPEEDDIAL == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.speeddial.ext, options)) {
+				if ((!args && !config->button.speeddial.hint) || sccp_strequals(config->button.speeddial.hint, args)) {
+                                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Speeddial Button Definition remained the same\n");
+                                        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+                                        break;
 				}
 			}
         		sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Speeddial Button Definition changed\n");
@@ -1673,11 +1663,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			if (FEATURE == config->type && buttonindex==config->index &&
 			        sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)
 			    ) {
-				if (args && sccp_strequals(config->button.feature.options, args)) {
-               				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Feature Button Definition remained the same\n");
-					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-					break;
-				} else {
+				if ((!args && !config->button.feature.options) || sccp_strequals(config->button.feature.options, args)) {
                				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Feature Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 					break;
@@ -1695,10 +1681,9 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			if (args) {
 				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
-                        } else {
-				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
-			}
-
+			} else {
+				sccp_copy_string(config->button.feature.options, "", sizeof(config->button.feature.options));
+			}			
 			sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Configured feature button with featureID: %s args: %s\n", options, args);
 
 			break;
