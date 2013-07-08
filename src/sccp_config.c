@@ -1621,6 +1621,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 				sccp_copy_string(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux, sizeof(config->button.line.subscriptionId.aux));
 				if (options) {
 					sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
+				} else {
+					sccp_copy_string(config->button.line.options, "", sizeof(config->button.line.options));
 				}
 				break;
 			}
@@ -1647,6 +1649,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			sccp_copy_string(config->button.speeddial.ext, options, sizeof(config->button.speeddial.ext));
 			if (args) {
 				sccp_copy_string(config->button.speeddial.hint, args, sizeof(config->button.speeddial.hint));
+			} else {
+				sccp_copy_string(config->button.speeddial.hint, "", sizeof(config->button.speeddial.hint));
 			}
 			break;
 		case SERVICE:
@@ -1691,6 +1695,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			if (args) {
 				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
+                        } else {
+				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
 			}
 
 			sccp_log((DEBUGCAT_FEATURE | DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Configured feature button with featureID: %s args: %s\n", options, args);
