@@ -1127,3 +1127,51 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 	}
 	return linedevice;
 }
+
+
+
+/* create linebutton array */
+void sccp_line_createLineButtonsArray(sccp_device_t *device) {
+	sccp_linedevices_t *linedevice;
+	uint8_t lineInstances = 0;
+	btnlist *btn;
+	uint8_t i;
+	
+	if(device->lineButtons.instance){
+		sccp_line_deleteLineButtonsArray(device);
+	}
+	
+	btn = device->buttonTemplate;
+	
+	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances &&  btn[i].ptr) {
+			lineInstances = btn[i].instance;
+		} 
+	}
+	
+	
+	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
+	device->lineButtons.instance = calloc(device->lineButtons.size, sizeof(sccp_line_t *) );
+	memset(device->lineButtons.instance, 0x0, device->lineButtons.size * sizeof(sccp_line_t *));
+	
+	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE  && btn[i].ptr ) {
+			linedevice = sccp_linedevice_find(device, (sccp_line_t *)btn[i].ptr );
+			device->lineButtons.instance[ btn[i].instance ] = linedevice;
+		} 
+	}
+}
+
+void sccp_line_deleteLineButtonsArray(sccp_device_t *device) {
+	uint8_t i;
+  
+	if(device->lineButtons.instance){
+		for (i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {
+			if(device->lineButtons.instance[i]){ 
+				sccp_linedevice_release(device->lineButtons.instance[i]);
+			}
+		}
+		sccp_free(device->lineButtons.instance);
+		device->lineButtons.size = 0;
+	}
+}

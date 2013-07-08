@@ -63,5 +63,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name);
 #define sccp_linedevice_findByLineinstance(_x,_y) __sccp_linedevice_findByLineinstance(_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func);
 sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func);
+void sccp_line_createLineButtonsArray(sccp_device_t *device);
+void sccp_line_deleteLineButtonsArray(sccp_device_t *device);
 
 #endif														/* __SCCP_LINE_H */
