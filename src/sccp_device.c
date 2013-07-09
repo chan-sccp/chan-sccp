@@ -2026,7 +2026,7 @@ uint8_t sccp_device_find_index_for_line(const sccp_device_t * d, const char *lin
 #else
 	uint8_t i;
 	for (i = SCCP_FIRST_LINEINSTANCE; i < d->lineButtons.size; i++){
-		if( d->lineButtons.instance[i]->line && !strcasecmp(d->lineButtons.instance[i]->line->name, lineName) ){
+		if( d->lineButtons.instance[i] && d->lineButtons.instance[i]->line && !strcasecmp(d->lineButtons.instance[i]->line->name, lineName) ){
 			return i;
 		}
 	}
