@@ -2057,11 +2057,11 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 	int local_total = 0;
 	int res = RESULT_FAILURE;
 
-	if (argc < 4) {
+	if (argc < 6) {
 		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
 		CLI_AMI_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
 	}
-	if (sccp_strlen_zero(argv[3])) {
+	if (sccp_strlen_zero(argv[4])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
 		CLI_AMI_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
 	}
@@ -2248,7 +2248,7 @@ CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cl
      */
 static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
-	pbx_cli(fd, "Command has not been fully implemented yet!\n");
+	pbx_cli(fd, "Command has not been implemented yet!\n");
 	return RESULT_FAILURE;
 }
 
