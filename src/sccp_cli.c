@@ -2198,33 +2198,42 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
      *      - device
      *        - see sccp_sk_dnd()
      */
-static int sccp_dnd_device(int fd, int argc, char *argv[])
+static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
+	int local_total = 0;
 
-	if (argc < 3)
+	if (3 > argc || argc > 4) {
 		return RESULT_SHOWUSAGE;
+	}
 
 	if ((d = sccp_device_find_byid(argv[3], TRUE))) {
 		sccp_sk_dnd(d, NULL, 0, NULL);
+		CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\n");
 		d = sccp_device_release(d);
 	} else {
-		pbx_cli(fd, "Can't find device %s\n", argv[3]);
-		return RESULT_SUCCESS;
+		CLI_AMI_ERROR(fd, s, m, "Can't find device %s\n", "argv[3]");
 	}
+
+	if (s)
+		*total = local_total;
 
 	return RESULT_SUCCESS;
 }
-
-static char dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a dnd to an SCCP Device.\n";
-
+static char cli_dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a dnd to an SCCP Device.\n";
+static char ami_dnd_device_usage[] = "Usage: SCCPDndDevice\n" "Set/Unset DND status on a SCCP Device.\n\n" "PARAMS: DeviceId\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "dnd", "device"
-#define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
-CLI_ENTRY(cli_dnd_device, sccp_dnd_device, "Send a dnd to SCCP Device", dnd_device_usage, FALSE)
-#undef CLI_COMMAND
+#define AMI_COMMAND "SCCPDndDevice"
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_AMI_PARAMS "DeviceId"
+CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cli_dnd_device_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef AMI_COMMAND
 #undef CLI_COMPLETE
+#undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
     /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
     /*!
      * \brief Remove Line From Device
@@ -3117,6 +3126,7 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
 	pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
+	pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on device", ami_dnd_device_usage);
 	pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
@@ -3149,6 +3159,7 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPMessageDevices");
 	pbx_manager_unregister("SCCPMessageDevice");
 	pbx_manager_unregister("SCCPSystemMessage");
+	pbx_manager_unregister("SCCPDndDevice");
 	pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_unregister("SCCPShowConferences");
