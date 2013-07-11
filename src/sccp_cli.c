@@ -2087,7 +2087,7 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 }
 
 static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
-static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
+static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Send a message to an SCCP Device.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "message", "device"
 #define AMI_COMMAND "SCCPMessageDevice"
@@ -2109,12 +2109,14 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
      * 
      * \called_from_asterisk
      */
-static int sccp_system_message(int fd, int argc, char *argv[])
+static int sccp_system_message(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int res;
 	sccp_device_t *d;
 	int timeout = 0;
+	char timeoutStr[5]="";
 	boolean_t beep = FALSE;
+	int local_total = 0;
+	int res = RESULT_FAILURE;
 
 	if (argc == 3) {
 		SCCP_RWLIST_RDLOCK(&GLOB(devices));
@@ -2122,19 +2124,16 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 			sccp_dev_clear_message(d, TRUE);
 		}
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
-		ast_cli(fd, "Message Cleared\n");
+		CLI_AMI_OUTPUT(fd, s, "Message Cleared\n");
 		return RESULT_SUCCESS;
 	}
 
-	if (argc < 4 || argc > 6)
+	if (argc < 4 || argc > 6 || sccp_strlen_zero(argv[3])) {
 		return RESULT_SHOWUSAGE;
+	}
 
-	if (sccp_strlen_zero(argv[3]))
-		return RESULT_SHOWUSAGE;
-
-	res = PBX(feature_addToDatabase) ("SCCP/message", "text", argv[3]);
-	if (!res) {
-		ast_cli(fd, "Failed to store the SCCP system message text\n");
+	if (!(PBX(feature_addToDatabase) ("SCCP/message", "text", argv[3]))) {
+		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message text\n");
 	} else {
 		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
 	}
@@ -2148,8 +2147,10 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	} else {
 		timeout = 0;
 	}
-	if (!res) {
-		ast_cli(fd, "Failed to store the SCCP system message timeout\n");
+	
+	snprintf(timeoutStr, sizeof(timeoutStr), "%d", timeout);
+	if (!(PBX(feature_addToDatabase) ("SCCP/message", "timeout", timeoutStr))) {
+		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message timeout\n");
 	} else {
 		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
 	}
@@ -2158,20 +2159,31 @@ static int sccp_system_message(int fd, int argc, char *argv[])
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, TRUE, beep);
+		res = RESULT_SUCCESS;
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-	return RESULT_SUCCESS;
+
+	if (s)
+		*total = local_total;
+		
+	return res;
 }
 
-static char system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 0 (forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
-
+static char cli_system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 0 (forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
+static char ami_system_message_usage[] = "Usage: SCCPSystemMessage\n" "Set a system wide message for all devices.\n\n" "PARAMS: MessageText, Beep, Timeout\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "system", "message"
+#define AMI_COMMAND "SCCPSystemMessage"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
-CLI_ENTRY(cli_system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", system_message_usage, FALSE)
+#define CLI_AMI_PARAMS "MessageText", "Beep", "Timeout"
+CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", cli_system_message_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef AMI_COMMAND
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+
     /* -----------------------------------------------------------------------------------------------------DND DEVICE- */
     /*!
      * \brief Message Device
@@ -3104,6 +3116,7 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
 	pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
+	pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
 	pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
@@ -3135,6 +3148,7 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowSoftkeySets");
 	pbx_manager_unregister("SCCPMessageDevices");
 	pbx_manager_unregister("SCCPMessageDevice");
+	pbx_manager_unregister("SCCPSystemMessage");
 	pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_unregister("SCCPShowConferences");
