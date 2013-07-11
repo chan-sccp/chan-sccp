@@ -17,13 +17,41 @@
  * \remarks     Purpose:        SCCP CLI
  *              When to use:    Only methods directly related to the asterisk cli interface should be stored in this source file.
  *              Relationships:  Calls ???
- */
-
+ *
+ * how to use the cli macro's
+ * /code
+ * static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "Send a message to an SCCP Device + phone beep + timeout.\n";
+ * static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
+ * #define CLI_COMMAND "sccp", "message", "device" 					// defines the cli command line before parameters
+ * #define AMI_COMMAND "SCCPMessageDevice" 						// defines the ami command line before parameters
+ * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER					// defines on or more cli tab completion helpers (in order)
+ * #define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"			// defines the ami parameter conversion mapping to argc/argv, empty string if not defined
+ * CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
+ * 											// the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
+ *											//  - functionname (will be expanded to manager_functionname and cli_functionname)
+ *											//  - function to be called upon execution
+ *											//  - description
+ *											//  - usage
+ *											//  - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
+ * #undef CLI_AMI_PARAMS
+ * #undef AMI_COMMAND
+ * #undef CLI_COMPLETE
+ * #undef CLI_COMMAND									// cleanup / undefine everything before the next call to CLI_AMI_ENTRY
+ * #endif
+ * /endcode
+ * 
+ * Inside the function that which is called on execution:
+ *  - If s!=NULL we know it is an AMI calls, if m!=NULL it is a CLI call.
+ *  - we need to add local_total which get's set to the number of lines returned (for ami calls).
+ *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_ERROR.
+ *  .
+ */ 
 #include <config.h>
 #include "common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
+
 
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
@@ -365,7 +393,6 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 }
 
 /* --- Support Functions ---------------------------------------------------------------------------------------------- */
-
 /* -------------------------------------------------------------------------------------------------------SHOW GLOBALS- */
 
 /*!
@@ -1425,7 +1452,6 @@ static char ami_conference_action_usage[] = "Usage: SCCPConference [conference i
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "conference"
-//#define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
 #define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
 #define AMI_COMMAND "SCCPConference"
 #define CLI_AMI_PARAMS "Action","ConferenceId","ParticipantId"
@@ -1435,7 +1461,7 @@ CLI_AMI_ENTRY(conference_action, sccp_cli_conference_action, "Conference Action"
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif
+#endif														/* CS_SCCP_CONFERENCE */
     /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
 #define NUM_LOOPS 20
 #define NUM_OBJECTS 100
@@ -2023,18 +2049,22 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
      *
      * \todo TO BE IMPLEMENTED: sccp message device
      */
-static int sccp_message_device(int fd, int argc, char *argv[])
+static int sccp_message_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_device_t *d;
-
+	sccp_device_t *d = NULL;
 	int timeout = 10;
-
 	boolean_t beep = FALSE;
+	int local_total = 0;
+	int res = RESULT_FAILURE;
 
-	if (argc < 4)
-		return RESULT_SHOWUSAGE;
-	if (sccp_strlen_zero(argv[3]))
-		return RESULT_SHOWUSAGE;
+	if (argc < 4) {
+		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
+		CLI_AMI_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
+	}
+	if (sccp_strlen_zero(argv[3])) {
+		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
+		CLI_AMI_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
+	}
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
 			beep = TRUE;
@@ -2045,21 +2075,27 @@ static int sccp_message_device(int fd, int argc, char *argv[])
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending message '%s' to %s (beep: %d, timeout: %d)\n", argv[3], d->id, beep, timeout);
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
+		res = RESULT_SUCCESS;
 		d = sccp_device_release(d);
-		return RESULT_SUCCESS;
 	} else {
-		ast_cli(fd, "Device not found!\n");
-		return RESULT_FAILURE;
+		CLI_AMI_ERROR(fd, s, m, "Device '%s' not found!\n", argv[4]);
 	}
 
+	if (s)
+		*total = local_total;
+	return res;
 }
 
-static char message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
-
+static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
+static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "message", "device"
+#define AMI_COMMAND "SCCPMessageDevice"
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
-CLI_ENTRY(cli_message_device, sccp_message_device, "Send a message to SCCP Device", message_device_usage, FALSE)
+#define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"
+CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef AMI_COMMAND
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -3067,6 +3103,7 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show sessions", ami_mwi_subscriptions_usage);
 	pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
 	pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
+	pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
 	pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
@@ -3097,6 +3134,7 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowMWISubscriptions");
 	pbx_manager_unregister("SCCPShowSoftkeySets");
 	pbx_manager_unregister("SCCPMessageDevices");
+	pbx_manager_unregister("SCCPMessageDevice");
 	pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_unregister("SCCPShowConferences");
