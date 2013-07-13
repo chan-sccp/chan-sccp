@@ -1794,7 +1794,7 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 	sccp_device_t *d = NULL;
 	int result = 0;
 	char codec_buf[512];
-	ast_getformatname_multiple(codec_buf,sizeof(codec_buf)-1,(struct ast_format_cap *)codecs);
+	ast_getformatname_multiple(codec_buf,sizeof(codec_buf)-1,codecs);
 
 	do {
 		if (!(c = CS_AST_CHANNEL_PVT(ast))) {
