@@ -790,15 +790,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
  * \param[out] pkt_len Packet Length
  * \return SCCP Message
  */
-sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len)
+sccp_moo_t __attribute__((malloc)) *sccp_build_packet(sccp_message_t t, size_t pkt_len)
 {
-	sccp_moo_t *r = sccp_malloc(pkt_len + SCCP_PACKET_HEADER);
+	sccp_moo_t *r = sccp_calloc(1, pkt_len + SCCP_PACKET_HEADER);
 
 	if (!r) {
 		pbx_log(LOG_WARNING, "SCCP: Packet memory allocation error\n");
 		return NULL;
 	}
-	memset(r, 0, pkt_len + SCCP_PACKET_HEADER);
 	r->header.length = htolel(pkt_len + 4);
 	r->header.lel_messageId = htolel(t);
 	return r;
