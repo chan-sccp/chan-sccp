@@ -634,7 +634,7 @@ static int sccp_wrapper_asterisk16_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_T
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", c->currentDeviceId, codec);
 				if (0 != codec) {
 					c->rtp.video.writeFormat = codec;
-					sccp_channel_openMultiMediaChannel(c);
+					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
 			}
 
