@@ -1764,7 +1764,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 		}
 		if (!(d = sccp_channel_getDevice_retained(c))) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk16_update_rtp_peer) NO DEVICE\n", c->currentDeviceId);
-			return = -1;
+			result = -1;
 			break;
 		}
                 if (!rtp && !vrtp && !trtp) {
@@ -1772,8 +1772,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
                 	result = 0;
 		        break;
 		}
-
-		PBX_RTP_TYPE * instance = {0,};
+		PBX_RTP_TYPE *instance = { 0, };
 		struct sockaddr_in sin = { 0, };
 		boolean_t directmedia=FALSE;
 
@@ -1786,13 +1785,13 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 		}
 		
 		if (d->directrtp && !d->nat && !nat_active) {						// asume directrtp
-			ast_rtp_get_peer(rtp, &sin);
+			ast_rtp_get_peer(instance, &sin);
 		        if (sccp_apply_ha(d->ha, &sin) == AST_SENSE_ALLOW) {				// check remote sin against local device acl (to match netmask)
 				directmedia=TRUE;
 			}
 		}
 		if (!directmedia) {									// fallback to indirectrtp
-			ast_rtp_get_us(rtp, &sin);
+			ast_rtp_get_us(instance, &sin);
 		        sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
 		}
 
