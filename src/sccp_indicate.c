@@ -154,7 +154,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_channel_send_callinfo(d, c);
 			if (!c->rtp.audio.rtp) {
 				if (d->earlyrtp) {
-					sccp_channel_openreceivechannel(c);
+					sccp_channel_openReceiveChannel(c);
 				} else {
 					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 				}
@@ -212,7 +212,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 			d->indicate->connected(d, linedevice, c);
 			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
-				sccp_channel_openreceivechannel(c);
+				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
 				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 			}
@@ -233,7 +233,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			} else {
 				sccp_log(DEBUGCAT_INDICATE) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n", sccp_indicate2str(c->previousChannelState));
 				if (!c->rtp.audio.rtp && d->earlyrtp) {
-					sccp_channel_openreceivechannel(c);
+					sccp_channel_openReceiveChannel(c);
 				}
 				sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
 			}
@@ -248,11 +248,16 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
 			if (!c->rtp.audio.rtp && d->earlyrtp) {
-				sccp_channel_openreceivechannel(c);
+				sccp_channel_openReceiveChannel(c);
 			}
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
-			sccp_channel_closereceivechannel(c);
+			if (c->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
+				sccp_channel_closeReceiveChannel(c);
+			}
+			if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+				sccp_channel_closeMultiMediaReceiveChannel(c);
+			}
 			sccp_handle_time_date_req(d->session, d, NULL);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
@@ -308,7 +313,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, 0);
 
 			if (!c->rtp.audio.rtp) {
-				sccp_channel_openreceivechannel(c);
+				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
 				sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_indicate2str(c->previousChannelState));
 			}
@@ -328,8 +333,11 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
 			/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
-			if (c->rtp.audio.rtp) {
-				sccp_channel_closereceivechannel(c);
+			if (c->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
+				sccp_channel_closeReceiveChannel(c);
+			}
+			if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+				sccp_channel_closeMultiMediaReceiveChannel(c);
 			}
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			break;
@@ -338,7 +346,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio.rtp) {
-				sccp_channel_openreceivechannel(c);
+				sccp_channel_openReceiveChannel(c);
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:

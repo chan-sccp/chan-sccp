@@ -757,6 +757,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("conf_mute_on_entry",	CLI_AMI_LIST_WIDTH, d->conf_mute_on_entry);
 	CLI_AMI_OUTPUT_PARAM("conf_music_on_hold_class",CLI_AMI_LIST_WIDTH, d->conf_music_on_hold_class);
 #endif
+
 	/* *INDENT-ON* */
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
@@ -1260,6 +1261,7 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 	sccp_device_t *d;
 	int local_total = 0;
 	char tmpname[20];
+	char addrStr[INET6_ADDRSTRLEN] = "";
 
 #define CLI_AMI_TABLE_NAME Channels
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Channel
@@ -1277,7 +1279,12 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 				snprintf(tmpname, sizeof(tmpname), "SCCPCONF/%03d/%03d", channel->conference_id, channel->conference_participant_id);	\
 			} else {												\
 				snprintf(tmpname, sizeof(tmpname), "SCCP/%s-%08x", l->name, channel->callid);			\
+			}													\
+			if (&channel->rtp) {											\
+				/*inet_ntop(channel->rtp.audio.sin_addr.sin_family, get_in_addr(&channel->rtp.audio.sin_addr), addrStr, sizeof(addrStr));*/\
+				sprintf(addrStr, "%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port));	\
 			}
+			
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
 			if (d)													\
@@ -1291,12 +1298,14 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(PBX,		s,	20,	strdupa(tmpname))					\
 		CLI_AMI_TABLE_FIELD(Line,		s,	10,	channel->line->name)					\
 		CLI_AMI_TABLE_FIELD(Device,		s,	16,	d ? d->id : "(unknown)")				\
-		CLI_AMI_TABLE_FIELD(DeviceDescr,	s,	32,	d ? d->description : "(unknown)")			\
+/*		CLI_AMI_TABLE_FIELD(DeviceDescr,	s,	32,	d ? d->description : "(unknown)")		*/	\
 		CLI_AMI_TABLE_FIELD(NumCalled,		s,	10,	channel->callInfo.calledPartyNumber)			\
 		CLI_AMI_TABLE_FIELD(PBX State,		s,	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		s,	10,	sccp_indicate2str(channel->state))			\
 		CLI_AMI_TABLE_FIELD(ReadCodec,		s,	10,	codec2name(channel->rtp.audio.readFormat))		\
-		CLI_AMI_TABLE_FIELD(WriteCodec,		s,	10,	codec2name(channel->rtp.audio.writeFormat))
+		CLI_AMI_TABLE_FIELD(WriteCodec,		s,	10,	codec2name(channel->rtp.audio.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(RTPPeer,		s,	22,	addrStr)						\
+		CLI_AMI_TABLE_FIELD(Direct,		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		
 #include "sccp_cli_table.h"
 
 	if (s)

@@ -253,9 +253,8 @@ typedef enum {
 typedef enum {
 	/* *INDENT-OFF* */
 	SCCP_RTP_STATUS_INACTIVE 	= 0,
-	SCCP_RTP_STATUS_REQUESTED 	= 1 << 0,								/*!< rtp not started, but format was requested */
-	SCCP_RTP_STATUS_PROGRESS 	= 1 << 1,
-	SCCP_RTP_STATUS_ACTIVE		= 1 << 2,
+	SCCP_RTP_STATUS_PROGRESS 	= 1 << 0,
+	SCCP_RTP_STATUS_ACTIVE		= 1 << 1,
 	/* *INDENT-ON* */
 } sccp_rtp_status_t;												/*!< RTP status information */
 
@@ -1123,6 +1122,7 @@ struct sccp_rtp {
 	uint8_t readState;											/*!< current read state */
 	skinny_codec_t writeFormat;										/*!< current write format */
 	uint8_t writeState;											/*!< current write state */
+	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
 };														/*!< SCCP RTP Structure */
 
 /*!

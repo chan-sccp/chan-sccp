@@ -2447,7 +2447,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_moo_
  *
  * \lock
  *      - channel
- *        - see sccp_channel_startmediatransmission()
+ *        - see sccp_channel_startMediaTransmission()
  *        - see sccp_channel_endcall()
  */
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
@@ -2476,11 +2476,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		return;
 	}
 
+/*
 	if (d->nat || !d->directrtp) {
+	        // replace listening to ipaddress with PBX rtp_instance ipaddress (keep port)
 		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
 	}
+*/
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, status, iabuf, port, (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Expect RTP/UDP from '%s:%d', PassThruPartyId: %u, CallID: %u\n", d->id, status, iabuf, port, passThruPartyId, callReference);
 
 	if (status) {
 		// rtp error from the phone 
@@ -2525,11 +2528,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			//ast_rtp_set_peer(channel->rtp.audio.rtp, &sin);
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sin);
 
-			sccp_channel_startmediatransmission(channel);						/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
+			sccp_channel_startMediaTransmission(channel);						/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 
 			/* update status */
-			channel->rtp.audio.writeState |= SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
+		        if(channel->calltype == SKINNY_CALLTYPE_INBOUND) { 
+		                PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER); 
+                        }
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
@@ -2608,10 +2614,12 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 			//                      ast_rtp_set_peer(channel->rtp.video.rtp, &sin);
 			//sccp_rtp_set_peer(channel, &channel->rtp.video, &sin);
 			sccp_rtp_set_phone(channel, &channel->rtp.video, &sin);
-			channel->rtp.video.writeState |= SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
 
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE)
-			    ) {
+                        if(channel->calltype == SKINNY_CALLTYPE_INBOUND) { 
+                                PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER); 
+                        }
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
 		} else {
@@ -2686,6 +2694,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 
 	sccp_call_statistics_t *last_call_stats = NULL;
 	sccp_call_statistics_t *avg_call_stats = NULL;
+	struct ast_str *output_buf = pbx_str_alloca(2048);
 	char QualityStats[128] = "";
 
 	if ((d = sccp_device_retain(d))) {
@@ -2709,16 +2718,17 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			last_call_stats->latency = letohl(r->msg.ConnectionStatisticsRes_V19.lel_latency);
 			sccp_copy_string(QualityStats, r->msg.ConnectionStatisticsRes_V19.QualityStats, sizeof(QualityStats));
 		}
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Statistics: CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id, last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
+		ast_str_append(&output_buf, 0, "%s: Call Statistics:\n", d->id);
+		ast_str_append(&output_buf, 0, "       [\n");
 
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Quality Statistics: %s\n", d->id, QualityStats);
+		ast_str_append(&output_buf, 0, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
 		if (!sccp_strlen_zero(QualityStats)) {
 			sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;ICR=%f;CCR=%f;ICRmx=%f;CS=%d;SCS=%d;MLQKvr=%f",
 			       &last_call_stats->opinion_score_listening_quality,
 			       &last_call_stats->avg_opinion_score_listening_quality, &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
 		}
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;ICR=%.4f;CCR=%.4f;ICRmx=%.4f;CS=%d;SCS=%d;MLQKvr=%.2f\n",
-					   d->id, last_call_stats->opinion_score_listening_quality, last_call_stats->avg_opinion_score_listening_quality, last_call_stats->mean_opinion_score_listening_quality,
+		ast_str_append(&output_buf, 0, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;ICR=%.4f;CCR=%.4f;ICRmx=%.4f;CS=%d;SCS=%d;MLQKvr=%.2f\n",
+					   last_call_stats->opinion_score_listening_quality, last_call_stats->avg_opinion_score_listening_quality, last_call_stats->mean_opinion_score_listening_quality,
 					   last_call_stats->max_opinion_score_listening_quality, last_call_stats->interval_concealement_ratio, last_call_stats->cumulative_concealement_ratio, last_call_stats->max_concealement_ratio, (int) last_call_stats->concealed_seconds, (int) last_call_stats->severely_concealed_seconds, last_call_stats->variance_opinion_score_listening_quality);
 
 		// update avg_call_statistics
@@ -2743,7 +2753,12 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		avg_call_stats->variance_opinion_score_listening_quality = CALC_AVG(last_call_stats->variance_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->num);
 
 		avg_call_stats->num++;
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Mean Statistics: # Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", d->id, avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
+                ast_str_append(&output_buf, 0, "         Mean Statistics  : #Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
+
+		ast_str_append(&output_buf, 0, "         Mean Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;ICR=%.4f;CCR=%.4f;ICRmx=%.4f;CS=%d;SCS=%d;MLQKvr=%.2f\n",
+					   avg_call_stats->opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality, avg_call_stats->mean_opinion_score_listening_quality,
+					   avg_call_stats->max_opinion_score_listening_quality, avg_call_stats->interval_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->max_concealement_ratio, (int) avg_call_stats->concealed_seconds, (int) avg_call_stats->severely_concealed_seconds, avg_call_stats->variance_opinion_score_listening_quality);
+                ast_str_append(&output_buf, 0, "       ]\n");
 
 		// update global_call_statistics
 		/*
@@ -2755,6 +2770,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		   avg_call_stats->latency  = ((avg_call_stats->latency * (avg_call_stats->num) ) + last_call_stats->latency) / (avg_call_stats->num + 1);
 		   avg_call_stats->num++;
 		 */
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s", pbx_str_buffer(output_buf));
 		d = sccp_device_release(d);
 	}
 
@@ -3361,24 +3377,32 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
 		sccp_dump_packet((unsigned char *) &r->msg, r->header.length);
 		if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
-			sccp_channel_closereceivechannel(channel);
+			sccp_channel_closeReceiveChannel(channel);
+		}
+		if (channel->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+			sccp_channel_closeMultiMediaReceiveChannel(channel);
 		}
 		sccp_channel_endcall(channel);
 	} else {
 		if (channel->state != SCCP_CHANNELSTATE_DOWN) {
 			/* update status */
-			channel->rtp.audio.readState &= ~SCCP_RTP_STATUS_PROGRESS;
-			channel->rtp.audio.readState |= SCCP_RTP_STATUS_ACTIVE;
+			channel->rtp.audio.readState = SCCP_RTP_STATUS_ACTIVE;
+			
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
-			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE)
-			    ) {
+                        if(channel->calltype == SKINNY_CALLTYPE_INBOUND) { 
+                                PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER); 
+                        }
+			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, Remote TCP/IP: '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
 		} else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
 			if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closereceivechannel(channel);
+				sccp_channel_closeReceiveChannel(channel);
+			}
+			if (channel->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
+				sccp_channel_closeMultiMediaReceiveChannel(channel);
 			}
 			sccp_channel_endcall(channel);
 		}
@@ -3533,8 +3557,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	}
 
 	/* update status */
-	c->rtp.video.readState &= ~SCCP_RTP_STATUS_PROGRESS;
-	c->rtp.video.readState |= SCCP_RTP_STATUS_ACTIVE;
+	c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, Remote TCP/IP '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
 

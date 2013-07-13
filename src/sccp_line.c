@@ -1042,7 +1042,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 #else
-	if (d->lineButtons.size > instance && instance > 0 && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line ){
+	if (0 < instance && instance < d->lineButtons.size && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line ){
 		l = sccp_line_retain( d->lineButtons.instance[instance]->line );
 	}
 #endif
@@ -1118,7 +1118,7 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 		return NULL;
 	}
 	
-	if (instance < device->lineButtons.size) {
+	if (0 < instance && instance < device->lineButtons.size && device->lineButtons.instance[instance]) {		/* 0 < instance < lineButton.size */
 		linedevice = sccp_linedevice_retain( device->lineButtons.instance[ instance ] ) ;
 	}
 
@@ -1151,8 +1151,7 @@ void sccp_line_createLineButtonsArray(sccp_device_t *device) {
 	
 	
 	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
-	device->lineButtons.instance = calloc(device->lineButtons.size, sizeof(sccp_line_t *) );
-	memset(device->lineButtons.instance, 0x0, device->lineButtons.size * sizeof(sccp_line_t *));
+	device->lineButtons.instance = sccp_calloc(device->lineButtons.size, sizeof(sccp_line_t *) );
 	
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 		if (btn[i].type == SKINNY_BUTTONTYPE_LINE  && btn[i].ptr ) {

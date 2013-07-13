@@ -96,7 +96,6 @@ void sccp_rtp_stop(sccp_channel_t * c)
 	} else {
 		pbx_log(LOG_ERROR, "no pbx function to stop rtp\n");
 	}
-
 }
 
 /*!
@@ -120,16 +119,11 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 	}
 
 	memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
-	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
-
-	if (c->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE) {
-		/* Shutdown any early-media or previous media on re-invite */
-		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", c->currentDeviceId, c->callid);
-		sccp_channel_stopmediatransmission(c);
-		sccp_channel_startmediatransmission(c);
-	}
-
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_1 "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+	
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_1 "%s: ( sccp_rtp_set_peer ) updateMediaTransmission\n", c->currentDeviceId);
+	sccp_channel_updateMediaTransmission(c);
+	//sccp_channel_updateMultiMediaTransmission(c);
 }
 
 /*!
@@ -162,8 +156,8 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
 		//update pbx
-		if (PBX(rtp_setPeer)) {
-			PBX(rtp_setPeer) (rtp, new_peer, device->nat);
+		if (PBX(rtp_setPhoneAddress)) {
+			PBX(rtp_setPhoneAddress) (rtp, new_peer, device->nat);
 		}
 
 		char cbuf1[128] = "";
@@ -218,6 +212,9 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_
 	*rtp = &(((sccp_channel_t *) c)->rtp.video);
 
 	result = SCCP_RTP_INFO_AVAILABLE;
+	if (device->directrtp && !device->nat) {
+		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
+	}
 
 	device = device ? sccp_device_release(device) : NULL;
 	return result;
@@ -258,13 +255,13 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 	l = c->line;
 
 	if (c->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying phone media transmission on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
 		PBX(rtp_destroy) (c->rtp.audio.rtp);
 		c->rtp.audio.rtp = NULL;
 	}
 
 	if (c->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying video media transmission on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
 		PBX(rtp_destroy) (c->rtp.video.rtp);
 		c->rtp.video.rtp = NULL;
 	}
