@@ -219,7 +219,7 @@ gcc_inline const char *message2str(sccp_message_t type)
 
 gcc_inline size_t message2size(sccp_message_t type)
 {														/* sccp_protocol.h */
-	return sccp_messagetypes[type].size;
+	return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
 }
 
 gcc_inline const char *pbxdevicestate2str(uint32_t value)
