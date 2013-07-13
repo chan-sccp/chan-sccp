@@ -689,37 +689,37 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 {
 	sccp_device_t *d = NULL;
 	sccp_channel_t *c = NULL;
+	char retValStr[64] = "";
 
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *channelId = astman_get_header(m, "channelId");
 
-	d = sccp_device_find_byid(deviceName, FALSE);
-	if (!d) {
-		astman_send_error(s, m, "Device not found");
-		return 0;
+	if (atoi(channelId)==0) {
+		snprintf(retValStr, sizeof(retValStr), "Channel Id has to be a number. You have provided: '%s'\r\n", channelId);
+		astman_send_error(s, m, retValStr);
+		return 0;		
 	}
-
-	c = sccp_channel_find_byid(atoi(channelId));
-
-	if (!c) {
+	
+	if ((c = sccp_channel_find_byid(atoi(channelId)))) {
+		if ((sccp_strlen_zero(deviceName) && (d = sccp_channel_getDevice_retained(c))) || (!sccp_strlen_zero(deviceName) && (d = sccp_device_find_byid(deviceName, FALSE)))) {
+			if (c->state == SCCP_CHANNELSTATE_RINGING) {
+				sccp_channel_answer(d, c);
+				if (c->owner) {
+					PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+				}
+				snprintf(retValStr, sizeof(retValStr), "Answered channel '%s' on device '%s'\r\n", channelId, deviceName);
+				astman_send_ack(s, m, retValStr);
+			} else {
+				astman_send_error(s, m, "Call is not ringing\r\n");
+			}
+			d = sccp_device_release(d);
+		} else {
+			astman_send_error(s, m, "Device not found");
+		}
+		c = sccp_channel_release(c);
+	} else {
 		astman_send_error(s, m, "Call not found\r\n");
-		d = sccp_device_release(d);
-		return 0;
 	}
-
-	if (c->state != SCCP_CHANNELSTATE_RINGING) {
-		astman_send_error(s, m, "Call is not ringin\r\n");
-		d = sccp_device_release(d);
-		return 0;
-	}
-
-	astman_append(s, "Answering channel '%s'\r\n", channelId);
-
-	sccp_channel_answer(d, c);
-
-	astman_send_ack(s, m, "Call was Answered");
-	c = sccp_channel_release(c);
-	d = sccp_device_release(d);
 	return 0;
 }
 
