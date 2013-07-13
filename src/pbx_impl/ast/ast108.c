@@ -2051,7 +2051,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 {
 	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
-	struct ast_sockaddr sock;
+	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
 	if (!c)
@@ -2062,7 +2062,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	s = d->session;
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
-		struct sockaddr_in sin;
+		struct sockaddr_in sin = {0};
 
 		sin.sin_family = AF_INET;
 		sin.sin_port = GLOB(bindaddr.sin_port);
@@ -2125,7 +2125,7 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 {
 	sccp_session_t *s;
 	sccp_device_t *d = NULL;
-	struct ast_sockaddr sock;
+	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
 	if (!c)

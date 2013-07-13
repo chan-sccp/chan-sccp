@@ -284,12 +284,12 @@ boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_in **new_pee
  */
 boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_in **new_peer)
 {
-	*new_peer = &c->rtp.audio.phone_remote;
+	*new_peer = &c->rtp.video.phone_remote;
 	return TRUE;
 }
 
 /*!
- * \brief Retrieve Phone Socket Information
+ * \brief Retrieve Phone Socket Iformation
  */
 boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_in *us)
 {
