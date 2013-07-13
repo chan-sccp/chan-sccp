@@ -683,7 +683,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 					sprintf(data, "%d", device->privacyFeature.status);
 					PBX(feature_addToDatabase) (family, "privacy", data);
 				}
-				device->privacyFeature.status = device->privacyFeature.status;
+				device->privacyFeature.previousStatus = device->privacyFeature.status;
 			}
 			break;
 		case SCCP_FEATURE_MONITOR:

@@ -1508,7 +1508,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYP
 }
 #endif
 
-static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
+static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
 
 	sccp_channel_t *c = NULL;
@@ -1516,10 +1516,15 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_rtp_peer(PBX_CHANNE
 	struct sccp_rtp *audioRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", pbx_channel_name(ast));
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO PVT\n");
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk111_get_rtp_info) NO PVT\n");
 		return AST_RTP_GLUE_RESULT_FORBID;
+	}
+
+	if (pbx_channel_state(ast) != AST_STATE_UP) {
+	        sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_rtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+        } else {
+	        sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_rtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 	}
 
 	rtpInfo = sccp_rtp_getAudioPeerInfo(c, &audioRTP);
@@ -1528,118 +1533,166 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_rtp_peer(PBX_CHANNE
 	}
 
 	*rtp = audioRTP->rtp;
-	if (!*rtp)
+	if (!*rtp) {
 		return AST_RTP_GLUE_RESULT_FORBID;
+	}
+//	struct ast_sockaddr ast_sockaddr_tmp;
+//	ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
+//	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (asterisk111_get_rtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp), ast_sockaddr_port(&ast_sockaddr_tmp));
 
 	ao2_ref(*rtp, +1);
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( wrapper_asterisk111_get_rtp_peer ) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_rtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
 	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( wrapper_asterisk111_get_rtp_peer ) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", pbx_channel_name(ast));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_rtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
+	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_rtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res==2) ? "indirect-rtp" : ((res==1) ? "direct-rtp" : "forbid")));
 	return res;
 }
 
-static int sccp_wrapper_asterisk111_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, const struct ast_format_cap *codecs, int nat_active)
-{
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
-	int result = 0;
-
-	do {
-		if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO PVT\n");
-			result = -1;
-			break;
-		}
-		if (!c->line) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO LINE\n");
-			result = -1;
-			break;
-		}
-		if (!(d = sccp_channel_getDevice_retained(c))) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) NO DEVICE\n");
-			result = -1;
-			break;
-		}
-
-		if (!rtp) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) RTP not ready\n");
-			result = 0;
-			break;
-		}
-		//              if (!d->directrtp || d->nat) {
-		struct ast_sockaddr us_tmp;
-		struct sockaddr_in us = { 0, };
-
-		//                      sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_set_rtp_peer) %s, use local part\n", d->directrtp ? "direct media disabled" : "NATed device");
-
-		ast_rtp_instance_get_local_address(rtp, &us_tmp);
-		ast_sockaddr_to_sin(&us_tmp, &us);
-		us.sin_addr.s_addr = us.sin_addr.s_addr ? us.sin_addr.s_addr : d->session->ourip.s_addr;
-		sccp_rtp_set_peer(c, &c->rtp.audio, &us);
-
-		//              } else {
-		//                      struct ast_sockaddr them_tmp;
-		//                      struct sockaddr_in them = { 0, };
-		//                      
-		//                      ast_rtp_instance_get_remote_address(rtp, &them_tmp);
-		//                      ast_sockaddr_to_sin(&them_tmp, &them);
-		//                      sccp_rtp_set_peer(c, &c->rtp.audio, &them);
-		//              }
-
-		if (ast_channel_state(ast) != AST_STATE_UP) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Early RTP stage, codecs=%lu, nat=%d\n", (long unsigned int) codecs, d->nat);
-		} else {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "SCCP: (sccp_channel_set_rtp_peer) Native Bridge Break, codecs=%lu, nat=%d\n", (long unsigned int) codecs, d->nat);
-		}
-	} while (0);
-
-	/* Need a return here to break the bridge */
-	d = d ? sccp_device_release(d) : NULL;
-	return result;
-}
-
-static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_vrtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
+static enum ast_rtp_glue_result sccp_wrapper_asterisk111_get_vrtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
-	struct sccp_rtp *audioRTP = NULL;
+	struct sccp_rtp *videoRTP = NULL;
 	enum ast_rtp_glue_result res = AST_RTP_GLUE_RESULT_REMOTE;
 
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) Asterisk requested RTP peer for channel %s\n", pbx_channel_name(ast));
 	if (!(c = CS_AST_CHANNEL_PVT(ast))) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (sccp_channel_get_rtp_peer) NO PVT\n");
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk111_get_vrtp_info) NO PVT\n");
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 
-	rtpInfo = sccp_rtp_getAudioPeerInfo(c, &audioRTP);							//! \todo should this not be getVideoPeerInfo
+	if (pbx_channel_state(ast) != AST_STATE_UP) {
+	        sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_vrtp_info) Asterisk requested EarlyRTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+        } else {
+        	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_vrtp_info) Asterisk requested RTP peer for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
+        }
+
+	rtpInfo = sccp_rtp_getVideoPeerInfo(c, &videoRTP);
 	if (rtpInfo == SCCP_RTP_INFO_NORTP) {
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 
-	*rtp = audioRTP->rtp;
-	if (!*rtp)
+	*rtp = videoRTP->rtp;
+	if (!*rtp) {
 		return AST_RTP_GLUE_RESULT_FORBID;
+	}
+
+//	struct ast_sockaddr ast_sockaddr_tmp;
+//	ast_rtp_instance_get_remote_address(*rtp, &ast_sockaddr_tmp);
+//	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (asterisk111_get_rtp_info) remote address:'%s:%d'\n", c->currentDeviceId, ast_sockaddr_stringify_host(&ast_sockaddr_tmp), ast_sockaddr_port(&ast_sockaddr_tmp));
 #ifdef HAVE_PBX_RTP_ENGINE_H
 	ao2_ref(*rtp, +1);
 #endif
 	if (ast_test_flag(&GLOB(global_jbconf), AST_JB_FORCED)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( __PRETTY_FUNCTION__ ) JitterBuffer is Forced. AST_RTP_GET_FAILED\n");
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_vrtp_info) JitterBuffer is Forced. AST_RTP_GET_FAILED\n", c->currentDeviceId);
 		return AST_RTP_GLUE_RESULT_FORBID;
 	}
 
 	if (!(rtpInfo & SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: ( __PRETTY_FUNCTION__ ) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", pbx_channel_name(ast));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_vrtp_info) Direct RTP disabled ->  Using AST_RTP_TRY_PARTIAL for channel %s\n", c->currentDeviceId, pbx_channel_name(ast));
 		return AST_RTP_GLUE_RESULT_LOCAL;
 	}
 
+	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (asterisk111_get_vrtp_info) Channel %s Returning res: %s\n", c->currentDeviceId, pbx_channel_name(ast), ((res==2) ? "indirect-rtp" : ((res==1) ? "direct-rtp" : "forbid")));
 	return res;
+}
+
+static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, const struct ast_format_cap *codecs, int nat_active)
+{
+	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
+	int result = 0;
+	char codec_buf[512];
+	ast_getformatname_multiple(codec_buf,sizeof(codec_buf)-1,(struct ast_format_cap *)codecs);
+
+	do {
+		if (!(c = CS_AST_CHANNEL_PVT(ast))) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk111_update_rtp_peer) NO PVT\n");
+			result = -1;
+			break;
+		}
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk111_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast),"RTP","EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
+		if (!c->line) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) NO LINE\n", c->currentDeviceId);
+			result = -1;
+			break;
+		}
+		if (c->state == SCCP_CHANNELSTATE_HOLD) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) On Hold -> No Update\n", c->currentDeviceId);
+			result = 0;
+			break;
+		}
+		if (!(d = sccp_channel_getDevice_retained(c))) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) NO DEVICE\n", c->currentDeviceId);
+			result = -1;
+			break;
+		}
+
+		if (!rtp  && !vrtp && !trtp) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) RTP not ready\n",c->currentDeviceId);
+			result = 0;
+			break;
+		}
+
+		PBX_RTP_TYPE * instance = {0,};
+		struct sockaddr_in sin = { 0, };
+		struct ast_sockaddr sin_tmp;
+		boolean_t directmedia=FALSE;
+
+		if (rtp) {										// generalize input
+			instance = rtp;
+		} else if (vrtp) {
+			instance = vrtp;
+		} else {
+			instance = trtp;
+		}
+		
+		if (d->directrtp && !d->nat && !nat_active) {						// asume directrtp
+		        ast_rtp_instance_get_remote_address(instance, &sin_tmp);
+		        ast_sockaddr_to_sin(&sin_tmp, &sin);
+		        if (sccp_apply_ha(d->ha, &sin) == AST_SENSE_ALLOW) {				// check remote sin against local device acl (to match netmask)
+				directmedia=TRUE;
+			}
+		}
+		if (!directmedia) {									// fallback to indirectrtp
+		        ast_rtp_instance_get_local_address(instance, &sin_tmp);
+		        ast_sockaddr_to_sin(&sin_tmp, &sin);
+		        sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
+		}
+
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s:%d'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n",  
+				c->currentDeviceId, 
+				ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port),
+				S_COR(d->directrtp, "yes", "no"), 
+				S_COR(!d->nat,"yes","no"), 
+				S_COR(!nat_active,"yes","no"),
+				S_COR(directmedia,"yes","no"),
+				S_COR(directmedia,"yes","no")
+			);
+		
+		if (rtp) {										// send peer info to phone
+			sccp_rtp_set_peer(c, &c->rtp.audio, &sin);
+			c->rtp.audio.directMedia = directmedia;
+		} else if (vrtp) {
+			sccp_rtp_set_peer(c, &c->rtp.video, &sin);
+			c->rtp.audio.directMedia = directmedia;
+		} else {
+			//sccp_rtp_set_peer(c, &c->rtp.text, &sin);
+			//c->rtp.audio.directMedia = directmedia;
+		}
+
+	} while (0);
+
+	/* Need a return here to break the bridge */
+	d = d ? sccp_device_release(d) : NULL;
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (asterisk111_update_rtp_peer) Result: %d\n", c->currentDeviceId, result);
+	return result;
 }
 
 static void sccp_wrapper_asterisk111_getCodec(PBX_CHANNEL_TYPE * ast, struct ast_format_cap *result)
@@ -1802,12 +1855,12 @@ static int sccp_wrapper_asterisk111_callerid_presence(const sccp_channel_t * cha
 static int sccp_wrapper_asterisk111_rtp_stop(sccp_channel_t * channel)
 {
 	if (channel->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Stopping phone media transmission on channel %08X\n", channel->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX audio rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
 		ast_rtp_instance_stop(channel->rtp.audio.rtp);
 	}
 
 	if (channel->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "Stopping video media transmission on channel %08X\n", channel->callid);
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_4 "%s: Stopping PBX video rtp transmission on channel %08X\n", channel->currentDeviceId, channel->callid);
 		ast_rtp_instance_stop(channel->rtp.video.rtp);
 	}
 	return 0;
@@ -1827,23 +1880,21 @@ static boolean_t sccp_wrapper_asterisk111_create_audio_rtp(sccp_channel_t * c)
 		return FALSE;
 
 	s = d->session;
-
-	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
-		struct sockaddr_in sin = {0};
-
-		sin.sin_family = AF_INET;
-		sin.sin_port = GLOB(bindaddr.sin_port);
-		sin.sin_addr = s->ourip;
-		/*              sccp_socket_getOurAddressfor(s->sin.sin_addr, sin.sin_addr); */// maybe we should use this opertunity to check the connected ip-address again
-		ast_sockaddr_from_sin(&sock, &sin);
-	} else {
-		ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
-	}
-
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating rtp server connection on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
-
-	c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
-	if (!c->rtp.audio.rtp) {
+//	next should be replaced by
+//	ast_sockaddr_from_sin(&sock, s->ourip);
+//	in ipv6, but for now, build a temp sin based on s->ourip
+	struct sockaddr_in sin = {0,};
+	sin.sin_family = AF_INET;
+	sin.sin_addr = s->ourip;
+	sin.sin_port = GLOB(bindaddr.sin_port);
+	ast_sockaddr_from_sin(&sock, &sin);
+	
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
+	if ((c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
+                struct ast_sockaddr instance_addr = { {0,} };
+                ast_rtp_instance_get_local_address(c->rtp.audio.rtp, &instance_addr);
+                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+        } else {        
 		d = sccp_device_release(d);
 		return FALSE;
 	}
@@ -1901,11 +1952,21 @@ static boolean_t sccp_wrapper_asterisk111_create_video_rtp(sccp_channel_t * c)
 		return FALSE;
 
 	s = d->session;
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Creating vrtp server connection at %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(s->ourip));
+//	next should be replaced by
+//	ast_sockaddr_from_sin(&sock, &s->ourip);
+//	in ipv6, but for now, build a temp sin based on s->ourip
+	struct sockaddr_in sin = {0,};
+	sin.sin_family = AF_INET;
+	sin.sin_addr = s->ourip;
+	sin.sin_port = GLOB(bindaddr.sin_port);
+	ast_sockaddr_from_sin(&sock, &sin);
 
-	ast_sockaddr_from_sin(&sock, &GLOB(bindaddr));
-	c->rtp.video.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL);
-	if (!c->rtp.video.rtp) {
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
+	if ((c->rtp.video.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
+                struct ast_sockaddr instance_addr = { {0,} };
+                ast_rtp_instance_get_local_address(c->rtp.video.rtp, &instance_addr);
+                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+        } else {        
 		d = sccp_device_release(d);
 		return FALSE;
 	}
@@ -1990,10 +2051,9 @@ static boolean_t sccp_wrapper_asterisk111_getChannelByName(const char *name, PBX
 	return TRUE;
 }
 
-static int sccp_wrapper_asterisk111_rtp_set_peer(const struct sccp_rtp *rtp, const struct sockaddr_in *new_peer, int nat_active)
+static int sccp_wrapper_asterisk111_setPhoneRTPAddress(const struct sccp_rtp *rtp, const struct sockaddr_in *new_peer, int nat_active)
 {
 	struct ast_sockaddr ast_sockaddr_dest;
-	struct ast_sockaddr ast_sockaddr_source;
 	int res;
 
 	((struct sockaddr_in *) new_peer)->sin_family = AF_INET;
@@ -2002,11 +2062,14 @@ static int sccp_wrapper_asterisk111_rtp_set_peer(const struct sccp_rtp *rtp, con
 
 	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr_dest);
 
-	ast_rtp_instance_get_local_address(rtp->rtp, &ast_sockaddr_source);
-	//      sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: Tell PBX to send RTP/UDP media from '%s:%d' to '%s:%d' (NAT: %s)\n", ast_sockaddr_stringify_host(&ast_sockaddr_source), ast_sockaddr_port(&ast_sockaddr_source), ast_sockaddr_stringify_host(&ast_sockaddr_dest), ast_sockaddr_port(&ast_sockaddr_dest), nat_active ? "yes" : "no");
+	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (asterisk111_setPhoneRTPAddress) Update PBX to send RTP/UDP media to '%s:%d' (new remote) (NAT: %s)\n", ast_sockaddr_stringify_host(&ast_sockaddr_dest), ast_sockaddr_port(&ast_sockaddr_dest), S_COR(nat_active,"yes","no"));
+
+//	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (asterisk111_setPhoneRTPAddress) Set rtp_instance NAT Property to %s\n", S_COR(nat_active, "True", "False"));
 	if (nat_active) {
-		ast_rtp_instance_set_prop(rtp->rtp, AST_RTP_PROPERTY_NAT, 1);
-	}
+                ast_rtp_instance_set_prop(rtp->rtp, AST_RTP_PROPERTY_NAT, 1);
+        } else {
+                ast_rtp_instance_set_prop(rtp->rtp, AST_RTP_PROPERTY_NAT, 0);
+        }
 	return res;
 }
 
@@ -2580,19 +2643,19 @@ struct ast_rtp_glue sccp_rtp = {
 	/* *INDENT-OFF* */
 	type:	SCCP_TECHTYPE_STR,
 	mod:	NULL,
-	get_rtp_info:sccp_wrapper_asterisk111_get_rtp_peer,
-	get_vrtp_info:sccp_wrapper_asterisk111_get_vrtp_peer,
+	get_rtp_info:sccp_wrapper_asterisk111_get_rtp_info,
+	get_vrtp_info:sccp_wrapper_asterisk111_get_vrtp_info,
 	get_trtp_info:NULL,
-	update_peer:sccp_wrapper_asterisk111_set_rtp_peer,
+	update_peer:sccp_wrapper_asterisk111_update_rtp_peer,
 	get_codec:sccp_wrapper_asterisk111_getCodec,
 	/* *INDENT-ON* */
 };
 #else
 struct ast_rtp_glue sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,
-	.get_rtp_info = sccp_wrapper_asterisk111_get_rtp_peer,
-	.get_vrtp_info = sccp_wrapper_asterisk111_get_vrtp_peer,
-	.update_peer = sccp_wrapper_asterisk111_set_rtp_peer,
+	.get_rtp_info = sccp_wrapper_asterisk111_get_rtp_info,
+	.get_vrtp_info = sccp_wrapper_asterisk111_get_vrtp_info,
+	.update_peer = sccp_wrapper_asterisk111_update_rtp_peer,
 	.get_codec = sccp_wrapper_asterisk111_getCodec,
 };
 #endif
@@ -2728,7 +2791,7 @@ sccp_pbx_cb sccp_pbx = {
 	/* rtp */
 	rtp_getPeer:			sccp_wrapper_asterisk111_rtpGetPeer,
 	rtp_getUs:			sccp_wrapper_asterisk111_rtpGetUs,
-	rtp_setPeer:			sccp_wrapper_asterisk111_rtp_set_peer,
+	rtp_setPhoneAddress:		sccp_wrapper_asterisk111_setPhoneRTPAddress,
 	rtp_setWriteFormat:		sccp_wrapper_asterisk111_setWriteFormat,
 	rtp_setReadFormat:		sccp_wrapper_asterisk111_setReadFormat,
 	rtp_destroy:			sccp_wrapper_asterisk111_destroyRTP,
@@ -2860,7 +2923,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.rtp_destroy 			= sccp_wrapper_asterisk111_destroyRTP,
 	.rtp_setWriteFormat 		= sccp_wrapper_asterisk111_setWriteFormat,
 	.rtp_setReadFormat 		= sccp_wrapper_asterisk111_setReadFormat,
-	.rtp_setPeer 			= sccp_wrapper_asterisk111_rtp_set_peer,
+	.rtp_setPhoneAddress 		= sccp_wrapper_asterisk111_setPhoneRTPAddress,
 
 	/* callerid */
 	.get_callerid_name 		= sccp_wrapper_asterisk111_callerid_name,
@@ -2966,7 +3029,7 @@ static int load_module(void)
 	}
 #endif
 
-	//      ast_rtp_glue_register(&sccp_rtp);
+	ast_rtp_glue_register(&sccp_rtp);
 	sccp_register_management();
 	sccp_register_cli();
 	sccp_register_dialplan_functions();
@@ -2978,7 +3041,7 @@ static int unload_module(void)
 {
 	sccp_preUnload();
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
-	//      ast_rtp_glue_unregister(&sccp_rtp);
+	ast_rtp_glue_unregister(&sccp_rtp);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
 	ast_channel_unregister(&sccp_tech);
 	sccp_unregister_dialplan_functions();

@@ -375,12 +375,8 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	}
 #endif														// CS_SCCP_CONFERENCE
 
-	if (c->rtp.audio.rtp || c->rtp.video.rtp) {
-		if (d && SKINNY_DEVICE_RS_OK == d->registrationState) {
-			sccp_channel_closereceivechannel(c);
-		}
-		sccp_rtp_destroy(c);
-	}
+        sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+
 	// removing scheduled dialing
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
@@ -453,6 +449,9 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	//      }
 
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+
+	/* requesting statistics */
+	sccp_channel_StatisticsRequest(c);
 	sccp_channel_clean(c);
 
 	d = d ? sccp_device_release(d) : NULL;
@@ -505,9 +504,9 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: sccp_pbx_answer\n");
 
 	/* \todo perhaps we should lock channel here. */
-	if (!(c = sccp_channel_retain(channel)))
+	if (!(c = sccp_channel_retain(channel))) {
 		return -1;
-
+	}
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: sccp_pbx_answer checking parent channel\n", c->currentDeviceId);
 	if (c->parentChannel) {											// containing a retained channel, final release at the end
 		/* we are a forwarded call, bridge me with my parent */
@@ -719,7 +718,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 		d = d ? sccp_device_release(d) : NULL;
 		return 0;
 	}
-
 	sccp_channel_updateChannelCapability(c);
 	PBX(set_nativeAudioFormats) (c, c->preferences.audio, 1);
 
@@ -1145,7 +1143,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				break;
 		}
 	} else {
-		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s, pbx_check_hangup(chan): %d, extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber, pbx_check_hangup(pbx_channel), (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
+		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s, pbx_check_hangup(chan): %d, extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber, (pbx_channel && pbx_check_hangup(pbx_channel)), (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
 		pbx_log(LOG_NOTICE, "%s: Call from '%s' to extension '%s', rejected because the extension could not be found in context '%s'\n", DEV_ID_LOG(d), l->name, shortenedNumber, pbx_channel_context(pbx_channel));
 		/* timeout and no extension match */
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);

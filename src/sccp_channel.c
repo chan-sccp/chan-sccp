@@ -224,6 +224,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
 	sccp_mutex_unlock(&channel->lock);
+//	sccp_rtp_createAudioServer(channel);
 	return channel;
 }
 
@@ -725,7 +726,7 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
  *        - see sccp_dev_starttone()
  *        - see sccp_dev_send()
  */
-void sccp_channel_openreceivechannel(sccp_channel_t * channel)
+void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 {
 	sccp_device_t *d = NULL;
 
@@ -785,10 +786,60 @@ void sccp_channel_openreceivechannel(sccp_channel_t * channel)
 }
 
 /*!
+ * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
+ * \param channel SCCP Channel
+ * \note sccp_channel_stopMediaTransmission is explicit call within this function!
+ * 
+ * \lock
+ *      - channel
+ *        - see sccp_dev_send()
+ */
+void sccp_channel_closeReceiveChannel(sccp_channel_t * channel)
+{
+	sccp_moo_t *r;
+	sccp_device_t *d = NULL;
+
+	if (!channel) {
+		return;
+	}
+	
+	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
+	sccp_channel_stopMediaTransmission(channel);
+//	sccp_rtp_stop(channel);
+
+	if ((d = sccp_channel_getDevice_retained(channel))) {
+		if (channel->rtp.audio.writeState) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Close receivechannel on channel %d\n", DEV_ID_LOG(d), channel->callid);
+			REQ(r, CloseReceiveChannel);
+			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
+			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, r);
+			channel->rtp.audio.writeState = SCCP_RTP_STATUS_INACTIVE;
+		}
+		d = sccp_device_release(d);
+	}
+}
+
+void sccp_channel_updateReceiveChannel(sccp_channel_t * channel)
+{
+	/* \todo possible to skip the closing of the receive channel (needs testing) */
+	/* \todo if this works without closing, this would make changing codecs on the fly possible */
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.writeState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_closeReceiveChannel(channel);
+	}
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.writeState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_openReceiveChannel(channel);
+	}
+}
+
+/*!
  * \brief Open Multi Media Channel (Video) on Channel
  * \param channel SCCP Channel
  */
-void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
+void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
 {
 	uint32_t skinnyFormat;
 	int payloadType;
@@ -824,6 +875,181 @@ void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel)
 	d->protocol->sendOpenMultiMediaChannel(d, channel, skinnyFormat, payloadType, lineInstance, bitRate);
 	d = sccp_device_release(d);
 }
+
+/*!
+ * \brief Open Multi Media Channel (Video) on Channel
+ * \param channel SCCP Channel
+ */
+void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel)
+{
+	sccp_moo_t *r;
+	sccp_device_t *d = NULL;
+
+	if (!channel) {
+		return;
+	}
+	
+	// stop transmitting before closing receivechannel (\note maybe we should not be doing this here)
+	sccp_channel_stopMediaTransmission(channel);
+
+	if ((d = sccp_channel_getDevice_retained(channel))) {
+		if (channel->rtp.video.writeState) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on channel %d\n", DEV_ID_LOG(d), channel->callid);
+			REQ(r, CloseMultiMediaReceiveChannel);
+			r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
+			r->msg.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, r);
+			channel->rtp.video.writeState = SCCP_RTP_STATUS_INACTIVE;
+		}
+		d = sccp_device_release(d);
+	}
+}
+
+void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel)
+{
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_openMultiMediaReceiveChannel(channel);
+	}
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.readState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateMultiMediaReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_closeMultiMediaReceiveChannel(channel);
+	}
+}
+
+/*!
+ * \brief Tell a Device to Start Media Transmission.
+ *
+ * We choose codec according to sccp_channel->format.
+ *
+ * \param channel SCCP Channel
+ * \note rtp should be started before, otherwise we do not start transmission
+ */
+void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
+{
+	sccp_device_t *d = NULL;
+
+	if (!channel->rtp.audio.rtp) {
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
+		return;
+	}
+
+	if ((d = sccp_channel_getDevice_retained(channel))) {
+		/* Mute mic feature: If previously set, mute the microphone after receiving of media is already open, but before starting to send to rtp. */
+		/* This must be done in this exact order to work also on newer phones like the 8945. It must also be done in other places for other phones. */
+		if (!channel->isMicrophoneEnabled()) {
+			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+		}
+
+		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+		if (d->nat) {
+			if (!sccp_strlen_zero(GLOB(externhost))) {
+				pbx_log(LOG_NOTICE, "Device is behind NAT use external hostname translation: %s\n", GLOB(externhost));
+				struct ast_hostent ahp;
+				struct hostent *hp;
+
+				// replace us.sin_addr if we are natted
+				if (GLOB(externip.sin_addr.s_addr)) {
+					if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
+						time(&GLOB(externexpire));
+						GLOB(externexpire) += GLOB(externrefresh);
+						if ((hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
+							memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
+						} else {
+							pbx_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
+						}
+					}
+					memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
+				}
+			} else if (GLOB(externip.sin_addr.s_addr)) {
+				pbx_log(LOG_NOTICE, "Device is behind NAT use external address: %s\n", pbx_inet_ntoa(GLOB(externip.sin_addr)));
+				memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
+			}
+		} else if (!d->directrtp) {
+			/** \todo move this to the initial part, otherwise we overwrite direct rtp destination */
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Not Direct RTP -> Replacing Phone RTP Destination with our local-external address: %s\n", DEV_ID_LOG(d), pbx_inet_ntoa(GLOB(externip.sin_addr)));
+			channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+		}
+
+#ifdef CS_EXPERIMENTAL_CODEC
+		sccp_channel_recalculateReadformat(channel);
+#endif
+		if (channel->owner) {
+			PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.readFormat, 1);
+			PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
+		}
+
+		channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
+		d->protocol->sendStartMediaTransmission(d, channel);
+
+		char cbuf1[128] = "";
+		char cbuf2[128] = "";
+
+		sprintf(cbuf1, "%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port));
+		sprintf(cbuf2, "%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port));
+
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%s to %s (NAT: %s)\n", DEV_ID_LOG(d), cbuf1, cbuf2, d->nat ? "yes" : "no");
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+
+		d = sccp_device_release(d);
+	} else {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_channel_startMediaTransmission) Could not retrieve device from channel\n");
+	}
+}
+
+
+/*!
+ * \brief Tell device to Stop Media Transmission.
+ *
+ * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
+ * \param channel SCCP Channel
+ * 
+ * \lock
+ *      - channel
+ *        - see sccp_channel_stop_rtp()
+ *        - see sccp_dev_send()
+ */
+void sccp_channel_stopMediaTransmission(sccp_channel_t * channel)
+{
+	sccp_moo_t *r;
+	sccp_device_t *d = NULL;
+
+	if (!channel) {
+		return;
+	}
+
+	if ((d = sccp_channel_getDevice_retained(channel))) {
+		// stopping phone rtp
+		if (channel->rtp.audio.readState) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Stop mediatransmission on channel %d\n", DEV_ID_LOG(d), channel->callid);
+			REQ(r, StopMediaTransmission);
+			r->msg.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
+			r->msg.StopMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, r);
+			channel->rtp.audio.readState = SCCP_RTP_STATUS_INACTIVE;
+		}
+		d = sccp_device_release(d);
+	}
+}
+
+void sccp_channel_updateMediaTransmission(sccp_channel_t * channel)
+{
+	/* \note apparently startmediatransmission allows us to change the ip-information midflight without stopping mediatransmission beforehand */
+	/* \note this would indicate that it should also be possible to change codecs midflight ! */
+	/* \test should be able to do without this block to stopmediatransmission (Sometimes results in "OpenIngressChan: Potential buffer leak" (phone log)*/
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.readState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_stopMediaTransmission(channel);
+	}
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.readState) {
+		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Start/Update media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_startMediaTransmission(channel);
+	}
+}
+
 
 /*!
  * \brief Start Multi Media Transmission (Video) on Channel
@@ -889,6 +1115,8 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s:%d with codec: %s(%d), payloadType %d, tos %d\n", d->id, pbx_inet_ntoa(channel->rtp.video.phone_remote.sin_addr), ntohs(channel->rtp.video.phone_remote.sin_port), codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, payloadType, d->audio_tos);
+		
+		channel->rtp.video.readState = SCCP_RTP_STATUS_PROGRESS;
 		d->protocol->sendStartMultiMediaTransmission(d, channel, payloadType, bitRate, sin);
 		d = sccp_device_release(d);
 		PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
@@ -896,173 +1124,72 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 }
 
 /*!
- * \brief Tell a Device to Start Media Transmission.
- *
- * We choose codec according to sccp_channel->format.
- *
+ * \brief Stop Multi Media Transmission (Video) on Channel
  * \param channel SCCP Channel
- * \note rtp should be started before, otherwise we do not start transmission
  */
-void sccp_channel_startmediatransmission(sccp_channel_t * channel)
+void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel)
 {
+	sccp_moo_t *r;
 	sccp_device_t *d = NULL;
 
-	if (!channel->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can't start rtp media transmission, maybe channel is down %s-%08X\n", channel->currentDeviceId, channel->line->name, channel->callid);
+	if (!channel) {
 		return;
 	}
 
 	if ((d = sccp_channel_getDevice_retained(channel))) {
-		/* Mute mic feature: If previously set, mute the microphone after receiving of media is already open, but before starting to send to rtp. */
-		/* This must be done in this exact order to work also on newer phones like the 8945. It must also be done in other places for other phones. */
-		if (!channel->isMicrophoneEnabled()) {
-			sccp_dev_set_microphone(d, SKINNY_STATIONMIC_OFF);
+		// stopping phone vrtp
+		if (channel->rtp.video.readState) {
+			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Stop multimediatransmission on channel %d\n", DEV_ID_LOG(d), channel->callid);
+			REQ(r, StopMultiMediaTransmission);
+			r->msg.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
+			r->msg.StopMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			r->msg.StopMultiMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, r);
+			channel->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		}
+	}
+}
 
-		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-		if (d->nat) {
-			if (!sccp_strlen_zero(GLOB(externhost))) {
-				pbx_log(LOG_NOTICE, "Device is behind NAT use external hostname translation: %s\n", GLOB(externhost));
-				struct ast_hostent ahp;
-				struct hostent *hp;
+void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel)
+{
+	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop multiemedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_stopMultiMediaTransmission(channel);
+	}
+	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.readState) {
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Start multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_channel_startMultiMediaTransmission(channel);
+	}
+}
 
-				// replace us.sin_addr if we are natted
-				if (GLOB(externip.sin_addr.s_addr)) {
-					if (GLOB(externexpire) && (time(NULL) >= GLOB(externexpire))) {
-						time(&GLOB(externexpire));
-						GLOB(externexpire) += GLOB(externrefresh);
-						if ((hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
-							memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
-						} else {
-							pbx_log(LOG_NOTICE, "Warning: Re-lookup of '%s' failed!\n", GLOB(externhost));
-						}
-					}
-					memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
-				}
-			} else if (GLOB(externip.sin_addr.s_addr)) {
-				pbx_log(LOG_NOTICE, "Device is behind NAT use external address: %s\n", pbx_inet_ntoa(GLOB(externip.sin_addr)));
-				memcpy(&channel->rtp.audio.phone_remote.sin_addr, &GLOB(externip.sin_addr), 4);
+void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channel_t *channel) 
+{
+	if (!d || !channel) {
+		return;
+	}
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_closeAllMediaTransmitAndReceive) Stop All Media Reception and Transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+	if ((d = sccp_channel_getDevice_retained(channel))) {
+	        if (d && SKINNY_DEVICE_RS_OK == d->registrationState) {
+			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.readState) {
+				sccp_channel_stopMediaTransmission(channel);
 			}
-		} else {
-
-			/** \todo move this to the initial part, otherwise we overwrite direct rtp destination */
-			channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
+				sccp_channel_stopMultiMediaTransmission(channel);
+			}
+			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.writeState) {
+				sccp_channel_closeReceiveChannel(channel);
+			}
+			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
+				sccp_channel_openMultiMediaReceiveChannel(channel);
+			}
 		}
-
-#ifdef CS_EXPERIMENTAL_CODEC
-		sccp_channel_recalculateReadformat(channel);
-#endif
-		if (channel->owner) {
-			PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.readFormat, 1);
-			PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
-		}
-
-		channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
-		d->protocol->sendStartMediaTransmission(d, channel);
-
-		char cbuf1[128] = "";
-		char cbuf2[128] = "";
-
-		sprintf(cbuf1, "%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone.sin_addr), ntohs(channel->rtp.audio.phone.sin_port));
-		sprintf(cbuf2, "%15s:%d", pbx_inet_ntoa(channel->rtp.audio.phone_remote.sin_addr), ntohs(channel->rtp.audio.phone_remote.sin_port));
-
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from:%s to %s (NAT: %s)\n", DEV_ID_LOG(d), cbuf1, cbuf2, d->nat ? "yes" : "no");
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
-
 		d = sccp_device_release(d);
-	} else {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_channel_startmediatransmission) Could not retrieve device from channel\n");
 	}
-}
-
-/*!
- * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
- * \param channel SCCP Channel
- * \note sccp_channel_stopmediatransmission is explicit call within this function!
- * 
- * \lock
- *      - channel
- *        - see sccp_dev_send()
- */
-void sccp_channel_closereceivechannel(sccp_channel_t * channel)
-{
-	sccp_moo_t *r;
-	sccp_device_t *d = NULL;
-
-	if (!channel) {
-		return;
-	}
-
-	if ((d = sccp_channel_getDevice_retained(channel))) {
-		REQ(r, CloseReceiveChannel);
-		r->msg.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
-		r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
-		sccp_dev_send(d, r);
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Close receivechannel on channel %d\n", DEV_ID_LOG(d), channel->callid);
-	}
-	channel->rtp.audio.readState = SCCP_RTP_STATUS_INACTIVE;
-
-	if (d && channel->rtp.video.rtp) {
-		REQ(r, CloseMultiMediaReceiveChannel);
-		r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
-		r->msg.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
-		sccp_dev_send(d, r);
-	}
-
-	d = d ? sccp_device_release(d) : NULL;
-	sccp_channel_stopmediatransmission(channel);
-}
-
-/*!
- * \brief Tell device to Stop Media Transmission.
- *
- * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
- * \param channel SCCP Channel
- * 
- * \lock
- *      - channel
- *        - see sccp_channel_stop_rtp()
- *        - see sccp_dev_send()
- */
-void sccp_channel_stopmediatransmission(sccp_channel_t * channel)
-{
-	sccp_moo_t *r;
-	sccp_device_t *d = NULL;
-
-	if (!channel) {
-		return;
-	}
-
-	if ((d = sccp_channel_getDevice_retained(channel))) {
-		REQ(r, StopMediaTransmission);
-		r->msg.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
-		r->msg.StopMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
-		sccp_dev_send(d, r);
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Stop media transmission on channel %d\n", DEV_ID_LOG(d), channel->callid);
-	}
-	// stopping rtp
-	if (channel->rtp.audio.rtp) {
+	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
 		sccp_rtp_stop(channel);
+		sccp_rtp_destroy(channel);
 	}
-	channel->rtp.audio.readState = SCCP_RTP_STATUS_INACTIVE;
-
-	// stopping vrtp
-	if (d && channel->rtp.video.rtp) {
-		REQ(r, StopMultiMediaTransmission);
-		r->msg.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
-		r->msg.StopMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		r->msg.StopMultiMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
-		sccp_dev_send(d, r);
-	}
-	d = d ? sccp_device_release(d) : NULL;
-
-	/* requesting statistics */
-	sccp_channel_StatisticsRequest(channel);
 }
-
 /*!
  * \brief Hangup this channel.
  * \param channel *retained* SCCP Channel
@@ -1212,7 +1339,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
 
 	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !channel->rtp.audio.rtp) {
-		sccp_channel_openreceivechannel(channel);
+		sccp_channel_openReceiveChannel(channel);
 	}
 
 	if (dial) {
@@ -1372,7 +1499,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		}
 #endif
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(pbx_channel_state(channel->owner)), pbx_channel_state(channel->owner));
-		PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);
+//		PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);					// moved to startmediatransmission_ack, where it belongs !
 
 		if (channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_indicate(non_const_device, channel, SCCP_CHANNELSTATE_OFFHOOK);
@@ -1450,7 +1577,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 			PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
 		}
 	}
-	sccp_rtp_stop(channel);
+ 	//sccp_rtp_stop(channel);
 	sccp_channel_set_active(d, NULL);
 	sccp_dev_set_activeline(d, NULL);
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);							// this will also close (but not destroy) the RTP stream
@@ -1571,7 +1698,6 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 
 	//! \todo move this to openreceive- and startmediatransmission
 	sccp_channel_updateChannelCapability(channel);
-	//        sccp_rtp_createAudioServer(channel);
 
 	channel->state = SCCP_CHANNELSTATE_HOLD;
 #ifdef CS_AST_CONTROL_SRCUPDATE
@@ -1670,12 +1796,13 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		channel->owner = NULL;
 	}
 
-	/* this is in case we are destroying the session */
-	if (channel->state != SCCP_CHANNELSTATE_DOWN)
+	if (channel->state != SCCP_CHANNELSTATE_DOWN) {
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
+	}
 
-	sccp_rtp_stop(channel);
-
+	/* make sure all rtp stuff is closed and destroyed */
+	sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
+	
 	if (d) {
 		/* deactive the active call if needed */
 		if (d->active_channel == channel)

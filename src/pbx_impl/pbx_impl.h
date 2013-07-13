@@ -83,7 +83,7 @@ struct sccp_pbx_cb {
 //	int (*const rtp_getPeer) (const sccp_channel_t * channel, struct sockaddr_in * address);
 	boolean_t(*const rtp_getPeer) (PBX_RTP_TYPE * rtp, struct sockaddr_in *address);
 	boolean_t(*const rtp_getUs) (PBX_RTP_TYPE * rtp, struct sockaddr_in *address);
-	int (*const rtp_setPeer) (const struct sccp_rtp * rtp, const struct sockaddr_in * new_peer, int nat_active);
+	int (*const rtp_setPhoneAddress) (const struct sccp_rtp * rtp, const struct sockaddr_in * new_peer, int nat_active);
 	boolean_t(*const rtp_setWriteFormat) (const sccp_channel_t * channel, skinny_codec_t codec);
 	boolean_t(*const rtp_setReadFormat) (const sccp_channel_t * channel, skinny_codec_t codec);
 	boolean_t(*const rtp_destroy) (PBX_RTP_TYPE * tp);

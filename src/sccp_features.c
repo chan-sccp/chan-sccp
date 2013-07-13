@@ -181,7 +181,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
-		sccp_channel_openreceivechannel(c);
+		sccp_channel_openReceiveChannel(c);
 	}
 
 EXIT:
@@ -261,7 +261,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
-		sccp_channel_openreceivechannel(c);
+		sccp_channel_openReceiveChannel(c);
 	}
 
 	c = sccp_channel_release(c);
@@ -665,7 +665,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  *        - see sccp_channel_set_active()
  *        - see sccp_indicate_nolock()
  *        - see sccp_pbx_channel_allocate()
- *        - see sccp_channel_openreceivechannel()
+ *        - see sccp_channel_openReceiveChannel()
  */
 void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
@@ -919,7 +919,7 @@ void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance
  *        - see sccp_channel_set_active()
  *        - see sccp_indicate_nolock()
  *        - see sccp_pbx_channel_allocate()
- *        - see sccp_channel_openreceivechannel()
+ *        - see sccp_channel_openReceiveChannel()
  */
 void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
@@ -977,7 +977,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
-		sccp_channel_openreceivechannel(c);
+		sccp_channel_openReceiveChannel(c);
 	}
 
 	/* removing scheduled dial */
@@ -1210,7 +1210,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
-		sccp_channel_openreceivechannel(c);
+		sccp_channel_openReceiveChannel(c);
 	}
 	c = sccp_channel_release(c);
 }
@@ -1310,7 +1310,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	if (d->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !c->rtp.audio.rtp) {
-		sccp_channel_openreceivechannel(c);
+		sccp_channel_openReceiveChannel(c);
 	}
 
 	c = sccp_channel_release(c);

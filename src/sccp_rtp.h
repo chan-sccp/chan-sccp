@@ -13,7 +13,7 @@
 
 typedef enum {
 	SCCP_RTP_INFO_NORTP = 0,
-	SCCP_RTP_INFO_AVAILABLE = 1 << 2,
+	SCCP_RTP_INFO_AVAILABLE = 1 << 1,
 	SCCP_RTP_INFO_ALLOW_DIRECTRTP = 1 << 2,
 } sccp_rtp_info_t;												/*!< RTP status information */
 

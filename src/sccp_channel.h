@@ -39,12 +39,23 @@ void sccp_channel_reset_calleridPresenceParameter(sccp_channel_t * c);
 void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * c, sccp_calleridpresence_t presenceParameter);
 void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
-void sccp_channel_openreceivechannel(sccp_channel_t * c);
-void sccp_channel_startmediatransmission(sccp_channel_t * c);
-void sccp_channel_closereceivechannel(sccp_channel_t * c);
-void sccp_channel_stopmediatransmission(sccp_channel_t * c);
-void sccp_channel_openMultiMediaChannel(sccp_channel_t * channel);
+
+void sccp_channel_openReceiveChannel(sccp_channel_t * c);
+void sccp_channel_closeReceiveChannel(sccp_channel_t * c);
+void sccp_channel_updateReceiveChannel(sccp_channel_t * c);
+void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel);
+void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel);
+void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel);
+
+void sccp_channel_startMediaTransmission(sccp_channel_t * c);
+void sccp_channel_stopMediaTransmission(sccp_channel_t * c);
+void sccp_channel_updateMediaTransmission(sccp_channel_t * channel);
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
+void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel);
+void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel);
+
+void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channel_t *channel);
+
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
