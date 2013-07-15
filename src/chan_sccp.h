@@ -213,7 +213,13 @@ extern struct sccp_pbx_cb sccp_pbx;
 
 #define SCCP_MAX_HOSTNAME_LEN 100
 #define SCCP_MAX_MESSAGESTACK 10
+
+#if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
+typedef unsigned long sccp_group_t;										/*!< SCCP callgroup / pickupgroup */
+#else
 typedef ULONG sccp_group_t;											/*!< SCCP callgroup / pickupgroup */
+#endif
+
 typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */
 typedef struct sccp_session sccp_session_t;									/*!< SCCP Session Structure */
 typedef struct sccp_line sccp_line_t;										/*!< SCCP Line Structure */
