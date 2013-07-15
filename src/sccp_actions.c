@@ -1836,7 +1836,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 
 	const softkey_modes *v = d->softKeyConfiguration.modes;
 	const uint8_t v_count = d->softKeyConfiguration.size;
-	const uint8_t *b = v->ptr;
+	const uint8_t *b;
 
 	REQ(r1, SoftKeySetResMessage);
 	r1->msg.SoftKeySetResMessage.lel_softKeySetOffset = htolel(0);
@@ -1884,6 +1884,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->directed_pickup) ? "enabled" : "disabled");
 #endif
 	for (i = 0; i < v_count; i++) {
+		b = v->ptr;
 		uint8_t c, j, cp = 0;
 
 		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
