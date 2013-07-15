@@ -359,16 +359,16 @@ dnl with
 		    	return -1;
             }
         ])], [
-                AC_DEFINE(ULONG, [long unsigned int], [Define ULONG as long unsigned int])
+                AC_DEFINE(ULONG, [insigned long], [Define ULONG as long unsigned int])
                 AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%lu"])
                 AC_MSG_RESULT([yes])
         ],  [
-                AC_DEFINE(ULONG, [long long unsigned int], [Define ULONG as long long unsigned int])
+                AC_DEFINE(ULONG, [unsigned long long], [Define ULONG as long long unsigned int])
                 AC_DEFINE(UI64FMT, ["%llu"], [Define UI64FMT as "%llu"])
                 AC_MSG_RESULT([no])
         ],  [
                 dnl when cross compilation asume long long != long
-                AC_DEFINE(ULONG, [long long unsigned int], [Define ULONG as long long unsigned int])
+                AC_DEFINE(ULONG, [unsigned long long], [Define ULONG as long long unsigned int])
                 AC_DEFINE(UI64FMT, ["%llu"], [Define UI64FMT as "%llu"])
                 AC_MSG_RESULT([no])
         ])
