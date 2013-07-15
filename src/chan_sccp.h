@@ -1131,7 +1131,6 @@ struct sccp_rtp {
  */
 struct sccp_channel {
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-	ast_cond_t astStateCond;
 
 #if DEBUG
 	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel, const char *filename, int lineno, const char *func);	/*!< temporary function to retrieve refcounted device */

@@ -183,7 +183,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	sccp_mutex_init(&channel->lock);
 	sccp_mutex_lock(&channel->lock);
-	pbx_cond_init(&channel->astStateCond, NULL);
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
@@ -1862,7 +1861,6 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		sccp_free(channel->privateData);
 	}
 	sccp_mutex_destroy(&channel->lock);
-	pbx_cond_destroy(&channel->astStateCond);
 
 	return;
 }
