@@ -2221,7 +2221,7 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 		CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\n");
 		d = sccp_device_release(d);
 	} else {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", "argv[3]");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);
 	}
 
 	if (s)
@@ -2877,12 +2877,12 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	return RESULT_SUCCESS;
 }
 
-static char set_hold_usage[] = "Usage: sccp set [hold|device] <channelId> <on/off>\n" "Set a channel to hold/unhold\n";
+static char set_object_usage[] = "Usage: sccp set channel|device settings\n" "sccp set channel <channelId> hold <on/off>|device <deviceId> [ringtone <ringtone>|backgroundImage <url>|variable <variable>]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
 #define CLI_COMPLETE SCCP_CLI_SET_COMPLETER
-CLI_ENTRY(cli_set_hold, sccp_set_object, "Set channel|device to hold/unhold", set_hold_usage, TRUE)
+CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_object_usage, TRUE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -3091,7 +3091,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
-	AST_CLI_DEFINE(cli_set_hold, "Place call on hold."),
+	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
 	AST_CLI_DEFINE(cli_remote_answer, "Remotely answer a call."),
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
 	AST_CLI_DEFINE(cli_test_message, "Test message."),
