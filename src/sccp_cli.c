@@ -2899,22 +2899,20 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
 static int sccp_answercall(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
-	sccp_linedevices_t *linedevice = NULL;
 	sccp_device_t *d = NULL;
-	int num_devices = 0;
 	
 	int local_total = 0;
 	int res = RESULT_SUCCESS;
-	char error[100]="";
+	char error[100] = "";
 
-	if (argc < 3 || argc > 4 || pbx_strlen_zero(argv[2])) {
+	if (argc != 4 || pbx_strlen_zero(argv[2]) || pbx_strlen_zero(argv[3])) {
 		return RESULT_SHOWUSAGE;
 	}
 
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		int lineId, channelId;
 		sscanf(argv[2], "SCCP/%d-%d", &lineId, &channelId);
-//		c = sccp_find_channel_on_line_byid(l, channeId);
+//		c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));
@@ -2922,37 +2920,17 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 
 	if (c) {
 		if (c->state == SCCP_CHANNELSTATE_RINGING) {
-			num_devices = SCCP_RWLIST_GETSIZE(c->line->devices);
-			sccp_log(0)("HIERO num devices: '%d'\n", num_devices);
-			if (argc == 3 && num_devices == 1) {
-				SCCP_LIST_LOCK(&c->line->devices);
-				SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
-					d = sccp_device_retain(linedevice->device);
-					break;
+			if ((d = sccp_device_find_byid(argv[3], FALSE))) {
+				sccp_channel_answer(d, c);
+				if (c->owner) {
+					PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
 				}
-				SCCP_LIST_UNLOCK(&c->line->devices);
-			} else if (argc == 4 && num_devices != 0) {
-				if (pbx_strlen_zero(argv[3])) {
-					pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) DeviceId required to answer call on a SharedLine, for channel %s\n", c->designator);
-					snprintf(error, sizeof(error), "SCCP: (sccp_answercall) DeviceId required to answer call on a SharedLine, for channel %s\n", c->designator);
-					res = RESULT_FAILURE;
-				} else {
-					d = sccp_device_find_byid(argv[3], FALSE);
-				}
-			}
-			if (res != RESULT_FAILURE) {
-				if (c && d) {
-					sccp_channel_answer(d, c);
-					if (c->owner) {
-						PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
-					}
-					res = RESULT_SUCCESS;
-					d = sccp_device_release(d);
-				} else {
-					pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s not found\n", (num_devices > 1 && argc < 4) ? argv[3] : "for this channel");
-					snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Device %s not found\n", (num_devices > 1 && argc < 4) ? argv[3] : "for this channel");
-					res = RESULT_FAILURE;
-				}
+				res = RESULT_SUCCESS;
+				d = sccp_device_release(d);
+			} else {
+				pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s not found\n", argv[3]);
+				snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Device %s not found\n", argv[3]);
+				res = RESULT_FAILURE;
 			}
 		} else {
 			pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
@@ -2974,11 +2952,10 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 		*total = local_total;
 	}
 	
-	sccp_log(0)("HIER done\n");
 	return res;
 }
 
-static char cli_answercall_usage[] = "Usage: sccp answercall channelId <deviceId>\n" "       Answer a ringing incoming channel on device.\n";
+static char cli_answercall_usage[] = "Usage: sccp answercall channelId deviceId\n" "       Answer a ringing incoming channel on device.\n";
 static char ami_answercall_usage[] = "Usage: SCCPAsnwerCall1\n" "Answer a ringing incoming channel on device.\n\n" "PARAMS: ChannelId,DeviceId\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "answer"
