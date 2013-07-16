@@ -2434,7 +2434,7 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 	sccp_device_t *d = NULL;
 
 	if (sccp_strlen_zero(name)) {
-		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for device with name ''\n");
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for device with name ''\n");
 		return NULL;
 	}
 
@@ -2452,8 +2452,9 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 #ifdef CS_SCCP_REALTIME
-	if (!d && useRealtime)
+	if (!d && useRealtime) {
 		d = sccp_device_find_realtime_byid(name);
+	}
 #endif
 
 	return d;
