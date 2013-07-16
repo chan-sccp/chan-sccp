@@ -138,7 +138,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 		if (RESULT_SUCCESS==_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(arguments), arguments)) {	\
 		        astman_send_ack(s, m, AMI_COMMAND);							\
                 } else {											\
-                        astman_send_error(s, m, "Unknown Failure\n");						\
+                        astman_send_error(s, m, "Execution Failed\n");						\
                 }												\
 		astman_append(s,										\
 		"Event: " _DESCR " Complete\r\n"								\
