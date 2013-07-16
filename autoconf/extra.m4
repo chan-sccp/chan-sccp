@@ -359,7 +359,7 @@ dnl with
 		    	return -1;
             }
         ])], [
-                AC_DEFINE(ULONG, [insigned long], [Define ULONG as long unsigned int])
+                AC_DEFINE(ULONG, [unsigned long], [Define ULONG as long unsigned int])
                 AC_DEFINE(UI64FMT, ["%lu"], [Define UI64FMT as "%lu"])
                 AC_MSG_RESULT([yes])
         ],  [
