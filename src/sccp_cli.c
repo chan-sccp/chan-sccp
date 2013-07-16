@@ -2911,7 +2911,7 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		int lineId, channelId;
-		sscanf(argv[2], "SCCP/%d-%d", &lineId, &channelId);
+		sscanf(argv[2], "SCCP/%d-%x", &lineId, &channelId);
 //		c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
