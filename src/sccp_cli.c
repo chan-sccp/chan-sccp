@@ -1990,7 +1990,6 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
      *        - see sccp_dev_displaynotify()
      *        - see sccp_dev_starttone()
      */
-    //static int sccp_message_devices(int fd, int argc, char *argv[])
 static int sccp_message_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2897,50 +2896,102 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
      * \lock
      *      - channel
      */
-static int sccp_remote_answer(int fd, int argc, char *argv[])
+static int sccp_answercall(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
+	sccp_linedevices_t *linedevice = NULL;
 	sccp_device_t *d = NULL;
+	int num_devices = 0;
+	
+	int local_total = 0;
+	int res = RESULT_SUCCESS;
+	char error[100]="";
 
-	if (argc < 3)
+	if (argc < 3 || argc > 4 || pbx_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
-	if (pbx_strlen_zero(argv[2]))
-		return RESULT_SHOWUSAGE;
+	}
 
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
-		int line, channel;
-
-		sscanf(argv[2], "SCCP/%d-%d", &line, &channel);
-		c = sccp_channel_find_byid(channel);
+		int lineId, channelId;
+		sscanf(argv[2], "SCCP/%d-%d", &lineId, &channelId);
+//		c = sccp_find_channel_on_line_byid(l, channeId);
+		c = sccp_channel_find_byid(channelId);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));
 	}
-	if (!c) {
-		pbx_cli(fd, "Can't find channel for ID %s\n", argv[2]);
-		return RESULT_FAILURE;
-	} else {
-		pbx_cli(fd, "ANSWERING CHANNEL %s \n", argv[2]);
-		if ((d = sccp_channel_getDevice_retained(c))) {
-			sccp_channel_answer(d, c);
-			d = sccp_device_release(d);
-		}
-		if (c->owner) {
-			PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
-		}
+
+	if (c) {
+		if (c->state == SCCP_CHANNELSTATE_RINGING) {
+			num_devices = SCCP_RWLIST_GETSIZE(c->line->devices);
+			sccp_log(0)("HIERO num devices: '%d'\n", num_devices);
+			if (argc == 3 && num_devices == 1) {
+				SCCP_LIST_LOCK(&c->line->devices);
+				SCCP_LIST_TRAVERSE(&c->line->devices, linedevice, list) {
+					d = sccp_device_retain(linedevice->device);
+					break;
+				}
+				SCCP_LIST_UNLOCK(&c->line->devices);
+			} else if (argc == 4 && num_devices != 0) {
+				if (pbx_strlen_zero(argv[3])) {
+					pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) DeviceId required to answer call on a SharedLine, for channel %s\n", c->designator);
+					snprintf(error, sizeof(error), "SCCP: (sccp_answercall) DeviceId required to answer call on a SharedLine, for channel %s\n", c->designator);
+					res = RESULT_FAILURE;
+				} else {
+					d = sccp_device_find_byid(argv[3], FALSE);
+				}
+			}
+			if (res != RESULT_FAILURE) {
+				if (c && d) {
+					sccp_channel_answer(d, c);
+					if (c->owner) {
+						PBX(queue_control) (c->owner, AST_CONTROL_ANSWER);
+					}
+					res = RESULT_SUCCESS;
+					d = sccp_device_release(d);
+				} else {
+					pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Device %s not found\n", (num_devices > 1 && argc < 4) ? argv[3] : "for this channel");
+					snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Device %s not found\n", (num_devices > 1 && argc < 4) ? argv[3] : "for this channel");
+					res = RESULT_FAILURE;
+				}
+			}
+		} else {
+			pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
+			snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
+			res = RESULT_FAILURE;
+		}		
 		c = sccp_channel_release(c);
-		return RESULT_SUCCESS;
+	} else {
+		pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
+		snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
+		res = RESULT_FAILURE;
 	}
+		
+	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
+	}
+	
+	if (s) {
+		*total = local_total;
+	}
+	
+	sccp_log(0)("HIER done\n");
+	return res;
 }
 
-static char remote_answer_usage[] = "Usage: sccp answer <channelId>\n" "Answer a ringing/incoming channel\n";
-
+static char cli_answercall_usage[] = "Usage: sccp answercall channelId <deviceId>\n" "       Answer a ringing incoming channel on device.\n";
+static char ami_answercall_usage[] = "Usage: SCCPAsnwerCall1\n" "Answer a ringing incoming channel on device.\n\n" "PARAMS: ChannelId,DeviceId\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "answer"
-#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER
-CLI_ENTRY(cli_remote_answer, sccp_remote_answer, "Answer a ringing/incoming channel", remote_answer_usage, FALSE)
-#undef CLI_COMMAND
+#define AMI_COMMAND "SCCPAsnwerCall1"
+#define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER, SCCP_CLI_CONNECTED_DEVICE_COMPLETER
+#define CLI_AMI_PARAMS "ChannelId", "DeviceId"
+CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on device", cli_answercall_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef AMI_COMMAND
 #undef CLI_COMPLETE
+#undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
     /* --------------------------------------------------------------------------------------------------------------END CALL- */
     /*!
      * \brief End a Call (on a Channel)
@@ -3090,7 +3141,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
 	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
-	AST_CLI_DEFINE(cli_remote_answer, "Remotely answer a call."),
+	AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
 	AST_CLI_DEFINE(cli_test_message, "Test message."),
 	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
@@ -3135,6 +3186,7 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
 	pbx_manager_register("SCCPSystemMessage", _MAN_REP_FLAGS, manager_system_message, "system message", ami_system_message_usage);
 	pbx_manager_register("SCCPDndDevice", _MAN_REP_FLAGS, manager_dnd_device, "set/unset dnd on device", ami_dnd_device_usage);
+	pbx_manager_register("SCCPAnswerCall1", _MAN_REP_FLAGS, manager_answercall, "Answer Ringing Incoming Channel on Device", ami_answercall_usage);
 	pbx_manager_register("SCCPTokenAck", _MAN_REP_FLAGS, manager_tokenack, "send tokenack", ami_tokenack_usage);
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
