@@ -296,7 +296,6 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 			}
 			break;
 		case 3:		// device / channel / line
-		  
 			if( strstr(line, "device") != NULL ){
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -2795,7 +2794,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
 			int line, channel;
 
-			sscanf(argv[3], "SCCP/%d-%d", &line, &channel);
+			sscanf(argv[3], "SCCP/%d-%x", &line, &channel);
 			c = sccp_channel_find_byid(channel);
 		} else {
 			c = sccp_channel_find_byid(atoi(argv[3]));
@@ -2994,7 +2993,7 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		int line, channel;
 
-		sscanf(argv[2], "SCCP/%d-%d", &line, &channel);
+		sscanf(argv[2], "SCCP/%d-%x", &line, &channel);
 		c = sccp_channel_find_byid(channel);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));
