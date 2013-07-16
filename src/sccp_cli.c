@@ -1999,11 +1999,9 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 	int local_total = 0;
 
 	if (argc < 4) {
-		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
+		pbx_log(LOG_WARNING, "More parameters needed for sccp_message_devices\n");
+		return RESULT_SHOWUSAGE;
 	}
-	//      const char *messagetext = astman_get_header(m, "MessageText");
-	//      if (sccp_strlen_zero(messagetext)) {
 
 	if (sccp_strlen_zero(argv[3])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
@@ -2066,13 +2064,13 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 	int local_total = 0;
 	int res = RESULT_FAILURE;
 
-	if (argc < 6) {
-		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
+	if (argc < 5) {
+		pbx_log(LOG_WARNING, "More parameters needed for sccp_message_device\n");
+		return RESULT_SHOWUSAGE;
 	}
 	if (sccp_strlen_zero(argv[4])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[4]);
 	}
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
@@ -2087,7 +2085,7 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 		res = RESULT_SUCCESS;
 		d = sccp_device_release(d);
 	} else {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[4]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[3]);
 	}
 
 	if (s)
