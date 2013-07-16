@@ -1654,10 +1654,9 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 		res = RESULT_FAILURE;
 	}
 	
-	if (RESULT_FAILURE == res) {
-		CLI_AMI_RETURN_ERROR(fd, s, m, "%s", error); 
+	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
 	}
-
 	if (s)
 		*total = local_total;
 	return res;
