@@ -140,15 +140,18 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
 
-#define CLI_AMI_ERROR(fd, s, m, fmt, ...) 									\
-/*	pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						*/\
+#define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
+        /*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/						\
 	if (NULL != s) {											\
-		astman_send_error(s, m, fmt);									\
+                char tmp_ ## line[100];										\
+	        snprintf(tmp_ ## line,sizeof(tmp_ ## line),fmt,__VA_ARGS__);					\
+	        astman_send_error(s, m, tmp_ ## line);								\
 		local_total++;											\
 	} else {												\
 		ast_cli(fd, "SCCP CLI ERROR: " fmt, __VA_ARGS__);						\
 	}													\
 	return RESULT_FAILURE;
+#define CLI_AMI_RETURN_ERROR(fd, s, m, fmt, ...) _CLI_AMI_RETURN_ERROR(fd, s, m, __LINE__, fmt, __VA_ARGS__)
 
 // CLI_ENTRY
 //   param1=registration_name
@@ -163,18 +166,21 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		static char *cli_ami_params[] = { CLI_COMMAND, CLI_AMI_PARAMS };				\
 		static char *arguments[ARRAY_LEN(cli_ami_params)];						\
 		uint8_t x = 0, i = 0; 										\
-		for (x=0, i=0; x < ARRAY_LEN(cli_ami_params); x++) {						\
-			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){ 			\
-				arguments[i++]=(char *)astman_get_header(m, cli_ami_params[x]);		 	\
-			} 											\
+		for (x=0; x < ARRAY_LEN(cli_ami_params); x++) {							\
+			if(NULL != cli_ami_params[x] && strlen(cli_ami_params[x]) > 0){				\
+				arguments[i++]=(char *)astman_get_header(m, cli_ami_params[x]);			\
+			}											\
 		}												\
 		char idtext[256] = "";										\
 		int total = 0;											\
 		if (!pbx_strlen_zero(id)) {									\
 			snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);				\
 		}												\
-		astman_send_ack(s, m, AMI_COMMAND);								\
-		_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(arguments), arguments);				\
+		if (RESULT_SUCCESS==_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(arguments), arguments)) {	\
+		        astman_send_ack(s, m, AMI_COMMAND);							\
+                } else {											\
+                        astman_send_error(s, m, "Unknown Failure\n");						\
+                }												\
 		astman_append(s,										\
 		"Event: " _DESCR " Complete\r\n"								\
 		"EventList: Complete\r\n"									\

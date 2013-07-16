@@ -43,7 +43,7 @@
  * Inside the function that which is called on execution:
  *  - If s!=NULL we know it is an AMI calls, if m!=NULL it is a CLI call.
  *  - we need to add local_total which get's set to the number of lines returned (for ami calls).
- *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_ERROR.
+ *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_RETURN_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_RETURN_ERROR.
  *  .
  */ 
 #include <config.h>
@@ -662,18 +662,18 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 	}
 	dev = sccp_strdupa(argv[3]);
 	if (pbx_strlen_zero(dev)) {
 		pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 	}
 	d = sccp_device_find_byid(dev, FALSE);
 
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-		CLI_AMI_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
 	}
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
@@ -1115,14 +1115,14 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "LineName needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "LineName needs to be supplied %s\n", "");
 	}
 	line = sccp_strdupa(argv[3]);
 	l = sccp_line_find_byname(line, FALSE);
 
 	if (!l) {
 		pbx_log(LOG_WARNING, "Failed to get line %s\n", line);
-		CLI_AMI_ERROR(fd, s, m, "Can't find settings for line %s\n", line);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);
 	}
 
 	if (!s) {
@@ -2000,14 +2000,14 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
 	}
 	//      const char *messagetext = astman_get_header(m, "MessageText");
 	//      if (sccp_strlen_zero(messagetext)) {
 
 	if (sccp_strlen_zero(argv[3])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
 	}
 
 	if (argc > 4) {
@@ -2068,11 +2068,11 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 
 	if (argc < 6) {
 		pbx_log(LOG_WARNING, "MessageText needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "MessageText needs to be supplied %s\n", "");
 	}
 	if (sccp_strlen_zero(argv[4])) {
 		pbx_log(LOG_WARNING, "MessageText cannot be empty\n");
-		CLI_AMI_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "messagetext cannot be empty, '%s'\n", argv[3]);
 	}
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
@@ -2087,7 +2087,7 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 		res = RESULT_SUCCESS;
 		d = sccp_device_release(d);
 	} else {
-		CLI_AMI_ERROR(fd, s, m, "Device '%s' not found!\n", argv[4]);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[4]);
 	}
 
 	if (s)
@@ -2096,12 +2096,12 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 }
 
 static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
-static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Send a message to an SCCP Device.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
+static char ami_message_device_usage[] = "Usage: SCCPMessageDevice\n" "Send a message to an SCCP Device.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "message", "device"
 #define AMI_COMMAND "SCCPMessageDevice"
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
-#define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"
+#define CLI_AMI_PARAMS "DeviceId", "MessageText", "Beep", "Timeout"
 CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
@@ -2221,7 +2221,7 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 		CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\n");
 		d = sccp_device_release(d);
 	} else {
-		CLI_AMI_ERROR(fd, s, m, "Can't find device %s\n", "argv[3]");
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", "argv[3]");
 	}
 
 	if (s)
@@ -2842,13 +2842,13 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		char *dev = sccp_strdupa(argv[3]);
 		if (pbx_strlen_zero(dev)) {
 			pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-// 			CLI_AMI_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
+// 			CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 		}
 		device = sccp_device_find_byid(dev, FALSE);
 
 		if (!device) {
 			pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-// 			CLI_AMI_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+// 			CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
 			return RESULT_FAILURE;
 		}
 	
@@ -3021,12 +3021,13 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 	d = sccp_device_find_byid(dev, FALSE);
 	if (!d) {
 		pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-		CLI_AMI_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
 	}
 
 	if (d->status.token != SCCP_TOKEN_STATE_REJ && d->session) {
 		pbx_log(LOG_WARNING, "%s: We need to have received a token request before we can acknowledge it\n", dev);
-		CLI_AMI_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);
+		sccp_device_release(d);
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s: We need to have received a token request before we can acknowledge it\n", dev);
 	} else {
 		if (d->session) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", dev);
@@ -3042,13 +3043,13 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 }
 
 static char cli_tokenack_usage[] = "Usage: sccp tokenack <deviceId>\n" "Send Token Acknowlegde. Makes a phone switch servers on demand (used in clustering)\n";
-static char ami_tokenack_usage[] = "Usage: SCCPTokenAck\n" "Send Token Acknowledge to device. Makes a phone switch servers on demand (used in clustering)\n\n" "PARAMS: DeviceName\n";
+static char ami_tokenack_usage[] = "Usage: SCCPTokenAck\n" "Send Token Acknowledge to device. Makes a phone switch servers on demand (used in clustering)\n\n" "PARAMS: DeviceId\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "tokenack"
 #define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 #define AMI_COMMAND "SCCPTokenAck"
-#define CLI_AMI_PARAMS "DeviceName"
+#define CLI_AMI_PARAMS "DeviceId"
 CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
