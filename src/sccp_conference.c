@@ -1532,13 +1532,11 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 
 	if (argc < 4 || argc > 5 || sccp_strlen_zero(argv[3])) {
 		pbx_log(LOG_WARNING, "At least ConferenceId needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least ConferenceId needs to be supplied\n %s", "");
-		return RESULT_FAILURE;
+		CLI_AMI_RETURN_ERROR(fd, s, m, "At least ConferenceId needs to be supplied\n %s", "");
 	}
 	if (!sccp_strIsNumeric(argv[3]) || (confid = atoi(argv[3])) <= 0) {
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
-		return RESULT_FAILURE;
+		CLI_AMI_RETURN_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 	}
 
 	if ((conference = sccp_conference_findByID(confid))) {
@@ -1569,8 +1567,7 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 		conference = sccp_conference_release(conference);
 	} else {
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
-		return RESULT_FAILURE;
+		CLI_AMI_RETURN_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 	}
 	if (s)
 		*total = local_total;
@@ -1597,14 +1594,17 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 	sccp_conference_t *conference = NULL;
 	sccp_conference_participant_t *participant = NULL;
 	int res = RESULT_SUCCESS;
+	char error[100];
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Conference Action:%s, Conference %s, Participant %s\n", argv[2], argv[3], argc >= 5 ? argv[4] : "");
 
-	if (argc < 4 || argc > 5)
+	if (argc < 4 || argc > 5) {
 		return RESULT_SHOWUSAGE;
+	}
 
-	if (sccp_strlen_zero(argv[2]) || sccp_strlen_zero(argv[3]))
+	if (sccp_strlen_zero(argv[2]) || sccp_strlen_zero(argv[3])) {
 		return RESULT_SHOWUSAGE;
+	}
 
 	if (sccp_strIsNumeric(argv[3]) && (confid = atoi(argv[3])) > 0) {
 		if ((conference = sccp_conference_findByID(confid))) {
@@ -1623,35 +1623,39 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 							sccp_conference_promote_demote_participant(conference, participant, NULL);
 						} else {
 							pbx_log(LOG_WARNING, "Unknown Action %s\n", argv[2]);
-							CLI_AMI_ERROR(fd, s, m, "Unknown Action\n %s", argv[2]);
+							snprintf(error, sizeof(error), "Unknown Action\n %s", argv[2]);
 							res = RESULT_FAILURE;
 						}
 						participant = sccp_participant_release(participant);
 					} else {
 						pbx_log(LOG_WARNING, "Participant %s not found in conference %s\n", argv[4], argv[3]);
-						CLI_AMI_ERROR(fd, s, m, "Participant %s not found in conference\n", argv[4]);
+						snprintf(error, sizeof(error), "Participant %s not found in conference\n", argv[4]);
 						res = RESULT_FAILURE;
 					}
 				} else {
 					pbx_log(LOG_WARNING, "At least a valid ParticipantId needs to be supplied\n");
-					CLI_AMI_ERROR(fd, s, m, "At least valid ParticipantId needs to be supplied\n %s", "");
+					snprintf(error, sizeof(error), "At least valid ParticipantId needs to be supplied\n %s", "");
 					res = RESULT_FAILURE;
 				}
 			} else {
 				pbx_log(LOG_WARNING, "Not enough parameters provided for action %s\n", argv[2]);
-				CLI_AMI_ERROR(fd, s, m, "Not enough parameters provided for action %s\n", argv[2]);
+				snprintf(error, sizeof(error), "Not enough parameters provided for action %s\n", argv[2]);
 				res = RESULT_FAILURE;
 			}
 			conference = sccp_conference_release(conference);
 		} else {
 			pbx_log(LOG_WARNING, "Conference %s not found\n", argv[3]);
-			CLI_AMI_ERROR(fd, s, m, "Conference %s not found\n", argv[3]);
+			snprintf(error, sizeof(error), "Conference %s not found\n", argv[3]);
 			res = RESULT_FAILURE;
 		}
 	} else {
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
-		CLI_AMI_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
-		return RESULT_FAILURE;
+		snprintf(error, sizeof(error), "At least valid ConferenceId needs to be supplied\n %s", "");
+		res = RESULT_FAILURE;
+	}
+	
+	if (RESULT_FAILURE == res) {
+		CLI_AMI_RETURN_ERROR(fd, s, m, "%s", error); 
 	}
 
 	if (s)
