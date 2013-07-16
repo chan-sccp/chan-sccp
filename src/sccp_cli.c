@@ -2215,7 +2215,7 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 
 	if ((d = sccp_device_find_byid(argv[3], TRUE))) {
 		sccp_sk_dnd(d, NULL, 0, NULL);
-		CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\n");
+		CLI_AMI_OUTPUT(fd, s, "Set/Unset DND");
 		d = sccp_device_release(d);
 	} else {
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);
