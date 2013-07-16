@@ -124,8 +124,8 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 	 */
 
 	char *xmlData = sccp_strdupa((char *) &r->msg.RegisterMessage);
-	char *state;
-	char *line;
+	char *state = "";
+	char *line = "";
 
 	for (line = strtok_r(xmlData, "\n", &state); line != NULL; line = strtok_r(NULL, "\n", &state)) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s\n", line);
