@@ -572,10 +572,16 @@ static sccp_moo_t *sccp_process_data(sccp_session_t * s)
 	mooMessageSize = message2size(messageId);
 
 	if (newPacketSize > SCCP_MAX_PACKET) {									/* Make sure we don't read bigger then SCCP_MAX_PACKET */
-		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d, max packat size: %d (Expect Problems. Report to Developers)\n", messageId, newPacketSize, packetSize, (uint32_t) SCCP_MAX_PACKET);
-		newPacketSize = SCCP_MAX_PACKET;
-	} else if (newPacketSize < mooMessageSize) {								/* Make sure we allocate enough to cover sccp_moo_t */
-		sccp_log((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) ("SCCP: Undersized message: %s (%02X), message size: %d, phone packet size: %d\n", message2str(messageId), messageId, mooMessageSize, newPacketSize);
+		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d, max packat size: %d (Closing Connection)\n", messageId, newPacketSize, packetSize, (uint32_t) SCCP_MAX_PACKET);
+		memset(s->buffer, 0, SCCP_MAX_PACKET * 2);
+		s->buffer_size = 0;
+		if (s->device) {
+			sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+		}
+		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+		return NULL;
+	}
+	if (newPacketSize < mooMessageSize) {									/* Make sure we allocate enough to cover a max sized sccp_moo_t */
 		newPacketSize = mooMessageSize;
 	}
 
