@@ -243,11 +243,11 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		return;
 	}
 
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
 	if (c) {
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			/* we have a offhook channel */
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
 			// c->digittimeout = time(0)+1;
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch(c);
