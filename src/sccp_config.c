@@ -2492,6 +2492,15 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", lastNumber, sizeof(lastNumber))) {
 		if (!sccp_strlen_zero(lastNumber)) {
 			sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
+			if (sccp_strlen_zero(device->lastNumber)
+#ifdef CS_ADV_FEATURES
+                		&& !device->useRedialMenu
+#endif
+	                ) {
+        			sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE);
+        			sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, TRUE);
+        			sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, TRUE);
+                        }
 		}
 	}
 
