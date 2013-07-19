@@ -97,7 +97,7 @@ void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sc
 
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		pbx_log(LOG_WARNING, "Unhandled SCCP Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->header.length);
-		sccp_dump_packet((unsigned char *) &r->msg, r->header.length);
+		sccp_dump_moo(r);
 	}
 }
 
@@ -167,7 +167,7 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 	}
 	if ((GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {								// only show when debugging messages
 		pbx_log(LOG_WARNING, "SCCP XMLAlarm Message: %s(0x%04X) %d bytes length\n", message2str(mid), mid, r->header.length);
-		sccp_dump_packet((unsigned char *) &r->msg.RegisterMessage, r->header.length);
+		sccp_dump_moo(r);
 	}
 }
 
@@ -201,7 +201,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_mo
 	deviceInstance = letohl(r->msg.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(r->msg.RegisterTokenRequest.lel_deviceType);
 
-	//      sccp_dump_packet((unsigned char *)&r->msg.RegisterTokenRequest, r->header.length);
+	//      sccp_dump_moo(r);
 
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
@@ -2592,7 +2592,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 	if (status) {
 		/* rtp error from the phone */
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
-		sccp_dump_packet((unsigned char *) &r->msg, r->header.length);
+		sccp_dump_moo(r);
 		return;
 	}
 
@@ -3376,7 +3376,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	}
 	if (status) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
-		sccp_dump_packet((unsigned char *) &r->msg, r->header.length);
+		sccp_dump_moo(r);
 		if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
 			sccp_channel_closeReceiveChannel(channel);
 		}
@@ -3534,7 +3534,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 	uint32_t status = 0, partyID = 0, callID = 0, callID1 = 0;
 
-	//      sccp_dump_packet((unsigned char *)&r->msg.RegisterMessage, r->header.length);
+	//      sccp_dump_moo(r);
 	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_moo_t *) r, &partyID, &callID, &callID1, &status, &ss);
 
 	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
@@ -3573,7 +3573,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
  */
 void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r)
 {
-	sccp_dump_packet((unsigned char *) &r->msg.RegisterMessage, r->header.length);
+	sccp_dump_moo(r);
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
 }
 
