@@ -61,6 +61,11 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	} while (cur < (len - 1));
 }
 
+void sccp_dump_moo(sccp_moo_t *r) 
+{
+	sccp_dump_packet((unsigned char *) r, letohl(r->header.length) + 8);
+}
+
 /*!
  * \brief Add Host to the Permithost Linked List
  * \param d SCCP Device

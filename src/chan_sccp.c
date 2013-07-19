@@ -199,7 +199,7 @@ EXIT:
 		uint32_t mid = letohl(r->header.lel_messageId);
 
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? message2str(mid) : NULL, mid ? mid : 0, r ? r->header.length : 0);
-		sccp_dump_packet((unsigned char *) &r->msg, r->header.length);
+		sccp_dump_moo(r);
 	}
 	return d;
 }

@@ -30,6 +30,7 @@
 #endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
+void sccp_dump_moo(sccp_moo_t *r) ;
 void sccp_permithost_addnew(sccp_device_t * d, const char *config_string);
 void sccp_serviceURL_addnew(sccp_device_t * d, const char *config_string, uint8_t index);
 void sccp_speeddial_addnew(sccp_device_t * d, const char *speed_config_string, uint8_t index);
