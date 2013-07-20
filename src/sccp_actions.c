@@ -1976,7 +1976,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_mo
 	r1->msg.SoftKeySetResMessage.lel_totalSoftKeySetCount = htolel(iKeySetCount);				// <<-- for now, but should be: iTotalKeySetCount;
 
 	sccp_dev_send(d, r1);
-	sccp_dev_set_keyset(d, 1, 0, KEYMODE_ONHOOK);
+	sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);
 }
 
 /*!
