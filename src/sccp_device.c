@@ -1734,18 +1734,18 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 					continue;
 
 				SCCP_LIST_LOCK(&line->channels);
-				SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-
-					tmpDevice = sccp_channel_getDevice_retained(channel);
-					if (tmpDevice == d) {
-						sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
-						sccp_channel_retain(channel);
-						sccp_channel_endcall(channel);
+				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {
+					if (sccp_channel_retain(channel)) {
+						tmpDevice = sccp_channel_getDevice_retained(channel);
+						if (tmpDevice == d) {
+							sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
+							sccp_channel_endcall(channel);
+						}
+						tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
 						sccp_channel_release(channel);
 					}
-					tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
-
 				}
+				SCCP_LIST_TRAVERSE_SAFE_END;
 				SCCP_LIST_UNLOCK(&line->channels);
 
 				/* remove devices from line */
