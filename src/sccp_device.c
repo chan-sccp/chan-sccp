@@ -29,6 +29,7 @@ int sccp_device_destroy(const void *ptr);
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid);
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid);
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 
 /* end indicate */
@@ -47,12 +48,14 @@ static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_dev
 static const struct sccp_device_indication_cb sccp_device_indication_newerDevices = {
 	.remoteHold = sccp_device_new_indicate_remoteHold,
 	.offhook = sccp_device_indicate_offhook,
+	.onhook	= sccp_device_indicate_onhook,
 	.connected = sccp_device_indicate_connected,
 };
 
 static const struct sccp_device_indication_cb sccp_device_indication_olderDevices = {
 	.remoteHold = sccp_device_old_indicate_remoteHold,
 	.offhook = sccp_device_indicate_offhook,
+	.onhook	= sccp_device_indicate_onhook,
 	.connected = sccp_device_indicate_connected,
 };
 
@@ -2204,6 +2207,25 @@ static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_line
 	sccp_dev_displayprompt(device, linedevice->lineInstance, callid, SKINNY_DISP_ENTER_NUMBER, 0);
 	sccp_dev_set_keyset(device, linedevice->lineInstance, callid, KEYMODE_OFFHOOK);
 	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, 0);
+}
+
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid)
+{
+
+	sccp_dev_stoptone(device, lineInstance, callid);
+	sccp_dev_cleardisplaynotify(device);
+	sccp_dev_clearprompt(device, lineInstance, callid);
+
+	//sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);	/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
+
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_cplane(device, lineInstance, 0);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
+	sccp_handle_time_date_req(device->session, (sccp_device_t *)device, NULL);	/** we need datetime on hangup for 7936 */
+	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	
 }
 
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
