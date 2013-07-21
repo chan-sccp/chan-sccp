@@ -24,6 +24,7 @@
 struct sccp_device_indication_cb {
 	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 	void (*const offhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid);
+	void (*const onhook) (const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid);
 	void (*const connected) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 };
 

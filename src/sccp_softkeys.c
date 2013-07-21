@@ -397,7 +397,12 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Endcall with no call in progress\n", d->id);
 		return;
 	}
-	sccp_channel_endcall(c);
+	
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND && c->line->devices.size > 1){
+		d->indicate->onhook(d, lineInstance, c->callid);
+	} else {
+		sccp_channel_endcall(c);
+	}
 }
 
 /*!
