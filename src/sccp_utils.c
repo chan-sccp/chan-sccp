@@ -286,19 +286,20 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, 
 	unsigned len;
 	char *start, *end = buf;
 
-	if (!size)
+	if (!size) {
 		return buf;
-
+	}
 	snprintf(end, size, "(");
 	len = strlen(end);
 	end += len;
 	size -= len;
 	start = end;
 	for (x = 0; x < length; x++) {
-		if (codecs[x] == 0)
-			continue;
+		if (codecs[x] == 0) {
+			break;
+		}	
 
-		snprintf(end, size, "%s, ", codec2name(codecs[x]));
+		snprintf(end, size, "%s (%d), ", codec2name(codecs[x]), codecs[x]);
 		len = strlen(end);
 		end += len;
 		size -= len;
@@ -312,12 +313,10 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, 
 	return buf;
 }
 
-void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec);
-
 /*!
  * \brief Remove Codec from Skinny Codec Preferences
  */
-void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
+static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
 	skinny_codec_t *old_skinny_codec_prefs = { 0 };
 	int x, y = 0;
@@ -332,12 +331,12 @@ void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 		// if not found element copy to new array
 		if (SKINNY_CODEC_NONE == old_skinny_codec_prefs[x])
 			break;
-		if (old_skinny_codec_prefs[x] != skinny_codec) {
-			//                        sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "re-adding codec '%d' at pos %d\n", old_skinny_codec_prefs[x], y);
-			skinny_codec_prefs[y++] = old_skinny_codec_prefs[x];
-		} else {
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_1 "found codec '%d' at pos %d, skipping\n", skinny_codec, x);
+		if (old_skinny_codec_prefs[x] == skinny_codec) {
+//			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d, skipping\n", codec2name(skinny_codec), skinny_codec, x);
+			continue;
 		}
+		//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "re-adding codec '%d' at pos %d\n", old_skinny_codec_prefs[x], y);
+		skinny_codec_prefs[y++] = old_skinny_codec_prefs[x];
 	}
 }
 
@@ -352,7 +351,7 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_1 "adding codec '%d' as pos %d\n", skinny_codec, x);
+//			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_1 "adding codec '%s (%d)' as pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 			skinny_codec_pref[x] = skinny_codec;
 			return x;
 		}
@@ -378,39 +377,43 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 
 	parse = sccp_strdupa(list);
 	while ((this = strsep(&parse, ","))) {
-		all = strcasecmp(this, "all") ? 0 : 1;
+		if (!sccp_strlen_zero(this)) {
+			all = strcasecmp(this, "all") ? 0 : 1;
 
-		if (all && !allowing) {										// disallowing all
-			memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
-			break;
-		}
-		for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
-			if (all || !strcasecmp(skinny_codecs[x].key, this)) {
-				codec = skinny_codecs[x].codec;
-				found = TRUE;
-				if (skinny_codec_mask) {
-					if (allowing)
-						*skinny_codec_mask |= codec;
-					else
-						*skinny_codec_mask &= ~codec;
-				}
-				if (skinny_codec_prefs) {
-					if (strcasecmp(this, "all")) {
+			if (all && !allowing) {										// disallowing all
+				memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
+//				sccp_log(DEBUGCAT_CODEC) ("SCCP: disallow=all => reset codecs\n");
+				break;
+			}
+			for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
+				if (all || !strcasecmp(skinny_codecs[x].key, this)) {
+					codec = skinny_codecs[x].codec;
+					found = TRUE;
+					if (skinny_codec_mask) {
 						if (allowing) {
-							//                                                        sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "adding codec '%s'\n", this);
-							skinny_codec_pref_append(skinny_codec_prefs, codec);
+							*skinny_codec_mask |= codec;
 						} else {
-							//                                                        sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "removing codec '%s'\n", this);
-							skinny_codec_pref_remove(skinny_codec_prefs, codec);
+							*skinny_codec_mask &= ~codec;
+						}	
+					}
+					if (skinny_codec_prefs) {
+						if (strcasecmp(this, "all")) {
+							if (allowing) {
+//								sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "adding codec '%s'\n", this);
+								skinny_codec_pref_append(skinny_codec_prefs, codec);
+							} else {
+//								sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "removing codec '%s'\n", this);
+								skinny_codec_pref_remove(skinny_codec_prefs, codec);
+							}
 						}
 					}
 				}
 			}
-		}
-		if (!found) {
-			pbx_log(LOG_WARNING, "Cannot %s unknown codec '%s'\n", allowing ? "allow" : "disallow", this);
-			errors++;
-			continue;
+			if (!found) {
+				pbx_log(LOG_WARNING, "Cannot %s unknown codec '%s'\n", allowing ? "allow" : "disallow", this);
+				errors++;
+				continue;
+			}
 		}
 	}
 	return errors;
