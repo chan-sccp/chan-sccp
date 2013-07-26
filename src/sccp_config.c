@@ -488,7 +488,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 
 			for (x = 0; x < sccpConfigSegment->config_size; x++) {
 				if (sccpConfigOption->offset == sccpConfigSegment->config[x].offset) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCP: (sccp_config) Set Entry[%d] = TRUE for %s\n", x, sccpConfigSegment->config[x].name);
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for %s\n", x, sccpConfigSegment->config[x].name);
 					SetEntries[x] = TRUE;
 				}
 			}
@@ -844,15 +844,12 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
 sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, const char *value, const boolean_t allow, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	skinny_codec_t *preferred_codecs = &(*(skinny_codec_t *) dest);
-
-	//      skinny_codec_t preferred_codecs_prev[SKINNY_MAX_CAPABILITIES];
-	//      memcpy(preferred_codecs_prev, preferred_codecs, sizeof(preferred_codecs));
-
-	if (!sccp_parse_allow_disallow(preferred_codecs, NULL, value, allow)) {
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	} else if (1 == 1) {											/*\todo implement check */
+	skinny_codec_t *codecs = &(*(skinny_codec_t *) dest);
+	
+	if (!sccp_parse_allow_disallow(codecs, NULL, value, allow)) {					/*\todo implement further difference checks */
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	} else {											
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 	return changed;
 }
