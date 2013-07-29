@@ -280,7 +280,7 @@ gcc_inline uint32_t debugcat2int(const char *str)
  * \param codecs Array of Skinny Codecs
  * \param length Max Length
  */
-char *sccp_multiple_codecs2str(char *buf, size_t size, skinny_codec_t * codecs, int length)
+char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * codecs, const int length)
 {
 	int x;
 	unsigned len;
@@ -1142,6 +1142,16 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 
 	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
+/*
+	char pref_buf[256];
+	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, ourPreferences, (int)pLength);
+	char cap_buf[256];
+	sccp_multiple_codecs2str(cap_buf, sizeof(pref_buf) - 1, ourCapabilities, cLength);
+	char remote_cap_buf[256];
+	sccp_multiple_codecs2str(remote_cap_buf, sizeof(remote_cap_buf) - 1, remotePeerCapabilities, rLength);
+	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
+*/
+
 	/** check if we have a preference codec list */
 	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
 		/* using remote capabilities to */
@@ -1163,6 +1173,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 		for (c = 0; c < cLength; c++) {
 			if (ourCapabilities[c] == SKINNY_CODEC_NONE) {
 				/* we reached the end of valide codecs, because we found the first NONE codec */
+				sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH))("Breaking at capability: %d\n", c);
 				break;
 			}
 
@@ -1182,6 +1193,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 					/* using capabilities from remote party, that matches our preferences & capabilities */
 					for (r = 0; r < rLength; r++) {
 						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
+							sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH))("Breaking at remotePeerCapability: %d\n", c);
 							break;
 						}
 						sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
