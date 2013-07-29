@@ -26,7 +26,6 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static uint32_t callCount = 1;
 void __sccp_channel_destroy(sccp_channel_t * channel);
-void sccp_channel_unsetDevice(sccp_channel_t * channel);
 
 AST_MUTEX_DEFINE_STATIC(callCountLock);
 
@@ -254,18 +253,6 @@ sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
 	} else {
 		return NULL;
 	}
-}
-
-/*!
- * \brief unSet Device in Channels->Private Channel Data
- * \param channel SCCP Channel
- *
- * \todo temporary function until replaced
- */
-void sccp_channel_unsetDevice(sccp_channel_t * channel)
-{
-	// temporary until replaced
-	sccp_channel_setDevice(channel, NULL);
 }
 
 /*!
@@ -1577,7 +1564,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	sccp_channel_set_active(d, NULL);
 	sccp_dev_set_activeline(d, NULL);
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);							// this will also close (but not destroy) the RTP stream
-	sccp_channel_unsetDevice(channel);
+	sccp_channel_setDevice(channel, NULL);
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents))
@@ -1828,7 +1815,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		d = sccp_device_release(d);
 	}
 	if (channel && channel->privateData && channel->privateData->device) {
-		sccp_channel_unsetDevice(channel);
+		sccp_channel_setDevice(channel, NULL);
 	}
 }
 
