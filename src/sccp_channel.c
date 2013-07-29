@@ -206,9 +206,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 	channel->maxBitRate = 15000;
 
-	if (device) {
-		sccp_channel_setDevice(channel, device);
-	}
+	sccp_channel_setDevice(channel, device);
 
 	sccp_line_addChannel(l, channel);
 
@@ -261,17 +259,13 @@ sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
 /*!
  * \brief unSet Device in Channels->Private Channel Data
  * \param channel SCCP Channel
+ *
+ * \todo temporary function until replaced
  */
 void sccp_channel_unsetDevice(sccp_channel_t * channel)
 {
-	if (channel && channel->privateData && channel->privateData->device) {
-		channel->privateData->device = sccp_device_release((sccp_device_t *) channel->privateData->device);
-		memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
-		memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
-		strncpy(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
-	} else {
-		pbx_log(LOG_NOTICE, "SCCP: unsetDevice without channel->privateData->device set\n");
-	}
+	// temporary until replaced
+	sccp_channel_setDevice(channel, NULL);
 }
 
 /*!
@@ -281,21 +275,24 @@ void sccp_channel_unsetDevice(sccp_channel_t * channel)
  */
 void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device)
 {
-	if (channel->privateData->device == device) {
+	if (!channel) {
+		return;
+	}
+	
+	if (channel->privateData->device) {
+		channel->privateData->device = sccp_device_release(channel->privateData->device);
+	}
+
+	if (device && (channel->privateData->device = sccp_device_retain((sccp_device_t *) device))) {
+		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
+		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
+		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
 		return;
 	}
 
-	if (NULL != channel->privateData->device) {
-		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_4 "SCCP: sccp_channel_setDevice: Auto Release was Necessary\n");
-		sccp_channel_unsetDevice(channel);
-	}
-
-	if (NULL != device) {
-		channel->privateData->device = sccp_device_retain((sccp_device_t *) device);
-		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));	/* our preferred codec list */
-		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));	/* our capability codec list */
-		sccp_copy_string(channel->currentDeviceId, device->id, sizeof(char[StationMaxDeviceNameSize]));
-	}
+	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
+	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
+	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 }
 
 /*!
