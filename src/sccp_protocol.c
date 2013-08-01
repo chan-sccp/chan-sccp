@@ -263,7 +263,7 @@ static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const
 	REQ(r, DialedNumberMessage);
 
 	instance = sccp_device_find_index_for_line(device, channel->line->name);
-	sccp_copy_string(r->msg.DialedNumberMessage.calledParty, channel->callInfo.calledPartyNumber, sizeof(r->msg.DialedNumberMessage.calledParty));
+	sccp_copy_string(r->msg.DialedNumberMessage.calledParty, channel->dialedNumber, sizeof(r->msg.DialedNumberMessage.calledParty));
 
 	r->msg.DialedNumberMessage.lel_lineId = htolel(instance);
 	r->msg.DialedNumberMessage.lel_callRef = htolel(channel->callid);
@@ -286,7 +286,7 @@ static void sccp_protocol_sendDialedNumberV19(const sccp_device_t * device, cons
 
 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 
-	sccp_copy_string(r->msg.DialedNumberMessageV19.calledParty, channel->callInfo.calledPartyNumber, sizeof(r->msg.DialedNumberMessage.calledParty));
+	sccp_copy_string(r->msg.DialedNumberMessageV19.calledParty, channel->dialedNumber, sizeof(r->msg.DialedNumberMessage.calledParty));
 
 	r->msg.DialedNumberMessageV19.lel_lineId = htolel(instance);
 	r->msg.DialedNumberMessageV19.lel_callRef = htolel(channel->callid);
