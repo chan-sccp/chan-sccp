@@ -874,10 +874,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		if (!sccp_strlen_zero(c->dialedNumber)) {
 			sccp_pbx_senddigits(c, c->dialedNumber);
 			sccp_channel_set_calledparty(c, "", c->dialedNumber);
-			if ((d = sccp_channel_getDevice_retained(c))) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-				d = sccp_device_release(d);
-			}
+// 			if ((d = sccp_channel_getDevice_retained(c))) {
+// 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+// 				d = sccp_device_release(d);
+// 			}
 		}
 		goto EXIT_FUNC;
 	}
@@ -1053,6 +1053,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			goto EXIT_FUNC;										// leave simpleswitch without dial
 		case SCCP_SS_DIAL:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension\n", d->id);
+			
+			/* The 7961 seems to need the dialing callstate to record its directories information. */
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, channel->dialedNumber);
+// 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 			break;
 	}
 
@@ -1097,9 +1101,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
 	sccp_channel_set_calledparty(c, "", shortenedNumber);
 
-	/* The 7961 seems to need the dialing callstate to record its directories information. */
-	sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-
+	
 	/* proceed call state is needed to display the called number.
 	   The phone will not display callinfo in offhook state */
 	sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
