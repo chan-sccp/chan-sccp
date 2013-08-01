@@ -1149,7 +1149,6 @@ void sccp_line_createLineButtonsArray(sccp_device_t *device) {
 		} 
 	}
 	
-	
 	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
 	device->lineButtons.instance = sccp_calloc(device->lineButtons.size, sizeof(sccp_line_t *) );
 	

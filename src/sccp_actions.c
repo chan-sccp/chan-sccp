@@ -778,9 +778,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 	} else {
 		/* reserve one line as hotline */
+		buttonconfig = SCCP_LIST_FIRST(&d->buttonconfig);
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
-		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
+		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
+		sccp_line_addDevice( (sccp_line_t *)btn[i].ptr, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
+		
 	}
 
 	return btn;
@@ -830,10 +833,10 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 	}
 
 	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
-	if (d->isAnonymous == TRUE) {
-		l = GLOB(hotline)->line;
-		sccp_line_addDevice(l, d, 1, NULL);
-	} else {
+// 	if (d->isAnonymous == TRUE) {
+// 		l = GLOB(hotline)->line;
+// 		sccp_line_addDevice(l, d, 1, NULL);
+// 	} else {
 // 		sccp_buttonconfig_t *buttonconfig = NULL;
 // 		boolean_t defaultLineSet = FALSE;
 // 		for (i = 0; i < StationMaxButtonTemplateSize; i++) {
@@ -857,7 +860,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 // 			}
 // 
 // 		}		
-	}
+// 	}
 	d->linesRegistered = TRUE;
 }
 
