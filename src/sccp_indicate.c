@@ -151,6 +151,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			d->protocol->sendDialedNumber(d, c);
+			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, 0);
 			sccp_channel_send_callinfo(d, c);
 			if (!c->rtp.audio.rtp) {
 				if (d->earlyrtp) {
@@ -160,7 +162,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 				}
 			}
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
-			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, 0);
+			
 			PBX(set_callstate) (c, AST_STATE_RING);
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
@@ -343,6 +345,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_DIALING:
 			sccp_dev_stoptone(d, instance, c->callid);
+			d->protocol->sendDialedNumber(d, c);
 			sccp_channel_send_callinfo(d, c);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio.rtp) {
@@ -406,7 +409,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	sccp_device_t *remoteDevice;
 	sccp_channel_t *activeChannel;
 	int instance;
-	boolean_t recordAsReceivedCall = FALSE;
+	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;
 
 	//      uint32_t privacyStatus=0;
 	if (!c || !line) {
@@ -465,14 +468,20 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 				case SCCP_CHANNELSTATE_DOWN:
 				case SCCP_CHANNELSTATE_ONHOOK:
 
-					/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
-					if (c->answered_elsewhere && recordAsReceivedCall) {
-						pbx_log(LOG_NOTICE, "%s: call was answered elsewhere, record this as received call\n", DEV_ID_LOG(remoteDevice));
-						remoteDevice->indicate->offhook(remoteDevice, linedevice, c->callid);
-						remoteDevice->indicate->connected(remoteDevice, linedevice, c);
-					} else if (c->answered_elsewhere && !recordAsReceivedCall) {
-						sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+					switch(phonebookRecord){
+						case SCCP_PHONEBOOK_RECEIVED:
+							pbx_log(LOG_NOTICE, "%s: call was answered elsewhere, record this as received call\n", DEV_ID_LOG(remoteDevice));
+							remoteDevice->indicate->offhook(remoteDevice, linedevice, c->callid);
+							remoteDevice->indicate->connected(remoteDevice, linedevice, c);
+						break;
+						case SCCP_PHONEBOOK_MISSED:
+						  
+						break;
+						case SCCP_PHONEBOOK_NONE:
+							sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+						break;
 					}
+					
 
 					sccp_dev_cleardisplaynotify(remoteDevice);
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
