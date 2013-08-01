@@ -779,6 +779,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	} else {
 		/* reserve one line as hotline */
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
+		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		SCCP_LIST_FIRST(&d->buttonconfig)->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
 	}
 
