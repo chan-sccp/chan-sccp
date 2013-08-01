@@ -315,6 +315,13 @@ typedef enum {
 #endif
 } sccp_softswitch_action_t;
 
+typedef enum { 
+	SCCP_PHONEBOOK_NONE		= 0, 
+	SCCP_PHONEBOOK_MISSED		= 1, 
+	SCCP_PHONEBOOK_RECEIVED		= 2, 
+	//SCCP_PHONEBOOK_PLACED = 3
+} sccp_phonebook_t;
+
 #include "sccp_protocol.h"
 #ifdef HAVE_ASTERISK
 #include "pbx_impl/ast/ast.h"
