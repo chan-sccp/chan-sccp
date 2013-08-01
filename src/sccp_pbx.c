@@ -577,7 +577,6 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		/*! \todo This seems like brute force, and doesn't seem to be of much use. However, I want it to be remebered
 		   as I have forgotten what my actual motivation was for writing this strange code. (-DD) */
 		if ((d = sccp_channel_getDevice_retained(c))) {
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 
@@ -1054,9 +1053,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		case SCCP_SS_DIAL:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension\n", d->id);
 			
-			/* The 7961 seems to need the dialing callstate to record its directories information. */
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, channel->dialedNumber);
-// 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 			break;
 	}
 
