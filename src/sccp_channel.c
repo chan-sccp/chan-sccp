@@ -312,6 +312,8 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "can not calculate readFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.readFormat, 1), channel->rtp.audio.readFormat);
 		}
 		//PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
+		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
+		PBX(set_nativeAudioFormats)(channel, codecs, 1);
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 
 	}
@@ -355,6 +357,8 @@ static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "can not calculate writeFormat, fall back to %s (%d)\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, &channel->rtp.audio.writeFormat, 1), channel->rtp.audio.writeFormat);
 		}
 		//PBX(set_nativeAudioFormats)(channel, channel->preferences.audio, ARRAY_LEN(channel->preferences.audio));
+		skinny_codec_t codecs[] = { channel->rtp.audio.readFormat };
+		PBX(set_nativeAudioFormats)(channel, codecs, 1);
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
 	} else {
 		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "%s: audio.writeState already active %d\n", channel->currentDeviceId, channel->rtp.audio.writeState);

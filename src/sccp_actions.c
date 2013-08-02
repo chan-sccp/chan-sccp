@@ -807,7 +807,6 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_moo_
 {
 	uint8_t i = 0, line_count = 0;
 	btnlist *btn;
-	sccp_line_t *l = NULL;
 	
 
 	line_count = 0;
