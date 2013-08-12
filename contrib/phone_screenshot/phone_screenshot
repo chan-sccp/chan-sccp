@@ -55,7 +55,7 @@ fi
 echo "Retrieving Screenshot from phone at $IPADDRESS..."
 if [[ ! -z $USERNAME ]]; then
 	if [[ ! -z $PASSWORD ]]; then
-		wget -q --user $USERNAME --password --progress=dot $PASSWORD http://$IPADDRESS/CGI/Screenshot >/dev/null
+		wget -q --user $USERNAME --password $PASSWORD --progress=dot http://$IPADDRESS/CGI/Screenshot >/dev/null
 	else 
 		usage
 		exit 1
