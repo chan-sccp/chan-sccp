@@ -30,7 +30,7 @@ for (my $i = 0; $i < @hex_data; $i+=2)
 }
 
 my $img = new GD::Image($width, $height);
-my @colors = ($img->colorAllocate(255, 255, 255),
+my @colors = ($img->colorAllocate(254, 254, 254),
 	      $img->colorAllocate(170, 170, 170),
 	      $img->colorAllocate(85, 85, 85),
 	      $img->colorAllocate(0, 0, 0));
