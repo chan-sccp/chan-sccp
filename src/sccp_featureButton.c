@@ -23,6 +23,10 @@
 #include <config.h>
 #include "common.h"
 
+#ifdef CS_DEVSTATE_FEATURE
+#include "sccp_devstate.h"
+#endif
+
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /*!
@@ -170,14 +174,14 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 					/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
 					   Note that this relies on the functionality of the asterisk custom devicestate module. */
 
-					if (PBX(feature_getFromDatabase) (devstate_db_family, config->button.feature.options, buf, sizeof(buf))) {
-						sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
-						if (!strncmp("INUSE", buf, 254)) {
-							config->button.feature.status = 1;
-						} else {
-							config->button.feature.status = 0;
-						}
+					
+					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
+					if (!strncmp("INUSE", buf, 254)) {
+						config->button.feature.status = 1;
+					} else {
+						config->button.feature.status = 0;
 					}
+					
 					break;
 #endif
 

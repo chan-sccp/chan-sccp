@@ -673,6 +673,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						case SCCP_FEATURE_HOLD:
 							btn[i].type = SKINNY_BUTTONTYPE_HOLD;
 							break;
+						
+#ifdef CS_DEVSTATE_FEATURE
+// 						case SCCP_FEATURE_DEVSTATE:
+// 							btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+// 							break;
+#endif
 
 						case SCCP_FEATURE_TRANSFER:
 							btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
