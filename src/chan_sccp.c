@@ -19,6 +19,7 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_devstate.h"
 #include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
@@ -530,6 +531,7 @@ boolean_t sccp_prePBXLoad()
 	GLOB(general_threadpool) = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
 
 	sccp_event_module_start();
+	sccp_devstate_module_start();
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
 	sccp_manager_module_start();

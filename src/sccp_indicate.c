@@ -507,6 +507,33 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 									remoteDevice->indicate->remoteOffhook(remoteDevice, linedevice, &tmpChannel);
 									remoteDevice->indicate->dialing(remoteDevice, instance, &tmpChannel);
 									remoteDevice->indicate->proceed(remoteDevice, instance, &tmpChannel);
+// 									remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel); /*TODO add source device to phonebook entry */
+						
+									
+									sccp_copy_string(tmpChannel.callInfo.originalCalledPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
+									sccp_copy_string(tmpChannel.callInfo.originalCalledPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
+									tmpChannel.callInfo.originalCalledParty_valid = 1;
+									
+// 									char originalCallingPartyName[StationMaxNameSize];							/*!< Original Calling Party Name */
+// 									char originalCallingPartyNumber[StationMaxDirnumSize];							/*!< Original Calling Party ID */
+// 									unsigned int originalCallingParty_valid:1;
+									sccp_copy_string(tmpChannel.callInfo.originalCallingPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
+									sccp_copy_string(tmpChannel.callInfo.originalCallingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
+									tmpChannel.callInfo.originalCallingParty_valid = 1;
+									
+
+// 									char lastRedirectingPartyName[StationMaxNameSize];							/*!< Original Called Party Name */
+// 									char lastRedirectingPartyNumber[StationMaxDirnumSize];							/*!< Original Called Party ID */
+// 									char lastRedirectingVoiceMailbox[StationMaxDirnumSize];							/*!< Last Redirecting VoiceMail Box */
+// 									unsigned int lastRedirectingVoiceMailbox_valid:1;							/*!< TRUE if the name information is valid/present */
+// 									unsigned int lastRedirectingParty_valid:1;
+									
+									sccp_copy_string(tmpChannel.callInfo.lastRedirectingPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
+									sccp_copy_string(tmpChannel.callInfo.lastRedirectingPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
+									tmpChannel.callInfo.lastRedirectingParty_valid = 1;
+// 									tmpChannel.callInfo.originalCdpnRedirectReason;									/*!< Original Called Party Redirect Reason */
+// 									tmpChannel.callInfo.lastRedirectingReason;
+									
 									remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel); /*TODO add source device to phonebook entry */
 									
 									
