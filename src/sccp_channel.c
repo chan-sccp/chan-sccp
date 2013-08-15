@@ -1933,6 +1933,8 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 		}
 		if ((sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, sccp_channel_getLinkedId(channel)))) {
+			pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)));
+		  
 			/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 			if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
 				//! \todo use pbx impl

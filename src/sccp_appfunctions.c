@@ -465,6 +465,11 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 	char *colname;
+	
+	char tmpChar[2] = "\0";
+	char lineName[101];
+	unsigned int callid = 0;
+	
 
 	if ((colname = strchr(data, ':'))) {									/*! \todo Will be deprecated after 1.4 */
 		static int deprecation_warning = 0;
@@ -478,9 +483,19 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else {
 		colname = "callid";
 	}
+	
+	
+	pbx_log(LOG_WARNING, "SCCPCHANNEL(): data: %s\n", data);
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 			return -1;										/* Not a SCCP channel. */
+		}
+	} else if (sscanf(data, "SCCP/%[^-]%c%8x", lineName, tmpChar, &callid) == 1){
+		pbx_log(LOG_WARNING, "SCCPCHANNEL(): lineName: %s, callid: %d\n", lineName, callid);
+		
+		if (!(c = sccp_channel_find_byid(callid))) {
+			pbx_log(LOG_WARNING, "SCCPCHANNEL(): SCCP Channel not available\n");
+			return -1;
 		}
 	} else {
 		uint32_t callid = atoi(data);
