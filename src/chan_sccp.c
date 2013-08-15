@@ -721,6 +721,7 @@ int sccp_preUnload(void)
 	sccp_globals_unlock(socket_lock);
 
 	sccp_manager_module_stop();
+	sccp_devstate_module_stop();
 	sccp_softkey_clear();
 
 	sccp_mutex_destroy(&GLOB(socket_lock));
