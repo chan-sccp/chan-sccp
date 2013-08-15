@@ -20,6 +20,7 @@ struct sccp_devstate_SubscribingDevice {
 
 	const sccp_device_t *device;										/*!< SCCP Device */
 	uint8_t instance;											/*!< Instance */
+	sccp_buttonconfig_t *buttonConfig;
 	char label[StationMaxNameSize];
 
 	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
@@ -49,7 +50,7 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data);
 void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device);
 void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_devstate_SubscribingDevice_t *subscriber);
-void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device, uint8_t instance, char *label);
+void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device, sccp_buttonconfig_t *buttonConfig);
 
 
 void sccp_devstate_module_start(void){
@@ -101,7 +102,7 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 				}
 				SCCP_LIST_UNLOCK(&deviceStates);
 				
-				sccp_devstate_addSubscriber(deviceState, device, config->instance, config->label);
+				sccp_devstate_addSubscriber(deviceState, device, config);
 			}
 		}
 		sccp_device_release(d);
@@ -194,15 +195,17 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	return deviceState;
 }
 
-void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device, uint8_t instance, char *label){
+void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device, sccp_buttonconfig_t *buttonConfig){
 	sccp_devstate_SubscribingDevice_t *subscriber;
 	
 	subscriber = sccp_malloc(sizeof(sccp_devstate_SubscribingDevice_t));
 	memset(subscriber, 0, sizeof(sccp_devstate_SubscribingDevice_t));
   
 	subscriber->device = sccp_device_retain((sccp_device_t *)device);
-	subscriber->instance = instance;
-	sccp_copy_string(subscriber->label, label, sizeof(subscriber->label));
+	subscriber->instance = buttonConfig->instance;
+	subscriber->buttonConfig = buttonConfig;
+	subscriber->buttonConfig->button.feature.status = deviceState->featureState;
+	sccp_copy_string(subscriber->label, buttonConfig->label, sizeof(subscriber->label));
 	
 	
 	SCCP_LIST_INSERT_HEAD(&deviceState->subscribers, subscriber, list);
@@ -253,6 +256,7 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data){
 	SCCP_LIST_TRAVERSE(&deviceState->subscribers, subscriber, list) {
 		
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_4 "%s: (sccp_devstate_changed_cb) notify subscriber for state %d\n", DEV_ID_LOG(subscriber->device), deviceState->featureState);
+		subscriber->buttonConfig->button.feature.status = deviceState->featureState;
 		sccp_devstate_notifySubscriber(deviceState, subscriber);
 	}
 }

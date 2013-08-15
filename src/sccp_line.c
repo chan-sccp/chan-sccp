@@ -1169,7 +1169,7 @@ void sccp_line_deleteLineButtonsArray(sccp_device_t *device) {
 				device->lineButtons.instance[i] = sccp_linedevice_release(device->lineButtons.instance[i]);
 			}
 		}
-		sccp_free(device->lineButtons.instance);
 		device->lineButtons.size = 0;
+		sccp_free(device->lineButtons.instance);
 	}
 }

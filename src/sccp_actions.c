@@ -3066,9 +3066,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->instance == instance && config->type == FEATURE) {
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
-			config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
+// 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: toggle status from %d", d->id, config->button.feature.status);
+// 			config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
+// 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 " to %d\n", config->button.feature.status);
 			break;
 		}
 
@@ -3117,6 +3117,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			break;
 		case SCCP_FEATURE_CFWDALL:
 			status = SCCP_CFWD_NONE;
+			if (TRUE == toggleState) {
+				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
+			}
 
 			// Ask for activation of the feature.
 			if (config->button.feature.options && !sccp_strlen_zero(config->button.feature.options)) {
@@ -3141,6 +3144,10 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			break;
 
 		case SCCP_FEATURE_DND:
+			if (TRUE == toggleState) {
+				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
+			}
+		    
 			if (!strcasecmp(config->button.feature.options, "silent")) {
 				d->dndFeature.status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
 			} else if (!strcasecmp(config->button.feature.options, "busy")) {
@@ -3187,11 +3194,16 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		  * Handling of custom devicestate toggle buttons.
 		  */
 		case SCCP_FEATURE_DEVSTATE:
-			/* Set the appropriate devicestate, toggle it and write to the devstate astdb.. */
-			strncpy(buf, (config->button.feature.status) ? ("INUSE") : ("NOT_INUSE"), sizeof(buf));
-			res = PBX(feature_addToDatabase) (devstate_db_family, config->button.feature.options, buf);
-			pbx_devstate_changed(pbx_devstate_val(buf), "Custom:%s", config->button.feature.options);
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status ? "On" : "Off");
+			
+			if (TRUE == toggleState){
+				char devstateName[100];
+				sprintf(devstateName, "Custom:%s", config->button.feature.options);
+				enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
+				pbx_devstate_changed_literal(newDeviceState, devstateName);   
+			}
+			
+			
 			break;
 #endif
 		case SCCP_FEATURE_MULTIBLINK:

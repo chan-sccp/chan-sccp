@@ -56,10 +56,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;								// Default feature type.
 	boolean_t lineFound = FALSE;
 
-#ifdef CS_DEVSTATE_FEATURE
-	char buf[254] = "";
-#endif
-
 	if (!device) {
 		return;
 	}
@@ -171,17 +167,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				  Handling of custom devicestate toggle button feature
 				  */
 				case SCCP_FEATURE_DEVSTATE:
-					/* we check which devicestate this button is assigned to, and fetch the respective status from the astdb.
-					   Note that this relies on the functionality of the asterisk custom devicestate module. */
-
-					
-					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: devstate feature state: %s state: %s\n", DEV_ID_LOG(device), config->button.feature.options, buf);
-					if (!strncmp("INUSE", buf, 254)) {
-						config->button.feature.status = 1;
-					} else {
-						config->button.feature.status = 0;
-					}
-					
+					/* see sccp_devstate.c */
 					break;
 #endif
 
