@@ -3054,10 +3054,6 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	uint32_t featureStat3 = 0;
 	uint32_t res = 0;
 
-#ifdef CS_DEVSTATE_FEATURE
-	char buf[254] = "";
-#endif
-
 	if (!d) {
 		return;
 	}
