@@ -3193,10 +3193,12 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			sccp_log((DEBUGCAT_CORE | DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status ? "On" : "Off");
 			
 			if (TRUE == toggleState){
-				char devstateName[100];
-				sprintf(devstateName, "Custom:%s", config->button.feature.options);
+// 				char devstateName[100];
+// 				sprintf(devstateName, "Custom:%s", config->button.feature.options);
 				enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
-				pbx_devstate_changed_literal(newDeviceState, devstateName);   
+				//pbx_devstate_changed_literal(newDeviceState, devstateName);   
+				ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
+				pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
 			}
 			
 			
