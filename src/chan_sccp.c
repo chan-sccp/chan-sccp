@@ -531,7 +531,9 @@ boolean_t sccp_prePBXLoad()
 	GLOB(general_threadpool) = sccp_threadpool_init(THREADPOOL_MIN_SIZE);
 
 	sccp_event_module_start();
+#if defined(CS_DEVSTATE_FEATURE)
 	sccp_devstate_module_start();
+#endif
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
 	sccp_manager_module_start();
