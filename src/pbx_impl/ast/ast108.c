@@ -3268,7 +3268,9 @@ static int load_module(void)
 		pbx_log(LOG_WARNING, "Unable to create schedule context. SCCP channel type disabled\n");
 		return AST_MODULE_LOAD_FAILURE;
 	}
-
+#if defined(CS_DEVSTATE_FEATURE) || defined(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE)
+	ast_enable_distributed_devstate();
+#endif
 	/* make globals */
 	res = sccp_prePBXLoad();
 	if (!res) {

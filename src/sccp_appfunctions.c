@@ -490,7 +490,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 			return -1;										/* Not a SCCP channel. */
 		}
-	} else if (sscanf(data, "SCCP/%[^-]%c%8x", lineName, tmpChar, &callid) == 1){
+	} else if (sscanf(data, "SCCP/%[^'-']-%8x", lineName, &callid) == 1){
 		pbx_log(LOG_WARNING, "SCCPCHANNEL(): lineName: %s, callid: %d\n", lineName, callid);
 		
 		if (!(c = sccp_channel_find_byid(callid))) {

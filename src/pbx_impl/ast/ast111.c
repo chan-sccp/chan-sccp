@@ -2995,6 +2995,10 @@ static int load_module(void)
 		sched = NULL;
 		return AST_MODULE_LOAD_FAILURE;
 	}
+	
+#if defined(CS_DEVSTATE_FEATURE) || defined(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE)
+	ast_enable_distributed_devstate();
+#endif
 
 	/* make globals */
 	res = sccp_prePBXLoad();
