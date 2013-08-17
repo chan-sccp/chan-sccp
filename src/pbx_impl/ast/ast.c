@@ -810,7 +810,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	struct ast_call_feature *feature = ast_find_call_feature("automon");
 
 	if (feature) {
-		feature->operation(channel->owner, channel->owner, NULL, "*1", 0, NULL);
+		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
 		return TRUE;
 	}
 	return FALSE;
