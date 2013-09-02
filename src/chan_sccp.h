@@ -1097,8 +1097,6 @@ struct sccp_addon {
  */
 struct sccp_session {
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-	void *buffer;												/*!< Session Buffer */
-	uint32_t buffer_size;											/*!< Session Buffer Size */
 #ifdef CS_EXPERIMENTAL_NEWIP
 	struct sockaddr_storage *ss;										/*!< Incoming Socket Address Storage */
 #else

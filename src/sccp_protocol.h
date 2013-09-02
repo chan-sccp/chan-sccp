@@ -23,7 +23,7 @@
 #include "sccp_protocol_enums.hh"
 
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
-#define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		20							/*!< We support up to protocol V.17 */
+#define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 
 #define SCCP_PROTOCOL					0
 #define SPCP_PROTOCOL					1
@@ -256,6 +256,8 @@ typedef struct {
 /*!
  * \brief SKINNY Message Types Enum
  */
+#define SCCP_MESSAGE_LOW_BOUNDARY			0x0000
+#define SCCP_MESSAGE_HIGH_BOUNDARY			0x8101
 typedef enum {
 	/* *INDENT-OFF* */
 
@@ -1092,7 +1094,17 @@ typedef union {
 		uint32_t lel_stimulusInstance;									/*!< Stimulus Instance (normally set to 1 (except speed dial and line)) */
 	} StimulusMessage;											/*!< Stimulus Message - Client -> Server */
 
+
+	/*
+	 * 7960: 00000000 - 0C 00 00 00 00 00 00 00  06 00 00 00 00 00 00 00  - ................
+	 *       00000010 - 00 00 00 00                                       - ....
+         *
+	 * 7962: 00000000 - 0C 00 00 00 16 00 00 00  06 00 00 00 00 00 00 00  - ................
+	 *       00000010 - 00 00 00 00                                       - ....
+	 */
 	struct {
+		uint32_t unknown1;
+		uint32_t unknown2;
 	} OffHookMessage;											/*!< Off Hook Message Structure */
 
 	struct {
@@ -1101,7 +1113,16 @@ typedef union {
 														   Goes Off Hook and provides a Calling Party Number to the PBX used by multiline Devices
 														 */
 
+	/*
+	 * 7960: 00000000 - 0C 00 00 00 00 00 00 00  07 00 00 00 00 00 00 00  - ................
+	 *       00000010 - 00 00 00 00                                       - ....
+         *
+	 * 7962: 00000000 - 0C 00 00 00 16 00 00 00  07 00 00 00 00 00 00 00  - ................
+	 *       00000010 - 00 00 00 00                                       - ....
+	 */
 	struct {
+		uint32_t unknown1;
+		uint32_t unknown2;
 	} OnHookMessage;											/*!< On Hook Message Structure */
 
 	struct {
@@ -1572,6 +1593,7 @@ typedef union {
 	} SoftKeyEventMessage;
 
 	struct {
+		uint32_t unknown;
 	} UnregisterMessage;											/*!< Unregister Message Structure */
 
 	struct {
@@ -2410,7 +2432,11 @@ typedef union {
 	} CallHistoryInfoMessage;
 
 	// empty / unresearched structs
+	// 00000000 - 08 00 00 00 00 00 00 00  2D 00 00 00 00 00 00 00  // 7960 -- 6 buttons
+	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7962 -- 6 buttons
+	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00	// 7970 -- 8 buttons
 	struct {
+		uint32_t unknown;		
 	} RegisterAvailableLinesMessage;
 
 	struct {
@@ -2498,7 +2524,7 @@ typedef union {
 typedef struct {
 	uint32_t length;											/*!< Message Length */
 	uint32_t lel_protocolVer;										/*!< Protocol Version Message */
-	uint32_t lel_messageId;											/*!< Message ID */
+	uint32_t lel_messageId;											/*!< Message ID, the messageId is not part of the skinny header, so it is counted in length */
 } sccp_header_t;
 
 /*!
