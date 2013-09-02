@@ -155,8 +155,10 @@ AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_HEADER_RESOLV
 dnl	AC_GNU_SOURCE
 
-dnl	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-	CFLAGS_saved="$CFLAGS_saved -std=gnu99 -fgnu89-inline"
+	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
+	if test -z "`gcc -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
+		CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
+	fi
 
 	if test "${cross_compiling}" = "yes"; 
 	then
