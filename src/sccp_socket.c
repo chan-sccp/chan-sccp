@@ -41,8 +41,6 @@ void sccp_session_close(sccp_session_t * s);
 void sccp_socket_device_thread_exit(void *session);
 void *sccp_socket_device_thread(void *session);
 
-static sccp_moo_t *sccp_process_data(sccp_session_t * s);
-
 boolean_t socket_is_IPv6(struct sockaddr_storage *socketStorage)
 {
 	return (socketStorage->ss_family == AF_INET6) ? TRUE : FALSE;
@@ -102,6 +100,44 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
 	}
 }
 
+static int sccp_dissect_header(sccp_header_t *header) 
+{
+	int packetSize = header->length;
+	int protocolVersion = letohl(header->lel_protocolVer);
+	int messageId = letohl(header->lel_messageId);
+
+	// dissecting header to see if we have a valid sccp message, that we can handle
+	if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet is out of bounds: %d < %d > %d, cancelling read.\n", 4, packetSize, (int)(SCCP_MAX_PACKET - 8));
+		return -1;
+	}
+	if (!(protocolVersion == 0 || protocolVersion == 0x11 || protocolVersion == 0x12 || protocolVersion == 0x14 || protocolVersion == 0x16)) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %d is unknown, cancelling read.\n", protocolVersion);
+		return -1;
+	}
+	
+	if (messageId < SCCP_MESSAGE_LOW_BOUNDARY || messageId > SCCP_MESSAGE_HIGH_BOUNDARY) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId out of bounds: %d < %d > %d, cancelling read.\n", SCCP_MESSAGE_LOW_BOUNDARY, messageId, SCCP_MESSAGE_HIGH_BOUNDARY);
+		return -1;
+	}
+	if (DEBUG) {
+		boolean_t Found = FALSE;
+		uint32_t x;
+		for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
+			if (messageId == x) {
+				Found = TRUE;
+				break;
+			}
+		}
+		if (!Found) {
+			pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId %d could not be found in the array of known messages, cancelling read.\n", messageId);
+			//return -1;										/* not returning -1 in this case, so that we can see the message we would otherwise miss */
+		}
+	}
+
+	return message2size(messageId);
+}
+
 /*!
  * \brief Read Data From Socket
  * \param s SCCP Session
@@ -109,29 +145,73 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
  * \lock
  *      - session
  */
-static int sccp_read_data(sccp_session_t * s)
+static boolean_t sccp_read_data(sccp_session_t * s, sccp_moo_t *msg)
 {
 	if (!s || s->session_stop) {
 		return 0;
 	}
 
-	int16_t readlen = 0;
-	char input[SCCP_MAX_PACKET];
+	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_moo_t */
+	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
+	int bytesToRead = 0;
+	int bytesReadSoFar = 0;
+	int readlen = 0;
+	errno = 0;
 
-	readlen = read(s->fds[0].fd, input, sizeof(input));
-	if (readlen <= 0) {
-		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
-			pbx_log(LOG_WARNING, "SCCP: Come back later (EAGAIN): %s\n", strerror(errno));
-		} else {											/* (readlen==0 || errno == ECONNRESET || errno == ETIMEDOUT) */
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: device closed connection or network unreachable. closing connection.\n", DEV_ID_LOG(s->device));
-			sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-		}
-		return 0;
-	} else {												/* move s->buffer content to the beginning */
-		memcpy(s->buffer + s->buffer_size, input, readlen);
-		s->buffer_size += readlen;
+	// STAGE 1: read header
+	memset(msg, 0, SCCP_MAX_PACKET);	
+	readlen = read(s->fds[0].fd, (&msg->header), SCCP_PACKET_HEADER);
+	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) { return TRUE;}					/* try again later, return TRUE with empty r */
+	else if (readlen <= 0) {goto READ_ERROR;}								/* client closed socket */
+	
+	msg->header.length = letohl(msg->header.length);
+	if ((msgDataSegmentSize = sccp_dissect_header(&msg->header)) < 0) {
+		goto READ_ERROR;
 	}
-	return readlen;
+	
+	// STAGE 2: read message data
+	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correcttion because we count messageId as part of the header */
+	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
+	while (bytesToRead >0) {
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+//		readlen = read(s->fds[0].fd, &msg->msg + bytesReadSoFar, bytesToRead);				/* msg->msg pointer is advanced by read automatically. This will lead to Bad Address faults */
+		readlen = read(s->fds[0].fd, &msg->msg, bytesToRead);						
+		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}				/* try again, blocking */
+		else if (readlen <= 0) {goto READ_ERROR;}							/* client closed socket */
+		bytesReadSoFar += readlen;
+		bytesToRead -= readlen;
+	};
+	UnreadBytesAccordingToPacket -= bytesReadSoFar;
+	// msg->header.length = bytesReadSoFar + 4;								/* Should we correct the header->length, to the length of our struct, which we know we can handle ?? */
+	
+	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+	
+	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
+	if (UnreadBytesAccordingToPacket > 0) { 								/* checking to prevent unneeded allocation of discardBuffer */
+		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
+		char discardBuffer[128];
+		bytesToRead = UnreadBytesAccordingToPacket;
+		while (bytesToRead > 0) {
+			readlen= read(s->fds[0].fd, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
+			if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}			/* try again, blocking */
+// \todo //		else if (readlen == 0) {goto READ_ERROR;}						/* client closed socket, because read caused an error */
+/* \todo */		else if (readlen <= 0) {break;}								/* if we read EOF, just break reading (invalid packet information) */
+														/* would EOF not return <0 && errno, instead */
+			bytesToRead -= readlen;
+			sccp_dump_packet((unsigned char *)discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
+		};
+		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
+		sccp_dump_moo(msg);
+	}
+
+	return TRUE;
+	
+READ_ERROR:
+	if (errno) {
+		pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+	}
+	memset(msg, 0, SCCP_MAX_PACKET);	
+	return FALSE;
 }
 
 /*!
@@ -319,10 +399,6 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 		close(s->fds[0].fd);
 		s->fds[0].fd = -1;
 	}
-	/* freeing buffers */
-	if (s->buffer) {
-		sccp_free(s->buffer);
-	}
 	sccp_session_unlock(s);
 
 	/* destroying mutex and cleaning the session */
@@ -362,7 +438,7 @@ void *sccp_socket_device_thread(void *session)
 	int res;
 	double maxWaitTime;
 	int pollTimeout;
-	sccp_moo_t *m;
+	sccp_moo_t msg = { {0,} };
 
 	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
 
@@ -413,20 +489,23 @@ void *sccp_socket_device_thread(void *session)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-				if (sccp_read_data(s) >= SCCP_PACKET_HEADER) {
-					while ((m = sccp_process_data(s))) {
-						if (!sccp_handle_message(m, s)) {
-							if (s->device) {
-								sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-							}
-							sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-							sccp_free(m);
-							break;
+				//while (sccp_read_data(s, &r)) {						/* according to poll specification we should empty out the read buffer completely.*/
+														/* but that would give us trouble with timeout */
+				if (sccp_read_data(s, &msg) && msg.header.length >= 4) {
+					if (!sccp_handle_message(&msg, s)) {
+						if (s->device) {
+							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 						}
-						sccp_free(m);
-						s->lastKeepAlive = time(0);
+						sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+						break;
 					}
+					s->lastKeepAlive = time(0);
+				} else {
+					pbx_log(LOG_NOTICE, "%s: Socket read failed\n", DEV_ID_LOG(s->device));
+					sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
+					break;
 				}
+				//}
 			} else {										/* POLLHUP / POLLERR */
 				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
@@ -516,8 +595,6 @@ static void sccp_accept_connection(void)
 	s->protocolType = SCCP_PROTOCOL;
 
 	s->lastKeepAlive = time(0);
-	s->buffer = calloc(1, SCCP_MAX_PACKET * 2);								/* maximum buffer size has to be more than one maximum packet */
-	s->buffer_size = 0;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted connection from %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 
 	if (GLOB(bindaddr.sin_addr.s_addr) == INADDR_ANY) {
@@ -540,69 +617,6 @@ static void sccp_accept_connection(void)
 	sccp_session_unlock(s);
 }
 
-/*!
- * \brief Socket Process Data
- * \param s SCCP Session
- * \note Called with mutex lock
- */
-static sccp_moo_t *sccp_process_data(sccp_session_t * s)
-{
-	sccp_header_t header = { 0 };
-	uint32_t packetSize = 0;
-	uint32_t messageId = 0;
-	uint32_t newPacketSize = 0;
-	uint32_t mooMessageSize = 0;
-	sccp_moo_t *msg = NULL;
-
-	if (!s || s->buffer_size < SCCP_PACKET_HEADER) {
-		return NULL;											/* Not enough data to even read the packet lenght */
-	}
-
-	memcpy(&header, s->buffer, SCCP_PACKET_HEADER);
-	messageId = letohl(header.lel_messageId);
-	packetSize = letohl(header.length);
-	packetSize += 8;											/* SCCP_PACKET_HEADER - sizeof(packetSize); */
-
-	if (packetSize > s->buffer_size) {
-		return NULL;											/* Not enough data, yet. */
-	}
-
-	/* copy the first full message we can find out of s->buffer */
-	newPacketSize = packetSize;
-	mooMessageSize = message2size(messageId);
-
-	if (newPacketSize > SCCP_MAX_PACKET) {									/* Make sure we don't read bigger then SCCP_MAX_PACKET */
-		pbx_log(LOG_NOTICE, "SCCP: Oversize packet mid: %d, our packet size: %d, phone packet size: %d, max packat size: %d (Closing Connection)\n", messageId, newPacketSize, packetSize, (uint32_t) SCCP_MAX_PACKET);
-		memset(s->buffer, 0, SCCP_MAX_PACKET * 2);
-		s->buffer_size = 0;
-		if (s->device) {
-			sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-		}
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-		return NULL;
-	}
-	if (newPacketSize < mooMessageSize) {									/* Make sure we allocate enough to cover a max sized sccp_moo_t */
-		newPacketSize = mooMessageSize;
-	}
-
-	if ((msg = sccp_calloc(1, newPacketSize)) == NULL) {							/* Only calloc what we need */
-		pbx_log(LOG_ERROR, "SCCP: unable to allocate %d bytes for a new skinny packet (Expect Dissaster)\n", newPacketSize);
-		return NULL;
-	}
-
-	memcpy(msg, s->buffer, packetSize);									/* Copy packetSize from the buffer */
-	msg->header.length = letohl(msg->header.length);							/* replace msg->length (network conversion) */
-
-	sccp_log(DEBUGCAT_HIGH) ("SCCP: packet message: %s (%02X), phone packet size: %d, new packet size: %d, sccp message_size: %d\n", message2str(messageId), messageId, packetSize, newPacketSize, mooMessageSize);
-
-	/* move s->buffer content to the beginning */
-	s->buffer_size -= packetSize;
-	memmove(s->buffer, (s->buffer + packetSize), s->buffer_size);
-
-	/* return the message */
-	return msg;
-
-}
 
 /*!
  * \brief Socket Thread
