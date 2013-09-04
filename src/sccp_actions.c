@@ -2316,55 +2316,56 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 		return;
 	}
 
-	if (!(l = sccp_line_retain(channel->line))) {
-		return;
-	}
-
-	if (!(d = sccp_channel_getDevice_retained(channel))) {
-		return;
-	}
-
-	callid = channel->callid;
-	lenDialed = strlen(channel->dialedNumber);
-
-	instance = sccp_device_find_index_for_line(d, l->name);
-	/* secondary dialtone check */
-	lenSecDialtoneDigits = strlen(l->secondary_dialtone_digits);
-	secondary_dialtone_tone = l->secondary_dialtone_tone;
-
-	/* we check dialtone just in DIALING action
-	 * otherwise, you'll get secondary dialtone also
-	 * when catching call forward number, meetme room,
-	 * etc.
-	 * */
-
-	if (channel->ss_action != SCCP_SS_DIAL) {
-		l = sccp_line_release(l);
-		d = sccp_device_release(d);
-		return;
-	}
-
-	if (lenDialed == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
-		sccp_dev_stoptone(d, instance, channel->callid);
-		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, 0);
-	} else if (lenDialed == 1) {
-	    
-		sccp_dev_stoptone(d, instance, channel->callid);
-// 		if (channel->state != SCCP_CHANNELSTATE_DIALING) {
-// 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
-// 		}
-	}
-
-	if (d && channel && l) {
-		if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
-			/* We have a secondary dialtone */
-			sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
-		} else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
-			sccp_dev_stoptone(d, instance, callid);
+	do{
+		if (!(l = sccp_line_retain(channel->line))) {
+			break;
 		}
-	}
-	l = sccp_line_release(l);
-	d = sccp_device_release(d);
+
+		if (!(d = sccp_channel_getDevice_retained(channel))) {
+			break;
+		}
+
+		callid = channel->callid;
+		lenDialed = strlen(channel->dialedNumber);
+
+		instance = sccp_device_find_index_for_line(d, l->name);
+		/* secondary dialtone check */
+		lenSecDialtoneDigits = strlen(l->secondary_dialtone_digits);
+		secondary_dialtone_tone = l->secondary_dialtone_tone;
+
+		/* we check dialtone just in DIALING action
+		* otherwise, you'll get secondary dialtone also
+		* when catching call forward number, meetme room,
+		* etc.
+		* */
+
+		if (channel->ss_action != SCCP_SS_DIAL) {
+			break;
+		}
+
+		if (lenDialed == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
+			sccp_dev_stoptone(d, instance, channel->callid);
+			sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, 0);
+		} else if (lenDialed == 1) {
+		    
+			sccp_dev_stoptone(d, instance, channel->callid);
+	// 		if (channel->state != SCCP_CHANNELSTATE_DIALING) {
+	// 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
+	// 		}
+		}
+
+		if (d && channel && l) {
+			if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
+				/* We have a secondary dialtone */
+				sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
+			} else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
+				sccp_dev_stoptone(d, instance, callid);
+			}
+		}
+	}while (FALSE);
+	
+	if (l){ l = sccp_line_release(l); }
+	if (d){ d = sccp_device_release(d);}
 }
 
 /*!
