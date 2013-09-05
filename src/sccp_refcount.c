@@ -269,13 +269,14 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 }
 #endif
 
-static inline RefCountedObject *find_obj(const void *ptr, const char *filename, int lineno, const char *func)
+static inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	boolean_t found = FALSE;
 
-	if (!ptr)
+	if (ptr == NULL) {
 		return NULL;
+        }
 
 	int hash = SCCP_SIMPLE_HASH(ptr);
 
@@ -289,7 +290,7 @@ static inline RefCountedObject *find_obj(const void *ptr, const char *filename, 
 #if CS_REFCOUNT_DEBUG
 					__sccp_refcount_debug((void *) ptr, obj, 0, filename, lineno, func);
 #endif
-					sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (find_obj) %p Already declared dead (hash: %d)\n", obj, hash);
+					sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_find_obj) %p Already declared dead (hash: %d)\n", obj, hash);
 				}
 				break;
 			}
@@ -299,21 +300,22 @@ static inline RefCountedObject *find_obj(const void *ptr, const char *filename, 
 	return found ? obj : NULL;
 }
 
-static inline void remove_obj(const void *ptr)
+static inline void sccp_refcount_remove_obj(const void *ptr)
 {
 	RefCountedObject *obj = NULL;
 
-	if (!ptr)
+	if (ptr == NULL) {
 		return;
+        }
 
 	int hash = SCCP_SIMPLE_HASH(ptr);
 
-	sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (release) Removing %p from hash table at hash: %d\n", ptr, hash);
+	sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_remove_obj) Removing %p from hash table at hash: %d\n", ptr, hash);
 
 	if (objects[hash]) {
 		SCCP_RWLIST_WRLOCK(&(objects[hash])->refCountedObjects);
 		SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&(objects[hash])->refCountedObjects, obj, list) {
-			if (obj->data == ptr) {
+			if (obj->data == ptr && SCCP_LIVE_MARKER != obj->alive) {
 				SCCP_RWLIST_REMOVE_CURRENT(list);
 				break;
 			}
@@ -326,12 +328,15 @@ static inline void remove_obj(const void *ptr)
 		                                        // should resolve lockless refcount SMP issues
 		                                        // BTW we are not allowed to sleep whilst haveing a reference
 		// fire destructor
-		sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (release) Destroying %p at hash: %d\n", obj, hash);
-		if ((&obj_info[obj->type])->destructor)
-			(&obj_info[obj->type])->destructor(ptr);
-		memset(obj, 0, sizeof(RefCountedObject));
-		sccp_free(obj);
-		obj = NULL;
+		if (obj && obj->data == ptr && SCCP_LIVE_MARKER != obj->alive) {
+                        sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_remove_obj) Destroying %p at hash: %d\n", obj, hash);
+                        if ((&obj_info[obj->type])->destructor) {
+                                (&obj_info[obj->type])->destructor(ptr);
+                        }
+                        memset(obj, 0, sizeof(RefCountedObject));
+                        sccp_free(obj);
+                        obj = NULL;
+		}
 	}
 }
 
@@ -368,7 +373,7 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 {
 	RefCountedObject *obj = NULL;
 
-	if ((obj = find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+	if ((obj = sccp_refcount_find_obj(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 		sccp_copy_string(obj->identifier, identifier, sizeof(obj->identifier));
 	} else {
 		ast_log(LOG_ERROR, "SCCP: (updateIdentifief) Refcount Object %p could not be found\n", ptr);
@@ -381,7 +386,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	volatile int refcountval;
 	int newrefcountval;
 
-	if ((obj = find_obj(ptr, filename, lineno, func))) {
+	if ((obj = sccp_refcount_find_obj(ptr, filename, lineno, func))) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug(ptr, obj, 1, filename, lineno, func);
 #endif
@@ -409,7 +414,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	volatile int refcountval;
 	int newrefcountval;
 
-	if ((obj = find_obj(ptr, filename, lineno, func))) {
+	if ((obj = sccp_refcount_find_obj(ptr, filename, lineno, func))) {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, obj, -1, filename, lineno, func);
 #endif
@@ -418,7 +423,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 		if (newrefcountval == 0) {
 			ATOMIC_DECR(&obj->alive, SCCP_LIVE_MARKER, &obj->lock);
 			sccp_log(DEBUGCAT_REFCOUNT) (VERBOSE_PREFIX_1 "SCCP: %-15.15s:%-4.4d (%-25.25s) (release) Finalizing %p (%p)\n", filename, lineno, func, obj, ptr);
-			remove_obj(ptr);
+			sccp_refcount_remove_obj(ptr);
 		} else {
 			if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
 				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
