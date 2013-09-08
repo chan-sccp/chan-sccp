@@ -765,11 +765,11 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 			selectedFound = TRUE;
 
 			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
-				if (channel != d->active_channel) {
-					if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
+				if (selectedChannel->channel != d->active_channel) {
+					if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(selectedChannel->channel->owner))) {
 						sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
 					} else {
-						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
+						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(selectedChannel->channel->owner));
 					}
 				}
 			}
