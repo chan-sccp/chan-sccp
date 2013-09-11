@@ -2564,8 +2564,8 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
 	const char *req_option = astman_get_header(m, "Option");
-	char *description;
-	char *description_part;
+	char *description = "";
+	char *description_part = "";
 
 	if (strlen(req_segment) == 0) {										// return all segments
 		astman_send_listack(s, m, "List of segments will follow", "start");
@@ -2695,8 +2695,8 @@ int sccp_config_generate(char *filename, int configType)
 	const SCCPConfigOption *config = NULL;
 	long unsigned int sccp_option;
 	long unsigned int segment;
-	char *description;
-	char *description_part;
+	char *description = "";
+	char *description_part = "";
 	char name_and_value[100];
 	int linelen = 0;
 
@@ -2755,6 +2755,9 @@ int sccp_config_generate(char *filename, int configType)
 									fprintf(f, "%*.s ; %s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY)" : "", description_part);
 									linelen = 0;
 								}
+							}
+							if (description_part) {
+								sccp_free(description_part);
 							}
 						} else {
 							fprintf(f, "\n");
