@@ -19,9 +19,9 @@ boolean_t socket_is_IPv6(struct sockaddr_storage *socketStorage);
 boolean_t socket_is_mapped_ipv4(struct sockaddr_storage *socketStorage);
 
 void *sccp_socket_thread(void *ignore);
-void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t);
-int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r);
-int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r);
+void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t);
+int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg);
+int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg);
 sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device);
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session);
 sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message);

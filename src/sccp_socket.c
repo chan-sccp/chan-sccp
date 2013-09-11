@@ -135,7 +135,7 @@ static int sccp_dissect_header(sccp_header_t *header)
 		}
 	}
 
-	return message2size(messageId);
+	return msgtype2size(messageId);
 }
 
 /*!
@@ -145,13 +145,13 @@ static int sccp_dissect_header(sccp_header_t *header)
  * \lock
  *      - session
  */
-static boolean_t sccp_read_data(sccp_session_t * s, sccp_moo_t *msg)
+static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 {
 	if (!s || s->session_stop) {
 		return 0;
 	}
 
-	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_moo_t */
+	int msgDataSegmentSize = 0;										/* Size of sccp_data_t according to the sccp_msg_t */
 	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
 	int bytesToRead = 0;
 	int bytesReadSoFar = 0;
@@ -173,9 +173,9 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_moo_t *msg)
 	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correcttion because we count messageId as part of the header */
 	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
 	while (bytesToRead >0) {
-		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-//		readlen = read(s->fds[0].fd, &msg->msg + bytesReadSoFar, bytesToRead);				/* msg->msg pointer is advanced by read automatically. This will lead to Bad Address faults */
-		readlen = read(s->fds[0].fd, &msg->msg, bytesToRead);						
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+//		readlen = read(s->fds[0].fd, &msg->data + bytesReadSoFar, bytesToRead);				/* msg->data pointer is advanced by read automatically. This will lead to Bad Address faults */
+		readlen = read(s->fds[0].fd, &msg->data, bytesToRead);						
 		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}				/* try again, blocking */
 		else if (readlen <= 0) {goto READ_ERROR;}							/* client closed socket */
 		bytesReadSoFar += readlen;
@@ -184,11 +184,11 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_moo_t *msg)
 	UnreadBytesAccordingToPacket -= bytesReadSoFar;
 	// msg->header.length = bytesReadSoFar + 4;								/* Should we correct the header->length, to the length of our struct, which we know we can handle ?? */
 	
-	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 	
 	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
 	if (UnreadBytesAccordingToPacket > 0) { 								/* checking to prevent unneeded allocation of discardBuffer */
-		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
+		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
 		char discardBuffer[128];
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
@@ -200,8 +200,8 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_moo_t *msg)
 			bytesToRead -= readlen;
 			sccp_dump_packet((unsigned char *)discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
 		};
-		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, message2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
-		sccp_dump_moo(msg);
+		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
+		sccp_dump_msg(msg);
 	}
 
 	return TRUE;
@@ -438,7 +438,7 @@ void *sccp_socket_device_thread(void *session)
 	int res;
 	double maxWaitTime;
 	int pollTimeout;
-	sccp_moo_t msg = { {0,} };
+	sccp_msg_t msg = { {0,} };
 
 	pthread_cleanup_push(sccp_socket_device_thread_exit, session);
 
@@ -678,32 +678,32 @@ void *sccp_socket_thread(void *ignore)
  * \param device SCCP Device
  * \param t SCCP Message
  */
-void sccp_session_sendmsg(const sccp_device_t * device, sccp_message_t t)
+void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 {
 	if (!device || !device->session) {
 		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: (sccp_session_sendmsg) No device available to send message to\n");
 		return;
 	}
 
-	sccp_moo_t *r = sccp_build_packet(t, 0);
+	sccp_msg_t *msg = sccp_build_packet(t, 0);
 
-	if (r) {
-		sccp_session_send(device, r);
+	if (msg) {
+		sccp_session_send(device, msg);
 	}
 }
 
 /*!
  * \brief Socket Send
  * \param device SCCP Device
- * \param r Message Data Structure (sccp_moo_t)
+ * \param r Message Data Structure (sccp_msg_t)
  * \return SCCP Session Send
  */
-int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
+int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
 {
 	sccp_session_t *s = sccp_session_findByDevice(device);
 
 	if (s && !s->session_stop) {
-		return sccp_session_send2(s, r);
+		return sccp_session_send2(s, msg);
 	} else {
 		return -1;
 	}
@@ -718,10 +718,10 @@ int sccp_session_send(const sccp_device_t * device, sccp_moo_t * r)
  * \lock
  *      - session
  */
-int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
+int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 {
 	ssize_t res = 0;
-	uint32_t msgid = letohl(r->header.lel_messageId);
+	uint32_t msgid = letohl(msg->header.lel_messageId);
 	ssize_t bytesSent;
 	ssize_t bufLen;
 	uint8_t *bufAddr;
@@ -736,24 +736,24 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		if (s) {
 			sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 		}
-		sccp_free(r);
-		r = NULL;
+		sccp_free(msg);
+		msg = NULL;
 		return -1;
 	}
 
 	if (msgid == KeepAliveAckMessage || msgid == RegisterAckMessage || msgid == UnregisterAckMessage) {
-		r->header.lel_protocolVer = 0;
+		msg->header.lel_protocolVer = 0;
 	} else if (s->device && s->device->inuseprotocolversion >= 17) {
-		r->header.lel_protocolVer = htolel(0x11);							/* we should always send 0x11 */
+		msg->header.lel_protocolVer = htolel(0x11);							/* we should always send 0x11 */
 	} else {
-		r->header.lel_protocolVer = 0;
+		msg->header.lel_protocolVer = 0;
 	}
 
 	try = 0;
 	maxTries = 500;												/* arbitrairy number of tries */
 	bytesSent = 0;
-	bufAddr = ((uint8_t *) r);
-	bufLen = (ssize_t) (letohl(r->header.length) + 8);
+	bufAddr = ((uint8_t *) msg);
+	bufLen = (ssize_t) (letohl(msg->header.length) + 8);
 	do {
 		try++;
 		ast_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
@@ -764,8 +764,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 				usleep(200);									/* back off to give network/other threads some time */
 				continue;
 			}
-			pbx_log(LOG_ERROR, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int) res, strerror(errno), errno, (int) bytesSent, (int) bufLen, message2str(letohl(r->header.lel_messageId)), letohl(r->header.length)
-			    );
+			pbx_log(LOG_ERROR, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int) res, strerror(errno), errno, (int) bytesSent, (int) bufLen, msgtype2str(letohl(msg->header.lel_messageId)), letohl(msg->header.length) );
 			if (s) {
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 			}
@@ -775,8 +774,8 @@ int sccp_session_send2(sccp_session_t * s, sccp_moo_t * r)
 		bytesSent += res;
 	} while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && s->fds[0].fd > 0);
 
-	sccp_free(r);
-	r = NULL;
+	sccp_free(msg);
+	msg = NULL;
 
 	if (bytesSent < bufLen) {
 		ast_log(LOG_ERROR, "%s: Could only send %d of %d bytes!\n", DEV_ID_LOG(s->device), (int) bytesSent, (int) bufLen);
@@ -825,11 +824,11 @@ static sccp_session_t *sccp_session_findSessionForDevice(const sccp_device_t * d
  */
 sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 
-	REQ(r, RegisterRejectMessage);
-	sccp_copy_string(r->msg.RegisterRejectMessage.text, message, sizeof(r->msg.RegisterRejectMessage.text));
-	sccp_session_send2(session, r);
+	REQ(msg, RegisterRejectMessage);
+	sccp_copy_string(msg->data.RegisterRejectMessage.text, message, sizeof(msg->data.RegisterRejectMessage.text));
+	sccp_session_send2(session, msg);
 
 	/* if we reject the connection during accept connection, thread is not ready */
 	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
@@ -860,11 +859,11 @@ sccp_session_t *sccp_session_crossdevice_cleanup(sccp_session_t * session, sccp_
  */
 void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 
-	REQ(r, RegisterTokenReject);
-	r->msg.RegisterTokenReject.lel_tokenRejWaitTime = htolel(backoff_time);
-	sccp_session_send2(session, r);
+	REQ(msg, RegisterTokenReject);
+	msg->data.RegisterTokenReject.lel_tokenRejWaitTime = htolel(backoff_time);
+	sccp_session_send2(session, msg);
 }
 
 /*!
@@ -873,10 +872,10 @@ void sccp_session_tokenReject(sccp_session_t * session, uint32_t backoff_time)
  */
 void sccp_session_tokenAck(sccp_session_t * session)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 
-	REQ(r, RegisterTokenAck);
-	sccp_session_send2(session, r);
+	REQ(msg, RegisterTokenAck);
+	sccp_session_send2(session, msg);
 }
 
 /*!
@@ -886,11 +885,11 @@ void sccp_session_tokenAck(sccp_session_t * session)
  */
 void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 
-	REQ(r, SPCPRegisterTokenReject);
-	r->msg.SPCPRegisterTokenReject.lel_features = htolel(features);
-	sccp_session_send2(session, r);
+	REQ(msg, SPCPRegisterTokenReject);
+	msg->data.SPCPRegisterTokenReject.lel_features = htolel(features);
+	sccp_session_send2(session, msg);
 }
 
 /*!
@@ -900,11 +899,11 @@ void sccp_session_tokenRejectSPCP(sccp_session_t * session, uint32_t features)
  */
 void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 
-	REQ(r, SPCPRegisterTokenAck);
-	r->msg.SPCPRegisterTokenAck.lel_features = htolel(features);
-	sccp_session_send2(session, r);
+	REQ(msg, SPCPRegisterTokenAck);
+	msg->data.SPCPRegisterTokenAck.lel_features = htolel(features);
+	sccp_session_send2(session, msg);
 }
 
 /*!

@@ -30,7 +30,7 @@
 #endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
-void sccp_dump_moo(sccp_moo_t *r) ;
+void sccp_dump_msg(sccp_msg_t *msg) ;
 void sccp_permithost_addnew(sccp_device_t * d, const char *config_string);
 void sccp_serviceURL_addnew(sccp_device_t * d, const char *config_string, uint8_t index);
 void sccp_speeddial_addnew(sccp_device_t * d, const char *speed_config_string, uint8_t index);
@@ -77,8 +77,8 @@ void sccp_dev_dbclean(void);
         })
 
 // SCCP Lookups
-gcc_inline const char *message2str(sccp_message_t type);
-gcc_inline size_t message2size(sccp_message_t type);
+gcc_inline const char *msgtype2str(sccp_mid_t type);
+gcc_inline size_t msgtype2size(sccp_mid_t type);
 gcc_inline const char *pbxdevicestate2str(uint32_t value);
 gcc_inline const char *extensionstatus2str(uint32_t value);
 
@@ -121,7 +121,7 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
 char *sccp_get_debugcategories(int32_t debugvalue);
-sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
+sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
 #ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);

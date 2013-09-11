@@ -155,12 +155,12 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 /*!
  * \brief Local Function to check for Valid Session, Message and Device
  * \param s SCCP Session
- * \param r SCCP Moo
- * \param msg Message
+ * \param msg SCCP Msg
+ * \param msgtypestr Message
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
  * \return -1 or Device;
  */
-inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_moo_t * r, const char *msg, boolean_t deviceIsNecessary)
+inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_msg_t * msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
 	sccp_device_t *d = NULL;
 
@@ -170,37 +170,37 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 	}
 
 	if (!s || (s->fds[0].fd < 0)) {
-		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msg);
+		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
 		goto EXIT;
 	}
 
-	if (!r) {
-		pbx_log(LOG_ERROR, "(%s) No Message Provided\n", msg);
+	if (!msg) {
+		pbx_log(LOG_ERROR, "(%s) No Message Provided\n", msgtypestr);
 		goto EXIT;
 	}
 
 	if (deviceIsNecessary && !s->device) {
-		pbx_log(LOG_WARNING, "No valid Session Device available to handle %s for, but device is needed\n", msg);
+		pbx_log(LOG_WARNING, "No valid Session Device available to handle %s for, but device is needed\n", msgtypestr);
 		goto EXIT;
 	}
 	if (deviceIsNecessary && !(d = sccp_device_retain(s->device))) {
-		pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msg);
+		pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msgtypestr);
 		goto EXIT;
 	}
 
 	if (deviceIsNecessary && d && d->session && s != d->session) {
-		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same. Rejecting message handling\n", msg);
+		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same. Rejecting message handling\n", msgtypestr);
 		s = sccp_session_crossdevice_cleanup(s, d, "No Crossover Allowed -> Reset");
 		d = d ? sccp_device_release(d) : NULL;
 		goto EXIT;
 	}
 
 EXIT:
-	if (r && (GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
-		uint32_t mid = letohl(r->header.lel_messageId);
+	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
+		uint32_t mid = letohl(msg->header.lel_messageId);
 
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? message2str(mid) : NULL, mid ? mid : 0, r ? r->header.length : 0);
-		sccp_dump_moo(r);
+		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? msgtype2str(mid) : NULL, mid ? mid : 0, msg ? msg->header.length : 0);
+		sccp_dump_msg(msg);
 	}
 	return d;
 }
@@ -211,7 +211,7 @@ EXIT:
  * Used to map SKinny Message Id's to their Handling Implementations
  */
 struct sccp_messageMap_cb {
-	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_moo_t * r);
+	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg);
 	boolean_t deviceIsNecessary;
 };
 typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
@@ -267,10 +267,10 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 
 /*!
  * \brief       Controller function to handle Received Messages
- * \param       r Message as sccp_moo_t
+ * \param       msg Message as sccp_msg_t
  * \param       s Session as sccp_session_t
  */
-uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
+uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 {
 	const sccp_messageMap_cb_t *messageMap_cb = NULL;
 	uint32_t mid = 0;
@@ -278,41 +278,40 @@ uint8_t sccp_handle_message(sccp_moo_t * r, sccp_session_t * s)
 
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
-		if (r) {
-			sccp_free(r);
+		if (msg) {
+			sccp_free(msg);
 		}
 		return -1;
 	}
 
-	if (!r) {
+	if (!msg) {
 		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !\n", DEV_ID_LOG(s->device));
 		return -1;
 	}
 
-	mid = letohl(r->header.lel_messageId);
+	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
 	messageMap_cb = &messagesCbMap[mid];
-	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", DEV_ID_LOG(s->device), message2str(mid), mid);
+	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid);
 
 	/* we dont know how to handle event */
 	if (!messageMap_cb) {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
-		sccp_handle_unknown_message(s, device, r);
+		sccp_handle_unknown_message(s, device, msg);
 		return 1;
 	}
 
-	device = check_session_message_device(s, r, message2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
+	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
 
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
-		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", message2str(mid), mid);
+		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
 		return 0;
 	}
 	if (messageMap_cb->messageHandler_cb) {
-		messageMap_cb->messageHandler_cb(s, device, r);
+		messageMap_cb->messageHandler_cb(s, device, msg);
 	}
 	s->lastKeepAlive = time(0);
-	
 	
 	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId ) {
 		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);

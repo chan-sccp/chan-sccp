@@ -639,7 +639,7 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
 	sccp_selectedchannel_t *x = NULL;
-	sccp_moo_t *r1;
+	sccp_msg_t *msg;
 	uint8_t numSelectedChannels = 0, status = 0;
 
 	if (!d) {
@@ -670,11 +670,11 @@ void sccp_sk_select(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_select) '%d' channels selected\n", DEV_ID_LOG(d), numSelectedChannels);
 
-	REQ(r1, CallSelectStatMessage);
-	r1->msg.CallSelectStatMessage.lel_status = htolel(status);
-	r1->msg.CallSelectStatMessage.lel_lineInstance = htolel(lineInstance);
-	r1->msg.CallSelectStatMessage.lel_callReference = htolel(c->callid);
-	sccp_dev_send(d, r1);
+	REQ(msg, CallSelectStatMessage);
+	msg->data.CallSelectStatMessage.lel_status = htolel(status);
+	msg->data.CallSelectStatMessage.lel_lineInstance = htolel(lineInstance);
+	msg->data.CallSelectStatMessage.lel_callReference = htolel(c->callid);
+	sccp_dev_send(d, msg);
 }
 
 /*!
@@ -1051,18 +1051,18 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  */
 void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	uint32_t mask, validKeyMask;
 	unsigned i;
 
 	if (!l || !c || !d || !d->session)
 		return;
 
-	REQ(r, SelectSoftKeysMessage);
-	r->msg.SelectSoftKeysMessage.lel_lineInstance = htolel(lineInstance);
-	r->msg.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
-	r->msg.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(keymode);
-	//r->msg.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
+	REQ(msg, SelectSoftKeysMessage);
+	msg->data.SelectSoftKeysMessage.lel_lineInstance = htolel(lineInstance);
+	msg->data.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
+	msg->data.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(keymode);
+	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
 	validKeyMask = 0xFFFFFFFF;
 
 	mask = 1;
@@ -1075,7 +1075,7 @@ void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	else
 		mask = validKeyMask | mask;
 
-	r->msg.SelectSoftKeysMessage.les_validKeyMask = htolel(mask);
+	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(mask);
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, lineInstance, c->callid);
-	sccp_dev_send(d, r);
+	sccp_dev_send(d, msg);
 }

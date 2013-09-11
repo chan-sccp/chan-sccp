@@ -443,7 +443,7 @@ typedef enum {
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
 	/* *INDENT-ON* */
-} sccp_message_t;												/*!< SKINNY Message Types Enum */
+} sccp_mid_t;													/*!< SKINNY Message ID Enum */
 
 /*=====================================================================================================*/
 
@@ -2532,12 +2532,12 @@ typedef struct {
  */
 typedef struct {
 	sccp_header_t header;											/*!< Message Header */
-	sccp_data_t msg;											/*!< Message [SCCP Data] */
-} sccp_moo_t;
+	sccp_data_t data;											/*!< Message [SCCP Data] */
+} sccp_msg_t;
 
 /* So in theory, a message should never be bigger than this.
  * If it is, we abort the connection */
-#define SCCP_MAX_PACKET sizeof(sccp_moo_t)
+#define SCCP_MAX_PACKET sizeof(sccp_msg_t)
 #define SCCP_PACKET_HEADER sizeof(sccp_header_t)
 
 /*!
@@ -2953,10 +2953,10 @@ typedef struct {
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
 
 	/* parse received messages */
-	void (*const parseOpenReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_moo_t * r, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_moo_t * r, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
+	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
+	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);

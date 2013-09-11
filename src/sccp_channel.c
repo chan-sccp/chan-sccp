@@ -672,7 +672,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
  */
 void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	sccp_device_t *d;
 
 	if (!channel || !(d = sccp_channel_getDevice_retained(channel))) {
@@ -680,20 +680,20 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 	}
 	//TODO use protocol implementation
 	if (d->protocol->version < 19) {
-		REQ(r, ConnectionStatisticsReq);
+		REQ(msg, ConnectionStatisticsReq);
 	} else {
-		REQ(r, ConnectionStatisticsReq_V19);
+		REQ(msg, ConnectionStatisticsReq_V19);
 	}
 
 	/*! \todo We need to test what we have to copy in the DirectoryNumber */
 	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND)
-		sccp_copy_string(r->msg.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.calledPartyNumber, sizeof(r->msg.ConnectionStatisticsReq.DirectoryNumber));
+		sccp_copy_string(msg->data.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.DirectoryNumber));
 	else
-		sccp_copy_string(r->msg.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.callingPartyNumber, sizeof(r->msg.ConnectionStatisticsReq.DirectoryNumber));
+		sccp_copy_string(msg->data.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.DirectoryNumber));
 
-	r->msg.ConnectionStatisticsReq.lel_callReference = htolel((channel) ? channel->callid : 0);
-	r->msg.ConnectionStatisticsReq.lel_StatsProcessing = htolel(SKINNY_STATSPROCESSING_CLEAR);
-	sccp_dev_send(d, r);
+	msg->data.ConnectionStatisticsReq.lel_callReference = htolel((channel) ? channel->callid : 0);
+	msg->data.ConnectionStatisticsReq.lel_StatsProcessing = htolel(SKINNY_STATSPROCESSING_CLEAR);
+	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device is Requesting CallStatisticsAndClear\n", DEV_ID_LOG(d));
 	d = sccp_device_release(d);
 }
@@ -783,7 +783,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
  */
 void sccp_channel_closeReceiveChannel(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	sccp_device_t *d = NULL;
 
 	if (!channel) {
@@ -797,11 +797,11 @@ void sccp_channel_closeReceiveChannel(sccp_channel_t * channel)
 	if ((d = sccp_channel_getDevice_retained(channel))) {
 		if (channel->rtp.audio.writeState) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Close receivechannel on channel %d\n", DEV_ID_LOG(d), channel->callid);
-			REQ(r, CloseReceiveChannel);
-			r->msg.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
-			r->msg.CloseReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-			r->msg.CloseReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
-			sccp_dev_send(d, r);
+			REQ(msg, CloseReceiveChannel);
+			msg->data.CloseReceiveChannel.lel_conferenceId = htolel(channel->callid);
+			msg->data.CloseReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			msg->data.CloseReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, msg);
 			channel->rtp.audio.writeState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		d = sccp_device_release(d);
@@ -869,7 +869,7 @@ void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
  */
 void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	sccp_device_t *d = NULL;
 
 	if (!channel) {
@@ -882,11 +882,11 @@ void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel)
 	if ((d = sccp_channel_getDevice_retained(channel))) {
 		if (channel->rtp.video.writeState) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Close multimedia receive channel on channel %d\n", DEV_ID_LOG(d), channel->callid);
-			REQ(r, CloseMultiMediaReceiveChannel);
-			r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
-			r->msg.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
-			r->msg.CloseMultiMediaReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
-			sccp_dev_send(d, r);
+			REQ(msg, CloseMultiMediaReceiveChannel);
+			msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId = htolel(channel->callid);
+			msg->data.CloseMultiMediaReceiveChannel.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			msg->data.CloseMultiMediaReceiveChannel.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, msg);
 			channel->rtp.video.writeState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		d = sccp_device_release(d);
@@ -999,7 +999,7 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
  */
 void sccp_channel_stopMediaTransmission(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	sccp_device_t *d = NULL;
 
 	if (!channel) {
@@ -1010,11 +1010,11 @@ void sccp_channel_stopMediaTransmission(sccp_channel_t * channel)
 		// stopping phone rtp
 		if (channel->rtp.audio.readState) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Stop mediatransmission on channel %d\n", DEV_ID_LOG(d), channel->callid);
-			REQ(r, StopMediaTransmission);
-			r->msg.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
-			r->msg.StopMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-			r->msg.StopMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
-			sccp_dev_send(d, r);
+			REQ(msg, StopMediaTransmission);
+			msg->data.StopMediaTransmission.lel_conferenceId = htolel(channel->callid);
+			msg->data.StopMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			msg->data.StopMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, msg);
 			channel->rtp.audio.readState = SCCP_RTP_STATUS_INACTIVE;
 		}
 		d = sccp_device_release(d);
@@ -1116,7 +1116,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
  */
 void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	sccp_device_t *d = NULL;
 
 	if (!channel) {
@@ -1127,11 +1127,11 @@ void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel)
 		// stopping phone vrtp
 		if (channel->rtp.video.readState) {
 			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Stop multimediatransmission on channel %d\n", DEV_ID_LOG(d), channel->callid);
-			REQ(r, StopMultiMediaTransmission);
-			r->msg.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
-			r->msg.StopMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
-			r->msg.StopMultiMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
-			sccp_dev_send(d, r);
+			REQ(msg, StopMultiMediaTransmission);
+			msg->data.StopMultiMediaTransmission.lel_conferenceId = htolel(channel->callid);
+			msg->data.StopMultiMediaTransmission.lel_passThruPartyId = htolel(channel->passthrupartyid);
+			msg->data.StopMultiMediaTransmission.lel_conferenceId1 = htolel(channel->callid);
+			sccp_dev_send(d, msg);
 			channel->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		}
 	}

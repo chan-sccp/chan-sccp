@@ -443,7 +443,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
  */
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	int instance = 0;
 	uint8_t status = 0;
 	uint32_t mask;
@@ -475,12 +475,12 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 
 		d->mwilight = newState;
 
-		REQ(r, SetLampMessage);
-		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-		r->msg.SetLampMessage.lel_stimulusInstance = htolel(instance);
-		r->msg.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
+		REQ(msg, SetLampMessage);
+		msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+		msg->data.SetLampMessage.lel_stimulusInstance = htolel(instance);
+		msg->data.SetLampMessage.lel_lampMode = (d->mwilight & ~(1 << 0)) ? htolel(d->mwilamp) : htolel(SKINNY_LAMP_OFF);
 
-		sccp_dev_send(d, r);
+		sccp_dev_send(d, msg);
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Turn %s the MWI on line (%s)%d\n", DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	} else {
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Device already knows status %s on line %s (%d)\n", DEV_ID_LOG(d), (newState & ~(1 << 0)) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
@@ -512,7 +512,7 @@ void sccp_mwi_check(sccp_device_t * device)
 	sccp_line_t *line = NULL;
 	sccp_channel_t *c = NULL;
 
-	sccp_moo_t *r = NULL;
+	sccp_msg_t *msg = NULL;
 
 	uint8_t status;
 	uint32_t mask;
@@ -568,11 +568,11 @@ void sccp_mwi_check(sccp_device_t * device)
 		if (device->mwilight & (1 << 0)) {								// Set the MWI light to off only if it is already on.
 			device->mwilight &= ~(1 << 0);								/* set mwi light for device to off */
 
-			REQ(r, SetLampMessage);
-			r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-			r->msg.SetLampMessage.lel_stimulusInstance = 0;
-			r->msg.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
-			sccp_dev_send(device, r);
+			REQ(msg, SetLampMessage);
+			msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+			msg->data.SetLampMessage.lel_stimulusInstance = 0;
+			msg->data.SetLampMessage.lel_lampMode = htolel(SKINNY_LAMP_OFF);
+			sccp_dev_send(device, msg);
 			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
 		} else {
 			sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: MWI already %s on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
@@ -597,11 +597,11 @@ void sccp_mwi_check(sccp_device_t * device)
 			device->mwilight &= ~(1 << 0);								/* deactivate */
 		}
 
-		REQ(r, SetLampMessage);
-		r->msg.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
-		//r->msg.SetLampMessage.lel_stimulusInstance = 0;
-		r->msg.SetLampMessage.lel_lampMode = htolel((device->mwilight) ? device->mwilamp : SKINNY_LAMP_OFF);
-		sccp_dev_send(device, r);
+		REQ(msg, SetLampMessage);
+		msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
+		//msg->data.SetLampMessage.lel_stimulusInstance = 0;
+		msg->data.SetLampMessage.lel_lampMode = htolel((device->mwilight) ? device->mwilamp : SKINNY_LAMP_OFF);
+		sccp_dev_send(device, msg);
 		sccp_log(DEBUGCAT_MWI) (VERBOSE_PREFIX_3 "%s: Turn %s the MWI light (newmsgs: %d->%d)\n", DEV_ID_LOG(device), (device->mwilight & (1 << 0)) ? "ON" : "OFF", newmsgs, device->voicemailStatistic.newmsgs);
 
 	}

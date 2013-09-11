@@ -61,9 +61,9 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	} while (cur < (len - 1));
 }
 
-void sccp_dump_moo(sccp_moo_t *r) 
+void sccp_dump_msg(sccp_msg_t *msg) 
 {
-	sccp_dump_packet((unsigned char *) r, letohl(r->header.length) + 8);
+	sccp_dump_packet((unsigned char *) msg, letohl(msg->header.length) + 8);
 }
 
 /*!
@@ -217,12 +217,12 @@ void sccp_dev_dbclean()
 		pbx_db_freetree(entry);
 }
 
-gcc_inline const char *message2str(sccp_message_t type)
+gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
 	return sccp_messagetypes[type].text;
 }
 
-gcc_inline size_t message2size(sccp_message_t type)
+gcc_inline size_t msgtype2size(sccp_mid_t type)
 {														/* sccp_protocol.h */
 	return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
 }
@@ -968,14 +968,14 @@ char *sccp_get_debugcategories(int32_t debugvalue)
  * \param dirNum the dirNum (e.g. line->cid_num)
  * \param fqdn line description (top right o the first line)
  * \param lineDisplayName label on the display
- * \return LineStatDynamicMessage as sccp_moo_t *
+ * \return LineStatDynamicMessage as sccp_msg_t *
  *
  * \callgraph
  * \callergraph
  */
-sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName)
+sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName)
 {
-	sccp_moo_t *r1 = NULL;
+	sccp_msg_t *msg = NULL;
 	int dirNum_len = (dirNum != NULL) ? strlen(dirNum) : 0;
 	int FQDN_len = (fqdn != NULL) ? strlen(fqdn) : 0;
 	int lineDisplayName_len = (lineDisplayName != NULL) ? strlen(lineDisplayName) : 0;
@@ -990,9 +990,9 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 		size = size + (4 - (size % 4));
 	}
 
-	r1 = sccp_build_packet(LineStatDynamicMessage, size);
-	r1->msg.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
-	r1->msg.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
+	msg = sccp_build_packet(LineStatDynamicMessage, size);
+	msg->data.LineStatDynamicMessage.lel_lineNumber = htolel(lineInstance);
+	msg->data.LineStatDynamicMessage.lel_lineType = htolel(0x0f);
 
 	if (dummy_len) {
 		char buffer[dummy_len + padding];
@@ -1006,10 +1006,10 @@ sccp_moo_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 		if (lineDisplayName_len)
 			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
 
-		memcpy(&r1->msg.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
+		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
 	}
 
-	return r1;
+	return msg;
 }
 
 #ifdef HAVE_LIBGC
