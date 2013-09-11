@@ -2524,8 +2524,7 @@ typedef union {
 typedef struct {
 	uint32_t length;											/*!< Message Length */
 	uint32_t lel_protocolVer;										/*!< Protocol Version Message */
-//	uint32_t lel_messageId;											/*!< Message ID, the messageId is not part of the skinny header, so it is counted in length */
-	sccp_mid_t lel_messageId;										/*!< Message ID, the messageId is not part of the skinny header, so it is counted in length */
+	uint32_t lel_messageId;											/*!< Message ID, the messageId is not part of the skinny header, so it is counted in length */
 } sccp_header_t;
 
 /*!
