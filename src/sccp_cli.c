@@ -1547,9 +1547,9 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	return 0;
 }
 
-static void sccp_update_statusbar(const sccp_device_t * d, const char *msg, const uint8_t priority, const uint8_t timeout, uint8_t level, boolean_t clear, const uint8_t lineInstance, const uint32_t callid)
+static void sccp_update_statusbar(const sccp_device_t * d, const char *msgstr, const uint8_t priority, const uint8_t timeout, uint8_t level, boolean_t clear, const uint8_t lineInstance, const uint32_t callid)
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	
 	if (!d || !d->protocol) {
 		return;
@@ -1558,34 +1558,34 @@ static void sccp_update_statusbar(const sccp_device_t * d, const char *msg, cons
 	switch (level) {
 		case 0:
 			if (!clear) {
-				REQ(r, DisplayTextMessage);
-				sccp_copy_string(r->msg.DisplayTextMessage.displayMessage, msg, sizeof(r->msg.DisplayTextMessage.displayMessage));
-				sccp_dev_send(d, r);
+				REQ(msg, DisplayTextMessage);
+				sccp_copy_string(msg->data.DisplayTextMessage.displayMessage, msgstr, sizeof(msg->data.DisplayTextMessage.displayMessage));
+				sccp_dev_send(d, msg);
 			} else {
 				sccp_dev_sendmsg(d, ClearDisplay);
 			}
 		case 1:
 			if (!clear) {
-				d->protocol->displayNotify(d, timeout, msg);
+				d->protocol->displayNotify(d, timeout, msgstr);
 			} else {
 				sccp_dev_sendmsg(d, ClearNotifyMessage);
 			}
 		case 2:
 			if (!clear) {
-				d->protocol->displayPriNotify(d, priority, timeout, msg);
+				d->protocol->displayPriNotify(d, priority, timeout, msgstr);
 			} else {
-				REQ(r, ClearPriNotifyMessage);
-				r->msg.ClearPriNotifyMessage.lel_priority = htolel(priority);
-				sccp_dev_send(d, r);
+				REQ(msg, ClearPriNotifyMessage);
+				msg->data.ClearPriNotifyMessage.lel_priority = htolel(priority);
+				sccp_dev_send(d, msg);
 			}
 		case 3:
 			if (!clear) {
-				d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
+				d->protocol->displayPrompt(d, lineInstance, callid, timeout, msgstr);
 			} else {
-				REQ(r, ClearPromptStatusMessage);
-				r->msg.ClearPromptStatusMessage.lel_callReference = htolel(callid);
-				r->msg.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
-				sccp_dev_send(d, r);
+				REQ(msg, ClearPromptStatusMessage);
+				msg->data.ClearPromptStatusMessage.lel_callReference = htolel(callid);
+				msg->data.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
+				sccp_dev_send(d, msg);
 			}
 	}
 }
@@ -1612,8 +1612,8 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 	// OpenReceiveChannel TEST
 	if (!strcasecmp(argv[3], "openreceivechannel")) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
-		sccp_moo_t *r1;
-		sccp_moo_t *r2;
+		sccp_msg_t *msg1;
+		sccp_msg_t *msg2;
 		int packetSize = 20;										/*! \todo calculate packetSize */
 
 		sccp_device_t *d = NULL;
@@ -1627,26 +1627,26 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 				sccp_channel_retain(channel);
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 8\n");
 
-				REQ(r1, OpenReceiveChannel);
-				r1->msg.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
-				r1->msg.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-				r1->msg.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
-				r1->msg.OpenReceiveChannel.v17.lel_payloadType = htolel(8);
-				r1->msg.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
-				r1->msg.OpenReceiveChannel.v17.lel_conferenceId1 = htolel(channel->callid);
-				r1->msg.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
-				sccp_dev_send(d, r1);
+				REQ(msg1, OpenReceiveChannel);
+				msg1->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
+				msg1->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
+				msg1->data.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
+				msg1->data.OpenReceiveChannel.v17.lel_payloadType = htolel(8);
+				msg1->data.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
+				msg1->data.OpenReceiveChannel.v17.lel_conferenceId1 = htolel(channel->callid);
+				msg1->data.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
+				sccp_dev_send(d, msg1);
 				//                            sleep(1);
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
-				REQ(r2, OpenReceiveChannel);
-				r2->msg.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
-				r2->msg.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
-				r2->msg.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
-				r2->msg.OpenReceiveChannel.v17.lel_payloadType = htolel(4);
-				r2->msg.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
-				r2->msg.OpenReceiveChannel.v17.lel_conferenceId1 = htolel(channel->callid);
-				r2->msg.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
-				sccp_dev_send(d, r2);
+				REQ(msg2, OpenReceiveChannel);
+				msg2->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
+				msg2->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
+				msg2->data.OpenReceiveChannel.v17.lel_millisecondPacketSize = htolel(packetSize);
+				msg2->data.OpenReceiveChannel.v17.lel_payloadType = htolel(4);
+				msg2->data.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
+				msg2->data.OpenReceiveChannel.v17.lel_conferenceId1 = htolel(channel->callid);
+				msg2->data.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
+				sccp_dev_send(d, msg2);
 
 				sccp_channel_release(channel);
 				sccp_device_release(d);
@@ -1663,7 +1663,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		uint8_t instance = 0;
 		uint8_t buttonID = SKINNY_BUTTONTYPE_SPEEDDIAL;
 		uint32_t state = 66306;										// 0, 66306, 131589, 
-		sccp_moo_t *r1;
+		sccp_msg_t *msg1;
 
 		if (argc < 5) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Device Not specified\n");
@@ -1675,12 +1675,12 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 				if (buttonconfig->type == SPEEDDIAL) {
 					instance = buttonconfig->instance;
-					REQ(r1, SpeedDialStatDynamicMessage);
-					r1->msg.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
-					r1->msg.SpeedDialStatDynamicMessage.lel_type = htolel(buttonID);
-					r1->msg.SpeedDialStatDynamicMessage.lel_status = htolel(state ? state : 0);
-					sccp_copy_string(r1->msg.SpeedDialStatDynamicMessage.DisplayName, "NEW TEXT", strlen("NEW_TEXT") + 1);
-					sccp_dev_send(d, r1);
+					REQ(msg1, SpeedDialStatDynamicMessage);
+					msg1->data.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
+					msg1->data.SpeedDialStatDynamicMessage.lel_type = htolel(buttonID);
+					msg1->data.SpeedDialStatDynamicMessage.lel_status = htolel(state ? state : 0);
+					sccp_copy_string(msg1->data.SpeedDialStatDynamicMessage.DisplayName, "NEW TEXT", strlen("NEW_TEXT") + 1);
+					sccp_dev_send(d, msg1);
 				}
 			}
 			SCCP_LIST_UNLOCK(&d->buttonconfig);
@@ -2659,7 +2659,7 @@ CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usa
      */
 static int sccp_unregister(int fd, int argc, char *argv[])
 {
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 	sccp_device_t *d;
 
 	if (argc != 3)
@@ -2681,9 +2681,9 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 
 	pbx_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
 
-	REQ(r, RegisterRejectMessage);
-	strncpy(r->msg.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
-	sccp_dev_send(d, r);
+	REQ(msg, RegisterRejectMessage);
+	strncpy(msg->data.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
+	sccp_dev_send(d, msg);
 
 	d = sccp_device_release(d);
 	return RESULT_SUCCESS;

@@ -225,15 +225,15 @@ void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t *deviceState, co
 
 void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_devstate_SubscribingDevice_t *subscriber)
 {
-	sccp_moo_t *featureMessage = NULL;
+	sccp_msg_t *msg = NULL;
   
-	REQ(featureMessage, FeatureStatMessage);
-	featureMessage->msg.FeatureStatMessage.lel_featureInstance	= htolel(subscriber->instance);
-	featureMessage->msg.FeatureStatMessage.lel_featureID		= htolel(SKINNY_BUTTONTYPE_FEATURE);
-	featureMessage->msg.FeatureStatMessage.lel_featureStatus	= htolel(deviceState->featureState);
-	sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, subscriber->label, sizeof(featureMessage->msg.FeatureStatMessage.featureTextLabel));
+	REQ(msg, FeatureStatMessage);
+	msg->data.FeatureStatMessage.lel_featureInstance	= htolel(subscriber->instance);
+	msg->data.FeatureStatMessage.lel_featureID		= htolel(SKINNY_BUTTONTYPE_FEATURE);
+	msg->data.FeatureStatMessage.lel_featureStatus	= htolel(deviceState->featureState);
+	sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, subscriber->label, sizeof(msg->data.FeatureStatMessage.featureTextLabel));
 	
-	sccp_dev_send(subscriber->device, featureMessage);
+	sccp_dev_send(subscriber->device, msg);
 }
 
 void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)

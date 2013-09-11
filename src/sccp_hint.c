@@ -958,7 +958,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
 	sccp_device_t *d;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_moo_t *r;
+	sccp_msg_t *msg;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
@@ -997,20 +997,20 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
 
-				REQ(r, FeatureStatDynamicMessage);
-				if (r) {
-					r->msg.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
-					r->msg.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+				REQ(msg, FeatureStatDynamicMessage);
+				if (msg) {
+					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 
 					switch (hint->currentState) {
 						case SCCP_CHANNELSTATE_ONHOOK:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_IDLE);
+							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_IDLE);
 							break;
 
 						case SCCP_CHANNELSTATE_DOWN:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_UNKNOWN);	/* default state */
+							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_UNKNOWN);	/* default state */
 							break;
 
 						case SCCP_CHANNELSTATE_RINGING:
@@ -1025,17 +1025,17 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_ALERTING);	/* ringin */
+							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_ALERTING);	/* ringin */
 							break;
 
 						case SCCP_CHANNELSTATE_DND:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_DND);	/* dnd */
+							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_DND);	/* dnd */
 							break;
 
 						case SCCP_CHANNELSTATE_CONGESTION:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_UNKNOWN);	/* device/line not found */
+							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_UNKNOWN);	/* device/line not found */
 							break;
 
 						default:
@@ -1050,15 +1050,15 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							r->msg.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_INUSE);	/* connected */
+							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_INUSE);	/* connected */
 							break;
 					}
 					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
-					sccp_copy_string(r->msg.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(r->msg.FeatureStatDynamicMessage.DisplayName));
-					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, r->msg.FeatureStatDynamicMessage.lel_status);
-					sccp_dev_send(d, r);
+					sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.DisplayName));
+					sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, msg->data.FeatureStatDynamicMessage.lel_status);
+					sccp_dev_send(d, msg);
 				} else {
-					sccp_free(r);
+					sccp_free(msg);
 				}
 			} else
 #endif

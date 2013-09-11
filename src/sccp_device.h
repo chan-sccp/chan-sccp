@@ -47,14 +47,14 @@ void sccp_device_addToGlobals(sccp_device_t * device);
 sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d);
 sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance);
 
-#define REQ(x,y) x = sccp_build_packet(y, sizeof(x->msg.y))
+#define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)
-sccp_moo_t *sccp_build_packet(sccp_message_t t, size_t pkt_len);
+sccp_msg_t *sccp_build_packet(sccp_mid_t t, size_t pkt_len);
 
 void sccp_dev_check_displayprompt(sccp_device_t * d);
 void sccp_device_setIndicationProtocol(sccp_device_t * device);
 void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn);
-void sccp_dev_sendmsg(const sccp_device_t * d, sccp_message_t t);
+void sccp_dev_sendmsg(const sccp_device_t * d, sccp_mid_t t);
 void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt);
 void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(const sccp_device_t * d);
@@ -85,7 +85,7 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility);
 
-int sccp_dev_send(const sccp_device_t * d, sccp_moo_t * r);
+int sccp_dev_send(const sccp_device_t * d, sccp_msg_t * msg);
 int sccp_device_check_ringback(sccp_device_t * d);
 int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type);
 

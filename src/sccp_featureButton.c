@@ -48,7 +48,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
-	sccp_moo_t *featureMessage = NULL;
+	sccp_msg_t *msg = NULL;
 	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_line_t *line;
@@ -260,19 +260,19 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 
 			/* send status using new message */
 			if (device->inuseprotocolversion >= 15) {
-				REQ(featureMessage, FeatureStatDynamicMessage);
-				featureMessage->msg.FeatureStatDynamicMessage.lel_instance = htolel(instance);
-				featureMessage->msg.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
-				featureMessage->msg.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
-				sccp_copy_string(featureMessage->msg.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
+				REQ(msg, FeatureStatDynamicMessage);
+				msg->data.FeatureStatDynamicMessage.lel_instance = htolel(instance);
+				msg->data.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
+				msg->data.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
 			} else {
-				REQ(featureMessage, FeatureStatMessage);
-				featureMessage->msg.FeatureStatMessage.lel_featureInstance = htolel(instance);
-				featureMessage->msg.FeatureStatMessage.lel_featureID = htolel(buttonID);
-				featureMessage->msg.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
-				sccp_copy_string(featureMessage->msg.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
+				REQ(msg, FeatureStatMessage);
+				msg->data.FeatureStatMessage.lel_featureInstance = htolel(instance);
+				msg->data.FeatureStatMessage.lel_featureID = htolel(buttonID);
+				msg->data.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
+				sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
 			}
-			sccp_dev_send(device, featureMessage);
+			sccp_dev_send(device, msg);
 			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d Label: %s Status: %d Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
 		}
 	}
