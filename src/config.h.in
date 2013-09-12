@@ -267,14 +267,8 @@
 /* experimental mode enabled */
 #undef CS_EXPERIMENTAL
 
-/* experimental codec enabled */
-#undef CS_EXPERIMENTAL_CODEC
-
 /* experimental newip enabled */
 #undef CS_EXPERIMENTAL_NEWIP
-
-/* experimental rtp enabled */
-#undef CS_EXPERIMENTAL_RTP
 
 /* Enable IPv6 support */
 #undef CS_IPV6

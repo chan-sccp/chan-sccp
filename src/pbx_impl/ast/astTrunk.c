@@ -824,9 +824,7 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 	struct ast_format fmt;
 	int i;
 
-#ifndef CS_EXPERIMENTAL_CODEC
 	length = 1;												//set only one codec
-#endif
 
 	ast_debug(10, "%s: set native Formats length: %d\n", (char *) channel->currentDeviceId, length);
 

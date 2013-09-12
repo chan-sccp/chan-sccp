@@ -1,3 +1,12 @@
+Version: 4.2.0_DEV
+==================
+New Features in V4.2
+ - Direct RTP
+ - Enums processed using meta programming
+
+Bug Fixes
+ - 
+
 Version: V4.1_STABLE
 ==================
 New features with V4.1:
