@@ -413,9 +413,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk18_rtp_read(PBX_CHANNEL_TYPE * ast)
 		{
 			if (!(frame->subclass.codec & (ast->rawreadformat & AST_FORMAT_AUDIO_MASK))) {
 				//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel %s changed format from %s(%d) to %s(%d)\n", DEV_ID_LOG(c->device), ast->name, pbx_getformatname(ast->nativeformats), ast->nativeformats, pbx_getformatname(frame->subclass), frame->subclass);
-#ifndef CS_EXPERIMENTAL_CODEC
 				sccp_wrapper_asterisk18_setReadFormat(c, c->rtp.audio.readFormat);
-#endif
 			}
 			if (frame->subclass.codec != (ast->nativeformats & AST_FORMAT_AUDIO_MASK)) {
 				if (!(frame->subclass.codec & skinny_codecs2pbx_codecs(c->capabilities.audio))) {
@@ -2346,7 +2344,6 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	channel->owner->rawwriteformat = skinny_codec2pbx_codec(codec);
 	channel->owner->nativeformats |= channel->owner->rawwriteformat;
 
-#ifndef CS_EXPERIMENTAL_CODEC
 	if (!channel->owner->writeformat) {
 		channel->owner->writeformat = channel->owner->rawwriteformat;
 	}
@@ -2355,32 +2352,25 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 		ast_translator_free_path(channel->owner->writetrans);
 		channel->owner->writetrans = NULL;
 	}
-#endif
 	ast_set_write_format(channel->owner, channel->owner->rawwriteformat);
 
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write native: %d\n", (int) channel->owner->rawwriteformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "write: %d\n", (int) channel->owner->writeformat);
 
-#ifdef CS_EXPERIMENTAL_CODEC
+/*
 	PBX_CHANNEL_TYPE *bridge;
 
 	if (PBX(getRemoteChannel) (channel, &bridge)) {
-		//              pbx_log(LOG_NOTICE, "Bridge found\n");
 		channel->owner->writeformat = 0;
 
 		bridge->readformat = 0;
-		//              if(bridge->readtrans){
-		//                      ast_translator_free_path(bridge->readtrans);
-		//                      bridge->readtrans = NULL;
-		//              }
 		ast_channel_make_compatible(bridge, channel->owner);
 	} else {
 		ast_set_write_format(channel->owner, channel->owner->rawwriteformat);
 	}
-#else
+*/	
 	channel->owner->nativeformats = channel->owner->rawwriteformat;
 	ast_set_write_format(channel->owner, channel->owner->writeformat);
-#endif
 
 	return TRUE;
 }
@@ -2390,7 +2380,6 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 	channel->owner->rawreadformat = skinny_codec2pbx_codec(codec);
 	channel->owner->nativeformats = channel->owner->rawreadformat;
 
-#ifndef CS_EXPERIMENTAL_CODEC
 	if (!channel->owner->readformat) {
 		channel->owner->readformat = channel->owner->rawreadformat;
 	}
@@ -2399,31 +2388,24 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 		ast_translator_free_path(channel->owner->readtrans);
 		channel->owner->readtrans = NULL;
 	}
-#endif
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read native: %d\n", (int) channel->owner->rawreadformat);
 	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "read: %d\n", (int) channel->owner->readformat);
 
-#ifdef CS_EXPERIMENTAL_CODEC
+/*
 	PBX_CHANNEL_TYPE *bridge;
 
 	if (PBX(getRemoteChannel) (channel, &bridge)) {
-		//              pbx_log(LOG_NOTICE, "Bridge found\n");
 		channel->owner->readformat = 0;
 
 		bridge->writeformat = 0;
-		//              if(bridge->writetrans){
-		//                      ast_translator_free_path(bridge->writetrans);
-		//                      bridge->writetrans = NULL;
-		//              }
 		ast_channel_make_compatible(channel->owner, bridge);
 
 	} else {
 		ast_set_read_format(channel->owner, channel->owner->rawreadformat);
 	}
-#else
+*/
 	channel->owner->nativeformats = channel->owner->rawreadformat;
 	ast_set_read_format(channel->owner, channel->owner->readformat);
-#endif
 
 	return TRUE;
 }

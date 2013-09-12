@@ -289,14 +289,12 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 {
 
-#ifndef CS_EXPERIMENTAL_RTP
 	if (channel->rtp.audio.writeState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.writeFormat != SKINNY_CODEC_NONE) {
 		//pbx_log(LOG_NOTICE, "we already have a write format, dont change codec\n");
 		channel->rtp.audio.readFormat = channel->rtp.audio.writeFormat;
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 		return;
 	}
-#endif
 	/* check if remote set a preferred format that is compatible */
 	if ((channel->rtp.audio.readState == SCCP_RTP_STATUS_INACTIVE)
 	    || !sccp_utils_isCodecCompatible(channel->rtp.audio.readFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
@@ -333,14 +331,11 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
 {
 	//pbx_log(LOG_NOTICE, "writeState %d\n", channel->rtp.audio.writeState);
-
-#ifndef CS_EXPERIMENTAL_RTP
 	if (channel->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE && channel->rtp.audio.readFormat != SKINNY_CODEC_NONE) {
 		channel->rtp.audio.writeFormat = channel->rtp.audio.readFormat;
 		PBX(rtp_setWriteFormat) (channel, channel->rtp.audio.writeFormat);
 		return;
 	}
-#endif
 	/* check if remote set a preferred format that is compatible */
 	if ((channel->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE)
 	    || !sccp_utils_isCodecCompatible(channel->rtp.audio.writeFormat, channel->capabilities.audio, ARRAY_LEN(channel->capabilities.audio))
@@ -730,9 +725,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 	}
 
 	/* calculating format at this point doesn work, because asterisk needs a nativeformat to be set before dial */
-#ifdef CS_EXPERIMENTAL_CODEC
-	sccp_channel_recalculateWriteformat(channel);
-#endif
+	//sccp_channel_recalculateWriteformat(channel);
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: channel %s payloadType %d\n", DEV_ID_LOG(d), PBX(getChannelName) (channel), channel->rtp.audio.writeFormat);
 
@@ -959,9 +952,7 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 			channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
 		}
 
-#ifdef CS_EXPERIMENTAL_CODEC
-		sccp_channel_recalculateReadformat(channel);
-#endif
+		//sccp_channel_recalculateReadformat(channel);
 		if (channel->owner) {
 			PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.readFormat, 1);
 			PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
