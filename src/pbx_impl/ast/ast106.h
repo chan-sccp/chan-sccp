@@ -14,7 +14,6 @@
 #define SCCP_AST_MAJOR_H_
 
 #include <config.h>
-#include "../../common.h"
 
 #define sccp_sched_context_destroy sched_context_destroy
 #if ASTERISK_VERSION_NUMBER >= 10601

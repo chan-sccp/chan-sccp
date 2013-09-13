@@ -12,6 +12,11 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_mwi.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifndef CS_AST_HAS_EVENT

@@ -15,6 +15,13 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_line.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_utils.h"
+#include "sccp_features.h"
+#include "sccp_config.h"
+#include "sccp_mwi.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);

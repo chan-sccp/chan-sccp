@@ -28,6 +28,11 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_hint.h"
+#include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 

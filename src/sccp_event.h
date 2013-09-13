@@ -14,7 +14,8 @@
 #define SCCP_EVENT_H_
 
 //#include <config.h>
-#include "common.h"
+//#include "common.h"
+#include "chan_sccp.h"
 
 #include "sccp_enum_macro.h"
 #include "sccp_event_enums.hh"

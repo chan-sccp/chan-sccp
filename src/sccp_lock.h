@@ -13,6 +13,10 @@
 #ifndef __SCCP_LOCK_H
 #  define __SCCP_LOCK_H
 
+#ifdef HAVE_ATOMIC_OPS_H
+#include <atomic_ops.h>
+#endif
+
 #  define sccp_mutex_init(x)          		pbx_mutex_init(x)
 #  define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
 

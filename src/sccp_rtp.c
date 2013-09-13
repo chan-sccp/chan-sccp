@@ -15,6 +15,10 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_channel.h"
+#include "sccp_device.h"
+#include "sccp_utils.h"
+#include "sccp_rtp.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 

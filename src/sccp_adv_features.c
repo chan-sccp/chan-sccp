@@ -15,6 +15,7 @@
  */
 #include <config.h>
 #include "common.h"
+#include "sccp_adv_features.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 

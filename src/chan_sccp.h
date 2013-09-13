@@ -25,8 +25,14 @@ extern "C" {
 /* *INDENT-OFF* */
 #endif
 
+#if defined(__GNUC__) && !defined(__clang__)
+#define gcc_inline inline
+#else
+#define gcc_inline
+#endif
+
 #include <config.h>
-#include "common.h"
+//#include "common.h"
 
 #include "sccp_enum_macro.h"
 #include "chan_sccp_enums.hh"
@@ -34,8 +40,12 @@ extern "C" {
 #define sccp_mutex_t ast_mutex_t
 
 /* Add bswap function if necessary */
-#ifdef HAVE_BYTESWAP_H
+#if HAVE_BYTESWAP_H
 #include <byteswap.h>
+#elif HAVE_SYS_BYTEORDER_H
+#include <sys/byteorder.h>
+#elif HAVE_SYS_ENDIAN_H
+#include <sys/endian.h>
 #endif
 
 #ifndef HAVE_BSWAP_16

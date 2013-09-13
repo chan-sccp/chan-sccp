@@ -87,6 +87,12 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_config.h"
+#include "sccp_device.h"
+#include "sccp_line.h"
+#include "sccp_utils.h"
+#include "sccp_featureButton.h"
+#include "sccp_mwi.h"
 #include <asterisk/paths.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
