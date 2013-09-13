@@ -17,6 +17,16 @@
 #ifndef __SCCP_PROTOCOL_H
 #define __SCCP_PROTOCOL_H
 
+#if HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#if HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
+#include <netinet/tcp.h>
+#endif
+
 #include "sccp_labels.h"
 
 #include "sccp_enum_macro.h"

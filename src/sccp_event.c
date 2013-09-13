@@ -19,6 +19,9 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_event.h"
+#include "sccp_device.h"
+#include "sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define GENERATE_ENUM_STRINGS

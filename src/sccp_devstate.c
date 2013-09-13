@@ -11,8 +11,12 @@
  */ 
 
 #include <config.h>
-#include <sccp_devstate.h>
-#include <sccp_event.h>
+#include "common.h"
+#include "sccp_device.h"
+#include "sccp_devstate.h"
+#include "sccp_event.h"
+#include "sccp_utils.h"
+#include "sccp_mwi.h"
 
 typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
 struct sccp_devstate_SubscribingDevice {

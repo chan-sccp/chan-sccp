@@ -14,7 +14,6 @@
 #define SCCP_AST_MAJOR_H_
 
 #include <config.h>
-#include "../../common.h"
 
 #define pbx_channel_unref(c) ({ ao2_ref(c, -1); (PBX_CHANNEL_TYPE *) (NULL); })
 #define pbx_channel_ref(c) ({ ao2_ref(c, 1); (PBX_CHANNEL_TYPE *) c; })

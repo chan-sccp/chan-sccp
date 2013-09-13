@@ -15,13 +15,11 @@
 
 #include <config.h>
 #include "common.h"
-#include <signal.h>
+#include "sccp_socket.h"
+#include "sccp_device.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#include <sys/ioctl.h>
-#ifdef SOLARIS
-#include <sys/filio.h>												// provides FIONREAD on SOLARIS
-#endif
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
 #include <sys/poll.h>

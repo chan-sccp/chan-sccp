@@ -13,6 +13,18 @@
 
 #include <config.h>
 #include "../../common.h"
+#include "../../sccp_pbx.h"
+#include "../../sccp_device.h"
+#include "../../sccp_channel.h"
+#include "../../sccp_line.h"
+#include "../../sccp_cli.h"
+#include "../../sccp_utils.h"
+#include "../../sccp_indicate.h"
+#include "../../sccp_hint.h"
+#include "../../sccp_mwi.h"
+#include "../../sccp_appfunctions.h"
+#include "../../sccp_management.h"
+#include "../../sccp_rtp.h"
 #include "ast106.h"
 
 #if defined(__cplusplus) || defined(c_plusplus)
@@ -20,6 +32,10 @@ extern "C" {
 #endif
 #include <asterisk/sched.h>
 #include <asterisk/netsock.h>
+
+#if HAVE_SYS_SIGNAL_H
+#include <sys/signal.h>
+#endif
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp.h>

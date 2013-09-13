@@ -19,6 +19,30 @@
 
 #include <config.h>
 #include "common.h"
+
+#include "sccp_pbx.h"
+#include "sccp_protocol.h"
+#include "sccp_socket.h"
+#include "sccp_device.h"
+#include "sccp_line.h"
+#include "sccp_channel.h"
+#include "sccp_features.h"
+#include "sccp_utils.h"
+#include "sccp_indicate.h"
+#include "sccp_hint.h"
+#include "sccp_actions.h"
+#include "sccp_featureButton.h"
+#include "sccp_mwi.h"
+#include "sccp_config.h"
+#include "sccp_conference.h"
+#include "sccp_labels.h"
+#include "sccp_softkeys.h"
+#include "sccp_adv_features.h"
+#include "sccp_cli.h"
+#include "sccp_appfunctions.h"
+#include "sccp_management.h"
+#include "sccp_rtp.h"
+
 #include "sccp_devstate.h"
 #include <signal.h>
 

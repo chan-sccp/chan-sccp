@@ -15,6 +15,8 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_device.h"
+#include "sccp_utils.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 

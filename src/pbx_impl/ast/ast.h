@@ -13,7 +13,6 @@
  */
 #ifndef __SCCP_PBX_WRAPPER_H
 #define __SCCP_PBX_WRAPPER_H
-#include "../../common.h"
 
 //#define REF_DEBUG 1
 

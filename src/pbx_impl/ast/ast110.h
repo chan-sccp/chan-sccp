@@ -14,7 +14,6 @@
 #define SCCP_AST_MAJOR_H_
 
 #include <config.h>
-#include "../../common.h"
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref

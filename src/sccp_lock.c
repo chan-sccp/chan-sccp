@@ -13,6 +13,7 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_lock.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifdef CS_AST_DEBUG_CHANNEL_LOCKS

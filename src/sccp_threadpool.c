@@ -17,6 +17,7 @@
 
 #include <config.h>
 #include "common.h"
+#include "sccp_threadpool.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
 #include "sccp_threadpool.h"

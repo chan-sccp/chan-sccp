@@ -15,6 +15,8 @@
 #ifndef _SCCP_DLLISTS_H
 #define _SCCP_DLLISTS_H
 
+#include "sccp_lock.h"
+
 /* Main list head */
 #define SCCP_LIST_HEAD(name, type)									\
 struct name {												\

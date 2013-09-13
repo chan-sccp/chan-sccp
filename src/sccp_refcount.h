@@ -11,6 +11,10 @@
 #ifndef __SCCP_REFCOUNT_H
 #define __SCCP_REFCOUNT_H
 
+#if HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+
 #include <setjmp.h>
 
 #define REFCOUNT_INDENTIFIER_SIZE 25
