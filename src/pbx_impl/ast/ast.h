@@ -20,6 +20,9 @@
 #include <asterisk.h>
 #include <asterisk/abstract_jb.h>
 #endif
+#include <asterisk/options.h>
+#include <asterisk/buildopts.h>
+#include <asterisk/autoconfig.h>
 #include <asterisk/compiler.h>
 #include <asterisk/utils.h>
 #include <asterisk/threadstorage.h>
@@ -27,7 +30,6 @@
 #include <asterisk/pbx.h>
 #include <asterisk/acl.h>
 #include <asterisk/module.h>
-#include <asterisk/options.h>
 #include <asterisk/logger.h>
 #include <asterisk/config.h>
 #include <asterisk/sched.h>

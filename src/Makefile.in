@@ -119,8 +119,8 @@ am_chan_sccp_la_OBJECTS = chan_sccp_la-chan_sccp.lo \
 	chan_sccp_la-sccp_utils.lo chan_sccp_la-sccp_actions.lo \
 	chan_sccp_la-sccp_cli.lo chan_sccp_la-sccp_features.lo \
 	chan_sccp_la-sccp_config.lo chan_sccp_la-sccp_hint.lo \
-	chan_sccp_la-sccp_lock.lo chan_sccp_la-sccp_refcount.lo \
-	chan_sccp_la-sccp_event.lo chan_sccp_la-sccp_adv_features.lo \
+	chan_sccp_la-sccp_refcount.lo chan_sccp_la-sccp_event.lo \
+	chan_sccp_la-sccp_adv_features.lo \
 	chan_sccp_la-sccp_management.lo chan_sccp_la-sccp_mwi.lo \
 	chan_sccp_la-sccp_conference.lo chan_sccp_la-sccp_rtp.lo \
 	chan_sccp_la-sccp_appfunctions.lo \
@@ -432,11 +432,10 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_device.c sccp_indicate.c sccp_pbx.c pbx_impl/pbx_impl.c \
 	sccp_softkeys.c sccp_featureButton.c sccp_line.c sccp_utils.c \
 	sccp_actions.c sccp_cli.c sccp_features.c sccp_config.c \
-	sccp_hint.c sccp_lock.c sccp_refcount.c sccp_event.c \
-	sccp_adv_features.c sccp_management.c sccp_mwi.c \
-	sccp_conference.c sccp_rtp.c sccp_appfunctions.c \
-	sccp_protocol.c sccp_socket.c sccp_threadpool.c \
-	sccp_devstate.c
+	sccp_hint.c sccp_refcount.c sccp_event.c sccp_adv_features.c \
+	sccp_management.c sccp_mwi.c sccp_conference.c sccp_rtp.c \
+	sccp_appfunctions.c sccp_protocol.c sccp_socket.c \
+	sccp_threadpool.c sccp_devstate.c
 EXTRA_chan_sccp_la_SOURCES = $(am__append_1)
 chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
@@ -545,7 +544,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_hint.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_indicate.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_line.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_lock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_management.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_mwi.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/chan_sccp_la-sccp_pbx.Plo@am__quote@
@@ -682,13 +680,6 @@ chan_sccp_la-sccp_hint.lo: sccp_hint.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_hint.c' object='chan_sccp_la-sccp_hint.lo' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-sccp_hint.lo `test -f 'sccp_hint.c' || echo '$(srcdir)/'`sccp_hint.c
-
-chan_sccp_la-sccp_lock.lo: sccp_lock.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-sccp_lock.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-sccp_lock.Tpo -c -o chan_sccp_la-sccp_lock.lo `test -f 'sccp_lock.c' || echo '$(srcdir)/'`sccp_lock.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/chan_sccp_la-sccp_lock.Tpo $(DEPDIR)/chan_sccp_la-sccp_lock.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sccp_lock.c' object='chan_sccp_la-sccp_lock.lo' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -c -o chan_sccp_la-sccp_lock.lo `test -f 'sccp_lock.c' || echo '$(srcdir)/'`sccp_lock.c
 
 chan_sccp_la-sccp_refcount.lo: sccp_refcount.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(chan_sccp_la_CFLAGS) $(CFLAGS) -MT chan_sccp_la-sccp_refcount.lo -MD -MP -MF $(DEPDIR)/chan_sccp_la-sccp_refcount.Tpo -c -o chan_sccp_la-sccp_refcount.lo `test -f 'sccp_refcount.c' || echo '$(srcdir)/'`sccp_refcount.c
