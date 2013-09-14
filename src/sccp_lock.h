@@ -13,103 +13,41 @@
 #ifndef __SCCP_LOCK_H
 #  define __SCCP_LOCK_H
 
-#ifdef HAVE_ATOMIC_OPS_H
-#include <atomic_ops.h>
-#endif
+#  ifdef HAVE_ATOMIC_OPS_H
+#  include <atomic_ops.h>
+#  endif
 
 #  define sccp_mutex_init(x)          		pbx_mutex_init(x)
 #  define sccp_mutex_destroy(x)       		pbx_mutex_destroy(x)
 
-#  if ASTERISK_VERSION_NUMBER >= 10400										/* Channel Mutex Macros for Asterisk 1.4 and above */
-#    define sccp_pbx_channel_lock(x)    	pbx_channel_lock(x)
-#    define sccp_pbx_channel_unlock(x)  	pbx_channel_unlock(x)
-#    define sccp_pbx_channel_trylock(x) 	pbx_channel_trylock(x)
-#    if ASTERISK_VERSION_NUMBER >= 10600
-#      define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	CHANNEL_DEADLOCK_AVOIDANCE(x)
-#    else
-#      define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	DEADLOCK_AVOIDANCE(&x->lock)
-#    endif
-#  else	/* ASTERISK_VERSION_NUMBER >= 10400 */									/* Channel Mutex Macros for Asterisk 1.2 */
-#    define sccp_pbx_channel_lock(x)    	sccp_mutex_lock(&x->lock)
-#    define sccp_pbx_channel_unlock(x) 		sccp_mutex_unlock(&x->lock)
-#    define sccp_pbx_channel_trylock(x) 	sccp_mutex_trylock(&x->lock)
-#    define AST_CHANNEL_DEADLOCK_AVOIDANCE(x)	do { \
-	                                               sccp_pbx_channel_unlock(x); \
-		                                       usleep(1); \
-		                                       sccp_pbx_channel_lock(x); \
-		                                while(0)
-#    define AST_DEADLOCK_AVOIDANCE(x)		DEADLOCK_AVOIDANCE(&x->lock)
-#  endif													/* ASTERISK_VERSION_NUMBER >= 10400 */
+/* Macro for Generic Mutex */
+#  define sccp_mutex_lock(x)			pbx_mutex_lock(x)
+#  define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
+#  define sccp_mutex_unlock(x)			pbx_mutex_unlock(x)
+#  define sccp_mutex_trylock(x)			pbx_mutex_trylock(x)
 
-#  ifndef CS_AST_DEBUG_CHANNEL_LOCKS
-	/* Macro for Generic Mutex */
-#    define sccp_mutex_lock(x)			pbx_mutex_lock(x)
-#    define sccp_mutex_lock_desc(x,y) 		pbx_mutex_lock(x)
-#    define sccp_mutex_unlock(x)		pbx_mutex_unlock(x)
-#    define sccp_mutex_trylock(x)		pbx_mutex_trylock(x)
+/* Macro for Sessions */
+#  define sccp_session_lock(x)			pbx_mutex_lock(&x->lock)
+#  define sccp_session_unlock(x)		pbx_mutex_unlock(&x->lock)
+#  define sccp_session_trylock(x)		pbx_mutex_trylock(&x->lock)
 
-	/* Macro for Sessions */
-#    define sccp_session_lock(x)		pbx_mutex_lock(&x->lock)
-#    define sccp_session_unlock(x)		pbx_mutex_unlock(&x->lock)
-#    define sccp_session_trylock(x)		pbx_mutex_trylock(&x->lock)
+/* Macro for Globals */
+#  define sccp_globals_lock(x)			pbx_mutex_lock(&sccp_globals->x)
+#  define sccp_globals_unlock(x)		pbx_mutex_unlock(&sccp_globals->x)
+#  define sccp_globals_trylock(x)		pbx_mutex_trylock(&sccp_globals->x)
 
-	/* Macro for Globals */
-#    define sccp_globals_lock(x)		pbx_mutex_lock(&sccp_globals->x)
-#    define sccp_globals_unlock(x)		pbx_mutex_unlock(&sccp_globals->x)
-#    define sccp_globals_trylock(x)		pbx_mutex_trylock(&sccp_globals->x)
+/* Macro for Lists */
+#  define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
+#  define SCCP_LIST_UNLOCK(x)			pbx_mutex_unlock(&(x)->lock)
+#  define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
 
-	/* Macro for Lists */
-#    define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
-#    define SCCP_LIST_UNLOCK(x)			pbx_mutex_unlock(&(x)->lock)
-#    define SCCP_LIST_TRYLOCK(x)		pbx_mutex_trylock(&(x)->lock)
-
-	/* Macro for read/write Lists */
-#    define SCCP_RWLIST_RDLOCK(x)		pbx_rwlock_rdlock(&(x)->lock)
-#    define SCCP_RWLIST_WRLOCK(x)		pbx_rwlock_wrlock(&(x)->lock)
-#    define SCCP_RWLIST_UNLOCK(x)		pbx_rwlock_unlock(&(x)->lock)
-#    define SCCP_RWLIST_TRYLOCK(x)		pbx_rwlock_trylock(&(x)->lock)
-#    define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
-#    define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
-#  else														/* CS_AST_DEBUG_CHANNEL_LOCKS */
-
-// ugly fix to resolve include order incase of CS_AST_DEBUG_CHANNEL_LOCKS       
-#    if ASTERISK_VERSION_NUMBER >= 10400
-#      include <asterisk.h>
-#    endif
-#    include <asterisk/lock.h>
-int __sccp_mutex_lock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
-int __sccp_mutex_unlock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
-int __sccp_mutex_trylock(ast_mutex_t * p_ast_mutex, const char *itemnametolock, const char *filename, int lineno, const char *func);
-
-#    define sccp_mutex_lock(a)          	__sccp_mutex_lock(a, "(sccp unspecified [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_mutex_lock_desc(a, b) 		__sccp_mutex_lock(a, b, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_mutex_unlock(a)       	 	__sccp_mutex_unlock(a, "(sccp unspecified [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_mutex_trylock(a)       	__sccp_mutex_trylock(a, "(sccp unspecified [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-
-	/* Macro for Sessions */
-#    define sccp_session_lock(a)		__sccp_mutex_lock(&a->lock, "(sccp session [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_session_unlock(a)		__sccp_mutex_unlock(&a->lock, "(sccp session [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_session_trylock(a)		__sccp_mutex_trylock(&a->lock, "(sccp session [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-
-	/* Macro for Globals */
-#    define sccp_globals_lock(a)		__sccp_mutex_lock(&sccp_globals->a, "(sccp globals [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_globals_unlock(a)		__sccp_mutex_unlock(&sccp_globals->a, "(sccp globals [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define sccp_globals_trylock(a)		__sccp_mutex_trylock(&sccp_globals->a, "(sccp globals [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-
-	/* Macro for Lists */
-#    define SCCP_LIST_LOCK(a)			__sccp_mutex_lock(&(a)->lock, "(SCCP LIST [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define SCCP_LIST_UNLOCK(a)			__sccp_mutex_unlock(&(a)->lock, "(SCCP LIST [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#    define SCCP_LIST_TRYLOCK(a)		__sccp_mutex_trylock(&(a)->lock, "(SCCP LIST [" #a "])", __FILE__, __LINE__, __PRETTY_FUNCTION__)
-
-	/* Macro for read/write Lists */
-	/* \todo add __sccp_rwlock implementation for debugging in sccp_lock.c */
-#    define SCCP_RWLIST_RDLOCK(x)		pbx_rwlock_rdlock(&(x)->lock)
-#    define SCCP_RWLIST_WRLOCK(x)		pbx_rwlock_wrlock(&(x)->lock)
-#    define SCCP_RWLIST_UNLOCK(x)		pbx_rwlock_unlock(&(x)->lock)
-#    define SCCP_RWLIST_TRYLOCK(x)		pbx_rwlock_trylock(&(x)->lock)
-#    define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
-#    define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
-#  endif													/* CS_AST_DEBUG_CHANNEL_LOCKS */
+/* Macro for read/write Lists */
+#  define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
+#  define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
+#  define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
+#  define SCCP_RWLIST_TRYLOCK(x)		pbx_rwlock_trylock(&(x)->lock)
+#  define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
+#  define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
 
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #  ifdef SCCP_ATOMIC
