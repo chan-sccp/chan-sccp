@@ -2639,90 +2639,37 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  *        - line->channels
  *      - channel
  */
-#if !CS_EXPERIMENTAL												// Old Version
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
 {
 	if (!d) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "SCCP: No device provided to look for %u\n", passthrupartyid);
 		return NULL;
 	}
+	uint8_t instance = 0;
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
-	sccp_buttonconfig_t *buttonconfig = NULL;
 	boolean_t channelFound = FALSE;
 
 	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if (buttonconfig->type == LINE) {
-			l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
-			if (l) {
-				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
-				SCCP_LIST_LOCK(&l->channels);
-				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-					//if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
-					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
-					if (c->passthrupartyid == passthrupartyid) {
-						sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
-						c = sccp_channel_retain(c);
-						channelFound = TRUE;
-						break;
-					}
-				}
-				SCCP_LIST_UNLOCK(&l->channels);
-
-				l = sccp_line_release(l);
-				if (channelFound)
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++){
+		if ((l = sccp_line_retain(d->lineButtons.instance[instance]->line))) {
+			sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", DEV_ID_LOG(d), l->name);
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+				//if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
+				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
+				if (c->passthrupartyid == passthrupartyid) {
+					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
+					c = sccp_channel_retain(c);
+					channelFound = TRUE;
 					break;
-			}
-		}
-	}
-
-	if (!c || !channelFound) {
-		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u on device %s\n", passthrupartyid, DEV_ID_LOG(d));
-	}
-
-	return c;
-}
-#else														// New Version
-sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
-{
-	if (!d) {
-		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "SCCP: No device provided to look for %u\n", passthrupartyid);
-		return NULL;
-	}
-	btnlist *btn = d->buttonTemplate;
-
-	if (!btn) {
-		sccp_log(DEBUGCAT_BUTTONTEMPLATE) (VERBOSE_PREFIX_3 "%s: no buttontemplate, reset device\n", DEV_ID_LOG(d));
-		return NULL;
-	}
-	sccp_channel_t *c = NULL;
-	sccp_line_t *l = NULL;
-	int i = 0;
-	boolean_t channelFound = FALSE;
-
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
-	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
-			if ((l = sccp_line_retain(btn[i].ptr))) {
-				sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", DEV_ID_LOG(d), l->name);
-				SCCP_LIST_LOCK(&l->channels);
-				SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-					//if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
-					sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
-					if (c->passthrupartyid == passthrupartyid) {
-						sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
-						c = sccp_channel_retain(c);
-						channelFound = TRUE;
-						break;
-					}
 				}
-				SCCP_LIST_UNLOCK(&l->channels);
-
-				l = sccp_line_release(l);
-				if (channelFound)
-					break;
 			}
+			SCCP_LIST_UNLOCK(&l->channels);
+
+			l = sccp_line_release(l);
+			if (channelFound)
+				break;
 		}
 	}
 	if (!c || !channelFound) {
@@ -2731,7 +2678,6 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 
 	return c;
 }
-#endif
 /*!
  * \brief Find Channel by State on Line
  * \return *refcounted* SCCP Channel
@@ -2790,9 +2736,6 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * \callgraph
  * \callergraph
  * 
- * \warning
- *      - device->buttonconfig is not always locked
- * 
  * \lock
  *      - device
  *        - see sccp_line_find_byname_wo()
@@ -2820,7 +2763,6 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 {
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l = NULL;
-	sccp_buttonconfig_t *buttonconfig = NULL;
 	boolean_t channelFound = FALSE;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
@@ -2828,38 +2770,36 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 	if (!(d = sccp_device_retain(d)))
 		return NULL;
 
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if (buttonconfig->type == LINE) {
-			l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
-			if (l) {
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
-				SCCP_LIST_LOCK(&l->channels);
-				SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-					if (channel->state == state) {
-						/* check that subscriptionId matches */
-						if (sccp_util_matchSubscriptionId(channel, buttonconfig->button.line.subscriptionId.number)) {
+	uint8_t instance = 0;
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++){
+		if ((l = sccp_line_retain(d->lineButtons.instance[instance]->line))) {
+			sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
+			SCCP_LIST_LOCK(&l->channels);
+			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+				if (channel->state == state) {
+					/* check that subscriptionId matches */
+					if (sccp_util_matchSubscriptionId(channel, d->lineButtons.instance[instance]->subscriptionId.number)) {
 #if DEBUG
-							channel = sccp_refcount_retain(channel, filename, lineno, func);
+						channel = sccp_refcount_retain(channel, filename, lineno, func);
 #else
-							channel = sccp_channel_retain(channel);
+						channel = sccp_channel_retain(channel);
 #endif
-							sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), channel->callid);
-							channelFound = TRUE;
-							break;
-						} else {
-							sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found channel (%d), but it does not match subscriptionId %s \n", DEV_ID_LOG(d), channel->callid, buttonconfig->button.line.subscriptionId.number);
-						}
-
+						sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), channel->callid);
+						channelFound = TRUE;
+						break;
+					} else {
+						sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE | DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found channel (%d), but it does not match subscriptionId %s \n", DEV_ID_LOG(d), channel->callid, d->lineButtons.instance[instance]->subscriptionId.number);
 					}
-				}
-				SCCP_LIST_UNLOCK(&l->channels);
-				l = sccp_line_release(l);
 
-				if (channelFound)
-					break;
+				}
 			}
+			SCCP_LIST_UNLOCK(&l->channels);
+			l = sccp_line_release(l);
+
+			if (channelFound)
+				break;
 		}
-	}
+		}
 	d = sccp_device_release(d);
 
 	return channel;
