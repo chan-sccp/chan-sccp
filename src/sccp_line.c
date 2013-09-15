@@ -1030,31 +1030,17 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 
 	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 
-	if (!d || instance == 0)
+	if (!d || instance == 0) {
 		return NULL;
-#if 0
-	sccp_buttonconfig_t *config;
-	SCCP_LIST_LOCK(&d->buttonconfig);
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE | DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: button instance %d, type: %d\n", DEV_ID_LOG(d), config->instance, config->type);
-
-		if (config && config->type == LINE && config->instance == instance && !sccp_strlen_zero(config->button.line.name)) {
-#if DEBUG
-			l = __sccp_line_find_byname(config->button.line.name, TRUE, filename, lineno, func);
-#else
-			l = sccp_line_find_byname(config->button.line.name, TRUE);
-#endif
-			break;
-		}
 	}
-	SCCP_LIST_UNLOCK(&d->buttonconfig);
-#else
+
 	if (0 < instance && instance < d->lineButtons.size && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line ){
+#if DEBUG
+		l = sccp_refcount_retain( d->lineButtons.instance[instance]->line, filename, lineno, func);
+#else
 		l = sccp_line_retain( d->lineButtons.instance[instance]->line );
-	}
 #endif
-	
-
+	}
 
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
