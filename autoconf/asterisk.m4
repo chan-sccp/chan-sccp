@@ -235,26 +235,25 @@ AC_DEFUN([AST_CHECK_HEADERS],[
     )
     AC_CHECK_HEADER([asterisk/buildopts.h], 
 		[
-			AC_DEFINE(HAVE_PBX_BUILDOPTS_H,1,[Found 'asterisk/buildopts.h'])
-	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_channel_locks'...],[ac_cv_ast_debug_channel_locks],[
-		                	$HEADER_INCLUDE
-				], [
-                                	int test_format = (int)DEBUG_CHANNEL_LOCKS;
-                                ], [CS_AST_DEBUG_CHANNEL_LOCKS],
-                                ['DEBUG_CHANNEL_LOCKS' available]
-                        )
-
-	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_threads'...],[ac_cv_ast_debug_threads],[
-		                	$HEADER_INCLUDE
-                                ], [
-                                	int test_format = (int)DEBUG_THREADS;
-                                ], [CS_AST_DEBUG_THREADS],
-                                ['DEBUG_THREADS' available]
-                        )
-			dnl Trick to compile against asterisk 1.6.2 to fix AST_MUTEX_DEFINE_STATIC issue, cause by #include order
-                        if [ test ${ASTERISK_VER_GROUP} == 106 ]; then
-                                AC_DEFINE(DEBUG_THREADS,1,[Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against asterisk 1.6.2])
-                        fi
+dnl			AC_DEFINE(HAVE_PBX_BUILDOPTS_H,1,[Found 'asterisk/buildopts.h'])
+dnl	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_channel_locks'...],[ac_cv_ast_debug_channel_locks],[
+dnl		                	$HEADER_INCLUDE
+dnl				], [
+dnl					int test_format = (int)DEBUG_CHANNEL_LOCKS;
+dnl				], [CS_AST_DEBUG_CHANNEL_LOCKS],
+dnl				['DEBUG_CHANNEL_LOCKS' available]
+dnl			)
+dnl	                CS_CV_TRY_COMPILE_DEFINE([ - availability 'debug_threads'...],[ac_cv_ast_debug_threads],[
+dnl		                	$HEADER_INCLUDE
+dnl				], [
+dnl					int test_format = (int)DEBUG_THREADS;
+dnl				], [CS_AST_DEBUG_THREADS],
+dnl				['DEBUG_THREADS' available]
+dnl			)
+dnl			dnl Trick to compile against asterisk 1.6.2 to fix AST_MUTEX_DEFINE_STATIC issue, cause by #include order
+dnl			if [ test ${ASTERISK_VER_GROUP} == 106 ]; then
+dnl				AC_DEFINE(DEBUG_THREADS,1,[Fake DEBUG_THREADS to please 'asterisk/lock.h' when compiling against asterisk 1.6.2])
+dnl			fi
                         AC_MSG_CHECKING([ - if asterisk was compiled with the 'LOW_MEMORY' buildoption...])                              
                         AC_EGREP_HEADER([yes], [
                         #include <asterisk/buildopts.h>
