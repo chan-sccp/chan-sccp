@@ -2239,7 +2239,12 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 
 	/* copy the number to dial in the ast->exten */
 	sccp_copy_string(sccp_forwarding_channel->dialedNumber, dialedNumber, sizeof(sccp_forwarding_channel->dialedNumber));
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Incoming: %s Forwarded By: %s Forwarded To: %s", sccp_channel_parent->callInfo.callingPartyName, lineDevice->line->cid_name, dialedNumber);
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Incoming: %s (%s) Forwarded By: %s (%s) Forwarded To: %s\n", 
+		sccp_channel_parent->callInfo.callingPartyName, 
+		sccp_channel_parent->callInfo.callingPartyNumber, 
+		lineDevice->line->cid_name, 
+		lineDevice->line->cid_num, 
+		dialedNumber);
 
 	/* Copy Channel Capabilities From Predecessor */
 	memset(&sccp_forwarding_channel->remoteCapabilities.audio, 0, sizeof(sccp_forwarding_channel->remoteCapabilities.audio));
