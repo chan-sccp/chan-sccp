@@ -983,14 +983,6 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		// \todo handle shared line
 		d = NULL;
 
-#if 0														// never gonna happen because of line above
-		if (d) {
-			sccp_device_retain(d);
-			channel = d->active_channel;
-			sccp_device_release(d);
-		}
-#endif
-
 		if (!channel || (channel->line != l))
 			channel = NULL;
 
