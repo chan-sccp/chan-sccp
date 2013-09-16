@@ -70,6 +70,7 @@ CLI_AMI_TABLE_FIELDS
 		astman_append(s, "%s\r\n", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
 		local_total++;
 	}
+	astman_append(s, "\r\n");
 }
 
 	/* iterator through list */
