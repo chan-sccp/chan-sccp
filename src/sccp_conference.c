@@ -1582,7 +1582,7 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 }
 
 /*!
- * \brief Conference End
+ * \brief Conference Command CLI/AMI
  * \param fd Fd as int
  * \param total Total number of lines as int
  * \param s AMI Session
@@ -1593,7 +1593,7 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
  * 
  * \called_from_asterisk
  */
-int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int confid = 0, partid = 0;
 	int local_total = 0;
@@ -1602,7 +1602,7 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 	int res = RESULT_SUCCESS;
 	char error[100];
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Conference Action:%s, Conference %s, Participant %s\n", argv[2], argv[3], argc >= 5 ? argv[4] : "");
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Conference Command:%s, Conference %s, Participant %s\n", argv[2], argv[3], argc >= 5 ? argv[4] : "");
 
 	if (argc < 4 || argc > 5) {
 		return RESULT_SHOWUSAGE;
@@ -1614,22 +1614,22 @@ int sccp_cli_conference_action(int fd, int *total, struct mansession *s, const s
 
 	if (sccp_strIsNumeric(argv[3]) && (confid = atoi(argv[3])) > 0) {
 		if ((conference = sccp_conference_findByID(confid))) {
-			if (!strncasecmp(argv[2], "EndConf", 7)) {						// EndConf Action
+			if (!strncasecmp(argv[2], "EndConf", 7)) {						// EndConf Command
 				sccp_conference_end(conference);
 			} else if (argc >= 5) {
 				if (sccp_strIsNumeric(argv[4]) && (partid = atoi(argv[4])) > 0) {
 					if ((participant = sccp_conference_participant_findByID(conference, partid))) {
-						if (!strncasecmp(argv[2], "Kick", 4)) {				// Kick Action
+						if (!strncasecmp(argv[2], "Kick", 4)) {				// Kick Command
 							sccp_conference_kick_participant(conference, participant);
-						} else if (!strncasecmp(argv[2], "Mute", 4)) {			// Mute Action
+						} else if (!strncasecmp(argv[2], "Mute", 4)) {			// Mute Command
 							sccp_conference_toggle_mute_participant(conference, participant);
-						} else if (!strncasecmp(argv[2], "Invite", 5)) {		// Invite Action
+						} else if (!strncasecmp(argv[2], "Invite", 5)) {		// Invite Command
 							sccp_conference_invite_participant(conference, participant);
-						} else if (!strncasecmp(argv[2], "Moderate", 8)) {		// Moderate Action
+						} else if (!strncasecmp(argv[2], "Moderate", 8)) {		// Moderate Command
 							sccp_conference_promote_demote_participant(conference, participant, NULL);
 						} else {
-							pbx_log(LOG_WARNING, "Unknown Action %s\n", argv[2]);
-							snprintf(error, sizeof(error), "Unknown Action\n %s", argv[2]);
+							pbx_log(LOG_WARNING, "Unknown Command %s\n", argv[2]);
+							snprintf(error, sizeof(error), "Unknown Command\n %s", argv[2]);
 							res = RESULT_FAILURE;
 						}
 						participant = sccp_participant_release(participant);
