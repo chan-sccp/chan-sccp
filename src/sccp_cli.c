@@ -1449,7 +1449,7 @@ static char ami_conference_usage[] = "Usage: SCCPShowConference\n" "Lists runnin
 #define CLI_COMMAND "sccp", "show", "conference"
 #define AMI_COMMAND "SCCPShowConference"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
-#define CLI_AMI_PARAMS ""
+#define CLI_AMI_PARAMS "ConferenceId"
 CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conference", cli_conference_usage, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
@@ -1458,15 +1458,15 @@ CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conf
 #endif			
 
 											/* DOXYGEN_SHOULD_SKIP_THIS */
-static char cli_conference_action_usage[] = "Usage: sccp conference [conference_id]\n" "	Conference [EndConf | Kick | Mute | Invite | Moderate] [conference_id] [participant_id].\n";
-static char ami_conference_action_usage[] = "Usage: SCCPConference [conference id]\n" "Conference Actions.\n\n" "PARAMS: \n" "  Action: [EndConf | Kick | Mute | Invite | Moderate]\n" "  ConferenceId\n" "  ParticipantId\n";
+static char cli_conference_command_usage[] = "Usage: sccp conference [conference_id]\n" "	Conference [EndConf | Kick | Mute | Invite | Moderate] [conference_id] [participant_id].\n";
+static char ami_conference_command_usage[] = "Usage: SCCPConference [conference id]\n" "Conference Command.\n\n" "PARAMS: \n" "  Command: [EndConf | Kick | Mute | Invite | Moderate]\n" "  ConferenceId\n" "  ParticipantId\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "conference"
 #define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
 #define AMI_COMMAND "SCCPConference"
-#define CLI_AMI_PARAMS "Action","ConferenceId","ParticipantId"
-CLI_AMI_ENTRY(conference_action, sccp_cli_conference_action, "Conference Action", cli_conference_action_usage, TRUE)
+#define CLI_AMI_PARAMS "Command","ConferenceId","ParticipantId"
+CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Action", cli_conference_command_usage, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -3129,7 +3129,7 @@ static struct pbx_cli_entry cli_entries[] = {
 #ifdef CS_SCCP_CONFERENCE
 	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
 	AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
-	AST_CLI_DEFINE(cli_conference_action, "Conference Actions.")
+	AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands.")
 #endif
 };
 
@@ -3170,7 +3170,7 @@ void sccp_register_cli(void)
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_register("SCCPShowConferences", _MAN_REP_FLAGS, manager_show_conferences, "show conferences", ami_conferences_usage);
 	pbx_manager_register("SCCPShowConference", _MAN_REP_FLAGS, manager_show_conference, "show conference", ami_conference_usage);
-	pbx_manager_register("SCCPConference", _MAN_REP_FLAGS, manager_conference_action, "conference actions", ami_conference_action_usage);
+	pbx_manager_register("SCCPConference", _MAN_REP_FLAGS, manager_conference_command, "conference commands", ami_conference_command_usage);
 #endif
 }
 
