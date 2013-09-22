@@ -933,7 +933,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
  * \param softKeySetIndex SoftKeySet Index
  * \todo Disable DirTrfr by Default
  */
-void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t softKeySetIndex)
+void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex)
 {
 	sccp_msg_t *msg;
 
@@ -957,7 +957,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	if (!msg)
 		return;
 
-	msg->data.SelectSoftKeysMessage.lel_lineInstance = htolel(line);
+	msg->data.SelectSoftKeysMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.SelectSoftKeysMessage.lel_callReference = htolel(callid);
 	msg->data.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(softKeySetIndex);
 
@@ -972,9 +972,14 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	}
 #if CS_SCCP_CONFERENCE
 	if (d->allow_conference) {
-		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, TRUE);
+		if (d->conference) {
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, FALSE);
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_JOIN, TRUE);
+		} else {
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, TRUE);
+			sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_JOIN, FALSE);
+		}
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFLIST, TRUE);
-		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_JOIN, TRUE);
 	} else {
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFRN, FALSE);
 		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_CONFLIST, FALSE);
@@ -985,7 +990,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid,
 	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 
-	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(softKeySetIndex), softKeySetIndex, line, callid);
+	sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
 	sccp_dev_send(d, msg);
 }
 

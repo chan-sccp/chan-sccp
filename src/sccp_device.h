@@ -55,7 +55,7 @@ void sccp_dev_check_displayprompt(sccp_device_t * d);
 void sccp_device_setIndicationProtocol(sccp_device_t * device);
 void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn);
 void sccp_dev_sendmsg(const sccp_device_t * d, sccp_mid_t t);
-void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t line, uint32_t callid, uint8_t opt);
+void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t callid, uint8_t softKeySetIndex);
 void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInstance, uint32_t callid);
 void sccp_dev_cleardisplay(const sccp_device_t * d);
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt);
