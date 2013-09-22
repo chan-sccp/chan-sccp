@@ -1675,6 +1675,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	if (d->conference) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
 		sccp_conference_resume(d->conference);
+		sccp_dev_set_keyset(d, sccp_device_find_index_for_line(d,l->name), channel->callid, KEYMODE_CONNCONF);
 	} else
 #endif
 	{
