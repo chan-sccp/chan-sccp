@@ -236,6 +236,9 @@ void sccp_sk_videomode(sccp_device_t * device, sccp_line_t * l, const uint32_t l
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Redial Pressed\n", DEV_ID_LOG(d));
+	if (!d) {
+		return;
+	}
 
 #ifdef CS_ADV_FEATURES
 	if (d->useRedialMenu) {
@@ -406,8 +409,10 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 	
-	if (c->calltype == SKINNY_CALLTYPE_INBOUND && c->line->devices.size > 1){
-		d->indicate->onhook(d, lineInstance, c->callid);
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND && c->line->devices.size > 1) {
+		if (d && d->indicate && d->indicate->onhook) {
+			d->indicate->onhook(d, lineInstance, c->callid);
+		}
 	} else {
 		sccp_channel_endcall(c);
 	}

@@ -757,9 +757,12 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 			}
 			sccp_free(bindaddr_new);
 		}
-	} else {
+	} else if (&bindaddr_prev->sin_addr != NULL && hp->h_addr != NULL) {
 		memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	} else {
+		pbx_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", value);
+		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 #endif
 	return changed;
@@ -782,8 +785,9 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, const
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 		} else {
-			bindaddr_prev->sin_port = htons(new_port);
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
+		        pbx_log(LOG_WARNING, "Uninitialized bindaddr destination structure to set port to\n");
+			//bindaddr_prev->sin_port = htons(new_port);
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	} else {
 		pbx_log(LOG_WARNING, "Invalid port number '%s'\n", value);
@@ -2655,9 +2659,6 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							}
 							if (!sccp_strlen_zero(possible_values)) {
 								astman_append(s, "(POSSIBLE VALUES: %s)\r\n", possible_values);
-							}
-							if (description_part) {
-								sccp_free(description_part);
 							}
 							//                                                      sccp_free(description);
 						}

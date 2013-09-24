@@ -174,7 +174,7 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate)
 {
-	sccp_devstate_deviceState_t *deviceState;
+	sccp_devstate_deviceState_t *deviceState = NULL;
 	char buf[256] = "";
 	
 	snprintf(buf, 254, "Custom:%s", devstate);
@@ -182,6 +182,10 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	
 	
 	deviceState = sccp_malloc(sizeof(sccp_devstate_deviceState_t));
+	if (!deviceState) {
+		pbx_log(LOG_ERROR, "Memory Allocation for deviceState failed!\n");
+		return NULL;
+	}
 	memset(deviceState, 0, sizeof(sccp_devstate_deviceState_t));
 	
 	SCCP_LIST_HEAD_INIT(&deviceState->subscribers);

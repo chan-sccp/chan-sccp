@@ -383,36 +383,38 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
 
 	/* end callforwards */
-	sccp_channel_t *channel;
-
-	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-		if (channel->parentChannel == c) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
-			/* No need to lock because c->line->channels is already locked. */
-			sccp_channel_endcall(channel);
-			channel->parentChannel = sccp_channel_release(channel->parentChannel);			// release from sccp_channel_forward_retain
-		}
+	if (&l->channels) {
+ 	        sccp_channel_t *channel = NULL;
+                SCCP_LIST_LOCK(&l->channels);
+                SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+                        if (channel->parentChannel == c) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+                                /* No need to lock because c->line->channels is already locked. */
+                                sccp_channel_endcall(channel);
+                                channel->parentChannel = sccp_channel_release(channel->parentChannel);			// release from sccp_channel_forward_retain
+                        }
+                }
+                SCCP_LIST_UNLOCK(&l->channels);
 	}
-	SCCP_LIST_UNLOCK(&l->channels);
 	/* done - end callforwards */
 
 	/* cancel transfer if in progress */
 	sccp_channel_transfer_cancel(d, c);
 
 	/* remove call from transferee, transferer */
-	sccp_linedevices_t *linedevice;
+        sccp_linedevices_t *linedevice = NULL;
+	if (&l->devices) {
+                SCCP_LIST_LOCK(&l->devices);
+                SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+                        sccp_device_t *tmpDevice = NULL;
 
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		sccp_device_t *tmpDevice = NULL;
-
-		if ((tmpDevice = sccp_device_retain(linedevice->device))) {
-			sccp_channel_transfer_release(tmpDevice, c);
-			sccp_device_release(tmpDevice);
-		}
+                        if ((tmpDevice = sccp_device_retain(linedevice->device))) {
+                                sccp_channel_transfer_release(tmpDevice, c);
+                                sccp_device_release(tmpDevice);
+                        }
+                }
+                SCCP_LIST_UNLOCK(&l->devices);
 	}
-	SCCP_LIST_UNLOCK(&l->devices);
 	/* done - remove call from transferee, transferer */
 
 	sccp_line_removeChannel(l, c);
@@ -420,16 +422,17 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	if (!d) {
 		/* channel is not answered, just ringin over all devices */
 		/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
-		sccp_linedevices_t *linedevice;
 
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
-				d = sccp_device_retain(linedevice->device);
-				break;
-			}
+		if (&l->devices) {
+                        SCCP_LIST_LOCK(&l->devices);
+                        SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+                                if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
+                                        d = sccp_device_retain(linedevice->device);
+                                        break;
+                                }
+                        }
+                        SCCP_LIST_UNLOCK(&l->devices);
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
 	} else {
 		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 		sccp_log(DEBUGCAT_PBX) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
