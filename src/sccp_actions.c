@@ -459,12 +459,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	if (!device && GLOB(allowAnonymous)) {
 		if (!(device = sccp_device_createAnonymous(msg_in->data.RegisterMessage.sId.deviceName))) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline device could not be created: %s\n", msg_in->data.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+		} else {
+                        sccp_config_applyDeviceConfiguration(device, NULL);
+                        sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
+                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", msg_in->data.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+                        device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
+                        sccp_device_addToGlobals(device);
 		}
-		sccp_config_applyDeviceConfiguration(device, NULL);
-		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", msg_in->data.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
-		device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
-		sccp_device_addToGlobals(device);
 	}
 
 	if (device) {
