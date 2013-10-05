@@ -628,6 +628,8 @@ void sccp_conference_hold(sccp_conference_t * conference)
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
 				sccp_conference_play_music_on_hold_to_participant(conference, participant, TRUE);
+			} else {
+				participant->device->conferencelist_active = FALSE;
 			}
 		}
 		SCCP_LIST_UNLOCK(&conference->participants);
@@ -653,10 +655,14 @@ void sccp_conference_resume(sccp_conference_t * conference)
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (participant->isModerator == FALSE) {
 				sccp_conference_play_music_on_hold_to_participant(conference, participant, FALSE);
+			} else {
+				if (participant->channel && participant->device && participant->device->conferencelist_active) {
+					sccp_conference_show_list(conference, participant->channel);
+				}
 			}
 		}
 		SCCP_LIST_UNLOCK(&conference->participants);
-		conference->isOnHold = TRUE;
+		conference->isOnHold = FALSE;
 	}
 }
 
