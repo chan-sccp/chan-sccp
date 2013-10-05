@@ -837,7 +837,8 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c)
 {
 #if CS_SCCP_CONFERENCE
-	sccp_channel_t *channel = NULL;
+	sccp_channel_t *newparticipant_channel = NULL;
+	sccp_channel_t *moderator_channel = NULL;
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
 
 	if (!c)
@@ -858,28 +859,40 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 			pbx_log(LOG_NOTICE, "%s: Channel is already part of a conference.\n", DEV_ID_LOG(d));
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "Already in Conference", 5);
 		} else {
-			channel = d->active_channel;
-			pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
-			sccp_channel_hold(channel);
-			if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
-				sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
-				sccp_conference_addParticipatingChannel(d->conference, channel, bridged_channel);
-			} else {
-				pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
-			}
-
-			sccp_channel_t *mod_chan = NULL;
-
+			sccp_conference_hold(d->conference);					// make sure conference is on hold
+			newparticipant_channel = d->active_channel;
+			
 			SCCP_LIST_LOCK(&l->channels);
-			SCCP_LIST_TRAVERSE(&l->channels, mod_chan, list) {
-				if (d->conference == mod_chan->conference) {
-					sccp_channel_resume(d, mod_chan, FALSE);
-					sccp_feat_conflist(d, mod_chan->line, 0, mod_chan);
+			SCCP_LIST_TRAVERSE(&l->channels, moderator_channel, list) {
+				if (d->conference == moderator_channel->conference) {
 					break;
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
-			sccp_conference_update(d->conference);
+			
+			if (moderator_channel != newparticipant_channel) {
+                                if (moderator_channel && newparticipant_channel) {
+                                        sccp_channel_resume(d, moderator_channel, TRUE);		// swap active channel
+                                
+                                        pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
+                                        if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(newparticipant_channel->owner))) {
+                                                sccp_log((DEBUGCAT_CONFERENCE | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(newparticipant_channel->state));
+                                                sccp_conference_addParticipatingChannel(d->conference, newparticipant_channel, bridged_channel);
+                                        } else {
+                                                pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(newparticipant_channel->owner));
+                                        }
+
+                                        sccp_feat_conflist(d, moderator_channel->line, 0, moderator_channel);
+                                        sccp_conference_update(d->conference);
+                                } else {
+                                        pbx_log(LOG_NOTICE, "%s: conference moderator could not be found on this phone\n", DEV_ID_LOG(d));
+                                        sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+                                }
+			} else {
+                                pbx_log(LOG_NOTICE, "%s: Cannot use the JOIN button within a conference itself\n", DEV_ID_LOG(d));
+                                sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+			}
+			sccp_conference_resume(d->conference);					// make sure conference is resumed
 		}
 		d = sccp_device_release(d);
 	}
