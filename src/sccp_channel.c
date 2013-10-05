@@ -1283,7 +1283,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	/* look if we have a call to put on hold */
 	if ((channel = sccp_channel_get_active(device))
 #if CS_SCCP_CONFERENCE
-	    && (NULL == channel->conference)
+//	    && (NULL == channel->conference)
 #endif
 	    ) {
 		/* there is an active call, let's put it on hold first */
@@ -1540,12 +1540,12 @@ int sccp_channel_hold(sccp_channel_t * channel)
 		return 0;
 	}
 
+	instance = sccp_device_find_index_for_line(d, l->name);
 	/* put on hold an active call */
 	if (channel->state != SCCP_CHANNELSTATE_CONNECTED && channel->state != SCCP_CHANNELSTATE_CONNECTEDCONFERENCE && channel->state != SCCP_CHANNELSTATE_PROCEED) {	// TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s can't put on hold an inactive channel %s-%08X with state %s (%d)... cancelling hold action.\n", d->id, l->name, channel->callid, sccp_indicate2str(channel->state), channel->state);
 		/* hard button phones need it */
-		instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		d = sccp_device_release(d);
 		return 0;
@@ -1557,6 +1557,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	if (d->conference) {
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Putting conference on hold.\n", d->id);
 		sccp_conference_hold(d->conference);
+		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_ONHOLD);
 	} else
 #endif
 	{
@@ -1643,11 +1644,11 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		}
 	}
 
+	instance = sccp_device_find_index_for_line(d, l->name);
 	/* resume an active call */
 	if (channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER && channel->state != SCCP_CHANNELSTATE_CALLCONFERENCE) {
 		/* something wrong in the code let's notify it for a fix */
 		pbx_log(LOG_ERROR, "%s can't resume the channel %s-%08X. Not on hold\n", d->id, l->name, channel->callid);
-		instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_displayprompt(d, instance, channel->callid, "No active call to put on hold", 5);
 		d = sccp_device_release(d);
 		return 0;
@@ -1675,7 +1676,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	if (d->conference) {
 		sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Conference on the channel %s-%08X\n", d->id, l->name, channel->callid);
 		sccp_conference_resume(d->conference);
-		sccp_dev_set_keyset(d, sccp_device_find_index_for_line(d,l->name), channel->callid, KEYMODE_CONNCONF);
+		sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_CONNCONF);
 	} else
 #endif
 	{
