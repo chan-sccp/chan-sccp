@@ -109,7 +109,7 @@ static int sccp_dissect_header(sccp_header_t *header)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet is out of bounds: %d < %d > %d, cancelling read.\n", 4, packetSize, (int)(SCCP_MAX_PACKET - 8));
 		return -1;
 	}
-	if (!(protocolVersion == 0 || protocolVersion == 0x11 || protocolVersion == 0x12 || protocolVersion == 0x14 || protocolVersion == 0x16)) {
+	if ( protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(SCCP_PROTOCOL, protocolVersion)) ) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %d is unknown, cancelling read.\n", protocolVersion);
 		return -1;
 	}

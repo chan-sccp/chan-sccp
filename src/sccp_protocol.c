@@ -1081,6 +1081,21 @@ uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type)
 			return 0;
 	}
 }
+boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version){
+	const sccp_deviceProtocol_t **protocolDef;
+	size_t protocolArraySize;
+	
+	if (type == SCCP_PROTOCOL) {
+		protocolArraySize = ARRAY_LEN(sccpProtocolDefinition);
+		protocolDef = sccpProtocolDefinition;
+	} else {
+		protocolArraySize = ARRAY_LEN(spcpProtocolDefinition);
+		protocolDef = spcpProtocolDefinition;
+	}
+	
+	return ( version < protocolArraySize && protocolDef[version] != NULL ) ? TRUE : FALSE;
+}
+
 
 /*!
  * \brief Get Maximum Possible Protocol Supported by Device
