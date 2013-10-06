@@ -1081,7 +1081,8 @@ uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type)
 			return 0;
 	}
 }
-boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version){
+
+gcc_inline boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version){
 	const sccp_deviceProtocol_t **protocolDef;
 	size_t protocolArraySize;
 	
