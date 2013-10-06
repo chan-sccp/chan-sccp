@@ -406,7 +406,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 {
 	sccp_device_t *device;
 	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
-	uint8_t ourMaxSupportedProtocolVersion = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
 	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
 
@@ -541,17 +540,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	}
 
 	device->protocol = sccp_protocol_getDeviceProtocol(device, s->protocolType);
-	uint8_t ourProtocolCapability = sccp_protocol_getMaxSupportedVersionNumber(s->protocolType);
-
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: asked our protocol capability (%d).\n", DEV_ID_LOG(device), ourProtocolCapability);
-
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	device->keepaliveinterval = device->keepalive ? device->keepalive : GLOB(keepalive);
 	device->keepaliveinterval = ((device->keepaliveinterval / 4) * 3) + (rand() % (device->keepaliveinterval / 4)) + 1;	// smaller random segment, keeping keepalive toward the upperbound
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Phone protocol capability : %d\n", DEV_ID_LOG(device), protocolVer);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Our protocol capability	 : %d\n", DEV_ID_LOG(device), ourMaxSupportedProtocolVersion);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Joint protocol capability : %d\n", DEV_ID_LOG(device), device->protocol->version);
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Phone protocol capability : %d, Server protocol capability : %d, Joint protocol capability : %d\n", DEV_ID_LOG(device), protocolVer, sccp_protocol_getMaxSupportedVersionNumber(s->protocolType), device->protocol->version);
 
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), device->keepaliveinterval);
 

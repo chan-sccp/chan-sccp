@@ -98,7 +98,7 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
 	}
 }
 
-static int sccp_dissect_header(sccp_header_t *header) 
+static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header) 
 {
 	int packetSize = header->length;
 	int protocolVersion = letohl(header->lel_protocolVer);
@@ -109,7 +109,7 @@ static int sccp_dissect_header(sccp_header_t *header)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet is out of bounds: %d < %d > %d, cancelling read.\n", 4, packetSize, (int)(SCCP_MAX_PACKET - 8));
 		return -1;
 	}
-	if ( protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(SCCP_PROTOCOL, protocolVersion)) ) {
+	if ( protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion)) ) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %d is unknown, cancelling read.\n", protocolVersion);
 		return -1;
 	}
@@ -163,7 +163,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	else if (readlen <= 0) {goto READ_ERROR;}								/* client closed socket */
 	
 	msg->header.length = letohl(msg->header.length);
-	if ((msgDataSegmentSize = sccp_dissect_header(&msg->header)) < 0) {
+	if ((msgDataSegmentSize = sccp_dissect_header(s, &msg->header)) < 0) {
 		goto READ_ERROR;
 	}
 	
