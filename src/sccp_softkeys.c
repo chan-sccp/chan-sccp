@@ -236,6 +236,7 @@ void sccp_sk_videomode(sccp_device_t * device, sccp_line_t * l, const uint32_t l
  */
 void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
+	sccp_line_t *line = NULL;
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Redial Pressed\n", DEV_ID_LOG(d));
 	if (!d) {
 		return;
@@ -267,15 +268,19 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		/* here's a KEYMODE error. nothing to do */
 		return;
 	} else {
-		if (!l) {
-			l = sccp_dev_get_activeline(d);
-			c = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
-			c = c ? sccp_channel_release(c) : NULL;
-			l = sccp_line_release(l);
-		} else {
-			c = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
-			c = c ? sccp_channel_release(c) : NULL;
-		}
+                if (l) {
+                        line = sccp_line_retain(l);
+                } else {
+                        line = sccp_dev_get_activeline(d);
+                }
+                if (line) {
+                        if ((c = sccp_channel_newcall(line, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL))) {
+                                sccp_channel_release(c);
+                        }
+                        line = sccp_line_release(line);
+                } else {
+                        sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
+                }
 	}
 }
 
