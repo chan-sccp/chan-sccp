@@ -337,7 +337,10 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 			str = (char *) dst;
 
 			if (!sccp_strlen_zero(value)) {
-				if (strcasecmp(str, value)) {
+        			if (strlen(value) > sccpConfigOption->size - 1) {
+        				pbx_log(LOG_NOTICE, "config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int)sccpConfigOption->size - 1);
+        			}
+				if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
 					sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
 					changed = SCCP_CONFIG_CHANGE_CHANGED;
 					pbx_copy_string(dst, value, sccpConfigOption->size);
