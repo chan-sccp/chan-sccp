@@ -2503,31 +2503,25 @@ CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_u
      */
 static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 {
-#ifdef CS_EXPERIMENTAL
-	int returnval = RESULT_SUCCESS;
-	char *config_file = "sccp.conf.test";
+	int returnval = RESULT_FAILURE;
+	char *config_file = "sccp.conf.new";
 
-	if (argc < 2 || argc > 4)
+	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
+	}
 
-	pbx_cli(fd, "SCCP: Creating config file.\n");
-
-	if (argc > 3) {
-		pbx_cli(fd, "Using config file '%s'\n", argv[3]);
+	pbx_cli(fd, "SCCP: Generating new config file.\n");
+	
+	if (argc == 4) {
 		config_file = sccp_strdupa(argv[3]);
 	}
-	if (sccp_config_generate(config_file, 0)) {
-		pbx_cli(fd, "SCCP generated. saving '%s'...\n", config_file);
+	if (!sccp_config_generate(config_file, 0)) {
+		returnval = RESULT_SUCCESS;
 	} else {
 		pbx_cli(fd, "SCCP generation failed.\n");
-		returnval = RESULT_FAILURE;
 	}
 
 	return returnval;
-#else
-	pbx_cli(fd, "online SCCP config generate not implemented yet! use gen_sccpconf from contrib for now.\n");
-	return RESULT_FAILURE;
-#endif
 }
 
 static char config_generate_usage[] = "Usage: SCCP config generate [filename]\n" "       Generates a new sccp.conf if none exists. Either creating sccp.conf or [filename] if specified\n";
