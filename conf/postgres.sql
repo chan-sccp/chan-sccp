@@ -27,16 +27,16 @@ CREATE TABLE sccpdevice (
   audio_cos varchar(1) default NULL,
   video_tos varchar(11) default NULL,
   video_cos varchar(1) default NULL,
+  disallow varchar(15) default NULL,
+  allow varchar(15) default NULL,
   conf_allow varchar(3) NULL default 'on',
   conf_play_general_announce varchar(3) NULL default 'on',
   conf_play_part_announce varchar(3) NULL default 'on',   
   conf_mute_on_entry varchar(3) NULL default 'off',
   conf_music_on_hold_class varchar(80) NULL default 'default',
-  setvar varchar(100) default NULL,
-  disallow varchar(15) default NULL,
-  allow varchar(15) default NULL,
   backgroundImage varchar(255) DEFAULT NULL,
   ringtone varchar(255) DEFAULT NULL,
+  setvar varchar(100) default NULL,
   name varchar(15) NOT NULL default '',
   PRIMARY KEY  (name)
 );
@@ -66,6 +66,7 @@ CREATE TABLE sccpline (
   pickupgroup varchar(45) default NULL,
   dnd varchar(5) default 'on',
   amaflags varchar(45) default NULL,
+  regexten character varying(20) DEFAULT NULL,
   setvar varchar(50) default NULL,
   name varchar(45) NOT NULL,
   PRIMARY KEY  (name)
@@ -97,7 +98,8 @@ CREATE AGGREGATE textcat_column("text") (
 
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
         SELECT 
-               (SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device = sccpdevice.name ORDER BY instance) bc ) as button,
+
+                (SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device=sccpdevice.name ORDER BY instance) bc ) as button,
                 sccpdevice.*
         FROM sccpdevice
 ;
