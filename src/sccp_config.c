@@ -2621,7 +2621,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 						astman_append(s, "Event: AttributeEntry\r\n");
 						astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
 						astman_append(s, "Option: %s\r\n", config->name);
-						astman_append(s, "Size: %d\r\n", (int) config->size);
+						astman_append(s, "Size: %d\r\n", (int) config->size - 1);
 						astman_append(s, "Required: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "true" : "false");
 						astman_append(s, "Deprecated: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) ? "true" : "false");
 						astman_append(s, "Obsolete: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) ? "true" : "false");
@@ -2708,11 +2708,12 @@ int sccp_config_generate(char *filename, int configType)
 	char *description = "";
 	char *description_part = "";
 	char name_and_value[100];
+	char size_str[15]="";
 	int linelen = 0;
 
 	char fn[PATH_MAX];
 
-	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, "sccp.conf.test");
+	snprintf(fn, sizeof(fn), "%s/%s", ast_config_AST_CONFIG_DIR, filename);
 	pbx_log(LOG_NOTICE, "Creating new config file '%s'\n", fn);
 
 	FILE *f;
@@ -2762,7 +2763,12 @@ int sccp_config_generate(char *filename, int configType)
 							description = sccp_strdupa(config[sccp_option].description);
 							while ((description_part = strsep(&description, "\n"))) {
 								if (!sccp_strlen_zero(description_part)) {
-									fprintf(f, "%*.s ; %s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY)" : "", description_part);
+								        if (config[sccp_option].type == SCCP_CONFIG_DATATYPE_STRING) {
+								                snprintf(size_str, sizeof(size_str), " (Size: %d)", (int)config[sccp_option].size - 1);
+								        } else {
+								                size_str[0] = '\0';
+								        }
+									fprintf(f, "%*.s ; %s%s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY)" : "", description_part, size_str);
 									linelen = 0;
 								}
 							}
@@ -2783,6 +2789,7 @@ int sccp_config_generate(char *filename, int configType)
 		sccp_log(DEBUGCAT_CONFIG) ("\n");
 	}
 	fclose(f);
+	pbx_log(LOG_NOTICE, "Created new config file '%s'\n", fn);
 
 	return 0;
 };
