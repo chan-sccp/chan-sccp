@@ -330,13 +330,21 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			adhocNumber = line->adhocNumber;
 		}
 
-		if (adhocNumber) {
-			c = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
-			c = c ? sccp_channel_release(c) : NULL;
-		} else {
-			c = sccp_channel_newcall(line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
-			c = c ? sccp_channel_release(c) : NULL;
+		/* check if we have an active channel on an other line, that does not have any dialed number 
+		 * (Can't select line after already off-hook - https://sourceforge.net/p/chan-sccp-b/discussion/652060/thread/878fe455/?limit=25#c06e/6006/a54d) 
+		 */
+		sccp_channel_t *activeChannel = NULL;	
+		if (!adhocNumber && (activeChannel = sccp_channel_get_active( d )) )  {
+			if (activeChannel->line != l && strlen(activeChannel->dialedNumber) == 0){
+				sccp_channel_endcall(activeChannel);
+			}
+			sccp_channel_release(activeChannel);
 		}
+		/* done */
+		
+		c = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		c = c ? sccp_channel_release(c) : NULL;
+		
 		line = sccp_line_release(line);
 	}
 }
