@@ -483,15 +483,14 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, const c
 			return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
-	/* set changed value if changed */
-	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
+	/* set changed value if changed (!!! ONLY if not MULTI ENTRY for now!!)*/
+	if (SCCP_CONFIG_CHANGE_CHANGED == changed && !((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
 		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
-
-		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		changes = sccpConfigOption->change;
 	}
 
 	if (SCCP_CONFIG_CHANGE_INVALIDVALUE != changed) {
+		/* if SetEntries is provided lookup the first offset of the struct variable we have set and note the index in SetEntries by changing the boolean_t to TRUE */
 		if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
 			int x;
 
@@ -857,7 +856,6 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
 sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, const char *value, const boolean_t allow, const sccp_config_segment_t segment)
 {
 	/*\todo implement further difference checks, like */
-/*
         sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
         skinny_codec_t *codecs = &(*(skinny_codec_t *) dest);
         skinny_codec_t new_codecs[SKINNY_MAX_CAPABILITIES]={0};
@@ -870,9 +868,11 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
         if (memcmp(new_codecs, codecs, SKINNY_MAX_CAPABILITIES)) {
                 memcpy(codecs, new_codecs, SKINNY_MAX_CAPABILITIES);
                 changed = SCCP_CONFIG_CHANGE_CHANGED;
+        } else {
+                changed = SCCP_CONFIG_CHANGE_NOCHANGE;
         }
         return changed;
-*/
+/*
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	skinny_codec_t *codecs = &(*(skinny_codec_t *) dest);
 	
@@ -881,7 +881,7 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 	changed = SCCP_CONFIG_CHANGE_CHANGED;
-
+*/ 
 	return changed;
 
 }
@@ -1842,7 +1842,9 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(sccp_globals, v->name, v->value, v->lineno, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries);
 	}
-	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
+	if (res) {
+	        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
+	}
 
 	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries);
 
