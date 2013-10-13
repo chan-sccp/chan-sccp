@@ -1472,6 +1472,18 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 	return changed;
 }
 
+static int addonstr2enum(const char *addonstr) {
+        if (!strcasecmp(addonstr, "7914"))
+                return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
+        else if (!strcasecmp(addonstr, "7915"))
+                return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
+        else if (!strcasecmp(addonstr, "7916"))
+                return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
+        else {
+                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", addonstr);
+                return 0;
+        }
+} 
 /*!
  * \brief Config Converter/Parser for addons
  * 
@@ -1485,55 +1497,44 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_addon_t *addon = NULL;
 	int addon_type;
-	int addonIndex = 0;
-	int i = 0;
 
 	SCCP_LIST_HEAD (, sccp_addon_t) * addonList = dest;
-
-	for ( ; v ;v = v->next) {
-                // checking if addontype is known
-                if (!strcasecmp(v->value, "7914"))
-                        addon_type = SKINNY_DEVICETYPE_CISCO_ADDON_7914;
-                else if (!strcasecmp(v->value, "7915"))
-                        addon_type = SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
-                else if (!strcasecmp(v->value, "7916"))
-                        addon_type = SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
-                else {
-                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", v->value);
-                        return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                }
-                
-                i = 0;
-                SCCP_LIST_TRAVERSE(addonList, addon, list) {
-                        if (addonIndex == i++) {
-                                break;
+	
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
+	        if (v) {
+	                if ((addon_type = addonstr2enum(v->value))) {
+                                if (addon->type != addon_type) {							/* change/update */
+                                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change addon: %d => %d\n", addon->type, addon_type);
+                                        addon->type = addon_type;
+                                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                                }
+	                } else {
+	                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                         }
+                        v = v->next;
+                } else {											/* removal */
+                      sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove addon: %d\n", addon->type);
+                      SCCP_LIST_REMOVE_CURRENT(list);
+                      sccp_free(addon); 
+                      changed |= SCCP_CONFIG_CHANGE_CHANGED;
                 }
-                if (!addon) {											/* new addition */
-                        if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
-                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
-                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                        } else {
-                                addon->type = addon_type;
-                                SCCP_LIST_INSERT_HEAD(addonList, addon, list);
-                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        }
-                } else if (addon->type != addon_type) {								/* change */
-                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        addon->type = addon_type;
-                }
-                addonIndex++;
 	}
-	if (i > addonIndex) {											/* removal */
-	        i = 0;
-	        SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
-	              if (addonIndex < i++) {
-	                      SCCP_LIST_REMOVE_CURRENT(list);
-	                      sccp_free(addon); 
-	              }
+	SCCP_LIST_TRAVERSE_SAFE_END;
+	if (!addon) {												/* addition */
+	        for ( ; v; v = v->next) {
+	                if ((addon_type = addonstr2enum(v->value))) {
+                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new addon: %d\n", addon_type);
+                                if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
+                                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addons\n");
+                                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                                }
+                                addon->type = addon_type;
+                                SCCP_LIST_INSERT_TAIL(addonList, addon, list);
+                		changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                        } else {
+	                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	                }
 	        }
-	        SCCP_LIST_TRAVERSE_SAFE_END;
-                changed |= SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
