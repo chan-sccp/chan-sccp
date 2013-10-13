@@ -1006,13 +1006,13 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
                                 sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
                                 changed |= SCCP_CONFIG_CHANGE_CHANGED;
                         }
+                        v = v->next;
                 } else {												/* removal */
                       sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove permithost: %s\n", permithost->name);
                       SCCP_LIST_REMOVE_CURRENT(list);
                       sccp_free(permithost); 
                       changed |= SCCP_CONFIG_CHANGE_CHANGED;
                 }
-                v = v->next;
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	if (!permithost) {												/* addition */
