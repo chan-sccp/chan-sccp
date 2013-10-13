@@ -1555,7 +1555,7 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
                         if (sccp_strlen_zero(context)) {
                                 context = "default";
                         }
-                        if (!sccp_strcaseequals(mailbox->mailbox, mbox) || sccp_strcaseequals(mailbox->context, context)) {
+                        if (!sccp_strcaseequals(mailbox->mailbox, mbox) || !sccp_strcaseequals(mailbox->context, context)) {
         	                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change mailbox: %s@%s => %s@%s\n", mailbox->mailbox, mailbox->context, mbox, context);
                                 sccp_free(mailbox->mailbox);
                                 sccp_free(mailbox->context);
