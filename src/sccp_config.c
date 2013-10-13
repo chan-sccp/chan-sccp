@@ -1457,18 +1457,16 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
                 }
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-	if (!permithost) {												/* addition */
-	        for ( ; v; v = v->next) {
-                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new permithost: %s\n", v->value);
-                        if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
-                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
-                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                        }
-        		sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-        		SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
-        		changed |= SCCP_CONFIG_CHANGE_CHANGED;
-	        }
-	}
+        for ( ; v; v = v->next) {											/* addition */
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new permithost: %s\n", v->value);
+                if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
+                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
+                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                }
+                sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+                SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+        }
 	return changed;
 }
 
@@ -1512,7 +1510,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 	                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                         }
                         v = v->next;
-                } else {											/* removal */
+                } else {												/* removal */
                       sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove addon: %d\n", addon->type);
                       SCCP_LIST_REMOVE_CURRENT(list);
                       sccp_free(addon); 
@@ -1520,22 +1518,20 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
                 }
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-	if (!addon) {												/* addition */
-	        for ( ; v; v = v->next) {
-	                if ((addon_type = addonstr2enum(v->value))) {
-                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new addon: %d\n", addon_type);
-                                if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
-                                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addons\n");
-                                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                                }
-                                addon->type = addon_type;
-                                SCCP_LIST_INSERT_TAIL(addonList, addon, list);
-                		changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        } else {
-	                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	                }
-	        }
-	}
+        for ( ; v; v = v->next) {											/* addition */
+                if ((addon_type = addonstr2enum(v->value))) {
+                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new addon: %d\n", addon_type);
+                        if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addons\n");
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        }
+                        addon->type = addon_type;
+                        SCCP_LIST_INSERT_TAIL(addonList, addon, list);
+                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                } else {
+                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                }
+        }
 	return changed;
 }
 
