@@ -2449,7 +2449,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					device->pendingUpdate = 1;
 					sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
 				}
-				pbx_variables_destroy(v);
+				if (device->realtime) {
+					pbx_variables_destroy(v);
+				}
 			} else {
 				device->pendingDelete = 1;
 			}
@@ -2474,12 +2476,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload);
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
-//			if (!force_reload) {
-				pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
-				returnval = RESULT_SUCCESS;
-				break;
-//			}
-			/* fall through */
+			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
+			returnval = RESULT_SUCCESS;
+			break;
 		case CONFIG_STATUS_FILE_OK:
 			if (GLOB(cfg)) {
 				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
@@ -2492,7 +2491,6 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					return RESULT_FAILURE;
 				}
 				sccp_config_readDevicesLines(readingtype);
-				GLOB(reload_in_progress) = FALSE;
 				returnval = RESULT_SUCCESS;
 			}
 			break;
@@ -2514,6 +2512,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			break;
 	}
 EXIT:
+	GLOB(reload_in_progress) = FALSE;
 	pbx_mutex_unlock(&GLOB(lock));
 	return returnval;
 }

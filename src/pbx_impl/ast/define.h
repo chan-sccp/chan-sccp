@@ -301,6 +301,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_unregister_file_version ast_unregister_file_version
 #define pbx_update_use_count ast_update_use_count
 #define pbx_variable_browse ast_variable_browse
+#define pbx_variable_new ast_variable_new
 #define pbx_variable_retrieve ast_variable_retrieve
 #define pbx_variables_destroy ast_variables_destroy
 #define pbx_strlen_zero ast_strlen_zero

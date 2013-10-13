@@ -284,16 +284,16 @@ static PBX_VARIABLE_TYPE * createVariableSetForMultiEntryParameters(PBX_VARIABLE
                         if (!strcasecmp(token, v->name)) {
                                 if (!tmp) {
                                         sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Create new variable set (%s=%s)\n", v->name, v->value);
-                                        if (!(out = ast_variable_new(v->name, v->value, ""))) {
+                                        if (!(out = pbx_variable_new(v->name, v->value, ""))) {
                                                 pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
                                                 goto EXIT;
                                         }
                                         tmp = out;
                                 } else {
                                         sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Add to variable set (%s=%s)\n", v->name, v->value);
-                                        if (!(tmp->next = ast_variable_new(v->name, v->value, ""))) {
+                                        if (!(tmp->next = pbx_variable_new(v->name, v->value, ""))) {
                                                 pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
-                                                ast_variables_destroy(out);
+                                                pbx_variables_destroy(out);
                                                 goto EXIT;
                                         }
                                         tmp = tmp->next;
@@ -549,12 +549,12 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
                                                 /* Create new variable structure for Multi Entry Parameters */
                                                 if ((new_var = createVariableSetForMultiEntryParameters(cat_root, sccpConfigOption->name, new_var))) {
                                                         changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
-                                                        ast_variables_destroy(new_var);
+                                                        pbx_variables_destroy(new_var);
                                                 }
                                         } else {
                                                 if ((new_var = ast_variable_new(name, value, ""))) {
                                                         changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
-                                                        ast_variables_destroy(new_var);
+                                                        pbx_variables_destroy(new_var);
                                                 }
                                         }                        
                                 }
@@ -2162,6 +2162,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	sccp_configurationchange_t res;
 
 	sccp_line_t *line = NULL;
+	PBX_VARIABLE_TYPE *rv = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -2169,23 +2170,23 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			do{
 				if (line->realtime == TRUE && line != GLOB(hotline)->line) {
 					sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", line->name);
-					v = pbx_load_realtime(GLOB(realtimelinetable), "name", line->name, NULL);
+					rv = pbx_load_realtime(GLOB(realtimelinetable), "name", line->name, NULL);
 					/* we did not find this line, mark it for deletion */
-					if (!v) {
+					if (!rv) {
 						sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: realtime line not found - set pendingDelete=1\n", line->name);
 						line->pendingDelete = 1;
 						break;
 					}
 					line->pendingDelete = 0;
 
-					res = sccp_config_applyLineConfiguration(line, v);
+					res = sccp_config_applyLineConfiguration(line, rv);
 					/* check if we did some changes that needs a device update */
 					if (GLOB(reload_in_progress) && res & SCCP_CONFIG_NEEDDEVICERESET) {
 						line->pendingUpdate = 1;
 					} else {
 						line->pendingUpdate = 0;
 					}
-					pbx_variables_destroy(v);
+					pbx_variables_destroy(rv);
 				}
 			} while(0);
 			line = sccp_line_release(line);
@@ -2194,7 +2195,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 	
-	
 	sccp_device_t *device;
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -2202,23 +2202,23 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			do{
 				if (device->realtime == TRUE) {
 					sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", device->id );
-					v = pbx_load_realtime(GLOB(realtimedevicetable), "name", device->id, NULL);
+					rv = pbx_load_realtime(GLOB(realtimedevicetable), "name", device->id, NULL);
 					/* we did not find this line, mark it for deletion */
-					if (!v) {
+					if (!rv) {
 						sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "%s: realtime device not found - set pendingDelete=1\n", line->name);
 						device->pendingDelete = 1;
 						break;
 					}
 					device->pendingDelete = 0;
 
-					res = sccp_config_applyDeviceConfiguration(device, v);
+					res = sccp_config_applyDeviceConfiguration(device, rv);
 					/* check if we did some changes that needs a device update */
 					if (GLOB(reload_in_progress) && res & SCCP_CONFIG_NEEDDEVICERESET) {
 						device->pendingUpdate = 1;
 					} else {
 						line->pendingUpdate = 0;
 					}
-					pbx_variables_destroy(v);
+					pbx_variables_destroy(rv);
 				}
 			} while(0);
 			device = sccp_device_release(device);
@@ -2343,8 +2343,10 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 	int res = 0;
 	struct ast_flags config_flags = { CONFIG_FLAG_FILEUNCHANGED };
 	if (force) {
-		pbx_config_destroy(GLOB(cfg));
-		GLOB(cfg) = NULL;
+	        if (GLOB(cfg)) {
+        		pbx_config_destroy(GLOB(cfg));
+        		GLOB(cfg) = NULL;
+		}
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
 	}
 
@@ -2374,19 +2376,26 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 			pbx_log(LOG_NOTICE, "Config file '%s' has not changed, forcing reload.\n", GLOB(config_file_name));
 		}
 	}
-	if (GLOB(cfg) && ast_variable_browse(GLOB(cfg), "devices")) {						/* Warn user when old entries exist in sccp.conf */
-		pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
-		pbx_config_destroy(GLOB(cfg));
-		GLOB(cfg) = NULL;
-		res = CONFIG_STATUS_FILE_OLD;
-		goto FUNC_EXIT;
-	} else if (!ast_variable_browse(GLOB(cfg), "general")) {
-		pbx_log(LOG_ERROR, "Missing [general] section, SCCP disabled\n");
-		pbx_config_destroy(GLOB(cfg));
-		GLOB(cfg) = NULL;
-		res = CONFIG_STATUS_FILE_NOT_SCCP;
-		goto FUNC_EXIT;
-	}
+	if (GLOB(cfg)) {
+	        if (ast_variable_browse(GLOB(cfg), "devices")) {						/* Warn user when old entries exist in sccp.conf */
+                        pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
+                        pbx_config_destroy(GLOB(cfg));
+                        GLOB(cfg) = NULL;
+                        res = CONFIG_STATUS_FILE_OLD;
+                        goto FUNC_EXIT;
+		} else if (!ast_variable_browse(GLOB(cfg), "general")) {
+                        pbx_log(LOG_ERROR, "Missing [general] section, SCCP disabled\n");
+                        pbx_config_destroy(GLOB(cfg));
+                        GLOB(cfg) = NULL;
+                        res = CONFIG_STATUS_FILE_NOT_SCCP;
+                        goto FUNC_EXIT;
+                }
+        } else {
+                pbx_log(LOG_ERROR, "Missing Glob(cfg)\n");
+                GLOB(cfg) = NULL;
+                res = CONFIG_STATUS_FILE_NOT_FOUND;
+                goto FUNC_EXIT;
+        }
 	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", GLOB(config_file_name));
 	res = CONFIG_STATUS_FILE_OK;
 FUNC_EXIT:
