@@ -1109,7 +1109,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2)
 {
 	if (sccp_strlen_zero(data1) && sccp_strlen_zero(data2)) {
 		return TRUE;
-	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2)) {
+	} else if (!sccp_strlen_zero(data1) && !sccp_strlen_zero(data2) && ( sccp_strlen(data1) == sccp_strlen(data2) ) ) {
 		return !strcasecmp(data1, data2);
 	}
 	return FALSE;
