@@ -404,7 +404,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
                                         pbx_log(LOG_NOTICE, "config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int)sccpConfigOption->size - 1);
                                 }
                                 if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
-                                        sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
+                                        if (GLOB(reload_in_progress)) {
+                                                sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
+                                        }
                                         changed = SCCP_CONFIG_CHANGE_CHANGED;
                                         pbx_copy_string(dst, value, sccpConfigOption->size);
                                 }
@@ -567,7 +569,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
         }
 
 	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
-		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
+                if (GLOB(reload_in_progress)) {
+        		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
+                }
 		changes = sccpConfigOption->change;
 	}
 
@@ -992,43 +996,36 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_hostname_t *permithost = NULL;
-	int permithostIndex = 0;
-	int i = 0;
 
 	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
-
-	for ( ; v ;v = v->next) {
-                i = 0;
-                SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
-                        if (permithostIndex == i++) {
-                                break;
+	
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(permithostList, permithost, list) {
+	        if (v) {
+                        if (!sccp_strcaseequals(permithost->name, v->value)) {						/* change/update */
+        	                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change permithost: %s => %s\n", permithost->name, v->value);
+                                sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
                         }
+                } else {												/* removal */
+                      sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove permithost: %s\n", permithost->name);
+                      SCCP_LIST_REMOVE_CURRENT(list);
+                      sccp_free(permithost); 
+                      changed |= SCCP_CONFIG_CHANGE_CHANGED;
                 }
-                if (!permithost) {										/* new addition */
+                v = v->next;
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
+	if (!permithost) {												/* addition */
+	        for ( ; v; v = v->next) {
+                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new permithost: %s\n", v->value);
                         if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
                                 sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
                                 changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                        } else {
-        			sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-        			SCCP_LIST_INSERT_HEAD(permithostList, permithost, list);
-        			changed |= SCCP_CONFIG_CHANGE_CHANGED;
                         }
-                } else if (!sccp_strcaseequals(permithost->name, v->value)) {						/* change */
-                        sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                }
-       	        permithostIndex++;
-	}
-	if (i > permithostIndex) {										/* removal */
-	        i = 0;
-	        SCCP_LIST_TRAVERSE_SAFE_BEGIN(permithostList, permithost, list) {
-	              if (permithostIndex < i++) {
-	                      SCCP_LIST_REMOVE_CURRENT(list);
-	                      sccp_free(permithost); 
-	              }
+        		sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+        		SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+        		changed |= SCCP_CONFIG_CHANGE_CHANGED;
 	        }
-	        SCCP_LIST_TRAVERSE_SAFE_END;
-                changed |= SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
@@ -1665,9 +1662,8 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
         unsigned int i;
 
         int buttonindex = 0;
-        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Parse all buttons\n");
 	for ( ;v ; v=v->next) {
-                sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Found buttonconfig: %s\n", v->value);
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found button: %s\n", v->value);
                 sccp_copy_string(k_button, v->value, sizeof(k_button));
                 splitter = k_button;
                 buttonType = strsep(&splitter, ",");
@@ -1682,12 +1678,14 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
                 }
                 type = sccp_buttontypes[i].buttontype;
                 changed = sccp_config_addButton(dest, buttonindex++, type, buttonName ? pbx_strip(buttonName) : buttonType, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
-              	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: %s -> %s\n", v->value, changed ? "yes" : "no");
+              	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "button: %s -> %s\n", v->value, changed ? "yes" : "no");
                 changes += changed;
         }
         
         /* return changed status */
-        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "buttonconfig: %s\n", changes ? "changed" : "no change");
+        if (GLOB(reload_in_progress)) {
+                sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: %s\n", changes ? "changed" : "no change");\
+        }
 
 	return changes ? SCCP_CONFIG_CHANGE_CHANGED : SCCP_CONFIG_CHANGE_NOCHANGE;
 }
@@ -1721,12 +1719,12 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = buttonconfig_head;
 
-	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: Loading/Checking Button Config\n");
+	sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Loading/Checking Button Config\n");
 	SCCP_LIST_LOCK(buttonconfigList);
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 		// check if the button is to be deleted to see if we need to replace it
                 if (config->index == index) {
-                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Found Existing button at %d:%d (Being Replaced)\n", config->index, index);
+                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found Existing button at %d:%d (Being Replaced)\n", config->index, index);
                         break;
                 }
 	}
@@ -1740,7 +1738,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
                 }
 		config->index = index;
 		config->type = type;
-                sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", config_buttontype2str(type), name, index, config->index);
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", config_buttontype2str(type), name, index, config->index);
                 SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
         } else {
                 config->pendingDelete = 0;
@@ -1749,7 +1747,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s\n", config->index, config_buttontype2str(type), name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s. Substituted with  EMPTY button\n", config->index, config_buttontype2str(type), name);
 		type = EMPTY;
 	}
 	
