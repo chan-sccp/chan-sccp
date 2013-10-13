@@ -1545,56 +1545,51 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_mailbox_t *mailbox = NULL;
 	char *context, *mbox = NULL;
-	int mailboxIndex = 0;
-	int i = 0;
 
 	SCCP_LIST_HEAD (, sccp_mailbox_t) * mailboxList = dest;
-
-	for ( ; v ;v = v->next) {
+	
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(mailboxList, mailbox, list) {
+	        if (v) {												/* change/update */
+                        mbox = context = sccp_strdupa(v->value);
+                        strsep(&context, "@");
+                        if (sccp_strlen_zero(context)) {
+                                context = "default";
+                        }
+                        if (!sccp_strcaseequals(mailbox->mailbox, mbox) || sccp_strcaseequals(mailbox->context, context)) {
+        	                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change mailbox: %s@%s => %s@%s\n", mailbox->mailbox, mailbox->context, mbox, context);
+                                sccp_free(mailbox->mailbox);
+                                sccp_free(mailbox->context);
+                                mailbox->mailbox = sccp_strdup(mbox);
+                                mailbox->context = sccp_strdup(context);
+                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                        }
+                        v = v->next;
+                } else {												/* removal */
+                      sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove mailbox: %s\n", mailbox->mailbox);
+                      SCCP_LIST_REMOVE_CURRENT(list);
+                      sccp_free(mailbox->mailbox);
+                      sccp_free(mailbox->context);
+                      sccp_free(mailbox); 
+                      changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                }
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
+        for ( ; v; v = v->next) {											/* addition */
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new mailbox: %s\n", v->value);
                 mbox = context = sccp_strdupa(v->value);
                 strsep(&context, "@");
                 if (sccp_strlen_zero(context)) {
                         context = "default";
                 }
-
-                i = 0;
-                SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
-                        if (mailboxIndex == i++) {
-                                break;
-                        }
+                if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
+                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
+                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                 }
-                if (!mailbox) {											/* new addition */
-                        if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
-                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a mailbox\n");
-                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                        } else {
-                                mailbox->mailbox = sccp_strdup(mbox);
-                                mailbox->context = sccp_strdup(context);
-                                SCCP_LIST_INSERT_HEAD(mailboxList, mailbox, list);
-                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        }
-                } else if (!sccp_strcaseequals(mailbox->mailbox, mbox) || sccp_strcaseequals(mailbox->context, context)) {								/* change */
-                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        sccp_free(mailbox->mailbox);
-                        sccp_free(mailbox->context);
-                        mailbox->mailbox = sccp_strdup(mbox);
-                        mailbox->context = sccp_strdup(context);
-                }
-                mailboxIndex++;
-	}
-	if (i > mailboxIndex) {											/* removal */
-	        i = 0;
-	        SCCP_LIST_TRAVERSE_SAFE_BEGIN(mailboxList, mailbox, list) {
-	              if (mailboxIndex < i++) {
-	                      SCCP_LIST_REMOVE_CURRENT(list);
-	                      sccp_free(mailbox->mailbox);
-	                      sccp_free(mailbox->context);
-	                      sccp_free(mailbox); 
-	              }
-	        }
-	        SCCP_LIST_TRAVERSE_SAFE_END;
+                mailbox->mailbox = sccp_strdup(mbox);
+                mailbox->context = sccp_strdup(context);
+                SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
                 changed |= SCCP_CONFIG_CHANGE_CHANGED;
-	}
+        }
 	return changed;
 }
 
@@ -1602,45 +1597,68 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
  * \brief Config Converter/Parser for PBX Variables
  *
  * \note multi_entry
- * \todo FIXME !! needs to handle multi_entry !!
  */
-sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE *cur_v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(cur_v->value);
+	PBX_VARIABLE_TYPE *variableList = *(PBX_VARIABLE_TYPE **) dest;
+	PBX_VARIABLE_TYPE *variable = NULL;
+
+	PBX_VARIABLE_TYPE *prev_variable = NULL;
+	PBX_VARIABLE_TYPE *new_variable = NULL;
 	
-	boolean_t alreadyexists = FALSE;
-
-	PBX_VARIABLE_TYPE *v = NULL;
-	PBX_VARIABLE_TYPE *newvar = NULL;
-	PBX_VARIABLE_TYPE *prevvar = *(PBX_VARIABLE_TYPE **) dest;
-
-	char *varname = sccp_strdupa(value);
+	char *varname = NULL;
 	char *varval = NULL;
 
-	if (!sccp_strlen_zero(varname)) {
-		if ((varval = strchr(varname, '='))) {
-			*varval++ = '\0';
-			for (v = prevvar; v; v = v->next) {
-				if (!strcmp(v->name, varname) && !strcmp(v->value, varval)) {
-					// skip duplicate var
-					alreadyexists = TRUE;
-				}
-			}
-			if (!alreadyexists) {
-				if ((newvar = ast_variable_new(varname, varval, ""))) {
-					newvar->next = prevvar;
-					*(PBX_VARIABLE_TYPE **) dest = newvar;
-				}
-			} else {
-				*(PBX_VARIABLE_TYPE **) dest = prevvar;
-				//changed = SCCP_CONFIG_CHANGE_CHANGED;
-			}
-		} else {
-			pbx_log(LOG_ERROR, "SCCP: (sccp_config_parse_variables) Error Parsing Variables (value=%s)\n", value);
-			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-		}
-	}
+        for (variable = variableList; variable; variable = variable->next) {
+                if (v) {												/* change / update */
+                	varname = sccp_strdupa(v->value);
+                        varval = NULL;
+                        if (!sccp_strlen_zero(varname)) {
+                                if ((varval = strchr(varname, '='))) {
+                                        *varval++ = '\0';
+                                }
+                        }
+                        if (!sccp_strequals(variable->name,v->name) || !sccp_strequals(variable->value,v->value)) {
+        	                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change variable: %s=%s => %s=%s\n", variable->name,variable->value,v->name,v->value);
+                                if ((new_variable = pbx_variable_new(v->name, v->value, variable->file))) {			/* replace */
+                                        new_variable->next = variable->next;
+                                        if (prev_variable) {
+                                                prev_variable->next = new_variable;
+                                        }
+                                        sccp_free(variable);
+                                        variable = new_variable;
+                                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                                } else {
+                                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a new variable\n");
+                                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                                }
+                        }
+                        v = v->next;
+                } else {
+                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove variable: %s=%s\n", variable->name,variable->value);
+                        sccp_free(variable);
+                        prev_variable->next= NULL;
+                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                }
+                prev_variable = variable;
+        }
+        for ( ; v; v = v->next) {											/* addition */
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new variable: %s=%s\n", v->name,v->value);
+                if (!variableList) {
+                        if (!(variableList = pbx_variable_new(v->name, v->value, ""))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a new variable\n");
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        }
+                        variable = variableList;
+                } else {
+                        if (!(variable->next = pbx_variable_new(v->name, v->value, ""))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a new variable\n");
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        }
+                }
+                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+        }
 	return changed;
 }
 /*!
