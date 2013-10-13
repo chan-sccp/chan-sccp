@@ -1767,6 +1767,10 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
+	if (!strcasecmp(argv[3], "parkedcalls")) {											/*  WIP */
+		
+		return RESULT_SUCCESS;
+	}
 	if (!strcasecmp(argv[3], "StatusBar")) {											/*  WIP */
 		sccp_device_t *d = NULL;
 		d = sccp_device_find_byid(argv[4], FALSE);
@@ -2404,20 +2408,56 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	sccp_readingtype_t readingtype;
 	boolean_t force_reload = FALSE;
-	int returnval = RESULT_SUCCESS;
+	int returnval = RESULT_FAILURE;
+	sccp_configurationchange_t change;
 
-	if (argc < 2 || argc > 3)
+	if (argc < 2 || argc > 4)
 		return RESULT_SHOWUSAGE;
 
 	pbx_mutex_lock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_cli(fd, "SCCP reloading already in progress.\n");
-		pbx_mutex_unlock(&GLOB(lock));
-		return RESULT_FAILURE;
+		goto EXIT;
 	}
 
 	if (argc > 2) {
-		if (sccp_strequals("force", argv[2])) {\
+		if (sccp_strequals("device", argv[2]) && argc > 3) {
+			sccp_device_t *device = sccp_device_find_byid(argv[3], FALSE);
+			PBX_VARIABLE_TYPE *v;
+			
+			if(!device){
+				pbx_cli(fd, "Did not find device %s\n", argv[3]);
+				const char *utype;
+				utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
+				if (utype && !strcasecmp(utype, "device") ){
+					device = sccp_device_create(argv[3]);
+				} else {
+					pbx_cli(fd, "Did not find device %s in config\n", argv[3]);
+					goto EXIT;
+				}
+			}
+			if (device->realtime){
+				pbx_cli(fd, "device is realtime\n");
+				v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
+			} else {
+				v = ast_variable_browse(GLOB(cfg), argv[3]);
+			}
+			if(v){
+				change =  sccp_config_applyDeviceConfiguration(device, v);
+				pbx_cli(fd, "Device has %s\n", change ? "changed -> restarting device" : "not changed");
+				if(change == SCCP_CONFIG_NEEDDEVICERESET){
+					device->pendingUpdate = 1;
+					sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
+				}
+				pbx_variables_destroy(v);
+			} else {
+				device->pendingDelete = 1;
+			}
+			
+			device = sccp_device_release(device);
+			returnval = RESULT_SUCCESS;
+			goto EXIT;
+		} else if (sccp_strequals("force", argv[2])) {
 			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
 			force_reload=TRUE;
 		} else {
@@ -2445,7 +2485,6 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
 				readingtype = SCCP_CONFIG_READRELOAD;
 				GLOB(reload_in_progress) = TRUE;
-				pbx_mutex_unlock(&GLOB(lock));
 				if (!sccp_config_general(readingtype)) {
 					pbx_cli(fd, "Unable to reload configuration.\n");
 					GLOB(reload_in_progress) = FALSE;
@@ -2453,7 +2492,6 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					return RESULT_FAILURE;
 				}
 				sccp_config_readDevicesLines(readingtype);
-				pbx_mutex_lock(&GLOB(lock));
 				GLOB(reload_in_progress) = FALSE;
 				returnval = RESULT_SUCCESS;
 			}
@@ -2461,29 +2499,26 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		case CONFIG_STATUS_FILE_OLD:
 			pbx_cli(fd, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_cli(fd, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
-			returnval = RESULT_FAILURE;
 			break;
 		case CONFIG_STATUS_FILE_NOT_SCCP:
 			pbx_cli(fd, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_cli(fd, "\n\n --> You are using an configuration file is not following the sccp format, please check '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
-			returnval = RESULT_FAILURE;
 			break;
 		case CONFIG_STATUS_FILE_NOT_FOUND:
 			pbx_cli(fd, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_cli(fd, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
-			returnval = RESULT_FAILURE;
 			break;
 		case CONFIG_STATUS_FILE_INVALID:
 			pbx_cli(fd, "Error reloading from '%s'\n", GLOB(config_file_name));
 			pbx_cli(fd, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
-			returnval = RESULT_FAILURE;
 			break;
 	}
+EXIT:
 	pbx_mutex_unlock(&GLOB(lock));
 	return returnval;
 }
 
-static char reload_usage[] = "Usage: SCCP reload [force|filename]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
+static char reload_usage[] = "Usage: SCCP reload [force|filename|device]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "reload"
