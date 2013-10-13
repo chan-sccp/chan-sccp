@@ -748,27 +748,6 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	}
 }
 
-/*!
- * \brief Config Converter/Parser for Debug
- *
- * \note multi_entry
- */
-sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	uint32_t debug_new = 0;
-
-	char *debug_arr[1];
-	for (; v; v = v->next) {
-        	debug_arr[0] = strdupa(v->value);
-        	debug_new = sccp_parse_debugline(debug_arr, 0, 1, debug_new);
-        }
-	if (*(uint32_t *) dest != debug_new) {
-		*(uint32_t *) dest = debug_new;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
 
 /*!
  * \brief Config Converter/Parser for Bind Address
@@ -897,6 +876,468 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
 	if (callanswerorder != new_value) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		*(call_answer_order_t *) dest = new_value;
+	}
+	return changed;
+}
+
+
+/*!
+ * \brief Config Converter/Parser for privacyFeature
+ *
+ * \todo malloc/calloc of privacyFeature necessary ?
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	sccp_featureConfiguration_t privacyFeature;								// = malloc(sizeof(sccp_featureConfiguration_t));
+
+	if (!strcasecmp(value, "full")) {
+		privacyFeature.status = ~0;
+		privacyFeature.enabled = TRUE;
+	} else if (sccp_true(value) || !sccp_true(value)) {
+		privacyFeature.status = 0;
+		privacyFeature.enabled = sccp_true(value);
+	} else {
+		pbx_log(LOG_WARNING, "Invalid privacy value, should be 'full', 'on' or 'off'\n");
+		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	}
+
+	if (privacyFeature.status != (*(sccp_featureConfiguration_t *) dest).status || privacyFeature.enabled != (*(sccp_featureConfiguration_t *) dest).enabled) {
+		*(sccp_featureConfiguration_t *) dest = privacyFeature;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for early RTP
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	sccp_channelstate_t earlyrtp = 0;
+
+	if (!strcasecmp(value, "none")) {
+		earlyrtp = 0;
+	} else if (!strcasecmp(value, "offhook")) {
+		earlyrtp = SCCP_CHANNELSTATE_OFFHOOK;
+	} else if (!strcasecmp(value, "dial")) {
+		earlyrtp = SCCP_CHANNELSTATE_DIALING;
+	} else if (!strcasecmp(value, "ringout")) {
+		earlyrtp = SCCP_CHANNELSTATE_RINGOUT;
+	} else if (!strcasecmp(value, "progress")) {
+		earlyrtp = SCCP_CHANNELSTATE_PROGRESS;
+	} else {
+		pbx_log(LOG_WARNING, "Invalid earlyrtp state value, should be 'none', 'offhook', 'dial', 'ringout', 'progress'\n");
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	}
+
+	if (*(sccp_channelstate_t *) dest != earlyrtp) {
+		*(sccp_channelstate_t *) dest = earlyrtp;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for dtmfmode
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	sccp_dtmfmode_t dtmfmode = 0;
+
+	if (!strcasecmp(value, "outofband")) {
+		dtmfmode = SCCP_DTMFMODE_OUTOFBAND;
+	} else if (!strcasecmp(value, "inband")) {
+		dtmfmode = SCCP_DTMFMODE_INBAND;
+	} else {
+		pbx_log(LOG_WARNING, "Invalid dtmfmode value, should be either 'inband' or 'outofband'\n");
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	}
+
+	if (*(sccp_dtmfmode_t *) dest != dtmfmode) {
+		*(sccp_dtmfmode_t *) dest = dtmfmode;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for mwilamp
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	skinny_lampmode_t mwilamp = SKINNY_LAMP_OFF;
+
+	if (!strcasecmp(value, "wink")) {
+		mwilamp = SKINNY_LAMP_WINK;
+	} else if (!strcasecmp(value, "flash")) {
+		mwilamp = SKINNY_LAMP_FLASH;
+	} else if (!strcasecmp(value, "blink")) {
+		mwilamp = SKINNY_LAMP_BLINK;
+	} else if (!sccp_true(value)) {
+		mwilamp = SKINNY_LAMP_OFF;
+	} else if (sccp_true(value)) {
+		mwilamp = SKINNY_LAMP_ON;
+	} else {
+		pbx_log(LOG_WARNING, "Invalid mwilamp value, should be one of 'off', 'on', 'wink', 'flash' or 'blink'\n");
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	}
+
+	if (*(skinny_lampmode_t *) dest != mwilamp) {
+		*(skinny_lampmode_t *) dest = mwilamp;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Tos Value
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	unsigned int tos;
+
+	if (!pbx_str2tos(value, &tos)) {
+		/* value is tos */
+	} else if (sscanf(value, "%i", &tos) == 1) {
+		tos = tos & 0xff;
+	} else if (!strcasecmp(value, "lowdelay")) {
+		tos = IPTOS_LOWDELAY;
+	} else if (!strcasecmp(value, "throughput")) {
+		tos = IPTOS_THROUGHPUT;
+	} else if (!strcasecmp(value, "reliability")) {
+		tos = IPTOS_RELIABILITY;
+
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+	} else if (!strcasecmp(value, "mincost")) {
+		tos = IPTOS_MINCOST;
+#endif
+	} else if (!strcasecmp(value, "none")) {
+		tos = 0;
+	} else {
+#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+#else
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+#endif
+		tos = 0x68 & 0xff;
+	}
+
+	if ((*(unsigned int *) dest) != tos) {
+		*(unsigned int *) dest = tos;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Cos Value
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	unsigned int cos;
+
+	if (sscanf(value, "%d", &cos) == 1) {
+		if (cos > 7) {
+			pbx_log(LOG_WARNING, "Invalid cos %d value, refer to QoS documentation\n", cos);
+			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		}
+	}
+
+	if ((*(unsigned int *) dest) != cos) {
+		*(unsigned int *) dest = cos;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for AmaFlags Value
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	int amaflags;
+
+	amaflags = pbx_cdr_amaflags2int(value);
+
+	if (amaflags < 0) {
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	} else {
+		if ((*(int *) dest) != amaflags) {
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+			*(int *) dest = amaflags;
+		}
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Secundairy Dialtone Digits
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	char *str = (char *) dest;
+
+	if (strlen(value) <= 9) {
+		if (strcasecmp(str, value)) {
+			sccp_copy_string(str, value, 9);
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+		}
+	} else {
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	}
+
+	return changed;
+}
+
+
+/*!
+ * \brief Config Converter/Parser for Callgroup/Pickupgroup Values
+ *
+ * \todo check changes to make the function more generic
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+
+	char *piece;
+	char *c;
+	int start = 0, finish = 0, x;
+	sccp_group_t group = 0;
+
+	if (!sccp_strlen_zero(value)) {
+		c = sccp_strdupa(value);
+
+		while ((piece = strsep(&c, ","))) {
+			if (sscanf(piece, "%30d-%30d", &start, &finish) == 2) {
+				/* Range */
+			} else if (sscanf(piece, "%30d", &start)) {
+				/* Just one */
+				finish = start;
+			} else {
+				pbx_log(LOG_ERROR, "Syntax error parsing group configuration '%s' at '%s'. Ignoring.\n", value, piece);
+				continue;
+			}
+			for (x = start; x <= finish; x++) {
+				if ((x > 63) || (x < 0)) {
+					pbx_log(LOG_WARNING, "Ignoring invalid group %d (maximum group is 63)\n", x);
+				} else {
+					group |= ((ast_group_t) 1 << x);
+				}
+			}
+		}
+	}
+#if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
+	sccp_group_t group_orig = 0;
+
+	memcpy(&group_orig, dest, sizeof(sccp_group_t));
+	if (group_orig != group) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		memcpy(dest, &group, sizeof(sccp_group_t));
+	}
+#else
+	if ((*(sccp_group_t *) dest) != group) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		*(sccp_group_t *) dest = group;
+	}
+#endif
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Context
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	char *str = (char *) dest;
+
+	if (strcasecmp(str, value)) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		pbx_copy_string(dest, value, size);
+		if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
+			pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
+		}
+	} else {
+		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Hotline Context
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
+
+	if (strcasecmp(hotline->line->context, value)) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		pbx_copy_string(hotline->line->context, value, size);
+	} else {
+		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for Hotline Extension
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
+
+	if (strcasecmp(hotline->exten, value)) {
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+		pbx_copy_string(hotline->exten, value, size);
+		if (hotline->line) {
+			sccp_copy_string(hotline->line->adhocNumber, value, sizeof(hotline));
+		}
+	} else {
+		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	}
+	return changed;
+}
+
+/*!
+ * \brief Config Converter/Parser for DND Values
+ * \note 0/off is allow and 1/on is reject
+ *
+ * \note not multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	uint8_t dndmode;
+
+	if (!strcasecmp(value, "reject")) {
+		dndmode = SCCP_DNDMODE_REJECT;
+	} else if (!strcasecmp(value, "silent")) {
+		dndmode = SCCP_DNDMODE_SILENT;
+	} else if (!strcasecmp(value, "user")) {
+		dndmode = SCCP_DNDMODE_USERDEFINED;
+	} else if (!strcasecmp(value, "")) {
+		dndmode = SCCP_DNDMODE_OFF;
+	} else {
+		dndmode = sccp_true(value);
+	}
+
+	if ((*(uint8_t *) dest) != dndmode) {
+		(*(uint8_t *) dest) = dndmode;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+
+	return changed;
+}
+
+sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	return sccp_config_parse_dnd(dest, size, strdupa(v->value), segment); 
+}
+
+/*!
+ * \brief Config Converter/Parser for Jitter Buffer Flags
+ *
+ * \note not multi_entry
+ */
+static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment, const unsigned int flag)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	struct ast_jb_conf jb = *(struct ast_jb_conf *) dest;
+
+	//        pbx_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
+	if (pbx_test_flag(&jb, flag) != (unsigned) ast_true(value)) {
+		//               pbx_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
+		//               pbx_set2_flag(&jb, ast_true(value), flag);
+		pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
+}
+
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	char *value = strdupa(v->value);
+	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_ENABLED);
+}
+
+sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	char *value = strdupa(v->value);
+	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_FORCED);
+}
+
+sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	char *value = strdupa(v->value);
+	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);
+}
+
+
+/*!
+ * \brief Config Converter/Parser for Debug
+ *
+ * \note multi_entry
+ */
+sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	uint32_t debug_new = 0;
+
+	char *debug_arr[1];
+	for (; v; v = v->next) {
+        	debug_arr[0] = strdupa(v->value);
+        	debug_new = sccp_parse_debugline(debug_arr, 0, 1, debug_new);
+        }
+	if (*(uint32_t *) dest != debug_new) {
+		*(uint32_t *) dest = debug_new;
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
@@ -1098,130 +1539,6 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 }
 
 /*!
- * \brief Config Converter/Parser for privacyFeature
- *
- * \todo malloc/calloc of privacyFeature necessary ?
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_featureConfiguration_t privacyFeature;								// = malloc(sizeof(sccp_featureConfiguration_t));
-
-	if (!strcasecmp(value, "full")) {
-		privacyFeature.status = ~0;
-		privacyFeature.enabled = TRUE;
-	} else if (sccp_true(value) || !sccp_true(value)) {
-		privacyFeature.status = 0;
-		privacyFeature.enabled = sccp_true(value);
-	} else {
-		pbx_log(LOG_WARNING, "Invalid privacy value, should be 'full', 'on' or 'off'\n");
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (privacyFeature.status != (*(sccp_featureConfiguration_t *) dest).status || privacyFeature.enabled != (*(sccp_featureConfiguration_t *) dest).enabled) {
-		*(sccp_featureConfiguration_t *) dest = privacyFeature;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for early RTP
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_channelstate_t earlyrtp = 0;
-
-	if (!strcasecmp(value, "none")) {
-		earlyrtp = 0;
-	} else if (!strcasecmp(value, "offhook")) {
-		earlyrtp = SCCP_CHANNELSTATE_OFFHOOK;
-	} else if (!strcasecmp(value, "dial")) {
-		earlyrtp = SCCP_CHANNELSTATE_DIALING;
-	} else if (!strcasecmp(value, "ringout")) {
-		earlyrtp = SCCP_CHANNELSTATE_RINGOUT;
-	} else if (!strcasecmp(value, "progress")) {
-		earlyrtp = SCCP_CHANNELSTATE_PROGRESS;
-	} else {
-		pbx_log(LOG_WARNING, "Invalid earlyrtp state value, should be 'none', 'offhook', 'dial', 'ringout', 'progress'\n");
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (*(sccp_channelstate_t *) dest != earlyrtp) {
-		*(sccp_channelstate_t *) dest = earlyrtp;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for dtmfmode
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_dtmfmode_t dtmfmode = 0;
-
-	if (!strcasecmp(value, "outofband")) {
-		dtmfmode = SCCP_DTMFMODE_OUTOFBAND;
-	} else if (!strcasecmp(value, "inband")) {
-		dtmfmode = SCCP_DTMFMODE_INBAND;
-	} else {
-		pbx_log(LOG_WARNING, "Invalid dtmfmode value, should be either 'inband' or 'outofband'\n");
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (*(sccp_dtmfmode_t *) dest != dtmfmode) {
-		*(sccp_dtmfmode_t *) dest = dtmfmode;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for mwilamp
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	skinny_lampmode_t mwilamp = SKINNY_LAMP_OFF;
-
-	if (!strcasecmp(value, "wink")) {
-		mwilamp = SKINNY_LAMP_WINK;
-	} else if (!strcasecmp(value, "flash")) {
-		mwilamp = SKINNY_LAMP_FLASH;
-	} else if (!strcasecmp(value, "blink")) {
-		mwilamp = SKINNY_LAMP_BLINK;
-	} else if (!sccp_true(value)) {
-		mwilamp = SKINNY_LAMP_OFF;
-	} else if (sccp_true(value)) {
-		mwilamp = SKINNY_LAMP_ON;
-	} else {
-		pbx_log(LOG_WARNING, "Invalid mwilamp value, should be one of 'off', 'on', 'wink', 'flash' or 'blink'\n");
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (*(skinny_lampmode_t *) dest != mwilamp) {
-		*(skinny_lampmode_t *) dest = mwilamp;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-/*!
  * \brief Config Converter/Parser for Mailbox Value
  *
  * \note multi_entry
@@ -1285,123 +1602,6 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 }
 
 /*!
- * \brief Config Converter/Parser for Tos Value
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	unsigned int tos;
-
-	if (!pbx_str2tos(value, &tos)) {
-		/* value is tos */
-	} else if (sscanf(value, "%i", &tos) == 1) {
-		tos = tos & 0xff;
-	} else if (!strcasecmp(value, "lowdelay")) {
-		tos = IPTOS_LOWDELAY;
-	} else if (!strcasecmp(value, "throughput")) {
-		tos = IPTOS_THROUGHPUT;
-	} else if (!strcasecmp(value, "reliability")) {
-		tos = IPTOS_RELIABILITY;
-
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-	} else if (!strcasecmp(value, "mincost")) {
-		tos = IPTOS_MINCOST;
-#endif
-	} else if (!strcasecmp(value, "none")) {
-		tos = 0;
-	} else {
-#if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-#else
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-#endif
-		tos = 0x68 & 0xff;
-	}
-
-	if ((*(unsigned int *) dest) != tos) {
-		*(unsigned int *) dest = tos;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Cos Value
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	unsigned int cos;
-
-	if (sscanf(value, "%d", &cos) == 1) {
-		if (cos > 7) {
-			pbx_log(LOG_WARNING, "Invalid cos %d value, refer to QoS documentation\n", cos);
-			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-		}
-	}
-
-	if ((*(unsigned int *) dest) != cos) {
-		*(unsigned int *) dest = cos;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for AmaFlags Value
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	int amaflags;
-
-	amaflags = pbx_cdr_amaflags2int(value);
-
-	if (amaflags < 0) {
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	} else {
-		if ((*(int *) dest) != amaflags) {
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-			*(int *) dest = amaflags;
-		}
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Secundairy Dialtone Digits
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	char *str = (char *) dest;
-
-	if (strlen(value) <= 9) {
-		if (strcasecmp(str, value)) {
-			sccp_copy_string(str, value, 9);
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-		}
-	} else {
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	return changed;
-}
-
-/*!
  * \brief Config Converter/Parser for PBX Variables
  *
  * \note multi_entry
@@ -1446,203 +1646,6 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 	}
 	return changed;
 }
-
-/*!
- * \brief Config Converter/Parser for Callgroup/Pickupgroup Values
- *
- * \todo check changes to make the function more generic
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-
-	char *piece;
-	char *c;
-	int start = 0, finish = 0, x;
-	sccp_group_t group = 0;
-
-	if (!sccp_strlen_zero(value)) {
-		c = sccp_strdupa(value);
-
-		while ((piece = strsep(&c, ","))) {
-			if (sscanf(piece, "%30d-%30d", &start, &finish) == 2) {
-				/* Range */
-			} else if (sscanf(piece, "%30d", &start)) {
-				/* Just one */
-				finish = start;
-			} else {
-				pbx_log(LOG_ERROR, "Syntax error parsing group configuration '%s' at '%s'. Ignoring.\n", value, piece);
-				continue;
-			}
-			for (x = start; x <= finish; x++) {
-				if ((x > 63) || (x < 0)) {
-					pbx_log(LOG_WARNING, "Ignoring invalid group %d (maximum group is 63)\n", x);
-				} else {
-					group |= ((ast_group_t) 1 << x);
-				}
-			}
-		}
-	}
-#if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
-	sccp_group_t group_orig = 0;
-
-	memcpy(&group_orig, dest, sizeof(sccp_group_t));
-	if (group_orig != group) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		memcpy(dest, &group, sizeof(sccp_group_t));
-	}
-#else
-	if ((*(sccp_group_t *) dest) != group) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		*(sccp_group_t *) dest = group;
-	}
-#endif
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Context
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	char *str = (char *) dest;
-
-	if (strcasecmp(str, value)) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(dest, value, size);
-		if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
-			pbx_log(LOG_WARNING, "The context '%s' you specified might not be available in the dialplan. Please check the sccp.conf\n", (char *) dest);
-		}
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Hotline Context
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
-
-	if (strcasecmp(hotline->line->context, value)) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(hotline->line->context, value, size);
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Hotline Extension
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
-
-	if (strcasecmp(hotline->exten, value)) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(hotline->exten, value, size);
-		if (hotline->line) {
-			sccp_copy_string(hotline->line->adhocNumber, value, sizeof(hotline));
-		}
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for DND Values
- * \note 0/off is allow and 1/on is reject
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	uint8_t dndmode;
-
-	if (!strcasecmp(value, "reject")) {
-		dndmode = SCCP_DNDMODE_REJECT;
-	} else if (!strcasecmp(value, "silent")) {
-		dndmode = SCCP_DNDMODE_SILENT;
-	} else if (!strcasecmp(value, "user")) {
-		dndmode = SCCP_DNDMODE_USERDEFINED;
-	} else if (!strcasecmp(value, "")) {
-		dndmode = SCCP_DNDMODE_OFF;
-	} else {
-		dndmode = sccp_true(value);
-	}
-
-	if ((*(uint8_t *) dest) != dndmode) {
-		(*(uint8_t *) dest) = dndmode;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-
-	return changed;
-}
-
-sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	return sccp_config_parse_dnd(dest, size, strdupa(v->value), segment); 
-}
-
-/*!
- * \brief Config Converter/Parser for Jitter Buffer Flags
- *
- * \note not multi_entry
- */
-static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment, const unsigned int flag)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	struct ast_jb_conf jb = *(struct ast_jb_conf *) dest;
-
-	//        pbx_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
-	if (pbx_test_flag(&jb, flag) != (unsigned) ast_true(value)) {
-		//               pbx_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
-		//               pbx_set2_flag(&jb, ast_true(value), flag);
-		pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	char *value = strdupa(v->value);
-	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_ENABLED);
-}
-
-sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	char *value = strdupa(v->value);
-	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_FORCED);
-}
-
-sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
-{
-	char *value = strdupa(v->value);
-	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);
-}
-
 /*!
  * \brief Config Converter/Parser for Buttons
  *
