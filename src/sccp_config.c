@@ -745,6 +745,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 
 /*!
  * \brief Config Converter/Parser for Debug
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -765,6 +767,8 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_
 
 /*!
  * \brief Config Converter/Parser for Bind Address
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -774,58 +778,13 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 	if (sccp_strlen_zero(value)) {
 		value = strdupa("0.0.0.0");
 	}
-#ifdef CS_EXPERIMENTAL_NEWIP
-	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *) dest);
 
-	char curval[256], *port = NULL, *host = NULL, *splitter;
-
-	sccp_copy_string(curval, value, sizeof(curval));
-	splitter = curval;
-	host = strsep(&splitter, ":");
-	port = splitter;
-
-	int status;
-	struct addrinfo hints, *res, *p;
-
-	memset(&hints, 0, sizeof hints);									// make sure the struct is empty
-	hints.ai_family = AF_UNSPEC;										// don't care IPv4 or IPv6
-	hints.ai_socktype = SOCK_STREAM;									// TCP stream sockets
-	hints.ai_flags = AI_PASSIVE;										// fill in my IP for me
-	if ((status = getaddrinfo(host, port, &hints, &res)) != 0) {
-		pbx_log(LOG_WARNING, "Invalid address: %s. error: %s. SCCP disabled!\n", value, gai_strerror(status));
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-	//      for(p = res;p != NULL; p = p->ai_next) {                // use sockaddr_storage to store multiple results
-	p = res;
-	if (p != NULL) {
-		if (p->ai_family == AF_INET) {									// IPv4
-			if (bindaddr_prev->sin_addr.s_addr != (((struct sockaddr_in *) p->ai_addr)->sin_addr).s_addr || bindaddr_prev->sin_port != ((struct sockaddr_in *) p->ai_addr)->sin_port) {
-				bindaddr_prev->sin_family = ((struct sockaddr_in *) p->ai_addr)->sin_family;
-				memcpy(&bindaddr_prev->sin_addr, &(((struct sockaddr_in *) p->ai_addr)->sin_addr), sizeof(struct in_addr));
-				bindaddr_prev->sin_port = ((struct sockaddr_in *) p->ai_addr)->sin_port;
-				changed = SCCP_CONFIG_CHANGE_CHANGED;
-			}
-			//                      else                            // IPv6
-			//                              if (bindaddr_prev->sin_addr.s_addr != ((struct sockaddr_in6 *)p->ai_addr).s_addr || bindaddr_prev->sin_port != ((struct sockaddr_in6 *)p->ai_addr)->sin_port) {
-			//                                      bindaddr_prev->sin_family=((struct sockaddr_in6 *)p->ai_addr)->sin_family;
-			//                                      memcpy(&bindaddr_prev->sin_addr, &(((struct sockaddr_in6 *)p->ai_addr)->sin_addr), sizeof(struct in_addr));
-			//                                      bindaddr_prev->sin_port=((struct sockaddr_in6 *)p->ai_addr)->sin_port;
-			//                                      changed = SCCP_CONFIG_CHANGE_CHANGED;
-			//                              }
-		}
-	}
-	//              char ipstr[INET6_ADDRSTRLEN];
-	//              inet_ntop(p->ai_family, &(((struct sockaddr_in *)p->ai_addr)->sin_addr), ipstr, sizeof ipstr);
-	//              pbx_log(LOG_WARNING, "host: %s, port: %d\n", ipstr, htons((((struct sockaddr_in *)p->ai_addr)->sin_port)));
-	//      }
-	freeaddrinfo(res);											// free the linked-list
-#else
 	struct ast_hostent ahp;
 	struct hostent *hp;
 
 	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *) dest);
 	struct sockaddr_in *bindaddr_new = NULL;
-
+	
 	if (!(hp = pbx_gethostbyname(value, &ahp))) {
 		pbx_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", value);
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
@@ -847,12 +806,14 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 		pbx_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", value);
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
-#endif
+
 	return changed;
 }
 
 /*!
  * \brief Config Converter/Parser for Port
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -863,7 +824,7 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
 	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *) dest);
 
 	if (sscanf(value, "%i", &new_port) == 1) {
-		if (&bindaddr_prev->sin_port != NULL) {								// reload
+		if (&bindaddr_prev->sin_port != NULL) {								// reload.
 			if (bindaddr_prev->sin_port != htons(new_port)) {
 				bindaddr_prev->sin_port = htons(new_port);
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -883,6 +844,8 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
 
 /*!
  * \brief Config Converter/Parser for BlindTransferIndication
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -908,6 +871,8 @@ sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const
 
 /*!
  * \brief Config Converter/Parser for Call Answer Order
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -936,6 +901,9 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
  *
  * \todo need check to see if preferred_codecs has changed
  * \todo do we need to reduce the preferences by the pbx -> skinny codec mapping ?
+ *
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -971,6 +939,8 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
  * \brief Config Converter/Parser for Deny IP
  *
  * \todo need check to see if ha has changed
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1015,26 +985,50 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
  *
  * \todo maybe add new DATATYPE_LIST to add string param value to LIST_HEAD to make a generic parser
  * \todo need check to see if  has changed
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-
-	//      sccp_hostname_t *permithost = &(*(sccp_hostname_t *) dest);
 	sccp_hostname_t *permithost = NULL;
+	int permithostIndex = 0;
+	int i = 0;
 
-	if ((permithost = sccp_malloc(sizeof(sccp_hostname_t)))) {
-		if (strcasecmp(permithost->name, value)) {
-			sccp_copy_string(permithost->name, value, sizeof(permithost->name));
-			SCCP_LIST_INSERT_HEAD(&(*(SCCP_LIST_HEAD (, sccp_hostname_t) *) dest), permithost, list);
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-		} else {
-			sccp_free(permithost);
-		}
-	} else {
-		pbx_log(LOG_WARNING, "Error getting memory to assign hostname '%s' (malloc)\n", value);
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
+
+	for ( ; v ;v = v->next) {
+                i = 0;
+                SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
+                        if (permithostIndex == i++) {
+                                break;
+                        }
+                }
+                if (!permithost) {										/* new addition */
+                        if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        } else {
+        			sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+        			SCCP_LIST_INSERT_HEAD(permithostList, permithost, list);
+        			changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                        }
+                } else if (!sccp_strcaseequals(permithost->name, v->value)) {						/* change */
+                        sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                }
+       	        permithostIndex++;
+	}
+	if (i > permithostIndex) {										/* removal */
+	        i = 0;
+	        SCCP_LIST_TRAVERSE_SAFE_BEGIN(permithostList, permithost, list) {
+	              if (permithostIndex < i++) {
+	                      SCCP_LIST_REMOVE_CURRENT(list);
+	                      sccp_free(permithost); 
+	              }
+	        }
+	        SCCP_LIST_TRAVERSE_SAFE_END;
+                changed |= SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
@@ -1047,10 +1041,11 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
  */
 sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
-	int addon_type;
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	sccp_addon_t *addon;
+	sccp_addon_t *addon = NULL;
+	int addon_type;
 	int addonIndex = 0;
+	int i = 0;
 
 	SCCP_LIST_HEAD (, sccp_addon_t) * addonList = dest;
 
@@ -1067,26 +1062,37 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
                         return SCCP_CONFIG_CHANGE_INVALIDVALUE;
                 }
                 
-                int i = 0;
+                i = 0;
                 SCCP_LIST_TRAVERSE(addonList, addon, list) {
                         if (addonIndex == i++) {
                                 break;
                         }
                 }
-                if (!addon) {
-                        addonIndex++;
+                if (!addon) {											/* new addition */
                         if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
                                 sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a device addon\n");
-                                return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        } else {
+                                addon->type = addon_type;
+                                SCCP_LIST_INSERT_HEAD(addonList, addon, list);
+                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
                         }
-                        addon->type = addon_type;
-                        SCCP_LIST_INSERT_HEAD(addonList, addon, list);
-                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                } 
-                if (addon->type != addon_type) {
-                        changed = SCCP_CONFIG_CHANGE_CHANGED;
+                } else if (addon->type != addon_type) {								/* change */
+                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
                         addon->type = addon_type;
                 }
+                addonIndex++;
+	}
+	if (i > addonIndex) {											/* removal */
+	        i = 0;
+	        SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
+	              if (addonIndex < i++) {
+	                      SCCP_LIST_REMOVE_CURRENT(list);
+	                      sccp_free(addon); 
+	              }
+	        }
+	        SCCP_LIST_TRAVERSE_SAFE_END;
+                changed |= SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
