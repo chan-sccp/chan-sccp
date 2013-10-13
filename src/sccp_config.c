@@ -1038,6 +1038,8 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
  * 
  * \todo make more generic
  * \todo cleanup original implementation in sccp_utils.c
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1101,6 +1103,8 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
  * \brief Config Converter/Parser for privacyFeature
  *
  * \todo malloc/calloc of privacyFeature necessary ?
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1128,6 +1132,8 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 
 /*!
  * \brief Config Converter/Parser for early RTP
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1159,6 +1165,8 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, P
 
 /*!
  * \brief Config Converter/Parser for dtmfmode
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1184,6 +1192,8 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, P
 
 /*!
  * \brief Config Converter/Parser for mwilamp
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1215,46 +1225,71 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PB
 
 /*!
  * \brief Config Converter/Parser for Mailbox Value
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
 	sccp_mailbox_t *mailbox = NULL;
 	char *context, *mbox = NULL;
+	int mailboxIndex = 0;
+	int i = 0;
 
 	SCCP_LIST_HEAD (, sccp_mailbox_t) * mailboxList = dest;
 
-	mbox = context = sccp_strdupa(value);
-	boolean_t mailbox_exists = FALSE;
+	for ( ; v ;v = v->next) {
+                mbox = context = sccp_strdupa(v->value);
+                strsep(&context, "@");
+                if (sccp_strlen_zero(context)) {
+                        context = "default";
+                }
 
-	strsep(&context, "@");
-
-	if (sccp_strlen_zero(context)) {
-		context = "default";
+                i = 0;
+                SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
+                        if (mailboxIndex == i++) {
+                                break;
+                        }
+                }
+                if (!mailbox) {											/* new addition */
+                        if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a mailbox\n");
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        } else {
+                                mailbox->mailbox = sccp_strdup(mbox);
+                                mailbox->context = sccp_strdup(context);
+                                SCCP_LIST_INSERT_HEAD(mailboxList, mailbox, list);
+                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                        }
+                } else if (!sccp_strcaseequals(mailbox->mailbox, mbox) || sccp_strcaseequals(mailbox->context, context)) {								/* change */
+                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                        sccp_free(mailbox->mailbox);
+                        sccp_free(mailbox->context);
+                        mailbox->mailbox = sccp_strdup(mbox);
+                        mailbox->context = sccp_strdup(context);
+                }
+                mailboxIndex++;
 	}
-	// Check mailboxes list
-	SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
-		if (sccp_strequals(mailbox->mailbox, mbox)) {
-			mailbox_exists = TRUE;
-		}
-	}
-	if ((!mailbox_exists) && (!sccp_strlen_zero(mbox))) {
-		// Add mailbox entry
-		mailbox = sccp_calloc(1, sizeof(*mailbox));
-		if (NULL != mailbox) {
-			mailbox->mailbox = sccp_strdup(mbox);
-			mailbox->context = sccp_strdup(context);
-
-			SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
-		}
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	if (i > mailboxIndex) {											/* removal */
+	        i = 0;
+	        SCCP_LIST_TRAVERSE_SAFE_BEGIN(mailboxList, mailbox, list) {
+	              if (mailboxIndex < i++) {
+	                      SCCP_LIST_REMOVE_CURRENT(list);
+	                      sccp_free(mailbox->mailbox);
+	                      sccp_free(mailbox->context);
+	                      sccp_free(mailbox); 
+	              }
+	        }
+	        SCCP_LIST_TRAVERSE_SAFE_END;
+                changed |= SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
 
 /*!
  * \brief Config Converter/Parser for Tos Value
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1297,6 +1332,8 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 
 /*!
  * \brief Config Converter/Parser for Cos Value
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1321,6 +1358,8 @@ sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VA
 
 /*!
  * \brief Config Converter/Parser for AmaFlags Value
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1343,6 +1382,8 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
 
 /*!
  * \brief Config Converter/Parser for Secundairy Dialtone Digits
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1362,10 +1403,17 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
 	return changed;
 }
 
+/*!
+ * \brief Config Converter/Parser for PBX Variables
+ *
+ * \note multi_entry
+ * \todo FIXME !! needs to handle multi_entry !!
+ */
 sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE *cur_v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(cur_v->value);
+	
 	boolean_t alreadyexists = FALSE;
 
 	PBX_VARIABLE_TYPE *v = NULL;
@@ -1405,6 +1453,8 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  * \brief Config Converter/Parser for Callgroup/Pickupgroup Values
  *
  * \todo check changes to make the function more generic
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1457,6 +1507,8 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
 
 /*!
  * \brief Config Converter/Parser for Context
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1478,6 +1530,8 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PB
 
 /*!
  * \brief Config Converter/Parser for Hotline Context
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1496,6 +1550,8 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
 
 /*!
  * \brief Config Converter/Parser for Hotline Extension
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
@@ -1518,6 +1574,8 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 /*!
  * \brief Config Converter/Parser for DND Values
  * \note 0/off is allow and 1/on is reject
+ *
+ * \note not multi_entry
  */
 sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
 {
@@ -1551,6 +1609,8 @@ sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size
 
 /*!
  * \brief Config Converter/Parser for Jitter Buffer Flags
+ *
+ * \note not multi_entry
  */
 static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment, const unsigned int flag)
 {
@@ -1589,6 +1649,8 @@ sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size
  * \brief Config Converter/Parser for Buttons
  *
  * \todo Build a check to see if the button has changed 
+ *
+ * \note multi_entry
  */
 sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
 {
