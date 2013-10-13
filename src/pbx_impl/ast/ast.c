@@ -179,21 +179,6 @@ struct ast_config *pbx_config_load(const char *filename, const char *who_asked, 
 #endif														// ASTERISK_VERSION_NUMBER
 }
 
-/*!
- * \brief Get/Create new config variable
- * \note replacement for ast_variable_new
- * \param v Variable Name as char
- * \return The return value is struct ast_variable.
- */
-PBX_VARIABLE_TYPE *pbx_variable_new(PBX_VARIABLE_TYPE * v)
-{
-#if ASTERISK_VERSION_NUMBER >= 10600
-	return ast_variable_new(v->name, v->value, v->file);
-#else
-	return ast_variable_new(v->name, v->value);
-#endif														// ASTERISK_VERSION_NUMBER
-}
-
 /******************************************************************************************************** NET / SOCKET **/
 
 /*
