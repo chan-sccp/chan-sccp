@@ -69,26 +69,6 @@ void sccp_dump_msg(sccp_msg_t *msg)
 }
 
 /*!
- * \brief Add Host to the Permithost Linked List
- * \param d SCCP Device
- * \param config_string as Character
- * 
- * \warning
- *      - device->permithosts is not always locked
- */
-void sccp_permithost_addnew(sccp_device_t * d, const char *config_string)
-{
-	sccp_hostname_t *permithost;
-
-	if ((permithost = sccp_malloc(sizeof(sccp_hostname_t)))) {
-		sccp_copy_string(permithost->name, config_string, sizeof(permithost->name));
-		SCCP_LIST_INSERT_HEAD(&d->permithosts, permithost, list);
-	} else {
-		pbx_log(LOG_WARNING, "Error adding the permithost = %s to the list\n", config_string);
-	}
-}
-
-/*!
  * \brief Return Number of Buttons on AddOn Device
  * \param d SCCP Device
  * \return taps (Number of Buttons on AddOn Device)
@@ -136,18 +116,6 @@ void sccp_addons_clear(sccp_device_t * d)
 	}
 	d->addons.first = NULL;
 	d->addons.last = NULL;
-}
-
-/*!
- * \brief Return AddOn Linked List
- * \param d SCCP Device
- * \return addons_list
- */
-char *sccp_addons_list(sccp_device_t * d)
-{
-	char *addons_list = NULL;
-
-	return addons_list;
 }
 
 /*!
