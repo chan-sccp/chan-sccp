@@ -40,16 +40,15 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"D.M.Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
 	{"bindaddr", 			G_OBJ_REF(bindaddr), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"replace with the ip address of the asterisk server (RTP important param)\n"}, 
 	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"listen on port 2000 (Skinny, default)\n"},
-	{"disallow", 			G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_disallow_codec),					SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"",				"First disallow all codecs, for example 'all'\n"},
-	{"allow", 			G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_allow_codec),					SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"",				"Allow codecs in order of preference (Multiple lines allowed)\n"},
-	{"deny", 			G_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny),						SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0/0.0.0.0",		"Deny every address except for the only one allowed. example: '0.0.0.0/0.0.0.0'\n"},
-	{"permit", 			G_OBJ_REF(ha), 				TYPE_PARSER(sccp_config_parse_permit),						SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"internal",			"Accept class C 192.168.1.0 example '192.168.1.0/255.255.255.0'\n"
+	{"disallow|allow", 		G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"",				"First disallow all codecs, for example 'all', then allow codecs in order of preference (Multiple lines allowed)\n"},
+	{"deny|permit", 		G_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0/0.0.0.0|internal",	"Deny every address except for the only one allowed. example: '0.0.0.0/0.0.0.0'\n"
+																																					"Accept class C 192.168.1.0 example '192.168.1.0/255.255.255.0'\n"
 																																					"You may have multiple rules for masking traffic.\n"
 																																					"Rules are processed from the first to the last.\n"
 																																					"This General rule is valid for all incoming connections. It's the 1st filter.\n"
 																																					"using 'internal' will allow the 10.0.0.0, 172.16.0.0 and 192.168.0.0 networks\n"},
 	{"quality_over_size",		G_OBJ_REF(prefer_quality_over_size),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"When making decisions during codec selections prefer sound quality over packet size (default true)\n"},
-	{"localnet", 			G_OBJ_REF(localaddr), 			TYPE_PARSER(sccp_config_parse_permit),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		"",				"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'\n"},
+	{"localnet", 			G_OBJ_REF(localaddr), 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		"",				"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'\n"},
 	{"externip", 			G_OBJ_REF(externip), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		"",				"IP Address that we're going to notify in RTP media stream\n"},
 	{"externhost", 			G_OBJ_REF(externhost), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"",				"Hostname (if dynamic) that we're going to notify in RTP media stream\n"},
 	{"externrefresh", 		G_OBJ_REF(externrefresh), 		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Expire time in seconds for the hostname (dns resolution)\n"},
@@ -88,7 +87,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"no",				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"},
 	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_PARSER(sccp_config_parse_earlyrtp),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"progress",			"valid options: none, offhook, dial, ringout and progress. default is progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default.\n"},
-	{"dnd", 			G_OBJ_REF(dndmode), 			TYPE_PARSER(sccp_config_parse_dnd),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"turn on the dnd softkey for all devices. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent)\n"},
+	{"dnd", 			G_OBJ_REF(dndmode), 			TYPE_PARSER(sccp_config_parse_dnd_wrapper),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"turn on the dnd softkey for all devices. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent)\n"},
 	{"private", 			G_OBJ_REF(privacy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"permit the private function softkey\n"},
 	{"mwilamp", 			G_OBJ_REF(mwilamp), 			TYPE_PARSER(sccp_config_parse_mwilamp),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"},
 	{"mwioncall", 			G_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Set the MWI on call.\n"},
@@ -168,8 +167,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"description", 		D_OBJ_REF(description),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"device description\n"},
 	{"keepalive", 			D_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"set keepalive to 60\n"},
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
-	{"disallow", 			D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_disallow_codec),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				""},
-	{"allow", 			D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_allow_codec),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				""},
+	{"disallow|allow", 		D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				""},
 	{"transfer", 			D_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey\n"},
 	{"park", 			D_OBJ_REF(park),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"take a look to the compile how-to. Park stuff is not compiled by default\n"},
 	{"cfwdall", 			D_OBJ_REF(cfwdall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"activate the call forward stuff and soft keys\n"},
@@ -180,8 +178,8 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"dtmfmode", 			D_OBJ_REF(dtmfmode), 			TYPE_PARSER(sccp_config_parse_dtmfmode),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"inband",			"inband or outofband. outofband is the native cisco dtmf tone play.\n"
 																																					"Some phone model does not play dtmf tones while connected (bug?), so the default is inband\n"},
 	{"imageversion", 		D_OBJ_REF(imageversion), 		TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)\n"},
-	{"deny", 			D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"},
-	{"permit", 			D_OBJ_REF(ha), 				TYPE_PARSER(sccp_config_parse_permit),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"This device can register only using this ip address\n"},
+	{"deny|permit", 		D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"
+																																					"This device can register only using this ip address\n"},
 	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Type of Service (TOS)  (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"
 																																					"Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none\n"},
 	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
@@ -288,7 +286,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"secondary_dialtone_tone", 	L_OBJ_REF(secondary_dialtone_tone),	TYPE_UINT,						 			SCCP_CONFIG_FLAG_NONE, 						SCCP_CONFIG_NOUPDATENEEDED, 		"0x22",				"outside dialtone frequency\n"},
 	{"setvar", 			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,	 	SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
-	{"dnd", 			L_OBJ_REF(dndmode),			TYPE_PARSER(sccp_config_parse_dnd),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		"reject",			"allow setting dnd for this line. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent) or user to toggle on phone\n"},
+	{"dnd", 			L_OBJ_REF(dndmode),			TYPE_PARSER(sccp_config_parse_dnd_wrapper),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		"reject",			"allow setting dnd for this line. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent) or user to toggle on phone\n"},
 	{"regexten", 			L_OBJ_REF(regexten),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"SCCP Lines will we added to the regcontext with this number for Dundi look up purpose\n"
 																																					"If regexten is not filled in the line name (categoryname between []) will be used\n"},
 };
