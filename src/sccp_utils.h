@@ -31,13 +31,8 @@
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
 void sccp_dump_msg(sccp_msg_t *msg) ;
-void sccp_permithost_addnew(sccp_device_t * d, const char *config_string);
-void sccp_serviceURL_addnew(sccp_device_t * d, const char *config_string, uint8_t index);
-void sccp_speeddial_addnew(sccp_device_t * d, const char *speed_config_string, uint8_t index);
-boolean_t sccp_addon_addnew(sccp_device_t * d, const char *addon_config_type);
 int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
-char *sccp_addons_list(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
 void sccp_pbx_setcallstate(sccp_channel_t * channel, int state);
 void sccp_dev_dbclean(void);
