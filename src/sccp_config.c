@@ -321,19 +321,6 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;						/* indicates config value is changed or not */
 	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
 
-        // check if already set during first pass
-        if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
-                int y;
-                for (y = 0; y < sccpConfigSegment->config_size; y++) {
-                        if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
-                                if (SetEntries[y] == TRUE) {
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
-                                        return SCCP_CONFIG_NOUPDATENEEDED;
-                                }
-                        }
-                }
-        }
-
 	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter: %s = '%s' in line %d\n", sccpConfigSegment->name, name, value, lineno);
 
 	short int int8num;
@@ -354,8 +341,22 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
-	if (sccpConfigOption->offset <= 0)
+	if (sccpConfigOption->offset <= 0) {
 		return SCCP_CONFIG_NOUPDATENEEDED;
+        }
+        
+        // check if already set during first pass (multi_entry)
+        if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
+                int y;
+                for (y = 0; y < sccpConfigSegment->config_size; y++) {
+                        if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
+                                if (SetEntries[y] == TRUE) {
+                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
+                                        return SCCP_CONFIG_NOUPDATENEEDED;
+                                }
+                        }
+                }
+        }
 
 	dst = ((uint8_t *) obj) + sccpConfigOption->offset;
 	type = sccpConfigOption->type;
