@@ -1271,7 +1271,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			} else {
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
 			}
-			if (!SCCP_RWLIST_GETSIZE(l->channels)) {
+			if (!SCCP_RWLIST_GETSIZE(&l->channels)) {
 				sccp_channel_t *tmpChannel = NULL;
 
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
@@ -1284,8 +1284,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
 				sccp_channel_answer(d, sccp_channel_ringing);
 			} else if ((sccp_channel_held = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
-				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(l->channels));
-				if (SCCP_RWLIST_GETSIZE(l->channels) == 1) {
+				sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
+				if (SCCP_RWLIST_GETSIZE(&l->channels) == 1) {
 					/* \todo we should  lock the list here. */
 					channel = SCCP_LIST_FIRST(&l->channels);
 					sccp_log(DEBUGCAT_ACTION) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, channel->callid, instance);

@@ -423,7 +423,7 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 	
-	if (c->calltype == SKINNY_CALLTYPE_INBOUND && c->line->devices.size > 1) {
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND && SCCP_LIST_GETSIZE(&c->line->devices) > 1) {
 		if (d && d->indicate && d->indicate->onhook) {
 			d->indicate->onhook(d, lineInstance, c->callid);
 		}
@@ -592,7 +592,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 
 	if ((sccp_device_selectedchannels_count(d)) != 2) {
-		if (SCCP_RWLIST_GETSIZE(l->channels) == 2) {
+		if (SCCP_RWLIST_GETSIZE(&l->channels) == 2) {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
@@ -605,7 +605,7 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
-		} else if (SCCP_RWLIST_GETSIZE(l->channels) < 2) {
+		} else if (SCCP_RWLIST_GETSIZE(&l->channels) < 2) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "Not enough calls to trnsf", 5);
 			//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);

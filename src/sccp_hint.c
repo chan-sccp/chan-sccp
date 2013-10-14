@@ -627,14 +627,14 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
 
 		/* no line, or line without devices */
-		if (0 == line->devices.size) {
+		if (0 == SCCP_LIST_GETSIZE(&line->devices)) {
 			lineState->state = SCCP_CHANNELSTATE_CONGESTION;
 			lineState->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 
 			sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyName));
 			sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_updateLineState) 0 devices register on linename: %s\n", line->name);
 
-		} else if (line->channels.size > 1) {
+		} else if (SCCP_LIST_GETSIZE(&line->channels) > 1) {
 			/* line is currently shared between multiple device and has multiple concurrent calls active */
 			sccp_hint_updateLineStateForSharedLine(lineState);
 		} else {
@@ -664,9 +664,9 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 	/* set default calltype = SKINNY_CALLTYPE_OUTBOUND */
 	lineState->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-	if (line->channels.size > 0) {
-		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) number of active channels %d\n", line->name, line->channels.size);
-		if (line->channels.size == 1) {
+	if (SCCP_LIST_GETSIZE(&line->channels) > 0) {
+		sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) number of active channels %d\n", line->name, SCCP_LIST_GETSIZE(&line->channels));
+		if (SCCP_LIST_GETSIZE(&line->channels) == 1) {
 			SCCP_LIST_LOCK(&line->channels);
 			channel = SCCP_LIST_FIRST(&line->channels);
 			SCCP_LIST_UNLOCK(&line->channels);
@@ -691,7 +691,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 			} else {
 				lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 			}
-		} else if (line->channels.size > 1) {
+		} else if (SCCP_LIST_GETSIZE(&line->channels) > 1) {
 
 			/** we have multiple channels, so do not set cid information */
 			//                      sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyName));
@@ -982,7 +982,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState));
+	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState));
 
 	/* use a temporary channel as fallback for non dynamic speeddial devices */
 	memset(&tmpChannel, 0, sizeof(sccp_channel_t));
@@ -1170,7 +1170,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 	sccp_linedevices_t *lineDevice;
 	sccp_line_t *line = lineState->line;
 
-	//      if (line->devices.size > 1) 
+	//      if (SCCP_LIST_GETSIZE(&line->devices) > 1) 
 	{
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;

@@ -239,7 +239,7 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 	}
 
 	sccp_conference_participant_t *participant = NULL;
-	int participantID = conference->participants.size + 1;
+	int participantID = SCCP_LIST_GETSIZE(&conference->participants) + 1;
 	char participantIdentifier[REFCOUNT_INDENTIFIER_SIZE];
 
 	sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Creating new conference-participant %d\n", conference->id, participantID);
@@ -494,7 +494,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 	participant = sccp_participant_release(participant);
 
 	/* Conference end if the number of participants == 1 */
-	if (SCCP_LIST_GETSIZE(conference->participants) == 1 && !conference->finishing) {
+	if (SCCP_LIST_GETSIZE(&conference->participants) == 1 && !conference->finishing) {
 		sccp_log((DEBUGCAT_CORE | DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: There are no conference participants left, Ending conference.\n", conference->id);
 		sccp_conference_end(conference);
 	}
@@ -581,7 +581,7 @@ void sccp_conference_end(sccp_conference_t * conference)
 
 	/* remove remaining participants / moderators */
 	SCCP_LIST_LOCK(&conference->participants);
-	if (SCCP_LIST_GETSIZE(conference->participants) > 0) {
+	if (SCCP_LIST_GETSIZE(&conference->participants) > 0) {
 		// remove the participants first
 		SCCP_LIST_TRAVERSE(&conference->participants, participant, list) {
 			if (!participant->isModerator) {
@@ -921,7 +921,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		pbx_log(LOG_WARNING, "SCCPCONF/%04d: Channel %s is not a participant in this conference\n", conference->id, pbx_channel_name(channel->owner));
 		goto exit_function;
 	}
-	if (conference->participants.size < 1) {
+	if (SCCP_LIST_GETSIZE(&conference->participants) < 1) {
 		pbx_log(LOG_WARNING, "SCCPCONF/%04d: Conference does not have enough participants\n", conference->id);
 		goto exit_function;
 	}
@@ -1513,7 +1513,7 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 
 #define CLI_AMI_TABLE_FIELDS 																\
 		CLI_AMI_TABLE_FIELD(Id,			d,	3,	conference->id)										\
-		CLI_AMI_TABLE_FIELD(Participants,	d,	12,	conference->participants.size)								\
+		CLI_AMI_TABLE_FIELD(Participants,	d,	12,	SCCP_LIST_GETSIZE(&conference->participants))								\
 		CLI_AMI_TABLE_FIELD(Moderator,		d,	12,	conference->num_moderators)								\
 		CLI_AMI_TABLE_FIELD(Announce,		s,	12,	conference->playback_announcements ? "Yes" : "No")					\
 		CLI_AMI_TABLE_FIELD(MuteOnEntry,	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\

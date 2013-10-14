@@ -1485,7 +1485,7 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
 	
 	PBX_VARIABLE_TYPE *v = NULL;
-        int listCount = permithostList->size;
+        int listCount = SCCP_LIST_GETSIZE(permithostList);
         int varCount = 0;
 	int found = 0;
 
@@ -2401,7 +2401,7 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	sccp_config_set_defaults(l, SCCP_CONFIG_LINE_SEGMENT, SetEntries);
 
 	if (sccp_strlen_zero(l->id)) {
-		sprintf(l->id, "%04d", SCCP_LIST_GETSIZE(GLOB(lines)));
+		sprintf(l->id, "%04d", SCCP_LIST_GETSIZE(&GLOB(lines)));
 	}
 
 	return res;

@@ -359,7 +359,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else if (!strcasecmp(colname, "incoming_limit")) {
 		snprintf(buf, len, "%d", l->incominglimit);
 	} else if (!strcasecmp(colname, "channel_count")) {
-		snprintf(buf, len, "%d", SCCP_RWLIST_GETSIZE(l->channels));
+		snprintf(buf, len, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
 	} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
 #ifdef CS_SCCP_REALTIME
 		sccp_copy_string(buf, l->realtime ? "Yes" : "No", len);
@@ -384,7 +384,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else if (!strcasecmp(colname, "oldmsgs")) {
 		snprintf(buf, len, "%d", l->voicemailStatistic.oldmsgs);
 	} else if (!strcasecmp(colname, "num_lines")) {
-		snprintf(buf, len, "%d", l->devices.size);
+		snprintf(buf, len, "%d", SCCP_LIST_GETSIZE(&l->devices));
 	} else if (!strcasecmp(colname, "mailboxes")) {
 		/*! \todo needs to be implemented, should return a comma separated list of mailboxes */
 	} else if (!strcasecmp(colname, "cfwd")) {
