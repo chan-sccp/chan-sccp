@@ -1624,18 +1624,25 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 	        variableList = NULL;
 	}
 	PBX_VARIABLE_TYPE *variable = variableList;
+	char *var_name = NULL; 
+	char *var_value = NULL;
 	
         for ( ; v; v = v->next) {											/* create new list */
-                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new variable: %s=%s\n", v->name,v->value);
+        	var_name = sccp_strdupa(v->value);
+        	var_value = NULL;
+		if ((var_value = strchr(var_name, '='))) {
+			*var_value++ = '\0';
+                }
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new variable: %s=%s\n", var_name,var_value);
                 if (!variable) {
-                        if (!(variableList = pbx_variable_new(v->name, v->value, ""))) {
+                        if (!(variableList = pbx_variable_new(var_name, var_value, ""))) {
                                 pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
                                 variableList = NULL;
                                 break;
                         }
                         variable = variableList;
                 } else {
-                        if (!(variable->next = pbx_variable_new(v->name, v->value, ""))) {
+                        if (!(variable->next = pbx_variable_new(var_name, var_value, ""))) {
                                 pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
                                 pbx_variables_destroy(variableList);
                                 variableList = NULL;
