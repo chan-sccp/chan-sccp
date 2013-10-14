@@ -314,6 +314,13 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		PBX(queue_control) (c->owner, AST_CONTROL_CONGESTION);
 	}
 
+        /* set linevariables */
+        PBX_VARIABLE_TYPE *v = ((l) ? l->variables : NULL);
+        while (c->owner && !pbx_check_hangup(c->owner) && l && v) {
+                pbx_builtin_setvar_helper(c->owner, v->name, v->value);
+                v = v->next;
+        }
+
 	if (cid_name)
 		free(cid_name);
 	if (cid_number)

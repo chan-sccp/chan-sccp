@@ -1492,6 +1492,13 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			sccp_indicate(non_const_device, channel, SCCP_CHANNELSTATE_OFFHOOK);
 		}
 
+		/* set devicevariables */
+		PBX_VARIABLE_TYPE *v = ((non_const_device) ? non_const_device->variables : NULL);
+		while (channel->owner && !pbx_check_hangup(channel->owner) && non_const_device && v) {
+			pbx_builtin_setvar_helper(channel->owner, v->name, v->value);
+			v = v->next;
+		}
+
 		PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
 
 		sccp_indicate(non_const_device, channel, SCCP_CHANNELSTATE_CONNECTED);
