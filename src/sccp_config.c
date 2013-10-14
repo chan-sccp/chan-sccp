@@ -1396,10 +1396,10 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 	struct sccp_ha *ha = *(struct sccp_ha **) dest;
 	
 	for ( ; v ; v = v->next) { 
-//	        sccp_log((DEBUGCAT_CONFIG))("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
+	        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
 	        if (sccp_strcaseequals(v->name, "deny")) {
                         ha = sccp_append_ha("deny", v->value, ha, &error);
-//                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
+                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
 	        } else if (sccp_strcaseequals(v->name, "permit")) {
                         if (!strcasecmp(v->value, "internal")) {
                                 ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
@@ -1412,7 +1412,7 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
                         } else {
                                 ha = sccp_append_ha("permit", v->value, ha, &error);
                         }
-//                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "Permit: %s\n", v->value);
+                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Permit: %s\n", v->value);
                 }
                 errors |= error; 
 	}
@@ -1433,41 +1433,49 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
  * \todo need check to see if  has changed
  *
  * \note multi_entry
+ * \note order is irrelevant
  */
-sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE *vroot, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_hostname_t *permithost = NULL;
 
 	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
-	
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(permithostList, permithost, list) {
-	        if (v) {
-                        if (!sccp_strcaseequals(permithost->name, v->value)) {						/* change/update */
-        	                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change permithost: %s => %s\n", permithost->name, v->value);
-                                sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        }
-                        v = v->next;
-                } else {												/* removal */
-                      sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("remove permithost: %s\n", permithost->name);
-                      SCCP_LIST_REMOVE_CURRENT(list);
-                      sccp_free(permithost); 
-                      changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                }
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
-        for ( ; v; v = v->next) {											/* addition */
-                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new permithost: %s\n", v->value);
-                if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
-                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
-                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                }
-                sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-                SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
-                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+
+	PBX_VARIABLE_TYPE *v = NULL;
+	int varCount = 0;
+        int listCount = 0;
+        listCount = permithostList->size;
+        boolean_t notfound = FALSE;
+
+        for (v=vroot; v; v = v->next) {
+                varCount++;
         }
-	return changed;
+        if (varCount == listCount) {									// list length equal
+        	SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
+                        for (v=vroot; v; v = v->next) {
+                                if (sccp_strcaseequals(permithost->name, v->value)) {			// variable found
+                                        continue;
+                                }
+                                notfound |= TRUE;
+                        }
+                }
+        }
+        if (varCount != listCount || notfound) {							// build new list
+                while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {			// clear list
+                }
+                for (v=vroot; v; v = v->next) {
+                        sccp_log((DEBUGCAT_CONFIG))("add new permithost: %s\n", v->value);
+                        if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate memory for a hostname\n");
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+                        }
+                        sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+                        SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+                }
+                changed = SCCP_CONFIG_CHANGE_CHANGED;
+        }
+        return changed;
 }
 
 static int addonstr2enum(const char *addonstr) {
@@ -1603,11 +1611,13 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
 	PBX_VARIABLE_TYPE *variableList = *(PBX_VARIABLE_TYPE **) dest;
+	if (variableList) {
+	        pbx_variables_destroy(variableList);									/* destroy old list */
+	        variableList = NULL;
+	}
 	PBX_VARIABLE_TYPE *variable = variableList;
-
-	pbx_variables_destroy(variableList);										/* create a new list */
 	
-        for ( ; v; v = v->next) {											/* addition */
+        for ( ; v; v = v->next) {											/* create new list */
                 sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new variable: %s=%s\n", v->name,v->value);
                 if (!variable) {
                         if (!(variableList = pbx_variable_new(v->name, v->value, ""))) {
@@ -2327,13 +2337,6 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
 	boolean_t SetEntries[ARRAY_LEN(sccpLineConfigOptions)] = { FALSE };
 	PBX_VARIABLE_TYPE *cat_root = v;
 
-	if (l->pendingDelete) {
-		/* removing variables */
-		if (l->variables) {
-			pbx_variables_destroy(l->variables);
-			l->variables = NULL;
-		}
-	}
 	for (; v; v = v->next) {
 		res |= sccp_config_object_setValue(l, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_LINE_SEGMENT, SetEntries);
 	}
