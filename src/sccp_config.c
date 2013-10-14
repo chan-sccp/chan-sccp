@@ -2429,11 +2429,19 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 	if (GLOB(cfg) == CONFIG_STATUS_FILEMISSING) {
 		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
+                if (GLOB(config_file_name)) {
+                        sccp_free(GLOB(config_file_name));
+                }	
+		GLOB(config_file_name) = strdup("sccp.conf");
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEINVALID) {
 		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
+                if (GLOB(config_file_name)) {
+                        sccp_free(GLOB(config_file_name));
+                }	
+		GLOB(config_file_name) = strdup("sccp.conf");
 		res = CONFIG_STATUS_FILE_INVALID;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEUNCHANGED) {
