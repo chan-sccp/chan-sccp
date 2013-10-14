@@ -309,7 +309,7 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 		astman_append(s, "ObjectType: line\r\n");
 		astman_append(s, "Name: %s\r\n", line->name);
 		astman_append(s, "Description: %s\r\n", line->description);
-		astman_append(s, "Num_Channels: %d\r\n", SCCP_RWLIST_GETSIZE(line->channels));
+		astman_append(s, "Num_Channels: %d\r\n", SCCP_RWLIST_GETSIZE(&line->channels));
 		total++;
 	}
 
@@ -458,7 +458,7 @@ int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	if (line->devices.size > 1) {
+	if (SCCP_LIST_GETSIZE(&line->devices) > 1) {
 		pbx_log(LOG_WARNING, "%s: Callforwarding on shared lines is not supported at the moment\n", deviceName);
 		astman_send_error(s, m, "Callforwarding on shared lines is not supported at the moment");
 		line = sccp_line_release(line);

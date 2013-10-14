@@ -799,7 +799,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 			} else {
 				/* un-register */
 
-				if (l->devices.size == 1) {							// only remove entry if it is the last one (shared line)
+				if (SCCP_LIST_GETSIZE(&l->devices) == 1) {							// only remove entry if it is the last one (shared line)
 					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
 						sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
@@ -839,7 +839,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 		return state;
 	}
 	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->name);
-	if (line->devices.size > 1) {
+	if (SCCP_LIST_GETSIZE(&line->devices) > 1) {
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 
@@ -864,7 +864,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 				state = SCCP_CHANNELSTATE_DND;
 			}
 		}
-	}													// if(line->devices.size > 1)
+	}													// if(SCCP_LIST_GETSIZE(&line->devices) > 1)
 	return state;
 }
 

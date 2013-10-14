@@ -162,20 +162,20 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %d\n", (unsigned int) pthread_self());
 		SCCP_LIST_LOCK(&(tp_p->threads));
 		{
-			if (SCCP_LIST_GETSIZE(tp_p->jobs) > (SCCP_LIST_GETSIZE(tp_p->threads) * 2) && SCCP_LIST_GETSIZE(tp_p->threads) < THREADPOOL_MAX_SIZE) {	// increase
+			if (SCCP_LIST_GETSIZE(&tp_p->jobs) > (SCCP_LIST_GETSIZE(&tp_p->threads) * 2) && SCCP_LIST_GETSIZE(&tp_p->threads) < THREADPOOL_MAX_SIZE) {	// increase
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Add new thread to threadpool %p\n", tp_p);
 				sccp_threadpool_grow(tp_p, 1);
 				tp_p->last_resize = time(0);
 			} else if (((time(0) - tp_p->last_resize) > THREADPOOL_RESIZE_INTERVAL * 3) &&		// wait a little longer to decrease
-				   (SCCP_LIST_GETSIZE(tp_p->threads) > THREADPOOL_MIN_SIZE && SCCP_LIST_GETSIZE(tp_p->jobs) < (SCCP_LIST_GETSIZE(tp_p->threads) / 2))) {	// decrease
-				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Remove thread %d from threadpool %p\n", SCCP_LIST_GETSIZE(tp_p->threads) - 1, tp_p);
+				   (SCCP_LIST_GETSIZE(&tp_p->threads) > THREADPOOL_MIN_SIZE && SCCP_LIST_GETSIZE(&tp_p->jobs) < (SCCP_LIST_GETSIZE(&tp_p->threads) / 2))) {	// decrease
+				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Remove thread %d from threadpool %p\n", SCCP_LIST_GETSIZE(&tp_p->threads) - 1, tp_p);
 				// kill last thread only if it is not executed by itself
 				sccp_threadpool_shrink(tp_p, 1);
 				tp_p->last_resize = time(0);
 			}
 			tp_p->last_size_check = time(0);
-			tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(tp_p->jobs);
-			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) Number of threads: %d, job_high_water_mark: %d\n", SCCP_LIST_GETSIZE(tp_p->threads), tp_p->job_high_water_mark);
+			tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(&tp_p->jobs);
+			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) Number of threads: %d, job_high_water_mark: %d\n", SCCP_LIST_GETSIZE(&tp_p->threads), tp_p->job_high_water_mark);
 		}
 		SCCP_LIST_UNLOCK(&(tp_p->threads));
 	}
@@ -210,14 +210,14 @@ void sccp_threadpool_thread_do(void *p)
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Starting Threadpool JobQueue\n");
 	while (1) {
 		pthread_testcancel();
-		jobs = SCCP_LIST_GETSIZE(tp_p->jobs);
-		threads = SCCP_LIST_GETSIZE(tp_p->threads);
+		jobs = SCCP_LIST_GETSIZE(&tp_p->jobs);
+		threads = SCCP_LIST_GETSIZE(&tp_p->threads);
 
 		sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) num_jobs: %d, threadid: %d, num_threads: %d\n", jobs, threadid, threads);
 
 		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
-		while (SCCP_LIST_GETSIZE(tp_p->jobs) == 0 && !tp_thread->die) {
-			if (tp_thread->die && SCCP_LIST_GETSIZE(tp_p->jobs) == 0) {
+		while (SCCP_LIST_GETSIZE(&tp_p->jobs) == 0 && !tp_thread->die) {
+			if (tp_thread->die && SCCP_LIST_GETSIZE(&tp_p->jobs) == 0) {
 				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %d...\n", threadid);
 				SCCP_LIST_UNLOCK(&(tp_p->jobs));
 				pthread_exit(0);
@@ -225,7 +225,7 @@ void sccp_threadpool_thread_do(void *p)
 			sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %d Waiting for New Work Condition\n", threadid);
 			ast_cond_wait(&(tp_p->work), &(tp_p->jobs.lock));
 		}
-		if (tp_thread->die && SCCP_LIST_GETSIZE(tp_p->jobs) == 0) {
+		if (tp_thread->die && SCCP_LIST_GETSIZE(&tp_p->jobs) == 0) {
 			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %d...\n", threadid);
 			SCCP_LIST_UNLOCK(&(tp_p->jobs));
 			pthread_exit(0);
@@ -290,7 +290,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 {
 	sccp_threadpool_thread_t *tp_thread = NULL;
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(tp_p->jobs));
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Destroying Threadpool %p with %d jobs\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
 
 	// After this point, no new jobs can be added
 	SCCP_LIST_LOCK(&(tp_p->jobs));
@@ -309,14 +309,14 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	ast_cond_broadcast(&(tp_p->work));
 
 	// wait for all threads to exit
-	if (SCCP_LIST_GETSIZE(tp_p->threads) != 0) {
+	if (SCCP_LIST_GETSIZE(&tp_p->threads) != 0) {
 		struct timespec ts;
 		struct timeval tp;
 		int counter = 0;
 
 		SCCP_LIST_LOCK(&(tp_p->threads));
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Waiting for threadpool to wind down. please stand by...\n");
-		while (SCCP_LIST_GETSIZE(tp_p->threads) != 0 && counter++ < THREADPOOL_MAX_SIZE) {
+		while (SCCP_LIST_GETSIZE(&tp_p->threads) != 0 && counter++ < THREADPOOL_MAX_SIZE) {
 			gettimeofday(&tp, NULL);
 			ts.tv_sec = tp.tv_sec;
 			ts.tv_nsec = tp.tv_usec * 1000;
@@ -326,7 +326,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 		}
 
 		/* Make sure threads have finished (should never have to execute) */
-		if (SCCP_LIST_GETSIZE(tp_p->threads) != 0) {
+		if (SCCP_LIST_GETSIZE(&tp_p->threads) != 0) {
 			while ((tp_thread = SCCP_LIST_REMOVE_HEAD(&(tp_p->threads), list))) {
 				pbx_log(LOG_ERROR, "Forcing Destroy of thread %p\n", tp_thread);
 				pthread_cancel(tp_thread->thread);
@@ -348,7 +348,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 
 int sccp_threadpool_thread_count(sccp_threadpool_t * tp_p)
 {
-	return SCCP_LIST_GETSIZE(tp_p->threads);
+	return SCCP_LIST_GETSIZE(&tp_p->threads);
 }
 
 /* =================== JOB QUEUE OPERATIONS ===================== */
@@ -362,7 +362,7 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 		return;
 	}
 
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_add) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(tp_p->jobs));
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_add) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
 	SCCP_LIST_LOCK(&(tp_p->jobs));
 	if (sccp_threadpool_shuttingdown) {
 		pbx_log(LOG_ERROR, "(sccp_threadpool_jobqueue_add) shutting down\n");
@@ -373,14 +373,14 @@ void sccp_threadpool_jobqueue_add(sccp_threadpool_t * tp_p, sccp_threadpool_job_
 	SCCP_LIST_INSERT_TAIL(&(tp_p->jobs), newjob_p, list);
 	SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-	if (SCCP_LIST_GETSIZE(tp_p->jobs) > tp_p->job_high_water_mark) {
-		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(tp_p->jobs);
+	if (SCCP_LIST_GETSIZE(&tp_p->jobs) > tp_p->job_high_water_mark) {
+		tp_p->job_high_water_mark = SCCP_LIST_GETSIZE(&tp_p->jobs);
 	}
 	ast_cond_signal(&(tp_p->work));
 }
 
 int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 {
-	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(tp_p->jobs));
-	return SCCP_LIST_GETSIZE(tp_p->jobs);
+	sccp_log(DEBUGCAT_THPOOL) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
+	return SCCP_LIST_GETSIZE(&tp_p->jobs);
 }

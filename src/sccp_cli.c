@@ -1007,7 +1007,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 			if ((d = sccp_device_retain(linedevice->device))) {
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
-						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 				} else {
 					astman_append(s, "Event: LineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
@@ -1016,7 +1016,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
 					astman_append(s, "Device: %s\r\n", (d) ? d->id : "--");
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
-					astman_append(s, "ActiveChannels: %d\r\n", SCCP_RWLIST_GETSIZE(l->channels));
+					astman_append(s, "ActiveChannels: %d\r\n", SCCP_RWLIST_GETSIZE(&l->channels));
 					astman_append(s, "ChannelState: %s\r\n", (channel) ? sccp_indicate2str(channel->state) : "--");
 					astman_append(s, "CallType: %s\r\n", (channel) ? calltype2str(channel->calltype) : "");
 					astman_append(s, "PartyName: %s\r\n", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "");
@@ -1031,7 +1031,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 
 		if (found_linedevice == 0) {
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 			} else {
 				astman_append(s, "Event: LineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
@@ -1164,7 +1164,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_PARAM("Caller ID name", CLI_AMI_LIST_WIDTH, "%s", l->cid_name ? l->cid_name : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Caller ID number", CLI_AMI_LIST_WIDTH, "%s", l->cid_num ? l->cid_num : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Incoming Calls limit", CLI_AMI_LIST_WIDTH, "%d", l->incominglimit);
-	CLI_AMI_OUTPUT_PARAM("Active Channel Count", CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(l->channels));
+	CLI_AMI_OUTPUT_PARAM("Active Channel Count", CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits", CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone", CLI_AMI_LIST_WIDTH, "0x%02x", l->secondary_dialtone_tone);
 	CLI_AMI_OUTPUT_BOOL("Echo Cancellation", CLI_AMI_LIST_WIDTH, l->echocancel);
