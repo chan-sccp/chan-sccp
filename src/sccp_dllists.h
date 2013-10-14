@@ -343,8 +343,8 @@ struct {												\
 			cur->field.next = NULL;								\
 			if ((head)->last == cur)							\
 				(head)->last = NULL;							\
+        		(head)->size--;									\
 		}											\
-		(head)->size--;										\
 		cur;											\
 	})
 #define SCCP_RWLIST_REMOVE_HEAD SCCP_LIST_REMOVE_HEAD
