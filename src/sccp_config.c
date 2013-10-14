@@ -2288,7 +2288,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					if (GLOB(reload_in_progress) && res & SCCP_CONFIG_NEEDDEVICERESET) {
 						device->pendingUpdate = 1;
 					} else {
-						line->pendingUpdate = 0;
+						device->pendingUpdate = 0;
 					}
 					pbx_variables_destroy(rv);
 				}
