@@ -2131,6 +2131,9 @@ static void sccp_wrapper_asterisk110_setRedirectedParty(const sccp_channel_t * c
 
 static void sccp_wrapper_asterisk110_updateConnectedLine(const sccp_channel_t * channel, const char *number, const char *name, uint8_t reason)
 {
+        if (!channel || !channel->owner) {
+                return;
+        }
 	struct ast_party_connected_line connected;
 	struct ast_set_party_connected_line update_connected;
 
