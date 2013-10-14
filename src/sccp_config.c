@@ -1482,42 +1482,50 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_hostname_t *permithost = NULL;
 
-	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
+	//SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
+	
+	int offset = offsetof(struct sccp_device,permithosts);
+	sccp_device_t *d =  (sccp_device_t *)(((uint8_t *) dest) - offset);
 
 	PBX_VARIABLE_TYPE *v = NULL;
-        int listCount = permithostList->size + 1;
-	int varCount = 0;
+        //int listCount = permithostList->size + 1;
+//        int listCount = SCCP_LIST_GETSIZE(d->permithosts) + 1;
+        int listCount = (&d->permithosts)->size;
+        int varCount = 0;
 	int found = 0;
 
+//      SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
         for (v=vroot; v; v = v->next) {
-                varCount++;
-        }
-        if (varCount == listCount) {									// list length equal
-                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("permithost length the same\n");
-        	SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
-                        for (v=vroot; v; v = v->next) {
-                                if (sccp_strcaseequals(permithost->name, v->value)) {			// variable found
-                                        found++;
-                                        break;
-                                }
+                SCCP_LIST_TRAVERSE(&d->permithosts, permithost, list) {
+                        if (sccp_strcaseequals(permithost->name, v->value)) {			// variable found
+                                found++;
+                                break;
                         }
                 }
+                varCount++;
         }
-        if (varCount != listCount || listCount != found) {							// build new list
-                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("permithosts changed. (%d/%d/%d)\n", varCount, listCount, found);
-                while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {			// clear list
+        sccp_log((DEBUGCAT_CONFIG))("permithosts changed ? (%d/%d/%d)\n", varCount, (&d->permithosts)->size, found);
+        if (listCount != varCount || listCount != found) {							// build new list
+                sccp_log((DEBUGCAT_CONFIG))("permithosts changed. (%d/%d/%d)\n", varCount, listCount, found);
+//                while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {			// clear list
+                while ((permithost = SCCP_LIST_REMOVE_HEAD(&d->permithosts, list))) {			// clear list
+                        sccp_log((DEBUGCAT_CONFIG))("permithosts removed. (%d/%d/%d)\n", varCount, (&d->permithosts)->size, found);
                         sccp_free(permithost);
                 }
                 for (v=vroot; v; v = v->next) {
-                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new permithost: %s\n", v->value);
+                        sccp_log((DEBUGCAT_CONFIG))("add new permithost: %s\n", v->value);
                         if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
                                 pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new permithost\n");
                                 break;
                         }
                         sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-                        SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+//                        SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+                        SCCP_LIST_INSERT_TAIL(&d->permithosts, permithost, list);
+                        sccp_log((DEBUGCAT_CONFIG))("permithosts added. (%d/%d/%d)\n", varCount, (&d->permithosts)->size, found);
                 }
                 changed = SCCP_CONFIG_CHANGE_CHANGED;
+//        	*(sccp_hostname_t **)dest = permithostList;
+                sccp_log((DEBUGCAT_CONFIG))("permithosts changed. (%d/%d/%d)\n", varCount, (&d->permithosts)->size, found);
         }
         return changed;
 }
