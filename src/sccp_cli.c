@@ -2447,11 +2447,14 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				pbx_cli(fd, "device is realtime\n");
 				v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
 			} else {
-				v = ast_variable_browse(GLOB(cfg), argv[3]);
+				if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
+					v = ast_variable_browse(GLOB(cfg), argv[3]);
+				}
 			}
 			if(v){
 				change =  sccp_config_applyDeviceConfiguration(device, v);
-				pbx_cli(fd, "Device has %s\n", change ? "changed -> restarting device" : "not changed");
+				sccp_log(DEBUGCAT_CORE)("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
+				pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
 				if(change == SCCP_CONFIG_NEEDDEVICERESET){
 					device->pendingUpdate = 1;
 					sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
