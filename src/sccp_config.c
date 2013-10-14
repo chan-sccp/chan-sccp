@@ -1443,25 +1443,26 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
 
 	PBX_VARIABLE_TYPE *v = NULL;
+        int listCount = permithostList->size + 1;
 	int varCount = 0;
-        int listCount = 0;
-        listCount = permithostList->size;
-        boolean_t notfound = FALSE;
+	int found = 0;
 
         for (v=vroot; v; v = v->next) {
                 varCount++;
         }
         if (varCount == listCount) {									// list length equal
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("permithost length the same\n");
         	SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
                         for (v=vroot; v; v = v->next) {
                                 if (sccp_strcaseequals(permithost->name, v->value)) {			// variable found
-                                        continue;
+                                        found++;
+                                        break;
                                 }
-                                notfound |= TRUE;
                         }
                 }
         }
-        if (varCount != listCount || notfound) {							// build new list
+        if (varCount != listCount || listCount != found) {							// build new list
+                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("permithosts changed. (%d/%d/%d)\n", varCount, listCount, found);
                 while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {			// clear list
                         sccp_free(permithost);
                 }
