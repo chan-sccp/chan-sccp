@@ -2708,6 +2708,7 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
  * Rcvr Size = RTP packet size, in milliseconds, for the received stream.
  * Rcvr Discarded = RTP packets received from network but discarded from jitter buffers.   
  */
+
 void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 
@@ -2742,13 +2743,28 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 
 		ast_str_append(&output_buf, 0, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
 		if (!sccp_strlen_zero(QualityStats)) {
-			sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;ICR=%f;CCR=%f;ICRmx=%f;CS=%d;SCS=%d;MLQKvr=%f",
-			       &last_call_stats->opinion_score_listening_quality,
-			       &last_call_stats->avg_opinion_score_listening_quality, &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
+			if (letohl(msg_in->header.lel_protocolVer < 19)) {
+                                sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;MLQKvr=%f;CCR=%f;ICR=%f;ICRmx=%f;CS=%d;SCS=%d",
+					&last_call_stats->opinion_score_listening_quality,&last_call_stats->avg_opinion_score_listening_quality, 
+					&last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, 
+					&last_call_stats->variance_opinion_score_listening_quality,&last_call_stats->cumulative_concealement_ratio, 
+					&last_call_stats->interval_concealement_ratio, &last_call_stats->max_concealement_ratio, 
+					&last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds);
+			} else {
+                                sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;ICR=%f;CCR=%f;ICRmx=%f;CS=%d;SCS=%d;MLQKvr=%f",
+                                       	&last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality, 
+					&last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, 
+					&last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, 
+					&last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, 
+					&last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
+			} 
 		}
-		ast_str_append(&output_buf, 0, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;ICR=%.4f;CCR=%.4f;ICRmx=%.4f;CS=%d;SCS=%d;MLQKvr=%.2f\n",
-					   last_call_stats->opinion_score_listening_quality, last_call_stats->avg_opinion_score_listening_quality, last_call_stats->mean_opinion_score_listening_quality,
-					   last_call_stats->max_opinion_score_listening_quality, last_call_stats->interval_concealement_ratio, last_call_stats->cumulative_concealement_ratio, last_call_stats->max_concealement_ratio, (int) last_call_stats->concealed_seconds, (int) last_call_stats->severely_concealed_seconds, last_call_stats->variance_opinion_score_listening_quality);
+		ast_str_append(&output_buf, 0, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
+					   last_call_stats->opinion_score_listening_quality, last_call_stats->avg_opinion_score_listening_quality, 
+					   last_call_stats->mean_opinion_score_listening_quality, last_call_stats->max_opinion_score_listening_quality, 
+					   last_call_stats->variance_opinion_score_listening_quality, 
+					   last_call_stats->interval_concealement_ratio, last_call_stats->cumulative_concealement_ratio, last_call_stats->max_concealement_ratio, 
+					   (int) last_call_stats->concealed_seconds, (int) last_call_stats->severely_concealed_seconds);
 
 		// update avg_call_statistics
 		avg_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_AVG];
@@ -2774,9 +2790,12 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		avg_call_stats->num++;
                 ast_str_append(&output_buf, 0, "         Mean Statistics  : #Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
 
-		ast_str_append(&output_buf, 0, "         Mean Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;ICR=%.4f;CCR=%.4f;ICRmx=%.4f;CS=%d;SCS=%d;MLQKvr=%.2f\n",
-					   avg_call_stats->opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality, avg_call_stats->mean_opinion_score_listening_quality,
-					   avg_call_stats->max_opinion_score_listening_quality, avg_call_stats->interval_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->max_concealement_ratio, (int) avg_call_stats->concealed_seconds, (int) avg_call_stats->severely_concealed_seconds, avg_call_stats->variance_opinion_score_listening_quality);
+		ast_str_append(&output_buf, 0, "         Mean Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
+					   avg_call_stats->opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality, 
+					   avg_call_stats->mean_opinion_score_listening_quality, avg_call_stats->max_opinion_score_listening_quality, 
+					   avg_call_stats->variance_opinion_score_listening_quality, 
+					   avg_call_stats->interval_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->max_concealement_ratio, 
+					   (int) avg_call_stats->concealed_seconds, (int) avg_call_stats->severely_concealed_seconds);
                 ast_str_append(&output_buf, 0, "       ]\n");
 
 		// update global_call_statistics

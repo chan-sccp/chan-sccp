@@ -1572,6 +1572,7 @@ typedef union {
 		uint32_t lel_latency;										/*!< Latency */
 		uint8_t bytes[4];										/*!<  */
 		char QualityStats[128];										/*!< QualityStatistics */
+		char unknown[460];
 	} ConnectionStatisticsRes;										/*!< Connection Statistics Response Message - Server -> Client */
 
 	struct {
