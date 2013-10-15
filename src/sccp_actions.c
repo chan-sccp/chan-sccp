@@ -500,7 +500,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxbuttons='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", msg_in->data.RegisterMessage.sId.deviceName, msg_in->data.RegisterMessage.loadInfo, msg_in->data.RegisterMessage.lel_maxButtons, (device->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (device->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
 
 	if (device->nat == 0 && GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin) != AST_SENSE_ALLOW) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream (%s does not fit permit/deny)\n", msg_in->data.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+	        struct ast_str *ha_buf = pbx_str_alloca(512);
+	        sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(localaddr));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream (address: %s not witin server localaddr: %s)\n", msg_in->data.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr), ast_str_buffer(ha_buf));
 		device->nat = 1;
 	}
 
