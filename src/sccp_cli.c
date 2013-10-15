@@ -2433,18 +2433,17 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			PBX_VARIABLE_TYPE *v;
 			
 			if(!device){
-				pbx_cli(fd, "Did not find device %s\n", argv[3]);
+				pbx_cli(fd, "Could not find device %s\n", argv[3]);
 				const char *utype;
 				utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
 				if (utype && !strcasecmp(utype, "device") ){
 					device = sccp_device_create(argv[3]);
 				} else {
-					pbx_cli(fd, "Did not find device %s in config\n", argv[3]);
+					pbx_cli(fd, "Could not find device %s in config\n", argv[3]);
 					goto EXIT;
 				}
 			}
 			if (device->realtime){
-				pbx_cli(fd, "device is realtime\n");
 				v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
 			} else {
 				if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
@@ -2467,6 +2466,67 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			}
 			
 			device = sccp_device_release(device);
+			returnval = RESULT_SUCCESS;
+			goto EXIT;
+		} else if (sccp_strequals("line", argv[2]) && argc > 3) {
+			sccp_line_t *line = sccp_line_find_byname(argv[3], FALSE);
+			PBX_VARIABLE_TYPE *v;
+			PBX_VARIABLE_TYPE *dv = NULL;			
+
+			if(!line) {
+				pbx_cli(fd, "Could not find line %s\n", argv[3]);
+				const char *utype;
+				utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
+				if (utype && !strcasecmp(utype, "line") ) {
+					line = sccp_line_create(argv[3]);
+				} else {
+					pbx_cli(fd, "Could not find line %s in config\n", argv[3]);
+					goto EXIT;
+				}
+			}
+			if (line->realtime){
+				v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
+			} else {
+				if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
+					v = ast_variable_browse(GLOB(cfg), argv[3]);
+				}
+			}
+			if(v) {
+				change =  sccp_config_applyLineConfiguration(line, v);
+				sccp_log(DEBUGCAT_CORE)("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
+				pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
+				if(change == SCCP_CONFIG_NEEDDEVICERESET){
+					sccp_device_t *device = NULL;
+					sccp_linedevices_t *lineDevice = NULL;
+					SCCP_LIST_LOCK(&line->devices);
+					SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+						if ((device = sccp_device_retain(lineDevice->device))) {
+							if (device->realtime){
+								if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
+									change =  sccp_config_applyDeviceConfiguration(device, dv);
+								}
+							} else {
+								v = ast_variable_browse(GLOB(cfg), device->id);
+								change =  sccp_config_applyDeviceConfiguration(device, v);
+							}
+							device->pendingUpdate = 1;
+							sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
+							if (device->realtime && dv) {
+								pbx_variables_destroy(dv);
+							}
+							device = sccp_device_release(device);
+						}
+					}
+					SCCP_LIST_UNLOCK(&line->devices);
+				}
+				if (line->realtime) {
+					pbx_variables_destroy(v);
+				}
+			} else {
+				line->pendingDelete = 1;
+			}
+			
+			line = sccp_device_release(line);
 			returnval = RESULT_SUCCESS;
 			goto EXIT;
 		} else if (sccp_strequals("force", argv[2])) {
@@ -2527,7 +2587,7 @@ EXIT:
 	return returnval;
 }
 
-static char reload_usage[] = "Usage: SCCP reload [force|filename|device]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename|device]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
+static char reload_usage[] = "Usage: SCCP reload [force|filename|device|line]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename|device|line]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
@@ -2541,6 +2601,11 @@ CLI_ENTRY(cli_reload_force, sccp_cli_reload, "Reload the SCCP configuration", re
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
 #define CLI_COMMAND "sccp", "reload", "device"
 CLI_ENTRY(cli_reload_device, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+#undef CLI_COMMAND
+#undef CLI_COMPLETE
+#define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER
+#define CLI_COMMAND "sccp", "reload", "line"
+CLI_ENTRY(cli_reload_line, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -3161,8 +3226,9 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
 	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
 	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
-	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload."),
-	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload."),
+	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
+	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
+	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
  	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
 	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
