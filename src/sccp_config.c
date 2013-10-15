@@ -345,22 +345,22 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		return SCCP_CONFIG_NOUPDATENEEDED;
         }
         
+	dst = ((uint8_t *) obj) + sccpConfigOption->offset;
+	type = sccpConfigOption->type;
+	flags = sccpConfigOption->flags;
+
         // check if already set during first pass (multi_entry)
-        if (sccpConfigOption->offset > 0 && SetEntries != NULL) {
+        if (sccpConfigOption->offset > 0 && SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
                 int y;
                 for (y = 0; y < sccpConfigSegment->config_size; y++) {
                         if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
                                 if (SetEntries[y] == TRUE) {
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
+                                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
                                         return SCCP_CONFIG_NOUPDATENEEDED;
                                 }
                         }
                 }
         }
-
-	dst = ((uint8_t *) obj) + sccpConfigOption->offset;
-	type = sccpConfigOption->type;
-	flags = sccpConfigOption->flags;
 
 	if ((flags & SCCP_CONFIG_FLAG_IGNORE) == SCCP_CONFIG_FLAG_IGNORE) {
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d ignored\n", name, value, lineno);
