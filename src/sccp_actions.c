@@ -2440,7 +2440,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 
 			snprintf(buf, 100, "No channel for %s!", label2str(event));
 			sccp_dev_displayprompt(d, lineInstance, 0, buf, 7);
-			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
+//			sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, lineInstance, 0, 0);
 			pbx_log(LOG_WARNING, "%s: Skip handling of Softkey %s (%d) line=%d callid=%d, because a channel is required, but not provided. Exiting\n", d->id, label2str(event), event, lineInstance, callid);
 
 			/* disable callplane for this device */
