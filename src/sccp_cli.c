@@ -2527,12 +2527,20 @@ EXIT:
 	return returnval;
 }
 
-static char reload_usage[] = "Usage: SCCP reload [force|filename|device]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
+static char reload_usage[] = "Usage: SCCP reload [force|filename|device]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename|device]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define CLI_COMMAND "sccp", "reload"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+#define CLI_COMMAND "sccp", "reload"
 CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+#undef CLI_COMMAND
+#define CLI_COMMAND "sccp", "reload", "force"
+CLI_ENTRY(cli_reload_force, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+#undef CLI_COMMAND
+#undef CLI_COMPLETE
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
+#define CLI_COMMAND "sccp", "reload", "device"
+CLI_ENTRY(cli_reload_device, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -3153,7 +3161,9 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_no_debug, "Disable SCCP debugging."),
 	AST_CLI_DEFINE(cli_config_generate, "SCCP generate config file."),
 	AST_CLI_DEFINE(cli_reload, "SCCP module reload."),
-	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
+	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload."),
+	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload."),
+ 	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
 	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
