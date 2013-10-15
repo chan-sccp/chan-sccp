@@ -1499,12 +1499,10 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
                 varCount++;
         }
         if (listCount != varCount || listCount != found) {							// build new list
-                sccp_log((DEBUGCAT_CONFIG))("permithosts changed. (%d/%d/%d)\n", varCount, listCount, found);
                 while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {			// clear list
                         sccp_free(permithost);
                 }
                 for (v=vroot; v; v = v->next) {
-                        sccp_log((DEBUGCAT_CONFIG))("add new permithost: %s\n", v->value);
                         if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
                                 pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new permithost\n");
                                 break;
