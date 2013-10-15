@@ -355,7 +355,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
                 for (y = 0; y < sccpConfigSegment->config_size; y++) {
                         if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
                                 if (SetEntries[y] == TRUE) {
-                                        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
+                                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
                                         return SCCP_CONFIG_NOUPDATENEEDED;
                                 }
                         }
