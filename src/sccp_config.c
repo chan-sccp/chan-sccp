@@ -711,9 +711,11 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
                                                                 } else {
                                                                         default_value = strdupa(sccpDefaultConfigOption->defaultValue);
                                                                 }
-                                                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using device default %s\n", option_name, default_value);
-                                                                // get value from the config file and run through parser
-                                                                sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+                                                                if (!sccp_strlen_zero(default_value)) {
+                                                                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using device default %s\n", option_name, default_value);
+                                                                        // get value from the config file and run through parser
+                                                                        sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+                                                                }
                                                         }
                                                 } else {
                                                         sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in device source segment\n", option_name);
@@ -751,9 +753,11 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
                                                                 } else {
                                                                         default_value = strdupa(sccpDefaultConfigOption->defaultValue);
                                                                 }
-                                                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
-                                                                // get value from the config file and run through parser
-                                                                sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+                                                                if (!sccp_strlen_zero(default_value)) {
+                                                                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
+                                                                        // get value from the config file and run through parser
+                                                                        sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+                                                                }
                                                         }
                                                 } else {
                                                         sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in global source segment\n", option_name);
@@ -774,6 +778,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
                                                 } else {
                                                         default_value = strdupa(sccpDstConfig[i].defaultValue);
                                                 }
+                                        }
+                                        if (!sccp_strlen_zero(default_value)) {
                                                 sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default '%s'\n", option_name, default_value);
                                                 // get value from the config file and run through parser
                                                 sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
@@ -1545,14 +1551,16 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 	
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
 	        if (v) {
-	                if ((addon_type = addonstr2enum(v->value))) {
-                                if (addon->type != addon_type) {							/* change/update */
-                                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change addon: %d => %d\n", addon->type, addon_type);
-                                        addon->type = addon_type;
-                                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
+	                if (!sccp_strlen_zero(v->value)) {
+                                if ((addon_type = addonstr2enum(v->value))) {
+                                        if (addon->type != addon_type) {							/* change/update */
+                                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("change addon: %d => %d\n", addon->type, addon_type);
+                                                addon->type = addon_type;
+                                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                                        }
+                                } else {
+                                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                                 }
-	                } else {
-	                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                         }
                         v = v->next;
                 } else {												/* removal */
@@ -1564,17 +1572,19 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
         for ( ; v; v = v->next) {											/* addition */
-                if ((addon_type = addonstr2enum(v->value))) {
-                        sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new addon: %d\n", addon_type);
-                        if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
-                                pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
-                                break;
+                if (!sccp_strlen_zero(v->value)) {
+                        if ((addon_type = addonstr2enum(v->value))) {
+                                sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_HIGH))("add new addon: %d\n", addon_type);
+                                if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
+                                        pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
+                                        break;
+                                }
+                                addon->type = addon_type;
+                                SCCP_LIST_INSERT_TAIL(addonList, addon, list);
+                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
+                        } else {
+                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                         }
-                        addon->type = addon_type;
-                        SCCP_LIST_INSERT_TAIL(addonList, addon, list);
-                        changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                } else {
-                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
                 }
         }
 	return changed;
