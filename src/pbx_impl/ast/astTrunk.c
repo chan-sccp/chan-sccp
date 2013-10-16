@@ -981,27 +981,29 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_requestForeignChannel(const ch
 int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	sccp_channel_t *c;
-	PBX_CHANNEL_TYPE *channel_owner = NULL;
 	int res = -1;
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
-		channel_owner = c->owner;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: This call was answered elsewhere\n");
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
-		c->owner = NULL;
+        	/* postponing ast_channel_unref to sccp_channel destructor */
+//		c->owner = NULL;
 		if (0 == res) {
-			sccp_channel_release(c);								//this only releases the get_sccp_channel_from_pbx_channel
+			sccp_channel_release(c);								// this only releases the get_sccp_channel_from_pbx_channel
 		}
-	}													//after this moment c might have gone already
+	} else {												// after this moment c might have gone already
+	        pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
+	}
 
 	ast_channel_tech_pvt_set(ast_channel, NULL);
 	c = c ? sccp_channel_release(c) : NULL;
-	if (channel_owner) {
-		channel_owner = ast_channel_unref(channel_owner);
-	}
+	/* postponing ast_channel_unref to sccp_channel destructor */
+//	if (channel_owner) {
+//		channel_owner = pbx_channel_unref(channel_owner);
+//	}
 	ast_module_unref(ast_module_info->self);
 	return res;
 }

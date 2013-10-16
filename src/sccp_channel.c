@@ -1789,7 +1789,8 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (channel->owner) {
 		pbx_setstate(channel->owner, AST_STATE_DOWN);
-		channel->owner = NULL;
+		/* postponing ast_channel_unref to sccp_channel destructor */
+		//channel->owner = NULL;
 	}
 
 	if (channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -1853,7 +1854,9 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
-
+	if (channel->owner) {
+		pbx_channel_unref(channel->owner);
+	}
 	if (channel->privateData) {
 		sccp_free(channel->privateData);
 	}
