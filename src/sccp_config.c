@@ -605,7 +605,7 @@ static char *sccp_config_getNthToken(const char *intokens, int index, const char
                 tokens = strdupa(intokens);
                 if (strstr(intokens,"|")) {
                         token = strtok(tokens, delims);
-                        while (token && token_index <= index) {
+                        while (token && token_index < index) {
                                 token = strtok(NULL, delims);
                                 token_index++;
                         }
