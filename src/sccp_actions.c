@@ -2527,7 +2527,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	} else {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
-	if (channel) {												// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
+	if (channel && channel->state != SCCP_CHANNELSTATE_ONHOOK) {    									// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
 		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
 			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Invalid Number (%d)\n", DEV_ID_LOG(d), channel->state);
 			channel = sccp_channel_release(channel);
