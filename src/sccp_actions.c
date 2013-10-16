@@ -408,11 +408,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
 	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
+	uint32_t userid = 0;
 
 	deviceInstance = letohl(msg_in->data.RegisterMessage.sId.lel_instance);
+	userid = letohl(msg_in->data.RegisterMessage.sId.lel_userid);
 	deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
 
-	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", msg_in->data.RegisterMessage.sId.deviceName, deviceInstance, devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", msg_in->data.RegisterMessage.sId.deviceName, deviceInstance, userid, devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
 #ifdef CS_EXPERIMENTAL_NEWIP
 	socklen_t addrlen = 0;
 	struct sockaddr_storage *session_ss = { 0 };
