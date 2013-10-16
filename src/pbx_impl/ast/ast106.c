@@ -874,7 +874,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_requestForeignChannel(const cha
 int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	sccp_channel_t *c;
-	int res = 1;
+	int res = -1;
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
 		if (ast_test_flag(ast_channel, AST_FLAG_ANSWERED_ELSEWHERE) || ast_channel->hangupcause == AST_CAUSE_ANSWERED_ELSEWHERE) {
@@ -882,11 +882,21 @@ int sccp_wrapper_asterisk16_hangup(PBX_CHANNEL_TYPE * ast_channel)
 			c->answered_elsewhere = TRUE;
 		}
 		res = sccp_pbx_hangup(c);
-		sccp_channel_release(c);
+        	/* postponing ast_channel_unref to sccp_channel destructor */
+//		c->owner = NULL;
+		if (0 == res) {
+			sccp_channel_release(c);								// this only releases the get_sccp_channel_from_pbx_channel
+		}
+	} else {												// after this moment c might have gone already
+	        pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
+
 	ast_channel->tech_pvt = NULL;
 	c = c ? sccp_channel_release(c) : NULL;
-	ast_channel = pbx_channel_unref(ast_channel);
+	/* postponing ast_channel_unref to sccp_channel destructor */
+//	if (channel_owner) {
+//		channel_owner = pbx_channel_unref(channel_owner);
+//	}
 	return res;
 }
 
