@@ -15,9 +15,10 @@
  */
 
 /*!
- * \remarks     Purpose:        SCCP Channels
- *		When to use:    Only methods directly related to sccp channels should be stored in this source file.
- *		Relationships:  SCCP Channels connect Asterisk Channels to SCCP Lines
+ * \remarks
+ * Purpose:	SCCP Channels
+ * When to use:	Only methods directly related to sccp channels should be stored in this source file.
+ * Relations:	SCCP Channels connect Asterisk Channels to SCCP Lines
  */
 
 #include <config.h>

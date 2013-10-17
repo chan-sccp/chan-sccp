@@ -1,12 +1,12 @@
 
 /*!
  * \file	sccp_cli.c
- * \brief       SCCP CLI Class
+ * \brief	SCCP CLI Class
  * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note		Reworked, but based on chan_sccp code.
+ * \note	Reworked, but based on chan_sccp code.
  *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
  *		Modified by Jan Czmok and Julien Goodwin
- * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
@@ -14,9 +14,10 @@
  */
 
 /*!
- * \remarks     Purpose:        SCCP CLI
- *		When to use:    Only methods directly related to the asterisk cli interface should be stored in this source file.
- *		Relationships:  Calls ???
+ * \remarks
+ * Purpose:	SCCP CLI
+ * When to use: Only methods directly related to the asterisk cli interface should be stored in this source file.
+ * Relations: 	Calls ???
  *
  * how to use the cli macro's
  * /code
@@ -78,20 +79,20 @@ typedef enum sccp_cli_completer {
 
 static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state);
 
-    /* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
-    /*!
-     * \brief Complete Device
-     * \param line Line as char
-     * \param word Word as char
-     * \param pos Pos as int
-     * \param state State as int
-     * \return Result as char
-     * 
-     * \called_from_asterisk
-     *
-     * \lock
-     *   - devices
-     */
+/* --- CLI Tab Completion ---------------------------------------------------------------------------------------------- */
+/*!
+ * \brief Complete Device
+ * \param line Line as char
+ * \param word Word as char
+ * \param pos Pos as int
+ * \param state State as int
+ * \return Result as char
+ * 
+ * \called_from_asterisk
+ *
+ * \lock
+ *   - devices
+ */
 static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	sccp_device_t *d;
@@ -457,7 +458,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #else
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
 #endif
-	// CLI_AMI_OUTPUT_PARAM("Protocol Version",        CLI_AMI_LIST_WIDTH,     "%d",           GLOB(protocolversion));
+	// CLI_AMI_OUTPUT_PARAM("Protocol Version", CLI_AMI_LIST_WIDTH, "%d", GLOB(protocolversion));
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s:%d", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
 	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, GLOB(nat));
@@ -559,23 +560,23 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
-    /*!
-     * \brief Show Devices
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - devices
-     */
-    //static int sccp_show_devices(int fd, int argc, char *argv[])
+/* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
+/*!
+ * \brief Show Devices
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - devices
+ */
+//static int sccp_show_devices(int fd, int argc, char *argv[])
 static int sccp_show_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	struct tm *timeinfo;
@@ -636,26 +637,26 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
-    /*!
-     * \brief Show Device
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \warning
-     *   - device->buttonconfig is not always locked
-     *
-     * \lock
-     *   - device
-     *     - device->buttonconfig
-     */
+/* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
+/*!
+ * \brief Show Device
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \warning
+ *   - device->buttonconfig is not always locked
+ *
+ * \lock
+ *   - device
+ *     - device->buttonconfig
+ */
 static int sccp_show_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -841,7 +842,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Name,		s,	23,	buttonconfig->label)					\
 			CLI_AMI_TABLE_FIELD(Number,		s,	31,	buttonconfig->button.speeddial.ext)			\
 			CLI_AMI_TABLE_FIELD(Hint,		s,	27, 	buttonconfig->button.speeddial.hint)
-			// CLI_AMI_TABLE_FIELD(HintStatus,    s,      20,     ast_extension_state2str(ast_extension_state()))
+			// CLI_AMI_TABLE_FIELD(HintStatus,	s,	20,	ast_extension_state2str(ast_extension_state()))
 #include "sccp_cli_table.h"
 
 		// FEATURES
@@ -940,24 +941,24 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
-    /*!
-     * \brief Show Lines
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - lines
-     *     - devices
-     */
-    //static int sccp_show_lines(int fd, int argc, char *argv[])
+/* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
+/*!
+ * \brief Show Lines
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - lines
+ *     - devices
+ */
+//static int sccp_show_lines(int fd, int argc, char *argv[])
 static int sccp_show_lines(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l = NULL;
@@ -1089,24 +1090,24 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
-    /*!
-     * \brief Show Line
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - line
-     *     - line->devices
-     */
-    //static int sccp_show_line(int fd, int argc, char *argv[])
+/* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
+/*!
+ * \brief Show Line
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - line
+ *     - line->devices
+ */
+//static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l;
@@ -1244,25 +1245,25 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
-    /*!
-     * \brief Show Channels
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - lines
-     *     - line
-     *       - line->channels
-     */
-    //static int sccp_show_channels(int fd, int argc, char *argv[])
+/* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
+/*!
+ * \brief Show Channels
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - lines
+ *     - line
+ *       - line->channels
+ */
+//static int sccp_show_channels(int fd, int argc, char *argv[])
 static int sccp_show_channels(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *channel;
@@ -1336,26 +1337,26 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
-    /*!
-     * \brief Show Sessions
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - sessions
-     *     - session
-     *     - device
-     *     - session
-     */
-    //static int sccp_show_sessions(int fd, int argc, char *argv[])
+/* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
+/*!
+ * \brief Show Sessions
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - sessions
+ *     - session
+ *     - device
+ *     - session
+ */
+//static int sccp_show_sessions(int fd, int argc, char *argv[])
 static int sccp_show_sessions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
@@ -1480,7 +1481,7 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														/* CS_SCCP_CONFERENCE */
-    /* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
+/* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
 #define NUM_LOOPS 20
 #define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
@@ -1886,16 +1887,16 @@ CLI_ENTRY(cli_test_message, sccp_test_message, "Test a Message", cli_test_messag
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
-    /*!
-     * \brief Print Refcount Hash Table
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
+/*!
+ * \brief Print Refcount Hash Table
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_show_refcount(int fd, int argc, char *argv[])
 {
 	if (argc < 3)
@@ -1915,23 +1916,23 @@ CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refc
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														//defined(DEBUG) || defined(CS_EXPERIMENTAL)
-    /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
-    /*!
-     * \brief Show Sessions
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - softKeySetConfig
-     */
-    //static int sccp_show_softkeysets(int fd, int argc, char *argv[])
+/* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
+/*!
+ * \brief Show Sessions
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - softKeySetConfig
+ */
+//static int sccp_show_softkeysets(int fd, int argc, char *argv[])
 static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	uint8_t i = 0;
@@ -1985,24 +1986,24 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
-    /*!
-     * \brief Message Devices
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - devices
-     *     - see sccp_dev_displaynotify()
-     *     - see sccp_dev_starttone()
-     */
+/* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
+/*!
+ * \brief Message Devices
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - devices
+ *     - see sccp_dev_displaynotify()
+ *     - see sccp_dev_starttone()
+ */
 static int sccp_message_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2056,18 +2057,18 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
-    /*!
-     * \brief Message Device
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     *
-     * \todo TO BE IMPLEMENTED: sccp message device
-     */
+/* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
+/*!
+ * \brief Message Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \todo TO BE IMPLEMENTED: sccp message device
+ */
 static int sccp_message_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
@@ -2118,16 +2119,16 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
-    /*!
-     * \brief System Message
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
+/*!
+ * \brief System Message
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_system_message(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2203,20 +2204,20 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 
 
-    /* -----------------------------------------------------------------------------------------------------DND DEVICE- */
-    /*!
-     * \brief Message Device
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - device
-     *     - see sccp_sk_dnd()
-     */
+/* -----------------------------------------------------------------------------------------------------DND DEVICE- */
+/*!
+ * \brief Message Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - device
+ *     - see sccp_sk_dnd()
+ */
 static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
@@ -2253,18 +2254,18 @@ CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cl
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 
-    /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
-    /*!
-     * \brief Remove Line From Device
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     *
-     * \todo TO BE IMPLEMENTED: sccp message device
-     */
+/* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
+/*!
+ * \brief Remove Line From Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \todo TO BE IMPLEMENTED: sccp message device
+ */
 static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
 	pbx_cli(fd, "Command has not been implemented yet!\n");
@@ -2280,16 +2281,16 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
-    /*!
-     * \brief Add Line To Device
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
+/*!
+ * \brief Add Line To Device
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2328,16 +2329,16 @@ CLI_ENTRY(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a devi
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
-    /*!
-     * \brief Do Debug
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
+/*!
+ * \brief Do Debug
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_do_debug(int fd, int argc, char *argv[])
 {
 	int32_t new_debug = GLOB(debug);
@@ -2367,16 +2368,16 @@ CLI_ENTRY(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usag
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
-    /*!
-     * \brief No Debug
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
+/*!
+ * \brief No Debug
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_no_debug(int fd, int argc, char *argv[])
 {
 	if (argc < 3)
@@ -2396,21 +2397,21 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------------RELOAD- */
-    /*!
-     * \brief Do Reload
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - globals
-     *
-     * \note To find out more about the reload function see \ref sccp_config_reload
-     */
+/* --------------------------------------------------------------------------------------------------------------RELOAD- */
+/*!
+ * \brief Do Reload
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - globals
+ *
+ * \note To find out more about the reload function see \ref sccp_config_reload
+ */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	sccp_readingtype_t readingtype;
@@ -2609,15 +2610,15 @@ CLI_ENTRY(cli_reload_line, sccp_cli_reload, "Reload the SCCP configuration", rel
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /*!
-     * \brief Generare sccp.conf
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/*!
+ * \brief Generare sccp.conf
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 {
 	int returnval = RESULT_FAILURE;
@@ -2650,16 +2651,16 @@ CLI_ENTRY(cli_config_generate, sccp_cli_config_generate, "Generate a SCCP config
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
-    /*!
-     * \brief Show Version
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
+/*!
+ * \brief Show Version
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_show_version(int fd, int argc, char *argv[])
 {
 	pbx_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
@@ -2675,20 +2676,20 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
-    /*!
-     * \brief Reset/Restart
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - devices in sccp_device_find_byid()
-     *   - device
-     */
+/* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
+/*!
+ * \brief Reset/Restart
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - devices in sccp_device_find_byid()
+ *   - device
+ */
 static int sccp_reset_restart(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2748,7 +2749,7 @@ CLI_ENTRY(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usag
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* -------------------------------------------------------------------------------------------------------------RESTART- */
+/* -------------------------------------------------------------------------------------------------------------RESTART- */
 static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <deviceId>\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -2758,19 +2759,19 @@ CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usa
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
-    /*!
-     * \brief Unregister
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \lock
-     *   - device
-     */
+/* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
+/*!
+ * \brief Unregister
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \lock
+ *   - device
+ */
 static int sccp_unregister(int fd, int argc, char *argv[])
 {
 	sccp_msg_t *msg;
@@ -2812,16 +2813,16 @@ CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregist
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------------START CALL- */
-    /*!
-     * \brief Start Call
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     */
+/* --------------------------------------------------------------------------------------------------------------START CALL- */
+/*!
+ * \brief Start Call
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2875,19 +2876,19 @@ CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------------SET HOLD- */
-    /*!
-     * \brief Set Channel on Hold
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     *
-     * \lock
-     *   - channel
-     */
+/* --------------------------------------------------------------------------------------------------------------SET HOLD- */
+/*!
+ * \brief Set Channel on Hold
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \lock
+ *   - channel
+ */
 static int sccp_set_object(int fd, int argc, char *argv[])
 {
 	sccp_channel_t		*c 	= NULL;
@@ -2996,19 +2997,19 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
-    /*!
-     * \brief Answer a Remote Channel
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     *
-     * \lock
-     *   - channel
-     */
+/* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
+/*!
+ * \brief Answer a Remote Channel
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \lock
+ *   - channel
+ */
 static int sccp_answercall(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
@@ -3082,19 +3083,19 @@ CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 
-    /* --------------------------------------------------------------------------------------------------------------END CALL- */
-    /*!
-     * \brief End a Call (on a Channel)
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     *
-     * \lock
-     *   - channel
-     */
+/* --------------------------------------------------------------------------------------------------------------END CALL- */
+/*!
+ * \brief End a Call (on a Channel)
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \lock
+ *   - channel
+ */
 static int sccp_end_call(int fd, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
@@ -3131,22 +3132,22 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* ---------------------------------------------------------------------------------------------------------------------- TOKEN - */
-    /*!
-     * \brief Send Token Ack to device(s)
-     * \param fd Fd as int
-     * \param total Total number of lines as int
-     * \param s AMI Session
-     * \param m Message
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     *
-     * \lock
-     *   - channel
-     */
+/* ---------------------------------------------------------------------------------------------------------------------- TOKEN - */
+/*!
+ * \brief Send Token Ack to device(s)
+ * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ *
+ * \lock
+ *   - channel
+ */
 static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -3195,15 +3196,15 @@ CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALS
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
-    /*!
-     * \brief Asterisk Cli Entry
-     *
-     * structure for cli functions including short description.
-     *
-     * \return Result as struct
-     * \todo add short description
-     */
+/* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
+/*!
+ * \brief Asterisk Cli Entry
+ *
+ * structure for cli functions including short description.
+ *
+ * \return Result as struct
+ * \todo add short description
+ */
 static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
 	AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
