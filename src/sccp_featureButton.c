@@ -1,23 +1,23 @@
 
 /*!
- * \file        sccp_featureButton.c
- * \brief       SCCP FeatureButton Class
- * \author      Marcello Ceschia <marcello [at] ceschia.de>
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \since       2009-06-15
+ * \file	sccp_featureButton.c
+ * \brief	SCCP FeatureButton Class
+ * \author	Marcello Ceschia <marcello [at] ceschia.de>
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
+ * \since	2009-06-15
  *
  * $Date$
  * $Revision$
  */
 
 /*!
- * \remarks     Purpose:        SCCP FeatureButton
- *              When to use:    Only methods directly related to the phone featureButtons should be stored in this source file.
- *                              FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial
- *                              buttons on the right side of the display.
- *              Relationships:  Call SCCP Features
- *
+ * \remarks
+ * Purpose:	SCCP FeatureButton
+ * When to use:	Only methods directly related to the phone featureButtons should be stored in this source file.
+ * 		FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial
+ *		buttons on the right side of the display.
+ * Relations:	Call SCCP Features
  */
 
 #include <config.h>

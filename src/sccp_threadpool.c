@@ -1,15 +1,13 @@
 
 /*!
- * \file        sccp_threadpool.c
- * \brief       SCCP Threadpool Class
- * \author      Diederik de Groot < ddegroot@users.sourceforge.net >
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \note        Based on the work of Johan Hanssen Seferidis
- *              Library providing a threading pool where you can add work. 
- * \since       2009-01-16
- * \remarks     Purpose:        SCCP Hint
- *              When to use:    Does the business of hint status
+ * \file	sccp_threadpool.c
+ * \brief	SCCP Threadpool Class
+ * \author	Diederik de Groot < ddegroot@users.sourceforge.net >
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
+ * \note	Based on the work of Johan Hanssen Seferidis
+ * 		Library providing a threading pool where you can add work. 
+ * \since	2009-01-16
  *
  * $Date: 2011-01-04 17:29:12 +0100 (Tue, 04 Jan 2011) $
  * $Revision: 2215 $
@@ -42,8 +40,6 @@ struct sccp_threadpool_thread {
 
 /* The threadpool */
 struct sccp_threadpool {
-	//      pthread_t *threads;                                                     /*!< pointer to threads' ID   */
-	//      int threadsN;                                                           /*!< amount of threads        */
 	SCCP_LIST_HEAD (, sccp_threadpool_job_t) jobs;
 	SCCP_LIST_HEAD (, sccp_threadpool_thread_t) threads;
 	ast_cond_t work;
@@ -56,12 +52,12 @@ struct sccp_threadpool {
 /* 
  * Fast reminders:
  * 
- * tp                   = threadpool 
- * sccp_threadpool      = threadpool
- * sccp_threadpool_t    = threadpool type
- * tp_p                 = threadpool pointer
- * sem                  = semaphore
- * xN                   = x can be any string. N stands for amount
+ * tp			= threadpool 
+ * sccp_threadpool	= threadpool
+ * sccp_threadpool_t	= threadpool type
+ * tp_p			= threadpool pointer
+ * sem			= semaphore
+ * xN			= x can be any string. N stands for amount
  * */
 static volatile int sccp_threadpool_shuttingdown = 0;
 

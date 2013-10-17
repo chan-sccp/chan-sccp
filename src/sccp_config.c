@@ -1,15 +1,15 @@
 
 /*!
- * \file        sccp_config.c
- * \brief       SCCP Config Class
- * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \note        To find out more about the reload function see \ref sccp_config_reload
- * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
+ * \file	sccp_config.c
+ * \brief	SCCP Config Class
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * 		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
+ * \note	To find out more about the reload function see \ref sccp_config_reload
+ * \remarks	Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
  * $Date: 2010-11-17 18:10:34 +0100 (Wed, 17 Nov 2010) $
  * $Revision: 2154 $
@@ -21,63 +21,63 @@
  * \subsection sccp_config_reload How was the new cli command "sccp reload" implemented
  *
  * sccp_cli.c
- * -    new implementation of cli reload command
- *      -       checks if no other reload command is currently running
- *      -       starts loading global settings from sccp.conf (sccp_config_general)
- *      -       starts loading devices and lines from sccp.conf(sccp_config_readDevicesLines)
- *      .
+ * - new implementation of cli reload command
+ *  - checks if no other reload command is currently running
+ *  - starts loading global settings from sccp.conf (sccp_config_general)
+ *  - starts loading devices and lines from sccp.conf(sccp_config_readDevicesLines)
+ *  .
  * .
  *
  * sccp_config.c
- * -    modified sccp_config_general
+ * - modified sccp_config_general
  *
- * -    modified sccp_config_readDevicesLines
- *      -       sets pendingDelete for
- *              -       devices (via sccp_device_pre_reload),
- *              -       lines (via sccp_line_pre_reload)
- *              -       softkey (via sccp_softkey_pre_reload)
- *              .
- *      -       calls sccp_config_buildDevice as usual
- *              -       calls sccp_config_buildDevice as usual
- *                      -       find device
- *                      -       or create new device
- *                      -       parses sccp.conf for device
- *                      -       set defaults for device if necessary using the default from globals using the same parameter name
- *                      -       set pendingUpdate on device for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
- *                      .
- *              -       calls sccp_config_buildLine as usual
- *                      -       find line
- *                      -       or create new line
- *                      -       parses sccp.conf for line
- *                      -       set defaults for line if necessary using the default from globals using the same parameter name
- *                      -       set pendingUpdate on line for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
- *                      .
- *              -       calls sccp_config_softKeySet as usual ***
- *                      -       find softKeySet
- *                      -       or create new softKeySet
- *                      -       parses sccp.conf for softKeySet
- *                      -       set pendingUpdate on softKetSet for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
- *                      .
- *              .
- *      -       checks pendingDelete and pendingUpdate for
- *              -       skip when call in progress
- *              -       devices (via sccp_device_post_reload),
- *                      -       resets GLOB(device) if pendingUpdate
- *                      -       removes GLOB(devices) with pendingDelete
- *                      .
- *              -       lines (via sccp_line_post_reload)
- *                      -       resets GLOB(lines) if pendingUpdate
- *                      -       removes GLOB(lines) with pendingDelete
- *                      .
- *              -       softkey (via sccp_softkey_post_reload) ***
- *                      -       resets GLOB(softkeyset) if pendingUpdate ***
- *                      -       removes GLOB(softkeyset) with pendingDelete ***
- *                      .
- *              .
+ * - modified sccp_config_readDevicesLines
+ *  - sets pendingDelete for
+ *    - devices (via sccp_device_pre_reload),
+ *    - lines (via sccp_line_pre_reload)
+ *    - softkey (via sccp_softkey_pre_reload)
+ *    .
+ *  - calls sccp_config_buildDevice as usual
+ *    - calls sccp_config_buildDevice as usual
+ *      - find device
+ *      - or create new device
+ *      - parses sccp.conf for device
+ *      - set defaults for device if necessary using the default from globals using the same parameter name
+ *      - set pendingUpdate on device for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
  *      .
+ *    - calls sccp_config_buildLine as usual
+ *      - find line
+ *      - or create new line
+ *      - parses sccp.conf for line
+ *      - set defaults for line if necessary using the default from globals using the same parameter name
+ *      - set pendingUpdate on line for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
+ *      .
+ *    - calls sccp_config_softKeySet as usual ***
+ *      - find softKeySet
+ *      - or create new softKeySet
+ *      - parses sccp.conf for softKeySet
+ *      - set pendingUpdate on softKetSet for parameters marked with SCCP_CONFIG_NEEDDEVICERESET (remove pendingDelete)
+ *      .
+ *    .
+ *  - checks pendingDelete and pendingUpdate for
+ *    - skip when call in progress
+ *    - devices (via sccp_device_post_reload),
+ *      - resets GLOB(device) if pendingUpdate
+ *      - removes GLOB(devices) with pendingDelete
+ *      .
+ *    - lines (via sccp_line_post_reload)
+ *      - resets GLOB(lines) if pendingUpdate
+ *      - removes GLOB(lines) with pendingDelete
+ *      .
+ *    - softkey (via sccp_softkey_post_reload) ***
+ *      - resets GLOB(softkeyset) if pendingUpdate ***
+ *      - removes GLOB(softkeyset) with pendingDelete ***
+ *      .
+ *    .
+ *  .
  * channel.c
- * -    sccp_channel_endcall ***
- *      -       reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
+ * -   sccp_channel_endcall ***
+ *  - reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
  *      .
  * .
  *
@@ -116,12 +116,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
 #define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
 #define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
 #define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
-
 /*!
  * \brief Enum for Config Option Types
  */
 enum SCCPConfigOptionType {
-        /* *INDENT-OFF* */
+/* *INDENT-OFF* */
 	SCCP_CONFIG_DATATYPE_BOOLEAN			= 1 << 0,
 	SCCP_CONFIG_DATATYPE_INT			= 1 << 1,
 	SCCP_CONFIG_DATATYPE_UINT			= 1 << 2,
@@ -129,14 +128,14 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_PARSER			= 1 << 4,
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,		/* string pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
-	/* *INDENT-ON* */
+/* *INDENT-ON* */
 };
 
 /*!
  * \brief Enum for Config Option Flags
  */
 enum SCCPConfigOptionFlag {
-        /* *INDENT-OFF* */
+/* *INDENT-OFF* */
 	SCCP_CONFIG_FLAG_IGNORE 			= 1 << 0,		/*< ignore parameter */
 	SCCP_CONFIG_FLAG_NONE	 			= 1 << 1,		/*< ignore parameter */
 	SCCP_CONFIG_FLAG_DEPRECATED			= 1 << 2,		/*< parameter is deprecated and should not be used anymore, warn user and still set variable */
@@ -145,15 +144,15 @@ enum SCCPConfigOptionFlag {
 	SCCP_CONFIG_FLAG_REQUIRED			= 1 << 5,		/*< parameter is required */
 	SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT		= 1 << 6,		/*< retrieve default value from device */
 	SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT		= 1 << 7,		/*< retrieve default value from global */
-        SCCP_CONFIG_FLAG_MULTI_ENTRY                    = 1 << 8,               /*< multi entries allowed */
-        /* *INDENT-ON* */
+	SCCP_CONFIG_FLAG_MULTI_ENTRY			= 1 << 8,		/*< multi entries allowed */
+/* *INDENT-ON* */
 };
 
 /*!
  * \brief SCCP Config Option Struct
  */
 typedef struct SCCPConfigOption {
-        /* *INDENT-OFF* */
+/* *INDENT-OFF* */
 	const char *name;							/*!< Configuration Parameter Name */
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
 	const size_t size;							/*!< Structure size */
@@ -165,38 +164,38 @@ typedef struct SCCPConfigOption {
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
 	const char *description;						/*!< Configuration description (config file) or warning message for deprecated or obsolete values */
-	/* *INDENT-ON* */
+/* *INDENT-ON* */
 } SCCPConfigOption;
 
 //converter function prototypes 
-sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
+sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.hh"
 
@@ -231,7 +230,7 @@ static const SCCPConfigSegment *sccp_find_segment(const sccp_config_segment_t se
 	for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
 		if (sccpConfigSegments[i].segment == segment) {
 			return &sccpConfigSegments[i];
-                }
+		}
 	}
 	return NULL;
 }
@@ -244,73 +243,76 @@ static const SCCPConfigOption *sccp_find_config(const sccp_config_segment_t segm
 	long unsigned int i = 0;
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *config = sccpConfigSegment->config;
-	
+
 	char delims[] = "|";
 	char *token = NULL;
-        char *config_name = NULL;
+	char *config_name = NULL;
+
 	for (i = 0; i < sccpConfigSegment->config_size; i++) {
-	        if (strstr(config[i].name,delims) != NULL) {
-                	config_name = strdupa(config[i].name);
-                        token = strtok(config_name, delims);
-                        while (token != NULL) {
-                                if (!strcasecmp(token, name)) {
-                                        return &config[i];
-                                }
-                                token = strtok(NULL, delims);
-                        }	                
-	        }
+		if (strstr(config[i].name, delims) != NULL) {
+			config_name = strdupa(config[i].name);
+			token = strtok(config_name, delims);
+			while (token != NULL) {
+				if (!strcasecmp(token, name)) {
+					return &config[i];
+				}
+				token = strtok(NULL, delims);
+			}
+		}
 		if (!strcasecmp(config[i].name, name)) {
 			return &config[i];
-		}	
+		}
 	}
 
 	return NULL;
 }
 
 /* Create new variable structure for Multi Entry Parameters */
-static PBX_VARIABLE_TYPE * createVariableSetForMultiEntryParameters(PBX_VARIABLE_TYPE *cat_root, const char *configOptionName, PBX_VARIABLE_TYPE *out) 
+static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_TYPE * cat_root, const char *configOptionName, PBX_VARIABLE_TYPE * out)
 {
-        PBX_VARIABLE_TYPE *v = cat_root;
-        PBX_VARIABLE_TYPE *tmp = NULL;
+	PBX_VARIABLE_TYPE *v = cat_root;
+	PBX_VARIABLE_TYPE *tmp = NULL;
 
-        char delims[] = "|";
-        char *token = NULL;
-        char *option_name = alloca(strlen(configOptionName) + 1);
-        sprintf(option_name, "%s%s", configOptionName, delims);			// add delims to string
-        token = strtok(option_name, delims);
-        while (token != NULL) {
-                sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Token %s/%s\n", option_name, token);
-                for(v = cat_root; v; v = v->next) {
-                        if (!strcasecmp(token, v->name)) {
-                                if (!tmp) {
-                                        sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Create new variable set (%s=%s)\n", v->name, v->value);
-                                        if (!(out = pbx_variable_new(v->name, v->value, ""))) {
-                                                pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
-                                                goto EXIT;
-                                        }
-                                        tmp = out;
-                                } else {
-                                        sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Add to variable set (%s=%s)\n", v->name, v->value);
-                                        if (!(tmp->next = pbx_variable_new(v->name, v->value, ""))) {
-                                                pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
-                                                pbx_variables_destroy(out);
-                                                goto EXIT;
-                                        }
-                                        tmp = tmp->next;
-                                }
-                        }
-                }
-                token = strtok(NULL, delims);
-        }
+	char delims[] = "|";
+	char *token = NULL;
+	char *option_name = alloca(strlen(configOptionName) + 1);
+
+	sprintf(option_name, "%s%s", configOptionName, delims);							// add delims to string
+	token = strtok(option_name, delims);
+	while (token != NULL) {
+		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Token %s/%s\n", option_name, token);
+		for (v = cat_root; v; v = v->next) {
+			if (!strcasecmp(token, v->name)) {
+				if (!tmp) {
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Create new variable set (%s=%s)\n", v->name, v->value);
+					if (!(out = pbx_variable_new(v->name, v->value, ""))) {
+						pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
+						goto EXIT;
+					}
+					tmp = out;
+				} else {
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Add to variable set (%s=%s)\n", v->name, v->value);
+					if (!(tmp->next = pbx_variable_new(v->name, v->value, ""))) {
+						pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
+						pbx_variables_destroy(out);
+						goto EXIT;
+					}
+					tmp = tmp->next;
+				}
+			}
+		}
+		token = strtok(NULL, delims);
+	}
 EXIT:
-        return out;
+	return out;
 }
+
 /*!
  * \brief Parse SCCP Config Option Value
  *
  * \todo add errormsg return to sccpConfigOption->converter_f: so we can have a fixed format the returned errors to the user
  */
-static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE *cat_root, const char *name, const char *value, uint8_t lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
+static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, uint8_t lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
@@ -343,24 +345,25 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 	if (sccpConfigOption->offset <= 0) {
 		return SCCP_CONFIG_NOUPDATENEEDED;
-        }
-        
+	}
+
 	dst = ((uint8_t *) obj) + sccpConfigOption->offset;
 	type = sccpConfigOption->type;
 	flags = sccpConfigOption->flags;
 
-        // check if already set during first pass (multi_entry)
-        if (sccpConfigOption->offset > 0 && SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-                int y;
-                for (y = 0; y < sccpConfigSegment->config_size; y++) {
-                        if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
-                                if (SetEntries[y] == TRUE) {
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
-                                        return SCCP_CONFIG_NOUPDATENEEDED;
-                                }
-                        }
-                }
-        }
+	// check if already set during first pass (multi_entry)
+	if (sccpConfigOption->offset > 0 && SetEntries != NULL && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
+		int y;
+
+		for (y = 0; y < sccpConfigSegment->config_size; y++) {
+			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
+				if (SetEntries[y] == TRUE) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
+					return SCCP_CONFIG_NOUPDATENEEDED;
+				}
+			}
+		}
+	}
 
 	if ((flags & SCCP_CONFIG_FLAG_IGNORE) == SCCP_CONFIG_FLAG_IGNORE) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d ignored\n", name, value, lineno);
@@ -379,200 +382,201 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		}
 	}
 
-        /* rewrite to check change at the end */
-        switch (type) {
-                case SCCP_CONFIG_DATATYPE_CHAR:
-                        oldChar = *(char *) dst;
+	/* rewrite to check change at the end */
+	switch (type) {
+		case SCCP_CONFIG_DATATYPE_CHAR:
+			oldChar = *(char *) dst;
 
-                        if (!sccp_strlen_zero(value)) {
-                                if (oldChar != value[0]) {
-                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                        *(char *) dst = value[0];
-                                }
-                        } else {
-                                if (oldChar != '\0') {
-                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                        *(char *) dst = '\0';
-                                }
-                        }
-                        break;
+			if (!sccp_strlen_zero(value)) {
+				if (oldChar != value[0]) {
+					changed = SCCP_CONFIG_CHANGE_CHANGED;
+					*(char *) dst = value[0];
+				}
+			} else {
+				if (oldChar != '\0') {
+					changed = SCCP_CONFIG_CHANGE_CHANGED;
+					*(char *) dst = '\0';
+				}
+			}
+			break;
 
-                case SCCP_CONFIG_DATATYPE_STRING:
-                        str = (char *) dst;
+		case SCCP_CONFIG_DATATYPE_STRING:
+			str = (char *) dst;
 
-                        if (!sccp_strlen_zero(value)) {
-                                if (strlen(value) > sccpConfigOption->size - 1) {
-                                        pbx_log(LOG_NOTICE, "config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int)sccpConfigOption->size - 1);
-                                }
-                                if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
-                                        if (GLOB(reload_in_progress)) {
-                                                sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
-                                        }
-                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                        pbx_copy_string(dst, value, sccpConfigOption->size);
-                                }
-                        } else if (!sccp_strlen_zero(str)) {
-                                changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                pbx_copy_string(dst, "", sccpConfigOption->size);
-                        }
-                        break;
+			if (!sccp_strlen_zero(value)) {
+				if (strlen(value) > sccpConfigOption->size - 1) {
+					pbx_log(LOG_NOTICE, "config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int) sccpConfigOption->size - 1);
+				}
+				if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
+					if (GLOB(reload_in_progress)) {
+						sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
+					}
+					changed = SCCP_CONFIG_CHANGE_CHANGED;
+					pbx_copy_string(dst, value, sccpConfigOption->size);
+				}
+			} else if (!sccp_strlen_zero(str)) {
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				pbx_copy_string(dst, "", sccpConfigOption->size);
+			}
+			break;
 
-                case SCCP_CONFIG_DATATYPE_STRINGPTR:
-                        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-                        str = *(void **) dst;
+		case SCCP_CONFIG_DATATYPE_STRINGPTR:
+			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+			str = *(void **) dst;
 
-                        if (!sccp_strlen_zero(value)) {
-                                if (str) {
-                                        if (strcasecmp(str, value)) {
-                                                changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                /* there is a value already, free it */
-                                                free(str);
-                                                *(void **) dst = strdup(value);
-                                        }
-                                } else {
-                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                        *(void **) dst = strdup(value);
-                                }
+			if (!sccp_strlen_zero(value)) {
+				if (str) {
+					if (strcasecmp(str, value)) {
+						changed = SCCP_CONFIG_CHANGE_CHANGED;
+						/* there is a value already, free it */
+						free(str);
+						*(void **) dst = strdup(value);
+					}
+				} else {
+					changed = SCCP_CONFIG_CHANGE_CHANGED;
+					*(void **) dst = strdup(value);
+				}
 
-                        } else if (!sccp_strlen_zero(str)) {
-                                changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                /* there is a value already, free it */
-                                free(str);
-                                if (value == NULL) {
-                                        *(void **) dst = NULL;
-                                } else {
-                                        *(void **) dst = strdup(value);
-                                }
-                        }
-                        break;
+			} else if (!sccp_strlen_zero(str)) {
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				/* there is a value already, free it */
+				free(str);
+				if (value == NULL) {
+					*(void **) dst = NULL;
+				} else {
+					*(void **) dst = strdup(value);
+				}
+			}
+			break;
 
-                case SCCP_CONFIG_DATATYPE_INT:
-                        if (sccp_strlen_zero(value)) {
-                                tmp_value = strdupa("0");
-                        } else {
-                                tmp_value = strdupa(value);
-                        }
-                        
-                        switch (sccpConfigOption->size) {
-                                case 1:
-                                        if (sscanf(tmp_value, "%hd", &int8num) == 1) {
-                                                if ((*(int8_t *) dst) != int8num) {
-                                                        *(int8_t *) dst = int8num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                                case 2:
-                                        if (sscanf(tmp_value, "%d", &int16num) == 1) {
-                                                if ((*(int16_t *) dst) != int16num) {
-                                                        *(int16_t *) dst = int16num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                                case 4:
-                                        if (sscanf(tmp_value, "%ld", &int32num) == 1) {
-                                                if ((*(int32_t *) dst) != int32num) {
-                                                        *(int32_t *) dst = int32num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                                case 8:
-                                        if (sscanf(tmp_value, "%lld", &int64num) == 1) {
-                                                if ((*(int64_t *) dst) != int64num) {
-                                                        *(int64_t *) dst = int64num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                        }
-                        break;
-                case SCCP_CONFIG_DATATYPE_UINT:
-                        if (sccp_strlen_zero(value)) {
-                                tmp_value = strdupa("0");
-                        } else {
-                                tmp_value = strdupa(value);
-                        }
-                        switch (sccpConfigOption->size) {
-                                case 1:
-                                        if ((!strncmp("0x", tmp_value, 2) && sscanf(tmp_value, "%hx", &uint8num)) || (sscanf(tmp_value, "%hu", &uint8num) == 1)) {
-                                                if ((*(uint8_t *) dst) != uint8num) {
-                                                        *(uint8_t *) dst = uint8num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                                case 2:
-                                        if (sscanf(tmp_value, "%u", &uint16num) == 1) {
-                                                if ((*(uint16_t *) dst) != uint16num) {
-                                                        *(uint16_t *) dst = uint16num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                                case 4:
-                                        if (sscanf(tmp_value, "%lu", &uint32num) == 1) {
-                                                if ((*(uint32_t *) dst) != uint32num) {
-                                                        *(uint32_t *) dst = uint32num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                                case 8:
-                                        if (sscanf(tmp_value, "%llu", &uint64num) == 1) {
-                                                if ((*(uint64_t *) dst) != uint64num) {
-                                                        *(uint64_t *) dst = uint64num;
-                                                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                                                }
-                                        }
-                                        break;
-                        }
-                        break;
+		case SCCP_CONFIG_DATATYPE_INT:
+			if (sccp_strlen_zero(value)) {
+				tmp_value = strdupa("0");
+			} else {
+				tmp_value = strdupa(value);
+			}
 
-                case SCCP_CONFIG_DATATYPE_BOOLEAN:
-                        if (sccp_strlen_zero(value)) {
-                                boolean = FALSE;
-                        } else {
-                                boolean = sccp_true(value);
-                        }
+			switch (sccpConfigOption->size) {
+				case 1:
+					if (sscanf(tmp_value, "%hd", &int8num) == 1) {
+						if ((*(int8_t *) dst) != int8num) {
+							*(int8_t *) dst = int8num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 2:
+					if (sscanf(tmp_value, "%d", &int16num) == 1) {
+						if ((*(int16_t *) dst) != int16num) {
+							*(int16_t *) dst = int16num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 4:
+					if (sscanf(tmp_value, "%ld", &int32num) == 1) {
+						if ((*(int32_t *) dst) != int32num) {
+							*(int32_t *) dst = int32num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 8:
+					if (sscanf(tmp_value, "%lld", &int64num) == 1) {
+						if ((*(int64_t *) dst) != int64num) {
+							*(int64_t *) dst = int64num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+			}
+			break;
+		case SCCP_CONFIG_DATATYPE_UINT:
+			if (sccp_strlen_zero(value)) {
+				tmp_value = strdupa("0");
+			} else {
+				tmp_value = strdupa(value);
+			}
+			switch (sccpConfigOption->size) {
+				case 1:
+					if ((!strncmp("0x", tmp_value, 2) && sscanf(tmp_value, "%hx", &uint8num)) || (sscanf(tmp_value, "%hu", &uint8num) == 1)) {
+						if ((*(uint8_t *) dst) != uint8num) {
+							*(uint8_t *) dst = uint8num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 2:
+					if (sscanf(tmp_value, "%u", &uint16num) == 1) {
+						if ((*(uint16_t *) dst) != uint16num) {
+							*(uint16_t *) dst = uint16num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 4:
+					if (sscanf(tmp_value, "%lu", &uint32num) == 1) {
+						if ((*(uint32_t *) dst) != uint32num) {
+							*(uint32_t *) dst = uint32num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+				case 8:
+					if (sscanf(tmp_value, "%llu", &uint64num) == 1) {
+						if ((*(uint64_t *) dst) != uint64num) {
+							*(uint64_t *) dst = uint64num;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					}
+					break;
+			}
+			break;
 
-                        if (*(boolean_t *) dst != boolean) {
-                                *(boolean_t *) dst = sccp_true(value);
-                                changed = SCCP_CONFIG_CHANGE_CHANGED;
-                        }
-                        break;
+		case SCCP_CONFIG_DATATYPE_BOOLEAN:
+			if (sccp_strlen_zero(value)) {
+				boolean = FALSE;
+			} else {
+				boolean = sccp_true(value);
+			}
 
-                case SCCP_CONFIG_DATATYPE_PARSER:
-                        {
-                                /* MULTI_ENTRY can only be parsed by a specific datatype_parser at this moment */
-                                if (sccpConfigOption->converter_f) {
-                                        PBX_VARIABLE_TYPE *new_var = NULL;
-                                        if (cat_root) {
-                                                /* Create new variable structure for Multi Entry Parameters */
-                                                if ((new_var = createVariableSetForMultiEntryParameters(cat_root, sccpConfigOption->name, new_var))) {
-                                                        changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
-                                                        pbx_variables_destroy(new_var);
-                                                }
-                                        } else {
-                                                if ((new_var = ast_variable_new(name, value, ""))) {
-                                                        changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
-                                                        pbx_variables_destroy(new_var);
-                                                }
-                                        }                        
-                                }
-                        }
-                        break;
+			if (*(boolean_t *) dst != boolean) {
+				*(boolean_t *) dst = sccp_true(value);
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+			}
+			break;
 
-                default:
-                        pbx_log(LOG_WARNING, "Unknown param at %s='%s'\n", name, value);
-                        return SCCP_CONFIG_NOUPDATENEEDED;
-        }
+		case SCCP_CONFIG_DATATYPE_PARSER:
+			{
+				/* MULTI_ENTRY can only be parsed by a specific datatype_parser at this moment */
+				if (sccpConfigOption->converter_f) {
+					PBX_VARIABLE_TYPE *new_var = NULL;
+
+					if (cat_root) {
+						/* Create new variable structure for Multi Entry Parameters */
+						if ((new_var = createVariableSetForMultiEntryParameters(cat_root, sccpConfigOption->name, new_var))) {
+							changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
+							pbx_variables_destroy(new_var);
+						}
+					} else {
+						if ((new_var = ast_variable_new(name, value, ""))) {
+							changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
+							pbx_variables_destroy(new_var);
+						}
+					}
+				}
+			}
+			break;
+
+		default:
+			pbx_log(LOG_WARNING, "Unknown param at %s='%s'\n", name, value);
+			return SCCP_CONFIG_NOUPDATENEEDED;
+	}
 
 	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
-                if (GLOB(reload_in_progress)) {
-        		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
-                }
+		if (GLOB(reload_in_progress)) {
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
+		}
 		changes = sccpConfigOption->change;
 	}
 
@@ -596,24 +600,25 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
  * \brief return the nth token from a tokenized string, if no token is found the complete string is returned
  * \note returned string needs to be freed
  */
-static char *sccp_config_getNthToken(const char *intokens, int index, const char *delims) 
+static char *sccp_config_getNthToken(const char *intokens, int index, const char *delims)
 {
-        char *tokens;
-      	char *token = "";
-       	int token_index = 0;
-        if (intokens && strlen(intokens)) {
-                tokens = strdupa(intokens);
-                if (strstr(intokens,"|")) {
-                        token = strtok(tokens, delims);
-                        while (token && token_index < index) {
-                                token = strtok(NULL, delims);
-                                token_index++;
-                        }
-                } else {
-                       token = tokens;
-                }
-        }
-        return (token && strlen(token) && token_index == index) ? strdup(token) : NULL;
+	char *tokens;
+	char *token = "";
+	int token_index = 0;
+
+	if (intokens && strlen(intokens)) {
+		tokens = strdupa(intokens);
+		if (strstr(intokens, "|")) {
+			token = strtok(tokens, delims);
+			while (token && token_index < index) {
+				token = strtok(NULL, delims);
+				token_index++;
+			}
+		} else {
+			token = tokens;
+		}
+	}
+	return (token && strlen(token) && token_index == index) ? strdup(token) : NULL;
 }
 
 /*!
@@ -638,9 +643,9 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	char *option_tokens = "";
 	char *option_tokens_saveptr;
 	int token_index = 0;
-	
+
 	char *default_value = "";										/* malloced / needs to be freed after use */
-	
+
 	boolean_t valueFound = FALSE;
 	PBX_VARIABLE_TYPE *v;
 	PBX_VARIABLE_TYPE *cat_root;
@@ -693,93 +698,93 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		type = sccpDstConfig[i].type;
 
 		if (((flags & SCCP_CONFIG_FLAG_OBSOLETE) != SCCP_CONFIG_FLAG_OBSOLETE)) {			// has not been set already and is not obsolete
-                        option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
-                        sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
-                        option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
-        		token_index = 0;
-                        while (option_name != NULL) {
-                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, option_name, flags, type);
-                                if ((flags & SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) == SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) {
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s refering to device default\n", option_name);
-                                        ref_device = &(*(sccp_device_t *) obj);
+			option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
+			sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
+			option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
+			token_index = 0;
+			while (option_name != NULL) {
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, option_name, flags, type);
+				if ((flags & SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) == SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s refering to device default\n", option_name);
+					ref_device = &(*(sccp_device_t *) obj);
 
-                                        // get value from cfg->device category
-                                        valueFound = FALSE;
-                                        for (cat_root = v = ast_variable_browse(GLOB(cfg), (const char *) ref_device->id); v; v = v->next) {
-                                                if (!strcasecmp((const char *) option_name, v->name)) {
-                                                        default_value = strdup(v->value);
-                                                        if (!sccp_strlen_zero(default_value)) {
-                                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
-                                                                // get value from the config file and run through parser
-                                                                sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, NULL);
-                                                        }
-                                                        valueFound = TRUE;
-                                                }
-                                        }
-                                        if (!valueFound) {
-                                                // get defaultValue from default_segment
-                                                sccpDefaultConfigOption = sccp_find_config(SCCP_CONFIG_DEVICE_SEGMENT, option_name);
-                                                if (sccpDefaultConfigOption) {
-                                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in device source segment\n", option_name, sccpDefaultConfigOption->defaultValue);
-                                                        if ((default_value = sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"))) {
-                                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using device default %s\n", option_name, default_value);
-                                                                sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
-                                                        }
-                                                } else {
-                                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in device source segment\n", option_name);
-                                                }
-                                        }
-                                } else if ((flags & SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) == SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) {
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s refering to global default\n", option_name);
-                                        // get value from cfg->general category
+					// get value from cfg->device category
+					valueFound = FALSE;
+					for (cat_root = v = ast_variable_browse(GLOB(cfg), (const char *) ref_device->id); v; v = v->next) {
+						if (!strcasecmp((const char *) option_name, v->name)) {
+							default_value = strdup(v->value);
+							if (!sccp_strlen_zero(default_value)) {
+								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
+								// get value from the config file and run through parser
+								sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, NULL);
+							}
+							valueFound = TRUE;
+						}
+					}
+					if (!valueFound) {
+						// get defaultValue from default_segment
+						sccpDefaultConfigOption = sccp_find_config(SCCP_CONFIG_DEVICE_SEGMENT, option_name);
+						if (sccpDefaultConfigOption) {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in device source segment\n", option_name, sccpDefaultConfigOption->defaultValue);
+							if ((default_value = sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"))) {
+								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using device default %s\n", option_name, default_value);
+								sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+							}
+						} else {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in device source segment\n", option_name);
+						}
+					}
+				} else if ((flags & SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) == SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s refering to global default\n", option_name);
+					// get value from cfg->general category
 
-                                        valueFound = FALSE;
-                                        for (cat_root = v = ast_variable_browse(GLOB(cfg), "general"); v; v = v->next) {
-                                                if (!strcasecmp(option_name, v->name)) {
-                                                        default_value = strdup(v->value);
-                                                        if (!sccp_strlen_zero(default_value)) {
-                                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using global default %s\n", option_name, default_value);
-                                                                // get value from the config file and run through parser
-                                                                sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, NULL);
-                                                        }
-                                                        valueFound = TRUE;
-                                                }
-                                        }
-                                        if (!valueFound) {
-                                                // get defaultValue from default_segment
-                                                sccpDefaultConfigOption = sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, option_name);
-                                                if (sccpDefaultConfigOption) {
-                                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in global source segment\n", option_name, sccpDefaultConfigOption->defaultValue);
-                                                        if ((default_value = sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"))) {
-                                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using global default %s\n", option_name, default_value);
-                                                                sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
-                                                        }
-                                                } else {
-                                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in global source segment\n", option_name);
-                                                }
-                                        }
-                                        //value = (char *) pbx_variable_retrieve(GLOB(cfg), "general", option_name);
-                                } else {
-                                        // get defaultValue from self
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "config parameter %s using local source segment default: %s\n", option_name, sccpDstConfig[i].defaultValue);
-                                        if ((default_value = sccp_config_getNthToken(sccpDstConfig[i].defaultValue, token_index, "|"))) {
-                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
-                                                sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
-                                        } else {
-                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "clearing parameter %s\n", option_name);
-                                                if (type == SCCP_CONFIG_DATATYPE_STRINGPTR || default_value != NULL) {
-                                                        sccp_config_object_setValue(obj, NULL, option_name, "", 0, segment, NULL);
-                                                }
-                                        }
+					valueFound = FALSE;
+					for (cat_root = v = ast_variable_browse(GLOB(cfg), "general"); v; v = v->next) {
+						if (!strcasecmp(option_name, v->name)) {
+							default_value = strdup(v->value);
+							if (!sccp_strlen_zero(default_value)) {
+								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using global default %s\n", option_name, default_value);
+								// get value from the config file and run through parser
+								sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, NULL);
+							}
+							valueFound = TRUE;
+						}
+					}
+					if (!valueFound) {
+						// get defaultValue from default_segment
+						sccpDefaultConfigOption = sccp_find_config(SCCP_CONFIG_GLOBAL_SEGMENT, option_name);
+						if (sccpDefaultConfigOption) {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in global source segment\n", option_name, sccpDefaultConfigOption->defaultValue);
+							if ((default_value = sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"))) {
+								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using global default %s\n", option_name, default_value);
+								sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+							}
+						} else {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in global source segment\n", option_name);
+						}
+					}
+					//value = (char *) pbx_variable_retrieve(GLOB(cfg), "general", option_name);
+				} else {
+					// get defaultValue from self
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "config parameter %s using local source segment default: %s\n", option_name, sccpDstConfig[i].defaultValue);
+					if ((default_value = sccp_config_getNthToken(sccpDstConfig[i].defaultValue, token_index, "|"))) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
+						sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+					} else {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "clearing parameter %s\n", option_name);
+						if (type == SCCP_CONFIG_DATATYPE_STRINGPTR || default_value != NULL) {
+							sccp_config_object_setValue(obj, NULL, option_name, "", 0, segment, NULL);
+						}
+					}
 
-                                }
-                                option_name = strtok_r(NULL, "|", &option_tokens_saveptr);
-                                token_index++;
-                                if (default_value) {
-                                        sccp_free(default_value);
-                                        default_value = NULL;
-                                }
-                        }
+				}
+				option_name = strtok_r(NULL, "|", &option_tokens_saveptr);
+				token_index++;
+				if (default_value) {
+					sccp_free(default_value);
+					default_value = NULL;
+				}
+			}
 		}
 	}
 }
@@ -789,11 +794,11 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	
+
 	if (sccp_strlen_zero(value)) {
 		value = strdupa("0.0.0.0");
 	}
@@ -803,7 +808,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 
 	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *) dest);
 	struct sockaddr_in *bindaddr_new = NULL;
-	
+
 	if (!(hp = pbx_gethostbyname(value, &ahp))) {
 		pbx_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", value);
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
@@ -834,7 +839,7 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -849,7 +854,7 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 		} else {
-		        pbx_log(LOG_WARNING, "Uninitialized bindaddr destination structure to set port to\n");
+			pbx_log(LOG_WARNING, "Uninitialized bindaddr destination structure to set port to\n");
 			//bindaddr_prev->sin_port = htons(new_port);
 			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
@@ -866,7 +871,7 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -893,7 +898,7 @@ sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -915,7 +920,6 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
 	return changed;
 }
 
-
 /*!
  * \brief Config Converter/Parser for privacyFeature
  *
@@ -923,7 +927,7 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -952,7 +956,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -985,7 +989,7 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, P
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1012,7 +1016,7 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, P
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1045,7 +1049,7 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PB
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1089,7 +1093,7 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1115,7 +1119,7 @@ sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VA
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1139,7 +1143,7 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1157,7 +1161,6 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
 	return changed;
 }
 
-
 /*!
  * \brief Config Converter/Parser for Callgroup/Pickupgroup Values
  *
@@ -1165,7 +1168,7 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1219,7 +1222,7 @@ sccp_value_changed_t sccp_config_parse_group(void *dest, const size_t size, PBX_
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1242,7 +1245,7 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PB
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1262,7 +1265,7 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
  *
  * \note not multi_entry
  */
-sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
@@ -1311,9 +1314,9 @@ sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const 
 	return changed;
 }
 
-sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
-	return sccp_config_parse_dnd(dest, size, strdupa(v->value), segment); 
+	return sccp_config_parse_dnd(dest, size, strdupa(v->value), segment);
 }
 
 /*!
@@ -1326,50 +1329,53 @@ static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t s
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	struct ast_jb_conf jb = *(struct ast_jb_conf *) dest;
 
-	//        pbx_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
+	// pbx_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
 	if (pbx_test_flag(&jb, flag) != (unsigned) ast_true(value)) {
-		//               pbx_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
-		//               pbx_set2_flag(&jb, ast_true(value), flag);
+		// pbx_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
+		// pbx_set2_flag(&jb, ast_true(value), flag);
 		pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = strdupa(v->value);
+
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_ENABLED);
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = strdupa(v->value);
+
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_FORCED);
 }
 
-sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	char *value = strdupa(v->value);
+
 	return sccp_config_parse_jbflags(dest, size, value, segment, AST_JB_LOG);
 }
-
 
 /*!
  * \brief Config Converter/Parser for Debug
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	uint32_t debug_new = 0;
 
 	char *debug_arr[1];
+
 	for (; v; v = v->next) {
-        	debug_arr[0] = strdupa(v->value);
-        	debug_new = sccp_parse_debugline(debug_arr, 0, 1, debug_new);
-        }
+		debug_arr[0] = strdupa(v->value);
+		debug_new = sccp_parse_debugline(debug_arr, 0, 1, debug_new);
+	}
 	if (*(uint32_t *) dest != debug_new) {
 		*(uint32_t *) dest = debug_new;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -1386,33 +1392,33 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
-        sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-        skinny_codec_t *codecs = &(*(skinny_codec_t *) dest);
-        skinny_codec_t new_codecs[SKINNY_MAX_CAPABILITIES]={0};
-        int errors=0;
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	skinny_codec_t *codecs = &(*(skinny_codec_t *) dest);
+	skinny_codec_t new_codecs[SKINNY_MAX_CAPABILITIES] = { 0 };
+	int errors = 0;
 
-        for ( ; v; v = v->next) {
-                if (sccp_strcaseequals(v->name, "disallow")) {
-                        errors |= sccp_parse_allow_disallow(new_codecs, NULL, v->value, 0);
-                } else if (sccp_strcaseequals(v->name, "allow")) {
-                        errors |= sccp_parse_allow_disallow(new_codecs, NULL, v->value, 1);
-                } else {
-                        changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                }
-        }
-        if (errors) {
-                changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-        } else {
-                if (memcmp(new_codecs, codecs, SKINNY_MAX_CAPABILITIES)) {
-                        memcpy(codecs, new_codecs, SKINNY_MAX_CAPABILITIES);
-                        changed = SCCP_CONFIG_CHANGE_CHANGED;
-                } else {
-                        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-                }
-        }
-        return changed;
+	for (; v; v = v->next) {
+		if (sccp_strcaseequals(v->name, "disallow")) {
+			errors |= sccp_parse_allow_disallow(new_codecs, NULL, v->value, 0);
+		} else if (sccp_strcaseequals(v->name, "allow")) {
+			errors |= sccp_parse_allow_disallow(new_codecs, NULL, v->value, 1);
+		} else {
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		}
+	}
+	if (errors) {
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	} else {
+		if (memcmp(new_codecs, codecs, SKINNY_MAX_CAPABILITIES)) {
+			memcpy(codecs, new_codecs, SKINNY_MAX_CAPABILITIES);
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+		} else {
+			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+		}
+	}
+	return changed;
 
 }
 
@@ -1423,43 +1429,42 @@ sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	int error = 0;
 	int errors = 0;
 	struct sccp_ha *ha = *(struct sccp_ha **) dest;
-	
-	for ( ; v ; v = v->next) { 
-	        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
-	        if (sccp_strcaseequals(v->name, "deny")) {
-                        ha = sccp_append_ha("deny", v->value, ha, &error);
-                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
-	        } else if (sccp_strcaseequals(v->name, "permit")) {
-                        if (!strcasecmp(v->value, "internal")) {
-                                ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
-                                errors |= error; 
-                                ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
-                                errors |= error; 
-                                ha = sccp_append_ha("permit", "172.16.0.0/255.224.0.0", ha, &error);
-                                errors |= error; 
-                                ha = sccp_append_ha("permit", "192.168.0.0/255.255.0.0", ha, &error);
-                        } else {
-                                ha = sccp_append_ha("permit", v->value, ha, &error);
-                        }
-                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Permit: %s\n", v->value);
-                }
-                errors |= error; 
+
+	for (; v; v = v->next) {
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
+		if (sccp_strcaseequals(v->name, "deny")) {
+			ha = sccp_append_ha("deny", v->value, ha, &error);
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
+		} else if (sccp_strcaseequals(v->name, "permit")) {
+			if (!strcasecmp(v->value, "internal")) {
+				ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
+				errors |= error;
+				ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
+				errors |= error;
+				ha = sccp_append_ha("permit", "172.16.0.0/255.224.0.0", ha, &error);
+				errors |= error;
+				ha = sccp_append_ha("permit", "192.168.0.0/255.255.0.0", ha, &error);
+			} else {
+				ha = sccp_append_ha("permit", v->value, ha, &error);
+			}
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Permit: %s\n", v->value);
+		}
+		errors |= error;
 	}
-        if (!error) {
-                *(struct sccp_ha **) dest = ha;
-                // FIXME
-                //changed = SCCP_CONFIG_CHANGE_CHANGED;
-        }
+	if (!error) {
+		*(struct sccp_ha **) dest = ha;
+		// FIXME
+		//changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
 
 	return changed;
 }
-
 
 /*!
  * \brief Config Converter/Parser for Permit Hosts
@@ -1470,56 +1475,58 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
  * \note multi_entry
  * \note order is irrelevant
  */
-sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE *vroot, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_hostname_t *permithost = NULL;
 
-	SCCP_LIST_HEAD (, sccp_hostname_t) *permithostList = dest;
-	
+	SCCP_LIST_HEAD (, sccp_hostname_t) * permithostList = dest;
+
 	PBX_VARIABLE_TYPE *v = NULL;
-        int listCount = SCCP_LIST_GETSIZE(permithostList);
-        int varCount = 0;
+	int listCount = SCCP_LIST_GETSIZE(permithostList);
+	int varCount = 0;
 	int found = 0;
 
-        for (v=vroot; v; v = v->next) {
-                  SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
-                        if (sccp_strcaseequals(permithost->name, v->value)) {			// variable found
-                                found++;
-                                break;
-                        }
-                }
-                varCount++;
-        }
-        if (listCount != varCount || listCount != found) {							// build new list
-                while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {			// clear list
-                        sccp_free(permithost);
-                }
-                for (v=vroot; v; v = v->next) {
-                        if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
-                                pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new permithost\n");
-                                break;
-                        }
-                        sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
-                        SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
-                }
-                changed = SCCP_CONFIG_CHANGE_CHANGED;
-        }
-        return changed;
+	for (v = vroot; v; v = v->next) {
+		SCCP_LIST_TRAVERSE(permithostList, permithost, list) {
+			if (sccp_strcaseequals(permithost->name, v->value)) {					// variable found
+				found++;
+				break;
+			}
+		}
+		varCount++;
+	}
+	if (listCount != varCount || listCount != found) {							// build new list
+		while ((permithost = SCCP_LIST_REMOVE_HEAD(permithostList, list))) {				// clear list
+			sccp_free(permithost);
+		}
+		for (v = vroot; v; v = v->next) {
+			if (!(permithost = sccp_calloc(1, sizeof(sccp_hostname_t)))) {
+				pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new permithost\n");
+				break;
+			}
+			sccp_copy_string(permithost->name, v->value, sizeof(permithost->name));
+			SCCP_LIST_INSERT_TAIL(permithostList, permithost, list);
+		}
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
+	return changed;
 }
 
-static int addonstr2enum(const char *addonstr) {
-        if (!strcasecmp(addonstr, "7914"))
-                return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
-        else if (!strcasecmp(addonstr, "7915"))
-                return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
-        else if (!strcasecmp(addonstr, "7916"))
-                return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
-        else {
-                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", addonstr);
-                return 0;
-        }
-} 
+static int addonstr2enum(const char *addonstr)
+{
+	if (!strcasecmp(addonstr, "7914"))
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
+	else if (!strcasecmp(addonstr, "7915"))
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
+	else if (!strcasecmp(addonstr, "7916"))
+		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
+	else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", addonstr);
+		return 0;
+	}
+}
+
 /*!
  * \brief Config Converter/Parser for addons
  * 
@@ -1528,52 +1535,52 @@ static int addonstr2enum(const char *addonstr) {
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_addon_t *addon = NULL;
 	int addon_type;
 
 	SCCP_LIST_HEAD (, sccp_addon_t) * addonList = dest;
-	
+
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(addonList, addon, list) {
-	        if (v) {
-	                if (!sccp_strlen_zero(v->value)) {
-                                if ((addon_type = addonstr2enum(v->value))) {
-                                        if (addon->type != addon_type) {							/* change/update */
-                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("change addon: %d => %d\n", addon->type, addon_type);
-                                                addon->type = addon_type;
-                                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                                        }
-                                } else {
-                                        changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                                }
-                        }
-                        v = v->next;
-                } else {												/* removal */
-                      sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("remove addon: %d\n", addon->type);
-                      SCCP_LIST_REMOVE_CURRENT(list);
-                      sccp_free(addon); 
-                      changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                }
+		if (v) {
+			if (!sccp_strlen_zero(v->value)) {
+				if ((addon_type = addonstr2enum(v->value))) {
+					if (addon->type != addon_type) {					/* change/update */
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("change addon: %d => %d\n", addon->type, addon_type);
+						addon->type = addon_type;
+						changed |= SCCP_CONFIG_CHANGE_CHANGED;
+					}
+				} else {
+					changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+				}
+			}
+			v = v->next;
+		} else {											/* removal */
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("remove addon: %d\n", addon->type);
+			SCCP_LIST_REMOVE_CURRENT(list);
+			sccp_free(addon);
+			changed |= SCCP_CONFIG_CHANGE_CHANGED;
+		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-        for ( ; v; v = v->next) {											/* addition */
-                if (!sccp_strlen_zero(v->value)) {
-                        if ((addon_type = addonstr2enum(v->value))) {
-                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
-                                if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
-                                        pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
-                                        break;
-                                }
-                                addon->type = addon_type;
-                                SCCP_LIST_INSERT_TAIL(addonList, addon, list);
-                                changed |= SCCP_CONFIG_CHANGE_CHANGED;
-                        } else {
-                                changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                        }
-                }
-        }
+	for (; v; v = v->next) {										/* addition */
+		if (!sccp_strlen_zero(v->value)) {
+			if ((addon_type = addonstr2enum(v->value))) {
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
+				if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
+					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
+					break;
+				}
+				addon->type = addon_type;
+				SCCP_LIST_INSERT_TAIL(addonList, addon, list);
+				changed |= SCCP_CONFIG_CHANGE_CHANGED;
+			} else {
+				changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
+			}
+		}
+	}
 	return changed;
 }
 
@@ -1583,7 +1590,7 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
  * \note multi_entry
  * \note order is irrelevant
  */
-sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE *vroot, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE * vroot, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	sccp_mailbox_t *mailbox = NULL;
@@ -1593,51 +1600,52 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 
 	PBX_VARIABLE_TYPE *v = NULL;
 	int varCount = 0;
-        int listCount = 0;
-        listCount = mailboxList->size;
-        boolean_t notfound = FALSE;
+	int listCount = 0;
 
-        for (v=vroot; v; v = v->next) {
-                varCount++;
-        }
-        if (varCount == listCount) {													// list length equal
-        	SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
-                        for (v=vroot; v; v = v->next) {
-                                mbox = context = sccp_strdupa(v->value);
-                                strsep(&context, "@");
-                                if (sccp_strlen_zero(context)) {
-                                        context = "default";
-                                }
-                                if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context))  {	// variable found
-                                        continue;
-                                }
-                                notfound |= TRUE;
-                        }
-                }
-        }
-        if (varCount != listCount || notfound) {											// build new list
-                while ((mailbox = SCCP_LIST_REMOVE_HEAD(mailboxList, list))) {								// clear list
-                        sccp_free(mailbox->mailbox);
-                        sccp_free(mailbox->context);
-                        sccp_free(mailbox);
-                }
-                for (v=vroot; v; v = v->next) {												// create new list
-                        mbox = context = sccp_strdupa(v->value);
-                        strsep(&context, "@");
-                        if (sccp_strlen_zero(context)) {
-                                context = "default";
-                        }
-                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
-                        if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
-                                pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
-                                break;
-                        }
-                        mailbox->mailbox = strdup(mbox);
-                        mailbox->context = strdup(context);
-                        SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
-                }
-                changed = SCCP_CONFIG_CHANGE_CHANGED;
-        }
+	listCount = mailboxList->size;
+	boolean_t notfound = FALSE;
+
+	for (v = vroot; v; v = v->next) {
+		varCount++;
+	}
+	if (varCount == listCount) {										// list length equal
+		SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
+			for (v = vroot; v; v = v->next) {
+				mbox = context = sccp_strdupa(v->value);
+				strsep(&context, "@");
+				if (sccp_strlen_zero(context)) {
+					context = "default";
+				}
+				if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context)) {	// variable found
+					continue;
+				}
+				notfound |= TRUE;
+			}
+		}
+	}
+	if (varCount != listCount || notfound) {								// build new list
+		while ((mailbox = SCCP_LIST_REMOVE_HEAD(mailboxList, list))) {					// clear list
+			sccp_free(mailbox->mailbox);
+			sccp_free(mailbox->context);
+			sccp_free(mailbox);
+		}
+		for (v = vroot; v; v = v->next) {								// create new list
+			mbox = context = sccp_strdupa(v->value);
+			strsep(&context, "@");
+			if (sccp_strlen_zero(context)) {
+				context = "default";
+			}
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
+			if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
+				pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
+				break;
+			}
+			mailbox->mailbox = strdup(mbox);
+			mailbox->context = strdup(context);
+			SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
+		}
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	}
 	return changed;
 }
 
@@ -1646,49 +1654,51 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
 	PBX_VARIABLE_TYPE *variableList = *(PBX_VARIABLE_TYPE **) dest;
+
 	if (variableList) {
-	        pbx_variables_destroy(variableList);									/* destroy old list */
-	        variableList = NULL;
+		pbx_variables_destroy(variableList);								/* destroy old list */
+		variableList = NULL;
 	}
 	PBX_VARIABLE_TYPE *variable = variableList;
-	char *var_name = NULL; 
+	char *var_name = NULL;
 	char *var_value = NULL;
-	
-        for ( ; v; v = v->next) {											/* create new list */
-        	var_name = sccp_strdupa(v->value);
-        	var_value = NULL;
+
+	for (; v; v = v->next) {										/* create new list */
+		var_name = sccp_strdupa(v->value);
+		var_value = NULL;
 		if ((var_value = strchr(var_name, '='))) {
 			*var_value++ = '\0';
-                }
-                if (!sccp_strlen_zero(var_name)) {
-                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new variable: %s=%s\n", var_name,var_value);
-                        if (!variable) {
-                                if (!(variableList = pbx_variable_new(var_name, var_value, ""))) {
-                                        pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
-                                        variableList = NULL;
-                                        break;
-                                }
-                                variable = variableList;
-                        } else {
-                                if (!(variable->next = pbx_variable_new(var_name, var_value, ""))) {
-                                        pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
-                                        pbx_variables_destroy(variableList);
-                                        variableList = NULL;
-                                        break;
-                                }
-                                variable = variable->next;
-                        }
-                }
-        }
-        *(PBX_VARIABLE_TYPE **) dest = variableList;
-        
+		}
+		if (!sccp_strlen_zero(var_name)) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new variable: %s=%s\n", var_name, var_value);
+			if (!variable) {
+				if (!(variableList = pbx_variable_new(var_name, var_value, ""))) {
+					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
+					variableList = NULL;
+					break;
+				}
+				variable = variableList;
+			} else {
+				if (!(variable->next = pbx_variable_new(var_name, var_value, ""))) {
+					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new variable\n");
+					pbx_variables_destroy(variableList);
+					variableList = NULL;
+					break;
+				}
+				variable = variable->next;
+			}
+		}
+	}
+	*(PBX_VARIABLE_TYPE **) dest = variableList;
+
 	return changed;
 }
+
 /*!
  * \brief Config Converter/Parser for Buttons
  *
@@ -1696,63 +1706,65 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
-        sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	int changes = 0;
-	
-        /* parse all button definitions in one pass */
-        char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
-        char k_button[256];
-        char *splitter;
-        sccp_config_buttontype_t type;
-        unsigned int i;
 
-        int buttonindex = 0;
-	for ( ;v ; v=v->next) {
-                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found button: %s\n", v->value);
-                sccp_copy_string(k_button, v->value, sizeof(k_button));
-                splitter = k_button;
-                buttonType = strsep(&splitter, ",");
-                buttonName = strsep(&splitter, ",");
-                buttonOption = strsep(&splitter, ",");
-                buttonArgs = splitter;
+	/* parse all button definitions in one pass */
+	char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
+	char k_button[256];
+	char *splitter;
+	sccp_config_buttontype_t type;
+	unsigned int i;
 
-                for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
-                if (i >= ARRAY_LEN(sccp_buttontypes)) {
-                        pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
-                        changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                }
-                type = sccp_buttontypes[i].buttontype;
-                changed = sccp_config_addButton(dest, buttonindex++, type, buttonName ? pbx_strip(buttonName) : buttonType, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
-              	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "button: %s -> %s\n", v->value, changed ? "yes" : "no");
-                changes += changed;
-        }
-        
-        /* return changed status */
-        if (GLOB(reload_in_progress)) {
-                sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: %s\n", changes ? "changed" : "no change");\
-        }
+	int buttonindex = 0;
+
+	for (; v; v = v->next) {
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found button: %s\n", v->value);
+		sccp_copy_string(k_button, v->value, sizeof(k_button));
+		splitter = k_button;
+		buttonType = strsep(&splitter, ",");
+		buttonName = strsep(&splitter, ",");
+		buttonOption = strsep(&splitter, ",");
+		buttonArgs = splitter;
+
+		for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
+		if (i >= ARRAY_LEN(sccp_buttontypes)) {
+			pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		}
+		type = sccp_buttontypes[i].buttontype;
+		changed = sccp_config_addButton(dest, buttonindex++, type, buttonName ? pbx_strip(buttonName) : buttonType, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "button: %s -> %s\n", v->value, changed ? "yes" : "no");
+		changes += changed;
+	}
+
+	/* return changed status */
+	if (GLOB(reload_in_progress)) {
+		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: %s\n", changes ? "changed" : "no change");
+	}
 
 	return changes ? SCCP_CONFIG_CHANGE_CHANGED : SCCP_CONFIG_CHANGE_NOCHANGE;
 }
+
 /* end dyn config */
 
 /*!
  * \brief add a Button to a device
  * \param buttonconfig_head pointer to the device->buttonconfig list
- * \param index         button index
- * \param type          type of button
- * \param name          name
- * \param options       options
- * \param args          args
+ * \param index button index
+ * \param type type of button
+ * \param name name
+ * \param options options
+ * \param args args
  *
  * \callgraph
  * \callergraph
  * 
  * \lock
- *      - device->buttonconfig
- *         - globals
+ *  - device->buttonconfig
+ *     - globals
  *
  * \todo Build a check to see if the button has changed
  */
@@ -1760,9 +1772,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 {
 	sccp_buttonconfig_t *config = NULL;
 
-	//      boolean_t is_new = FALSE;
+	// boolean_t is_new = FALSE;
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-
 
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = buttonconfig_head;
 
@@ -1770,34 +1781,33 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 	SCCP_LIST_LOCK(buttonconfigList);
 	SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 		// check if the button is to be deleted to see if we need to replace it
-                if (config->index == index) {
-                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found Existing button at %d:%d (Being Replaced)\n", config->index, index);
-                        break;
-                }
+		if (config->index == index) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Found Existing button at %d:%d (Being Replaced)\n", config->index, index);
+			break;
+		}
 	}
 
-
-        if (!config) {
-                config = sccp_calloc(1, sizeof(sccp_buttonconfig_t));
-                if (!config) {
-                        pbx_log(LOG_WARNING, "SCCP: sccp_config_addButton, memory allocation failed (calloc) failed\n");
-                        return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-                }
+	if (!config) {
+		config = sccp_calloc(1, sizeof(sccp_buttonconfig_t));
+		if (!config) {
+			pbx_log(LOG_WARNING, "SCCP: sccp_config_addButton, memory allocation failed (calloc) failed\n");
+			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		}
 		config->index = index;
 		config->type = type;
-                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", config_buttontype2str(type), name, index, config->index);
-                SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
-        } else {
-                config->pendingDelete = 0;
-                config->pendingUpdate = 1;
-        }
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", config_buttontype2str(type), name, index, config->index);
+		SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
+	} else {
+		config->pendingDelete = 0;
+		config->pendingUpdate = 1;
+	}
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s. Substituted with  EMPTY button\n", config->index, config_buttontype2str(type), name);
 		type = EMPTY;
 	}
-	
+
 	changed = SCCP_CONFIG_CHANGE_CHANGED;
 
 	switch (type) {
@@ -1809,16 +1819,16 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 				composedLineRegistrationId = sccp_parseComposedId(name, 80);
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", composedLineRegistrationId.mainId, composedLineRegistrationId.subscriptionId.number, composedLineRegistrationId.subscriptionId.name, composedLineRegistrationId.subscriptionId.aux);
 
-				if (LINE == config->type && 
+				if (LINE == config->type &&
 				    sccp_strequals(config->label, name) && sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 				    ) {
-					if ((!options && !config->button.line.options)|| sccp_strequals(config->button.line.options, options)) {
-                                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
-                                                changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-                                                break;
-                                        }
+					if ((!options && !config->button.line.options) || sccp_strequals(config->button.line.options, options)) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
+						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+						break;
+					}
 				}
-       				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition changed\n");
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition changed\n");
 				config->type = LINE;
 				config->index = index;
 
@@ -1838,12 +1848,12 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			/* \todo check if values change */
 			if (SPEEDDIAL == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.speeddial.ext, options)) {
 				if ((!args && !config->button.speeddial.hint) || sccp_strequals(config->button.speeddial.hint, args)) {
-                                        sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition remained the same\n");
-                                        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-                                        break;
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition remained the same\n");
+					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+					break;
 				}
 			}
-        		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition changed\n");
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition changed\n");
 			config->type = SPEEDDIAL;
 			config->index = index;
 
@@ -1856,10 +1866,9 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			}
 			break;
 		case SERVICE:
-			if (SERVICE == config->type &&
-			        sccp_strequals(config->label, name) && sccp_strequals(config->button.service.url, options)
+			if (SERVICE == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.service.url, options)
 			    ) {
-       				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Service Button Definition remained the same\n");
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Service Button Definition remained the same\n");
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
@@ -1872,15 +1881,14 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			sccp_copy_string(config->button.service.url, options, sizeof(config->button.service.url));
 			break;
 		case FEATURE:
-			if (FEATURE == config->type && index==config->index &&
-			        sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)
+			if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)
 			    ) {
 				if ((!args && !config->button.feature.options) || sccp_strequals(config->button.feature.options, args)) {
-               				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition remained the same\n");
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 					break;
 				}
-      				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition changed\n");
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition changed\n");
 			}
 			/* \todo check if values change */
 			config->type = FEATURE;
@@ -1895,13 +1903,13 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
 			} else {
 				sccp_copy_string(config->button.feature.options, "", sizeof(config->button.feature.options));
-			}			
+			}
 			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Configured feature button with featureID: %s args: %s\n", options, args);
 
 			break;
 		case EMPTY:
 			if (EMPTY == config->type) {
-      				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Button Definition remained the same\n");
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Button Definition remained the same\n");
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
@@ -1925,8 +1933,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
  * \callergraph
  * 
  * \lock
- *      - line
- *        - see sccp_line_changed()
+ *  - line
+ *    - see sccp_line_changed()
  */
 static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
 {
@@ -1935,7 +1943,7 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 #ifdef CS_SCCP_REALTIME
 	l->realtime = isRealtime;
 #endif
-	//      if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
+	// if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id, l->name);
 		l->pendingUpdate = 1;
@@ -1957,8 +1965,8 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
  * \callergraph
  * 
  * \lock
- *      - device
- *        - see sccp_device_changed()
+ *  - device
+ *    - see sccp_device_changed()
  */
 static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * variable, const char *deviceName, boolean_t isRealtime)
 {
@@ -2014,7 +2022,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
  * \callergraph
  * 
  * \lock
- *      - line->mailboxes
+ *  - line->mailboxes
  */
 sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v)
 {
@@ -2026,7 +2034,7 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 		res |= sccp_config_object_setValue(sccp_globals, cat_root, v->name, v->value, v->lineno, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries);
 	}
 	if (res) {
-	        sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
+		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Update Needed (%d)\n", res);
 	}
 
 	sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT, SetEntries);
@@ -2073,7 +2081,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 
 	sccp_configurationchange_t res = sccp_config_applyGlobalConfiguration(v);
 
-	//      sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
+	// sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
@@ -2162,12 +2170,12 @@ void cleanup_stale_contexts(char *new, char *old)
  * \callergraph
  * 
  * \lock
- *      - lines
- *        - see sccp_config_applyLineConfiguration()
+ *  - lines
+ *    - see sccp_config_applyLineConfiguration()
  */
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
-	//      struct ast_config *cfg = NULL;
+	// struct ast_config *cfg = NULL;
 
 	char *cat = NULL;
 	PBX_VARIABLE_TYPE *v = NULL;
@@ -2224,7 +2232,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				/* create new device with default values */
 				if (!d) {
 					d = sccp_device_create(cat);
-					//                                      sccp_copy_string(d->id, cat, sizeof(d->id));            /* set device name */
+					// sccp_copy_string(d->id, cat, sizeof(d->id));		/* set device name */
 					sccp_device_addToGlobals(d);
 					device_count++;
 				} else {
@@ -2280,7 +2288,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if ((line = sccp_line_retain(l))) {
-			do{
+			do {
 				if (line->realtime == TRUE && line != GLOB(hotline)->line) {
 					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", line->name);
 					rv = pbx_load_realtime(GLOB(realtimelinetable), "name", line->name, NULL);
@@ -2301,20 +2309,21 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					}
 					pbx_variables_destroy(rv);
 				}
-			} while(0);
+			} while (0);
 			line = sccp_line_release(line);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
-	
+
 	sccp_device_t *device;
+
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if ((device = sccp_device_retain(d))) {
-			do{
+			do {
 				if (device->realtime == TRUE) {
-					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", device->id );
+					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", device->id);
 					rv = pbx_load_realtime(GLOB(realtimedevicetable), "name", device->id, NULL);
 					/* we did not find this line, mark it for deletion */
 					if (!rv) {
@@ -2333,7 +2342,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					}
 					pbx_variables_destroy(rv);
 				}
-			} while(0);
+			} while (0);
 			device = sccp_device_release(device);
 		}
 	}
@@ -2381,7 +2390,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  * \callergraph
  * 
  * \lock
- *      - line->mailboxes
+ *  - line->mailboxes
  */
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v)
 {
@@ -2414,8 +2423,8 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
  * \callergraph
  * 
  * \lock
- *      - device->addons
- *      - device->permithosts
+ *  - device->addons
+ *  - device->permithosts
  */
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v)
 {
@@ -2445,13 +2454,13 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
  */
 sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 {
-	//      struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS & CONFIG_FLAG_FILEUNCHANGED };
+	// struct ast_flags config_flags = { CONFIG_FLAG_WITHCOMMENTS & CONFIG_FLAG_FILEUNCHANGED };
 	int res = 0;
 	struct ast_flags config_flags = { CONFIG_FLAG_FILEUNCHANGED };
 	if (force) {
-	        if (GLOB(cfg)) {
-        		pbx_config_destroy(GLOB(cfg));
-        		GLOB(cfg) = NULL;
+		if (GLOB(cfg)) {
+			pbx_config_destroy(GLOB(cfg));
+			GLOB(cfg) = NULL;
 		}
 		pbx_clear_flag(&config_flags, CONFIG_FLAG_FILEUNCHANGED);
 	}
@@ -2463,18 +2472,18 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 	if (GLOB(cfg) == CONFIG_STATUS_FILEMISSING) {
 		pbx_log(LOG_ERROR, "Config file '%s' not found, aborting reload.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
-                if (GLOB(config_file_name)) {
-                        sccp_free(GLOB(config_file_name));
-                }	
+		if (GLOB(config_file_name)) {
+			sccp_free(GLOB(config_file_name));
+		}
 		GLOB(config_file_name) = strdup("sccp.conf");
 		res = CONFIG_STATUS_FILE_NOT_FOUND;
 		goto FUNC_EXIT;
 	} else if (GLOB(cfg) == CONFIG_STATUS_FILEINVALID) {
 		pbx_log(LOG_ERROR, "Config file '%s' specified is not a valid config file, aborting reload.\n", GLOB(config_file_name));
 		GLOB(cfg) = NULL;
-                if (GLOB(config_file_name)) {
-                        sccp_free(GLOB(config_file_name));
-                }	
+		if (GLOB(config_file_name)) {
+			sccp_free(GLOB(config_file_name));
+		}
 		GLOB(config_file_name) = strdup("sccp.conf");
 		res = CONFIG_STATUS_FILE_INVALID;
 		goto FUNC_EXIT;
@@ -2491,25 +2500,25 @@ sccp_config_file_status_t sccp_config_getConfig(boolean_t force)
 		}
 	}
 	if (GLOB(cfg)) {
-	        if (ast_variable_browse(GLOB(cfg), "devices")) {						/* Warn user when old entries exist in sccp.conf */
-                        pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
-                        pbx_config_destroy(GLOB(cfg));
-                        GLOB(cfg) = NULL;
-                        res = CONFIG_STATUS_FILE_OLD;
-                        goto FUNC_EXIT;
+		if (ast_variable_browse(GLOB(cfg), "devices")) {						/* Warn user when old entries exist in sccp.conf */
+			pbx_log(LOG_ERROR, "\n\n --> You are using an old configuration format, please update '%s'!!\n --> Loading of module chan_sccp with current sccp.conf has terminated\n --> Check http://chan-sccp-b.sourceforge.net/doc_setup.shtml for more information.\n\n", GLOB(config_file_name));
+			pbx_config_destroy(GLOB(cfg));
+			GLOB(cfg) = NULL;
+			res = CONFIG_STATUS_FILE_OLD;
+			goto FUNC_EXIT;
 		} else if (!ast_variable_browse(GLOB(cfg), "general")) {
-                        pbx_log(LOG_ERROR, "Missing [general] section, SCCP disabled\n");
-                        pbx_config_destroy(GLOB(cfg));
-                        GLOB(cfg) = NULL;
-                        res = CONFIG_STATUS_FILE_NOT_SCCP;
-                        goto FUNC_EXIT;
-                }
-        } else {
-                pbx_log(LOG_ERROR, "Missing Glob(cfg)\n");
-                GLOB(cfg) = NULL;
-                res = CONFIG_STATUS_FILE_NOT_FOUND;
-                goto FUNC_EXIT;
-        }
+			pbx_log(LOG_ERROR, "Missing [general] section, SCCP disabled\n");
+			pbx_config_destroy(GLOB(cfg));
+			GLOB(cfg) = NULL;
+			res = CONFIG_STATUS_FILE_NOT_SCCP;
+			goto FUNC_EXIT;
+		}
+	} else {
+		pbx_log(LOG_ERROR, "Missing Glob(cfg)\n");
+		GLOB(cfg) = NULL;
+		res = CONFIG_STATUS_FILE_NOT_FOUND;
+		goto FUNC_EXIT;
+	}
 	pbx_log(LOG_NOTICE, "Config file '%s' loaded.\n", GLOB(config_file_name));
 	res = CONFIG_STATUS_FILE_OK;
 FUNC_EXIT:
@@ -2525,7 +2534,7 @@ FUNC_EXIT:
  * \callergraph
  *
  * \lock
- *      - softKeySetConfig
+ *  - softKeySetConfig
  */
 void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 {
@@ -2681,7 +2690,7 @@ int sccp_config_getSoftkeyLbl(char *key)
  * \callergraph
  * 
  * \lock
- *      - device->devstateSpecifiers
+ *  - device->devstateSpecifiers
  */
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 {
@@ -2718,12 +2727,12 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		device->dndFeature.status = SCCP_DNDMODE_OFF;
 	}
 
-	//      /* monitorFeature */
-	//      if (PBX(feature_getFromDatabase)(family, "monitor", buffer, sizeof(buffer))) {
-	//              device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
-	//      } else {
-	//              device->monitorFeature.status = 0;
-	//      }
+	///* monitorFeature */
+	//if (PBX(feature_getFromDatabase)(family, "monitor", buffer, sizeof(buffer))) {
+	//	device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+	//} else {
+	//	device->monitorFeature.status = 0;
+	//}
 
 	/* privacyFeature */
 	if (PBX(feature_getFromDatabase) (family, "privacy", buffer, sizeof(buffer))) {
@@ -2754,13 +2763,13 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 			sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
 			if (sccp_strlen_zero(device->lastNumber)
 #ifdef CS_ADV_FEATURES
-                		&& !device->useRedialMenu
+			    && !device->useRedialMenu
 #endif
-	                ) {
-        			sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE);
-        			sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, TRUE);
-        			sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, TRUE);
-                        }
+			    ) {
+				sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE);
+				sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, TRUE);
+				sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, TRUE);
+			}
 		}
 	}
 
@@ -2885,7 +2894,6 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							astman_append(s, "DefaultValue: %s\r\n", config->defaultValue);
 						}
 						if (strlen(config->description) != 0) {
-							//                                                        description=malloc(sizeof(char) * strlen(config->description));       
 							description = strdupa(config->description);
 							astman_append(s, "Description: ");
 							while (description && (description_part = strsep(&description, "\n"))) {
@@ -2894,7 +2902,6 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							if (!sccp_strlen_zero(possible_values)) {
 								astman_append(s, "(POSSIBLE VALUES: %s)\r\n", possible_values);
 							}
-							//                                                      sccp_free(description);
 						}
 						astman_append(s, "\r\n");
 						if (possible_values) {
@@ -2925,9 +2932,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
  * \brief Generate default sccp.conf file
  * \param filename Filename
  * \param configType Config Type:
- *  - 0 = templated + registered devices
- *  - 1 = required params only
- *  - 2 = all params
+ *- 0 = templated + registered devices
+ *- 1 = required params only
+ *- 2 = all params
  * \todo Add functionality
  */
 int sccp_config_generate(char *filename, int configType)
@@ -2939,7 +2946,7 @@ int sccp_config_generate(char *filename, int configType)
 	char *description = "";
 	char *description_part = "";
 	char name_and_value[100];
-	char size_str[15]="";
+	char size_str[15] = "";
 	int linelen = 0;
 
 	char fn[PATH_MAX];
@@ -2994,11 +3001,11 @@ int sccp_config_generate(char *filename, int configType)
 							description = sccp_strdupa(config[sccp_option].description);
 							while ((description_part = strsep(&description, "\n"))) {
 								if (!sccp_strlen_zero(description_part)) {
-								        if (config[sccp_option].type == SCCP_CONFIG_DATATYPE_STRING) {
-								                snprintf(size_str, sizeof(size_str), " (Size: %d)", (int)config[sccp_option].size - 1);
-								        } else {
-								                size_str[0] = '\0';
-								        }
+									if (config[sccp_option].type == SCCP_CONFIG_DATATYPE_STRING) {
+										snprintf(size_str, sizeof(size_str), " (Size: %d)", (int) config[sccp_option].size - 1);
+									} else {
+										size_str[0] = '\0';
+									}
 									fprintf(f, "%*.s ; %s%s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY)" : "", description_part, size_str);
 									linelen = 0;
 								}

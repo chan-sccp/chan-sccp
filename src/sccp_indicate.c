@@ -1,12 +1,12 @@
 
 /*!
- * \file        sccp_indicate.c
- * \brief       SCCP Indicate Class
- * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \file	sccp_indicate.c
+ * \brief	SCCP Indicate Class
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *
  * $Date$
  * $Revision$
@@ -382,7 +382,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		}
 
 		/* notify features (sccp_feat_channelstateChanged = empty function, skipping) */
-		//      sccp_feat_channelstateChanged(d, c);
+		//	sccp_feat_channelstateChanged(d, c);
 
 		sccp_event_t event;
 
@@ -420,7 +420,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	int instance;
 	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_RECEIVED;
 
-	//      uint32_t privacyStatus=0;
+	//uint32_t privacyStatus=0;
 	if (!c || !line) {
 		return;
 	}
@@ -428,13 +428,13 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	uint8_t stateVisibility = (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN;
 
 	/** \todo move this to channel->privacy */
-	//      if (sccp_channel_getDevic(c))
-	//              privacyStatus = sccp_channel_getDevic(c)->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
-	//      /* do not display private lines */
-	//      if (state !=SCCP_CHANNELSTATE_CONNECTED && (c->privacy || privacyStatus > 0) ){
-	//              sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "privacyStatus status is set, ignore remote devices\n");
-	//              return;
-	//      }
+	//if (sccp_channel_getDevic(c))
+	//	privacyStatus = sccp_channel_getDevic(c)->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+	///* do not display private lines */
+	//if (state !=SCCP_CHANNELSTATE_CONNECTED && (c->privacy || privacyStatus > 0) ){
+	//	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "privacyStatus status is set, ignore remote devices\n");
+	//	return;
+	//}
 
 	/* do not propagate status of hotline */
 	if (line == GLOB(hotline)->line) {

@@ -1,9 +1,9 @@
 
 /*!
- * \file        sccp_refcount.c
- * \brief       SCCP Refcount Class
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \file	sccp_refcount.c
+ * \brief	SCCP Refcount Class
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
  * 
  * $Date$
  * $Revision$  
@@ -32,7 +32,7 @@
  *
  * - Rule 4: When releasing an object the pointer we had toward the object should be nullified immediatly, either of these solutions is possible:
  *   \code
- *   d = sccp_device_release(d);                // sccp_release always returns NULL
+ *   d = sccp_device_release(d);		// sccp_release always returns NULL
  *   \endcode
  *   or 
  *   \code
@@ -40,8 +40,8 @@
  *   d = NULL;
  *   \endcode
  *   
- * - Rule 5: You <b><em>cannnot</em></b> use free a refcounted object. Destruction of the refcounted object and subsequent freeing of the occupied memory is performed by the sccp_release 
- *           when the number of reference reaches 0. To finalize the use of a refcounted object just release the object one final time, to negate the initial refcount of 1 during creation.
+ * - Rule 5: 	You <b><em>cannnot</em></b> use free a refcounted object. Destruction of the refcounted object and subsequent freeing of the occupied memory is performed by the sccp_release 
+ *   		when the number of reference reaches 0. To finalize the use of a refcounted object just release the object one final time, to negate the initial refcount of 1 during creation.
  * .
  * These rules need to followed to the letter !
  */
@@ -72,7 +72,7 @@ struct sccp_refcount_obj_info {
 	sccp_debug_category_t debugcat;
 } obj_info[] =
 {
-        /* *INDENT-OFF* */
+/* *INDENT-OFF* */
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},
 	[SCCP_REF_CHANNEL] = {NULL, "channel", DEBUGCAT_CHANNEL},
@@ -81,13 +81,13 @@ struct sccp_refcount_obj_info {
 	[SCCP_REF_TEST] = {NULL, "test", DEBUGCAT_HIGH},
 	[SCCP_REF_CONFERENCE] = {NULL, "conference", DEBUGCAT_CONFERENCE},
 	[SCCP_REF_PARTICIPANT] = {NULL, "participant", DEBUGCAT_CONFERENCE},
-        /* *INDENT-ON* */
+/* *INDENT-ON* */
 };
 
 #ifdef SCCP_ATOMIC
-#define        	obj_lock	NULL
+#define obj_lock NULL
 #else
-#define		obj_lock	&obj->lock
+#define	obj_lock &obj->lock
 #endif
 
 struct refcount_object {
@@ -123,8 +123,8 @@ void sccp_refcount_destroy(void)
 	pbx_log(LOG_NOTICE, "SCCP: (Refcount) destroying...\n");
 	runState = SCCP_REF_STOPPED;
 
-	sched_yield();				//make sure all other threads can finish their work first.
-	
+	sched_yield();												//make sure all other threads can finish their work first.
+
 	// cleanup if necessary, if everything is well, this should not be necessary
 	ast_rwlock_wrlock(&objectslock);
 	for (x = 0; x < SCCP_HASH_PRIME; x++) {
@@ -234,7 +234,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 			fprintf(refo, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
 			fclose(refo);
 		}
-		//                ast_assert(0);
+		// ast_assert(0);
 		return -1;
 	}
 	if (obj == NULL) {
@@ -244,7 +244,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 			fprintf(refo, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
 			fclose(refo);
 		}
-		//                ast_assert(0);
+		// ast_assert(0);
 		return -1;
 	}
 
@@ -255,7 +255,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 			fprintf(refo, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
 			fclose(refo);
 		}
-		//                ast_assert(0);
+		// ast_assert(0);
 		return -1;
 	}
 
@@ -286,7 +286,7 @@ static inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const ch
 
 	if (ptr == NULL) {
 		return NULL;
-        }
+	}
 
 	int hash = SCCP_SIMPLE_HASH(ptr);
 
@@ -316,7 +316,7 @@ static inline void sccp_refcount_remove_obj(const void *ptr)
 
 	if (ptr == NULL) {
 		return;
-        }
+	}
 
 	int hash = SCCP_SIMPLE_HASH(ptr);
 
@@ -334,18 +334,18 @@ static inline void sccp_refcount_remove_obj(const void *ptr)
 		SCCP_RWLIST_UNLOCK(&(objects[hash])->refCountedObjects);
 	}
 	if (obj) {
-		sched_yield();				// make sure all other threads can finish their work first.
-		                                        // should resolve lockless refcount SMP issues
-		                                        // BTW we are not allowed to sleep whilst haveing a reference
+		sched_yield();											// make sure all other threads can finish their work first.
+		// should resolve lockless refcount SMP issues
+		// BTW we are not allowed to sleep whilst haveing a reference
 		// fire destructor
 		if (obj && obj->data == ptr && SCCP_LIVE_MARKER != obj->alive) {
-                        sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_remove_obj) Destroying %p at hash: %d\n", obj, hash);
-                        if ((&obj_info[obj->type])->destructor) {
-                                (&obj_info[obj->type])->destructor(ptr);
-                        }
-                        memset(obj, 0, sizeof(RefCountedObject));
-                        sccp_free(obj);
-                        obj = NULL;
+			sccp_log((DEBUGCAT_REFCOUNT)) (VERBOSE_PREFIX_1 "SCCP: (sccp_refcount_remove_obj) Destroying %p at hash: %d\n", obj, hash);
+			if ((&obj_info[obj->type])->destructor) {
+				(&obj_info[obj->type])->destructor(ptr);
+			}
+			memset(obj, 0, sizeof(RefCountedObject));
+			sccp_free(obj);
+			obj = NULL;
 		}
 	}
 }

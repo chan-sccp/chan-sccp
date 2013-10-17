@@ -1,13 +1,12 @@
-
 /*!
- * \file        sccp_utils.c
- * \brief       SCCP Utils Class
- * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note                Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \file	sccp_utils.c
+ * \brief	SCCP Utils Class
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * 		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -142,7 +141,6 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 	if (channel) {
 		if (channel->owner) {
 			pbx_setstate(channel->owner, state);
-			//                      pbx_cond_wait(&channel->astStateCond, &channel->lock);
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set asterisk state %s (%d) for call %d\n", channel->currentDeviceId, pbx_state2str(state), state, channel->callid);
 		}
 	}
@@ -337,12 +335,12 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 	int all;
 	unsigned int x;
 
-	//      unsigned int y;
+	// unsigned int y;
 	int errors = 0;
 	char *parse = NULL, *this = NULL;
 	boolean_t found = FALSE;
 
-	//      boolean_t mapped = FALSE;
+	// boolean_t mapped = FALSE;
 	skinny_codec_t codec;
 
 	parse = sccp_strdupa(list);
@@ -634,7 +632,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			}
 			break;
 		case SCCP_FEATURE_DND:
-			//                      sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
+			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to %s\n", DEV_ID_LOG(device), device->dndFeature.status ? "on" : "off");
 			if (device->dndFeature.previousStatus != device->dndFeature.status) {
 				if (!device->dndFeature.status) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: change dnd to off\n", DEV_ID_LOG(device));

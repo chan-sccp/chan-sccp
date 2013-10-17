@@ -1,10 +1,10 @@
 /*!
- * \file        sccp_protocol.c
- * \brief       SCCP Protocol implementation.
- * This file does the protocol implementation only. It should not be used as a controller.
- * \author      Marcello Ceschia <marcello.ceschia [at] users.sourceforge.net>
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \file	sccp_protocol.c
+ * \brief	SCCP Protocol implementation.
+ * 		This file does the protocol implementation only. It should not be used as a controller.
+ * \author	Marcello Ceschia <marcello.ceschia [at] users.sourceforge.net>
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -590,13 +590,13 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device
 	msg->data.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
 	msg->data.OpenReceiveChannel.v17.lel_unknown17 = htolel(4000);
 
-	//      if (channel->rtp.audio.phone_remote.sin_family = AF_INET)
+	//if (channel->rtp.audio.phone_remote.sin_family = AF_INET)
 	msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(0);
 	memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &them->sin_addr, 4);
-	//      } else {
-	//              msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(1);
-	//              memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &them->sin_addr, 16);
-	//      }
+	//} else {
+	//	msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(1);
+	//	memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &them->sin_addr, 16);
+	//}
 
 	sccp_dev_send(device, msg);
 }
@@ -614,9 +614,9 @@ static void sccp_protocol_sendOpenMultiMediaChannelV3(const sccp_device_t * devi
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_lineInstance = htolel(lineInstance);
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_callReference = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v3.lel_payloadType = htolel(payloadType);
-	//      msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormatCount           = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormat[0].format      = htolel(4);
-	//      msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormat[0].mpi         = htolel(30);
+	//msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormatCount = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormat[0].format = htolel(4);
+	//msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.pictureFormat[0].mpi = htolel(30);
 	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.profile = htolel(64);
 	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.level = htolel(50);
 	msg->data.OpenMultiMediaChannelMessage.v3.videoParameter.macroblockspersec = htolel(40500);
@@ -644,7 +644,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(const sccp_device_t * dev
 	msg->data.OpenMultiMediaChannelMessage.v17.lel_payloadType = htolel(payloadType);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.confServiceNum = htolel(channel->callid);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.bitRate = htolel(bitRate);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormatCount       = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormatCount       = htolel(0);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].format = htolel(4);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.profile = htolel(64);
@@ -653,14 +653,14 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(const sccp_device_t * dev
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.macroblocksperframe = htolel(1620);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.decpicbuf = htolel(8100);
 	msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.brandcpb = htolel(10000);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy1                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy2                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy3                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy4                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy5                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy6                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy7                   = htolel(0);
-	//      msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy8                   = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy1 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy2 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy3 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy4 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy5 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy6 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy7 = htolel(0);
+	//msg->data.OpenMultiMediaChannelMessage.v17.videoParameter.dummy8 = htolel(0);
 
 	sccp_dev_send(device, msg);
 }
@@ -706,13 +706,13 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 	msg->data.StartMediaTransmission.v17.lel_maxFramesPerPacket = htolel(0);
 	msg->data.StartMediaTransmission.v17.lel_rtptimeout = htolel(10);
 	msg->data.StartMediaTransmission.v17.lel_remotePortNumber = htolel(ntohs(channel->rtp.audio.phone_remote.sin_port));
-	//      if (channel->rtp.audio.phone_remote.sin_family = AF_INET)
+	//if (channel->rtp.audio.phone_remote.sin_family = AF_INET)
 	msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(0);
 	memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &channel->rtp.audio.phone_remote.sin_addr, 4);
-	//      } else {
-	//              msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(1);
-	//              memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &channel->rtp.audio.phone_remote.sin_addr, 16);
-	//      }
+	//} else {
+	//	msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(1);
+	//	memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &channel->rtp.audio.phone_remote.sin_addr, 16);
+	//}
 
 	sccp_dev_send(device, msg);
 }
@@ -731,9 +731,9 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV3(const sccp_device_t 
 	msg->data.StartMultiMediaTransmission.v3.lel_payloadType = htolel(payloadType);
 	msg->data.StartMultiMediaTransmission.v3.lel_DSCPValue = htolel(136);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.bitRate = htolel(bitRate);
-	//      msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormatCount            = htolel(0);
-	//      msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].format       = htolel(4);
-	//      msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].mpi          = htolel(30);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormatCount = htolel(0);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].format = htolel(4);
+	//msg->data.StartMultiMediaTransmission.v3.videoParameter.pictureFormat[0].mpi = htolel(30);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.profile = htolel(0x40);
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.level = htolel(0x32);				/* has to be >= 15 to work with 7985 */
 	msg->data.StartMultiMediaTransmission.v3.videoParameter.macroblockspersec = htolel(40500);
@@ -762,9 +762,9 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 	msg->data.StartMultiMediaTransmission.v17.lel_DSCPValue = htolel(136);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.confServiceNum = htolel(channel->callid);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.bitRate = htolel(bitRate);
-	//      msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormatCount        = htolel(1);
-	//      msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].format   = htolel(4);
-	//      msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].mpi      = htolel(1);
+	//msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormatCount = htolel(1);
+	//msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].format = htolel(4);
+	//msg->data.StartMultiMediaTransmission.v17.videoParameter.pictureFormat[0].mpi = htolel(1);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.profile = htolel(64);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.level = htolel(50);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.macroblockspersec = htolel(40500);
@@ -779,15 +779,15 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy6 = htolel(6);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy7 = htolel(7);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy8 = htolel(8);
-	//      if (channel->rtp.audio.phone_remote.sin_family = AF_INET)
+	//if (channel->rtp.audio.phone_remote.sin_family = AF_INET)
 	msg->data.StartMultiMediaTransmission.v17.lel_ipv46 = htolel(0);
 	msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
 	memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 4);
-	//      } else {
-	//              msg->data.StartMultiMediaTransmission.v17.lel_ipv46 = htolel(1);
-	//              msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
-	//              memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 16);
-	//      }
+	//} else {
+	//	msg->data.StartMultiMediaTransmission.v17.lel_ipv46 = htolel(1);
+	//	msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel(ntohs(sin.sin_port));
+	//	memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &channel->rtp.video.phone_remote.sin_addr, 16);
+	//}
 
 	sccp_dev_send(device, msg);
 }
