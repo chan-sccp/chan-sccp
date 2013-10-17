@@ -1,14 +1,14 @@
 
 /*!
- * \file        sccp_hint.c
- * \brief       SCCP Hint Class
- * \author      Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \note                For more information about how does hint update works, see \ref hint_update
- * \since       2009-01-16
- * \remarks     Purpose:        SCCP Hint
- *              When to use:    Does the business of hint status
+ * \file	sccp_hint.c
+ * \brief	SCCP Hint Class
+ * \author	Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
+ * \note	For more information about how does hint update works, see \ref hint_update
+ * \since	2009-01-16
+ * \remarks	Purpose:	SCCP Hint
+ * 		When to use:	Does the business of hint status
  *
  * $Date: 2011-01-04 17:29:12 +0100 (Tue, 04 Jan 2011) $
  * $Revision: 2215 $
@@ -172,9 +172,9 @@ void sccp_hint_module_start()
  * \brief stop hint-module
  *
  * \lock
- *      - lineStates
- *      - sccp_hint_subscriptions
- *        - hint->subscribers
+ *  - lineStates
+ *  - sccp_hint_subscriptions
+ *    - hint->subscribers
  */
 void sccp_hint_module_stop()
 {
@@ -256,7 +256,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 	char hintStr[AST_MAX_EXTENSION];
 	const char *cidName;
 
-	//      const char *cidNumber;
+	//const char *cidNumber;
 
 	hint = (sccp_hint_list_t *) data;
 	ast_get_hint(hintStr, sizeof(hintStr), NULL, 0, NULL, hint->context, hint->exten);
@@ -268,7 +268,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 #endif
 
 	cidName = hint->callInfo.partyName;
-	//      cidNumber       = hint->callInfo.partyNumber;
+	//cidNumber = hint->callInfo.partyNumber;
 
 	/* save previousState */
 	hint->previousState = hint->currentState;
@@ -317,9 +317,9 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
  * \param event SCCP Event
  * 
  * \lock
- *      - device
- *        - see sccp_hint_deviceRegistered()
- *        - see sccp_hint_deviceUnRegistered()
+ *  - device
+ *    - see sccp_hint_deviceRegistered()
+ *    - see sccp_hint_deviceUnRegistered()
  */
 void sccp_hint_eventListener(const sccp_event_t * event)
 {
@@ -370,10 +370,10 @@ void sccp_hint_eventListener(const sccp_event_t * event)
  * \brief Handle Hints for Device Register
  * \param device SCCP Device
  * 
- * \note        device locked by parent
+ * \note device locked by parent
  * 
  * \warning
- *      - device->buttonconfig is not always locked
+ *  - device->buttonconfig is not always locked
  */
 static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 {
@@ -400,11 +400,11 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
  * \brief Handle Hints for Device UnRegister
  * \param deviceName Device as Char
  *
- * \note        device locked by parent
+ * \note device locked by parent
  *
  * \lock
- *      - device->buttonconfig
- *        - see sccp_hint_unSubscribeHint()
+ *  - device->buttonconfig
+ *    - see sccp_hint_unSubscribeHint()
  */
 static void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
@@ -438,10 +438,10 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
  * \param positionOnDevice button index on device (used to detect devicetype)
  * 
  * \warning
- *      - sccp_hint_subscriptions is not always locked
+ *  - sccp_hint_subscriptions is not always locked
  * 
  * \lock
- *      - sccp_hint_subscriptions
+ *  - sccp_hint_subscriptions
  *
  * \note called with retained device
  */
@@ -578,8 +578,8 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 /* ========================================================================================================================= Event Handlers : LineState */
 /*!
  * \brief Handle line status change
- * \param line          SCCP Line that was changed
- * \param device        SCCP Device who initialied the change
+ * \param line SCCP Line that was changed
+ * \param device SCCP Device who initialied the change
  * 
  */
 static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * device)
@@ -694,8 +694,8 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
 		} else if (SCCP_LIST_GETSIZE(&line->channels) > 1) {
 
 			/** we have multiple channels, so do not set cid information */
-			//                      sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyName));
-			//                      sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyNumber));
+			//sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyName));
+			//sccp_copy_string(lineState->callInfo.partyNumber, SKINNY_DISP_IN_USE_REMOTE, sizeof(lineState->callInfo.partyNumber));
 			lineState->state = SCCP_CHANNELSTATE_CONNECTED;
 		}
 	} else {
@@ -711,8 +711,8 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
  * \param lineState SCCP LineState
  * 
  * \lock
- *      - hint
- *        - see sccp_line_find_byname()
+ *  - hint
+ *    - see sccp_line_find_byname()
  */
 void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
 {
@@ -722,7 +722,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 	sccp_linedevices_t *lineDevice = NULL;
 	uint8_t state;
 
-	//      boolean_t dev_privacy = FALSE;
+	//boolean_t dev_privacy = FALSE;
 
 	/** clear cid information */
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
@@ -744,7 +744,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;
 				}
-				//                              dev_privacy = device->privacyFeature.enabled;
+				//dev_privacy = device->privacyFeature.enabled;
 				device = device ? sccp_device_release(device) : NULL;
 			}
 			lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
@@ -779,7 +779,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 			case SCCP_CHANNELSTATE_CALLPARK:
 			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			case SCCP_CHANNELSTATE_INVALIDNUMBER:
-				//                              if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
+				//if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 
 				/** set cid name/number information according to the call direction */
 				switch (channel->calltype) {
@@ -799,7 +799,6 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
 						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
 						break;
 				}
-				//                              }
 				break;
 		}
 
@@ -822,7 +821,7 @@ void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineStat
  * \param event SCCP Event
  * 
  * \warning
- *      - device->buttonconfig is not always locked
+ *  - device->buttonconfig is not always locked
  */
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 {
@@ -933,7 +932,7 @@ void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
-	//      if (hint && lineState->state == hint->currentState) {
+	// if (hint && lineState->state == hint->currentState) {
 	if (hint && newDeviceState == oldDeviceState) {
 		sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about changes e.g. cid update */
 	} else {
@@ -1170,7 +1169,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 	sccp_linedevices_t *lineDevice;
 	sccp_line_t *line = lineState->line;
 
-	//      if (SCCP_LIST_GETSIZE(&line->devices) > 1) 
+	//if (SCCP_LIST_GETSIZE(&line->devices) > 1) 
 	{
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
@@ -1188,17 +1187,16 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
 	}
-	//      else {
-	//              SCCP_LIST_LOCK(&line->devices);
-	//              sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
-	// 
-	//              if (lineDevice && lineDevice->device) {
-	//                      if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-	//                              lineState->state = SCCP_CHANNELSTATE_DND;
-	//                      }
-	//              }
-	//              SCCP_LIST_UNLOCK(&line->devices);
-	//      }
+	//else {
+	//	SCCP_LIST_LOCK(&line->devices);
+	//	sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
+	//	if (lineDevice && lineDevice->device) {
+	//		if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
+	//			lineState->state = SCCP_CHANNELSTATE_DND;
+	//		}
+	//	}
+	//	SCCP_LIST_UNLOCK(&line->devices);
+	//}
 
 	if (lineState->state == SCCP_CHANNELSTATE_DND) {
 		sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));

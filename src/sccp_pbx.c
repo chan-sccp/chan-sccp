@@ -1,16 +1,16 @@
 
 /*!
  * \file	sccp_pbx.c
- * \brief       SCCP PBX Asterisk Wrapper Class
- * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \brief	SCCP PBX Asterisk Wrapper Class
+ * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
  * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * 		Modified by Jan Czmok and Julien Goodwin
  * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * 		See the LICENSE file at the top of the source tree.
  *
  * $Date$
- * $Revision$  
+ * $Revision$
  */
 #ifndef __PBX_IMPL_C
 #define __PBX_IMPL_C
@@ -91,9 +91,9 @@ FINAL:
 
 /*!
  * \brief Incoming Calls by Asterisk SCCP_Request
- * \param c             SCCP Channel
- * \param dest          Destination as char
- * \param timeout       Timeout after which incoming call is cancelled as int
+ * \param c SCCP Channel
+ * \param dest Destination as char
+ * \param timeout Timeout after which incoming call is cancelled as int
  * \return Success as int
  *
  * \todo reimplement DNDMODES, ringermode=urgent, autoanswer
@@ -104,16 +104,16 @@ FINAL:
  * \called_from_asterisk
  * 
  * \lock
- *      - line
- *        - line->devices
- *      - line
- *      - line->devices
- *        - see sccp_device_sendcallstate()
- *        - see sccp_channel_send_callinfo()
- *        - see sccp_channel_forward()
- *        - see sccp_util_matchSubscriptionId()
- *        - see sccp_channel_get_active()
- *        - see sccp_indicate_lock()
+ *   - line
+ *     - line->devices
+ *   - line
+ *   - line->devices
+ *     - see sccp_device_sendcallstate()
+ *     - see sccp_channel_send_callinfo()
+ *     - see sccp_channel_forward()
+ *     - see sccp_util_matchSubscriptionId()
+ *     - see sccp_channel_get_active()
+ *     - see sccp_indicate_lock()
  * 
  * \note called with c retained
  */
@@ -314,12 +314,13 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		PBX(queue_control) (c->owner, AST_CONTROL_CONGESTION);
 	}
 
-        /* set linevariables */
-        PBX_VARIABLE_TYPE *v = ((l) ? l->variables : NULL);
-        while (c->owner && !pbx_check_hangup(c->owner) && l && v) {
-                pbx_builtin_setvar_helper(c->owner, v->name, v->value);
-                v = v->next;
-        }
+	/* set linevariables */
+	PBX_VARIABLE_TYPE *v = ((l) ? l->variables : NULL);
+
+	while (c->owner && !pbx_check_hangup(c->owner) && l && v) {
+		pbx_builtin_setvar_helper(c->owner, v->name, v->value);
+		v = v->next;
+	}
 
 	if (cid_name)
 		free(cid_name);
@@ -351,7 +352,6 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	/* here the ast channel is locked */
 	//sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to hangup channel %s\n", PBX(getChannelName)(c));
-
 	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)--;
 	sccp_mutex_unlock(&GLOB(usecnt_lock));
@@ -365,7 +365,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	d = sccp_channel_getDevice_retained(c);
 	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
-		//if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))           /* Caused active channels never to be full released */
+		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))		/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel) {
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		}
@@ -382,7 +382,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	}
 #endif														// CS_SCCP_CONFERENCE
 
-        sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+	sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 
 	// removing scheduled dialing
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
@@ -391,17 +391,18 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	/* end callforwards */
 	if (&l->channels) {
- 	        sccp_channel_t *channel = NULL;
-                SCCP_LIST_LOCK(&l->channels);
-                SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-                        if (channel->parentChannel == c) {
-                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
-                                /* No need to lock because c->line->channels is already locked. */
-                                sccp_channel_endcall(channel);
-                                channel->parentChannel = sccp_channel_release(channel->parentChannel);			// release from sccp_channel_forward_retain
-                        }
-                }
-                SCCP_LIST_UNLOCK(&l->channels);
+		sccp_channel_t *channel = NULL;
+
+		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
+			if (channel->parentChannel == c) {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
+				/* No need to lock because c->line->channels is already locked. */
+				sccp_channel_endcall(channel);
+				channel->parentChannel = sccp_channel_release(channel->parentChannel);		// release from sccp_channel_forward_retain
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->channels);
 	}
 	/* done - end callforwards */
 
@@ -409,18 +410,19 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	sccp_channel_transfer_cancel(d, c);
 
 	/* remove call from transferee, transferer */
-        sccp_linedevices_t *linedevice = NULL;
-	if (&l->devices) {
-                SCCP_LIST_LOCK(&l->devices);
-                SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-                        sccp_device_t *tmpDevice = NULL;
+	sccp_linedevices_t *linedevice = NULL;
 
-                        if ((tmpDevice = sccp_device_retain(linedevice->device))) {
-                                sccp_channel_transfer_release(tmpDevice, c);
-                                sccp_device_release(tmpDevice);
-                        }
-                }
-                SCCP_LIST_UNLOCK(&l->devices);
+	if (&l->devices) {
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			sccp_device_t *tmpDevice = NULL;
+
+			if ((tmpDevice = sccp_device_retain(linedevice->device))) {
+				sccp_channel_transfer_release(tmpDevice, c);
+				sccp_device_release(tmpDevice);
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
 	}
 	/* done - remove call from transferee, transferer */
 
@@ -431,32 +433,32 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 		/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
 
 		if (&l->devices) {
-                        SCCP_LIST_LOCK(&l->devices);
-                        SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-                                if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
-                                        d = sccp_device_retain(linedevice->device);
-                                        break;
-                                }
-                        }
-                        SCCP_LIST_UNLOCK(&l->devices);
+			SCCP_LIST_LOCK(&l->devices);
+			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+				if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
+					d = sccp_device_retain(linedevice->device);
+					break;
+				}
+			}
+			SCCP_LIST_UNLOCK(&l->devices);
 		}
 	} else {
 		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
-	//      else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
-	//              c->state = SCCP_CHANNELSTATE_DOWN;                                                              // device is reregistering
-	//      } else {
-	//              /* 
-	//               * Really neccessary?
-	//               * Test for 7910 (to remove the following line)
-	//               *  (-DD)
-	//               */
-	//              sccp_channel_send_callinfo(d, c);
-	//              sccp_pbx_needcheckringback(d);
-	//              sccp_dev_check_displayprompt(d);
-	//      }
+	//else if (SKINNY_DEVICE_RS_OK != d->registrationState) {
+	//	c->state = SCCP_CHANNELSTATE_DOWN;							// device is reregistering
+	//} else {
+	//	/* 
+	//	 * Really neccessary?
+	//	 * Test for 7910 (to remove the following line)
+	//	 *  (-DD)
+	//	 */
+	//	sccp_channel_send_callinfo(d, c);
+	//	sccp_pbx_needcheckringback(d);
+	//	sccp_dev_check_displayprompt(d);
+	//}
 
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 
@@ -479,7 +481,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
  * \param d SCCP Device
  * 
  * \lock
- *      - device->session
+ *   - device->session
  */
 void sccp_pbx_needcheckringback(sccp_device_t * d)
 {
@@ -551,7 +553,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(pbx_channel_state(br)));
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 #if ASTERISK_VERSION_GROUP > 106
-				//                              pbx_indicate(c->owner, AST_CONTROL_REDIRECTING);        // hangling should be implemented in pbx_impl like connectedline
+				//pbx_indicate(c->owner, AST_CONTROL_REDIRECTING);		// hangling should be implemented in pbx_impl like connectedline
 				pbx_indicate(br, AST_CONTROL_CONNECTED_LINE);
 #endif
 			} else {
@@ -620,11 +622,11 @@ int sccp_pbx_answer(sccp_channel_t * channel)
  * \callergraph
  * 
  * \lock
- *      - line->devices
- *      - channel
- *        - line
- *        - see sccp_channel_updateChannelCapability()
- *      - usecnt_lock
+ *  - line->devices
+ *  - channel
+ *    - line
+ *    - see sccp_channel_updateChannelCapability()
+ *  - usecnt_lock
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 {
@@ -652,7 +654,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 		sccp_channel_release(c);
 		return 0;
 	}
-	//      /* Don't hold a sccp pvt lock while we allocate a channel */
+	/* Don't hold a sccp pvt lock while we allocate a channel */
 	if ((d = sccp_channel_getDevice_retained(c))) {
 		sccp_linedevices_t *linedevice;
 
@@ -718,7 +720,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
 
 	/* This should definitely fix CDR */
-	//      tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
+	//tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 	PBX(alloc_pbxChannel) (c, &tmp, linkedId);
 	if (!tmp) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
@@ -755,7 +757,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
-	//      PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
+	//PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
 
 	// export sccp informations in asterisk dialplan
 	if (d) {
@@ -812,15 +814,15 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 
 	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM)
 #ifdef CS_SCCP_CONFERENCE
-	    && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)
+		&& (c->ss_action != SCCP_SS_GETCONFERENCEROOM)
 #endif
-	    ) {
+	) {
 
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
 		if ((d = sccp_channel_getDevice_retained(c))) {
 			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))
-			    && ((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
+				&& ((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches More\n", c->dialedNumber);
 				d = sccp_device_release(d);
 				return SCCP_EXTENSION_MATCHMORE;
@@ -840,22 +842,22 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
  * \todo clarify Soft Switch Function
  *
  * \lock
- *      - channel
- *        - see sccp_pbx_senddigits()
- *        - see sccp_channel_set_calledparty()
- *        - see sccp_indicate_nolock()
- *      - channel
- *        - see sccp_line_cfwd()
- *        - see sccp_indicate_nolock()
- *        - see sccp_device_sendcallstate()
- *        - see sccp_channel_send_callinfo()
- *        - see sccp_dev_clearprompt()
- *        - see sccp_dev_displayprompt()
- *        - see sccp_feat_meetme_start()
- *        - see PBX(set_callstate)()
- *        - see pbx_pbx_start()
- *        - see sccp_indicate_nolock()
- *        - see manager_event()
+ *   - channel
+ *     - see sccp_pbx_senddigits()
+ *     - see sccp_channel_set_calledparty()
+ *     - see sccp_indicate_nolock()
+ *   - channel
+ *     - see sccp_line_cfwd()
+ *     - see sccp_indicate_nolock()
+ *     - see sccp_device_sendcallstate()
+ *     - see sccp_channel_send_callinfo()
+ *     - see sccp_dev_clearprompt()
+ *     - see sccp_dev_displayprompt()
+ *     - see sccp_feat_meetme_start()
+ *     - see PBX(set_callstate)()
+ *     - see pbx_pbx_start()
+ *     - see sccp_indicate_nolock()
+ *     - see manager_event()
  */
 void *sccp_pbx_softswitch(sccp_channel_t * channel)
 {
@@ -883,10 +885,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		if (!sccp_strlen_zero(c->dialedNumber)) {
 			sccp_pbx_senddigits(c, c->dialedNumber);
 			sccp_channel_set_calledparty(c, "", c->dialedNumber);
-// 			if ((d = sccp_channel_getDevice_retained(c))) {
-// 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
-// 				d = sccp_device_release(d);
-// 			}
+			//if ((d = sccp_channel_getDevice_retained(c))) {
+			//	sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
+			//	d = sccp_device_release(d);
+			//}
 		}
 		goto EXIT_FUNC;
 	}
@@ -1062,7 +1064,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			goto EXIT_FUNC;										// leave simpleswitch without dial
 		case SCCP_SS_DIAL:
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension\n", d->id);
-			
+
 			sccp_copy_string(c->callInfo.calledPartyNumber, shortenedNumber, sizeof(c->callInfo.calledPartyNumber));
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 			break;
@@ -1109,7 +1111,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
 	sccp_channel_set_calledparty(c, "", shortenedNumber);
 
-	
 	/* proceed call state is needed to display the called number.
 	   The phone will not display callinfo in offhook state */
 	sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
@@ -1122,7 +1123,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	int extension_exists = SCCP_EXTENSION_NOTEXISTS;
 
 	if (!sccp_strlen_zero(shortenedNumber) && (pbx_channel && !pbx_check_hangup(pbx_channel))
-	    /*              && (extension_exists = pbx_exists_extension(pbx_channel, pbx_channel_context(pbx_channel), shortenedNumber, 1, l->cid_num)) */
+	/*  && (extension_exists = pbx_exists_extension(pbx_channel, pbx_channel_context(pbx_channel), shortenedNumber, 1, l->cid_num)) */
 	    && ((extension_exists = PBX(extension_status(c)) != SCCP_EXTENSION_NOTEXISTS))
 	    ) {
 		/* found an extension, let's dial it */
@@ -1248,21 +1249,4 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 	return res;
 }
 
-/**
- * \brief Get Peer Codec Capabilies
- * \param channel 	SCCP Channel
- * \param capabilities 	Codec Capabilities
- *
- * \note Variable capabilities will be malloced by function, caller must destroy this later
- */
-
-/*
-   int sccp_pbx_getPeerCodecCapabilities(sccp_channel_t * channel, void **capabilities)
-   {
-   //   sccp_channel_t *peer;
-
-   PBX(getPeerCodecCapabilities) (channel, capabilities);
-   return 1;
-   }
- */
 #endif

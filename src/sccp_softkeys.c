@@ -1,13 +1,13 @@
 
 /*!
- * \file        sccp_softkeys.c
- * \brief       SCCP SoftKeys Class
- * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note                Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \file	sccp_softkeys.c
+ * \brief	SCCP SoftKeys Class
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * 		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -45,19 +45,6 @@ struct softKeySetConfigList softKeySetConfig;									/*!< List of SoftKeySets *
  */
 void sccp_softkey_pre_reload(void)
 {
-	//      sccp_softKeySetConfiguration_t *k;
-	//      uint8_t i;
-	//      
-	//      SCCP_LIST_LOCK(&softKeySetConfig);
-	//      while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
-	//              sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Setting SoftkeySetConfig to Pending Delete=1\n");
-	//              for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
-	//                      if(k->modes[i].ptr)
-	//                              sccp_free(k->modes[i].ptr);
-	//              }
-	//              sccp_free(k);
-	//      }
-	//      SCCP_LIST_UNLOCK(&softKeySetConfig);
 }
 
 /*!
@@ -65,7 +52,6 @@ void sccp_softkey_pre_reload(void)
  */
 void sccp_softkey_post_reload(void)
 {
-
 }
 
 void sccp_softkey_clear()
@@ -268,19 +254,19 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		/* here's a KEYMODE error. nothing to do */
 		return;
 	} else {
-                if (l) {
-                        line = sccp_line_retain(l);
-                } else {
-                        line = sccp_dev_get_activeline(d);
-                }
-                if (line) {
-                        if ((c = sccp_channel_newcall(line, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL))) {
-                                sccp_channel_release(c);
-                        }
-                        line = sccp_line_release(line);
-                } else {
-                        sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
-                }
+		if (l) {
+			line = sccp_line_retain(l);
+		} else {
+			line = sccp_dev_get_activeline(d);
+		}
+		if (line) {
+			if ((c = sccp_channel_newcall(line, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL))) {
+				sccp_channel_release(c);
+			}
+			line = sccp_line_release(line);
+		} else {
+			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
+		}
 	}
 }
 
@@ -399,8 +385,8 @@ void sccp_sk_resume(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
  * \lock
  *      - device->selectedChannels
  *      - device->buttonconfig
- *        - see sccp_line_find_byname()
- *        - line->channels
+ *	  - see sccp_line_find_byname()
+ *	  - line->channels
  */
 void sccp_sk_transfer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -608,12 +594,10 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		} else if (SCCP_RWLIST_GETSIZE(&l->channels) < 2) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "Not enough calls to trnsf", 5);
-			//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: More than 2 channels to transfer, please use softkey select\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "More than 2 calls, use " SKINNY_DISP_SELECT, 5);
-			//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
 		}
 	}
@@ -860,8 +844,8 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	}
 
 	c->privacy = (c->privacy) ? FALSE : TRUE;
-	//      d->privacyFeature.status = c->privacy;          // should not be activeted on softkey
-	//      sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
+	//d->privacyFeature.status = c->privacy;          // should not be activeted on softkey
+	//sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
 		c->callInfo.presentation = 0;

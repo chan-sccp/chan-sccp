@@ -1,13 +1,13 @@
 
 /*!
- * \file        sccp_socket.c
- * \brief       SCCP Socket Class
- * \author      Sergio Chersovani <mlists [at] c-net.it>
- * \note                Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \file	sccp_socket.c
+ * \brief	SCCP Socket Class
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \note	Reworked, but based on chan_sccp code.
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * 		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * 		See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -141,7 +141,7 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
  * \param s SCCP Session
  *
  * \lock
- *      - session
+ *    - session
  */
 static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 {
@@ -218,7 +218,7 @@ READ_ERROR:
  * \return boolean
  * 
  * \lock
- *      - session
+ *    - session
  */
 static boolean_t sccp_session_findBySession(sccp_session_t * s)
 {
@@ -242,7 +242,7 @@ static boolean_t sccp_session_findBySession(sccp_session_t * s)
  * \return boolean
  * 
  * \lock
- *      - session
+ *    - session
  */
 static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
 {
@@ -265,7 +265,7 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
  * \return boolean
  * 
  * \lock
- *      - sessions
+ *    - sessions
  */
 static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 {
@@ -338,8 +338,8 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
  * \callergraph
  *
  * \lock
- *      - see sccp_hint_eventListener() via sccp_event_fire()
- *      - session
+ *    - see sccp_hint_eventListener() via sccp_event_fire()
+ *    - session
  */
 void sccp_session_close(sccp_session_t * s)
 {
@@ -363,8 +363,8 @@ void sccp_session_close(sccp_session_t * s)
  * \callergraph
  *
  * \lock
- *      - sessions
- *      - device
+ *    - sessions
+ *    - device
  */
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
@@ -525,7 +525,7 @@ void *sccp_socket_device_thread(void *session)
  * \brief Socket Accept Connection
  *
  * \lock
- *      - sessions
+ *    - sessions
  */
 static void sccp_accept_connection(void)
 {
@@ -544,9 +544,6 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
 		return;
 	}
-	//      if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-	//              pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-	//      }
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
 	}
@@ -621,16 +618,16 @@ static void sccp_accept_connection(void)
  * \param ignore None
  *
  * \lock
- *      - sessions
- *        - globals
- *          - see sccp_device_check_update()
- *        - see sccp_socket_poll()
- *        - see sccp_session_close()
- *        - see destroy_session()
- *        - see sccp_read_data()
- *        - see sccp_process_data()
- *        - see sccp_handle_message()
- *        - see sccp_device_sendReset()
+ *    - sessions
+ *      - globals
+ *        - see sccp_device_check_update()
+ *      - see sccp_socket_poll()
+ *      - see sccp_session_close()
+ *      - see destroy_session()
+ *      - see sccp_read_data()
+ *      - see sccp_process_data()
+ *      - see sccp_handle_message()
+ *      - see sccp_device_sendReset()
  */
 void *sccp_socket_thread(void *ignore)
 {
@@ -714,7 +711,7 @@ int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
  * \return Result as Int
  *
  * \lock
- *      - session
+ *    - session
  */
 int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 {
@@ -789,7 +786,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
  * \return SCCP Session
  *
  * \lock
- *      - sessions
+ *    - sessions
  */
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device)
 {
