@@ -171,7 +171,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correcttion because we count messageId as part of the header */
 	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
 	while (bytesToRead >0) {
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 //		readlen = read(s->fds[0].fd, &msg->data + bytesReadSoFar, bytesToRead);				/* msg->data pointer is advanced by read automatically. This will lead to Bad Address faults */
 		readlen = read(s->fds[0].fd, &msg->data, bytesToRead);						
 		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}				/* try again, blocking */
@@ -182,7 +182,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	UnreadBytesAccordingToPacket -= bytesReadSoFar;
 	// msg->header.length = bytesReadSoFar + 4;								/* Should we correct the header->length, to the length of our struct, which we know we can handle ?? */
 	
-	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 	
 	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
 	if (UnreadBytesAccordingToPacket > 0) { 								/* checking to prevent unneeded allocation of discardBuffer */
@@ -464,7 +464,7 @@ void *sccp_socket_device_thread(void *session)
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
 		pollTimeout = maxWaitTime * 1000;
 
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
 
 		pthread_testcancel();										/* poll is also a cancellation point */
 		res = sccp_socket_poll(s->fds, 1, pollTimeout);
@@ -477,7 +477,7 @@ void *sccp_socket_device_thread(void *session)
 				break;
 			}
 		} else if (0 == res) {										/* poll timeout */
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
+			sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
 			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
 				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout);
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
@@ -486,7 +486,7 @@ void *sccp_socket_device_thread(void *session)
 		} else if (res > 0) {										/* poll data processing */
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
+				sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				//while (sccp_read_data(s, &r)) {						/* according to poll specification we should empty out the read buffer completely.*/
 														/* but that would give us trouble with timeout */
 				if (sccp_read_data(s, &msg) && msg.header.length >= 4) {
@@ -510,7 +510,7 @@ void *sccp_socket_device_thread(void *session)
 				break;
 			}
 		} else {											/* poll returned invalid res */
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
+			sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
@@ -607,7 +607,7 @@ static void sccp_accept_connection(void)
 
 	pbx_pthread_create(&s->session_thread, &attr, sccp_socket_device_thread, s);
 	if (!pthread_attr_getstacksize(&attr, &stacksize)) {
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int) stacksize);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Using %d memory for this thread\n", (int) stacksize);
 	}
 	sccp_session_unlock(s);
 }
@@ -727,7 +727,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 	}
 
 	if (!s || s->fds[0].fd <= 0) {
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Tried to send packet over DOWN device.\n");
 		if (s) {
 			sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 		}
