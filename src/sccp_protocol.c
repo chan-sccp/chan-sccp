@@ -89,7 +89,7 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 	msg->data.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_CHANNEL | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", calltype2str(channel->calltype), channel->callid, instance, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send callinfo for %s channel %d on line instance %d" "\n\tcallerid: %s" "\n\tcallerName: %s\n", (device) ? device->id : "(null)", calltype2str(channel->calltype), channel->callid, instance, channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName);
 }
 
 /*!
@@ -157,7 +157,7 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 		int pos = 0;
 
 		for (i = 0; i < ARRAY_LEN(data); i++) {
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -239,7 +239,7 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 		int pos = 0;
 
 		for (i = 0; i < ARRAY_LEN(data); i++) {
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -273,7 +273,7 @@ static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const
 	msg->data.DialedNumberMessage.lel_callRef = htolel(channel->callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, calltype2str(channel->calltype), channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, calltype2str(channel->calltype), channel->callid);
 }
 
 /*!
@@ -296,7 +296,7 @@ static void sccp_protocol_sendDialedNumberV19(const sccp_device_t * device, cons
 	msg->data.DialedNumberMessageV19.lel_callRef = htolel(channel->callid);
 
 	sccp_dev_send(device, msg);
-	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, calltype2str(channel->calltype), channel->callid);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, calltype2str(channel->calltype), channel->callid);
 }
 
 /* done - DialedNumber Message */
@@ -317,7 +317,7 @@ static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, 
 	sccp_copy_string(msg->data.DisplayPromptStatusMessage.promptMessage, message, sizeof(msg->data.DisplayPromptStatusMessage.promptMessage));
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", device->id, lineInstance, callid, timeout);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", device->id, lineInstance, callid, timeout);
 }
 
 /*!
@@ -339,7 +339,7 @@ static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device,
 	memcpy(&msg->data.DisplayDynamicPromptStatusMessage.dummy, message, msg_len);
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", device->id, lineInstance, callid, timeout);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display prompt on line %d, callid %d, timeout %d\n", device->id, lineInstance, callid, timeout);
 }
 
 /* done - display prompt */
@@ -358,7 +358,7 @@ static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t * device, 
 	sccp_copy_string(msg->data.DisplayNotifyMessage.displayMessage, message, sizeof(msg->data.DisplayNotifyMessage.displayMessage));
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
 /*!
@@ -379,7 +379,7 @@ static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device,
 	memcpy(&msg->data.DisplayDynamicNotifyMessage.dummy, message, msg_len);
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
 /* done - display notify */
@@ -399,7 +399,7 @@ static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t * devic
 	sccp_copy_string(msg->data.DisplayPriNotifyMessage.displayMessage, message, sizeof(msg->data.DisplayPriNotifyMessage.displayMessage));
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
 /*!
@@ -420,7 +420,7 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t * devi
 	memcpy(&msg->data.DisplayDynamicPriNotifyMessage.dummy, message, msg_len);
 
 	sccp_dev_send(device, msg);
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Display notify timeout %d\n", device->id, timeout);
 }
 
 /* done - display notify */
@@ -837,9 +837,9 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 			memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
 		}
 		sccp_dev_send(device, msg);
-		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	} else {
-		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d). Skipping !\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d). Skipping !\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	}
 }
 
@@ -1110,24 +1110,24 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t
 	size_t protocolArraySize;
 	uint8_t returnProtocol;
 
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol version %d\n", version);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol version %d\n", version);
 
 	if (type == SCCP_PROTOCOL) {
 		protocolArraySize = ARRAY_LEN(sccpProtocolDefinition);
 		protocolDef = sccpProtocolDefinition;
 		returnProtocol = 3;										// setting minimally returned protocol
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SCCP\n");
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SCCP\n");
 	} else {
 		protocolArraySize = ARRAY_LEN(spcpProtocolDefinition);
 		protocolDef = spcpProtocolDefinition;
 		returnProtocol = 0;
-		sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SPCP\n");
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: searching for our capability for device protocol SPCP\n");
 	}
 
 	for (i = (protocolArraySize - 1); i > 0; i--) {
 
 		if (protocolDef[i] != NULL && version >= protocolDef[i]->version) {
-			sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: found protocol version '%d' at %d\n", protocolDef[i]->name, protocolDef[i]->version, i);
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: found protocol version '%d' at %d\n", protocolDef[i]->name, protocolDef[i]->version, i);
 			returnProtocol = i;
 			break;
 		}

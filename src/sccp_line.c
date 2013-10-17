@@ -49,7 +49,7 @@ void sccp_line_pre_reload(void)
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (GLOB(hotline)->line == l) {									/* always remove hotline from linedevice */
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
-				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", linedevice->device->id);
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Removing Hotline from Device\n", linedevice->device->id);
 				linedevice->device->isAnonymous = FALSE;
 				sccp_line_removeDevice(linedevice->line, linedevice->device);
 			}
@@ -59,7 +59,7 @@ void sccp_line_pre_reload(void)
 			if (l->realtime == FALSE)
 #endif
 			{
-				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Setting Line to Pending Delete=1\n", l->name);
 				l->pendingDelete = 1;
 			}
 		}
@@ -100,10 +100,10 @@ void sccp_line_post_reload(void)
 			SCCP_LIST_UNLOCK(&l->devices);
 
 			if (l->pendingDelete) {
-				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);
 				sccp_line_clean(l, TRUE);
 			} else {
-				sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cleaning Line (post_reload)\n", l->name);
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cleaning Line (post_reload)\n", l->name);
 				sccp_line_clean(l, FALSE);
 			}
 			l = sccp_line_release(l);
@@ -336,7 +336,7 @@ int __sccp_line_destroy(const void *ptr)
 {
 	sccp_line_t *l = (sccp_line_t *) ptr;
 
-	sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 
 	sccp_mutex_lock(&l->lock);
 
@@ -406,7 +406,7 @@ int __sccp_lineDevice_destroy(const void *ptr)
 {
 	sccp_linedevices_t *linedevice = (sccp_linedevices_t *) ptr;
 
-	sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: LineDevice FREE %p\n", DEV_ID_LOG(linedevice->device), linedevice);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: LineDevice FREE %p\n", DEV_ID_LOG(linedevice->device), linedevice);
 	if (linedevice->line)
 		linedevice->line = sccp_line_release(linedevice->line);
 	if (linedevice->device)
@@ -492,7 +492,7 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 						linedevice->cfwdAll.enabled = 0;
 						linedevice->cfwdBusy.enabled = 0;
 				}
-				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), line->name, number);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), line->name, number);
 			}
 		}
 		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
@@ -529,7 +529,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	}
 
 	if ((linedevice = sccp_linedevice_find(device, l))) {
-		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
 		sccp_linedevice_release(linedevice);
 		// early exit
 		return;
@@ -545,7 +545,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 		device = sccp_device_release(device);
 		return;
 	}
-	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
+	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
 
@@ -629,7 +629,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	sccp_event_fire(&event);
 
 	regcontext_exten(l, &(linedevice->subscriptionId), 1);
-	sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
+	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
 	l = sccp_line_release(l);
 	device = sccp_device_release(device);
 }
@@ -657,7 +657,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 	if (!l) {
 		return;
 	}
-	sccp_log((DEBUGCAT_HIGH + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
+	sccp_log_and((DEBUGCAT_HIGH + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: remove device from line %s\n", DEV_ID_LOG(device), l->name);
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
@@ -785,7 +785,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				/* register */
 
 				if (!pbx_exists_extension(NULL, context, ext, 1, NULL) && pbx_add_extension(context, 0, ext, 1, NULL, NULL, "Noop", sccp_strdup(l->name), sccp_free_ptr, "SCCP")) {
-					sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
+					sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, ext, l->name);
 				}
 
 				/* register extension + subscriptionId */
@@ -793,7 +793,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				   snprintf(extension, sizeof(extension), "%s@%s", ext, subscriptionId->number);
 				   snprintf(name, sizeof(name), "%s%s", l->name, subscriptionId->name);
 				   if (!pbx_exists_extension(NULL, context, extension, 2, NULL) && pbx_add_extension(context, 0, extension, 2, NULL, NULL, "Noop", sccp_strdup(name), sccp_free_ptr, "SCCP")) {
-				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
+				   sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Registered RegContext: %s, Extension: %s, Line: %s\n", context, extension, name);
 				   }
 				   } */
 			} else {
@@ -802,7 +802,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				if (SCCP_LIST_GETSIZE(&l->devices) == 1) {							// only remove entry if it is the last one (shared line)
 					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
-						sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
+						sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
 					}
 				}
 
@@ -812,7 +812,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				   // if (pbx_exists_extension(NULL, context, extension, 2, NULL)) {
 				   if (pbx_find_extension(NULL, NULL, &q, context, extension, 2, NULL, "", E_MATCH)) {
 				   ast_context_remove_extension(context, extension, 2, NULL);
-				   sccp_log((DEBUGCAT_LINE | DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, extension);
+				   sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, extension);
 				   }
 				   } */
 			}
@@ -838,7 +838,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 		pbx_log(LOG_WARNING, "SCCP: (sccp_hint_getDNDState) Either no hint or line provided\n");
 		return state;
 	}
-	sccp_log(DEBUGCAT_HINT) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_getDNDState) line: %s\n", line->name);
 	if (SCCP_LIST_GETSIZE(&line->devices) > 1) {
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
@@ -900,7 +900,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 {
 	sccp_line_t *l = NULL;
 
-	//      sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
+	//      sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 	if (sccp_strlen_zero(name)) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
 		return NULL;
@@ -973,9 +973,9 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 	if ((variable = pbx_load_realtime(GLOB(realtimelinetable), "name", name, NULL))) {
 		v = variable;
-		sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+		sccp_log((DEBUGCAT_LINE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 
-		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 
 		l = sccp_line_create(name);									/* already retained */
 		sccp_config_applyLineConfiguration(l, variable);
@@ -989,7 +989,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		return l;
 	}
 
-	sccp_log((DEBUGCAT_LINE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found in realtime table '%s'\n", name, GLOB(realtimelinetable));
 	return NULL;
 }
 #endif
@@ -1028,7 +1028,7 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 	sccp_line_t *l = NULL;
 	
 
-	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 
 	if (!d || instance == 0) {
 		return NULL;
@@ -1043,11 +1043,11 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 	}
 
 	if (!l) {
-		sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
+		sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No line found with instance %d.\n", DEV_ID_LOG(d), instance);
 		return NULL;
 	}
 
-	sccp_log((DEBUGCAT_LINE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
+	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found line %s\n", "SCCP", l->name);
 
 	return l;
 }
@@ -1083,17 +1083,17 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 
 	SCCP_LIST_LOCK(&((sccp_line_t *) line)->devices);
 	SCCP_LIST_TRAVERSE(&((sccp_line_t *) line)->devices, linedevice, list) {
-		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "linedevice %p for device %s line %s\n", linedevice, DEV_ID_LOG(linedevice->device), linedevice->line->name);
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "linedevice %p for device %s line %s\n", linedevice, DEV_ID_LOG(linedevice->device), linedevice->line->name);
 		if (device == linedevice->device) {
 			ld = sccp_linedevice_retain(linedevice);
-			sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: found linedevice for line %s. Returning linedevice %p\n", DEV_ID_LOG(device), ld->line->name, ld);
+			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: found linedevice for line %s. Returning linedevice %p\n", DEV_ID_LOG(device), ld->line->name, ld);
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&((sccp_line_t *) line)->devices);
 
 	if (!ld) {
-		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for line %s could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, line->name);
 	}
 	return ld;
 }
@@ -1116,7 +1116,7 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 	}
 
 	if (!linedevice) {
-		sccp_log(DEBUGCAT_LINE) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for lineinstance %d could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, instance);
+		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: [%s:%d]->linedevice_find: linedevice for lineinstance %d could not be found. Returning NULL\n", DEV_ID_LOG(device), filename, lineno, instance);
 	}
 	return linedevice;
 }

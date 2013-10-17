@@ -50,7 +50,7 @@ void sccp_softkey_pre_reload(void)
 	//      
 	//      SCCP_LIST_LOCK(&softKeySetConfig);
 	//      while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
-	//              sccp_log((DEBUGCAT_CONFIG | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Setting SoftkeySetConfig to Pending Delete=1\n");
+	//              sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Setting SoftkeySetConfig to Pending Delete=1\n");
 	//              for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
 	//                      if(k->modes[i].ptr)
 	//                              sccp_free(k->modes[i].ptr);
@@ -212,11 +212,11 @@ void sccp_sk_videomode(sccp_device_t * device, sccp_line_t * l, const uint32_t l
 {
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(device)) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(device));
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(device));
 		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(channel)) {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(device));
 		} else {
-			sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp started\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: vrtp started\n", DEV_ID_LOG(device));
 			sccp_channel_startMultiMediaTransmission(channel);
 		}
 	}
@@ -312,7 +312,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 
 		/* use default line if it is set */
 		if (!line && d && d->defaultLineInstance > 0) {
-			sccp_log((DEBUGCAT_SOFTKEY | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
+			sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
 		}
 	} else {
@@ -539,7 +539,7 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(firstdigittimeout));
 		}
 	}
-	// sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
+	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
 	sccp_handle_dialtone(c);
 	sccp_handle_backspace(d, lineInstance, c->callid);
 }
@@ -606,12 +606,12 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
 		} else if (SCCP_RWLIST_GETSIZE(&l->channels) < 2) {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "Not enough calls to trnsf", 5);
 			//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
 		} else {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: More than 2 channels to transfer, please use softkey select\n", d->id);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: More than 2 channels to transfer, please use softkey select\n", d->id);
 			sccp_dev_displayprompt(d, lineInstance, c->callid, "More than 2 calls, use " SKINNY_DISP_SELECT, 5);
 			//                      sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			return;
@@ -791,7 +791,7 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 
 	/*
-	   sccp_log((DEBUGCAT_SOFTKEY))(VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
+	   sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
 	 */
 }
 

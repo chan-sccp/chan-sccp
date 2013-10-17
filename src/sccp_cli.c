@@ -1493,7 +1493,7 @@ struct refcount_test {
 
 static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
 {
-	sccp_log(0) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int) pthread_self());
+	sccp_log((DEBUGCAT_CORE)) ("TEST: Destroyed %d, thread: %d\n", obj->id, (unsigned int) pthread_self());
 	sccp_free(object[obj->id]->test);
 	object[obj->id]->test = NULL;
 };
@@ -1510,7 +1510,7 @@ static void *sccp_cli_refcount_test_thread(void *data)
 		for (loop = 0; loop < NUM_LOOPS; loop++) {
 			for (test = 0; test < NUM_OBJECTS; test++) {
 				random_object = rand() % NUM_OBJECTS;
-				sccp_log(0) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
+				sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
 				if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 					usleep(random_object % 10);
 					if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
@@ -1526,7 +1526,7 @@ static void *sccp_cli_refcount_test_thread(void *data)
 		for (loop = 0; loop < NUM_LOOPS; loop++) {
 			for (test = 0; test < NUM_OBJECTS; test++) {
 				random_object = rand() % NUM_OBJECTS;
-				sccp_log(0) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
+				sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
 				if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 					usleep(random_object % 10);
 					if ((obj = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
@@ -1549,11 +1549,11 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	//      int num_loops=rand();
 	int num_loops = 1000;
 
-	sccp_log(0) (VERBOSE_PREFIX_4 "Running work: %d, loops: %d\n", (unsigned int) pthread_self(), num_loops);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "Running work: %d, loops: %d\n", (unsigned int) pthread_self(), num_loops);
 	for (loop = 0; loop < num_loops; loop++) {
 		usleep(1);
 	}
-	sccp_log(0) (VERBOSE_PREFIX_4 "Thread: %d Done\n", (unsigned int) pthread_self());
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "Thread: %d Done\n", (unsigned int) pthread_self());
 	return 0;
 }
 
@@ -1621,7 +1621,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 #ifdef CS_EXPERIMENTAL
 	// OpenReceiveChannel TEST
 	if (!strcasecmp(argv[3], "openreceivechannel")) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
 		sccp_msg_t *msg1;
 		sccp_msg_t *msg2;
 		int packetSize = 20;										/*! \todo calculate packetSize */
@@ -1635,7 +1635,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
 				d = sccp_channel_getDevice_retained(channel);
 				sccp_channel_retain(channel);
-				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 8\n");
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 8\n");
 
 				REQ(msg1, OpenReceiveChannel);
 				msg1->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
@@ -1647,7 +1647,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 				msg1->data.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
 				sccp_dev_send(d, msg1);
 				//                            sleep(1);
-				sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
 				REQ(msg2, OpenReceiveChannel);
 				msg2->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
 				msg2->data.OpenReceiveChannel.v17.lel_passThruPartyId = htolel(channel->passthrupartyid);
@@ -1661,7 +1661,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 				sccp_channel_release(channel);
 				sccp_device_release(d);
 			}
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel. It WORKS !\n");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel. It WORKS !\n");
 		}
 		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		return RESULT_SUCCESS;
@@ -1676,7 +1676,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		sccp_msg_t *msg1;
 
 		if (argc < 5) {
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "Device Not specified\n");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Device Not specified\n");
 			return RESULT_FAILURE;
 		}
 		if ((d = sccp_device_find_byid(argv[4], FALSE))) {
@@ -1715,7 +1715,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 			object[test]->id = test;
 			object[test]->threadid = (unsigned int) pthread_self();
 			object[test]->test = strdup(id);
-			sccp_log(0) ("TEST: Created %d\n", object[test]->id);
+			sccp_log((DEBUGCAT_CORE)) ("TEST: Created %d\n", object[test]->id);
 		}
 		sccp_refcount_print_hashtable(fd);
 		sleep(3);
@@ -1728,7 +1728,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 
 		for (test = 0; test < NUM_OBJECTS; test++) {
 			if (object[test]) {
-				sccp_log(0) ("TEST: Final Release %d, thread: %d\n", object[test]->id, (unsigned int) pthread_self());
+				sccp_log((DEBUGCAT_CORE)) ("TEST: Final Release %d, thread: %d\n", object[test]->id, (unsigned int) pthread_self());
 				sccp_refcount_release(object[test], __FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 		}
@@ -2028,7 +2028,7 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 		sscanf(argv[4], "%d", &timeout);
 	}
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, FALSE, beep);
@@ -2092,7 +2092,7 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 		sscanf(argv[5], "%d", &timeout);
 	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending message '%s' to %s (beep: %d, timeout: %d)\n", argv[3], d->id, beep, timeout);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to %s (beep: %d, timeout: %d)\n", argv[3], d->id, beep, timeout);
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
 		res = RESULT_SUCCESS;
 		d = sccp_device_release(d);
@@ -2154,7 +2154,7 @@ static int sccp_system_message(int fd, int *total, struct mansession *s, const s
 	if (!(PBX(feature_addToDatabase) ("SCCP/message", "text", argv[3]))) {
 		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message text\n");
 	} else {
-		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
+		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_3 "SCCP system message text stored successfully\n");
 	}
 
 	if (argc > 4) {
@@ -2171,10 +2171,10 @@ static int sccp_system_message(int fd, int *total, struct mansession *s, const s
 	if (!(PBX(feature_addToDatabase) ("SCCP/message", "timeout", timeoutStr))) {
 		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message timeout\n");
 	} else {
-		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
+		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_3 "SCCP system message timeout stored successfully\n");
 	}
 
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "Sending system message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending system message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, TRUE, beep);
@@ -2452,7 +2452,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			}
 			if(v){
 				change =  sccp_config_applyDeviceConfiguration(device, v);
-				sccp_log(DEBUGCAT_CORE)("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
+				sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
 				pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
 				if(change == SCCP_CONFIG_NEEDDEVICERESET){
 					device->pendingUpdate = 1;
@@ -2493,7 +2493,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			}
 			if(v) {
 				change =  sccp_config_applyLineConfiguration(line, v);
-				sccp_log(DEBUGCAT_CORE)("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
+				sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
 				pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
 				if(change == SCCP_CONFIG_NEEDDEVICERESET){
 					sccp_device_t *device = NULL;
@@ -3255,7 +3255,7 @@ void sccp_register_cli(void)
 	int i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
-		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_2 "Cli registered action %s\n", (cli_entries + i)->_full_cmd);
+		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli registered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_register(cli_entries + i);
 	}
 
@@ -3297,7 +3297,7 @@ void sccp_unregister_cli(void)
 	int i, res = 0;
 
 	for (i = 0; i < ARRAY_LEN(cli_entries); i++) {
-		sccp_log(DEBUGCAT_CLI) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);
+		sccp_log((DEBUGCAT_CLI)) (VERBOSE_PREFIX_2 "Cli unregistered action %s\n", (cli_entries + i)->_full_cmd);
 		res |= pbx_cli_unregister(cli_entries + i);
 	}
 	pbx_manager_unregister("SCCPShowGlobals");
