@@ -1,14 +1,14 @@
 
 /*!
- * \file        sccp_appfunctions.c
+ * \file	sccp_appfunctions.c
  * \brief       SCCP application / dialplan functions Class
- * \author      Diederik de Groot (ddegroot [at] sourceforge.net)
- * \date        18-03-2011
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License. 
- *              See the LICENSE file at the top of the source tree.
+ * \author	Diederik de Groot (ddegroot [at] sourceforge.net)
+ * \date	18-03-2011
+ * \note	Reworked, but based on chan_sccp code.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License. 
+ *		See the LICENSE file at the top of the source tree.
  * 
  * $Date: 2011-01-12 02:42:50 +0100 (Mi, 12 Jan 2011) $
  * $Revision: 2235 $
@@ -39,7 +39,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
  * \called_from_asterisk
  * 
  * \lock
- *        - device->buttonconfig
+ *    - device->buttonconfig
  */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
@@ -107,10 +107,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strcasecmp(colname, "registration_state")) {
 		sccp_copy_string(buf, registrationstate2str(d->registrationState), len);
 	} else if (!strcasecmp(colname, "codecs")) {
-		//              pbx_codec_pref_string(&d->codecs, buf, sizeof(buf) - 1);
 		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	} else if (!strcasecmp(colname, "capability")) {
-		//              pbx_getformatname_multiple(buf, len - 1, d->capability);
 		sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	} else if (!strcasecmp(colname, "state")) {
 		sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
@@ -210,13 +208,13 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
 
-		//              int codec = 0;
+		// int codec = 0;
 
 		codecnum = colname + 6;										// move past the '[' 
 		codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
 		if (skinny_codecs[atoi(codecnum)].key) {
-			//              if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
-			//                      sccp_copy_string(buf, pbx_getformatname(codec), len);
+			//if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
+			//	sccp_copy_string(buf, pbx_getformatname(codec), len);
 			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 		} else {
 			buf[0] = '\0';
@@ -259,7 +257,7 @@ static struct pbx_custom_function sccpdevice_function = {
  * \called_from_asterisk
  * 
  * \lock
- *        - line->devices
+ *    - line->devices
  */
 static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
@@ -285,7 +283,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
-			/*                      pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
+			/* pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
 			return -1;
 		}
 
@@ -299,7 +297,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else if (!strncasecmp(data, "parent", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
-			/*                      pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
+			/* pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
 			return -1;
 		}
 
@@ -508,10 +506,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if (!strcasecmp(colname, "format")) {
 		snprintf(buf, len, "%d", c->rtp.audio.readFormat);
 	} else if (!strcasecmp(colname, "codecs")) {
-		//              pbx_codec_pref_string(&c->codecs, buf, sizeof(buf) - 1);
 		sccp_copy_string(buf, codec2name(c->rtp.audio.readFormat), len);
 	} else if (!strcasecmp(colname, "capability")) {
-		//              pbx_getformatname_multiple(buf, len - 1, c->capability);
 		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
 	} else if (!strcasecmp(colname, "calledPartyName")) {
 		sccp_copy_string(buf, c->callInfo.calledPartyName, len);
@@ -561,8 +557,8 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		sccp_copy_string(buf, c->privacy ? "yes" : "no", len);
 	} else if (!strcasecmp(colname, "ss_action")) {
 		snprintf(buf, len, "%d", c->ss_action);
-		//      } else if (!strcasecmp(colname, "monitorEnabled")) {
-		//              sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+	// } else if (!strcasecmp(colname, "monitorEnabled")) {
+	// 	sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
 #ifdef CS_SCCP_CONFERENCE
 	} else if (!strcasecmp(colname, "conference_id")) {
 		snprintf(buf, len, "%d", c->conference_id);
@@ -586,12 +582,12 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	} else if (!strncasecmp(colname, "codec[", 6)) {
 		char *codecnum;
 
-		//              int codec = 0;
+		// int codec = 0;
 
 		codecnum = colname + 6;										// move past the '[' 
 		codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
-		//              if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
-		//                      sccp_copy_string(buf, pbx_getformatname(codec), len);
+		// if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
+		// 	sccp_copy_string(buf, pbx_getformatname(codec), len);
 		if (skinny_codecs[atoi(codecnum)].key) {
 			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 		} else {
@@ -700,7 +696,7 @@ static char *calledparty_descr = "Usage: SCCPSetCalledParty(\"Name\" <ext>)" "Se
 
 /*!
  * \brief       It allows you to send a message to the calling device.
- * \author      Frank Segtrop <fs@matflow.net>
+ * \author	Frank Segtrop <fs@matflow.net>
  * \param       chan asterisk channel
  * \param       data message to sent - if empty clear display
  * \version     20071112_1944
@@ -708,9 +704,9 @@ static char *calledparty_descr = "Usage: SCCPSetCalledParty(\"Name\" <ext>)" "Se
  * \called_from_asterisk
  *
  * \lock
- *      - device
- *        - see sccp_dev_displayprinotify()
- *        - see sccp_dev_displayprompt()
+ *  - device
+ *    - see sccp_dev_displayprinotify()
+ *    - see sccp_dev_displayprompt()
  */
 #if ASTERISK_VERSION_NUMBER >= 10800
 static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, const char *data)

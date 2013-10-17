@@ -844,7 +844,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	}
 
 	c->privacy = (c->privacy) ? FALSE : TRUE;
-	//d->privacyFeature.status = c->privacy;          // should not be activeted on softkey
+	//d->privacyFeature.status = c->privacy;			// should not be activeted on softkey
 	//sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 	if (c->privacy) {
 		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);

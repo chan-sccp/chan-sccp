@@ -1,13 +1,13 @@
 
 /*!
- * \file        ast.c
- * \brief       SCCP PBX Asterisk Wrapper Class
- * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \file	ast.c
+ * \brief	SCCP PBX Asterisk Wrapper Class
+ * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note	Reworked, but based on chan_sccp code.
+ * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ * 		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  *
  * $Date: 2010-10-23 20:04:30 +0200 (Sat, 23 Oct 2010) $
  * $Revision: 2044 $  
@@ -21,15 +21,15 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 
-    /*
-     * \brief itterate through locked pbx channels
-     * \note replacement for ast_channel_walk_locked
-     * \param ast_chan Asterisk Channel
-     * \return ast_chan Locked Asterisk Channel
-     *
-     * \todo implement pbx_channel_walk_locked or replace
-     * \deprecated
-     */
+/*
+ * \brief itterate through locked pbx channels
+ * \note replacement for ast_channel_walk_locked
+ * \param ast_chan Asterisk Channel
+ * \return ast_chan Locked Asterisk Channel
+ *
+ * \todo implement pbx_channel_walk_locked or replace
+ * \deprecated
+ */
 PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 {
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -500,7 +500,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 #else
 			pbx_channel_setwhentohangup_tv(ast_channel, ast_tvnow());
 #endif
-			//                      ast_channel->_state=AST_STATE_DOWN;
+			// ast_channel->_state=AST_STATE_DOWN;
 			ast_queue_hangup(ast_channel);
 			break;
 	}
@@ -525,7 +525,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(ast_channel);
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s, hangupcause: %d\n",
-				    pbx_channel_name(ast_channel), pbx_channel_pbx(ast_channel) ? "yes" : "no", pbx_state2str(pbx_channel_state(ast_channel)), sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel)
+				      pbx_channel_name(ast_channel), pbx_channel_pbx(ast_channel) ? "yes" : "no", pbx_state2str(pbx_channel_state(ast_channel)), sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel)
 	    );
 
 	if (pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)) {
@@ -550,7 +550,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
 		ast_hangup(ast_channel);
-		//              ast_queue_hangup(ast_channel);
+		// ast_queue_hangup(ast_channel);
 	}
 
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
@@ -640,10 +640,8 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
  * \note replacement for ast_moh_start
  *
  * \param pbx_channel The channel structure that will get music on hold
- * \param mclass The class to use if the musicclass is not currently set on
- *               the channel structure.
- * \param interpclass The class to use if the musicclass is not currently set on
- *                    the channel structure or in the mclass argument.
+ * \param mclass The class to use if the musicclass is not currently set on the channel structure.
+ * \param interpclass The class to use if the musicclass is not currently set on the channel structure or in the mclass argument.
  *
  * \retval Zero on success
  * \retval non-zero on failure

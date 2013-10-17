@@ -1,17 +1,18 @@
 
 /*!
- * \file        chan_sccp.c
+ * \file	chan_sccp.c
  * \brief       An implementation of Skinny Client Control Protocol (SCCP)
- * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \author	Sergio Chersovani <mlists [at] c-net.it>
  * \brief       Main chan_sccp Class
- * \note        Reworked, but based on chan_sccp code.
- *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *              Modified by Jan Czmok and Julien Goodwin
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \remarks     Purpose:        This source file should be used only for asterisk module related content.
- *              When to use:    Methods communicating to asterisk about module initialization, status, destruction
- *              Relationships:  Main hub for all other sourcefiles.
+ * \note	Reworked, but based on chan_sccp code.
+ *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *		Modified by Jan Czmok and Julien Goodwin
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
+ * \remarks
+ * Purpose:	This source file should be used only for asterisk module related content.
+ * When to use:	Methods communicating to asterisk about module initialization, status, destruction
+ * Relations:	Main hub for all other sourcefiles.
  *
  * $Date$
  * $Revision$
@@ -608,7 +609,7 @@ boolean_t sccp_prePBXLoad()
 /* 
  * Segfault Handler
  * Copied from  Author : Andrew Tridgell <junkcode@tridgell.net>
- *              URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
+ *		URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
  */
 /*
    static int segv_handler(int sig)
