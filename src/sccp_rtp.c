@@ -123,9 +123,9 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 	}
 
 	memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_1 "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, pbx_inet_ntoa(new_peer->sin_addr), ntohs(new_peer->sin_port));
 	
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_1 "%s: ( sccp_rtp_set_peer ) updateMediaTransmission\n", c->currentDeviceId);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: ( sccp_rtp_set_peer ) updateMediaTransmission\n", c->currentDeviceId);
 	sccp_channel_updateMediaTransmission(c);
 	//sccp_channel_updateMultiMediaTransmission(c);
 }
@@ -170,7 +170,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		sprintf(cbuf1, "%15s:%d", pbx_inet_ntoa(rtp->phone_remote.sin_addr), ntohs(rtp->phone_remote.sin_port));
 		sprintf(cbuf2, "%15s:%d", pbx_inet_ntoa(rtp->phone.sin_addr), ntohs(rtp->phone.sin_port));
 
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%s to %s (NAT: %s)\n", DEV_ID_LOG(device), cbuf1, cbuf2, device->nat ? "yes" : "no");
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from:%s to %s (NAT: %s)\n", DEV_ID_LOG(device), cbuf1, cbuf2, device->nat ? "yes" : "no");
 
 		device = sccp_device_release(device);
 	}
@@ -259,13 +259,13 @@ void sccp_rtp_destroy(sccp_channel_t * c)
 	l = c->line;
 
 	if (c->rtp.audio.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: destroying PBX rtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
 		PBX(rtp_destroy) (c->rtp.audio.rtp);
 		c->rtp.audio.rtp = NULL;
 	}
 
 	if (c->rtp.video.rtp) {
-		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: destroying PBX vrtp server on channel %s-%08X\n", c->currentDeviceId, l ? l->name : "(null)", c->callid);
 		PBX(rtp_destroy) (c->rtp.video.rtp);
 		c->rtp.video.rtp = NULL;
 	}

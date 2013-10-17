@@ -68,7 +68,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
+			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
 			instance = config->instance;
 
 			switch (config->button.feature.id) {
@@ -77,17 +77,17 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 						config->button.feature.status = 0;
 					}
 
-					sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
+					sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", DEV_ID_LOG(device), device->privacyFeature.status);
 					if (!strcasecmp(config->button.feature.options, "callpresent")) {
 						uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 
-						sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
+						sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
 						config->button.feature.status = (result) ? 1 : 0;
 					}
 					if (!strcasecmp(config->button.feature.options, "hint")) {
 						uint32_t result = device->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
 
-						sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
+						sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: result is %d\n", device->id, result);
 						config->button.feature.status = (result) ? 1 : 0;
 					}
 					break;
@@ -105,7 +105,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 							if ((line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
 								if ((linedevice = sccp_linedevice_find(device, line))) {
 
-									sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
+									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
 									/* set this button active, only if all lines are fwd -requesting issue #3081549 */
 									// Upon finding the first existing line, we need to set the feature status
@@ -278,7 +278,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
 			}
 			sccp_dev_send(device, msg);
-			sccp_log((DEBUGCAT_FEATURE_BUTTON | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d Label: %s Status: %d Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d Label: %s Status: %d Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);

@@ -99,17 +99,17 @@ static void *sccp_event_processor(void *data)
 	subscribers = args->subscribers;
 	event = args->event;
 
-	sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, event_type2str(event->type));
+	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, event_type2str(event->type));
 	if ((event = sccp_event_retain(event))) {
 		for (n = 0; n < subscribers->aSyncSize && sccp_event_running; n++) {
 			if (subscribers->async[n].callback_function != NULL) {
-				sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, event_type2str(event->type), subscribers->async[n].callback_function, n);
+				sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, event_type2str(event->type), subscribers->async[n].callback_function, n);
 				subscribers->async[n].callback_function((const sccp_event_t *) event);
 			}
 		}
 		sccp_event_release(event);
 	} else {
-		sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Could not retain event\n");
+		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Could not retain event\n");
 	}
 	sccp_event_release(args->event);
 	sccp_free(data);
@@ -233,7 +233,7 @@ void sccp_event_fire(const sccp_event_t * event)
 	//      memcpy(e, event, sizeof(sccp_event_t));
 	e->type = event->type;
 
-	sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, event_type2str(e->type));
+	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, event_type2str(e->type));
 	/* update refcount */
 	switch (e->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
@@ -295,7 +295,7 @@ void sccp_event_fire(const sccp_event_t * event)
 
 				/* initialized with default attributes */
 				if (arg->event != NULL) {
-					sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, event_type2str(event->type));
+					sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, event_type2str(event->type));
 					if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
 						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, event_type2str(event->type));
 						arg->event = sccp_event_release(arg->event);
@@ -321,7 +321,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		}
 	} else {
 		// we are unloading. switching to synchonous mode for everything
-		sccp_log(DEBUGCAT_EVENT) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, event_type2str(e->type));
+		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, event_type2str(e->type));
 		if ((e = sccp_event_retain(e))) {
 			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
 				if (subscriptions[i].sync[n].callback_function != NULL) {

@@ -145,12 +145,12 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_createDeviceStateHandler) device registered\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_createDeviceStateHandler) device registered\n", DEV_ID_LOG(device));
 			sccp_devstate_deviceRegistered(device);
 			break;
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 			device = event->event.deviceRegistered.device;
-			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_createDeviceStateHandler) device unregistered\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_createDeviceStateHandler) device unregistered\n", DEV_ID_LOG(device));
 			sccp_devstate_deviceUnRegistered(device);
 			break;
 		default:
@@ -178,7 +178,7 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	char buf[256] = "";
 	
 	snprintf(buf, 254, "Custom:%s", devstate);
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_4 "%s: (sccp_devstate_createDeviceStateHandler) create handler for %s/%s\n", "SCCP", devstate, buf);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: (sccp_devstate_createDeviceStateHandler) create handler for %s/%s\n", "SCCP", devstate, buf);
 	
 	
 	deviceState = sccp_malloc(sizeof(sccp_devstate_deviceState_t));
@@ -256,9 +256,9 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
 	state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
 	deviceState->featureState = (state == AST_DEVICE_NOT_INUSE) ? 0 : 1;
 	
-	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_changed_cb) got new device state for %s, state: %d, deviceState->subscribers.count %d\n", "SCCP", deviceState->devicestate, state, deviceState->subscribers.size);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_changed_cb) got new device state for %s, state: %d, deviceState->subscribers.count %d\n", "SCCP", deviceState->devicestate, state, deviceState->subscribers.size);
 	SCCP_LIST_TRAVERSE(&deviceState->subscribers, subscriber, list) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_changed_cb) notify subscriber for state %d\n", DEV_ID_LOG(subscriber->device), deviceState->featureState);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_changed_cb) notify subscriber for state %d\n", DEV_ID_LOG(subscriber->device), deviceState->featureState);
 		subscriber->buttonConfig->button.feature.status = deviceState->featureState;
 		sccp_devstate_notifySubscriber(deviceState, subscriber);
 	}

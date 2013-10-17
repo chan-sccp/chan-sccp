@@ -119,16 +119,16 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	l = sccp_line_find_byname(lineSubscriptionId.mainId, FALSE);
 
 	if (!l) {
-		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP/%s does not exist!\n", lineSubscriptionId.mainId);
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	}
-	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	if (SCCP_RWLIST_GETSIZE(&l->devices)== 0) {
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 		l = sccp_line_release(l);
 		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
 	}
-	sccp_log((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	/* call forward check */
 
 	// Allocate a new SCCP channel.
@@ -160,10 +160,10 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	memcpy(&my_sccp_channel->remoteCapabilities.audio, capabilities, size);
 
 	/** set requested codec as prefered codec */
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "prefered audio codec (%d)\n", requestedCodec);
 	if (requestedCodec != SKINNY_CODEC_NONE) {
 		my_sccp_channel->preferences.audio[0] = requestedCodec;
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "SCCP: prefered audio codec (%d)\n", my_sccp_channel->preferences.audio[0]);
 	}
 
 	/** done */
@@ -220,7 +220,7 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 	}
 
 EXIT:
-	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE | DEBUGCAT_ACTION)) != 0) {
+	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
 
 		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? msgtype2str(mid) : NULL, mid ? mid : 0, msg ? msg->header.length : 0);
@@ -432,14 +432,14 @@ int load_config(void)
 		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
 		else if (GLOB(sccp_tos))
-			sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_1 "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
 		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 #if defined(linux)
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
 		else if (GLOB(sccp_cos))
-			sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_1 "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
 #endif
 
 		if (GLOB(descriptor) < 0) {
@@ -696,7 +696,7 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		d->realtime = TRUE;										/* use realtime, to fully clear the device configuration */
 		sccp_dev_clean(d, TRUE, 0);									// performs a device reset if it has a session
 	}
@@ -713,7 +713,7 @@ int sccp_preUnload(void)
 	/* removing lines */
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
-		sccp_log((DEBUGCAT_CORE | DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 		sccp_line_clean(l, TRUE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -733,7 +733,7 @@ int sccp_preUnload(void)
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
 	sccp_globals_lock(socket_lock);
 	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(socket_thread));
@@ -750,22 +750,22 @@ int sccp_preUnload(void)
 	sccp_softkey_clear();
 
 	sccp_mutex_destroy(&GLOB(socket_lock));
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
 	if (GLOB(ha))
 		sccp_free_ha(GLOB(ha));
 
 	if (GLOB(localaddr))
 		sccp_free_ha(GLOB(localaddr));
 
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
 
 	sccp_hint_module_stop();
 	sccp_event_module_stop();
 
 	sccp_threadpool_destroy(GLOB(general_threadpool));
-	sccp_log((DEBUGCAT_CORE | DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
 	sccp_refcount_destroy();
 	sccp_free(GLOB(config_file_name));
 	pbx_mutex_destroy(&GLOB(usecnt_lock));

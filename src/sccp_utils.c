@@ -164,7 +164,7 @@ void sccp_dev_dbclean()
 	//entry = PBX(feature_getFromDatabase)tree("SCCP", NULL);
 	while (entry) {
 		sscanf(entry->key, "/SCCP/%s", key);
-		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: Looking for '%s' in the devices list\n", key);
 		if ((strlen(key) == 15) && (!strncmp(key, "SEP", 3) || !strncmp(key, "ATA", 3) || !strncmp(key, "VGC", 3) || !strncmp(key, "AN", 2) || !strncmp(key, "SKIGW", 5))) {
 
 			SCCP_RWLIST_RDLOCK(&GLOB(devices));
@@ -177,7 +177,7 @@ void sccp_dev_dbclean()
 
 			if (!d) {
 				PBX(feature_removeFromDatabase) ("SCCP", key);
-				sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
+				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_REALTIME)) (VERBOSE_PREFIX_3 "SCCP: device '%s' removed from asterisk database\n", entry->key);
 			}
 
 		}
@@ -302,10 +302,10 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 		if (SKINNY_CODEC_NONE == old_skinny_codec_prefs[x])
 			break;
 		if (old_skinny_codec_prefs[x] == skinny_codec) {
-//			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d, skipping\n", codec2name(skinny_codec), skinny_codec, x);
+//			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d, skipping\n", codec2name(skinny_codec), skinny_codec, x);
 			continue;
 		}
-		//sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "re-adding codec '%d' at pos %d\n", old_skinny_codec_prefs[x], y);
+		//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "re-adding codec '%d' at pos %d\n", old_skinny_codec_prefs[x], y);
 		skinny_codec_prefs[y++] = old_skinny_codec_prefs[x];
 	}
 }
@@ -321,7 +321,7 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
-//			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_1 "adding codec '%s (%d)' as pos %d\n", codec2name(skinny_codec), skinny_codec, x);
+//			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "adding codec '%s (%d)' as pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 			skinny_codec_pref[x] = skinny_codec;
 			return x;
 		}
@@ -352,7 +352,7 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 
 			if (all && !allowing) {										// disallowing all
 				memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
-//				sccp_log(DEBUGCAT_CODEC) ("SCCP: disallow=all => reset codecs\n");
+//				sccp_log((DEBUGCAT_CODEC)) ("SCCP: disallow=all => reset codecs\n");
 				break;
 			}
 			for (x = 0; x < ARRAY_LEN(skinny_codecs); x++) {
@@ -369,10 +369,10 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 					if (skinny_codec_prefs) {
 						if (strcasecmp(this, "all")) {
 							if (allowing) {
-//								sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "adding codec '%s'\n", this);
+//								sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "adding codec '%s'\n", this);
 								skinny_codec_pref_append(skinny_codec_prefs, codec);
 							} else {
-//								sccp_log(DEBUGCAT_CODEC)(VERBOSE_PREFIX_1 "removing codec '%s'\n", this);
+//								sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", this);
 								skinny_codec_pref_remove(skinny_codec_prefs, codec);
 							}
 						}
@@ -592,7 +592,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_EVENT | DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 	sprintf(family, "SCCP/%s", device->id);
 
 	switch (event->event.featureChanged.featureType) {
@@ -1110,7 +1110,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	uint8_t r, c, p;
 	skinny_codec_t firstJointCapability = SKINNY_CODEC_NONE;						/*!< used to get a default value */
 
-	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
+	sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "pLength %d, cLength: %d, rLength: %d\n", pLength, cLength, rLength);
 
 /*
 	char pref_buf[256];
@@ -1119,13 +1119,13 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	sccp_multiple_codecs2str(cap_buf, sizeof(pref_buf) - 1, ourCapabilities, cLength);
 	char remote_cap_buf[256];
 	sccp_multiple_codecs2str(remote_cap_buf, sizeof(remote_cap_buf) - 1, remotePeerCapabilities, rLength);
-	sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
+	sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "ourPref %s\nourCap: %s\nremoteCap: %s\n", pref_buf, cap_buf, remote_cap_buf);
 */
 
 	/** check if we have a preference codec list */
 	if (pLength == 0 || ourPreferences[0] == SKINNY_CODEC_NONE) {
 		/* using remote capabilities to */
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "We got an empty preference codec list (exiting)\n");
 		return SKINNY_CODEC_NONE;
 
 	}
@@ -1133,42 +1133,42 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	/* iterate over our codec preferences */
 	for (p = 0; p < pLength; p++) {
 		if (ourPreferences[p] == SKINNY_CODEC_NONE) {
-			sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "no more preferences at position %d\n", p);
+			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no more preferences at position %d\n", p);
 			break;
 		}
 		/* no more preferences */
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "preference: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "preference: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
 
 		/* check if we are capable to handle this codec */
 		for (c = 0; c < cLength; c++) {
 			if (ourCapabilities[c] == SKINNY_CODEC_NONE) {
 				/* we reached the end of valide codecs, because we found the first NONE codec */
-				sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH))("Breaking at capability: %d\n", c);
+				sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at capability: %d\n", c);
 				break;
 			}
 
-			sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]));
+			sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]));
 
 			/* we have no capabilities from the remote party, use the best codec from ourPreferences */
 			if (ourPreferences[p] == ourCapabilities[c]) {
 				if (firstJointCapability == SKINNY_CODEC_NONE) {
 					firstJointCapability = ourPreferences[p];
-					sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
+					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found first firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 				}
 
 				if (rLength == 0 || remotePeerCapabilities[0] == SKINNY_CODEC_NONE) {
-					sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
+					sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "Empty remote Capabilities, using bestCodec from firstJointCapability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 					return firstJointCapability;
 				} else {
 					/* using capabilities from remote party, that matches our preferences & capabilities */
 					for (r = 0; r < rLength; r++) {
 						if (remotePeerCapabilities[r] == SKINNY_CODEC_NONE) {
-							sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH))("Breaking at remotePeerCapability: %d\n", c);
+							sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) ("Breaking at remotePeerCapability: %d\n", c);
 							break;
 						}
-						sccp_log((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
+						sccp_log_and((DEBUGCAT_CODEC + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "preference: %d(%s), capability: %d(%s), remoteCapability: " UI64FMT "(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]), ourCapabilities[c], codec2name(ourCapabilities[c]), (ULONG) remotePeerCapabilities[r], codec2name(remotePeerCapabilities[r]));
 						if (ourPreferences[p] == remotePeerCapabilities[r]) {
-							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "found bestCodec as joint capability with remote peer %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
+							sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "found bestCodec as joint capability with remote peer %d(%s)\n", ourPreferences[p], codec2name(ourPreferences[p]));
 							return ourPreferences[p];
 						}
 					}
@@ -1178,11 +1178,11 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	}
 
 	if (firstJointCapability != SKINNY_CODEC_NONE) {
-		sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "did not find joint capability with remote device, using first joint capability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "did not find joint capability with remote device, using first joint capability %d(%s)\n", firstJointCapability, codec2name(firstJointCapability));
 		return firstJointCapability;
 	}
 
-	sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_3 "no joint capability with preference codec list\n");
+	sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "no joint capability with preference codec list\n");
 	return 0;
 }
 
@@ -1259,7 +1259,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		}
 		return ret;
 	}
-	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
+	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
 	if (!(nm = strchr(tmp, '/'))) {
 		/* assume /32. Yes, htonl does not do anything for this particular mask
 		   but we better use it to show we remember about byte order */
@@ -1279,7 +1279,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 					ha->netmask.s_addr = htonl(0xFFFFFFFF << (32 - x));
 				}
 			} else {
-				sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "Invalid CIDR in %s\n", stuff);
+				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "Invalid CIDR in %s\n", stuff);
 				sccp_free(ha);
 				if (error) {
 					*error = 1;
@@ -1287,7 +1287,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 				return ret;
 			}
 		} else if (!inet_aton(nm, &ha->netmask)) {
-			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "Invalid mask in %s\n", stuff);
+			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "Invalid mask in %s\n", stuff);
 			sccp_free(ha);
 			if (error) {
 				*error = 1;
@@ -1297,7 +1297,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 	}
 
 	if (!inet_aton(tmp, &ha->netaddr)) {
-		sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_1 "Invalid IP address in %s\n", stuff);
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "Invalid IP address in %s\n", stuff);
 		sccp_free(ha);
 		if (error) {
 			*error = 1;
