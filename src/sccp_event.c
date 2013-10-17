@@ -1,20 +1,21 @@
 
 /*!
- * \file        sccp_event.c
+ * \file	sccp_event.c
  * \brief       SCCP Event Class
- * \author      Marcello Ceschia <marcello [at] ceschia.de>
- * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \since       2009-09-02
+ * \author	Marcello Ceschia <marcello [at] ceschia.de>
+ * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
+ * \since	2009-09-02
  * 
  * $Date$
  * $Revision$  
  */
 
 /*!
- * \remarks     Purpose:        SCCP Event
- *              When to use:    Only methods directly related to sccp events should be stored in this source file.
- *              Relationships:  SCCP Hint
+ * \remarks
+ * Purpose:	SCCP Event
+ * When to use:	Only methods directly related to sccp events should be stored in this source file.
+ * Relations:	SCCP Hint
  */
 
 #include <config.h>

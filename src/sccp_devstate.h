@@ -1,10 +1,10 @@
 /*!
- * \file        sccp_devstate.h
+ * \file	sccp_devstate.h
  * \brief       SCCP device state Header
- * \author      Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
- * \since       2013-08-15
+ * \author	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
+ * \since	2013-08-15
  *
  * $Date$
  * $Revision$  

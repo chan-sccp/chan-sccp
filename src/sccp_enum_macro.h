@@ -1,9 +1,9 @@
 /*!
- * \file        sccp_enum_macro.h
+ * \file	sccp_enum_macro.h
  * \brief       SCCP Enum Macro
- * \author      Diederik de Groot <ddegroot [at] users.sf.net>
- * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *              See the LICENSE file at the top of the source tree.
+ * \author	Diederik de Groot <ddegroot [at] users.sf.net>
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *		See the LICENSE file at the top of the source tree.
  *
  * $Date: 2013-04-15 01:04:06 +0200 (Mon, 15 Apr 2013) $
  * $Revision: 4568 $

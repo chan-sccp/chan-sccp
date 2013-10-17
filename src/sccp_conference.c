@@ -1,8 +1,8 @@
 /*!
- * \file        sccp_conference.c
+ * \file	sccp_conference.c
  * \brief       SCCP Conference for asterisk 10
- * \author      Marcello Ceschia <marcelloceschia [at] users.sorceforge.net>
- * \note        Reworked, but based on chan_sccp code.
+ * \author	Marcello Ceschia <marcelloceschia [at] users.sorceforge.net>
+ * \note	Reworked, but based on chan_sccp code.
  *
  * $Date$
  * $Revision$
@@ -160,7 +160,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 	sccp_copy_string(conference->playback_language, pbx_channel_language(channel->owner), sizeof(conference->playback_language));
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 
-	//      bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;                             /* bridge_multiplexed */
+	//bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;							/* bridge_multiplexed */
 	bridgeCapabilities = AST_BRIDGE_CAPABILITY_MULTIMIX;							/* bridge_softmix */
 #ifdef CS_BRIDGE_CAPABILITY_MULTITHREADED
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;						/* bridge_softmix */
@@ -440,7 +440,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 					participant->channel->conference_participant_id = participant->id;
 					participant->playback_announcements = device->conf_play_part_announce;
 					sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
-					//                                      device->conferencelist_active = TRUE;                                   // Activate conflist on all sccp participants
+					//device->conferencelist_active = TRUE;					// Activate conflist on all sccp participants
 					sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device,channel->line->name), channel->callid, KEYMODE_CONNCONF);
 				} else {									// PBX Channel
 					PBX(setPBXChannelLinkedId) (participant->conferenceBridgePeer, conference->linkedid);
@@ -940,7 +940,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		char xmlStr[2048] = "";
 		char xmlTmp[512] = "";
 
-		//      sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
+		//sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
 		if (participant->device->protocolversion >= 17) {
 			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">", appID);
 			strcat(xmlStr, xmlTmp);
@@ -1018,14 +1018,14 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<SoftKeyItem>");
 			strcat(xmlStr, "<Name>EndConf</Name>");
 			strcat(xmlStr, "<Position>1</Position>");
-			//                      sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
+			// sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
 			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:ENDCONF/%d</URL>", 1, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 			strcat(xmlStr, "<SoftKeyItem>");
 			strcat(xmlStr, "<Name>Mute</Name>");
 			strcat(xmlStr, "<Position>2</Position>");
-			//                      sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>", 2, appID, participant->lineInstance, participant->transactionID);
+			// sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d/%d/%d/</URL>", 2, appID, participant->lineInstance, participant->transactionID);
 			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MUTE/%d</URL>", 2, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
@@ -1033,7 +1033,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<SoftKeyItem>");
 			strcat(xmlStr, "<Name>Kick</Name>");
 			strcat(xmlStr, "<Position>3</Position>");
-			//                      sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>", 3, appID, participant->lineInstance, participant->transactionID);
+			// sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d/%d/%d/</URL>", 3, appID, participant->lineInstance, participant->transactionID);
 			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:KICK/%d</URL>", 3, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
@@ -1244,15 +1244,15 @@ void sccp_conference_toggle_mute_participant(sccp_conference_t * conference, scc
 	if (!participant->features.mute) {
 		participant->features.mute = 1;
 		playback_to_channel(participant, "conf-muted", -1);
-		//              if (participant->channel) {
-		//                      participant->channel->setMicrophone(participant->channel, FALSE);
-		//              }
+		//if (participant->channel) {
+		//	participant->channel->setMicrophone(participant->channel, FALSE);
+		//}
 	} else {
 		participant->features.mute = 0;
 		playback_to_channel(participant, "conf-unmuted", -1);
-		//              if (participant->channel) {
-		//                      participant->channel->setMicrophone(participant->channel, TRUE);
-		//              }
+		//if (participant->channel) {
+		//	participant->channel->setMicrophone(participant->channel, TRUE);
+		//}
 	}
 	if (participant->channel && participant->device) {
 		sccp_dev_set_message(participant->device, participant->features.mute ? "You are muted" : "You are unmuted", 5, FALSE, FALSE);
@@ -1389,8 +1389,8 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 		strcat(xmlStr, xmlTmp);
 		sprintf(xmlTmp, "<Title>Conference %d Invite</Title>\n", conference->id);
 		strcat(xmlStr, "<Prompt>Enter the phone number to invite</Prompt>\n");
-		//              sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
-		//              sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID);
+		// sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID, moderator->id);
+		// sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d</URL>\n", APPID_CONFERENCE_INVITE, moderator->lineInstance, moderator->callReference, moderator->transactionID);
 		sprintf(xmlTmp, "<URL>UserData:%d:%s</URL>\n", appID, "invite");
 		strcat(xmlStr, xmlTmp);
 
@@ -1401,11 +1401,11 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 		strcat(xmlStr, "</InputItem>\n");
 
 		// SoftKeys
-		//              strcat(xmlStr, "<SoftKeyItem>\n");
-		//              strcat(xmlStr, "  <Name>Exit</Name>\n");
-		//              strcat(xmlStr, "  <Position>4</Position>\n");
-		//              strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
-		//              strcat(xmlStr, "</SoftKeyItem>\n");
+		// strcat(xmlStr, "<SoftKeyItem>\n");
+		// strcat(xmlStr, "  <Name>Exit</Name>\n");
+		// strcat(xmlStr, "  <Position>4</Position>\n");
+		// strcat(xmlStr, "  <URL>SoftKey:Exit</URL>\n");
+		// strcat(xmlStr, "</SoftKeyItem>\n");
 
 		strcat(xmlStr, "</CiscoIPPhoneInput>\n");
 
@@ -1504,7 +1504,6 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_NAME Conferences
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Conference
 
-	//      #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_conference_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &conferences
 #define CLI_AMI_TABLE_LIST_ITER_VAR conference
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
