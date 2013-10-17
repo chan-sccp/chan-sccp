@@ -157,7 +157,7 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 		int pos = 0;
 
 		for (i = 0; i < ARRAY_LEN(data); i++) {
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
+			sccp_log_and((DEBUGCAT_HIGH + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -239,7 +239,7 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 		int pos = 0;
 
 		for (i = 0; i < ARRAY_LEN(data); i++) {
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
+			sccp_log_and((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
 				pos += data_len[i] + 1;
@@ -837,7 +837,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 			memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
 		}
 		sccp_dev_send(device, msg);
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
+		sccp_log_and((DEBUGCAT_MESSAGE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d). Skipping !\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	}
