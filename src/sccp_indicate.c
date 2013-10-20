@@ -126,12 +126,16 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 			break;
 		case SCCP_CHANNELSTATE_ONHOOK:
+/*												// reverse order for openreceivechannel check to work
 			c->state = SCCP_CHANNELSTATE_DOWN;
 			PBX(set_callstate) (c, AST_STATE_DOWN);
-			if (c == d->active_channel) {
+*/
+			PBX(set_callstate) (c, AST_STATE_DOWN);
+			c->state = SCCP_CHANNELSTATE_DOWN;
+/*			if (c == d->active_channel) {						// prevent setting twice
 				sccp_dev_stoptone(d, instance, c->callid);
 			}
-			
+*/			
 			sccp_dev_stoptone(d, instance, c->callid);
 			sccp_dev_cleardisplaynotify(d);
 			sccp_dev_clearprompt(d, instance, c->callid);
@@ -151,10 +155,10 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 			}
 
-			if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING) {
+/*			if (c->previousChannelState == SCCP_CHANNELSTATE_RINGING) {		// prevent setting twice
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			}
-
+*/
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
