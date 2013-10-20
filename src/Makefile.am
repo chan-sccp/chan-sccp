@@ -18,7 +18,7 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		
                                 pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h 		sccp_lock.h		\
                                 sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
                                 sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
-                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_devstate.h
+                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_devstate.h		
                                 
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
@@ -26,7 +26,12 @@ chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicat
                                 sccp_features.c 	sccp_config.c		sccp_hint.c 					\
                                 sccp_refcount.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
                                 sccp_mwi.c		sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	\
-                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c	sccp_devstate.c
+                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c	sccp_devstate.c		
+
+#if CS_EXPERIMENTAL_XML
+#chan_sccp_la_SOURCES	+=      sccp_webservice.h       sccp_xml.h 		sccp_xml_embedded.h	sccp_webservice.c	\
+#                                sccp_xml.c
+#endif 
                                 
 EXTRA_chan_sccp_la_SOURCES = 
 if BUILD_AST
@@ -39,11 +44,11 @@ if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/astTrunk.h pbx_impl/ast/astTrunk.c
 endif
 
-chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
+chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
-chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS) $(COVERAGE_CFLAGS)
-chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall $(EVENT_CFLAGS) $(EVENT_LIBS)
-chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS)
+chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS) $(COVERAGE_CFLAGS) $(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) 
+chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)

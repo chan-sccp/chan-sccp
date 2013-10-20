@@ -9,6 +9,7 @@ AC_DEFUN([CS_SETUP_DEFAULTS], [
 	fi
 ])
 
+
 AC_DEFUN([CS_SETUP_BUILD],[
 
 	AC_PATH_TOOL([UNAME], [uname], No)
@@ -50,6 +51,7 @@ dnl			BUILD_USER="`${FINGER} -lp |${HEAD} -n1 |${AWK} -F:\  '{print $3}'`"
 	    fi
 	fi
 ])
+
 
 AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 	astlibdir=''
@@ -187,7 +189,8 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PATH_PROGS(RPMBUILD,rpmbuild,[echo rpmbuild not found so you cannot build rpm packages (no problem)])
 	AC_PATH_PROGS(OBJCOPY,objcopy,[echo objcopy not found so we can not safe debug information (no problem)])
 	AC_PATH_PROGS(GDB,gdb,[echo gdb not found so we can not generate backtraces (no problem)])
-	AC_PROG_CC
+	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
+	AC_PROG_CC(clang llvm-gcc gcc)
 	AC_PROG_CC_C_O
 	AC_PROG_GCC_TRADITIONAL
 	AC_PROG_CPP
@@ -209,12 +212,51 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_SUBST(GDB)
 ])
 
+AC_DEFUN([CS_CC_VERSION_CHECK], [
+	CC_works=0
+	if [ test "${CC}" = "gcc" || test "${CC}" = "llvm-gcc" ]; then
+		CC_version=`${CC} -dumpversion`
+		CC_VERSION_MAJOR=$(echo $CC_VERSION | cut -d'.' -f1)
+		CC_VERSION_MINOR=$(echo $CC_VERSION | cut -d'.' -f2)
+		if test ${CC_VERSION_MAJOR} -ge 4; then
+			if test ${CC_VERSION_MINOR} -ge 3; then
+				CC_works=1
+				AC_DEFINE([GCC_NESTED],1,[GCC_Nested Defined...])
+			fi
+		fi
+	elif test "${CC}" = "clang"; then
+		dnl CLANG_CHECK=`echo | clang -fblocks -dM -E -`
+		if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
+			CFLAGS_saved="${CFLAGS_saved} -fblocks"
+			AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
+			CC_works=1
+		else			
+			if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
+				CFLAGS_saved="${CFLAGS_saved} -fblocks"
+				AC_SUBST([CLANG_BLOCKS_LIBS],[-lBlocksRuntime])
+				AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
+				CC_works=1
+			fi
+		fi
+	fi
+	AC_SUBST([CC_works])
+	if test CC_works = 0; then
+		AC_MSG_ERROR([Compiler ${CC} not supported (minimum required gcc > 4.3 / llvm-gcc > 4.3 / clang > 3.3 + libblocksruntime-dev])
+	fi
+])
+
 AC_DEFUN([CS_FIND_LIBRARIES], [
 	LIBS_save=$LIBS
 	LIBS="$LIBS"
 	AC_CHECK_LIB([c], [main])
 	AC_CHECK_LIB([pthread], [main])
 	AC_CHECK_LIB([socket], [main])
+dnl	AC_CHECK_PROG([CURLCFG],[curl-config],[:])
+dnl	AS_IF([test -n "$CURLCFG"],[
+dnl		AC_SUBST([LIBCURL_CFLAGS],[$(curl-config --cflags)])
+dnl		AC_SUBST([LIBCURL_LIBS],[$(curl-config --libs)])
+dnl		AC_CHECK_LIB([curl], [curl_global_init])
+dnl	])	
 	AC_CHECK_HEADERS([sys/ioctl.h]) 
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
@@ -530,7 +572,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		GDB_FLAGS=""
                 CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
 	fi
-
+	
 	if test "${enable_debug}" = "yes"; then
 		AC_DEFINE([GC_DEBUG],[1],[Enable extra garbage collection debugging.])
 		AC_DEFINE([DEBUG],[1],[Extra debugging.])
@@ -710,6 +752,47 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_NEWIP], [
 	AC_MSG_NOTICE([--enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)])
 ])
 
+AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
+	AC_LANG_SAVE
+	AC_LANG_C
+	AC_ARG_ENABLE(experimental_xml, 
+	  AC_HELP_STRING([--enable-experimental-xml], [enable experimental xml (only for developers)]), 
+	    ac_cv_experimental_xml=$enableval, ac_cv_experimental_xml=no
+	)
+	AM_CONDITIONAL([CS_EXPERIMENTAL_XML], test "_${ac_cv_experimental_xml}" == "_yes")
+	AS_IF([test "_${ac_cv_experimental_xml}" == "_yes" ], [
+		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
+		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
+		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
+		AC_CHECK_HEADERS([libxml/tree.h]) 
+		AC_CHECK_HEADERS([libxml/parser.h]) 
+		AC_CHECK_HEADERS([libxml/xmlstring.h]) 
+		AC_CHECK_LIB([xslt],[xsltInit],[HAVE_LIBXSLT=yes],[HAVE_LIBXSLT=no])
+		AC_CHECK_HEADERS([libxslt/xsltInternals.h]) 
+		AC_CHECK_HEADERS([libxslt/transform.h]) 
+		AC_CHECK_HEADERS([libxslt/xsltutils.h]) 
+		AC_CHECK_HEADERS([libxslt/extensions.h]) 
+		AC_CHECK_LIB([exslt],[exsltRegisterAll],[HAVE_LIBEXSLT=yes],[HAVE_LIBEXSLT=no])
+		AC_CHECK_HEADERS([libexslt/exslt.h])
+		AC_SUBST([LIBEXSLT_CFLAGS])
+		AC_SUBST([LIBEXSLT_LIBS])
+		AS_IF([test "_${HAVE_LIBEXSLT}" == "_yes"],[
+			AS_IF([test "_${HAVE_PBX_HTTP}" == "_yes"],[
+				AC_DEFINE(CS_EXPERIMENTAL_XML, 1, [experimental xml enabled])
+				CPPFLAGS_saved="${CPPFLAGS_saved} $LIBEXSLT_CFLAGS"
+			],[
+dnl				AC_MSG_ERROR([asterisk/http.h required to enable-experimental-xml])
+				AC_MSG_NOTICE([ERROR: asterisk/http.h required to enable-experimental-xml !!])
+			])
+		],[
+dnl			AC_MSG_ERROR([libxslt required to enable-experimental-xml])
+			AC_MSG_NOTICE([ERROR: libxslt required to enable-experimental-xml !!])
+		])
+	])
+	AC_MSG_NOTICE([--enable-experimental-xml: ${ac_cv_experimental_xml} (only for developers)])
+])
+
 AC_DEFUN([CS_DISABLE_DEVSTATE_FEATURE], [
 	AC_ARG_ENABLE(devstate_feature, 
 	  AC_HELP_STRING([--disable-devstate-feature], [disable device state feature button]), 
@@ -788,8 +871,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_DISABLE_REALTIME
 	CS_DISABLE_FEATURE_MONITOR
 	CS_ENABLE_ADVANCED_FUNCTIONS
-	CS_ENABLE_EXPERIMENTAL_MODE
-	CS_ENABLE_EXPERIMENTAL_NEWIP
 	CS_DISABLE_DEVSTATE_FEATURE
 	CS_DISABLE_DYNAMIC_SPEEDDIAL
 	CS_DISABLE_DYNAMIC_SPEEDDIAL_CID
@@ -797,6 +878,9 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_VIDEOLAYER
 	CS_ENABLE_DISTRIBUTED_DEVSTATE
 	CS_IPv6
+	CS_ENABLE_EXPERIMENTAL_MODE
+	CS_ENABLE_EXPERIMENTAL_NEWIP
+	CS_ENABLE_EXPERIMENTAL_XML
 ])
 
 AC_DEFUN([CS_PARSE_WITH_LIBGC], [

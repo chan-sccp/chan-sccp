@@ -402,7 +402,7 @@ boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_
 	return FALSE;
 }
 
-#ifndef CS_AST_HAS_STRINGS
+#ifndef HAVE_PBX_STRINGS_H
 
 /*!
  * \brief Asterisk Skip Blanks

@@ -200,8 +200,10 @@ CAT = @CAT@
 CC = @CC@
 CCACHE = @CCACHE@
 CCDEPMODE = @CCDEPMODE@
+CC_works = @CC_works@
 CFLAGS = @CFLAGS@
 CHANGELOG_OLDEST = @CHANGELOG_OLDEST@
+CLANG_BLOCKS_LIBS = @CLANG_BLOCKS_LIBS@
 COVERAGE_CFLAGS = @COVERAGE_CFLAGS@
 COVERAGE_LDFLAGS = @COVERAGE_LDFLAGS@
 CPP = @CPP@
@@ -262,6 +264,7 @@ GIT = @GIT@
 GREP = @GREP@
 HAVE_ASTERISK = @HAVE_ASTERISK@
 HAVE_CALLWEAVER = @HAVE_CALLWEAVER@
+HAVE_PBX_HTTP = @HAVE_PBX_HTTP@
 HEAD = @HEAD@
 HG = @HG@
 HOST_CC = @HOST_CC@
@@ -277,6 +280,8 @@ LIBADD_DL = @LIBADD_DL@
 LIBADD_DLD_LINK = @LIBADD_DLD_LINK@
 LIBADD_DLOPEN = @LIBADD_DLOPEN@
 LIBADD_SHL_LOAD = @LIBADD_SHL_LOAD@
+LIBEXSLT_CFLAGS = @LIBEXSLT_CFLAGS@
+LIBEXSLT_LIBS = @LIBEXSLT_LIBS@
 LIBLTDL = @LIBLTDL@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
@@ -321,6 +326,7 @@ PBX_MODDIR = @PBX_MODDIR@
 PBX_PATH = @PBX_PATH@
 PBX_TEMPMODDIR = @PBX_TEMPMODDIR@
 PBX_TYPE = @PBX_TYPE@
+PKGCONFIG = @PKGCONFIG@
 PTHREAD_CC = @PTHREAD_CC@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 PTHREAD_LIBS = @PTHREAD_LIBS@
@@ -413,8 +419,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2013-09-14 18:06:33 +0200 (Sat, 14 Sep 2013) $
-# REVISION: $Revision: 4859 $
+# DATE:     $Date$
+# REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules
 csmod_LTLIBRARIES = chan_sccp.la
@@ -436,14 +442,19 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_management.c sccp_mwi.c sccp_conference.c sccp_rtp.c \
 	sccp_appfunctions.c sccp_protocol.c sccp_socket.c \
 	sccp_threadpool.c sccp_devstate.c
+
+#if CS_EXPERIMENTAL_XML
+#chan_sccp_la_SOURCES	+=      sccp_webservice.h       sccp_xml.h 		sccp_xml_embedded.h	sccp_webservice.c	\
+#                                sccp_xml.c
+#endif 
 EXTRA_chan_sccp_la_SOURCES = $(am__append_1)
-chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
+chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS)
 chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
 chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
 	$(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS) $(COVERAGE_CFLAGS) \
-	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall \
-	$(EVENT_CFLAGS) $(EVENT_LIBS)
-chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS)
+	$(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) \
+	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

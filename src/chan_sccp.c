@@ -63,7 +63,7 @@ static ast_jb_conf default_jbconf = {
 	max_size:-1,
 	resync_threshold:-1,
 	impl:	"",
-#ifdef CS_AST_JB_TARGET_EXTRA
+#ifdef CS_AST_JB_TARGETEXTRA
 	target_extra:-1,
 #endif
 };
@@ -73,7 +73,7 @@ static struct ast_jb_conf default_jbconf = {
 	.max_size = -1,
 	.resync_threshold = -1,
 	.impl = "",
-#ifdef CS_AST_JB_TARGET_EXTRA
+#ifdef CS_AST_JB_TARGETEXTRA
 	.target_extra = -1,
 #endif
 };
