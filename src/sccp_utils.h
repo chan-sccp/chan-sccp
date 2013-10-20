@@ -95,7 +95,7 @@ const char *sccp_channel_toString(sccp_channel_t * c);
 
 struct composedId sccp_parseComposedId(const char *labelString, unsigned int maxLength);
 
-#ifndef CS_AST_HAS_STRINGS
+#ifndef HAVE_PBX_STRINGS_H
 char *pbx_skip_blanks(char *str);
 char *pbx_trim_blanks(char *str);
 char *pbx_skip_nonblanks(char *str);

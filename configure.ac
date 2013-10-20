@@ -73,6 +73,7 @@ SCCP_CHECK_ATOMIC_OPS
             
 CONFIGURE_PART([Checking for standard programs:])
 CS_FIND_PROGRAMS
+CS_CC_VERSION_CHECK
 ACX_PTHREAD 
 PATCH_LIBTOOL_TO_ADD_HOST_CC
 CS_CHECK_CROSSCOMPILE
@@ -149,9 +150,9 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${GCLIBS}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
 echo "        CPPFLAGS : ${CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${GCLIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${GCLIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "         PBX_LIB : ${PBX_LIB}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"
@@ -165,6 +166,17 @@ if test -n "$ASTERISK_INCOMPATIBLE"; then
 	tput smso
 	echo ""
 	echo -e "WARNING: The provided asterisk version is not compatible to current sources. Expects trouble !!"
+	echo ""
+	tput sgr0
+	echo ""
+fi
+if test CC_works = 0; then
+	tput setab 1
+	tput setaf 3
+	tput bold
+	tput smso
+	echo ""
+	echo -e "DEPRECATION WARNING: The compiler you are using is not compatible, you need at least gcc > 4.3 / llvm-gcc > 4.3 / clang > 3.3 + libblocksruntime-dev]"
 	echo ""
 	tput sgr0
 	echo ""
