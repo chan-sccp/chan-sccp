@@ -215,14 +215,16 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 AC_DEFUN([CS_CC_VERSION_CHECK], [
 	CC_works=0
 	if [ test "${CC}" = "gcc" || test "${CC}" = "llvm-gcc" ]; then
-		CC_version=`${CC} -dumpversion`
+		CC_VERSION=`${CC} -dumpversion`
 		CC_VERSION_MAJOR=$(echo $CC_VERSION | cut -d'.' -f1)
 		CC_VERSION_MINOR=$(echo $CC_VERSION | cut -d'.' -f2)
-		if test ${CC_VERSION_MAJOR} -ge 4; then
-			if test ${CC_VERSION_MINOR} -ge 3; then
+		if test ${CC_VERSION_MAJOR:-0} -ge 4; then
+			if test ${CC_VERSION_MINOR:-0} -ge 3; then
 				CC_works=1
 				AC_DEFINE([GCC_NESTED],1,[GCC_Nested Defined...])
 			fi
+		else
+			echo "gcc: ${CC_VERSION}"
 		fi
 	elif test "${CC}" = "clang"; then
 		dnl CLANG_CHECK=`echo | clang -fblocks -dM -E -`
