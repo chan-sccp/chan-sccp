@@ -130,7 +130,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			c->state = SCCP_CHANNELSTATE_DOWN;
 			PBX(set_callstate) (c, AST_STATE_DOWN);
 */
-			PBX(set_callstate) (c, AST_STATE_DOWN);
+// 			PBX(set_callstate) (c, AST_STATE_DOWN);
 			c->state = SCCP_CHANNELSTATE_DOWN;
 /*			if (c == d->active_channel) {						// prevent setting twice
 				sccp_dev_stoptone(d, instance, c->callid);

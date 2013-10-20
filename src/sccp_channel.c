@@ -1333,9 +1333,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	if (dial) {
 		sccp_pbx_softswitch(channel);
 		return channel;
-	} else {
-		sccp_indicate(device, channel, SCCP_CHANNELSTATE_DIALING);
-	}
+	} 
 
 	if ((channel->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, channel)) < 0) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
@@ -1797,6 +1795,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	}
 
 	if (channel->state != SCCP_CHANNELSTATE_DOWN) {
+		PBX(set_callstate) (channel, AST_STATE_DOWN);
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_ONHOOK);
 	}
 
