@@ -1051,10 +1051,10 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	struct ast_hostent ahp;
 	struct hostent *hp;
 
-	//      int packetSize;
+	// int packetSize;
 	channel->rtp.video.readFormat = SKINNY_CODEC_H264;
-	////    packetSize = 3840;
-	//      packetSize = 1920;
+	//// packetSize = 3840;
+	// packetSize = 1920;
 
 	int bitRate = channel->maxBitRate;
 
@@ -1414,7 +1414,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 		memcpy(&channel->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(skinny_codec_t) * (ARRAY_LEN(channel->preferences.audio) - numFoundCodecs));
 	}
-	//      //! \todo move this to openreceive- and startmediatransmission (we do calc in openreceiv and startmedia, so check if we can remove)
+	//! \todo move this to openreceive- and startmediatransmission (we do calc in openreceiv and startmedia, so check if we can remove)
 	sccp_channel_updateChannelCapability(channel);
 
 	/* answering an incoming call */
@@ -1774,7 +1774,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
  */
 void sccp_channel_clean(sccp_channel_t * channel)
 {
-	//      sccp_line_t *l;
+	// sccp_line_t *l;
 	sccp_device_t *d;
 	sccp_selectedchannel_t *sccp_selected_channel;
 
@@ -1784,7 +1784,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	}
 
 	d = sccp_channel_getDevice_retained(channel);
-	//      l = channel->line;
+	// l = channel->line;
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %08x\n", channel->callid);
 
 	/* mark the channel DOWN so any pending thread will terminate */

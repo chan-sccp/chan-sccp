@@ -1,9 +1,9 @@
 
 /*!
  * \file	sccp_event.c
- * \brief       SCCP Event Class
+ * \brief	SCCP Event Class
  * \author	Marcello Ceschia <marcello [at] ceschia.de>
- * \note		This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
  * \since	2009-09-02
  * 
@@ -53,7 +53,7 @@ boolean_t sccp_event_running = FALSE;
 
 void sccp_event_destroy(sccp_event_t * event)
 {
-	//      pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
+	// pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
@@ -85,7 +85,7 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_DELETED:
 			break;
 	}
-	//      pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
+	// pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
 }
 
 static void *sccp_event_processor(void *data)
@@ -231,7 +231,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
 		return;
 	}
-	//      memcpy(e, event, sizeof(sccp_event_t));
+	// memcpy(e, event, sizeof(sccp_event_t));
 	e->type = event->type;
 
 	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, event_type2str(e->type));
@@ -279,8 +279,8 @@ void sccp_event_fire(const sccp_event_t * event)
 		}
 	}
 
-	//      pthread_attr_t tattr;
-	//      pthread_t tid;
+	// pthread_attr_t tattr;
+	// pthread_t tid;
 
 	/* start async thread if nessesary */
 	if (GLOB(module_running)) {
