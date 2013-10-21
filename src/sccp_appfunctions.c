@@ -155,6 +155,10 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		snprintf(buf, len, "%s", d->conf_mute_on_entry ? "ON" : "OFF");
 	} else if (!strcasecmp(colname, "conf_music_on_hold_class")) {
 		snprintf(buf, len, "%s", d->conf_music_on_hold_class);
+	} else if (!strcasecmp(colname, "conf_show_conflist")) {
+		snprintf(buf, len, "%s", d->conf_show_conflist ? "ON" : "OFF");
+	} else if (!strcasecmp(colname, "conflist_active")) {
+		snprintf(buf, len, "%s", d->conferencelist_active ? "ON" : "OFF");
 #endif
 	} else if (!strcasecmp(colname, "current_line")) {
 		sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", len);
@@ -238,7 +242,7 @@ static struct pbx_custom_function sccpdevice_function = {
 	.arguments = "DeviceId = Device Identifier (i.e. SEP0123456789)\n"
 	    "Option = One of these possible options:\n"
 	    "ip, id, status, description, config_type, skinny_type, tz_offset, image_version, \n"
-	    "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" "mwi_light, dynamic, realtime, active_channel, transfer_channel, \n" "conference_id, allow_conference, conf_play_general_announce, allow_conference, \n" "conf_play_part_announce, conf_mute_on_entry, conf_music_on_hold_class, \n" "current_line, button_config, pending_delete, chanvar[], codec[]",
+	    "accessory_status, registration_state, codecs, capability, state, lines_registered, \n" "lines_count, last_number, early_rtp, supported_protocol_version, used_protocol_version, \n" "mwi_light, dynamic, realtime, active_channel, transfer_channel, \n" "conference_id, allow_conference, conf_play_general_announce, allow_conference, \n" "conf_play_part_announce, conf_mute_on_entry, conf_music_on_hold_class, conf_show_conflist, conflist_active\n" "current_line, button_config, pending_delete, chanvar[], codec[]",
 #endif
 };
 
