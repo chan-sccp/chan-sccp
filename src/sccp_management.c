@@ -139,7 +139,7 @@ void sccp_manager_module_start()
  * \brief stop manager-module
  *
  * \lock
- *      - sccp_hint_subscriptions
+ *  - sccp_hint_subscriptions
  */
 void sccp_manager_module_stop()
 {
@@ -162,38 +162,37 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
-			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "REGISTERED", DEV_ID_LOG(device)
-			    );
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "REGISTERED", DEV_ID_LOG(device));
 			break;
 
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
-			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "UNREGISTERED", DEV_ID_LOG(device)
-			    );
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "UNREGISTERED", DEV_ID_LOG(device));
 			break;
 
 		case SCCP_EVENT_DEVICE_PREREGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
-			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "PREREGISTERED", DEV_ID_LOG(device)
-			    );
+			manager_event(EVENT_FLAG_CALL, "DeviceStatus", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nDeviceStatus: %s\r\nSCCPDevice: %s\r\n", "PREREGISTERED", DEV_ID_LOG(device));
 			break;
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
 			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
-			manager_event(EVENT_FLAG_CALL,
-				      "PeerStatus",
-				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-				      "ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+			manager_event(	EVENT_FLAG_CALL,
+					"PeerStatus",
+					"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+					"ATTACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)"
+					);
 			break;
 
 		case SCCP_EVENT_DEVICE_DETACHED:
 			device = event->event.deviceAttached.linedevice->device;				// already retained in the event
 			linedevice = event->event.deviceAttached.linedevice;					// already retained in the event
-			manager_event(EVENT_FLAG_CALL,
-				      "PeerStatus",
-				      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
-				      "DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)");
+			manager_event(	EVENT_FLAG_CALL,
+					"PeerStatus",
+					"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nPeerStatus: %s\r\nSCCPDevice: %s\r\nSCCPLine: %s\r\nSCCPLineName: %s\r\nSubscriptionId: %s\r\nSubscriptionName: %s\r\n",
+					"DETACHED", DEV_ID_LOG(device), linedevice && linedevice->line ? linedevice->line->name : "(null)", linedevice && linedevice->line ? linedevice->line->label : "(null)", linedevice->subscriptionId.number ? linedevice->subscriptionId.number : "(null)", linedevice->subscriptionId.name ? linedevice->subscriptionId.name : "(null)"
+					);
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
@@ -203,22 +202,20 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 
 			switch (featureType) {
 				case SCCP_FEATURE_DND:
-					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", featureType2str(SCCP_FEATURE_DND), dndmode2str(device->dndFeature.status), DEV_ID_LOG(device)
-					    );
+					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", featureType2str(SCCP_FEATURE_DND), dndmode2str(device->dndFeature.status), DEV_ID_LOG(device));
 					break;
 				case SCCP_FEATURE_CFWDALL:
 				case SCCP_FEATURE_CFWDBUSY:
 					if (linedevice) {
-						manager_event(EVENT_FLAG_CALL,
-							      "CallForward",
-							      "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
-							      featureType2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"), (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
-						    );
+						manager_event(	EVENT_FLAG_CALL,
+								"CallForward",
+								"ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: %s\r\nExtension: %s\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n",
+								featureType2str(featureType), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.enabled) ? "On" : "Off") : ((linedevice->cfwdBusy.enabled) ? "On" : "Off"), (SCCP_FEATURE_CFWDALL == featureType) ? ((linedevice->cfwdAll.number) ? linedevice->cfwdAll.number : "(null)") : ((linedevice->cfwdBusy.number) ? linedevice->cfwdBusy.number : "(null)"), (linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
+								);
 					}
 					break;
 				case SCCP_FEATURE_CFWDNONE:
-					manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n", featureType2str(featureType), (linedevice && linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device)
-					    );
+					manager_event(EVENT_FLAG_CALL, "CallForward", "ChannelType: SCCP\r\nChannelObjectType: DeviceLine\r\nFeature: %s\r\nStatus: Off\r\nSCCPLine: %s\r\nSCCPDevice: %s\r\n", featureType2str(featureType), (linedevice && linedevice->line) ? linedevice->line->name : "(null)", DEV_ID_LOG(device));
 					break;
 				default:
 					break;
@@ -239,7 +236,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
  * \called_from_asterisk
  * 
  * \lock
- *      - devices
+ *  - devices
  */
 int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
@@ -288,7 +285,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
  * \called_from_asterisk
  * 
  * \lock
- *      - lines
+ *  - lines
  */
 int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
@@ -330,7 +327,7 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  */
 int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
-	//      sccp_list_t     *hintList = NULL;
+	// sccp_list_t *hintList = NULL;
 	sccp_device_t *d = NULL;
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *type = astman_get_header(m, "Type");

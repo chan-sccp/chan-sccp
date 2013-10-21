@@ -196,7 +196,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
 		return NULL;
 	}
-	//      SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	// SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {								/* Upgrading to wrlock if possible */
 		usleep(100);											/* backoff on failure */
 	}
@@ -205,7 +205,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 
 	/* not sure if we should fire an event like this ? */
-	/*      
+	/*
 	   sccp_event_t event;
 	   memset(&event, 0, sizeof(sccp_event_t));
 	   event.type = SCCP_EVENT_LINE_DELETED;
@@ -220,7 +220,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 }
 
 /*!
- * \brief       create a hotline
+ * \brief create a hotline
  * 
  * \lock
  *  - lines
@@ -279,7 +279,7 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	if (!l)
 		return;
 
-	//      SCCP_LIST_LOCK(&l->channels);
+	// SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
 		if ((sccp_channel_retain(c))) {
 			sccp_channel_endcall(c);
@@ -287,7 +287,7 @@ void sccp_line_kill_channels(sccp_line_t * l)
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
-	//      SCCP_LIST_UNLOCK(&l->channels);
+	// SCCP_LIST_UNLOCK(&l->channels);
 }
 
 /*!
@@ -756,8 +756,8 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 	char multi[256] = "";
 	char *stringp, *ext = "", *context = "";
 
-	//      char extension[AST_MAX_CONTEXT]="";
-	//      char name[AST_MAX_CONTEXT]="";
+	// char extension[AST_MAX_CONTEXT]="";
+	// char name[AST_MAX_CONTEXT]="";
 
 	struct pbx_context *con;
 	struct pbx_find_info q = {.stacklen = 0 };
@@ -899,7 +899,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 {
 	sccp_line_t *l = NULL;
 
-	//      sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
+	// sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Looking for line '%s'\n", name);
 	if (sccp_strlen_zero(name)) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for line with name ''\n");
 		return NULL;
@@ -928,7 +928,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
 		return NULL;
 	}
-	//      sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
+	// sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found line '%s'\n", "SCCP", l->name);
 
 	return l;
 }

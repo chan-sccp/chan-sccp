@@ -50,8 +50,8 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	}
 
 	device = sccp_channel_getDevice_retained(c);
-	//struct sockaddr_in us;
-	//      PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
+	// struct sockaddr_in us;
+	// PBX(rtp_setPeer) (&c->rtp.audio, &c->rtp.audio.phone, device ? device->nat : 0);
 	device = device ? sccp_device_release(device) : NULL;
 
 	return rtpResult;

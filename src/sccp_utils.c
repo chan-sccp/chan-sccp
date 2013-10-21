@@ -19,11 +19,11 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-    /*!
-     * \brief Print out a messagebuffer
-     * \param messagebuffer Pointer to Message Buffer as char
-     * \param len Lenght as Int
-     */
+/*!
+ * \brief Print out a messagebuffer
+ * \param messagebuffer Pointer to Message Buffer as char
+ * \param len Lenght as Int
+ */
 void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
 	static const int numcolumns = 16;									// number output columns
@@ -73,7 +73,7 @@ void sccp_dump_msg(sccp_msg_t *msg)
  * \return taps (Number of Buttons on AddOn Device)
  * 
  * \lock
- *      - device->addons
+ *  - device->addons
  */
 int sccp_addons_taps(sccp_device_t * d)
 {
@@ -109,7 +109,7 @@ void sccp_addons_clear(sccp_device_t * d)
 	if (!d)
 		return;
 
-	//      while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
+	// while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
 	while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
 		sccp_free(addon);
 	}
@@ -150,7 +150,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
  * \lock
- *      - devices
+ *  - devices
  */
 void sccp_dev_dbclean()
 {
@@ -527,7 +527,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * \return SCCP Device
  * 
  * \lock
- *      - devices
+ *  - devices
  */
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
@@ -573,11 +573,11 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
  * \callergraph
  * 
  * \warning
- *      - device->buttonconfig is not always locked
- *      - line->devices is not always locked
+ *  - device->buttonconfig is not always locked
+ *  - line->devices is not always locked
  * 
  * \lock
- *      - device
+ *  - device
  */
 void sccp_util_featureStorageBackend(const sccp_event_t * event)
 {
