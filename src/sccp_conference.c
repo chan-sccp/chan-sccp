@@ -208,7 +208,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
 		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer);
 		participant->isModerator = TRUE;
-		device->conferencelist_active = TRUE;								// Activate conflist
+		device->conferencelist_active = device->conf_show_conflist;						// Activate conflist
 //		sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
 //		sccp_softkey_setSoftkeyState(device, KEYMODE_CONNTRANS, SKINNY_LBL_JOIN, TRUE);
 		sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device,channel->line->name), channel->callid, KEYMODE_CONNCONF);
@@ -440,7 +440,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 					participant->channel->conference_participant_id = participant->id;
 					participant->playback_announcements = device->conf_play_part_announce;
 					sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
-					//device->conferencelist_active = TRUE;					// Activate conflist on all sccp participants
+					//device->conferencelist_active = device->conf_show_conflist;			// Activate conflist on all sccp participants
 					sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device,channel->line->name), channel->callid, KEYMODE_CONNCONF);
 				} else {									// PBX Channel
 					PBX(setPBXChannelLinkedId) (participant->conferenceBridgePeer, conference->linkedid);
