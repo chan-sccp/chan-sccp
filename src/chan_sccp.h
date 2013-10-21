@@ -1084,6 +1084,7 @@ struct sccp_device {
 	boolean_t conf_play_part_announce;									/*!< Playback Personal Announcements (You have been Kicked/You are muted) */
 	boolean_t conf_mute_on_entry;										/*!< Mute participants when they enter */
 	char conf_music_on_hold_class[SCCP_MAX_MUSICCLASS];							/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
+	boolean_t conf_show_conflist;										/*!< Automatically show conference list to the moderator */
 #endif
 };
 

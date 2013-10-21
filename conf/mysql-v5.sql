@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `conf_play_part_announce` varchar(3) default 'on',   
   `conf_mute_on_entry` varchar(3) default 'off',
   `conf_music_on_hold_class` varchar(80) default 'default',
+  `conf_show_conflist`  varchar(3) default 'on',
   `setvar` varchar(100) default NULL,
   `disallow` varchar(255) DEFAULT NULL,
   `allow` varchar(255) DEFAULT NULL,

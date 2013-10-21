@@ -9,6 +9,7 @@ ALTER TABLE `sccpdevice` ADD `conf_play_general_announce` varchar(3) default 'on
 ALTER TABLE `sccpdevice` ADD `conf_play_part_announce` varchar(3) default 'on' AFTER `conf_play_general_announce`;
 ALTER TABLE `sccpdevice` ADD `conf_mute_on_entry` varchar(3) default 'off' AFTER `conf_mute_on_entry`;
 ALTER TABLE `sccpdevice` ADD `conf_music_on_hold_class` varchar(80) default 'default' AFTER `conf_mute_on_entry`;
+ALTER TABLE `sccpdevice` ADD `conf_show_conflist` varchar(3) default 'on' AFTER `conf_music_on_hold_class`;
 ALTER TABLE `sccpdevice` REMOVE COLUMN `trustphoneip`;
 
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
