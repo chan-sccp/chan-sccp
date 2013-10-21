@@ -42,7 +42,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <math.h>
 #if ASTERISK_VERSION_NUMBER < 10400
 /* !
- *\brief Host Access Rule Structure 
+ *\brief Host Access Rule Structure
  */
 struct ast_ha {
 	/* Host access rule */
@@ -70,7 +70,7 @@ void sccp_handle_alarm(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t *
  * \param no_d SCCP Device = NULL
  * \param r SCCP Moo
  *
- * Interesting values for Last = 
+ * Interesting values for Last =
  * 0 Phone Load Is Rejected
  * 1 Phone Load TFTP Size Error
  * 2 Phone Load Compressor Error
@@ -101,7 +101,7 @@ void sccp_handle_alarm(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t *
  * 28 Waiting For Response From CCM
  * 29 DSP Alarm
  * 30 Phone Abort CCM TCP Connection
- * 31 File Authorization Failed 
+ * 31 File Authorization Failed
  */
 void sccp_handle_unknown_message(sccp_session_t * no_s, sccp_device_t * no_d, sccp_msg_t * msg_in)
 {
@@ -187,7 +187,7 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
  * \brief Handle Token Request
  *
  * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
- * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends 
+ * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session
@@ -297,7 +297,7 @@ EXITFUNC:
  * \brief Handle Token Request for SPCP phones
  *
  * If a fall-back server has been entered in the phones cnf.xml file and the phone has fallen back to a secundairy server
- * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends 
+ * it will send a tokenreq to the primairy every so often (secundaity keep alive timeout ?). Once the primairy server sends
  * a token acknowledgement the switches back.
  *
  * \param s SCCP Session
@@ -452,8 +452,8 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: cached device configuration\n", DEV_ID_LOG(device));
 	}
 
-	/*! \todo We need a fix here. If deviceName was provided and specified in sccp.conf we should not continue to anonymous, 
-	 * but we cannot depend on one of the standard find functions for this, because they return null in two different cases (non-existent and refcount<0). 
+	/*! \todo We need a fix here. If deviceName was provided and specified in sccp.conf we should not continue to anonymous,
+	 * but we cannot depend on one of the standard find functions for this, because they return null in two different cases (non-existent and refcount<0).
 	 */
 	if (!device && GLOB(allowAnonymous)) {
 		if (!(device = sccp_device_createAnonymous(msg_in->data.RegisterMessage.sId.deviceName))) {
@@ -561,9 +561,9 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 
 	sccp_dev_set_registered(device, SKINNY_DEVICE_RS_PROGRESS);
 
-	/* 
+	/*
 	   Ask for the capabilities of the device
-	   to proceed with registration according to sccp protocol specification 3.0 
+	   to proceed with registration according to sccp protocol specification 3.0
 	 */
 	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: (sccp_handle_register) asking for capabilities\n", DEV_ID_LOG(device));
 	sccp_dev_sendmsg(device, CapabilitiesReqMessage);
@@ -850,7 +850,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	}
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: Phone available lines %d\n", d->id, line_count);
-/*	
+/*
 	if (d->isAnonymous == TRUE) {
 		l = GLOB(hotline)->line;
 		sccp_line_addDevice(l, d, 1, NULL);
@@ -877,7 +877,7 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 			}
 		}
 	  }
-*/	
+*/
 	d->linesRegistered = TRUE;
 }
 
@@ -940,7 +940,7 @@ void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * 
  *
  * \warning
  *   - device->buttonconfig is not always locked
- * 
+ *
  * \lock
  *   - device
  *     - see sccp_make_button_template()
@@ -1049,22 +1049,22 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	sccp_dev_send(d, msg_out);
 /*
 	sccp_msg_t *dynamicR;
-	
+
 	int hdr_len = sizeof(dynamicR->data.ButtonTemplateMessageDynamic) - sizeof(dynamicR->data.ButtonTemplateMessageDynamic.dummy);
 	int dummy_len = (lastUsedButtonPosition + 1) * sizeof(StationButtonDefinition);
 	int padding = ((dummy_len + hdr_len) % 4);
-	 
+
 	padding = (padding > 0) ? 4 - padding : 4;
-	 
+
 	dynamicR = sccp_build_packet(ButtonTemplateMessage, hdr_len + dummy_len + padding);
 	dynamicR->data.ButtonTemplateMessageDynamic.lel_buttonOffset = 0;
 	dynamicR->data.ButtonTemplateMessageDynamic.lel_buttonCount = htolel(buttonCount);
 	dynamicR->data.ButtonTemplateMessageDynamic.lel_totalButtonCount = htolel(lastUsedButtonPosition + 1);
 	memcpy(&dynamicR->data.ButtonTemplateMessageDynamic.dummy, &msg_out->data.ButtonTemplateMessage.definition, dummy_len);
-	
+
 	sccp_dev_send(d, dynamicR);
 	sccp_free(msg_out);
-*/	
+*/
 }
 
 /*!
@@ -1655,7 +1655,7 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
- * 
+ *
  * \warning
  *   - device->buttonconfig is not always locked
  */
@@ -1718,7 +1718,7 @@ void sccp_handle_headset(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
- * 
+ *
  */
 void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
@@ -1815,7 +1815,7 @@ void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_device_t * d, sc
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
- * 
+ *
  * \warning
  *   - device->buttonconfig is not always locked
  *
@@ -2218,7 +2218,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			int minimum_digit_before_check = SCCP_SIM_ENBLOC_MIN_DIGIT;
 			int lpbx_digit_usecs = 0;
 			int number_of_digits = len;
-			int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;					// new timeout if we have established we should enbloc dialing 
+			int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;					// new timeout if we have established we should enbloc dialing
 
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, PBX(sched_wait) (channel->scheduler.digittimeout));
 			if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {	// skip the first digit (first digit had longer delay than the rest)
@@ -2517,7 +2517,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Expect RTP/UDP from '%s:%d', PassThruPartyId: %u, CallID: %u\n", d->id, status, iabuf, port, passThruPartyId, callReference);
 
 	if (status) {
-		// rtp error from the phone 
+		// rtp error from the phone
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: %d ! No RTP stream available. Possibly all the rtp streams the phone supports have been used up. Giving up.\n", d->id, status);
 		return;
 	}
@@ -2703,7 +2703,7 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
  * \param d SCCP Device
  * \param r SCCP Moo
  *
- * \section sccp_statistics Phone Audio Statistics 
+ * \section sccp_statistics Phone Audio Statistics
  *
  * MOS LQK = Mean Opinion Score for listening Quality (5=Excellent -> 1=BAD)
  * Max MOS LQK = Baseline or highest MOS LQK score observed from start of the voice stream. These codecs provide the following maximum MOS LQK score under normal conditions with no frame loss: (G.711 gives 4.5, G.729 A /AB gives 3.7)
@@ -2718,7 +2718,7 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
  * Max Jitter = Maximum value of instantaneous jitter, in milliseconds.
  * Sender Size = RTP packet size, in milliseconds, for the transmitted stream.
  * Rcvr Size = RTP packet size, in milliseconds, for the received stream.
- * Rcvr Discarded = RTP packets received from network but discarded from jitter buffers.   
+ * Rcvr Discarded = RTP packets received from network but discarded from jitter buffers.
  */
 
 void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
@@ -2968,7 +2968,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
  * \param s SCCP Session
  * \param d SCCP Device
  * \param r SCCP Moo
- * 
+ *
  * \warning
  *   - device->buttonconfig is not always locked
  */
@@ -3069,7 +3069,7 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
  * \param d SCCP Device as sccp_device_t
  * \param instance Instance as int
  * \param toggleState as boolean
- * 
+ *
  * \warning
  *   - device->buttonconfig is not always locked
  */
@@ -3225,7 +3225,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				// sprintf(devstateName, "Custom:%s", config->button.feature.options);
 				enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
 
-				//pbx_devstate_changed_literal(newDeviceState, devstateName);   
+				//pbx_devstate_changed_literal(newDeviceState, devstateName);
 				ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
 				pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
 			}
