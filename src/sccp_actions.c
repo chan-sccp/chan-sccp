@@ -3544,7 +3544,7 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
 	uint32_t callReference;
 	uint32_t transactionID;
 	uint32_t dataLength;
-	char data[StationMaxXMLMessage];
+	char data[StationMaxXMLMessage] = {0};
 
 	appID = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_appID);
 	lineInstance = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_lineInstance);
@@ -3553,8 +3553,7 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
 	dataLength = letohl(msg_in->data.DeviceToUserDataVersion1Message.lel_dataLength);
 
 	if (dataLength) {
-		memset(data, 0, dataLength);
-		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
+	        sccp_copy_string(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
 	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: DTU Response: AppID %d , LineInstance %d, CallID %d, Transaction %d\n", d->id, appID, lineInstance, callReference, transactionID);
