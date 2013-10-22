@@ -1884,7 +1884,10 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 	sccp_channel_t *sccp_channel_new = NULL;
 	uint8_t prev_channel_state = 0;
 	uint32_t blindTransfer = 0;
-	uint16_t instance;
+	uint16_t instance = 0;
+	PBX_CHANNEL_TYPE *pbx_channel_owner = NULL;
+	PBX_CHANNEL_TYPE *pbx_channel_bridgepeer = NULL;
+
 
 	if (!channel)
 		return;
@@ -1904,6 +1907,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			return;
 		}
 	}
+	instance = sccp_device_find_index_for_line(d, channel->line->name);
 
 	if (!d->transfer || !channel->line->transfer) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id) ? d->id : "SCCP");
@@ -1929,38 +1933,56 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {								/** channel to be transfered */
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 
-		if (!channel->owner) {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
-			instance = sccp_device_find_index_for_line(d, channel->line->name);
-			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
-			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
-			d = sccp_device_release(d);
-			return;
-		}
 		prev_channel_state = channel->state;
 		if ((channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold(channel)) {
 			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 			d = sccp_device_release(d);
 			return;
-		}
-		if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
-			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
-		}
-		if ((sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, sccp_channel_getLinkedId(channel)))) {
-			pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)));
-		  
-			/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
-			if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && channel->owner && CS_AST_BRIDGED_CHANNEL(channel->owner))) {
-				//! \todo use pbx impl
-				pbx_builtin_setvar_helper(sccp_channel_new->owner, "BLINDTRANSFER", pbx_channel_name(CS_AST_BRIDGED_CHANNEL(channel->owner)));
-				pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", pbx_channel_name(sccp_channel_new->owner));
+		} 
 
+		if ((pbx_channel_owner = pbx_channel_ref(channel->owner))) {
+			if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 			}
-			d->transferChannels.transferer = sccp_channel_retain(sccp_channel_new);
-			sccp_channel_new = sccp_channel_release(sccp_channel_new);
+			if ((sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, sccp_channel_getLinkedId(channel)))) {
+				if ((pbx_channel_bridgepeer = CS_AST_BRIDGED_CHANNEL(pbx_channel_owner))) {
+					pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
+				  
+					/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
+					if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && pbx_channel_owner && pbx_channel_bridgepeer)) {
+						//! \todo use pbx impl
+						pbx_builtin_setvar_helper(sccp_channel_new->owner, "BLINDTRANSFER", pbx_channel_name(pbx_channel_bridgepeer));
+						pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", pbx_channel_name(sccp_channel_new->owner));
+					}
+					// should go own, even if there is not bridged channel (yet/anymore) ?
+					d->transferChannels.transferer = sccp_channel_retain(sccp_channel_new);
+					sccp_channel_new = sccp_channel_release(sccp_channel_new);
+				} else if (pbx_channel_appl(pbx_channel_owner) != NULL) {
+					// should go own, even if there is not bridged channel (yet/anymore) ?
+					// giving up
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+					sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+					sccp_indicate(d, channel, prev_channel_state);
+					d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				} else {
+					// giving up
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+					sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+					sccp_indicate(d, channel, prev_channel_state);
+					d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				}
+			} else {
+				// giving up
+				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
+				sccp_indicate(d, channel, prev_channel_state);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+			}
+			pbx_channel_owner = pbx_channel_unref(pbx_channel_owner);
 		} else {
 			// giving up
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel to transfer on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
 			sccp_indicate(d, channel, prev_channel_state);
 			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 		}
@@ -2173,7 +2195,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	}
 
 	if (!sccp_source_local_channel->owner) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free ressources\n");
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
 		d = sccp_device_release(d);
 		sccp_source_local_channel = sccp_channel_release(sccp_source_local_channel);
 		return;
