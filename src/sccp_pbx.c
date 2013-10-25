@@ -1143,6 +1143,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				break;
 			case AST_PBX_CALL_LIMIT:
 				pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+				sccp_copy_string(d->lastNumber, shortenedNumber, sizeof(d->lastNumber));
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				break;
 			default:
