@@ -37,6 +37,7 @@
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_rtp.h"
+#include <asterisk/unaligned.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <math.h>
@@ -2733,7 +2734,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		// update last_call_statistics
 		last_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_LAST];
 		strncpy(last_call_stats->type, "LAST", sizeof(last_call_stats->type));
-		if (letohl(msg_in->header.lel_protocolVer < 19)) {
+		if (letohl(msg_in->header.lel_protocolVer < 20)) {
 			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.lel_CallIdentifier);
 			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.lel_SentPackets);
 			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.lel_RecvdPackets);
@@ -2741,28 +2742,61 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.lel_Jitter);
 			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.lel_latency);
 			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.QualityStats, sizeof(QualityStats));
-		} else {
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V19.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V19.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes_V19.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V19.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V19.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V19.lel_latency);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V19.QualityStats, sizeof(QualityStats));
-		}
+		} else if (letohl(msg_in->header.lel_protocolVer < 22)){
+			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_CallIdentifier);
+			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_SentPackets);
+			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_RecvdPackets);
+			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_LostPkts);
+			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_Jitter);
+			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_latency);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V20.QualityStats, sizeof(QualityStats));
+                } else {
+                        // ConnectionStatisticsRes_V22 has irregular packing (single byte packing), need to access unaligned data (using get_unaligned_uint32 for sparc62 / buserror machines
+#if defined(HAVE_UNALIGNED_BUSERROR)
+			last_call_stats->num = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_CallIdentifier));
+			last_call_stats->packets_sent = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_SentPackets));
+			last_call_stats->packets_received = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_RecvdPackets));
+			last_call_stats->packets_lost = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_LostPkts));
+			last_call_stats->jitter = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_Jitter));
+			last_call_stats->latency = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_latency));
+#else
+			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_CallIdentifier);
+			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_SentPackets);
+			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_RecvdPackets);
+			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_LostPkts);
+			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_Jitter);
+			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_latency);
+#endif
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V22.QualityStats, sizeof(QualityStats));
+                }
 		ast_str_append(&output_buf, 0, "%s: Call Statistics:\n", d->id);
 		ast_str_append(&output_buf, 0, "       [\n");
 
 		ast_str_append(&output_buf, 0, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
+		sccp_log(DEBUGCAT_CORE)("QualityStats: %s\n",QualityStats);
 		if (!sccp_strlen_zero(QualityStats)) {
-			if (letohl(msg_in->header.lel_protocolVer < 19)) {
+			if (letohl(msg_in->header.lel_protocolVer < 20)) {
 				sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;MLQKvr=%f;CCR=%f;ICR=%f;ICRmx=%f;CS=%d;SCS=%d",
 				       &last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality,
-				       &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->variance_opinion_score_listening_quality, &last_call_stats->cumulative_concealement_ratio, &last_call_stats->interval_concealement_ratio, &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds);
+				       &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, 
+				       &last_call_stats->variance_opinion_score_listening_quality, &last_call_stats->cumulative_concealement_ratio, 
+				       &last_call_stats->interval_concealement_ratio, &last_call_stats->max_concealement_ratio, 
+				       &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds);
+			} else if (letohl(msg_in->header.lel_protocolVer < 22)){
+			        int Log = 0;
+				sscanf(QualityStats, "Log %d: mos %f, avgMos %f, maxMos %f, minMos %f, CS %d, SCS %d, CCR %f, ICR %f, maxCR %f",
+                                        &Log,
+				       &last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality,
+				       &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->mean_opinion_score_listening_quality, 
+				       &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds,  &last_call_stats->cumulative_concealement_ratio, 
+				       &last_call_stats->interval_concealement_ratio, &last_call_stats->max_concealement_ratio);
 			} else {
 				sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;ICR=%f;CCR=%f;ICRmx=%f;CS=%d;SCS=%d;MLQKvr=%f",
 				       &last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality,
-				       &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
+				       &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, 
+				       &last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, 
+				       &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, 
+				       &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
 			}
 		}
 		ast_str_append(&output_buf, 0, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
