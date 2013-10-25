@@ -1063,7 +1063,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			}
 			goto EXIT_FUNC;										// leave simpleswitch without dial
 		case SCCP_SS_DIAL:
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension\n", d->id);
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
 
 			sccp_copy_string(c->callInfo.calledPartyNumber, shortenedNumber, sizeof(c->callInfo.calledPartyNumber));
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1106,7 +1106,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	}
 
 	PBX(setChannelExten) (c, shortenedNumber);
-	sccp_copy_string(d->lastNumber, c->dialedNumber, sizeof(d->lastNumber));
 
 	sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
 	sccp_channel_set_calledparty(c, "", shortenedNumber);
@@ -1128,6 +1127,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	    ) {
 		/* found an extension, let's dial it */
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+		
+		sccp_copy_string(c->callInfo.calledPartyNumber, shortenedNumber, sizeof(c->callInfo.calledPartyNumber));
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		PBX(set_callstate) (c, AST_STATE_RING);
 
@@ -1146,6 +1147,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				break;
 			default:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
+				sccp_copy_string(d->lastNumber, shortenedNumber, sizeof(d->lastNumber));
 #ifdef CS_MANAGER_EVENTS
 				if (GLOB(callevents)) {
 					manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? (char *) &c->callid : "(null)");
