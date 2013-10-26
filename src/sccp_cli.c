@@ -23,21 +23,21 @@
  * /code
  * static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "Send a message to an SCCP Device + phone beep + timeout.\n";
  * static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
- * #define CLI_COMMAND "sccp", "message", "device" 					// defines the cli command line before parameters
- * #define AMI_COMMAND "SCCPMessageDevice" 						// defines the ami command line before parameters
- * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER					// defines on or more cli tab completion helpers (in order)
+ * #define CLI_COMMAND "sccp", "message", "device" 							// defines the cli command line before parameters
+ * #define AMI_COMMAND "SCCPMessageDevice" 								// defines the ami command line before parameters
+ * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER							// defines on or more cli tab completion helpers (in order)
  * #define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"			// defines the ami parameter conversion mapping to argc/argv, empty string if not defined
  * CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
- * 											// the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
- *											// - functionname (will be expanded to manager_functionname and cli_functionname)
- *											// - function to be called upon execution
- *											// - description
- *											// - usage
- *											// - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
+					 * 													// the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
+					 *													// - functionname (will be expanded to manager_functionname and cli_functionname)
+					 *													// - function to be called upon execution
+					 *													// - description
+					 *													// - usage
+					 *													// - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
  * #undef CLI_AMI_PARAMS
  * #undef AMI_COMMAND
  * #undef CLI_COMPLETE
- * #undef CLI_COMMAND									// cleanup / undefine everything before the next call to CLI_AMI_ENTRY
+ * #undef CLI_COMMAND													// cleanup / undefine everything before the next call to CLI_AMI_ENTRY
  * #endif
  * /endcode
  * 
@@ -2433,7 +2433,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	if (argc > 2) {
 		if (sccp_strequals("device", argv[2]) && argc > 3) {
 			sccp_device_t *device = sccp_device_find_byid(argv[3], FALSE);
-			PBX_VARIABLE_TYPE *v;
+			PBX_VARIABLE_TYPE *v = NULL;
 			
 			if(!device){
 				pbx_cli(fd, "Could not find device %s\n", argv[3]);
@@ -2473,7 +2473,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			goto EXIT;
 		} else if (sccp_strequals("line", argv[2]) && argc > 3) {
 			sccp_line_t *line = sccp_line_find_byname(argv[3], FALSE);
-			PBX_VARIABLE_TYPE *v;
+			PBX_VARIABLE_TYPE *v = NULL;
 			PBX_VARIABLE_TYPE *dv = NULL;			
 
 			if(!line) {
