@@ -1678,6 +1678,11 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 #if CS_SCCP_PICKUP
 	ast_channel_pickupgroup_set(channel->owner, l->pickupgroup);
 #endif
+#else
+	channel->owner->callgroup = l->callgroup;
+#if CS_SCCP_PICKUP
+	channel->owner->pickupgroup = l->pickupgroup;
+#endif
 #endif														// ASTERISK_VERSION_GROUP >= 111
 
 #ifdef CS_SCCP_CONFERENCE
