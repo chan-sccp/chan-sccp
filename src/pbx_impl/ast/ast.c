@@ -837,10 +837,8 @@ static int sccp_asterisk_doPickup(struct ast_channel *ast) {
 enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast){
 	const char *pickupexten = ast_pickup_ext();
 	const char *dialedNumber = "";
-	const char *context = "";
 	
 	sccp_channel_t *channel = NULL;
-	
 	
 	channel = get_sccp_channel_from_pbx_channel(ast);
 	if(!channel){
@@ -848,10 +846,9 @@ enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast){
 	}
 	
 	dialedNumber = PBX(getChannelExten)(channel);
-	context = PBX(getChannelContext)(channel);
 	
 	ast_channel_lock(ast);
-	if (!strcmp(dialedNumber, pickupexten) && sccp_asterisk_doPickup(ast)) {
+	if (sccp_strequals(dialedNumber, pickupexten) && sccp_asterisk_doPickup(ast)) {
 		ast_channel_unlock(ast);
 		return AST_PBX_SUCCESS;
 	}
