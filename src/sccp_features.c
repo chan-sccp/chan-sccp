@@ -467,7 +467,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	if ((c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) && !pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Already offhook, reusing callid %d\n", d->id, c->callid);
 	} else {
-		sccp_log((DEBUGCAT FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
 		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	}
 	
