@@ -449,7 +449,6 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 {
 	int res = 0;
-	PBX_CHANNEL_TYPE *dest = NULL;
 	sccp_channel_t *c;
 
 	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
@@ -462,6 +461,24 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
 		return -1;
 	}
+
+#if CS_EXPERIMENTAL
+	/* re-use/create channel for pickup */
+	if ((c = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_OFFHOOK)) && !pbx_test_flag(pbx_channel_flags(c->owner), AST_FLAG_ZOMBIE)) {
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Already offhook, reusing callid %d\n", d->id, c->callid);
+	} else {
+		sccp_log((DEBUGCAT FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
+		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+	}
+	
+	SCCP_SCHED_DEL(c->scheduler.digittimeout);
+        const char *pickupexten = pbx_pickup_ext();
+	sccp_copy_string(c->dialedNumber, pickupexten, sizeof(pickupexten));
+	sccp_pbx_softswitch(c);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished\n", DEV_ID_LOG(d));
+	res = 0;
+#else
+	PBX_CHANNEL_TYPE *dest = NULL;
 
 	if (!PBX(feature_pickup)) {
 		pbx_log(LOG_ERROR, "%s: (grouppickup) GPickup feature not implemented\n", d->id);
@@ -512,6 +529,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_CALL_REJECTED);
 		pbx_hangup(c->owner);
 	}
+#endif	
 	c = sccp_channel_release(c);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished (%d)\n", DEV_ID_LOG(d), res);
 	return res;
