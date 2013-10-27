@@ -2276,14 +2276,6 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
 			}
-#ifdef CS_SCCP_PICKUP
-			if (!strcmp(channel->dialedNumber, pbx_pickup_ext()) && (channel->state != SCCP_CHANNELSTATE_GETDIGITS)) {
-				/* set it to offhook state because the sccp_sk_gpickup function look for an offhook channel */
-				channel->state = SCCP_CHANNELSTATE_OFFHOOK;
-				sccp_sk_gpickup(d, channel->line, lineInstance, channel);
-				goto EXIT_FUNC;
-			}
-#endif
 
 			if (GLOB(digittimeoutchar) == resp) {							// we dial on digit timeout char !
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Got digit timeout char '%c', dial immediately\n", GLOB(digittimeoutchar));
