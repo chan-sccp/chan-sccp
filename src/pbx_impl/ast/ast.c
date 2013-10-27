@@ -804,4 +804,60 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 
 }
 
+
+static void *sccp_asterisk_doPickupThread(void *data) {
+	struct ast_channel *chan;
+	chan = data;
+
+	if (ast_pickup_call(chan)) {
+		ast_channel_hangupcause_set(chan, AST_CAUSE_CALL_REJECTED);
+	} else {
+		ast_channel_hangupcause_set(chan, AST_CAUSE_NORMAL_CLEARING);
+	}
+	ast_hangup(chan);
+	ast_channel_unref(chan);
+	chan = NULL;
+	return NULL;
+}
+
+static int sccp_asterisk_doPickup(struct ast_channel *ast) {
+	pthread_t threadid;
+
+	ast_channel_ref(ast);
+
+	if (ast_pthread_create_detached_background(&threadid, NULL, sccp_asterisk_doPickupThread, ast)) {
+		pbx_log(LOG_ERROR, "Unable to start Group pickup thread on channel %s\n", ast_channel_name(ast));
+		ast_channel_unref(ast);
+		return FALSE;
+	}
+	pbx_log(LOG_NOTICE, "Started Group pickup thread on channel %s\n", ast_channel_name(ast));
+	return TRUE;
+}
+
+enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast){
+	const char *pickupexten = ast_pickup_ext();
+	const char *dialedNumber = "";
+	const char *context = "";
+	
+	sccp_channel_t *channel = NULL;
+	
+	
+	channel = get_sccp_channel_from_pbx_channel(ast);
+	if(!channel){
+		return AST_PBX_FAILED;
+	}
+	
+	dialedNumber = PBX(getChannelExten)(channel);
+	context = PBX(getChannelContext)(channel);
+	
+	ast_channel_lock(ast);
+	if (!strcmp(dialedNumber, pickupexten) && sccp_asterisk_doPickup(ast)) {
+		ast_channel_unlock(ast);
+		return AST_PBX_SUCCESS;
+	}
+	ast_channel_unlock(ast);
+	
+	return ast_pbx_start(ast);
+}
+
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;

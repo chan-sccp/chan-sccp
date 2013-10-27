@@ -229,7 +229,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_party_name_free ast_party_name_free
 #define pbx_party_number_free ast_party_number_free
 #define pbx_pbx_run ast_pbx_run
-#define pbx_pbx_start ast_pbx_start
+// #define pbx_pbx_start ast_pbx_start
 #define pbx_pickup_ext ast_pickup_ext
 #define pbx_poll ast_poll
 #define pbx_print_group ast_print_group
