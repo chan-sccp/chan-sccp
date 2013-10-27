@@ -1197,6 +1197,15 @@ static sccp_extension_status_t sccp_wrapper_asterisk16_extensionStatus(const scc
 	int ext_exist = ast_exists_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_canmatch = ast_canmatch_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);
 	int ext_matchmore = ast_matchmore_extension(pbx_channel, pbx_channel->context, channel->dialedNumber, 1, channel->line->cid_num);
+    
+    const char *pickupexten = ast_pickup_ext();
+	
+	/* if we diald the pickup extention, mark this as exect match */
+	if(!strncmp(pickupexten, channel->dialedNumber, strlen(pickupexten))){
+		ext_exist = 1;
+		ext_canmatch = 1;
+		ext_matchmore = 0;
+	}
 
 	sccp_log((DEBUGCAT_CORE)) (	VERBOSE_PREFIX_2 "+= pbx extension matcher (%-15s): ===+\n" 
 					VERBOSE_PREFIX_2 "|ignore     |exists     |can match  |match more|\n" 
