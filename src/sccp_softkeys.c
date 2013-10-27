@@ -142,6 +142,9 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 {
 
 	uint8_t i;
+	
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), keymode2str(softKeySet), enable ? "on" : "off");
+	
 
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
@@ -1047,46 +1050,4 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 #endif
 }
 
-/*!
- * \brief sets a SoftKey to a specified status (on/off)
- *
- * \param d SCCP Device
- * \param l active line
- * \param lineInstance lineInstance as uint8_t
- * \param c active channel
- * \param keymode int of KEYMODE_*
- * \param softkeyindex index of the SoftKey to set
- * \param status 0 for off otherwise on
- *
- * \todo use SoftKeyLabel instead of softkeyindex
- */
-void sccp_sk_set_keystate(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c, unsigned int keymode, unsigned int softkeyindex, unsigned int status)
-{
-	sccp_msg_t *msg;
-	uint32_t mask, validKeyMask;
-	unsigned i;
 
-	if (!l || !c || !d || !d->session)
-		return;
-
-	REQ(msg, SelectSoftKeysMessage);
-	msg->data.SelectSoftKeysMessage.lel_lineInstance = htolel(lineInstance);
-	msg->data.SelectSoftKeysMessage.lel_callReference = htolel(c->callid);
-	msg->data.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(keymode);
-	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF; /* htolel(65535); */
-	validKeyMask = 0xFFFFFFFF;
-
-	mask = 1;
-	for (i = 1; i <= softkeyindex; i++) {
-		mask = (mask << 1);
-	}
-
-	if (status == 0)											//disable softkey
-		mask = ~(validKeyMask & mask);
-	else
-		mask = validKeyMask | mask;
-
-	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(mask);
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(5), 5, lineInstance, c->callid);
-	sccp_dev_send(d, msg);
-}
