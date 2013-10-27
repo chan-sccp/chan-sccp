@@ -810,9 +810,9 @@ static void *sccp_asterisk_doPickupThread(void *data) {
 	chan = data;
 
 	if (ast_pickup_call(chan)) {
-		ast_channel_hangupcause_set(chan, AST_CAUSE_CALL_REJECTED);
+		pbx_channel_hangupcause_set(chan, AST_CAUSE_CALL_REJECTED);
 	} else {
-		ast_channel_hangupcause_set(chan, AST_CAUSE_NORMAL_CLEARING);
+		pbx_channel_hangupcause_set(chan, AST_CAUSE_NORMAL_CLEARING);
 	}
 	ast_hangup(chan);
 	ast_channel_unref(chan);
