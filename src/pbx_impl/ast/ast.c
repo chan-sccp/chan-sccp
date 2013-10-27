@@ -806,31 +806,30 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 
 
 static void *sccp_asterisk_doPickupThread(void *data) {
-	struct ast_channel *chan;
-	chan = data;
+	PBX_CHANNEL_TYPE *pbx_channel = data;
 
-	if (ast_pickup_call(chan)) {
-		pbx_channel_set_hangupcause(chan, AST_CAUSE_CALL_REJECTED);
+	if (ast_pickup_call(pbx_channel)) {
+		pbx_channel_set_hangupcause(pbx_channel, AST_CAUSE_CALL_REJECTED);
 	} else {
-		pbx_channel_set_hangupcause(chan, AST_CAUSE_NORMAL_CLEARING);
+		pbx_channel_set_hangupcause(pbx_channel, AST_CAUSE_NORMAL_CLEARING);
 	}
-	ast_hangup(chan);
-	ast_channel_unref(chan);
-	chan = NULL;
+	ast_hangup(pbx_channel);
+	ast_channel_unref(pbx_channel);
+	pbx_channel = NULL;
 	return NULL;
 }
 
-static int sccp_asterisk_doPickup(struct ast_channel *ast) {
+static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE *pbx_channel) {
 	pthread_t threadid;
 
-	ast_channel_ref(ast);
 
-	if (ast_pthread_create_detached_background(&threadid, NULL, sccp_asterisk_doPickupThread, ast)) {
-		pbx_log(LOG_ERROR, "Unable to start Group pickup thread on channel %s\n", ast_channel_name(ast));
-		ast_channel_unref(ast);
+	ast_channel_ref(pbx_channel);
+	if (ast_pthread_create_detached_background(&threadid, NULL, sccp_asterisk_doPickupThread, pbx_channel)) {
+		pbx_log(LOG_ERROR, "Unable to start Group pickup thread on channel %s\n", ast_channel_name(pbx_channel));
+		ast_channel_unref(pbx_channel);
 		return FALSE;
 	}
-	pbx_log(LOG_NOTICE, "Started Group pickup thread on channel %s\n", ast_channel_name(ast));
+	pbx_log(LOG_NOTICE, "SCCP: Started Group pickup thread on channel %s\n", ast_channel_name(pbx_channel));
 	return TRUE;
 }
 
@@ -840,20 +839,26 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 
 	if (!pbx_channel) {
 		pbx_log(LOG_ERROR, "SCCP: (pbx_pbx_start) called without pbx channel\n");
-		return AST_PBX_SUCCESS;
+		return res;
 	}
 	
 	if((channel = get_sccp_channel_from_pbx_channel(pbx_channel))){
+		ast_channel_lock(pbx_channel);
 		const char *dialedNumber = PBX(getChannelExten)(channel);
 		const char *pickupexten = ast_pickup_ext();
-		ast_channel_lock(pbx_channel);
-		if (sccp_strequals(dialedNumber, pickupexten) && sccp_asterisk_doPickup(pbx_channel)) {
-			res = AST_PBX_FAILED;
+		if (sccp_strequals(dialedNumber, pickupexten)) {
+			if (sccp_asterisk_doPickup(pbx_channel)) {
+				res = AST_PBX_SUCCESS;
+			}
+			ast_channel_unlock(pbx_channel);
+			channel = sccp_channel_release(channel);
+			goto EXIT;
 		}
 		ast_channel_unlock(pbx_channel);
 		channel = sccp_channel_release(channel);
 	}
 	res = ast_pbx_start(pbx_channel);
+EXIT:
 	return res;
 }
 
