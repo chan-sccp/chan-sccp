@@ -810,9 +810,9 @@ static void *sccp_asterisk_doPickupThread(void *data) {
 	chan = data;
 
 	if (ast_pickup_call(chan)) {
-		pbx_channel_hangupcause_set(chan, AST_CAUSE_CALL_REJECTED);
+		pbx_channel_set_hangupcause(chan, AST_CAUSE_CALL_REJECTED);
 	} else {
-		pbx_channel_hangupcause_set(chan, AST_CAUSE_NORMAL_CLEARING);
+		pbx_channel_set_hangupcause(chan, AST_CAUSE_NORMAL_CLEARING);
 	}
 	ast_hangup(chan);
 	ast_channel_unref(chan);
@@ -834,27 +834,27 @@ static int sccp_asterisk_doPickup(struct ast_channel *ast) {
 	return TRUE;
 }
 
-enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast){
-	const char *pickupexten = ast_pickup_ext();
-	const char *dialedNumber = "";
-	
+enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
+	enum ast_pbx_result res = AST_PBX_FAILED;
 	sccp_channel_t *channel = NULL;
-	
-	channel = get_sccp_channel_from_pbx_channel(ast);
-	if(!channel){
-		return AST_PBX_FAILED;
-	}
-	
-	dialedNumber = PBX(getChannelExten)(channel);
-	
-	ast_channel_lock(ast);
-	if (sccp_strequals(dialedNumber, pickupexten) && sccp_asterisk_doPickup(ast)) {
-		ast_channel_unlock(ast);
+
+	if (!pbx_channel) {
+		pbx_log(LOG_ERROR, "SCCP: (pbx_pbx_start) called without pbx channel\n");
 		return AST_PBX_SUCCESS;
 	}
-	ast_channel_unlock(ast);
 	
-	return ast_pbx_start(ast);
+	if((channel = get_sccp_channel_from_pbx_channel(pbx_channel))){
+		const char *dialedNumber = PBX(getChannelExten)(channel);
+		const char *pickupexten = ast_pickup_ext();
+		ast_channel_lock(pbx_channel);
+		if (sccp_strequals(dialedNumber, pickupexten) && sccp_asterisk_doPickup(pbx_channel)) {
+			res = AST_PBX_FAILED;
+		}
+		ast_channel_unlock(pbx_channel);
+		channel = sccp_channel_release(channel);
+	}
+	res = ast_pbx_start(pbx_channel);
+	return res;
 }
 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
