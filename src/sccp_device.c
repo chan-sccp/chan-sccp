@@ -488,18 +488,20 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
     		return;
     	}
 #endif
-	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s\n", DEV_ID_LOG(device), lastNumberDialed);
+	boolean_t redial_active;
+	
+	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);
 	if (lastNumberDialed && !sccp_strlen_zero(lastNumberDialed)) {
 		sccp_copy_string(device->lastNumber, lastNumberDialed, sizeof(device->lastNumber));
-		sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE);
-		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, TRUE);
-		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, TRUE);
+		redial_active = TRUE;
 	} else {
 		sccp_copy_string(device->lastNumber, "", sizeof(device->lastNumber));
-		sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, FALSE);
-		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, FALSE);
-		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, FALSE);
+		redial_active = FALSE;
 	}
+	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, redial_active);
+	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, redial_active);
+	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, redial_active);
+	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_REDIAL, redial_active);
 }
 
 /*!
