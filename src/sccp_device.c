@@ -480,6 +480,25 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
 	return d;
 }
 
+
+void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNumberDialed)
+{
+	sccp_copy_string(device->lastNumber, lastNumberDialed, sizeof(device->lastNumber));
+	if (lastNumberDialed && !sccp_strlen_zero(lastNumberDialed)
+#ifdef CS_ADV_FEATURES
+			    && !device->useRedialMenu
+#endif
+	) {
+		sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE);
+		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, TRUE);
+		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, TRUE);
+	} else {
+		sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, FALSE);
+		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, FALSE);
+		sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, FALSE);
+	}
+}
+
 /*!
  * \brief set type of Indicate protocol by device type
  */
@@ -1695,7 +1714,7 @@ void sccp_dev_postregistration(void *data)
 	if (d->backgroundImage) {
 		d->setBackgroundImage(d, d->backgroundImage);
 	}
-
+	
 	if (d->ringtone) {
 		d->setRingTone(d, d->ringtone);
 	}
@@ -1758,8 +1777,9 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		d->linesRegistered = FALSE;
 		sprintf(family, "SCCP/%s", d->id);
 		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
-		if (!sccp_strlen_zero(d->lastNumber))
+		if (!sccp_strlen_zero(d->lastNumber)) {
 			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
+		}
 
 		/* cleanup dynamic allocated strings */
 

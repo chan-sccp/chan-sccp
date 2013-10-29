@@ -1142,13 +1142,11 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				break;
 			case AST_PBX_CALL_LIMIT:
 				pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
-				sccp_copy_string(d->lastNumber, shortenedNumber, sizeof(d->lastNumber));
 				sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				break;
 			default:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
-				sccp_copy_string(d->lastNumber, shortenedNumber, sizeof(d->lastNumber));
 				sccp_softkey_setSoftkeyState(d, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, TRUE); /** enable redial key */
 #ifdef CS_MANAGER_EVENTS
 				if (GLOB(callevents)) {
@@ -1157,6 +1155,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 #endif
 				break;
 		}
+		sccp_device_setLastNumberDialed(d, shortenedNumber);
 	} else {
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s, pbx_check_hangup(chan): %d, extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber, (pbx_channel && pbx_check_hangup(pbx_channel)), (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
 		pbx_log(LOG_NOTICE, "%s: Call from '%s' to extension '%s', rejected because the extension could not be found in context '%s'\n", DEV_ID_LOG(d), l->name, shortenedNumber, pbx_channel ? pbx_channel_context(pbx_channel) : "pbx_channel==NULL");
