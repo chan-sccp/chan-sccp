@@ -1207,10 +1207,10 @@ static sccp_extension_status_t sccp_wrapper_asterisk16_extensionStatus(const scc
 		ext_matchmore = 0;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (	VERBOSE_PREFIX_2 "+= pbx extension matcher (%-15s): ===+\n" 
-					VERBOSE_PREFIX_2 "|ignore     |exists     |can match  |match more|\n" 
-					VERBOSE_PREFIX_2 "|%3s        +%3s        +%3s        +%3s       +\n" 
-					VERBOSE_PREFIX_2 "+==============================================+\n", 
+	sccp_log((DEBUGCAT_CORE)) (	VERBOSE_PREFIX_2 "+- pbx extension matcher (%-15s): ---+\n" 
+					VERBOSE_PREFIX_2 "|ignore     |exists     |can match  |match more|\n"
+					VERBOSE_PREFIX_2 "|%3s        |%3s        |%3s        |%3s       |\n"
+					VERBOSE_PREFIX_2 "+----------------------------------------------+\n",
 					channel->dialedNumber,
 					ignore_pat ? "yes" : "no", 
 					ext_exist ? "yes" : "no", 

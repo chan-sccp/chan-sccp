@@ -858,21 +858,22 @@ static int sccp_wrapper_asterisk111_setNativeVideoFormats(const sccp_channel_t *
 
 boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId)
 {
-	sccp_line_t *line = NULL;
+	sccp_line_t *line = channel->line;
 
-	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, linkedId, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
-	//      (*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, NULL, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, line->name, line->context, linkedId, line->amaflags, "SCCP/%s-%08X", line->name, channel->callid);
+	//      (*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, line->cid_num, line->cid_name, line->accountcode, channel->dialedNumber, line->context, NULL, line->amaflags, "SCCP/%s-%08X", line->name, channel->callid);
 
 	if ((*pbx_channel) == NULL) {
 		return FALSE;
 	}
 
-	line = channel->line;
-
 	ast_channel_tech_set((*pbx_channel), &sccp_tech);
 	ast_channel_tech_pvt_set((*pbx_channel), sccp_channel_retain(channel));
+	
 	ast_channel_context_set(*pbx_channel, line->context);
-	ast_channel_exten_set(*pbx_channel, "");
+//	ast_channel_exten_set(*pbx_channel, "");
+	ast_channel_exten_set(*pbx_channel, line->name);
+	ast_channel_priority_set(*pbx_channel, 1);
 
 	if (!sccp_strlen_zero(line->language)) {
 		ast_channel_language_set((*pbx_channel), line->language);
@@ -1138,10 +1139,10 @@ static sccp_extension_status_t sccp_wrapper_asterisk111_extensionStatus(const sc
 		ext_matchmore = 0;
 	}
 	
-	sccp_log((DEBUGCAT_CORE)) (	VERBOSE_PREFIX_2 "+= pbx extension matcher (%-15s): ===+\n" 
-					VERBOSE_PREFIX_2 "|ignore     |exists     |can match  |match more|\n" 
-					VERBOSE_PREFIX_2 "|%3s        +%3s        +%3s        +%3s       +\n" 
-					VERBOSE_PREFIX_2 "+==============================================+\n", 
+	sccp_log((DEBUGCAT_CORE)) (	VERBOSE_PREFIX_2 "+- pbx extension matcher (%-15s): ---+\n" 
+					VERBOSE_PREFIX_2 "|ignore     |exists     |can match  |match more|\n"
+					VERBOSE_PREFIX_2 "|%3s        |%3s        |%3s        |%3s       |\n"
+					VERBOSE_PREFIX_2 "+----------------------------------------------+\n",
 					channel->dialedNumber,
 					ignore_pat ? "yes" : "no", 
 					ext_exist ? "yes" : "no", 
