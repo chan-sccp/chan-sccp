@@ -296,21 +296,10 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 	int res = -1;
 
 #if CS_AST_DO_PICKUP
-	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
 	PBX_CHANNEL_TYPE *original = NULL;									/* destination */
-	PBX_CHANNEL_TYPE *tmp = NULL;
-	const char *ringermode = NULL;
 
 	sccp_device_t *d;
 	char *context;
-	char *name = NULL;
-	char *number = NULL;
-	sccp_channel_t *tmpChannel;
-
-	if (!PBX(findPickupChannelByExtenLocked)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version\n");
-		return -1;
-	}
 
 	if (sccp_strlen_zero(exten)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) zero exten\n");
@@ -339,6 +328,19 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 			context = (char *) pbx_channel_context(original);
 		}
 	}
+	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
+	PBX_CHANNEL_TYPE *tmp = NULL;
+	const char *ringermode = NULL;
+
+	char *name = NULL;
+	char *number = NULL;
+	sccp_channel_t *tmpChannel;
+
+	if (!PBX(findPickupChannelByExtenLocked)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version\n");
+		return -1;
+	}
+
 	target = PBX(findPickupChannelByExtenLocked) (original, exten, context);
 	if (target) {
 		tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
@@ -411,15 +413,15 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Giving Up\n");
 		}
+		pbx_channel_unlock(target);
 		target = pbx_channel_unref(target);
-		pbx_channel_unlock(target);
 	} else {
-		pbx_channel_unlock(target);
+ 	        sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %d\n", DEV_ID_LOG(d), c->callid);
 	}
 	if (!res) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Exten '%s@'%s' Picked up Succesfully\n", exten, context);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Exten '%s@%s' Picked up Succesfully\n", exten, context);
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Failed to pickup up Exten '%s@'%s'\n", exten, context);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Failed to pickup up Exten '%s@%s'\n", exten, context);
 	}
 	d = sccp_device_release(d);
 #endif
