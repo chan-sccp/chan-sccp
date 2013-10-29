@@ -1360,6 +1360,7 @@ struct sccp_global_vars {
 	unsigned int pendingUpdate:1;
 	char token_fallback[7];											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
+	int server_priority;											/*!< Server Priority to fallback to */
 
 	int module_running;
 };														/*!< SCCP Global Varable Structure */
