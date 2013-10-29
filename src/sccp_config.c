@@ -2758,7 +2758,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	/* lastDialedNumber */
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
 	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", lastNumber, sizeof(lastNumber))) {
-		sccp_device_setLastNumberDialed(device, lastNumber);
+		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
 	}
 
 	/* initialize so called priority feature */
