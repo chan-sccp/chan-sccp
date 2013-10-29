@@ -154,6 +154,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)\n"
 																																					"Value can be changed online via CLI/AMI command \"fallback=[true/false]\"\n"},
 	{"backoff_time", 		G_OBJ_REF(token_backoff_time),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"60",				"Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)\n"},
+	{"server_priority", 		G_OBJ_REF(server_priority),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc\n"
+																																					"For active-active (fallback=odd/even) use 1 for both\n"},
 };
 
 /*!

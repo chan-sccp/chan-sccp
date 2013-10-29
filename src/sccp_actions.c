@@ -205,18 +205,17 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 {
 	sccp_device_t *device;
 	char *deviceName = "";
-	uint32_t serverInstance = 0;
+	uint32_t serverPriority = GLOB(server_priority);
 	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
 
 	deviceName = sccp_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
-	serverInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);				// should be named deviceInstance as in handle_register
 	deviceInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(msg_in->data.RegisterTokenRequest.lel_deviceType);
 
 	// sccp_dump_msg(msg_in);
 
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
+	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
 	// Search for already known devices -> Cleanup
 	device = sccp_device_find_byid(deviceName, TRUE);
@@ -265,7 +264,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 
 	if (!strcasecmp("true", GLOB(token_fallback))) {
 		/* we are the primary server */
-		if (serverInstance == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
+		if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
 			sendAck = TRUE;
 		}
 	} else if (!strcasecmp("odd", GLOB(token_fallback))) {
@@ -277,14 +276,14 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	}
 
 	/* some test to detect active calls */
-	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverInstance: %d, unknown: %d, active call? %s\n", deviceName, serverInstance, letohl(msg_in->data.RegisterTokenRequest.unknown), (letohl(msg_in->data.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
+	sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: serverPriority: %d, unknown: %d, active call? %s\n", deviceName, serverPriority, letohl(msg_in->data.RegisterTokenRequest.unknown), (letohl(msg_in->data.RegisterTokenRequest.unknown) & 0x6) ? "yes" : "no");
 
 	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
 	if (sendAck) {
 		sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
 		sccp_session_tokenAck(s);
 	} else {
-		sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverInstance=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), serverInstance, GLOB(token_backoff_time));
+		sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverPriority=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), serverPriority, GLOB(token_backoff_time));
 		sccp_session_tokenReject(s, GLOB(token_backoff_time));
 	}
 
