@@ -1130,10 +1130,10 @@ static sccp_extension_status_t sccp_wrapper_asterisk111_extensionStatus(const sc
 // 	RAII_VAR(struct ast_features_pickup_config *, pickup_cfg, ast_get_chan_features_pickup_config(pbx_channel), ao2_cleanup);
 // 	const char *pickupexten = (pickup_cfg) ? pickup_cfg->pickupexten : "-";
 	
+	/* if we dialed the pickup extention, mark this as exact match */
 	const char *pickupexten = ast_pickup_ext();
-	
-	/* if we diald the pickup extention, mark this as exect match */
-	if(!strncmp(pickupexten, channel->dialedNumber, strlen(pickupexten))){
+	if(!sccp_strlen_zero(pickupexten) && sccp_strcaseequals(pickupexten, channel->dialedNumber)) {
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: pbx extension matcher found pickup extension %s matches dialed number %s", channel->dialedNumber, pickupexten);
 		ext_exist = 1;
 		ext_canmatch = 1;
 		ext_matchmore = 0;
