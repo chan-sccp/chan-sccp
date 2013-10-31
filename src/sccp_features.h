@@ -31,7 +31,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * c);
 void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line);
 void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, sccp_feature_type_t featureType);
-void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel);
+void sccp_feat_monitor(sccp_device_t * device, sccp_line_t *no_line, uint32_t no_lineInstance, sccp_channel_t * channel);
 void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * channel);
 void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
 void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);

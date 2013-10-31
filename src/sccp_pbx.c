@@ -466,6 +466,8 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	sccp_channel_StatisticsRequest(c);
 	sccp_channel_clean(c);
 
+	sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);						// update monitor feature status
+	
 	d = d ? sccp_device_release(d) : NULL;
 	l = l ? sccp_line_release(l) : NULL;
 	c = c ? sccp_channel_release(c) : NULL;
@@ -595,7 +597,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			/** check for monitor request */
 			if (d && (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
 				pbx_log(LOG_NOTICE, "%s: request monitor\n", d->id);
-				sccp_feat_monitor(d, c->line, 0, c);
+				sccp_feat_monitor(d, NULL, 0, c);
 			}
 
 			d = sccp_device_release(d);

@@ -1704,7 +1704,6 @@ void sccp_dev_postregistration(void *data)
 	sprintf(family, "SCCP/%s", d->id);
 	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		sccp_config_parse_dnd(&d->dndFeature.status, sizeof(d->dndFeature.status), (const char *) buffer, SCCP_CONFIG_DEVICE_SEGMENT);
-		sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 	}
 
 	if (PBX(feature_getFromDatabase) (family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
@@ -1713,6 +1712,7 @@ void sccp_dev_postregistration(void *data)
 	}
 
 	if (PBX(feature_getFromDatabase) (family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+                sccp_feat_monitor(d, NULL, 0, NULL);
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
 
@@ -2279,7 +2279,6 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
 	sccp_handle_time_date_req(device->session, (sccp_device_t *)device, NULL);	/** we need datetime on hangup for 7936 */
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
-	
 }
 
 static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel){
@@ -2461,7 +2460,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			}
 			break;
 		case SCCP_FEATURE_MONITOR:
-			if (TRUE == device->monitorFeature.status) {
+			if (device->monitorFeature.status) {
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_MONITOR, SKINNY_DISP_MONITOR);
 			} else {
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_MONITOR);

@@ -664,10 +664,10 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 			break;
 		case SCCP_FEATURE_MONITOR:
 			if (device->monitorFeature.previousStatus != device->monitorFeature.status) {
-				if (!device->monitorFeature.status) {
-					PBX(feature_removeFromDatabase) (family, "monitor");
-				} else {
+				if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
 					PBX(feature_addToDatabase) (family, "monitor", "on");
+				} else {
+					PBX(feature_removeFromDatabase) (family, "monitor");
 				}
 				device->monitorFeature.previousStatus = device->monitorFeature.status;
 			}

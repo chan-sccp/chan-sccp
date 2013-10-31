@@ -1497,7 +1497,28 @@ void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * chan
  * \param lineInstance LineInstance as uint32_t
  * \param channel SCCP Channel
  */
-void sccp_feat_monitor(sccp_device_t * device, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)
+void sccp_feat_monitor(sccp_device_t * device, sccp_line_t *no_line, uint32_t no_lineInstance, sccp_channel_t * channel)
 {
-	PBX(feature_monitor) (channel);
+        if (!channel) {
+                if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
+                        device->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+                } else {
+                        device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
+                }
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) No active channel to monitor, setting monitor state to requested (%d)\n", device->id, device->monitorFeature.status);
+	} else {
+                /* check if we need to start or stop monitor */
+/*
+                if (((device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+                        sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: no need to update monitor state (%d)\n", device->id, device->monitorFeature.status);
+                        return;
+                }
+*/
+        	if (PBX(feature_monitor)(channel)) {
+                        device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+                } else {
+                        device->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+                }
+	}
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) monitor status: %d\n", device->id, device->monitorFeature.status);
 }

@@ -344,6 +344,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_call_forward_set(_a,_b) ast_string_field_set(_a, call_forward, _b);
 #define pbx_channel_varshead(_a) &(_a)->varshead
 #define pbx_pickup_call ast_pickup_call
+#define pbx_channel_monitor(_a) (_a)->monitor
 
 #define pbx_bridge_change_state ast_bridge_change_state
 #define pbx_channel_redirecting_effective_from(_a) (_a)->redirecting.from
