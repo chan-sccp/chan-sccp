@@ -698,11 +698,19 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							break;
 
 						case SCCP_FEATURE_MONITOR:
-							btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+							if (d->inuseprotocolversion > 15) {
+								btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+							} else {
+								btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+							}
 							break;
 
 						case SCCP_FEATURE_MULTIBLINK:
-							btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+							if (d->inuseprotocolversion >= 15) {
+								btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+							} else {
+								btn[i].type = SKINNY_BUTTONTYPE_FEATURE;
+							}
 							break;
 
 						case SCCP_FEATURE_MOBILITY:
@@ -3209,29 +3217,10 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			break;
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
-
 			if (TRUE == toggleState) {
-
-				sccp_channel_t *channel = NULL;
-
-				if (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) {
-					d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_REQUESTED;
-				} else {
-					d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
-				}
-
-				/* check if we need to start or stop monitor */
-				if (((d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) >> 1) == (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: no need to update monitor state\n", d->id);
-				} else {
-					channel = sccp_channel_get_active(d);
-					if (channel) {
-						sccp_feat_monitor(d, channel->line, 0, channel);
-						channel = sccp_channel_release(channel);
-					}
-				}
-
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set monitor state to %d\n", d->id, d->monitorFeature.status);
+			        sccp_channel_t * channel = channel = sccp_channel_get_active(d);
+				sccp_feat_monitor(d, NULL, 0, channel);
+				channel = channel ? sccp_channel_release(channel) : NULL;
 			}
 
 			break;
