@@ -1173,8 +1173,8 @@ void sccp_conference_handle_device_to_user(sccp_device_t * d, uint32_t callRefer
 			sccp_conference_toggle_mute_participant(conference, participant);
 		} else if (!strcmp(d->dtu_softkey.action, "KICK")) {
 			if (participant->isModerator) {
-				sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Since wenn du we kick ourselves ? You've got issues! (%s)\n", conference->id, DEV_ID_LOG(d));
-				sccp_dev_set_message(d, "cannot kick yourself", 5, FALSE, FALSE);
+				sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Moderators cannot be kicked (%s)\n", conference->id, DEV_ID_LOG(d));
+				sccp_dev_set_message(d, "cannot kick a moderator", 5, FALSE, FALSE);
 			} else {
 				sccp_conference_kick_participant(conference, participant);
 			}
