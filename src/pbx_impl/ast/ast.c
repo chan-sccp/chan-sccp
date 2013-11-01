@@ -797,11 +797,14 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 
 	if (feature) {
 		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
+/*
 		if (pbx_channel_monitor(channel->owner)) {
 			return TRUE;
 		} else {
 			return FALSE;
 		}
+*/
+		return TRUE;
 	}
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Automon not available in features.conf/n", channel->designator);
 	return FALSE;

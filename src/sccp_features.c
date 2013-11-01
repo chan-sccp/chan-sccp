@@ -1515,9 +1515,13 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t *no_line, uint32_t no
                 }
 */
         	if (PBX(feature_monitor)(channel)) {
-                        device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
-                } else {
-                        device->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+        		if (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) {		// Just toggle the state, we don't get information back about the asterisk monitor status (async call)
+	                        device->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+			} else {
+	                        device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
+			}
+                } else {											// monitor feature missing
+                        device->monitorFeature.status = SCCP_FEATURE_MONITOR_STATE_DISABLE;
                 }
 	}
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) monitor status: %d\n", device->id, device->monitorFeature.status);
