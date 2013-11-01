@@ -1047,14 +1047,14 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<SoftKeyItem>");
 			strcat(xmlStr, "<Name>Moderate</Name>");
 			strcat(xmlStr, "<Position>5</Position>");
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:MODERATE/%d</URL>", 4, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 #if CS_EXPERIMENTAL
 			strcat(xmlStr, "<SoftKeyItem>");
 			strcat(xmlStr, "<Name>Invite</Name>");
 			strcat(xmlStr, "<Position>6</Position>");
-			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>", 1, appID, participant->lineInstance, participant->transactionID);
+			sprintf(xmlTmp, "<URL>UserDataSoftKey:Select:%d:INVITE/%d/%d/%d/</URL>", 5, appID, participant->lineInstance, participant->transactionID);
 			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</SoftKeyItem>\n");
 #endif
