@@ -1521,7 +1521,7 @@ void sccp_feat_monitor(sccp_device_t * device, sccp_line_t *no_line, uint32_t no
 	                        device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 			}
                 } else {											// monitor feature missing
-                        device->monitorFeature.status = SCCP_FEATURE_MONITOR_STATE_DISABLE;
+                        device->monitorFeature.status = SCCP_FEATURE_MONITOR_STATE_DISABLED;
                 }
 	}
 	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_feat_monitor) monitor status: %d\n", device->id, device->monitorFeature.status);
