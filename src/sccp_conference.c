@@ -1513,7 +1513,7 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_FIELDS 																\
 		CLI_AMI_TABLE_FIELD(Id,			d,	3,	conference->id)										\
 		CLI_AMI_TABLE_FIELD(Participants,	d,	12,	SCCP_LIST_GETSIZE(&conference->participants))								\
-		CLI_AMI_TABLE_FIELD(Moderator,		d,	12,	conference->num_moderators)								\
+		CLI_AMI_TABLE_FIELD(Moderators,		d,	12,	conference->num_moderators)								\
 		CLI_AMI_TABLE_FIELD(Announce,		s,	12,	conference->playback_announcements ? "Yes" : "No")					\
 		CLI_AMI_TABLE_FIELD(MuteOnEntry,	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\
 
@@ -1575,6 +1575,7 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 			CLI_AMI_TABLE_FIELD(Moderator,		s,	11,	participant->isModerator ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(Muted,		s,	5,	participant->features.mute ? "Yes" : "No")			\
 			CLI_AMI_TABLE_FIELD(Announce,		s,	8,	participant->playback_announcements ? "Yes" : "No")	\
+			CLI_AMI_TABLE_FIELD(ConfList,		s,	8,	(participant->device && participant->device->conferencelist_active) ? "YES" : "NO") 
 
 #include "sccp_cli_table.h"
 		conference = sccp_conference_release(conference);
@@ -1655,6 +1656,7 @@ int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const 
 				snprintf(error, sizeof(error), "Not enough parameters provided for action %s\n", argv[2]);
 				res = RESULT_FAILURE;
 			}
+			sccp_conference_update_conflist(conference);
 			conference = sccp_conference_release(conference);
 		} else {
 			pbx_log(LOG_WARNING, "Conference %s not found\n", argv[3]);
