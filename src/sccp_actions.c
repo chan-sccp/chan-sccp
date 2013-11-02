@@ -1913,11 +1913,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->directed_pickup) ? "enabled" : "disabled");
 #endif
+	struct ast_str *outputStr = ast_str_create(20 + (15*sizeof(softkeysmap)));
 	for (i = 0; i < v_count; i++) {
 		b = v->ptr;
 		uint8_t c, j, cp = 0;
 
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Set[%-2d]= ", d->id, v->id);
+		ast_str_append(&outputStr, sizeof(outputStr), "%-15s => |", keymode2str(v->id));
 
 		for (c = 0, cp = 0; c < v->count; c++, cp++) {
 			msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
@@ -1981,7 +1982,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
-					sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) ("%-2d:%-10s ", c, label2str(softkeysmap[j]));
+                                        ast_str_append(&outputStr, sizeof(outputStr), "%-2d:%-9s|", c, label2str(softkeysmap[j]));
 					msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j + 1);
 					break;
 				}
@@ -1989,7 +1990,8 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 
 		}
 
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) ("\n");
+		sccp_log((DEBUGCAT_DEVICE | DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: %s\n", d->id, ast_str_buffer(outputStr));
+		ast_str_reset(outputStr);
 		v++;
 		iKeySetCount++;
 	};
