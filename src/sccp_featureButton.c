@@ -160,7 +160,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 								break;
 						}
 					} else {
-						sccp_log(DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)("%s: (featButton_changed) state %d\n", device->id, device->monitorFeature.status);
+						sccp_log(DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: (featButton_changed) state %d\n", device->id, device->monitorFeature.status);
 						switch (device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
