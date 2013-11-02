@@ -1995,6 +1995,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		v++;
 		iKeySetCount++;
 	};
+	sccp_free(outputStr);
 
 	/* disable videomode and join softkey for all softkeysets */
 	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
