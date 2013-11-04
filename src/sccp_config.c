@@ -627,7 +627,7 @@ static char *sccp_config_getNthToken(const char *intokens, int index, const char
  * check if we can find the param name in the segment specified and retrieving its value or default value
  * copy the string from the defaultSegment and run through the converter again
  */
-static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, const boolean_t *alreadySetEntries)
+static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
 {
 	uint8_t i = 0;
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
@@ -682,10 +682,10 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
 	for (i = 0; i < arraySize; i++) {
 
-		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the alreadySetEntries array and check the boolean flag, skip if true */
+		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the SetEntries array and check the boolean flag, skip if true */
 		skip = FALSE;
 		for (x = 0; x < sccpConfigSegment->config_size; x++) {
-			if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && alreadySetEntries[x]) {
+			if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && SetEntries[x]) {
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
 				skip = TRUE;
 				break;
@@ -716,7 +716,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 							if (!sccp_strlen_zero(default_value)) {
 								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
 								// get value from the config file and run through parser
-								sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, NULL);
+								sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, SetEntries);
 							}
 							valueFound = TRUE;
 						}
@@ -728,7 +728,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in device source segment\n", option_name, sccpDefaultConfigOption->defaultValue);
 							if ((default_value = sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"))) {
 								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using device default %s\n", option_name, default_value);
-								sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+								sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, SetEntries);
 							}
 						} else {
 							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in device source segment\n", option_name);
@@ -745,7 +745,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 							if (!sccp_strlen_zero(default_value)) {
 								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using global default %s\n", option_name, default_value);
 								// get value from the config file and run through parser
-								sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, NULL);
+								sccp_config_object_setValue(obj, cat_root, option_name, default_value, 0, segment, SetEntries);
 							}
 							valueFound = TRUE;
 						}
@@ -757,7 +757,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in global source segment\n", option_name, sccpDefaultConfigOption->defaultValue);
 							if ((default_value = sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"))) {
 								sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using global default %s\n", option_name, default_value);
-								sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+								sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, SetEntries);
 							}
 						} else {
 							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in global source segment\n", option_name);
@@ -769,11 +769,11 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "config parameter %s using local source segment default: %s\n", option_name, sccpDstConfig[i].defaultValue);
 					if ((default_value = sccp_config_getNthToken(sccpDstConfig[i].defaultValue, token_index, "|"))) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
-						sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, NULL);
+						sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, SetEntries);
 					} else {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "clearing parameter %s\n", option_name);
 						if (type == SCCP_CONFIG_DATATYPE_STRINGPTR || default_value != NULL) {
-							sccp_config_object_setValue(obj, NULL, option_name, "", 0, segment, NULL);
+							sccp_config_object_setValue(obj, NULL, option_name, "", 0, segment, SetEntries);
 						}
 					}
 
