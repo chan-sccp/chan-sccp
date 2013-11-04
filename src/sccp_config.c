@@ -1395,28 +1395,30 @@ sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_
 sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	skinny_codec_t *codecs = &(*(skinny_codec_t *) dest);
+	skinny_codec_t *codecs = (skinny_codec_t *) dest;
 	skinny_codec_t new_codecs[SKINNY_MAX_CAPABILITIES] = { 0 };
 	int errors = 0;
-
+	
 	for (; v; v = v->next) {
+		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_codec preference: name: %s, value:%s\n", v->name, v->value);
 		if (sccp_strcaseequals(v->name, "disallow")) {
-			errors |= sccp_parse_allow_disallow(new_codecs, NULL, v->value, 0);
+			errors += sccp_parse_allow_disallow(new_codecs, NULL, v->value, 0);
 		} else if (sccp_strcaseequals(v->name, "allow")) {
-			errors |= sccp_parse_allow_disallow(new_codecs, NULL, v->value, 1);
+			errors += sccp_parse_allow_disallow(new_codecs, NULL, v->value, 1);
 		} else {
-			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		        errors += 1;
 		}
 	}
 	if (errors) {
+		pbx_log(LOG_NOTICE, "SCCP: (parse_codec preference) Error occured during parsing of the disallowed / allowed codecs\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	} else {
-		if (memcmp(new_codecs, codecs, SKINNY_MAX_CAPABILITIES)) {
-			memcpy(codecs, new_codecs, SKINNY_MAX_CAPABILITIES);
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-		} else {
-			changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-		}
+                if (memcmp(codecs, new_codecs, SKINNY_MAX_CAPABILITIES * sizeof(skinny_codec_t))) {
+                        memcpy(codecs, new_codecs, SKINNY_MAX_CAPABILITIES * sizeof(skinny_codec_t));
+                        changed = SCCP_CONFIG_CHANGE_CHANGED;
+                } else {
+                        changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+                }
 	}
 	return changed;
 
