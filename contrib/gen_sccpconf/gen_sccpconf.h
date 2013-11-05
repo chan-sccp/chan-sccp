@@ -108,8 +108,6 @@ typedef struct SCCPConfigOption {
 
 //converter function prototypes 
 //#define sccp_config_parse_codec_preferences "codec_preferences"
-#define sccp_config_parse_allow_codec "(codec)=all|(alaw,ulaw,gsm,ilbc,g722,g723,g729,g726,slin,slin16)"
-#define sccp_config_parse_disallow_codec "(codec)=all|(alaw,ulaw,gsm,ilbc,g722,g723,g729,g726,slin,slin16)"
 #define sccp_config_parse_mailbox "(mailbox)=mailbox@context"
 #define sccp_config_parse_tos "(tos)=[[value]]|lowdelay|throughput|reliability|mincost|none"
 #define sccp_config_parse_cos "(cos)=[[value]]"
@@ -117,8 +115,6 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_secondaryDialtoneDigits "(secondaryDialtoneDigits)=[[value]]"
 #define sccp_config_parse_variables "(variables)=[[string]]"
 #define sccp_config_parse_group "(group)=[[fromto]],[[value]]"
-#define sccp_config_parse_permit "(permit)=[[ipaddress]],internal"
-#define sccp_config_parse_deny "(deny)=[[ipaddress]],internal"
 #define sccp_config_parse_button "(button)=[[button]]"
 #define sccp_config_parse_permithosts "(permithosts)=[[hostname]]"
 #define sccp_config_parse_addons "(addons)=7914,7915,7916,SPA500S"
@@ -135,10 +131,13 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_context "(context)=[[context]]"
 #define sccp_config_parse_hotline_context "(hotline_context)=[[context]]"
 #define sccp_config_parse_hotline_exten "(hotline_exten)=[[value]]"
-#define sccp_config_parse_dnd "(dnd)=reject|silent|user|on|off"
 #define sccp_config_parse_jbflags_enable "(jbflags_enable)=on|off"
 #define sccp_config_parse_jbflags_force "(jbflags_force)=on|off"
 #define sccp_config_parse_jbflags_log "(jbflags_log)=on|off"
+#define sccp_config_parse_codec_preferences "(codec)=all|(alaw,ulaw,gsm,ilbc,g722,g723,g729,g726,slin,slin16)"
+#define sccp_config_parse_deny_permit "(permit)=[[ipaddress]],internal | (deny)=[[ipaddress]],internal"
+#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
+
 
 #include "../../src/sccp_config_entries.hh"
 
