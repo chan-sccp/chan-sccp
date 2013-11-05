@@ -1623,9 +1623,10 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 		} else {
 			l = sccp_dev_get_activeline(d);
 		}
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 
 		if (l) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
+		    
 			if (!sccp_strlen_zero(l->adhocNumber)) {
 				channel = sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 			} else {
