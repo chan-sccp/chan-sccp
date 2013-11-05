@@ -160,7 +160,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	memset(msg, 0, SCCP_MAX_PACKET);	
 	readlen = read(s->fds[0].fd, (&msg->header), SCCP_PACKET_HEADER);
 	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) { return TRUE;}					/* try again later, return TRUE with empty r */
-	else if (readlen <= 0) {goto READ_ERROR;}								/* client closed socket */
+	else if (readlen <= 0) {goto READ_ERROR;}								/* error || client closed socket */
 	
 	msg->header.length = letohl(msg->header.length);
 	if ((msgDataSegmentSize = sccp_dissect_header(s, &msg->header)) < 0) {
@@ -175,7 +175,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 //		readlen = read(s->fds[0].fd, &msg->data + bytesReadSoFar, bytesToRead);				/* msg->data pointer is advanced by read automatically. This will lead to Bad Address faults */
 		readlen = read(s->fds[0].fd, &msg->data, bytesToRead);						
 		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}				/* try again, blocking */
-		else if (readlen <= 0) {goto READ_ERROR;}							/* client closed socket */
+		else if (readlen <= 0) {goto READ_ERROR;}							/* error || client closed socket */
 		bytesReadSoFar += readlen;
 		bytesToRead -= readlen;
 	};
@@ -499,7 +499,7 @@ void *sccp_socket_device_thread(void *session)
 					}
 					s->lastKeepAlive = time(0);
 				} else {
-					pbx_log(LOG_NOTICE, "%s: Socket read failed\n", DEV_ID_LOG(s->device));
+					// pbx_log(LOG_NOTICE, "%s: Socket read failed\n", DEV_ID_LOG(s->device));	/* gives misleading information, could be just a close connection by the client side */
 					sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 					break;
 				}
