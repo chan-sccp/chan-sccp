@@ -130,6 +130,8 @@ fallback = no                                                                   
                                                                                   ; Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)
                                                                                   ; Value can be changed online via CLI/AMI command "fallback=[true/false]"
 backoff_time = 60                                                                 ; Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)
+server_priority = 1								  ; Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc
+                                                                                  ; For active-active (fallback=odd/even) use 1 for both
 
 ;
 ; device section
