@@ -31,12 +31,12 @@ uname -s | grep -q BSD
 if [ $? = 0 ] ; then	# BSD case
 	case `uname -sr` in
 		'FreeBSD 4'*)	# FreeBSD 4.x has a different naming
-			MY_AC_VER=259
-			MY_AM_VER=19
+			MY_AC_VER=265
+			MY_AM_VER=111
 			;;
 		*)
-			MY_AC_VER=-2.60
-			MY_AM_VER=-1.10
+			MY_AC_VER=-2.65
+			MY_AM_VER=-1.11
 			;;
 	esac
 else	# linux case
