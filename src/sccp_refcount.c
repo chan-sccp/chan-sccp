@@ -143,6 +143,9 @@ void sccp_refcount_destroy(void)
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
 			SCCP_RWLIST_HEAD_DESTROY(&(objects[x])->refCountedObjects);
+
+			sccp_free(objects[x]);                                                                  // free hashtable entry
+			objects[x] = NULL;
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
