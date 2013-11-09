@@ -373,8 +373,6 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
  * \param skinny_codecs Array of Skinny Codecs
  *
  * \return bit array fmt/Format of ast_format_type (int)
- *
- * \todo check bitwise operator (not sure) - DdG 
  */
 int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs)
 {
@@ -753,8 +751,6 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
  * \return result as int
  *
  * \called_from_asterisk
- * 
- * \test ACF Channel Read Needs to be tested
  */
 int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen)
 {

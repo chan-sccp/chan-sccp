@@ -138,8 +138,6 @@ void sccp_manager_module_start()
 /*!
  * \brief stop manager-module
  *
- * \lock
- *  - sccp_hint_subscriptions
  */
 void sccp_manager_module_stop()
 {
@@ -235,8 +233,6 @@ void sccp_manager_eventListener(const sccp_event_t * event)
  * 
  * \called_from_asterisk
  * 
- * \lock
- *  - devices
  */
 int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
@@ -284,8 +280,6 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
  * 
  * \called_from_asterisk
  * 
- * \lock
- *  - lines
  */
 int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {

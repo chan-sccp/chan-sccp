@@ -450,7 +450,7 @@ dnl end replace
 
 AC_DEFUN([CS_CHECK_SVN2CL], [
 	enable_svn2cl=yes
-	AC_PATH_PROG([SVN2CL], [svn2cl])
+	AC_PATH_PROGS([SVN2CL], [svn2cl svn2cl.sh])
 	if test -z "$SVN2CL"; then
 	  enable_svn2cl=no
 	fi
@@ -461,7 +461,7 @@ AC_DEFUN([CS_WITH_CHANGELOG_OLDEST], [
 	AC_ARG_WITH(changelog-oldest,
 	    AC_HELP_STRING([--with-changelog-oldest=NUMBER], [Oldest revision to include in ChangeLog])
 	)
-	CHANGELOG_OLDEST=3365
+	CHANGELOG_OLDEST=4500
 	if test "x$with_changelog_oldest" != "x" ; then
 	  CHANGELOG_OLDEST=$with_changelog_oldest
 	fi

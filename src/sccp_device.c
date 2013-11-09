@@ -263,10 +263,6 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
  *
  * \callgraph
  * \callergraph
- * 
- * \lock
- *   - devices
- *     - device->buttonconfig
  */
 void sccp_device_pre_reload(void)
 {
@@ -300,13 +296,6 @@ void sccp_device_pre_reload(void)
  *
  * \callgraph
  * \callergraph
- * 
- * \lock
- *   - device
- *     - see sccp_device_numberOfChannels()
- *     - see sccp_device_sendReset()
- *     - see sccp_session_close()
- *     - device->buttonconfig
  */
 boolean_t sccp_device_check_update(sccp_device_t * d)
 {
@@ -362,9 +351,6 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *   - devices
- *     - see sccp_device_check_update()
  */
 void sccp_device_post_reload(void)
 {
@@ -559,8 +545,6 @@ void sccp_device_setIndicationProtocol(sccp_device_t * device)
  * 
  * \note needs to be called with a retained device
  * \note adds a retained device to the list (refcount + 1)
- * \lock
- *   - devices
  */
 void sccp_device_addToGlobals(sccp_device_t * device)
 {
@@ -582,8 +566,6 @@ void sccp_device_addToGlobals(sccp_device_t * device)
  * 
  * \note needs to be called with a retained device
  * \note removes the retained device withing the list (refcount - 1)
- * \lock
- *   - devices
  */
 sccp_device_t *sccp_device_removeFromGlobals(sccp_device_t * device)
 {
@@ -873,7 +855,7 @@ sccp_msg_t __attribute__((malloc)) *sccp_build_packet(sccp_mid_t t, size_t pkt_l
 /*!
  * \brief Send SCCP Message to Device
  * \param d SCCP Device
- * \param r SCCP MOO Message
+ * \param msg SCCP Message
  * \return Status as int
  *
  * \callgraph
@@ -954,7 +936,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 /*!
  * \brief Sets the SCCP Device's SoftKey Mode Specified by opt
  * \param d SCCP Device
- * \param line Line as uint8_t
+ * \param lineInstance LineInstance as uint8_t
  * \param callid Call ID as uint8_t
  * \param softKeySetIndex SoftKeySet Index
  * \todo Disable DirTrfr by Default
@@ -1316,7 +1298,7 @@ void sccp_dev_cleardisplay(const sccp_device_t * d)
 /*!
  * \brief Send Display to Device
  * \param d SCCP Device
- * \param msg Msg as char
+ * \param msgstr Msg as char
  * \param file Source File
  * \param lineno Source Line 
  * \param pretty_function CB Function to Print
@@ -1457,8 +1439,6 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \param k SCCP Speeddial (Returned by Ref)
  * \return Void
  * 
- * \lock
- *   - device->buttonconfig
  */
 void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t withHint, sccp_speed_t * k)
 {
@@ -1536,9 +1516,6 @@ sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
  * \brief Set Activeline to Device
  * \param device SCCP Device
  * \param l SCCP Line
- * 
- * \lock
- *   - device
  */
 void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
 {
@@ -1631,9 +1608,6 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
  * \brief Check Ringback on Device
  * \param d SCCP Device
  * \return Result as int
- * 
- * \lock
- *   - device
  */
 int sccp_device_check_ringback(sccp_device_t * d)
 {
@@ -1669,8 +1643,6 @@ int sccp_device_check_ringback(sccp_device_t * d)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *   -see sccp_hint_eventListener() via sccp_event_fire()
  */
 void sccp_dev_postregistration(void *data)
 {
@@ -1745,17 +1717,6 @@ void sccp_dev_postregistration(void *data)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *   - devices
- *     - see sccp_dev_set_registered()
- *     - see sccp_hint_eventListener() via sccp_event_fire()
- *     - device->buttonconfig
- *       - see sccp_line_find_byname()
- *       - see sccp_channel_endcall()
- *       - see sccp_line_removeDevice()
- *     - device->selectedChannels
- *     - device->session
- *     - device->devstateSpecifiers
  */
 void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime)
 {
@@ -1914,11 +1875,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - device
- *     - device->buttonconfig
- *     - device->permithosts
- *     - device->devstateSpecifiers
  */
 int __sccp_device_destroy(const void *ptr)
 {
@@ -2010,11 +1966,6 @@ int __sccp_device_destroy(const void *ptr)
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - device
- *     - device->buttonconfig
- *     - device->permithosts
- *     - device->devstateSpecifiers
  */
 int sccp_device_destroy(const void *ptr)
 {
@@ -2046,8 +1997,6 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
  * \param instance Instance as uint8_t
  * \return SCCP Service
  * 
- * \lock
- *   - device->buttonconfig
  */
 sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
 {
@@ -2155,9 +2104,6 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
  * 
  * \warning
  *   - device-buttonconfig is not always locked
- *
- * \lock
- *   - line->channels
  */
 uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 {
@@ -2382,9 +2328,6 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
  * \warning
  *   - device->buttonconfig is not always locked
  *   - line->devices is not always locked
- * 
- * \lock
- *   - device
  *
  * \todo implement cfwd_noanswer
  */
@@ -2513,8 +2456,6 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
  * \callgraph
  * \callergraph
  * 
- * \lock
- *   - devices
  */
 #if DEBUG
 /*!

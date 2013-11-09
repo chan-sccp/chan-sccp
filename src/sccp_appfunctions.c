@@ -38,8 +38,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
  * 
  * \called_from_asterisk
  * 
- * \lock
- *    - device->buttonconfig
  */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
@@ -260,8 +258,6 @@ static struct pbx_custom_function sccpdevice_function = {
  * 
  * \called_from_asterisk
  * 
- * \lock
- *    - line->devices
  */
 static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
@@ -706,11 +702,6 @@ static char *calledparty_descr = "Usage: SCCPSetCalledParty(\"Name\" <ext>)" "Se
  * \version     20071112_1944
  *
  * \called_from_asterisk
- *
- * \lock
- *  - device
- *    - see sccp_dev_displayprinotify()
- *    - see sccp_dev_displayprompt()
  */
 #if ASTERISK_VERSION_NUMBER >= 10800
 static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, const char *data)

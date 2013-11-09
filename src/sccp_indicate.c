@@ -43,10 +43,6 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  * \warning
  *  - line->devices is not always locked
  * 
- * \lock
- *  - device
- *    - see sccp_device_find_index_for_line()
- *  - see sccp_mwi_lineStatusChangedEvent() via sccp_event_fire()
  */
 void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
@@ -411,7 +407,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
  * \param c SCCP Channel
  * \param line SCCP Line
  * \param state State as int
- * \todo Explain Pretty Function
  * 
  * \warning
  *  - line->devices is not always locked

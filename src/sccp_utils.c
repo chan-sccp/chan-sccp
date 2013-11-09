@@ -72,8 +72,6 @@ void sccp_dump_msg(sccp_msg_t *msg)
  * \param d SCCP Device
  * \return taps (Number of Buttons on AddOn Device)
  * 
- * \lock
- *  - device->addons
  */
 int sccp_addons_taps(sccp_device_t * d)
 {
@@ -149,8 +147,6 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 /*!
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
- * \lock
- *  - devices
  */
 void sccp_dev_dbclean()
 {
@@ -526,8 +522,6 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * \param sin   Socket Address In
  * \return SCCP Device
  * 
- * \lock
- *  - devices
  */
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
 sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
@@ -575,9 +569,6 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
  * \warning
  *  - device->buttonconfig is not always locked
  *  - line->devices is not always locked
- * 
- * \lock
- *  - device
  */
 void sccp_util_featureStorageBackend(const sccp_event_t * event)
 {

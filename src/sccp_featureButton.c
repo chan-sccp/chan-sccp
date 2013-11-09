@@ -45,11 +45,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  * \warning
  *  - device->buttonconfig is not always locked
  *
- * \lock
- *  - device->buttonconfig
- *    - see sccp_line_find_byname()
- *    - see sccp_linedevice_find()
- *    - see sccp_dev_send()
  */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {

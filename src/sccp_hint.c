@@ -171,10 +171,6 @@ void sccp_hint_module_start()
 /*!
  * \brief stop hint-module
  *
- * \lock
- *  - lineStates
- *  - sccp_hint_subscriptions
- *    - hint->subscribers
  */
 void sccp_hint_module_stop()
 {
@@ -316,10 +312,6 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
  * \brief Event Listener for Hints
  * \param event SCCP Event
  * 
- * \lock
- *  - device
- *    - see sccp_hint_deviceRegistered()
- *    - see sccp_hint_deviceUnRegistered()
  */
 void sccp_hint_eventListener(const sccp_event_t * event)
 {
@@ -402,9 +394,6 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
  *
  * \note device locked by parent
  *
- * \lock
- *  - device->buttonconfig
- *    - see sccp_hint_unSubscribeHint()
  */
 static void sccp_hint_deviceUnRegistered(const char *deviceName)
 {
@@ -440,9 +429,6 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
  * \warning
  *  - sccp_hint_subscriptions is not always locked
  * 
- * \lock
- *  - sccp_hint_subscriptions
- *
  * \note called with retained device
  */
 static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const char *hintStr, const uint8_t instance, const uint8_t positionOnDevice)
@@ -710,9 +696,6 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
  * \brief set hint status for a line with less or eq one channel
  * \param lineState SCCP LineState
  * 
- * \lock
- *  - hint
- *    - see sccp_line_find_byname()
  */
 void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
 {
