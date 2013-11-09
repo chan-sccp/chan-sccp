@@ -46,9 +46,6 @@ void sccp_mwi_module_start(void)
 
 /*!
  * \brief Stop MWI Monitor
- * 
- * \lock
- *  - sccp_mailbox_subscriptions
  */
 void sccp_mwi_module_stop()
 {
@@ -88,12 +85,6 @@ void sccp_mwi_module_stop()
 /*!
  * \brief Generic update mwi count
  * \param subscription Pointer to a mailbox subscription
- * 
- * \lock
- *  - subscription->sccp_mailboxLine
- *    - line
- *      - line->devices is not always locked
- *      - see sccp_mwi_setMWILineStatus()
  */
 static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 {
@@ -135,7 +126,6 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
  * \brief Receive MWI Event from Asterisk
  * \param event Asterisk Event
  * \param data Asterisk Data
- * 
  */
 void sccp_mwi_event(const struct ast_event *event, void *data)
 {
@@ -169,11 +159,6 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
  *  - line->devices is not always locked
  * 
  * \called_from_asterisk
- * 
- * \lock
- *  - subscription->sccp_mailboxLine
- *    - line
- *      - see sccp_mwi_setMWILineStatus()
  */
 int sccp_mwi_checksubscription(const void *ptr)
 {
@@ -218,9 +203,6 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
 /*!
  * \brief Device Attached Event 
  * \param event SCCP Event
- * 
- * \lock
- *  - device
  */
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 {
@@ -245,9 +227,6 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 /*!
  * \brief Line Status Changed Event 
  * \param event SCCP Event
- * 
- * \lock
- *  - see sccp_mwi_check()
  */
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 {
@@ -302,10 +281,6 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
  * 
  * \warning
  *  - subscription->sccp_mailboxLine is not always locked
- * 
- * \lock
- *  - sccp_mailbox_subscriptions
- *  - subscription->sccp_mailboxLine
  */
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line)
 {
@@ -407,9 +382,6 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 /*!
  * \brief Check Line for MWI Status
  * \param line SCCP Line
- * 
- * \lock
- *  - line->mailboxes
  */
 void sccp_mwi_checkLine(sccp_line_t * line)
 {
@@ -439,12 +411,6 @@ void sccp_mwi_checkLine(sccp_line_t * line)
  * \brief Set MWI Line Status
  * \param d SCCP Device
  * \param l SCCP Line
- * 
- * \lock
- *  - device
- *    - see sccp_device_find_index_for_line()
- *    - see sccp_dev_send()
- *    - see sccp_mwi_check()
  */
 void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 {
@@ -499,16 +465,6 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
  * \brief Check MWI Status for Device
  * \param device SCCP Device
  * \note called by lineStatusChange
- * 
- * \lock
- *  - device->buttonconfig
- *    - see sccp_line_find_byname()
- *    - line->channels
- *  - device
- *    - device->buttonconfig
- *      - see sccp_line_find_byname()
- *    - see sccp_dev_send()
- *    - see sccp_dev_check_displayprompt()
  */
 void sccp_mwi_check(sccp_device_t * device)
 {

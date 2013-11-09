@@ -23,21 +23,21 @@
  * /code
  * static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "Send a message to an SCCP Device + phone beep + timeout.\n";
  * static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
- * #define CLI_COMMAND "sccp", "message", "device" 							// defines the cli command line before parameters
- * #define AMI_COMMAND "SCCPMessageDevice" 								// defines the ami command line before parameters
- * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER							// defines on or more cli tab completion helpers (in order)
+ * #define CLI_COMMAND "sccp", "message", "device" 					// defines the cli command line before parameters
+ * #define AMI_COMMAND "SCCPMessageDevice" 						// defines the ami command line before parameters
+ * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER					// defines on or more cli tab completion helpers (in order)
  * #define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"			// defines the ami parameter conversion mapping to argc/argv, empty string if not defined
  * CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
-					 * 													// the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
-					 *													// - functionname (will be expanded to manager_functionname and cli_functionname)
-					 *													// - function to be called upon execution
-					 *													// - description
-					 *													// - usage
-					 *													// - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
+ * 											// the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
+ *											// - functionname (will be expanded to manager_functionname and cli_functionname)
+ *											// - function to be called upon execution
+ *											// - description
+ *											// - usage
+ *											// - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
  * #undef CLI_AMI_PARAMS
  * #undef AMI_COMMAND
  * #undef CLI_COMPLETE
- * #undef CLI_COMMAND													// cleanup / undefine everything before the next call to CLI_AMI_ENTRY
+ * #undef CLI_COMMAND									// cleanup / undefine everything before the next call to CLI_AMI_ENTRY
  * #endif
  * /endcode
  * 
@@ -89,9 +89,6 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
  * \return Result as char
  * 
  * \called_from_asterisk
- *
- * \lock
- *   - devices
  */
 static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
@@ -139,8 +136,6 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - lines
  */
 static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
@@ -188,8 +183,6 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - lines
  */
 static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
@@ -418,8 +411,6 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - globals
  */
 //static int sccp_show_globals(int fd, int argc, char *argv[])
 static int sccp_show_globals(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -573,8 +564,6 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - devices
  */
 //static int sccp_show_devices(int fd, int argc, char *argv[])
 static int sccp_show_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -652,10 +641,6 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
  * 
  * \warning
  *   - device->buttonconfig is not always locked
- *
- * \lock
- *   - device
- *     - device->buttonconfig
  */
 static int sccp_show_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -956,9 +941,6 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - lines
- *     - devices
  */
 //static int sccp_show_lines(int fd, int argc, char *argv[])
 static int sccp_show_lines(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -1105,9 +1087,6 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - line
- *     - line->devices
  */
 //static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -1260,10 +1239,6 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - lines
- *     - line
- *       - line->channels
  */
 //static int sccp_show_channels(int fd, int argc, char *argv[])
 static int sccp_show_channels(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -1352,11 +1327,6 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - sessions
- *     - session
- *     - device
- *     - session
  */
 //static int sccp_show_sessions(int fd, int argc, char *argv[])
 static int sccp_show_sessions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -1931,8 +1901,6 @@ CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refc
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - softKeySetConfig
  */
 //static int sccp_show_softkeysets(int fd, int argc, char *argv[])
 static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
@@ -2001,10 +1969,6 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - devices
- *     - see sccp_dev_displaynotify()
- *     - see sccp_dev_starttone()
  */
 static int sccp_message_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -2063,6 +2027,9 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
 /*!
  * \brief Message Device
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -2125,6 +2092,9 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
 /*!
  * \brief System Message
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
@@ -2210,15 +2180,15 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
 /*!
  * \brief Message Device
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - device
- *     - see sccp_sk_dnd()
  */
 static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -2409,9 +2379,6 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - globals
- *
  * \note To find out more about the reload function see \ref sccp_config_reload
  */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
@@ -2688,9 +2655,6 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - devices in sccp_device_find_byid()
- *   - device
  */
 static int sccp_reset_restart(int fd, int argc, char *argv[])
 {
@@ -2770,9 +2734,6 @@ CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usa
  * \return Result as int
  * 
  * \called_from_asterisk
- * 
- * \lock
- *   - device
  */
 static int sccp_unregister(int fd, int argc, char *argv[])
 {
@@ -2887,9 +2848,6 @@ CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_
  * \return Result as int
  * 
  * \called_from_asterisk
- *
- * \lock
- *   - channel
  */
 static int sccp_set_object(int fd, int argc, char *argv[])
 {
@@ -3003,14 +2961,14 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
 /*!
  * \brief Answer a Remote Channel
  * \param fd Fd as int
+ * \param total Total number of lines as int
+ * \param s AMI Session
+ * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
  * 
  * \called_from_asterisk
- *
- * \lock
- *   - channel
  */
 static int sccp_answercall(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -3094,9 +3052,6 @@ CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on
  * \return Result as int
  * 
  * \called_from_asterisk
- *
- * \lock
- *   - channel
  */
 static int sccp_end_call(int fd, int argc, char *argv[])
 {
@@ -3146,9 +3101,6 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
  * \return Result as int
  * 
  * \called_from_asterisk
- *
- * \lock
- *   - channel
  */
 static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
@@ -3205,7 +3157,6 @@ CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALS
  * structure for cli functions including short description.
  *
  * \return Result as struct
- * \todo add short description
  */
 static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),

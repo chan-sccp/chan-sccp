@@ -103,18 +103,6 @@ FINAL:
  * 
  * \called_from_asterisk
  * 
- * \lock
- *   - line
- *     - line->devices
- *   - line
- *   - line->devices
- *     - see sccp_device_sendcallstate()
- *     - see sccp_channel_send_callinfo()
- *     - see sccp_channel_forward()
- *     - see sccp_util_matchSubscriptionId()
- *     - see sccp_channel_get_active()
- *     - see sccp_indicate_lock()
- * 
  * \note called with c retained
  */
 
@@ -481,9 +469,6 @@ int sccp_pbx_hangup(sccp_channel_t * c)
  * The Auto Answer thread is started by ref sccp_pbx_needcheckringback if necessary
  *
  * \param d SCCP Device
- * 
- * \lock
- *   - device->session
  */
 void sccp_pbx_needcheckringback(sccp_device_t * d)
 {
@@ -624,10 +609,6 @@ int sccp_pbx_answer(sccp_channel_t * channel)
  * \callergraph
  * 
  * \lock
- *  - line->devices
- *  - channel
- *    - line
- *    - see sccp_channel_updateChannelCapability()
  *  - usecnt_lock
  */
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
@@ -842,24 +823,6 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
  * \brief Handle Soft Switch
  * \param channel SCCP Channel as sccp_channel_t
  * \todo clarify Soft Switch Function
- *
- * \lock
- *   - channel
- *     - see sccp_pbx_senddigits()
- *     - see sccp_channel_set_calledparty()
- *     - see sccp_indicate_nolock()
- *   - channel
- *     - see sccp_line_cfwd()
- *     - see sccp_indicate_nolock()
- *     - see sccp_device_sendcallstate()
- *     - see sccp_channel_send_callinfo()
- *     - see sccp_dev_clearprompt()
- *     - see sccp_dev_displayprompt()
- *     - see sccp_feat_meetme_start()
- *     - see PBX(set_callstate)()
- *     - see pbx_pbx_start()
- *     - see sccp_indicate_nolock()
- *     - see manager_event()
  */
 void *sccp_pbx_softswitch(sccp_channel_t * channel)
 {
@@ -1197,6 +1160,7 @@ void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits)
 		PBX(send_digits) (c, digits);
 }
 
+#if 0
 /*!
  * \brief Handle Dialplan Transfer
  *
@@ -1251,5 +1215,6 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 	c = sccp_channel_release(c);
 	return res;
 }
+#endif
 
 #endif

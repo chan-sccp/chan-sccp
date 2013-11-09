@@ -1428,8 +1428,6 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
  * 
  * \called_from_asterisk
  * 
- * \lock
- *      - lines
  */
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {

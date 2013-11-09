@@ -139,9 +139,8 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
 /*!
  * \brief Read Data From Socket
  * \param s SCCP Session
+ * \param msg SCCP Message
  *
- * \lock
- *  - session
  */
 static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 {
@@ -217,8 +216,6 @@ READ_ERROR:
  * \param s SCCP Session
  * \return boolean
  * 
- * \lock
- *  - session
  */
 static boolean_t sccp_session_findBySession(sccp_session_t * s)
 {
@@ -241,8 +238,6 @@ static boolean_t sccp_session_findBySession(sccp_session_t * s)
  * \param s SCCP Session
  * \return boolean
  * 
- * \lock
- *  - session
  */
 static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
 {
@@ -264,8 +259,6 @@ static boolean_t sccp_session_addToGlobals(sccp_session_t * s)
  * \param s SCCP Session
  * \return boolean
  * 
- * \lock
- *  - sessions
  */
 static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
 {
@@ -291,6 +284,9 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
  * \brief Retain device pointer in session. Replace existing pointer if necessary
  * \param session SCCP Session
  * \param device SCCP Device
+ *
+ * \lock
+ *  - session
  */
 sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
 {
@@ -313,6 +309,9 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 /*!
  * \brief Release device pointer from session
  * \param session SCCP Session
+ *
+ * \lock
+ *  - session
  */
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 {
@@ -338,12 +337,10 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
  * \callergraph
  *
  * \lock
- *  - see sccp_hint_eventListener() via sccp_event_fire()
  *  - session
  */
 void sccp_session_close(sccp_session_t * s)
 {
-
 	sccp_session_lock(s);
 	s->session_stop = 1;
 	if (s->fds[0].fd > 0) {
@@ -363,8 +360,7 @@ void sccp_session_close(sccp_session_t * s)
  * \callergraph
  *
  * \lock
- *  - sessions
- *  - device
+ *  - session
  */
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
@@ -525,7 +521,7 @@ void *sccp_socket_device_thread(void *session)
  * \brief Socket Accept Connection
  *
  * \lock
- *  - sessions
+ *  - session
  */
 static void sccp_accept_connection(void)
 {
@@ -617,17 +613,6 @@ static void sccp_accept_connection(void)
  * \brief Socket Thread
  * \param ignore None
  *
- * \lock
- *  - sessions
- *    - globals
- *    - see sccp_device_check_update()
- *    - see sccp_socket_poll()
- *    - see sccp_session_close()
- *    - see destroy_session()
- *    - see sccp_read_data()
- *    - see sccp_process_data()
- *    - see sccp_handle_message()
- *    - see sccp_device_sendReset()
  */
 void *sccp_socket_thread(void *ignore)
 {
@@ -690,7 +675,7 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 /*!
  * \brief Socket Send
  * \param device SCCP Device
- * \param r Message Data Structure (sccp_msg_t)
+ * \param msg SCCP Message
  * \return SCCP Session Send
  */
 int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
@@ -707,11 +692,9 @@ int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
 /*!
  * \brief Socket Send Message
  * \param s Session SCCP Session (can't be null)
- * \param r Message SCCP Moo Message (will be freed)
+ * \param msg SCCP Message (will be freed)
  * \return Result as Int
  *
- * \lock
- *  - session
  */
 int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 {
@@ -785,8 +768,6 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
  * \param device SCCP Device
  * \return SCCP Session
  *
- * \lock
- *  - sessions
  */
 sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device)
 {

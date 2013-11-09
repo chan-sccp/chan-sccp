@@ -515,7 +515,7 @@ typedef struct {
  * \since 20080111
  */
 typedef struct {
-	uint32_t layout;											/*!< Layout \todo what is layout? */
+	uint32_t layout;											/*!< Layout */
 } layoutConfig_t;												/*!< SKINNY Layout Config Structure */
 
 /*!

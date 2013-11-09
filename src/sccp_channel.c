@@ -139,9 +139,9 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
  *
  * \callgraph
  * \callergraph
+ *
  * \lock
  *  - callCountLock
- *  - channel
  */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 {
@@ -434,9 +434,6 @@ sccp_channel_t *sccp_channel_get_active(const sccp_device_t * d)
  * \brief Set SCCP Channel to Active
  * \param d SCCP Device
  * \param channel SCCP Channel
- * 
- * \lock
- *  - device
  */
 void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
 {
@@ -711,12 +708,6 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
  *
  * \param channel a locked SCCP Channel
  * 
- * \lock
- *    - see sccp_channel_updateChannelCapability()
- *    - see sccp_channel_start_rtp()
- *    - see sccp_device_find_index_for_line()
- *    - see sccp_dev_starttone()
- *    - see sccp_dev_send()
  */
 void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 {
@@ -780,9 +771,6 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \note sccp_channel_stopMediaTransmission is explicit call within this function!
  * 
- * \lock
- *  - channel
- *    - see sccp_dev_send()
  */
 void sccp_channel_closeReceiveChannel(sccp_channel_t * channel)
 {
@@ -993,10 +981,6 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
  * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
  * \param channel SCCP Channel
  * 
- * \lock
- *  - channel
- *    - see sccp_channel_stop_rtp()
- *    - see sccp_dev_send()
  */
 void sccp_channel_stopMediaTransmission(sccp_channel_t * channel)
 {
@@ -1184,10 +1168,6 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
  *
  * \callgraph
  * \callergraph
- *
- * \lock
- *  - line->channels
- *    - see sccp_channel_endcall()
  */
 void sccp_channel_endcall(sccp_channel_t * channel)
 {
@@ -1261,10 +1241,6 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - channel
- *    - see sccp_channel_set_active()
- *    - see sccp_indicate_nolock()
  */
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedId)
 {
@@ -1350,11 +1326,6 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
  *
  * \callgraph
  * \callergraph
- *
- * \lock
- *  - line
- *  - line->channels
- *    - see sccp_channel_endcall()
  */
 void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 {
@@ -1517,9 +1488,6 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
  *
  * \callgraph
  * \callergraph
- * 
- * \lock
- *  - device
  */
 int sccp_channel_hold(sccp_channel_t * channel)
 {
@@ -1604,11 +1572,6 @@ int sccp_channel_hold(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device
- *  - channel
- *    - see sccp_channel_updateChannelCapability()
- *  - channel
  */
 int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolean_t swap_channels)
 {
@@ -1772,10 +1735,6 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device
- *    - see sccp_device_find_selectedchannel()
- *    - device->selectedChannels
  */
 void sccp_channel_clean(sccp_channel_t * channel)
 {
@@ -1850,9 +1809,6 @@ void sccp_channel_clean(sccp_channel_t * channel)
  *
  * \warning
  *  - line->channels is not always locked
- * 
- * \lock
- *  - channel
  */
 void __sccp_channel_destroy(sccp_channel_t * channel)
 {
@@ -1879,9 +1835,6 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
  *
  * \callgraph
  * \callergraph
- * 
- * \lock
- *  - device
  */
 void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 {
@@ -2048,9 +2001,6 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
  *
  * \callgraph
  * \callergraph
- * 
- * \lock
- *  - device
  */
 void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_channel)
 {
@@ -2249,9 +2199,6 @@ void sccp_channel_set_calleridPresenceParameter(sccp_channel_t * channel, sccp_c
  *
  * \callgraph
  * \callergraph
- * 
- * \lock
- *  - channel
  */
 int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_t * lineDevice, char *fwdNumber)
 {
@@ -2501,10 +2448,6 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - line->channels
- *  - channel
  */
 #if DEBUG
 /*!
@@ -2553,10 +2496,6 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - line->channels
- *  - channel
  */
 #if DEBUG
 /*!
@@ -2606,10 +2545,6 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - line->channels
- *  - channel
  */
 #if DEBUG
 /*!
@@ -2675,10 +2610,6 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - line->channels
- *  - channel
  */
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
 {
@@ -2726,10 +2657,6 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - line->channels
- *  - channel
  */
 #if DEBUG
 /*!
@@ -2777,11 +2704,6 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device
- *    - see sccp_line_find_byname_wo()
- *    - line->channels
- *  - channel
  */
 #if DEBUG
 /*!
@@ -2855,9 +2777,6 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device->selectedChannels
- *
  * \todo Currently this returns the selectedchannel unretained !
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
@@ -2885,8 +2804,6 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  * \param d SCCP Device
  * \return count Number of Selected Channels
  * 
- * \lock
- *  - device->selectedChannels
  */
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 {

@@ -76,9 +76,9 @@
  *    .
  *  .
  * channel.c
- * -   sccp_channel_endcall ***
- *  - reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
- *      .
+ * - sccp_channel_endcall ***
+ *   - reset device if still device->pendingUpdate,line->pendingUpdate or softkeyset->pendingUpdate
+ *   .
  * .
  *
  * lines marked with "***" still need be implemented
@@ -1764,10 +1764,6 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device->buttonconfig
- *     - globals
- *
  * \todo Build a check to see if the button has changed
  */
 sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args)
@@ -1934,9 +1930,6 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line
- *    - see sccp_line_changed()
  */
 static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
 {
@@ -1966,9 +1959,6 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device
- *    - see sccp_device_changed()
  */
 static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * variable, const char *deviceName, boolean_t isRealtime)
 {
@@ -2023,8 +2013,6 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line->mailboxes
  */
 sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYPE * v)
 {
@@ -2171,9 +2159,6 @@ void cleanup_stale_contexts(char *new, char *old)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - see sccp_config_applyLineConfiguration()
  */
 void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 {
@@ -2391,8 +2376,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line->mailboxes
  */
 sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, PBX_VARIABLE_TYPE * v)
 {
@@ -2424,9 +2407,6 @@ sccp_configurationchange_t sccp_config_applyLineConfiguration(sccp_line_t * l, P
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device->addons
- *  - device->permithosts
  */
 sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * d, PBX_VARIABLE_TYPE * v)
 {
@@ -2535,8 +2515,6 @@ FUNC_EXIT:
  * \callgraph
  * \callergraph
  *
- * \lock
- *  - softKeySetConfig
  */
 void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 {
@@ -2691,8 +2669,6 @@ int sccp_config_getSoftkeyLbl(char *key)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device->devstateSpecifiers
  */
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 {

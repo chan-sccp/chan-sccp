@@ -139,7 +139,7 @@ const struct ast_channel_tech sccp_tech = {
 	.write_video 		= sccp_wrapper_asterisk16_rtp_write,
 	.indicate 		= sccp_wrapper_asterisk16_indicate,
 	.fixup 			= sccp_wrapper_asterisk16_fixup,
-	.transfer 		= sccp_pbx_transfer,
+	//.transfer 		= sccp_pbx_transfer,
 //	.bridge 		= sccp_wrapper_asterisk16_rtpBridge,
 	.bridge			= ast_rtp_bridge,
 	//.early_bridge         = ast_rtp_early_bridge,
@@ -246,8 +246,6 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
  * \param astCodecPref Array of PBX Codec Preferences
  *
  * \return bit array fmt/Format of ast_format_type (int)
- *
- * \todo check bitwise operator (not sure) - DdG 
  */
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
 {
@@ -2325,8 +2323,6 @@ static void sccp_wrapper_asterisk_set_channel_tech_pvt(const sccp_channel_t * ch
  * \param data  linkId as void *
  *
  * \return int
- *
- * \todo I don't understand what this functions returns
  */
 static int pbx_find_channel_by_linkedid(PBX_CHANNEL_TYPE * ast, void *data)
 {
@@ -2965,7 +2961,6 @@ static int load_module(void)
 		pbx_log(LOG_WARNING, "Unable to create I/O context. SCCP channel type disabled\n");
 		return AST_MODULE_LOAD_FAILURE;
 	}
-	//! \todo how can we handle this in a pbx independent way?
 	if (!load_config()) {
 		if (ast_channel_register(&sccp_tech)) {
 			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");

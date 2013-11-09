@@ -36,8 +36,6 @@ int sccp_line_destroy(const void *ptr);
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
  */
 void sccp_line_pre_reload(void)
 {
@@ -75,12 +73,6 @@ void sccp_line_pre_reload(void)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *    - line
- *      - line->devices
- *        - device
- *    - see sccp_line_clean()
  */
 void sccp_line_post_reload(void)
 {
@@ -146,9 +138,6 @@ sccp_line_t *sccp_line_create(const char *name)
  * 
  * \note needs to be called with a retained line
  * \note adds a retained line to the list (refcount + 1)
- * \lock
- *  - lines
- *  - see sccp_mwi_linecreatedEvent() via sccp_event_fire()
  */
 void sccp_line_addToGlobals(sccp_line_t * line)
 {
@@ -184,9 +173,6 @@ void sccp_line_addToGlobals(sccp_line_t * line)
  * 
  * \note needs to be called with a retained line
  * \note removes the retained line withing the list (refcount - 1)
- * \lock
- *  - lines
- *  - see sccp_mwi_linecreatedEvent() via sccp_event_fire()
  */
 sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 {
@@ -222,8 +208,6 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 /*!
  * \brief create a hotline
  * 
- * \lock
- *  - lines
  */
 void *sccp_create_hotline(void)
 {
@@ -268,9 +252,6 @@ void *sccp_create_hotline(void)
  * \callgraph
  * \callergraph
  *
- * \lock
- *  - line->channels
- *    - see sccp_channel_endcall();
  */
 void sccp_line_kill_channels(sccp_line_t * l)
 {
@@ -304,11 +285,6 @@ void sccp_line_kill_channels(sccp_line_t * l)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
- *  - see sccp_line_kill_channels()
- *  - line->devices
- *  - see sccp_line_destroy()
  */
 void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
 {
@@ -327,9 +303,6 @@ void sccp_line_clean(sccp_line_t * l, boolean_t remove_from_global)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line
- *    - see sccp_mwi_unsubscribeMailbox()
  */
 int __sccp_line_destroy(const void *ptr)
 {
@@ -397,9 +370,6 @@ int __sccp_line_destroy(const void *ptr)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line
- *    - see sccp_mwi_unsubscribeMailbox()
  */
 int __sccp_lineDevice_destroy(const void *ptr)
 {
@@ -421,9 +391,6 @@ int __sccp_lineDevice_destroy(const void *ptr)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line
- *    - see sccp_mwi_unsubscribeMailbox()
  */
 int sccp_line_destroy(const void *ptr)
 {
@@ -454,10 +421,6 @@ void sccp_line_delete_nolock(sccp_line_t * l)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - line->devices
- *  - see sccp_feat_changed()
- *
  * \todo implement cfwd_noanswer
  */
 void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward_t type, char *number)
@@ -510,13 +473,6 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
  * \param lineInstance lineInstance as uint8_t
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
- * \lock
- *  - line->devices
- *    - see register_exten()
- *  - line
- *  - see sccp_feat_changed()
- *  - see sccp_dev_forward_status() via sccp_event_fire()
- *  - see sccp_mwi_deviceAttachedEvent() via sccp_event_fire
  */
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
 {
@@ -643,11 +599,6 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
  *
  * \note device can be NULL, mening remove all device from this line
  * 
- * \lock
- *  - line
- *    - line->devices
- *      - see unregister_exten()
- *  - see sccp_hint_eventListener() via sccp_event_fire()
  */
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
@@ -689,8 +640,6 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
  * \warning
  *  - line->channels is not always locked
  * 
- * \lock
- *  - line
  */
 void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
 {
@@ -722,8 +671,6 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
  * \warning
  *  - line->channels is not always locked
  * 
- * \lock
- *  - line
  */
 void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c)
 {
@@ -875,8 +822,6 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - lines
  */
 #if DEBUG
 /*!
@@ -1001,9 +946,6 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
  * \callgraph
  * \callergraph
  * 
- * \lock
- *  - device->buttonconfig
- *    - see sccp_line_find_byname_wo()
  */
 #if DEBUG
 /*!
