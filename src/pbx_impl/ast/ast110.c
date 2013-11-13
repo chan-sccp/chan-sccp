@@ -2394,9 +2394,13 @@ static void sccp_wrapper_asterisk_set_pbxchannel_linkedid(PBX_CHANNEL_TYPE * pbx
 		if (!strcmp(pbx_channel->linkedid, new_linkedid)) {
 			return;
 		}
+#if HAVE_PBX_CEL_H
 		ast_cel_check_retire_linkedid(pbx_channel);
+#endif
 		ast_string_field_set(pbx_channel, linkedid, new_linkedid);
+#if CS_AST_CEL_LINKEDID_REF
 		ast_cel_linkedid_ref(new_linkedid);
+#endif
 	}
 };
 

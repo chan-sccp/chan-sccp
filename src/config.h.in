@@ -95,6 +95,9 @@
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
+/* Found 'ast_cel_linkedid_ref' in asterisk/cel.h */
+#undef CS_AST_CEL_LINKEDID_REF
+
 /* 'struct ast_callerid' available */
 #undef CS_AST_CHANNEL_HAS_CID
 
