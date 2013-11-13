@@ -956,6 +956,15 @@ dnl 			AC_DEFINE([CS_AST_HAS_STRINGS],1,[Found 'asterisk/strings.h'])
     AC_CHECK_HEADER([asterisk/cel.h],
     		[
     			AC_DEFINE(HAVE_PBX_CEL_H,1,[Found 'asterisk/stringfields.h'])
+
+			AC_MSG_CHECKING([ - availability 'ast_cel_linkedid_ref'...])
+			AC_EGREP_HEADER([ast_cel_linkedid_ref], [asterisk/cel.h],
+			[
+				AC_DEFINE(CS_AST_CEL_LINKEDID_REF,1,[Found 'ast_cel_linkedid_ref' in asterisk/cel.h])
+				AC_MSG_RESULT(yes)
+			],[
+				AC_MSG_RESULT(no)
+			])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
