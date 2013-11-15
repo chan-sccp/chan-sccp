@@ -817,7 +817,7 @@ static void *sccp_asterisk_doPickupThread(void *data) {
 		pbx_channel_set_hangupcause(pbx_channel, AST_CAUSE_NORMAL_CLEARING);
 	}
 	ast_hangup(pbx_channel);
-	ast_channel_unref(pbx_channel);
+	pbx_channel_unref(pbx_channel);
 	pbx_channel = NULL;
 	return NULL;
 }
@@ -826,10 +826,10 @@ static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE *pbx_channel) {
 	pthread_t threadid;
 
 
-	ast_channel_ref(pbx_channel);
+	pbx_channel_ref(pbx_channel);
 	if (ast_pthread_create_detached_background(&threadid, NULL, sccp_asterisk_doPickupThread, pbx_channel)) {
 		pbx_log(LOG_ERROR, "Unable to start Group pickup thread on channel %s\n", pbx_channel_name(pbx_channel));
-		ast_channel_unref(pbx_channel);
+		pbx_channel_unref(pbx_channel);
 		return FALSE;
 	}
 	pbx_log(LOG_NOTICE, "SCCP: Started Group pickup thread on channel %s\n", pbx_channel_name(pbx_channel));
