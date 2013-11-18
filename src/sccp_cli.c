@@ -2193,32 +2193,53 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
 static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
+	int res = RESULT_SUCCESS;
+	
 	int local_total = 0;
 
-	if (3 > argc || argc > 4) {
+	if (3 > argc || argc > 5) {
 		return RESULT_SHOWUSAGE;
 	}
 
 	if ((d = sccp_device_find_byid(argv[3], TRUE))) {
-		sccp_sk_dnd(d, NULL, 0, NULL);
-		CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\r\n");
+		if (argc == 5) {
+			if (sccp_strcaseequals(argv[4], "silent")) {
+				d->dndFeature.status = SCCP_DNDMODE_SILENT;
+				CLI_AMI_OUTPUT(fd, s, "Set DND SILENT\r\n");
+			} else if (sccp_strcaseequals(argv[4], "reject")) {
+				d->dndFeature.status = SCCP_DNDMODE_REJECT;
+				CLI_AMI_OUTPUT(fd, s, "Set DND REJECT\r\n");
+			} else if (sccp_strcaseequals(argv[4], "off")) {
+				d->dndFeature.status = SCCP_DNDMODE_OFF;
+				CLI_AMI_OUTPUT(fd, s, "Unset DND\r\n");
+			} else {
+				CLI_AMI_OUTPUT(fd, s, "Unknown DND State: %s\n", argv[3]);
+				res = RESULT_FAILURE;
+			}
+			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
+			sccp_dev_check_displayprompt(d);
+		} else {
+			sccp_sk_dnd(d, NULL, 0, NULL);
+			CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\r\n");
+		}
 		d = sccp_device_release(d);
 	} else {
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find device %s\n", argv[3]);
+		res = RESULT_FAILURE;
 	}
 
 	if (s)
 		*total = local_total;
 
-	return RESULT_SUCCESS;
+	return res;
 }
-static char cli_dnd_device_usage[] = "Usage: sccp dnd <deviceId>\n" "       Send a dnd to an SCCP Device.\n";
-static char ami_dnd_device_usage[] = "Usage: SCCPDndDevice\n" "Set/Unset DND status on a SCCP Device.\n\n" "PARAMS: DeviceId\n";
+static char cli_dnd_device_usage[] = "Usage: sccp dnd <deviceId> [off|reject|silent]\n" "       Send a dnd to an SCCP Device. Optionally specifying new DND state  [off|reject|silent]\n";
+static char ami_dnd_device_usage[] = "Usage: SCCPDndDevice\n" "Set/Unset DND status on a SCCP Device.\n\n" "PARAMS: DeviceId, State= [off|reject|silent]\n";
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "dnd", "device"
 #define AMI_COMMAND "SCCPDndDevice"
-#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
-#define CLI_AMI_PARAMS "DeviceId"
+#define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS "DeviceId, State"
 CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cli_dnd_device_usage, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
