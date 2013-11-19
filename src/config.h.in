@@ -149,6 +149,9 @@
 /* 'AST_FLAG_MOH' available */
 #undef CS_AST_HAS_FLAG_MOH
 
+/* Found 'ast_namedgroups' in asterisk/channel.h */
+#undef CS_AST_HAS_NAMEDGROUP
+
 /* 'ast_get_hint' available */
 #undef CS_AST_HAS_NEW_HINT
 

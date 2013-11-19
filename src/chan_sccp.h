@@ -820,6 +820,10 @@ struct sccp_line {
 #ifdef CS_SCCP_PICKUP
 	sccp_group_t pickupgroup;										/*!< pickupgroup assigned to this line */
 #endif
+#ifdef CS_AST_HAS_NAMEDGROUP
+	char *namedcallgroup;											/*!< Named Call Group */
+	char *namedpickupgroup;											/*!< Named Pickup Group */
+#endif
 	char cid_name[SCCP_MAX_EXTENSION];									/*!< Caller(Name) to use on outgoing calls */
 	char cid_num[SCCP_MAX_EXTENSION];									/*!< Caller(ID) to use on outgoing calls  */
 	uint16_t incominglimit;											/*!< max incoming calls limit */

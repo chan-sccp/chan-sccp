@@ -274,23 +274,29 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 																																					"Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see conferencing app for specific documentation\n"},
 	{"transfer", 			L_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"per line transfer capability\n"},
 	{"incominglimit", 		L_OBJ_REF(incominglimit),		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"6",				"allow x number of incoming calls (call waiting)\n"},
-	{"echocancel", 			L_OBJ_REF(echocancel),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the phone echocancel for this line\n"},
+	{"echocancel",			L_OBJ_REF(echocancel),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the phone echocancel for this line\n"},
 	{"silencesuppression",		L_OBJ_REF(silencesuppression),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the silence suppression for this line\n"},
-	{"language", 			L_OBJ_REF(language),			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the language setting per line\n"},
-	{"musicclass", 			L_OBJ_REF(musicclass),			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the music on hold class per line\n"},
-	{"accountcode", 		L_OBJ_REF(accountcode),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"accountcode for this line to make billing per call possible\n"},
-	{"amaflags", 			L_OBJ_REF(amaflags),			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,		 				SCCP_CONFIG_NOUPDATENEEDED,	 	NULL,				"sets the AMA flags stored in the CDR record for this line\n"},
-	{"callgroup", 			L_OBJ_REF(callgroup),			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,		 				SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the caller groups this line is a member of\n"},
-#ifdef CS_SCCP_PICKUP	
-	{"pickupgroup", 		L_OBJ_REF(pickupgroup),			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,		 				SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group\n"},
+	{"language",			L_OBJ_REF(language),			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the language setting per line\n"},
+	{"musicclass",			L_OBJ_REF(musicclass),			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the music on hold class per line\n"},
+	{"accountcode",			L_OBJ_REF(accountcode),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"accountcode for this line to make billing per call possible\n"},
+	{"amaflags",			L_OBJ_REF(amaflags),			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the AMA flags stored in the CDR record for this line\n"},
+	{"callgroup",			L_OBJ_REF(callgroup),			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the caller groups this line is a member of\n"},
+#ifdef CS_SCCP_PICKUP
+	{"pickupgroup",			L_OBJ_REF(pickupgroup),			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group\n"},
 #endif
-	{"trnsfvm", 			L_OBJ_REF(trnsfvm),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"extension to redirect the caller to for voice mail\n"},
-	{"secondary_dialtone_digits", 	L_OBJ_REF(secondary_dialtone_digits),	TYPE_PARSER(sccp_config_parse_secondaryDialtoneDigits),				SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,	 	"",				"digits to indicate an external line to user (secondary dialtone) (max 9 digits)\n"},
-	{"secondary_dialtone_tone", 	L_OBJ_REF(secondary_dialtone_tone),	TYPE_UINT,						 			SCCP_CONFIG_FLAG_NONE, 						SCCP_CONFIG_NOUPDATENEEDED, 		"0x22",				"outside dialtone frequency\n"},
-	{"setvar", 			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,	 	SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
+#ifdef CS_AST_HAS_NAMEDGROUP
+	{"namedcallgroup",		L_OBJ_REF(namedcallgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named caller groups this line is a member of (ast111)\n"},
+#ifdef CS_SCCP_PICKUP
+	{"namedpickupgroup",		L_OBJ_REF(namedpickupgroup),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"sets the named pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group (ast111)\n"},
+#endif
+#endif
+	{"trnsfvm",			L_OBJ_REF(trnsfvm),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"extension to redirect the caller to for voice mail\n"},
+	{"secondary_dialtone_digits",	L_OBJ_REF(secondary_dialtone_digits),	TYPE_PARSER(sccp_config_parse_secondaryDialtoneDigits),				SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"digits to indicate an external line to user (secondary dialtone) (max 9 digits)\n"},
+	{"secondary_dialtone_tone",	L_OBJ_REF(secondary_dialtone_tone),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x22",				"outside dialtone frequency\n"},
+	{"setvar",			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
-	{"dnd", 			L_OBJ_REF(dndmode),			TYPE_PARSER(sccp_config_parse_dnd_wrapper),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		"reject",			"allow setting dnd for this line. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent) or user to toggle on phone\n"},
-	{"regexten", 			L_OBJ_REF(regexten),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"SCCP Lines will we added to the regcontext with this number for Dundi look up purpose\n"
+	{"dnd",				L_OBJ_REF(dndmode),			TYPE_PARSER(sccp_config_parse_dnd_wrapper),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"allow setting dnd for this line. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent) or user to toggle on phone\n"},
+	{"regexten",			L_OBJ_REF(regexten),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"SCCP Lines will we added to the regcontext with this number for Dundi look up purpose\n"
 																																					"If regexten is not filled in the line name (categoryname between []) will be used\n"},
 };
 

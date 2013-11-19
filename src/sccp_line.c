@@ -339,6 +339,15 @@ int __sccp_line_destroy(const void *ptr)
 	if (SCCP_LIST_EMPTY(&l->mailboxes)) {
 		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
 	}
+#if CS_AST_HAS_NAMEDGROUP
+	if (l->namedcallgroup) {
+		sccp_free(l->namedcallgroup);
+	}
+	if (l->namedpickupgroup) {
+		sccp_free(l->namedpickupgroup);
+	}
+#endif
+	
 	// cleanup channels
 	sccp_channel_t *c = NULL;
 

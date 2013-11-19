@@ -1860,6 +1860,12 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 				if (l->pickupgroup)
 					pickupgroup = 1;
 #endif
+#ifdef CS_AST_HAS_NAMEDGROUP
+				if (!sccp_strlen_zero(l->namedpickupgroup)) {
+					pickupgroup = 1;
+				}
+#endif
+
 				l = sccp_line_release(l);
 			}
 		}
