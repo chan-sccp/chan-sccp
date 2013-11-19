@@ -412,15 +412,22 @@ dnl			fi
 					#include <asterisk/channel.h>
 				], [
 					int test_account_code = (int)AST_MAX_ACCOUNT_CODE;
-				], 
+				],
 				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[AST_MAX_ACCOUNT_CODE],[Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])],
 				[AC_DEFINE([SCCP_MAX_ACCOUNT_CODE],[MAX_LANGUAGE],[Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h])]
 			)
 
-			
+			CS_CV_TRY_COMPILE_IFELSE([ - availability 'ast_namedgroups'...], [ac_cv_ast_namedgroups], [
+				$HEADER_INCLUDE
+					#include <asterisk/channel.h>
+				], [
+					struct ast_namedgroup *test = ast_get_namedgroups("test");
+				],
+				[AC_DEFINE([CS_AST_HAS_NAMEDGROUP],1,[Found 'ast_namedgroups' in asterisk/channel.h])],
+			)
 dnl			CS_CHECK_AST_TYPEDEF([ast_group_t],[asterisk/channel.h],AC_DEFINE([CS_AST_HAS_AST_GROUP_T],1,['ast_group_t' available]))
-		],,[ 
-	               	$HEADER_INCLUDE
+		],,[
+			$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/bridging.h],
     		[

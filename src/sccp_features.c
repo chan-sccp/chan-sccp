@@ -443,7 +443,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) starting grouppickup\n", DEV_ID_LOG(d));
 
-	if (!l->pickupgroup) {
+	if (!l->pickupgroup
+#if CS_AST_HAS_NAMEDGROUP
+		&& sccp_strlen_zero(l->namedpickupgroup)
+#endif
+	) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickupgroup not configured in sccp.conf\n", d->id);
 		return -1;
 	}

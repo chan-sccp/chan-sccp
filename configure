@@ -23597,7 +23597,7 @@ fi
 
 
     ac_fn_c_check_header_compile "$LINENO" "asterisk/channel.h" "ac_cv_header_asterisk_channel_h" "
-	               	$HEADER_INCLUDE
+			$HEADER_INCLUDE
 
 "
 if test "x$ac_cv_header_asterisk_channel_h" = xyes; then :
@@ -24102,6 +24102,75 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
+
+				ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
+
+        { $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ast_namedgroups'..." >&5
+$as_echo_n "checking  - availability 'ast_namedgroups'...... " >&6; }
+if ${ac_cv_ast_namedgroups+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+                        cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+				$HEADER_INCLUDE
+					#include <asterisk/channel.h>
+
+int
+main ()
+{
+
+					struct ast_namedgroup *test = ast_get_namedgroups("test");
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+                                        ac_cv_ast_namedgroups="yes"
+                                        if ${ac_cv_ast_namedgroups+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "yes"
+fi
+
+
+else
+
+                                        ac_cv_ast_namedgroups="no"
+                                        if ${ac_cv_ast_namedgroups+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  "no"
+fi
+
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_ast_namedgroups" >&5
+$as_echo "$ac_cv_ast_namedgroups" >&6; }
+        eval val=\$ac_cv_ast_namedgroups
+        if test "x$val" = "xyes"; then
+
+$as_echo "#define CS_AST_HAS_NAMEDGROUP 1" >>confdefs.h
+ :
+             : :
+        fi
+	ac_ext=c
+ac_cpp='$CPP $CPPFLAGS'
+ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
+ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS >&5'
+ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 

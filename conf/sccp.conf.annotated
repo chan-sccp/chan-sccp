@@ -82,6 +82,8 @@ allowoverlap = no                                                               
                                                                                   ; Use with extreme caution as it is very dialplan and provider dependent. (Default is off)
 callgroup = ""                                                                    ; We are in caller groups 1,3,4. Valid for all lines
 pickupgroup = ""                                                                  ; We can do call pick-p for call group 1,3,4,5. Valid for all lines
+namedcallgroup = ""								  ; Named call Group (asterisk 11 and up)
+namedpickupgroup = ""   							  ; Named pickup Group (asterisk 11 and up)
 directed_pickup_modeanswer = yes                                                  ; Automatically Answer when using Directed Pickup (Asterisks default is on) (Default: on)
 pickupmodeanswer = ""                                                             ; Automatically Answer when using Directed Pickup (Deprecated use directed_pickup_modeanswer instead)
 amaflags = ""                                                                     ; Sets the default AMA flag code stored in the CDR record

@@ -1,8 +1,10 @@
+
 Version: 4.2.0_DEV
 ==================
 New Features in V4.2
  - Direct RTP
  - Enums processed using meta programming
+ - support for named callgroup / pickupgroups when using asterisk-11
 
 Bug Fixes
  - 

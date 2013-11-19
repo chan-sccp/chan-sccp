@@ -895,6 +895,15 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 		ast_channel_pickupgroup_set(*pbx_channel, line->pickupgroup);
 	}
 #endif
+#if CS_AST_HAS_NAMEDGROUP
+	if (!sccp_strlen_zero(line->namedcallgroup)) {
+		ast_channel_named_pickupgroups_set(*pbx_channel, ast_get_namedgroups(line->namedcallgroup));
+	}
+
+	if (!sccp_strlen_zero(line->namedpickupgroup)) {
+		ast_channel_named_pickupgroups_set(*pbx_channel, ast_get_namedgroups(line->namedpickupgroup));
+	}
+#endif
 
 	ast_channel_priority_set((*pbx_channel), 1);
 	ast_channel_adsicpe_set((*pbx_channel), AST_ADSI_UNAVAILABLE);
