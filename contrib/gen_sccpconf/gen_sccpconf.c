@@ -53,7 +53,11 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 		printf("error:" "Error creating new config file \n");
 		return 1;
 	}
-
+	
+	// name tokenizer
+	char *names;
+	char *name;
+	
 	char date[256] = "";
 	time_t t;
 
@@ -104,96 +108,104 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 			config = sccpConfigSegment->config;
 			add_primary_key = FALSE;
 			for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
-				if (!strcmp(config[sccp_option].name,"name")) {
-					add_primary_key = TRUE;
-				}
-				if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
-					printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
-					
-					if (!strcmp(config[sccp_option].name,"button")) { 			// Will be replaced by view
-						printf("info:" "skipping\n");
-						continue;
+				names = alloca(strlen(config[sccp_option].name) + 2);
+				sprintf(names,"%s|", config[sccp_option].name);
+				name = strtok(names,"|");
+				while (name != NULL) {
+					if (!strcmp(config[sccp_option].name,"name")) {
+						add_primary_key = TRUE;
 					}
+					if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
+						printf("info:" "adding name: %s, default_value: %s\n", name, config[sccp_option].defaultValue);
+						
+						if (!strcmp(config[sccp_option].name,"button")) { 			// Will be replaced by view
+							printf("info:" "skipping\n");
+							name = NULL;
+							continue;
+						}
 
-					if (!first_column_printed) {
-						fprintf(f, "	%s", config[sccp_option].name);
-						first_column_printed = 1;
-					} else {
-						fprintf(f, ",\n	%s", config[sccp_option].name);
-					}
-					if (config[sccp_option].type) {
-						switch (config[sccp_option].type) {
-							case SCCP_CONFIG_DATATYPE_BOOLEAN:
-								if (CONFIG_TYPE_MYSQL == config_type) {
-									fprintf(f, " ENUM('yes','no')");
-								} else {
-									fprintf(f, " BOOLEAN");
-								}
-								if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-									fprintf(f, " DEFAULT '%s'", config[sccp_option].defaultValue);
-								}
-								break;
-							case SCCP_CONFIG_DATATYPE_INT:
-								fprintf(f, " INT");
-								if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-									fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
-								}
-								break;
-							case SCCP_CONFIG_DATATYPE_UINT:
-								if (CONFIG_TYPE_POSTGRES == config_type) {
+						
+						if (!first_column_printed) {
+							fprintf(f, "	%s", name);
+							first_column_printed = 1;
+						} else {
+							fprintf(f, ",\n	%s", name);
+						}
+						if (config[sccp_option].type) {
+							switch (config[sccp_option].type) {
+								case SCCP_CONFIG_DATATYPE_BOOLEAN:
+									if (CONFIG_TYPE_MYSQL == config_type) {
+										fprintf(f, " ENUM('yes','no')");
+									} else {
+										fprintf(f, " BOOLEAN");
+									}
+									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+										fprintf(f, " DEFAULT '%s'", config[sccp_option].defaultValue);
+									}
+									break;
+								case SCCP_CONFIG_DATATYPE_INT:
 									fprintf(f, " INT");
-								} else {	
-									fprintf(f, " INT UNSIGNED");
-								}
-								if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-									fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
-								}
-								break;
-							case SCCP_CONFIG_DATATYPE_STRINGPTR:
-							case SCCP_CONFIG_DATATYPE_STRING:
-								if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-									fprintf(f, " VARCHAR(%d)", strlen(config[sccp_option].defaultValue) > 45 ? (int) strlen(config[sccp_option].defaultValue) * 2 : 45);
-									fprintf(f, " DEFAULT '%s'", config[sccp_option].defaultValue);
-								} else {
-									fprintf(f, " VARCHAR(%d)", 45);
-								}
-								break;
-							case SCCP_CONFIG_DATATYPE_PARSER:
-								fprintf(f, " VARCHAR(45)");
-								/*                                                                if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-								   fprintf(f, " SET(%s)\n", config[sccp_option].generic_parser);
-								   } else {
-								   fprintf(f, " ENUM(%s)", config[sccp_option].generic_parser);
-								   }
-								 */
-								//                                                                fprintf(f, "        <generic_parser>%s</generic_parser>\n", config[sccp_option].generic_parser);
-								break;
-							case SCCP_CONFIG_DATATYPE_CHAR:
-								fprintf(f, " CHAR(1)");
-								if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-									fprintf(f, " DEFAULT '%-1s'", config[sccp_option].defaultValue);
-								}
-								break;
+									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+										fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
+									}
+									break;
+								case SCCP_CONFIG_DATATYPE_UINT:
+									if (CONFIG_TYPE_POSTGRES == config_type) {
+										fprintf(f, " INT");
+									} else {	
+										fprintf(f, " INT UNSIGNED");
+									}
+									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+										fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
+									}
+									break;
+								case SCCP_CONFIG_DATATYPE_STRINGPTR:
+								case SCCP_CONFIG_DATATYPE_STRING:
+									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+										fprintf(f, " VARCHAR(%d)", strlen(config[sccp_option].defaultValue) > 45 ? (int) strlen(config[sccp_option].defaultValue) * 2 : 45);
+										fprintf(f, " DEFAULT '%s'", config[sccp_option].defaultValue);
+									} else {
+										fprintf(f, " VARCHAR(%d)", 45);
+									}
+									break;
+								case SCCP_CONFIG_DATATYPE_PARSER:
+									fprintf(f, " VARCHAR(45)");
+									/*                                                                if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
+									   fprintf(f, " SET(%s)\n", config[sccp_option].generic_parser);
+									   } else {
+									   fprintf(f, " ENUM(%s)", config[sccp_option].generic_parser);
+									   }
+									 */
+									//                                                                fprintf(f, "        <generic_parser>%s</generic_parser>\n", config[sccp_option].generic_parser);
+									break;
+								case SCCP_CONFIG_DATATYPE_CHAR:
+									fprintf(f, " CHAR(1)");
+									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+										fprintf(f, " DEFAULT '%-1s'", config[sccp_option].defaultValue);
+									}
+									break;
+							}
 						}
-					}
-					fprintf(f, " %s", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "NOT NULL" : "");
-					if (strlen(config[sccp_option].description) != 0) {
-						if (CONFIG_TYPE_MYSQL == config_type) {
+						fprintf(f, " %s", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "NOT NULL" : "");
+						if (strlen(config[sccp_option].description) != 0) {
 							if (CONFIG_TYPE_MYSQL == config_type) {
-								fprintf(f, " COMMENT '");
-							} else if (CONFIG_TYPE_SQLITE == config_type) {
-								fprintf(f, " -- '");
-							}
-							description = malloc(sizeof(char) * strlen(config[sccp_option].description));
-							description = strdup(config[sccp_option].description);
-							while ((description_part = strsep(&description, "\n"))) {
-								if (description_part && strlen(description_part) != 0) {
-									fprintf(f, " %s ", replace(description_part, "'", "\\'"));
+								if (CONFIG_TYPE_MYSQL == config_type) {
+									fprintf(f, " COMMENT '");
+								} else if (CONFIG_TYPE_SQLITE == config_type) {
+									fprintf(f, " -- '");
 								}
+								description = malloc(sizeof(char) * strlen(config[sccp_option].description));
+								description = strdup(config[sccp_option].description);
+								while ((description_part = strsep(&description, "\n"))) {
+									if (description_part && strlen(description_part) != 0) {
+										fprintf(f, " %s ", replace(description_part, "'", "\\'"));
+									}
+								}
+								fprintf(f, "'");
 							}
-							fprintf(f, "'");
 						}
 					}
+					name = strtok(NULL,"|");
 				}
 			}
 			if (add_primary_key) {
@@ -330,59 +342,65 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 			fprintf(f, "    <params>\n");
 			config = sccpConfigSegment->config;
 			for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
-				if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
-					printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
+				names = alloca(strlen(config[sccp_option].name) + 2);
+				sprintf(names,"%s|", config[sccp_option].name);
+				name = strtok(names,"|");
+				while (name != NULL) {
+					if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
+						printf("info:" "adding name: %s, default_value: %s\n", name, config[sccp_option].defaultValue);
 
-					fprintf(f, "      <param name=\"%s\">\n", config[sccp_option].name);
-					fprintf(f, "        <required>%d</required>\n", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? 1 : 0);
-					if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
-						fprintf(f, "        <multiple>1</multiple>\n");
-					}
-					if (config[sccp_option].type) {
-						switch (config[sccp_option].type) {
-							case SCCP_CONFIG_DATATYPE_BOOLEAN:
-								fprintf(f, "        <type>boolean</type>\n");
-								break;
-							case SCCP_CONFIG_DATATYPE_INT:
-								fprintf(f, "        <type>int</type>\n");
-								fprintf(f, "        <size>8</size>\n");
-								break;
-							case SCCP_CONFIG_DATATYPE_UINT:
-								fprintf(f, "        <type>unsigned int</type>\n");
-								fprintf(f, "        <size>8</size>\n");
-								break;
-							case SCCP_CONFIG_DATATYPE_STRING:
-								fprintf(f, "        <type>string</type>\n");
-								fprintf(f, "        <size>45</size>\n");
-								break;
-							case SCCP_CONFIG_DATATYPE_PARSER:
-								fprintf(f, "        <type>generic</type>\n");
-								fprintf(f, "        <generic_parser>%s</generic_parser>\n", config[sccp_option].generic_parser);
-								break;
-							case SCCP_CONFIG_DATATYPE_STRINGPTR:
-								fprintf(f, "        <type>string</type>\n");
-								fprintf(f, "        <size>45</size>\n");
-								break;
-							case SCCP_CONFIG_DATATYPE_CHAR:
-								fprintf(f, "        <type>char</type>\n");
-								break;
+						fprintf(f, "      <param name=\"%s\">\n", name);
+						fprintf(f, "        <required>%d</required>\n", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? 1 : 0);
+						if (((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
+							fprintf(f, "        <multiple>1</multiple>\n");
 						}
-					}
-					if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-						fprintf(f, "        <default>%s</default>\n", config[sccp_option].defaultValue);
-					}
-					if (strlen(config[sccp_option].description) != 0) {
-						fprintf(f, "        <description>");
-						description = malloc(sizeof(char) * strlen(config[sccp_option].description));
-						description = strdup(config[sccp_option].description);
-						while ((description_part = strsep(&description, "\n"))) {
-							if (description_part && strlen(description_part) != 0) {
-								fprintf(f, "%s ", replace(description_part, "'", "\\'"));
+						if (config[sccp_option].type) {
+							switch (config[sccp_option].type) {
+								case SCCP_CONFIG_DATATYPE_BOOLEAN:
+									fprintf(f, "        <type>boolean</type>\n");
+									break;
+								case SCCP_CONFIG_DATATYPE_INT:
+									fprintf(f, "        <type>int</type>\n");
+									fprintf(f, "        <size>8</size>\n");
+									break;
+								case SCCP_CONFIG_DATATYPE_UINT:
+									fprintf(f, "        <type>unsigned int</type>\n");
+									fprintf(f, "        <size>8</size>\n");
+									break;
+								case SCCP_CONFIG_DATATYPE_STRING:
+									fprintf(f, "        <type>string</type>\n");
+									fprintf(f, "        <size>45</size>\n");
+									break;
+								case SCCP_CONFIG_DATATYPE_PARSER:
+									fprintf(f, "        <type>generic</type>\n");
+									fprintf(f, "        <generic_parser>%s</generic_parser>\n", config[sccp_option].generic_parser);
+									break;
+								case SCCP_CONFIG_DATATYPE_STRINGPTR:
+									fprintf(f, "        <type>string</type>\n");
+									fprintf(f, "        <size>45</size>\n");
+									break;
+								case SCCP_CONFIG_DATATYPE_CHAR:
+									fprintf(f, "        <type>char</type>\n");
+									break;
 							}
 						}
-						fprintf(f, "</description>\n");
+						if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+							fprintf(f, "        <default>%s</default>\n", config[sccp_option].defaultValue);
+						}
+						if (strlen(config[sccp_option].description) != 0) {
+							fprintf(f, "        <description>");
+							description = malloc(sizeof(char) * strlen(config[sccp_option].description));
+							description = strdup(config[sccp_option].description);
+							while ((description_part = strsep(&description, "\n"))) {
+								if (description_part && strlen(description_part) != 0) {
+									fprintf(f, "%s ", replace(description_part, "'", "\\'"));
+								}
+							}
+							fprintf(f, "</description>\n");
+						}
+						fprintf(f, "      </param>\n");
 					}
-					fprintf(f, "      </param>\n");
+					name = strtok(NULL,"|");
 				}
 			}
 			fprintf(f, "    </params>\n");
@@ -424,51 +442,56 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 			config = sccpConfigSegment->config;
 			for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
 				if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
-
-					if (config[sccp_option].name && strlen(config[sccp_option].name) != 0) {
-						switch (config_type) {
-							case CONFIG_TYPE_ALL:
-								break;
-							case CONFIG_TYPE_DEFAULTS:
-								if ((((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue) == 0)) && strcmp(config[sccp_option].name, "type")) {
-									continue;
+					names = alloca(strlen(config[sccp_option].name) + 2);
+					sprintf(names,"%s|", config[sccp_option].name);
+					name = strtok(names,"|");
+					while (name != NULL) {
+						if (name && strlen(name) != 0) {
+							switch (config_type) {
+								case CONFIG_TYPE_ALL:
+									break;
+								case CONFIG_TYPE_DEFAULTS:
+									if ((((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && (!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue) == 0)) && strcmp(config[sccp_option].name, "type")) {
+										continue;
+									}
+									break;
+								case CONFIG_TYPE_TEMPLATED:
+									if ((!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue) == 0) && strcmp(config[sccp_option].name, "type")) {
+										continue;
+									}
+									break;
+								case CONFIG_TYPE_SHORT:				// SHORT
+									if ((((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && ((!config[sccp_option].defaultValue || !strcmp(config[sccp_option].defaultValue, "(null)")) && strcmp(config[sccp_option].name, "type")))) {
+										printf("info:" "skipping name: %s, required = %s\n", config[sccp_option].name, ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) ? "no" : "yes");
+										continue;
+									}
+									break;
+							}
+							printf("info:" "adding name: %s, default_value: %s\n", name, config[sccp_option].defaultValue);
+							if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+								snprintf(name_and_value, sizeof(name_and_value), "%s = %s", name, config[sccp_option].defaultValue);
+							} else {
+								snprintf(name_and_value, sizeof(name_and_value), "%s = \"\"", name);
+							}
+							linelen = (int) strlen(name_and_value);
+							fprintf(f, "%s", name_and_value);
+							if (config_type < CONFIG_TYPE_TEMPLATED && config[sccp_option].description && strlen(config[sccp_option].description) != 0) {
+								description = malloc(sizeof(char) * strlen(config[sccp_option].description));
+								description = strdup(config[sccp_option].description);
+								while ((description_part = strsep(&description, "\n"))) {
+									if (description_part && strlen(description_part) != 0) {
+										fprintf(f, "%*.s ; %s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY) " : "", description_part);
+										linelen = 0;
+									}
 								}
-								break;
-							case CONFIG_TYPE_TEMPLATED:
-								if ((!config[sccp_option].defaultValue || strlen(config[sccp_option].defaultValue) == 0) && strcmp(config[sccp_option].name, "type")) {
-									continue;
-								}
-								break;
-							case CONFIG_TYPE_SHORT:				// SHORT
-								if ((((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) && ((!config[sccp_option].defaultValue || !strcmp(config[sccp_option].defaultValue, "(null)")) && strcmp(config[sccp_option].name, "type")))) {
-									printf("info:" "skipping name: %s, required = %s\n", config[sccp_option].name, ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED) ? "no" : "yes");
-									continue;
-								}
-								break;
-						}
-						printf("info:" "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
-						if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
-							snprintf(name_and_value, sizeof(name_and_value), "%s = %s", config[sccp_option].name, config[sccp_option].defaultValue);
-						} else {
-							snprintf(name_and_value, sizeof(name_and_value), "%s = \"\"", config[sccp_option].name);
-						}
-						linelen = (int) strlen(name_and_value);
-						fprintf(f, "%s", name_and_value);
-						if (config_type < CONFIG_TYPE_TEMPLATED && config[sccp_option].description && strlen(config[sccp_option].description) != 0) {
-							description = malloc(sizeof(char) * strlen(config[sccp_option].description));
-							description = strdup(config[sccp_option].description);
-							while ((description_part = strsep(&description, "\n"))) {
-								if (description_part && strlen(description_part) != 0) {
-									fprintf(f, "%*.s ; %s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY) " : "", description_part);
-									linelen = 0;
-								}
+							} else {
+								fprintf(f, "\n");
 							}
 						} else {
-							fprintf(f, "\n");
+							printf("error:" "Error creating new variable structure for %s='%s'\n", config[sccp_option].name, config[sccp_option].defaultValue);
+							return 2;
 						}
-					} else {
-						printf("error:" "Error creating new variable structure for %s='%s'\n", config[sccp_option].name, config[sccp_option].defaultValue);
-						return 2;
+						name = strtok(NULL,"|");
 					}
 				}
 			}
