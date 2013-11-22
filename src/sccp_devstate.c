@@ -76,13 +76,14 @@ void sccp_devstate_module_stop(void)
 				subscriber->device = sccp_device_release(subscriber->device);
 			}
 			SCCP_LIST_UNLOCK(&deviceState->subscribers);
+			SCCP_LIST_HEAD_DESTROY(&deviceState->subscribers);
 			sccp_free(deviceState);
 		}
 		SCCP_LIST_UNLOCK(&deviceStates);
 	}
 
-
 	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED, sccp_devstate_deviceRegisterListener);
+	SCCP_LIST_HEAD_DESTROY(&deviceStates);
 }
 
 static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
