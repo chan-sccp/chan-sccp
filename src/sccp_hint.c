@@ -165,6 +165,7 @@ void sccp_hint_module_start()
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting hint system\n");
 	SCCP_LIST_HEAD_INIT(&lineStates);
+	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
 	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_FEATURE_CHANGED, sccp_hint_eventListener, TRUE);
 }
 
@@ -208,6 +209,7 @@ void sccp_hint_module_stop()
 				}
 			}
 			SCCP_LIST_UNLOCK(&hint->subscribers);
+			SCCP_LIST_HEAD_DESTROY(&hint->subscribers);
 			sccp_free(hint);
 		}
 		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
@@ -215,6 +217,9 @@ void sccp_hint_module_stop()
 
 	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED, sccp_hint_eventListener);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_hint_handleFeatureChangeEvent);
+
+	SCCP_LIST_HEAD_DESTROY(&lineStates);
+	SCCP_LIST_HEAD_DESTROY(&sccp_hint_subscriptions);
 }
 
 /* ========================================================================================================================= PBX Callbacks */
