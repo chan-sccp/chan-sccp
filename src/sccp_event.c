@@ -53,7 +53,7 @@ boolean_t sccp_event_running = FALSE;
 
 void sccp_event_destroy(sccp_event_t * event)
 {
-	// pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
+//	pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
@@ -85,7 +85,7 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_DELETED:
 			break;
 	}
-	// pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
+//	pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
 }
 
 static void *sccp_event_processor(void *data)
@@ -222,13 +222,18 @@ void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t c
  */
 void sccp_event_fire(const sccp_event_t * event)
 {
-	if (event == NULL || SCCP_REF_RUNNING != sccp_refcount_isRunning() || !sccp_event_running)
+	if (event == NULL || SCCP_REF_RUNNING != sccp_refcount_isRunning() || !sccp_event_running) {
+		if (event) {
+			sccp_event_destroy((sccp_event_t *)event);
+		}
 		return;
+	}
 
 	sccp_event_t *e = (sccp_event_t *) sccp_refcount_object_alloc(sizeof(sccp_event_t), SCCP_REF_EVENT, event_type2str(event->type), sccp_event_destroy);
 
 	if (!e) {
 		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
+		sccp_event_destroy((sccp_event_t *)event);
 		return;
 	}
 	// memcpy(e, event, sizeof(sccp_event_t));
