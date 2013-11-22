@@ -695,25 +695,24 @@ int sccp_preUnload(void)
 
 	/* removing devices */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Devices\n");
-	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	while ((d = SCCP_LIST_REMOVE_HEAD(&GLOB(devices), list))) {
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Removing device %s\n", d->id);
 		d->realtime = TRUE;										/* use realtime, to fully clear the device configuration */
 		sccp_dev_clean(d, TRUE, 0);									// performs a device reset if it has a session
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE_SAFE_END;
 	if (SCCP_RWLIST_EMPTY(&GLOB(devices))) {
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
 	}
 
 	/* hotline will be removed by line removing function */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Hotline\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Hotline\n");
 	sccp_line_removeFromGlobals(GLOB(hotline)->line);
 	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);
 	sccp_free(GLOB(hotline));
 
 	/* removing lines */
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Removing line %s\n", l->name);
 		sccp_line_clean(l, TRUE);
@@ -723,24 +722,14 @@ int sccp_preUnload(void)
 	if (SCCP_RWLIST_EMPTY(&GLOB(lines))) {
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
 	}
-	usleep(500);												// wait for events to finalize
+	usleep(100);												// wait for events to finalize
 
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
-/*
-	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
-	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
-		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
-	}
-	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
-*/
-	//SCCP_RWLIST_RDLOCK(&GLOB(sessions));
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
 		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
-	//SCCP_RWLIST_UNLOCK(&GLOB(sessions))
 	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
 		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 	}
