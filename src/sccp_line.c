@@ -139,11 +139,9 @@ sccp_line_t *sccp_line_create(const char *name)
  * \note needs to be called with a retained line
  * \note adds a retained line to the list (refcount + 1)
  */
-//void sccp_line_addToGlobals(sccp_line_t * line)
-void __sccp_line_addToGlobals(sccp_line_t * line, const char *filename, int lineno, const char *func)
+void sccp_line_addToGlobals(sccp_line_t * line)
 {
 	sccp_line_t *l = NULL;
-	pbx_log(LOG_NOTICE, "SCCP: %s:%i %s (addToGlobals) line: %s\n", filename, lineno, func, line->name);
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	if ((l = sccp_line_retain(line))) {
