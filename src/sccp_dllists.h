@@ -22,7 +22,7 @@
 struct name {												\
 	type *first;											\
 	type *last;											\
-	ast_mutex_t lock;										\
+	pbx_mutex_t lock;										\
 	uint16_t size;											\
 }
 
@@ -30,7 +30,7 @@ struct name {												\
 struct name {												\
 	type *first;											\
 	type *last;											\
-	ast_rwlock_t lock;										\
+	pbx_rwlock_t lock;										\
 	uint16_t size;											\
 }
 

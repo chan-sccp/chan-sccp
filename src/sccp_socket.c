@@ -734,9 +734,9 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 	bufLen = (ssize_t) (letohl(msg->header.length) + 8);
 	do {
 		try++;
-		ast_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
+		pbx_mutex_lock(&s->write_lock);									/* prevent two threads writing at the same time. That should happen in a synchronized way */
 		res = write(s->fds[0].fd, bufAddr + bytesSent, bufLen - bytesSent);
-		ast_mutex_unlock(&s->write_lock);
+		pbx_mutex_unlock(&s->write_lock);
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
 				usleep(200);									/* back off to give network/other threads some time */

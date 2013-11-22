@@ -42,12 +42,19 @@
 #  define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
 
 /* Macro for read/write Lists */
+#if 0 /* extra rwlock debugging / default off */
+#  define SCCP_RWLIST_RDLOCK(x)			{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_RDLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_rdlock(&(x)->lock);}
+#  define SCCP_RWLIST_WRLOCK(x)			{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_WRLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_wrlock(&(x)->lock);}
+#  define SCCP_RWLIST_UNLOCK(x)			{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_UNLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_unlock(&(x)->lock);}
+#  define SCCP_RWLIST_TRYRDLOCK(x)		{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_TRYRDLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_tryrdlock(&(x)->lock);}
+#  define SCCP_RWLIST_TRYWRLOCK(x)		{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_TRYRWLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_trywrlock(&(x)->lock);}
+#else
 #  define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
 #  define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
 #  define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
-#  define SCCP_RWLIST_TRYLOCK(x)		pbx_rwlock_trylock(&(x)->lock)
 #  define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
 #  define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
+#endif
 
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #  ifdef SCCP_ATOMIC
@@ -80,33 +87,33 @@
 #    define ATOMIC_INCR(_a,_b,_c)			\
 	({					\
                 CAS32_TYPE res=0;		\
-                ast_mutex_lock(_c);		\
+                pbx_mutex_lock(_c);		\
                 res = *_a;			\
                 *_a += _b;			\
-                ast_mutex_unlock(_c);		\
+                pbx_mutex_unlock(_c);		\
                 res;				\
 	})
 #    define ATOMIC_DECR(_a,_b,_c) 		ATOMIC_INCR(_a,-_b,_c)
 #    define CAS32(_a,_b,_c,_d)			\
         ({					\
                 CAS32_TYPE res=0;		\
-                ast_mutex_lock(_d);		\
+                pbx_mutex_lock(_d);		\
                 if (*_a == _b) {		\
                         res = _b;		\
                         *_a = _c;		\
                 }				\
-                ast_mutex_unlock(_d);		\
+                pbx_mutex_unlock(_d);		\
                 res;				\
         })
 #    define CAS_PTR(_a,_b,_c,_d) 		\
         ({					\
                 boolean_t res = 0;		\
-                ast_mutex_lock(_d);		\
+                pbx_mutex_lock(_d);		\
                 if (*_a == _b)	{		\
                         res = 1;		\
                         *_a = _c;		\
                 }				\
-                ast_mutex_unlock(_d);		\
+                pbx_mutex_unlock(_d);		\
                 res;				\
         })
 #  endif													/* SCCP_ATOMIC */
