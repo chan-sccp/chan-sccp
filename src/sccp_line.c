@@ -143,9 +143,7 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 {
 	sccp_line_t *l = NULL;
 
-	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {								/* Upgrading to wrlock if possible */
-		usleep(100);											/* backoff on failure */
-	}
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	if ((l = sccp_line_retain(line))) {
 		/* add to list */
 		l = sccp_line_retain(l);									/* add retained line to the list */
@@ -182,10 +180,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 		pbx_log(LOG_ERROR, "Removing null from global line list is not allowed!\n");
 		return NULL;
 	}
-	// SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	while (!SCCP_RWLIST_TRYWRLOCK(&GLOB(lines))) {								/* Upgrading to wrlock if possible */
-		usleep(100);											/* backoff on failure */
-	}
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
@@ -930,6 +925,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 
+		SCCP_RWLIST_RDLOCK(&GLOB(lines));
 		l = sccp_line_create(name);									/* already retained */
 		sccp_config_applyLineConfiguration(l, variable);
 		l->realtime = TRUE;
@@ -939,6 +935,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		if (!l) {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
+		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
 
