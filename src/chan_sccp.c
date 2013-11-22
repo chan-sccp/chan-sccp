@@ -701,9 +701,10 @@ int sccp_preUnload(void)
 		d->realtime = TRUE;										/* use realtime, to fully clear the device configuration */
 		sccp_dev_clean(d, TRUE, 0);									// performs a device reset if it has a session
 	}
-	if (SCCP_RWLIST_EMPTY(&GLOB(devices)))
-		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	if (SCCP_RWLIST_EMPTY(&GLOB(devices))) {
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(devices));
+	}
 
 	/* hotline will be removed by line removing function */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Hotline\n");
@@ -718,21 +719,31 @@ int sccp_preUnload(void)
 		sccp_line_clean(l, TRUE);
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
-	if (SCCP_RWLIST_EMPTY(&GLOB(lines)))
-		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	if (SCCP_RWLIST_EMPTY(&GLOB(lines))) {
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(lines));
+	}
 	usleep(500);												// wait for events to finalize
 
 	/* removing sessions */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Sessions\n");
+/*
 	SCCP_RWLIST_WRLOCK(&GLOB(sessions));
 	while ((s = SCCP_LIST_REMOVE_HEAD(&GLOB(sessions), list))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing session %s\n", pbx_inet_ntoa(s->sin.sin_addr));
 		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
 	}
-	if (SCCP_LIST_EMPTY(&GLOB(sessions)))
-		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
 	SCCP_RWLIST_UNLOCK(&GLOB(sessions));
+*/
+	//SCCP_RWLIST_RDLOCK(&GLOB(sessions));
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), s, list) {
+		sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_NONE);
+	}
+	SCCP_RWLIST_TRAVERSE_SAFE_END;
+	//SCCP_RWLIST_UNLOCK(&GLOB(sessions))
+	if (SCCP_LIST_EMPTY(&GLOB(sessions))) {
+		SCCP_RWLIST_HEAD_DESTROY(&GLOB(sessions));
+	}
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killing the socket thread\n");
 	sccp_globals_lock(socket_lock);
@@ -748,6 +759,9 @@ int sccp_preUnload(void)
 
 	sccp_manager_module_stop();
 	sccp_devstate_module_stop();
+#ifdef CS_SCCP_CONFERENCE
+	sccp_conference_module_stop();
+#endif
 	sccp_softkey_clear();
 
 	sccp_mutex_destroy(&GLOB(socket_lock));
