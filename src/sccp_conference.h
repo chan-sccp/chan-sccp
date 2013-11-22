@@ -68,6 +68,7 @@ struct sccp_conference_participant {
 
 /* prototype definition */
 void sccp_conference_module_start(void);
+void sccp_conference_module_stop(void);
 sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t * channel);
 void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel);
 void sccp_conference_resume(sccp_conference_t * conference);
