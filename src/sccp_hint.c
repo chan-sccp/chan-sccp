@@ -75,7 +75,7 @@ struct sccp_hint_lineState {
  * \brief SCCP Hint List Structure
  */
 struct sccp_hint_list {
-	ast_mutex_t lock;											/*!< Asterisk Lock */
+	pbx_mutex_t lock;											/*!< Asterisk Lock */
 
 	char exten[SCCP_MAX_EXTENSION];										/*!< Extension for Hint */
 	char context[SCCP_MAX_CONTEXT];										/*!< Context for Hint */
