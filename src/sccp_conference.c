@@ -37,6 +37,7 @@ static int lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
 
 SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
+
 static void *sccp_conference_thread(void *data);
 void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
@@ -63,6 +64,14 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 void sccp_conference_module_start(void)
 {
 	SCCP_LIST_HEAD_INIT(&conferences);
+}
+
+/*!
+ * \brief Start Conference Module
+ */
+void sccp_conference_module_stop(void)
+{
+	SCCP_LIST_HEAD_DESTROY(&conferences);
 }
 
 /*
