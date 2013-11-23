@@ -804,11 +804,11 @@ void sccp_channel_updateReceiveChannel(sccp_channel_t * channel)
 	/* \todo possible to skip the closing of the receive channel (needs testing) */
 	/* \todo if this works without closing, this would make changing codecs on the fly possible */
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.writeState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Stop multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Close Receive Channel on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_closeReceiveChannel(channel);
 	}
 	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.writeState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Start media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_channel_updateReceiveChannel) Open Receive Channel on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_openReceiveChannel(channel);
 	}
 }
@@ -957,6 +957,9 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 		}
 
 		channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
+		if (!d->nat && d->directrtp) {
+			channel->rtp.audio.directMedia = TRUE;
+		}
 		d->protocol->sendStartMediaTransmission(d, channel);
 
 		char cbuf1[128] = "";
