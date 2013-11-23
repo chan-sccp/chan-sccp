@@ -957,9 +957,6 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 		}
 
 		channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
-		if (!d->nat && d->directrtp) {
-			channel->rtp.audio.directMedia = TRUE;
-		}
 		d->protocol->sendStartMediaTransmission(d, channel);
 
 		char cbuf1[128] = "";
