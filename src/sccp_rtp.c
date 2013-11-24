@@ -192,6 +192,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_
 	*rtp = &(((sccp_channel_t *) c)->rtp.audio);
 
 	result = SCCP_RTP_INFO_AVAILABLE;
+	// \todo add apply_ha(d->ha, &sin) check here instead
 	if (device->directrtp && !device->nat) {
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
