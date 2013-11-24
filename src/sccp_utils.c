@@ -28,7 +28,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
 	static const int numcolumns = 16;									// number output columns
 
-	if (len <= 0 || !messagebuffer) {									// safe quard
+	if (len <= 0 || !messagebuffer || !strlen((const char *)messagebuffer)) {					// safe quard
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: messagebuffer is not valid. exiting sccp_dump_packet\n");
 		return;
 	}
