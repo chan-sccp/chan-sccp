@@ -70,6 +70,9 @@ modelnumber=`grep modelNumber DeviceInformationX`
 if [[ ! -z "`grep -e 7960 -e 7940 DeviceInformationX`" ]]; then
 	echo "Converting Screenshot to $OUTPUTFILE.png..."
 	./scr2img Screenshot $OUTPUTFILE.png
+elif [[ ! -z "`grep -e 8941 -e 8945 DeviceInformationX`" ]]; then
+	echo "Saving Screenshot to $OUTPUTFILE.png..."
+	cp Screenshot $OUTPUTFILE.png
 else
 	echo "Saving Screenshot to $OUTPUTFILE.png..."
 	bmptopnm Screenshot 2>/dev/null|pnmtopng - >$OUTPUTFILE.png 2>/dev/null
