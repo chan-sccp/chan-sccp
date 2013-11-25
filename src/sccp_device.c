@@ -356,7 +356,7 @@ void sccp_device_post_reload(void)
 {
 	sccp_device_t *d;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(devices));
+	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
