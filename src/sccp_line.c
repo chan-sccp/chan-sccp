@@ -866,13 +866,15 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 			break;
 		}
 	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
+//		SCCP_RWLIST_WRLOCK(&GLOB(lines));
 		l = sccp_line_find_realtime_byname(name);							/* already retained */
+//		SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	}
 #endif
-	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	if (!l) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP: Line '%s' not found.\n", name);
