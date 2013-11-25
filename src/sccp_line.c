@@ -42,7 +42,7 @@ void sccp_line_pre_reload(void)
 	sccp_line_t *l;
 	sccp_linedevices_t *linedevice;
 
-	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		if (GLOB(hotline)->line == l) {									/* always remove hotline from linedevice */
 			SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
