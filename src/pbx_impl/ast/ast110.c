@@ -2984,6 +2984,8 @@ static int unload_module(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 	ast_rtp_glue_unregister(&sccp_rtp);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
+	
+	sccp_tech.capabilities = ast_format_cap_destroy(sccp_tech.capabilities);
 	ast_channel_unregister(&sccp_tech);
 	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
