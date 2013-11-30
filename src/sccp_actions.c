@@ -3266,7 +3266,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 #ifdef CS_SCCP_VIDEO
 	uint8_t video_capabilities = 0, video_capability = 0;
 	uint8_t video_codec = 0;
-	boolean_t perviousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
+	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
 
 	/* parsing video caps */
 	video_capabilities = letohl(msg_in->data.UpdateCapabilitiesMessage.lel_videoCapCount);
@@ -3276,7 +3276,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: enable video mode softkey\n", DEV_ID_LOG(d));
 		
-		if(perviousVideoSupport == FALSE){
+		if(previousVideoSupport == FALSE){
 			sccp_dev_set_message(d, "Video support enabled", 5, FALSE, TRUE);
 		}
 
@@ -3332,7 +3332,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 	} else {
 		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, FALSE);
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: disable video mode softkey\n", DEV_ID_LOG(d));
-		if(perviousVideoSupport == TRUE){
+		if(previousVideoSupport == TRUE){
 		    sccp_dev_set_message(d, "Video support disabled", 5, FALSE, TRUE);
 		}
 	}
