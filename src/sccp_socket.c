@@ -152,7 +152,11 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
 	int bytesToRead = 0;
 	int bytesReadSoFar = 0;
+	int bytesToSkip = 0;
 	int readlen = 0;
+	unsigned char buffer[SCCP_MAX_PACKET] = {0};
+	unsigned char *bufferptr; 
+	unsigned char *dataptr;
 	errno = 0;
 
 	// STAGE 1: read header
@@ -169,14 +173,17 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	// STAGE 2: read message data
 	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correcttion because we count messageId as part of the header */
 	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
+	dataptr = (unsigned char *) &msg->data;
 	while (bytesToRead >0) {
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-//		readlen = read(s->fds[0].fd, &msg->data + bytesReadSoFar, bytesToRead);				/* msg->data pointer is advanced by read automatically. This will lead to Bad Address faults */
-		readlen = read(s->fds[0].fd, &msg->data, bytesToRead);						
-		if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}				/* try again, blocking */
-		else if (readlen <= 0) {goto READ_ERROR;}							/* error || client closed socket */
+		bufferptr = buffer;										// reset bufferptr
+//		readlen = read(s->fds[0].fd, &msg->data, bytesToRead);						// does not work, next segment will include a header again
+		readlen = read(s->fds[0].fd, bufferptr, bytesToRead);						// use bufferptr instead
 		bytesReadSoFar += readlen;
-		bytesToRead -= readlen;
+		bytesToRead -= readlen;										// if bytesToRead then more segments to read
+		memcpy(dataptr, buffer + bytesToSkip, readlen - bytesToSkip);					// skip header bytes if multiple segments
+		dataptr += readlen - bytesToSkip;								// advance dataptr
+		bytesToSkip = SCCP_PACKET_HEADER;								// skip header bytes on next segment
 	};
 	UnreadBytesAccordingToPacket -= bytesReadSoFar;
 	// msg->header.length = bytesReadSoFar + 4;								/* Should we correct the header->length, to the length of our struct, which we know we can handle ?? */
@@ -186,7 +193,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
 	if (UnreadBytesAccordingToPacket > 0) { 								/* checking to prevent unneeded allocation of discardBuffer */
 		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
-		char discardBuffer[128];
+		unsigned char discardBuffer[128];
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
 			readlen= read(s->fds[0].fd, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
