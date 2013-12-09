@@ -320,11 +320,17 @@ typedef enum {
 	AuditParticipantResMessage 			= 0x0040,
 	DeviceToUserDataVersion1Message 		= 0x0041,
 	DeviceToUserDataResponseVersion1Message 	= 0x0042,
+	
+	StationUpdateCapabilitiesV2Message 		= 0x0043,	/*new (2013-12-9)*/
+	StationUpdateCapabilitiesV3Message 		= 0x0044,	/*new (2013-12-9)*/
+	StationPortResMessage 				= 0x0045,	/*new (2013-12-9)*/
+	StationQoSResvNotifyMessage 			= 0x0046,	/*new (2013-12-9)*/
+	StationQoSErrorNotifyMessage 			= 0x0047,	/*new (2013-12-9)*/
 
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage 				= 0x0048,
 	AccessoryStatusMessage 				= 0x0049,
-	Unknown_0x004A_Message 				= 0x004A,
+	StationMediaPathCapabilityMessage		= 0x004A,	/*new name (2013-12-9)*/
 	MwiNotificationMessage 				= 0x004C,
 
 	/* Server -> Client */
@@ -397,6 +403,7 @@ typedef enum {
 	StartAnnouncementMessage 			= 0x0122,
 	StopAnnouncementMessage 			= 0x0123,
 	AnnouncementFinishMessage 			= 0x0124,
+	
 	NotifyDtmfToneMessage 				= 0x0127,
 	SendDtmfToneMessage 				= 0x0128,
 	SubscribeDtmfPayloadReqMessage 			= 0x0129,
@@ -424,7 +431,7 @@ typedef enum {
 
 	/* sent by us */
 	VideoDisplayCommandMessage 			= 0x0140,
-	Unknown_0x0141_Message 				= 0x0141,
+	StationFlowControlNotifyMessage			= 0x0141,	/*new name (2013-12-9)*/
 	DisplayDynamicNotifyMessage 			= 0x0143,
 	DisplayDynamicPriNotifyMessage 			= 0x0144,
 	DisplayDynamicPromptStatusMessage 		= 0x0145,
@@ -433,6 +440,14 @@ typedef enum {
 	ServiceURLStatDynamicMessage 			= 0x0148,
 	SpeedDialStatDynamicMessage 			= 0x0149,
 	CallInfoDynamicMessage 				= 0x014A,
+	
+	StationPortReqMessage				= 0x014B,	/*new (2013-12-9)*/
+	StationPortCloseMessage 			= 0x014C,	/*new (2013-12-9)*/
+	StationQoSListenMessage 			= 0x014D,	/*new (2013-12-9)*/
+	StationQoSPathMessage 				= 0x014E,	/*new (2013-12-9)*/
+	StationQoSTeardownMessage 			= 0x014F,	/*new (2013-12-9)*/	
+	StationUpdateDSCPMessage 			= 0x0150,	/*new (2013-12-9)*/
+	StationQoSModifyMessage 			= 0x0151,	/*new (2013-12-9)*/
 
 	/* received from phone */
 	DialedPhoneBookAckMessage 			= 0x0152,
@@ -440,14 +455,17 @@ typedef enum {
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
+
+	StationMwiResponseMessage 			= 0x0158,	/*new (2013-12-9)*/
 	ExtensionDeviceCaps 				= 0x0159,
 	XMLAlarmMessage 				= 0x015A,
-	Unknown_0x015E_Message				= 0x015E,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
+	StationCallCountReqMessage			= 0x015E,	/*new name (2013-12-9)*/		/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
+	StationCallCountRespMessage			= 0x015F,	/*new (2013-12-9)*/
+	StationRecordingStatusMessage 			= 0x0160,	/*new (2013-12-9)*/
 
 	/* SPCP client -> server */
 	SPCPRegisterTokenRequest 			= 0x8000,
 	DynamicUpdateCapabilitiesMessage		= 0x0044,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
-
 
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
