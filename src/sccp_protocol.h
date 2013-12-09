@@ -323,13 +323,15 @@ typedef enum {
 	
 	UpdateCapabilitiesV2Message 			= 0x0043,	/*new (2013-12-9)*/
 	UpdateCapabilitiesV3Message 			= 0x0044,	/*new (2013-12-9)*/
+	DynamicUpdateCapabilitiesMessage		= 0x0044,	/* UpdateCapabilitiesV3Message */	/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
+	
 	PortResMessage 					= 0x0045,	/*new (2013-12-9)*/
 	QoSResvNotifyMessage 				= 0x0046,	/*new (2013-12-9)*/
 	QoSErrorNotifyMessage 				= 0x0047,	/*new (2013-12-9)*/
 
 	/* This are from protocol V 11 CCM7 */
-	DialedPhoneBookMessage 				= 0x0048,
-	AccessoryStatusMessage 				= 0x0049,
+	DialedPhoneBookMessage 				= 0x0048,	/* Subscription Stat Request */
+	AccessoryStatusMessage 				= 0x0049,	/* MediaPath Event Message */
 	MediaPathCapabilityMessage			= 0x004A,	/*new name (2013-12-9)*/
 	MwiNotificationMessage 				= 0x004C,
 
@@ -450,8 +452,8 @@ typedef enum {
 	QoSModifyMessage 				= 0x0151,	/*new (2013-12-9)*/
 
 	/* received from phone */
-	DialedPhoneBookAckMessage 			= 0x0152,
-	CallListStateUpdate 				= 0x0153,
+	DialedPhoneBookAckMessage 			= 0x0152,	/* Subscription Stat Message */
+	CallListStateUpdate 				= 0x0153,	/* Notification Message */
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
@@ -465,7 +467,6 @@ typedef enum {
 
 	/* SPCP client -> server */
 	SPCPRegisterTokenRequest 			= 0x8000,
-	DynamicUpdateCapabilitiesMessage		= 0x0044,						/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
 
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
