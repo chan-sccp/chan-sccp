@@ -321,16 +321,16 @@ typedef enum {
 	DeviceToUserDataVersion1Message 		= 0x0041,
 	DeviceToUserDataResponseVersion1Message 	= 0x0042,
 	
-	StationUpdateCapabilitiesV2Message 		= 0x0043,	/*new (2013-12-9)*/
-	StationUpdateCapabilitiesV3Message 		= 0x0044,	/*new (2013-12-9)*/
-	StationPortResMessage 				= 0x0045,	/*new (2013-12-9)*/
-	StationQoSResvNotifyMessage 			= 0x0046,	/*new (2013-12-9)*/
-	StationQoSErrorNotifyMessage 			= 0x0047,	/*new (2013-12-9)*/
+	UpdateCapabilitiesV2Message 			= 0x0043,	/*new (2013-12-9)*/
+	UpdateCapabilitiesV3Message 			= 0x0044,	/*new (2013-12-9)*/
+	PortResMessage 					= 0x0045,	/*new (2013-12-9)*/
+	QoSResvNotifyMessage 				= 0x0046,	/*new (2013-12-9)*/
+	QoSErrorNotifyMessage 				= 0x0047,	/*new (2013-12-9)*/
 
 	/* This are from protocol V 11 CCM7 */
 	DialedPhoneBookMessage 				= 0x0048,
 	AccessoryStatusMessage 				= 0x0049,
-	StationMediaPathCapabilityMessage		= 0x004A,	/*new name (2013-12-9)*/
+	MediaPathCapabilityMessage			= 0x004A,	/*new name (2013-12-9)*/
 	MwiNotificationMessage 				= 0x004C,
 
 	/* Server -> Client */
@@ -431,7 +431,7 @@ typedef enum {
 
 	/* sent by us */
 	VideoDisplayCommandMessage 			= 0x0140,
-	StationFlowControlNotifyMessage			= 0x0141,	/*new name (2013-12-9)*/
+	FlowControlNotifyMessage			= 0x0141,	/*new name (2013-12-9)*/
 	DisplayDynamicNotifyMessage 			= 0x0143,
 	DisplayDynamicPriNotifyMessage 			= 0x0144,
 	DisplayDynamicPromptStatusMessage 		= 0x0145,
@@ -441,13 +441,13 @@ typedef enum {
 	SpeedDialStatDynamicMessage 			= 0x0149,
 	CallInfoDynamicMessage 				= 0x014A,
 	
-	StationPortReqMessage				= 0x014B,	/*new (2013-12-9)*/
-	StationPortCloseMessage 			= 0x014C,	/*new (2013-12-9)*/
-	StationQoSListenMessage 			= 0x014D,	/*new (2013-12-9)*/
-	StationQoSPathMessage 				= 0x014E,	/*new (2013-12-9)*/
-	StationQoSTeardownMessage 			= 0x014F,	/*new (2013-12-9)*/	
-	StationUpdateDSCPMessage 			= 0x0150,	/*new (2013-12-9)*/
-	StationQoSModifyMessage 			= 0x0151,	/*new (2013-12-9)*/
+	PortReqMessage					= 0x014B,	/*new (2013-12-9)*/
+	PortCloseMessage 				= 0x014C,	/*new (2013-12-9)*/
+	QoSListenMessage 				= 0x014D,	/*new (2013-12-9)*/
+	QoSPathMessage 					= 0x014E,	/*new (2013-12-9)*/
+	QoSTeardownMessage 				= 0x014F,	/*new (2013-12-9)*/	
+	UpdateDSCPMessage 				= 0x0150,	/*new (2013-12-9)*/
+	QoSModifyMessage 				= 0x0151,	/*new (2013-12-9)*/
 
 	/* received from phone */
 	DialedPhoneBookAckMessage 			= 0x0152,
@@ -456,12 +456,12 @@ typedef enum {
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
 
-	StationMwiResponseMessage 			= 0x0158,	/*new (2013-12-9)*/
+	MwiResponseMessage 				= 0x0158,	/*new (2013-12-9)*/
 	ExtensionDeviceCaps 				= 0x0159,
 	XMLAlarmMessage 				= 0x015A,
-	StationCallCountReqMessage			= 0x015E,	/*new name (2013-12-9)*/		/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
-	StationCallCountRespMessage			= 0x015F,	/*new (2013-12-9)*/
-	StationRecordingStatusMessage 			= 0x0160,	/*new (2013-12-9)*/
+	CallCountReqMessage				= 0x015E,	/*new name (2013-12-9)*/		/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/ */
+	CallCountRespMessage				= 0x015F,	/*new (2013-12-9)*/
+	RecordingStatusMessage 				= 0x0160,	/*new (2013-12-9)*/
 
 	/* SPCP client -> server */
 	SPCPRegisterTokenRequest 			= 0x8000,
@@ -883,14 +883,14 @@ typedef union {
 		uint32_t lel_unknown1;										/*!< Unknown */
 		uint32_t lel_unknown2;										/*!< Unknown */
 		uint32_t lel_unknown3;										/*!< Unknown */
-	} Unknown_0x004A_Message;										/*!< \todo Unknown 0x004A Message Structure */
+	} MediaPathCapabilityMessage;										/*!< \todo MediaPath Capability Message Structure */
 
 	struct {												// INCOMPLETE
 		uint32_t lel_conferenceID;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;
 		uint32_t lel_callReference;									/*!< Call Reference */
 		uint32_t lel_maxBitRate;									/*!< maxBitRate */
-	} Unknown_0x0141_Message;										/*!< \todo Unknown 0x0141 Message Structure */
+	} FlowControlNotifyMessage;										/*!< \todo FlowControlNotify Message Structure */
 
 	struct {
 		uint32_t lel_instance;										/*!< Instance */
@@ -2539,7 +2539,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_unknown;										
-	} Unknown_0x015E_Message;										/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/173/?page=1 */
+	} CallCountReqMessage;											/*!< CallCount Request Message Structure (@see https://sourceforge.net/p/chan-sccp-b/bugs/173/?page=1) */
 
 	/* SPA */
 	struct {
@@ -2668,6 +2668,53 @@ typedef union {
 
 	struct {
 	} AuditParticipantReqMessage;
+
+/* new */
+	struct {
+	} UpdateCapabilitiesV2Message;										/*!< Update Capabilities V2 Structure */
+	
+	struct {
+	} UpdateCapabilitiesV3Message;										/*!< Update Capabilities V3 Structure */
+	
+	struct {	
+	} PortResMessage;											/*!< Port Response Message Structure */
+
+	struct {
+	} QoSResvNotifyMessage;											/*!< QoS Resv Notify Message Structure */
+
+	struct {
+	} QoSErrorNotifyMessage;										/*!< QoS Error Notify Message Structure */
+
+	struct {
+	} PortReqMessage;											/*!< Port Request Message Structure */
+
+	struct {
+	} PortCloseMessage;											/*!< Port Close Message Structure */
+
+	struct {
+	} QoSListenMessage;											/*!< QoS Listen Message Structure */
+
+	struct {
+	} QoSPathMessage;											/*!< QoS Path Message Structure */
+
+	struct {
+	} QoSTeardownMessage;											/*!< QoS Teardown Message Structure */
+
+	struct {
+	} UpdateDSCPMessage;											/*!< Update DSCP Message Structure */
+
+	struct {
+	} QoSModifyMessage;											/*!< QoS Modify Message Structure */
+
+	struct {
+	} MwiResponseMessage;											/*!< Mwi Response Message Structure */
+
+	struct {
+	} CallCountRespMessage;											/*!< CallCount Response Message Structure */
+
+	struct {
+	} RecordingStatusMessage;										/*!< Recording Status Message Structure */
+
 } sccp_data_t;													/*!< SKINNY Data Structure */
 
 /*!
@@ -2852,10 +2899,26 @@ static const struct sccp_messagetype {
 	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
 	[DynamicUpdateCapabilitiesMessage] = {		"Dynamic Update Capabilities Message",		offsize(sccp_data_t, DynamicUpdateCapabilitiesMessage)},
-	[Unknown_0x004A_Message] = { 			"Unknown Message with ID 0x004A", 		offsize(sccp_data_t, Unknown_0x004A_Message)},
-	[Unknown_0x0141_Message] = { 			"Unknown Message with ID 0x0141", 		offsize(sccp_data_t, Unknown_0x0141_Message)},
-	[Unknown_0x015E_Message] = {			"Unknown message with ID 0x015E", 		offsize(sccp_data_t, Unknown_0x015E_Message)},
-	
+	[MediaPathCapabilityMessage] = {		"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},
+	[FlowControlNotifyMessage] = { 			"FlowControl Notify Message", 			offsize(sccp_data_t, FlowControlNotifyMessage)},
+	[CallCountReqMessage] = {			"CallCount Request Message", 			offsize(sccp_data_t, CallCountReqMessage)},
+/*new*/
+	[UpdateCapabilitiesV2Message] = {		"Update Capabilities V2",			offsize(sccp_data_t, UpdateCapabilitiesV2Message)},
+	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},
+	[PortResMessage] = {				"Port Response Message",			offsize(sccp_data_t, PortResMessage)},
+	[QoSResvNotifyMessage] = {			"QoS Resv Notify Message",			offsize(sccp_data_t, QoSResvNotifyMessage)},
+	[QoSErrorNotifyMessage] = {			"QoS Error Notify Message",			offsize(sccp_data_t, QoSErrorNotifyMessage)},
+	[PortReqMessage] = {				"Port Request Message",				offsize(sccp_data_t, PortReqMessage)},
+	[PortCloseMessage] = {				"Port Close Message",				offsize(sccp_data_t, PortCloseMessage)},
+	[QoSListenMessage] = {				"QoS Listen Message",				offsize(sccp_data_t, QoSListenMessage)},
+	[QoSPathMessage] = {				"QoS Path Message",				offsize(sccp_data_t, QoSPathMessage)},
+	[QoSTeardownMessage] = {			"QoS Teardown Message",				offsize(sccp_data_t, QoSTeardownMessage)},
+	[UpdateDSCPMessage] = {				"Update DSCP Message",				offsize(sccp_data_t, UpdateDSCPMessage)},
+	[QoSModifyMessage] = {				"QoS Modify Message",				offsize(sccp_data_t, QoSModifyMessage)},
+	[MwiResponseMessage] = {			"Mwi Response Message",				offsize(sccp_data_t, MwiResponseMessage)},
+	[CallCountRespMessage] = {			"CallCount Response Message",			offsize(sccp_data_t, CallCountRespMessage)},
+	[RecordingStatusMessage] = {			"Recording Status Message",			offsize(sccp_data_t, RecordingStatusMessage)},
+
 	[SPCPRegisterTokenRequest] = { 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
 	[SPCPRegisterTokenAck] = { 			"SCPA RegisterMessageACK", 			offsize(sccp_data_t, SPCPRegisterTokenAck)},
 	[SPCPRegisterTokenReject] = { 			"SCPA RegisterMessageReject", 			offsize(sccp_data_t, SPCPRegisterTokenReject)},
