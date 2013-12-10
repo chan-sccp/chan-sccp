@@ -47,6 +47,10 @@
 #define SKINNY_PHONE_FEATURES_PROTOCOLVERSION 		0xFF
 #define SKINNY_PHONE_FEATURES_ABBRDIAL 			1<<31
 #define SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES 		1<<24
+#define SKINNY_PHONE_FEATURES_UNKNOWN1 			1<<20
+#define SKINNY_PHONE_FEATURES_UTF8 			1<<21
+#define SKINNY_PHONE_FEATURES_UNKNOWN2	 		1<<22
+
 #define SKINNY_MaxAnnouncementList			32
 #define SKINNY_StationMaxMonitorParties			16
 
@@ -434,6 +438,7 @@ typedef enum {
 	/* sent by us */
 	VideoDisplayCommandMessage 			= 0x0140,
 	FlowControlNotifyMessage			= 0x0141,	/*new name (2013-12-9)*/
+	ConfigStatDynamicMessage			= 0x0142,	/*new (2013-12-9)*/
 	DisplayDynamicNotifyMessage 			= 0x0143,
 	DisplayDynamicPriNotifyMessage 			= 0x0144,
 	DisplayDynamicPromptStatusMessage 		= 0x0145,
@@ -1103,6 +1108,20 @@ typedef union {
 		uint32_t lel_numberLines;									/*!< Number of Lines configured */
 		uint32_t lel_numberSpeedDials;									/*!< Number of SpeedDials configured */
 	} ConfigStatMessage;											/*!< Configuration Status Message - Server -> Client */
+
+	struct {
+		// All char arrays are in multiples of 32bit
+		struct {
+			char deviceName[StationMaxDeviceNameSize];						/*!< Device Name */
+			uint32_t lel_stationUserId;								/*!< Station User ID (Not In Use) */
+			uint32_t lel_stationInstance;								/*!< Station Instance */
+		} station_identifier;										/*!< Station Identifier */
+
+		char userName[StationMaxNameSize];								/*!< User Name */
+		char serverName[StationMaxNameSize];								/*!< Server Name */
+		uint32_t lel_numberLines;									/*!< Number of Lines configured */
+		uint32_t lel_numberSpeedDials;									/*!< Number of SpeedDials configured */
+	} ConfigStatDynamicMessage;											/*!< Configuration Status Message - Server -> Client */
 
 	struct {
 		uint32_t les_rtpMediaPort;									/*!< RTP Media Port */
@@ -2816,6 +2835,7 @@ static const struct sccp_messagetype {
 	[SpeedDialStatMessage] = { 			"SpeedDial State Message", 			offsize(sccp_data_t, SpeedDialStatMessage)},
 	[LineStatMessage] = { 				"Line State Message", 				offsize(sccp_data_t, LineStatMessage)},
 	[ConfigStatMessage] = { 			"Config State Message", 			offsize(sccp_data_t, ConfigStatMessage)},
+	[ConfigStatDynamicMessage] = { 			"Config State Dynamic Message", 		offsize(sccp_data_t, ConfigStatDynamicMessage)},
 	[DefineTimeDate] = { 				"Define Time Date", 				offsize(sccp_data_t, DefineTimeDate)},
 	[StartSessionTransmission] = { 			"Start Session Transmission", 			offsize(sccp_data_t, StartSessionTransmission)},
 	[StopSessionTransmission] = { 			"Stop Session Transmission", 			offsize(sccp_data_t, StopSessionTransmission)},
