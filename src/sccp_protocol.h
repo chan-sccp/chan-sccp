@@ -326,7 +326,7 @@ typedef enum {
 	DeviceToUserDataResponseVersion1Message 	= 0x0042,
 	
 	UpdateCapabilitiesV2Message 			= 0x0043,	/*new (2013-12-9)*/
-	UpdateCapabilitiesV3Message 			= 0x0044,	/*new (2013-12-9)*/
+	/*UpdateCapabilitiesV3Message 			= 0x0044,*/	/*new (2013-12-9)*/
 	DynamicUpdateCapabilitiesMessage		= 0x0044,	/* UpdateCapabilitiesV3Message */	/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
 	
 	PortResMessage 					= 0x0045,	/*new (2013-12-9)*/
@@ -2693,8 +2693,8 @@ typedef union {
 	struct {
 	} UpdateCapabilitiesV2Message;										/*!< Update Capabilities V2 Structure */
 	
-	struct {
-	} UpdateCapabilitiesV3Message;										/*!< Update Capabilities V3 Structure */
+//	struct {
+//	} UpdateCapabilitiesV3Message;										/*!< Update Capabilities V3 Structure */
 	
 	struct {	
 	} PortResMessage;											/*!< Port Response Message Structure */
@@ -2925,7 +2925,7 @@ static const struct sccp_messagetype {
 	[CallCountReqMessage] = {			"CallCount Request Message", 			offsize(sccp_data_t, CallCountReqMessage)},
 /*new*/
 	[UpdateCapabilitiesV2Message] = {		"Update Capabilities V2",			offsize(sccp_data_t, UpdateCapabilitiesV2Message)},
-	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},
+/*	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},*/
 	[PortResMessage] = {				"Port Response Message",			offsize(sccp_data_t, PortResMessage)},
 	[QoSResvNotifyMessage] = {			"QoS Resv Notify Message",			offsize(sccp_data_t, QoSResvNotifyMessage)},
 	[QoSErrorNotifyMessage] = {			"QoS Error Notify Message",			offsize(sccp_data_t, QoSErrorNotifyMessage)},
