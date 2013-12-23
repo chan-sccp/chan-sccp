@@ -1443,7 +1443,7 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 		if (sccp_strcaseequals(v->name, "deny")) {
 			ha = sccp_append_ha("deny", v->value, ha, &error);
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
-		} else if (sccp_strcaseequals(v->name, "permit")) {
+		} else if (sccp_strcaseequals(v->name, "permit") || sccp_strcaseequals(v->name, "localnet")) {
 			if (!strcasecmp(v->value, "internal")) {
 				ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
 				errors |= error;
@@ -2131,15 +2131,15 @@ void cleanup_stale_contexts(char *new, char *old)
 	char *oldcontext, *newcontext, *stalecontext, *stringp, newlist[SCCP_MAX_CONTEXT];
 
 	while ((oldcontext = strsep(&old, "&"))) {
-		stalecontext = '\0';
+		stalecontext = NULL ;
 		sccp_copy_string(newlist, new, sizeof(newlist));
 		stringp = newlist;
 		while ((newcontext = strsep(&stringp, "&"))) {
 			if (sccp_strequals(newcontext, oldcontext)) {
 				/* This is not the context you're looking for */
-				stalecontext = '\0';
+				stalecontext = NULL;
 				break;
-			} else if (!sccp_strequals(newcontext, oldcontext)) {
+			} else {
 				stalecontext = oldcontext;
 			}
 

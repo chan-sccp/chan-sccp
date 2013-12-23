@@ -422,6 +422,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
 #endif
 	struct ast_str *ha_buf = pbx_str_alloca(512);
+	struct ast_str *ha_localnet = pbx_str_alloca(512);
 	char *debugcategories;
 	int local_total = 0;
 	const char *actionid = "";
@@ -431,6 +432,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, GLOB(global_preferences), ARRAY_LEN(GLOB(global_preferences)));
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
 	sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(ha));
+	sccp_print_ha(ha_localnet, sizeof(ha_localnet), GLOB(localaddr));
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
@@ -456,6 +458,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("Extern Hostname", CLI_AMI_LIST_WIDTH, "%s", GLOB(externhost));
 	CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", CLI_AMI_LIST_WIDTH, "%d", GLOB(externrefresh));
 	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s:%d", pbx_inet_ntoa(GLOB(externip.sin_addr)), ntohs(GLOB(externip.sin_port)));
+	CLI_AMI_OUTPUT_PARAM("localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
 	CLI_AMI_OUTPUT_PARAM("Keepalive", CLI_AMI_LIST_WIDTH, "%d", GLOB(keepalive));
