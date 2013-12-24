@@ -354,6 +354,25 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
+		case 6:		// values_hold off device
+			if( strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL){
+				if (!strncasecmp(word, "device", wordlen) && ++which > state) {
+					return strdup("device");
+				}
+			}
+			break;
+		case 7:		// values_hold off device
+			if( strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL && strstr(line, "device") != NULL){
+				SCCP_RWLIST_RDLOCK(&GLOB(devices));
+				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
+						ret = strdup(d->id);
+						break;
+					}
+				}
+				SCCP_RWLIST_UNLOCK(&GLOB(devices));
+			}
+			break;
 		default:
 			break;
 	}
@@ -2894,11 +2913,13 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	
 	
 	if (!strcmp("channel", argv[2])) {
-		// sccp set channel SCCP/test-123 hold on
+		// sccp set channel SCCP/test123-123 hold on
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
-			int line, channel;
+			char line[80];
+			int channel; 
 
-			sscanf(argv[3], "SCCP/%d-%x", &line, &channel);
+			sscanf(argv[3], "SCCP/%[^-]-%08x", line, &channel);
+//			c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 			c = sccp_channel_find_byid(channel);
 		} else {
 			c = sccp_channel_find_byid(atoi(argv[3]));
@@ -2910,9 +2931,8 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		}
 		
 		do{
-			if (!strcmp("hold", argv[4]) ){
-			
-				if (!strcmp("on", argv[5])) {										/* check to see if enable hold */
+			if (sccp_strcaseequals("hold", argv[4]) ){
+				if (sccp_strcaseequals("on", argv[5])) {								/* check to see if enable hold */
 					pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
 					sccp_channel_hold(c);
 				} else if (!strcmp("off", argv[5])) {									/* check to see if disable hold */
@@ -2921,7 +2941,12 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 						cli_result = RESULT_FAILURE;
 						break;
 					}
-					char *dev = sccp_strdupa(argv[6]);
+					char *dev;
+					if (sccp_strcaseequals("device", argv[6])) {							/* 'device' str is optional during 'hold off' (to match old behaviour) */
+						dev = sccp_strdupa(argv[7]);
+					} else {
+					 	dev = sccp_strdupa(argv[6]);
+					}
 					if (pbx_strlen_zero(dev)) {
 						pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
 						cli_result = RESULT_FAILURE;
@@ -2943,7 +2968,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					return RESULT_SHOWUSAGE;
 				}
 			}
-		}while(FALSE);
+		} while(FALSE);
 		
 		c = sccp_channel_release(c);
 	  
@@ -3032,8 +3057,9 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 	}
 
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
-		int lineId, channelId;
-		sscanf(argv[2], "SCCP/%d-%x", &lineId, &channelId);
+		char line[80];
+		int channelId;
+		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channelId);
 //		c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
@@ -3111,9 +3137,10 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 		return RESULT_SHOWUSAGE;
 
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
-		int line, channel;
+		char line[80]; 
+		int channel;
 
-		sscanf(argv[2], "SCCP/%d-%x", &line, &channel);
+		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channel);
 		c = sccp_channel_find_byid(channel);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));
