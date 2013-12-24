@@ -2883,6 +2883,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	sccp_device_t 		*device = NULL;
 	PBX_VARIABLE_TYPE 	variable;
 	int res;
+	int cli_result = RESULT_SUCCESS;
 	
 	
 	if (argc < 5)
@@ -2908,24 +2909,42 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			return RESULT_FAILURE;
 		}
 		
-		
-		if (!strcmp("hold", argv[4]) ){
-		
-			if (!strcmp("on", argv[5])) {										/* check to see if enable hold */
-				pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
-				sccp_channel_hold(c);
-			} else if (!strcmp("off", argv[5])) {									/* check to see if disable hold */
-				pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
-				sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		do{
+			if (!strcmp("hold", argv[4]) ){
+			
+				if (!strcmp("on", argv[5])) {										/* check to see if enable hold */
+					pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
+					sccp_channel_hold(c);
+				} else if (!strcmp("off", argv[5])) {									/* check to see if disable hold */
+					if (argc < 7){
+						pbx_cli(fd, "For resuming a channel from hold, you have to specify the resuming device\n%s %s %s %s %s %s <device>\n", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+						cli_result = RESULT_FAILURE;
+						break;
+					}
+					char *dev = sccp_strdupa(argv[6]);
+					if (pbx_strlen_zero(dev)) {
+						pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
+						cli_result = RESULT_FAILURE;
+						break;
+					}
+					sccp_device_t *d;
+					if (!(d = sccp_device_find_byid(dev, FALSE))) {
+						pbx_log(LOG_WARNING, "Device not found\n");
+						cli_result = RESULT_FAILURE;
+						break;
+					}
+					pbx_cli(fd, "PLACING CHANNEL %s OFF HOLD\n", argv[3]);
 
-				sccp_channel_resume(d, c, FALSE);
-				d = sccp_device_release(d);
-			} else {
-				/* wrong parameter value */
-				c = sccp_channel_release(c);
-				return RESULT_SHOWUSAGE;
+					sccp_channel_resume(d, c, FALSE);
+					d = sccp_device_release(d);
+				} else {
+					/* wrong parameter value */
+					c = sccp_channel_release(c);
+					return RESULT_SHOWUSAGE;
+				}
 			}
-		}
+		}while(FALSE);
+		
 		c = sccp_channel_release(c);
 	  
 	} else if (!strcmp("device", argv[2])) {
@@ -2934,23 +2953,21 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			return RESULT_SHOWUSAGE;
 		} 
 		
-		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5]))
+		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5])){
 			return RESULT_SHOWUSAGE;
 		}
-	
+		
 		char *dev = sccp_strdupa(argv[3]);
 		if (pbx_strlen_zero(dev)) {
 			pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
-// 			CLI_AMI_RETURN_ERROR(fd, s, m, "DeviceName needs to be supplied %s\n", "");
 		}
 		device = sccp_device_find_byid(dev, FALSE);
 
 		if (!device) {
 			pbx_log(LOG_WARNING, "Failed to get device %s\n", dev);
-// 			CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for device %s\n", dev);
 			return RESULT_FAILURE;
 		}
-	
+
 		if(!strcmp("ringtone", argv[4])){
 			device->setRingTone(device, argv[5]);
 
@@ -2972,6 +2989,9 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		}
 		
 		device = device ? sccp_device_release(device) : NULL;
+	}
+	
+	
 	
 	return RESULT_SUCCESS;
 }
