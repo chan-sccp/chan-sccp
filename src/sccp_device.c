@@ -356,8 +356,7 @@ void sccp_device_post_reload(void)
 {
 	sccp_device_t *d;
 
-	SCCP_RWLIST_WRLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
 		if (!d->pendingDelete && !d->pendingUpdate)
 			continue;
 
@@ -368,7 +367,7 @@ void sccp_device_post_reload(void)
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 		}
 	}
-	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+	SCCP_LIST_TRAVERSE_SAFE_END;
 }
 
 /*!
