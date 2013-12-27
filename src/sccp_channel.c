@@ -1151,8 +1151,8 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
 			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.writeState) {
 				sccp_channel_closeReceiveChannel(channel);
 			}
-			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
-				sccp_channel_openMultiMediaReceiveChannel(channel);
+			if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.writeState) {
+				sccp_channel_closeMultiMediaReceiveChannel(channel);
 			}
 		}
 		d = sccp_device_release(d);
