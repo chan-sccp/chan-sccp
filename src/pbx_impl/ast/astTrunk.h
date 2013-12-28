@@ -141,7 +141,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
 
-\#define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
+#define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
         /*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/						\
 	if (NULL != s) {											\
                 char tmp_ ## line[100];										\
