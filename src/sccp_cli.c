@@ -3016,9 +3016,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		device = device ? sccp_device_release(device) : NULL;
 	}
 	
-	
-	
-	return RESULT_SUCCESS;
+	return cli_result;
 }
 
 static char set_object_usage[] = "Usage: sccp set channel|device settings\n" "sccp set channel <channelId> hold <on/off>|device <deviceId> [ringtone <ringtone>|backgroundImage <url>|variable <variable>]\n";
