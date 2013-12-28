@@ -20,8 +20,14 @@
 
 #ifdef CS_SCCP_CONFERENCE
 
+#if ASTERISK_VERSION_GROUP < 112
 #include "asterisk/bridging.h"
 #include "asterisk/bridging_features.h"
+#else
+#include "asterisk/bridge.h"
+#include "asterisk/bridge_technology.h"
+#include "asterisk/bridge_features.h"
+#endif
 #ifdef HAVE_PBX_BRIDGING_ROLES_H
 #include "asterisk/bridging_roles.h"
 #endif

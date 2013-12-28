@@ -19,9 +19,14 @@ extern "C" {
 /* *INDENT-OFF* */
 #endif
 
+#if ASTERISK_VERSION_GROUP < 112
 #include "asterisk/bridging.h"
 #include "asterisk/bridging_features.h"
-
+#else
+#include "asterisk/bridge.h"
+#include "asterisk/bridge_technology.h"
+#include "asterisk/bridge_features.h"
+#endif
 typedef struct sccp_conference_participant sccp_conference_participant_t;					/*!< SCCP Conference Participant Structure */
 
 /* structures */

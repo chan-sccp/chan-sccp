@@ -77,6 +77,6 @@ else
 	echo "Saving Screenshot to $OUTPUTFILE.png..."
 	bmptopnm Screenshot 2>/dev/null|pnmtopng - >$OUTPUTFILE.png 2>/dev/null
 fi
-rm Screenshot
-rm DeviceInformationX
+#rm Screenshot
+#rm DeviceInformationX
 
