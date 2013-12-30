@@ -222,7 +222,6 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 		fclose(refo);
 	}
 #endif
-
 	memset(ptr, 0, size);
 	return ptr;
 }
@@ -358,6 +357,8 @@ void sccp_refcount_print_hashtable(int fd)
 {
 	int x, prev = 0;
 	RefCountedObject *obj = NULL;
+	unsigned int maxdepth = 0;
+	unsigned int fillfactor = 0;
 
 	pbx_cli(fd, "+==============================================================================================+\n");
 	pbx_cli(fd, "| %5s | %17s | %25s | %15s | %4s | %4s | %4s |\n", "hash", "type", "id", "ptr", "refc", "live", "size");
@@ -374,12 +375,19 @@ void sccp_refcount_print_hashtable(int fd)
 				}
 				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
 				prev = x;
+				fillfactor++;
+			}
+			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects)) {
+				maxdepth=SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects);
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
 	pbx_cli(fd, "+==============================================================================================+\n");
+	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", fillfactor, SCCP_HASH_PRIME, (float)fillfactor/SCCP_HASH_PRIME, maxdepth);
+	pbx_cli(fd, "+==============================================================================================+\n");
+	
 }
 
 void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
