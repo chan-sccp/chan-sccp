@@ -1730,7 +1730,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 		inet_aton("10.16.16.1", &sin1016.sin_addr);
 
 		// test 1
-		struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
+//		struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
+		struct sccp_ha *ha = NULL; 
 		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
 		pbx_cli(fd, "test 1: deny all\n");
 		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
@@ -1775,7 +1776,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 
 		sccp_free_ha(ha);
 		
-		ha = sccp_calloc(1, sizeof(struct sccp_ha));
+		ha = NULL;
 		pbx_cli(fd, "test 5: clean path structure and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
 		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
 		ast_str_reset(ha_buf);
