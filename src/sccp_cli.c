@@ -1479,7 +1479,8 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														/* CS_SCCP_CONFERENCE */
-/* -------------------------------------------------------------------------------------------------------TEST MESSAGE- */
+
+/* -------------------------------------------------------------------------------------------------------TEST- */
 #define NUM_LOOPS 20
 #define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
@@ -1499,41 +1500,21 @@ static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
 
 static void *sccp_cli_refcount_test_thread(void *data)
 {
-	boolean_t working = *(boolean_t *) data;
 	struct refcount_test *obj = NULL, *obj1 = NULL;
 	int test, loop;
 	int random_object;
 
-	if (working) {
-		// CORRECT
-		for (loop = 0; loop < NUM_LOOPS; loop++) {
-			for (test = 0; test < NUM_OBJECTS; test++) {
-				random_object = rand() % NUM_OBJECTS;
-				sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
-				if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+	for (loop = 0; loop < NUM_LOOPS; loop++) {
+		for (test = 0; test < NUM_OBJECTS; test++) {
+			random_object = rand() % NUM_OBJECTS;
+			sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
+			if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
+				usleep(random_object % 10);
+				if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
 					usleep(random_object % 10);
-					if ((obj1 = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-						usleep(random_object % 10);
-						obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-					}
-					obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+					obj1 = sccp_refcount_release(obj1, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 				}
-			}
-		}
-	} else {
-		// FALSE
-		for (loop = 0; loop < NUM_LOOPS; loop++) {
-			for (test = 0; test < NUM_OBJECTS; test++) {
-				random_object = rand() % NUM_OBJECTS;
-				sccp_log((DEBUGCAT_CORE)) ("TEST: retain/release %d, loop: %d, thread: %d\n", random_object, loop, (unsigned int) pthread_self());
-				if ((obj = sccp_refcount_retain(object[random_object], __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-					usleep(random_object % 10);
-					if ((obj = sccp_refcount_retain(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__))) {
-						usleep(random_object % 10);
-						obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);	// obj will be NULL after releasing
-					}
-					obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-				}
+				obj = sccp_refcount_release(obj, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 			}
 		}
 	}
@@ -1556,48 +1537,6 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	return 0;
 }
 
-static void sccp_update_statusbar(const sccp_device_t * d, const char *msgstr, const uint8_t priority, const uint8_t timeout, uint8_t level, boolean_t clear, const uint8_t lineInstance, const uint32_t callid)
-{
-	sccp_msg_t *msg;
-	
-	if (!d || !d->protocol) {
-		return;
-	}
-	
-	switch (level) {
-		case 0:
-			if (!clear) {
-				REQ(msg, DisplayTextMessage);
-				sccp_copy_string(msg->data.DisplayTextMessage.displayMessage, msgstr, sizeof(msg->data.DisplayTextMessage.displayMessage));
-				sccp_dev_send(d, msg);
-			} else {
-				sccp_dev_sendmsg(d, ClearDisplay);
-			}
-		case 1:
-			if (!clear) {
-				d->protocol->displayNotify(d, timeout, msgstr);
-			} else {
-				sccp_dev_sendmsg(d, ClearNotifyMessage);
-			}
-		case 2:
-			if (!clear) {
-				d->protocol->displayPriNotify(d, priority, timeout, msgstr);
-			} else {
-				REQ(msg, ClearPriNotifyMessage);
-				msg->data.ClearPriNotifyMessage.lel_priority = htolel(priority);
-				sccp_dev_send(d, msg);
-			}
-		case 3:
-			if (!clear) {
-				d->protocol->displayPrompt(d, lineInstance, callid, timeout, msgstr);
-			} else {
-				REQ(msg, ClearPromptStatusMessage);
-				msg->data.ClearPromptStatusMessage.lel_callReference = htolel(callid);
-				msg->data.ClearPromptStatusMessage.lel_lineInstance = htolel(lineInstance);
-				sccp_dev_send(d, msg);
-			}
-	}
-}
 #endif
 
 /*!
@@ -1609,17 +1548,17 @@ static void sccp_update_statusbar(const sccp_device_t * d, const char *msgstr, c
  * 
  * \called_from_asterisk
  */
-static int sccp_test_message(int fd, int argc, char *argv[])
+static int sccp_test(int fd, int argc, char *argv[])
 {
-	if (argc < 4)
+	if (argc < 3)
 		return RESULT_SHOWUSAGE;
 
-	if (sccp_strlen_zero(argv[3]))
+	if (sccp_strlen_zero(argv[2]))
 		return RESULT_SHOWUSAGE;
 
 #ifdef CS_EXPERIMENTAL
 	// OpenReceiveChannel TEST
-	if (!strcasecmp(argv[3], "openreceivechannel")) {
+	if (!strcasecmp(argv[2], "openreceivechannel")) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
 		sccp_msg_t *msg1;
 		sccp_msg_t *msg2;
@@ -1666,7 +1605,7 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 	// SpeedDialStatDynamicMessage = 0x0149,
-	if (!strcasecmp(argv[3], "speeddialstatdynamic")) {
+	if (!strcasecmp(argv[2], "speeddialstatdynamic")) {
 		sccp_device_t *d = NULL;
 		sccp_buttonconfig_t *buttonconfig = NULL;
 		uint8_t instance = 0;
@@ -1678,8 +1617,8 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Device Not specified\n");
 			return RESULT_FAILURE;
 		}
-		if ((d = sccp_device_find_byid(argv[4], FALSE))) {
-			instance = atoi(argv[5]);
+		if ((d = sccp_device_find_byid(argv[3], FALSE))) {
+			instance = atoi(argv[4]);
 			SCCP_LIST_LOCK(&d->buttonconfig);
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 				if (buttonconfig->type == SPEEDDIAL) {
@@ -1696,14 +1635,10 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[3], "refcount")) {
+	if (!strcasecmp(argv[2], "refcount")) {
 		int thread;
-		boolean_t working = TRUE;
-		int num_threads = (argc == 5) ? atoi(argv[4]) : 4;
+		int num_threads = (argc == 5) ? atoi(argv[3]) : 4;
 
-		if (argc == 6 && !strcmp(argv[5], "fail")) {
-			working = FALSE;
-		}
 		pthread_t t;
 		int test;
 		char id[23];
@@ -1717,13 +1652,13 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 			sccp_log((DEBUGCAT_CORE)) ("TEST: Created %d\n", object[test]->id);
 		}
 		sccp_refcount_print_hashtable(fd);
-		sleep(3);
+		sleep(1);
 
 		for (thread = 0; thread < num_threads; thread++) {
-			pbx_pthread_create(&t, NULL, sccp_cli_refcount_test_thread, &working);
+			pbx_pthread_create(&t, NULL, sccp_cli_refcount_test_thread, NULL);
 		}
 		pthread_join(t, NULL);
-		sleep(3);
+		sleep(1);
 
 		for (test = 0; test < NUM_OBJECTS; test++) {
 			if (object[test]) {
@@ -1735,9 +1670,9 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		sccp_refcount_print_hashtable(fd);
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[3], "threadpool")) {
+	if (!strcasecmp(argv[2], "threadpool")) {
 		int work;
-		int num_work = (argc == 5) ? atoi(argv[4]) : 4;
+		int num_work = (argc == 5) ? atoi(argv[3]) : 4;
 
 		for (work = 0; work < num_work; work++) {
 			if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_cli_threadpool_test_thread, (void *) &work)) {
@@ -1746,26 +1681,26 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[3], "hint")) {
-		int state = (argc == 6) ? atoi(argv[5]) : 0;
+	if (!strcasecmp(argv[2], "hint")) {
+		int state = (argc == 6) ? atoi(argv[4]) : 0;
 
-		pbx_devstate_changed(state, "SCCP/%s", argv[4]);
-		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[4], state);
+		pbx_devstate_changed(state, "SCCP/%s", argv[3]);
+		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[3], state);
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[3], "permit")) {									/*  WIP */
+	if (!strcasecmp(argv[2], "permit")) {												/*  WIP */
 		struct ast_str *buf = pbx_str_alloca(512);
 
 		//struct sccp_ha *path; 
 		//sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error)
 
 		sccp_print_ha(buf, sizeof(buf), GLOB(ha));
-		pbx_log(LOG_NOTICE, "%s: HA Buffer: %s\n", argv[4], pbx_str_buffer(buf));
+		pbx_log(LOG_NOTICE, "%s: HA Buffer: %s\n", argv[3], pbx_str_buffer(buf));
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[3], "retrieveDeviceCapabilities")) {									/*  WIP */
+	if (!strcasecmp(argv[2], "retrieveDeviceCapabilities")) {									/*  WIP */
 		sccp_device_t *d = NULL;
-		d = sccp_device_find_byid(argv[4], FALSE);
+		d = sccp_device_find_byid(argv[3], FALSE);
 		if (d) {
 			d->retrieveDeviceCapabilities(d);
 			pbx_log(LOG_NOTICE, "%s: Done\n", d->id);
@@ -1773,115 +1708,97 @@ static int sccp_test_message(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[3], "parkedcalls")) {											/*  WIP */
+	if (!strcasecmp(argv[2], "ha")) {
+		struct ast_str *ha_buf = pbx_str_alloca(512);
+		int error;
+		pbx_cli(fd, "running ha path tests\n");
 		
-		return RESULT_SUCCESS;
-	}
-	if (!strcasecmp(argv[3], "StatusBar")) {											/*  WIP */
-		sccp_device_t *d = NULL;
-		d = sccp_device_find_byid(argv[4], FALSE);
-		if (d) {
-			//sccp_update_statusbar(d, *msg, priority, timeout, level, clear, lineInstance, callid)
-			pbx_log(LOG_NOTICE, "%s: Base\n", d->id);
-			sccp_update_statusbar(d, "BASE", 0, 0, 0, FALSE, 0, 0);
-			sleep(1);
+		struct sockaddr_in sin10 = {0};
+		sin10.sin_family = AF_INET;
+		inet_aton("10.0.0.1", &sin10.sin_addr);
 
-			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
-			sleep(1);
+		struct sockaddr_in sin1014 = {0};
+		sin1014 .sin_family = AF_INET;
+		inet_aton("10.14.14.1", &sin1014.sin_addr);
 
-			/* Level 1 */
-			pbx_log(LOG_NOTICE, "%s: Base\n", d->id);
-			sccp_update_statusbar(d, "BASE", 0, 0, 0, FALSE, 0, 0);
-			sleep(1);
+		struct sockaddr_in sin1015 = {0};
+		sin1015 .sin_family = AF_INET;
+		inet_aton("10.15.15.1", &sin1015.sin_addr);
 
-			pbx_log(LOG_NOTICE, "%s: Level 1\n", d->id);
-			sccp_update_statusbar(d, "LEVEL 1", 0, 0, 1, FALSE, 0, 0);
-			sleep(1);
+		struct sockaddr_in sin1016 = {0};
+		sin1016 .sin_family = AF_INET;
+		inet_aton("10.16.16.1", &sin1016.sin_addr);
 
-			pbx_log(LOG_NOTICE, "%s: Back to BASE\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 1, TRUE, 0, 0);
-			sleep(1);
+		// test 1
+		struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
+		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+		pbx_cli(fd, "test 1: deny all\n");
+		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
+		pbx_cli(fd, "10.0.0.1 - '%s'\n", (sccp_apply_ha(ha, &sin10) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.14.14.1 - '%s'\n", (sccp_apply_ha(ha, &sin1014) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.15.15.1 - '%s'\n", (sccp_apply_ha(ha, &sin1015) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.16.16.1 - '%s'\n", (sccp_apply_ha(ha, &sin1016) == AST_SENSE_DENY) ? "denied" : "allowed");
 
-			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
-			sleep(1);
+		// test 2
+		ha = sccp_append_ha("permit", "10.14.14.0/255.255.255.0", ha, &error);
+		pbx_cli(fd, "test 2: added permit 10.14.14.0/255.255.255.0\n");
+		ast_str_reset(ha_buf);
+		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
+		pbx_cli(fd, "10.0.0.1 - '%s'\n", (sccp_apply_ha(ha, &sin10) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.14.14.1 - '%s'\n", (sccp_apply_ha(ha, &sin1014) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.15.15.1 - '%s'\n", (sccp_apply_ha(ha, &sin1015) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.16.16.1 - '%s'\n", (sccp_apply_ha(ha, &sin1016) == AST_SENSE_DENY) ? "denied" : "allowed");
 
-			/* Level 2 */
-			pbx_log(LOG_NOTICE, "%s: Base\n", d->id);
-			sccp_update_statusbar(d, "BASE", 0, 0, 0, FALSE, 0, 0);
-			sleep(1);
+		// test 3
+		ha = sccp_append_ha("permit", "10.15.15.0/255.255.0.0", ha, &error);
+		pbx_cli(fd, "test 3: added permit 10.15.15.0/255.255.0.0\n");
+		ast_str_reset(ha_buf);
+		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
+		pbx_cli(fd, "10.0.0.1 - '%s'\n", (sccp_apply_ha(ha, &sin10) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.14.14.1 - '%s'\n", (sccp_apply_ha(ha, &sin1014) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.15.15.1 - '%s'\n", (sccp_apply_ha(ha, &sin1015) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.16.16.1 - '%s'\n", (sccp_apply_ha(ha, &sin1016) == AST_SENSE_DENY) ? "denied" : "allowed");
+		
+		// test 3
+		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
+		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
+		ast_str_reset(ha_buf);
+		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
+		pbx_cli(fd, "10.0.0.1 - '%s'\n", (sccp_apply_ha(ha, &sin10) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.14.14.1 - '%s'\n", (sccp_apply_ha(ha, &sin1014) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.15.15.1 - '%s'\n", (sccp_apply_ha(ha, &sin1015) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.16.16.1 - '%s'\n", (sccp_apply_ha(ha, &sin1016) == AST_SENSE_DENY) ? "denied" : "allowed");
 
-			pbx_log(LOG_NOTICE, "%s: Level 1\n", d->id);
-			sccp_update_statusbar(d, "LEVEL 1", 0, 0, 1, FALSE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 1\n", d->id);
-			sccp_update_statusbar(d, "Level 2, Prio 1", 1, 3, 2, FALSE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Level 2, Prio 4\n", d->id);
-			sccp_update_statusbar(d, "Level 2, Prio 4", 4, 3, 2, FALSE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Back to Level 2, Prio 4\n", d->id);
-			sccp_update_statusbar(d, "", 4, 0, 2, TRUE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Back to Level 1\n", d->id);
-			sccp_update_statusbar(d, "", 1, 0, 2, TRUE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Back to Base\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 1, TRUE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
-			sleep(1);
-			
-			/* Level 3 */
-/*			pbx_log(LOG_NOTICE, "%s: Level 1\n", d->id);
-			sccp_update_statusbar(d, "LEVEL 1", 0, 0, 1, FALSE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Level 2\n", d->id);
-			sccp_update_statusbar(d, "Level 2", 0, 0, 2, FALSE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Level 3\n", d->id);
-			sccp_update_statusbar(d, "Level 2", 0, 0, 3, FALSE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Back to Level 2\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 3, TRUE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Back to Level 1\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 2, TRUE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Back to Base\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 1, TRUE, 0, 0);
-			sleep(1);
-
-			pbx_log(LOG_NOTICE, "%s: Clear Base\n", d->id);
-			sccp_update_statusbar(d, "", 0, 0, 0, TRUE, 0, 0);
-			sleep(1);*/
-			d = sccp_device_release(d);
-		}
+		sccp_free_ha(ha);
+		
+		ha = sccp_calloc(1, sizeof(struct sccp_ha));
+		pbx_cli(fd, "test 5: clean path structure and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
+		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
+		ast_str_reset(ha_buf);
+		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
+		pbx_cli(fd, "10.0.0.1 - '%s'\n", (sccp_apply_ha(ha, &sin10) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.14.14.1 - '%s'\n", (sccp_apply_ha(ha, &sin1014) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.15.15.1 - '%s'\n", (sccp_apply_ha(ha, &sin1015) == AST_SENSE_DENY) ? "denied" : "allowed");
+		pbx_cli(fd, "10.16.16.1 - '%s'\n", (sccp_apply_ha(ha, &sin1016) == AST_SENSE_DENY) ? "denied" : "allowed");
+		sccp_free_ha(ha);
+		
 		return RESULT_SUCCESS;
 	}
 #endif
 	return RESULT_FAILURE;
 }
 
-static char cli_test_message_usage[] = "Usage: sccp test message [message_name]\n" "	Test message [message_name].\n";
+static char cli_test_usage[] = "Usage: sccp test [test_name]\n" "	Test [test_name].\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
-#define CLI_COMMAND "sccp", "test", "message"
+#define CLI_COMMAND "sccp", "test"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
-CLI_ENTRY(cli_test_message, sccp_test_message, "Test a Message", cli_test_message_usage, FALSE)
+CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
@@ -3263,7 +3180,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
 	AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
-	AST_CLI_DEFINE(cli_test_message, "Test message."),
+	AST_CLI_DEFINE(cli_test, "Test message."),
 	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 #endif
 	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
