@@ -417,7 +417,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	sccp_channel_t *activeChannel;
 	sccp_channel_t tmpChannel; 												/*!< use this channel to set original called/calling info */
 	int instance;
-	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_RECEIVED;
+	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;
 
 	//uint32_t privacyStatus=0;
 	if (!c || !line) {
