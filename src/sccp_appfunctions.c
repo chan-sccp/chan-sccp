@@ -80,152 +80,154 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			return -1;
 		}
 	}
-	if (!strcasecmp(colname, "ip")) {
-		sccp_session_t *s = d->session;
+	if (d) {
+		if (!strcasecmp(colname, "ip")) {
+			sccp_session_t *s = d->session;
 
-		if (s) {
-			sccp_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(s->sin.sin_addr) : "", len);
-		}
-	} else if (!strcasecmp(colname, "id")) {
-		sccp_copy_string(buf, d->id, len);
-	} else if (!strcasecmp(colname, "status")) {
-		sccp_copy_string(buf, devicestate2str(d->state), len);
-	} else if (!strcasecmp(colname, "description")) {
-		sccp_copy_string(buf, d->description, len);
-	} else if (!strcasecmp(colname, "config_type")) {
-		sccp_copy_string(buf, d->config_type, len);
-	} else if (!strcasecmp(colname, "skinny_type")) {
-		sccp_copy_string(buf, devicetype2str(d->skinny_type), len);
-	} else if (!strcasecmp(colname, "tz_offset")) {
-		snprintf(buf, len, "%d", d->tz_offset);
-	} else if (!strcasecmp(colname, "image_version")) {
-		sccp_copy_string(buf, d->imageversion, len);
-	} else if (!strcasecmp(colname, "accessory_status")) {
-		sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
-	} else if (!strcasecmp(colname, "registration_state")) {
-		sccp_copy_string(buf, registrationstate2str(d->registrationState), len);
-	} else if (!strcasecmp(colname, "codecs")) {
-		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
-	} else if (!strcasecmp(colname, "capability")) {
-		sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
-	} else if (!strcasecmp(colname, "state")) {
-		sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
-	} else if (!strcasecmp(colname, "lines_registered")) {
-		sccp_copy_string(buf, d->linesRegistered ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "lines_count")) {
-		snprintf(buf, len, "%d", d->linesCount);
-	} else if (!strcasecmp(colname, "last_number")) {
-		sccp_copy_string(buf, d->lastNumber, len);
-	} else if (!strcasecmp(colname, "early_rtp")) {
-		snprintf(buf, len, "%d", d->earlyrtp);
-	} else if (!strcasecmp(colname, "supported_protocol_version")) {
-		snprintf(buf, len, "%d", d->protocolversion);
-	} else if (!strcasecmp(colname, "used_protocol_version")) {
-		snprintf(buf, len, "%d", d->inuseprotocolversion);
-	} else if (!strcasecmp(colname, "mwi_light")) {
-		sccp_copy_string(buf, d->mwilight ? "ON" : "OFF", len);
-	} else if (!strcasecmp(colname, "dnd_feature")) {
-		sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", len);
-	} else if (!strcasecmp(colname, "dnd_state")) {
-		sccp_copy_string(buf, dndmode2str(d->dndFeature.status), len);
-	} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
-#ifdef CS_SCCP_REALTIME
-		sccp_copy_string(buf, d->realtime ? "yes" : "no", len);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
-	} else if (!strcasecmp(colname, "active_channel")) {
-		snprintf(buf, len, "%d", d->active_channel->callid);
-	} else if (!strcasecmp(colname, "transfer_channel")) {
-		snprintf(buf, len, "%d", d->transferChannels.transferee->callid);
-#ifdef CS_SCCP_CONFERENCE
-	} else if (!strcasecmp(colname, "conference_id")) {
-		snprintf(buf, len, "%d", d->conference->id);
-	} else if (!strcasecmp(colname, "allow_conference")) {
-		snprintf(buf, len, "%s", d->allow_conference ? "ON" : "OFF");
-	} else if (!strcasecmp(colname, "conf_play_general_announce")) {
-		snprintf(buf, len, "%s", d->conf_play_general_announce ? "ON" : "OFF");
-	} else if (!strcasecmp(colname, "allow_conference")) {
-		snprintf(buf, len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
-	} else if (!strcasecmp(colname, "conf_play_part_announce")) {
-		snprintf(buf, len, "%s", d->allow_conference ? "ON" : "OFF");
-	} else if (!strcasecmp(colname, "conf_mute_on_entry")) {
-		snprintf(buf, len, "%s", d->conf_mute_on_entry ? "ON" : "OFF");
-	} else if (!strcasecmp(colname, "conf_music_on_hold_class")) {
-		snprintf(buf, len, "%s", d->conf_music_on_hold_class);
-	} else if (!strcasecmp(colname, "conf_show_conflist")) {
-		snprintf(buf, len, "%s", d->conf_show_conflist ? "ON" : "OFF");
-	} else if (!strcasecmp(colname, "conflist_active")) {
-		snprintf(buf, len, "%s", d->conferencelist_active ? "ON" : "OFF");
-#endif
-	} else if (!strcasecmp(colname, "current_line")) {
-		sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", len);
-	} else if (!strcasecmp(colname, "button_config")) {
-		sccp_buttonconfig_t *config;
-
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			switch (config->type) {
-				case LINE:
-					snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, config_buttontype2str(config->type), config->button.line.name);
-					break;
-				case SPEEDDIAL:
-					snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.speeddial.ext);
-					break;
-				case SERVICE:
-					snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.service.url);
-					break;
-				case FEATURE:
-					snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.feature.options);
-					break;
-				case EMPTY:
-					snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, config_buttontype2str(config->type));
-					break;
+			if (s) {
+				sccp_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(s->sin.sin_addr) : "", len);
 			}
-			if (first == 0) {
-				first = 1;
-				strcat(lbuf, tmp);
+		} else if (!strcasecmp(colname, "id")) {
+			sccp_copy_string(buf, d->id, len);
+		} else if (!strcasecmp(colname, "status")) {
+			sccp_copy_string(buf, devicestate2str(d->state), len);
+		} else if (!strcasecmp(colname, "description")) {
+			sccp_copy_string(buf, d->description, len);
+		} else if (!strcasecmp(colname, "config_type")) {
+			sccp_copy_string(buf, d->config_type, len);
+		} else if (!strcasecmp(colname, "skinny_type")) {
+			sccp_copy_string(buf, devicetype2str(d->skinny_type), len);
+		} else if (!strcasecmp(colname, "tz_offset")) {
+			snprintf(buf, len, "%d", d->tz_offset);
+		} else if (!strcasecmp(colname, "image_version")) {
+			sccp_copy_string(buf, d->imageversion, len);
+		} else if (!strcasecmp(colname, "accessory_status")) {
+			sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
+		} else if (!strcasecmp(colname, "registration_state")) {
+			sccp_copy_string(buf, registrationstate2str(d->registrationState), len);
+		} else if (!strcasecmp(colname, "codecs")) {
+			sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
+		} else if (!strcasecmp(colname, "capability")) {
+			sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
+		} else if (!strcasecmp(colname, "state")) {
+			sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
+		} else if (!strcasecmp(colname, "lines_registered")) {
+			sccp_copy_string(buf, d->linesRegistered ? "yes" : "no", len);
+		} else if (!strcasecmp(colname, "lines_count")) {
+			snprintf(buf, len, "%d", d->linesCount);
+		} else if (!strcasecmp(colname, "last_number")) {
+			sccp_copy_string(buf, d->lastNumber, len);
+		} else if (!strcasecmp(colname, "early_rtp")) {
+			snprintf(buf, len, "%d", d->earlyrtp);
+		} else if (!strcasecmp(colname, "supported_protocol_version")) {
+			snprintf(buf, len, "%d", d->protocolversion);
+		} else if (!strcasecmp(colname, "used_protocol_version")) {
+			snprintf(buf, len, "%d", d->inuseprotocolversion);
+		} else if (!strcasecmp(colname, "mwi_light")) {
+			sccp_copy_string(buf, d->mwilight ? "ON" : "OFF", len);
+		} else if (!strcasecmp(colname, "dnd_feature")) {
+			sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", len);
+		} else if (!strcasecmp(colname, "dnd_state")) {
+			sccp_copy_string(buf, dndmode2str(d->dndFeature.status), len);
+		} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
+	#ifdef CS_SCCP_REALTIME
+			sccp_copy_string(buf, d->realtime ? "yes" : "no", len);
+	#else
+			sccp_copy_string(buf, "not supported", len);
+	#endif
+		} else if (!strcasecmp(colname, "active_channel")) {
+			snprintf(buf, len, "%d", d->active_channel->callid);
+		} else if (!strcasecmp(colname, "transfer_channel")) {
+			snprintf(buf, len, "%d", d->transferChannels.transferee->callid);
+	#ifdef CS_SCCP_CONFERENCE
+		} else if (!strcasecmp(colname, "conference_id")) {
+			snprintf(buf, len, "%d", d->conference->id);
+		} else if (!strcasecmp(colname, "allow_conference")) {
+			snprintf(buf, len, "%s", d->allow_conference ? "ON" : "OFF");
+		} else if (!strcasecmp(colname, "conf_play_general_announce")) {
+			snprintf(buf, len, "%s", d->conf_play_general_announce ? "ON" : "OFF");
+		} else if (!strcasecmp(colname, "allow_conference")) {
+			snprintf(buf, len, "%s", d->conf_play_part_announce ? "ON" : "OFF");
+		} else if (!strcasecmp(colname, "conf_play_part_announce")) {
+			snprintf(buf, len, "%s", d->allow_conference ? "ON" : "OFF");
+		} else if (!strcasecmp(colname, "conf_mute_on_entry")) {
+			snprintf(buf, len, "%s", d->conf_mute_on_entry ? "ON" : "OFF");
+		} else if (!strcasecmp(colname, "conf_music_on_hold_class")) {
+			snprintf(buf, len, "%s", d->conf_music_on_hold_class);
+		} else if (!strcasecmp(colname, "conf_show_conflist")) {
+			snprintf(buf, len, "%s", d->conf_show_conflist ? "ON" : "OFF");
+		} else if (!strcasecmp(colname, "conflist_active")) {
+			snprintf(buf, len, "%s", d->conferencelist_active ? "ON" : "OFF");
+	#endif
+		} else if (!strcasecmp(colname, "current_line")) {
+			sccp_copy_string(buf, d->currentLine->id ? d->currentLine->id : "", len);
+		} else if (!strcasecmp(colname, "button_config")) {
+			sccp_buttonconfig_t *config;
+
+			SCCP_LIST_LOCK(&d->buttonconfig);
+			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+				switch (config->type) {
+					case LINE:
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, config_buttontype2str(config->type), config->button.line.name);
+						break;
+					case SPEEDDIAL:
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.speeddial.ext);
+						break;
+					case SERVICE:
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.service.url);
+						break;
+					case FEATURE:
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.feature.options);
+						break;
+					case EMPTY:
+						snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, config_buttontype2str(config->type));
+						break;
+				}
+				if (first == 0) {
+					first = 1;
+					strcat(lbuf, tmp);
+				} else {
+					strcat(lbuf, ",");
+					strcat(lbuf, tmp);
+				}
+			}
+			SCCP_LIST_UNLOCK(&d->buttonconfig);
+			snprintf(buf, len, "[ %s ]", lbuf);
+		} else if (!strcasecmp(colname, "pending_delete")) {
+			sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", len);
+		} else if (!strcasecmp(colname, "pending_update")) {
+			sccp_copy_string(buf, d->pendingUpdate ? "yes" : "no", len);
+		} else if (!strncasecmp(colname, "chanvar[", 8)) {
+			char *chanvar = colname + 8;
+
+			PBX_VARIABLE_TYPE *v;
+
+			chanvar = strsep(&chanvar, "]");
+			for (v = d->variables; v; v = v->next) {
+				if (!strcasecmp(v->name, chanvar)) {
+					sccp_copy_string(buf, v->value, len);
+				}
+			}
+		} else if (!strncasecmp(colname, "codec[", 6)) {
+			char *codecnum;
+
+			// int codec = 0;
+
+			codecnum = colname + 6;										// move past the '[' 
+			codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
+			if (skinny_codecs[atoi(codecnum)].key) {
+				//if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
+				//	sccp_copy_string(buf, pbx_getformatname(codec), len);
+				sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 			} else {
-				strcat(lbuf, ",");
-				strcat(lbuf, tmp);
+				buf[0] = '\0';
 			}
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		snprintf(buf, len, "[ %s ]", lbuf);
-	} else if (!strcasecmp(colname, "pending_delete")) {
-		sccp_copy_string(buf, d->pendingDelete ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "pending_update")) {
-		sccp_copy_string(buf, d->pendingUpdate ? "yes" : "no", len);
-	} else if (!strncasecmp(colname, "chanvar[", 8)) {
-		char *chanvar = colname + 8;
-
-		PBX_VARIABLE_TYPE *v;
-
-		chanvar = strsep(&chanvar, "]");
-		for (v = d->variables; v; v = v->next) {
-			if (!strcasecmp(v->name, chanvar)) {
-				sccp_copy_string(buf, v->value, len);
-			}
-		}
-	} else if (!strncasecmp(colname, "codec[", 6)) {
-		char *codecnum;
-
-		// int codec = 0;
-
-		codecnum = colname + 6;										// move past the '[' 
-		codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
-		if (skinny_codecs[atoi(codecnum)].key) {
-			//if ((codec = pbx_codec_pref_index(&d->codecs, atoi(codecnum)))) {
-			//	sccp_copy_string(buf, pbx_getformatname(codec), len);
-			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 		} else {
+			pbx_log(LOG_WARNING, "SCCPDEVICE(%s): unknown colname: %s\n", data, colname);
 			buf[0] = '\0';
 		}
-	} else {
-		pbx_log(LOG_WARNING, "SCCPDEVICE(%s): unknown colname: %s\n", data, colname);
-		buf[0] = '\0';
+		sccp_device_release(d);
 	}
-	sccp_device_release(d);
 	return 0;
 }
 
@@ -292,7 +294,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			c = sccp_channel_release(c);
 			return -1;
 		}
-		l = c->line;
+		l = sccp_line_retain(c->line);
 		c = sccp_channel_release(c);
 	} else if (!strncasecmp(data, "parent", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
@@ -306,7 +308,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			c = sccp_channel_release(c);
 			return -1;
 		}
-		l = c->parentChannel->line;
+ 		l = sccp_line_retain(c->parentChannel->line);
 		c = sccp_channel_release(c);
 	} else {
 		if (!(l = sccp_line_find_byname(data, TRUE))) {
@@ -314,127 +316,129 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			return -1;
 		}
 	}
-	if (!strcasecmp(colname, "id")) {
-		sccp_copy_string(buf, l->id, len);
-	} else if (!strcasecmp(colname, "name")) {
-		sccp_copy_string(buf, l->name, len);
-	} else if (!strcasecmp(colname, "description")) {
-		sccp_copy_string(buf, l->description, len);
-	} else if (!strcasecmp(colname, "label")) {
-		sccp_copy_string(buf, l->label, len);
-	} else if (!strcasecmp(colname, "vmnum")) {
-		sccp_copy_string(buf, l->vmnum, len);
-	} else if (!strcasecmp(colname, "trnsfvm")) {
-		sccp_copy_string(buf, l->trnsfvm, len);
-	} else if (!strcasecmp(colname, "meetme")) {
-		sccp_copy_string(buf, l->meetme ? "on" : "off", len);
-	} else if (!strcasecmp(colname, "meetmenum")) {
-		sccp_copy_string(buf, l->meetmenum, len);
-	} else if (!strcasecmp(colname, "meetmeopts")) {
-		sccp_copy_string(buf, l->meetmeopts, len);
-	} else if (!strcasecmp(colname, "context")) {
-		sccp_copy_string(buf, l->context, len);
-	} else if (!strcasecmp(colname, "language")) {
-		sccp_copy_string(buf, l->language, len);
-	} else if (!strcasecmp(colname, "accountcode")) {
-		sccp_copy_string(buf, l->accountcode, len);
-	} else if (!strcasecmp(colname, "musicclass")) {
-		sccp_copy_string(buf, l->musicclass, len);
-	} else if (!strcasecmp(colname, "amaflags")) {
-		sccp_copy_string(buf, l->amaflags ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "callgroup")) {
-		pbx_print_group(buf, len, l->callgroup);
-	} else if (!strcasecmp(colname, "pickupgroup")) {
-#ifdef CS_SCCP_PICKUP
-		pbx_print_group(buf, len, l->pickupgroup);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
-	} else if (!strcasecmp(colname, "cid_name")) {
-		sccp_copy_string(buf, l->cid_name ? l->cid_name : "<not set>", len);
-	} else if (!strcasecmp(colname, "cid_num")) {
-		sccp_copy_string(buf, l->cid_num ? l->cid_num : "<not set>", len);
-	} else if (!strcasecmp(colname, "incoming_limit")) {
-		snprintf(buf, len, "%d", l->incominglimit);
-	} else if (!strcasecmp(colname, "channel_count")) {
-		snprintf(buf, len, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
-	} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
-#ifdef CS_SCCP_REALTIME
-		sccp_copy_string(buf, l->realtime ? "Yes" : "No", len);
-#else
-		sccp_copy_string(buf, "not supported", len);
-#endif
-	} else if (!strcasecmp(colname, "pending_delete")) {
-		sccp_copy_string(buf, l->pendingDelete ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "pending_update")) {
-		sccp_copy_string(buf, l->pendingUpdate ? "yes" : "no", len);
-		/* regexten feature -- */
-	} else if (!strcasecmp(colname, "regexten")) {
-		sccp_copy_string(buf, l->regexten ? l->regexten : "Unset", len);
-	} else if (!strcasecmp(colname, "regcontext")) {
-		sccp_copy_string(buf, l->regcontext ? l->regcontext : "Unset", len);
-		/* -- regexten feature */
+	if (l) {
+		if (!strcasecmp(colname, "id")) {
+			sccp_copy_string(buf, l->id, len);
+		} else if (!strcasecmp(colname, "name")) {
+			sccp_copy_string(buf, l->name, len);
+		} else if (!strcasecmp(colname, "description")) {
+			sccp_copy_string(buf, l->description, len);
+		} else if (!strcasecmp(colname, "label")) {
+			sccp_copy_string(buf, l->label, len);
+		} else if (!strcasecmp(colname, "vmnum")) {
+			sccp_copy_string(buf, l->vmnum, len);
+		} else if (!strcasecmp(colname, "trnsfvm")) {
+			sccp_copy_string(buf, l->trnsfvm, len);
+		} else if (!strcasecmp(colname, "meetme")) {
+			sccp_copy_string(buf, l->meetme ? "on" : "off", len);
+		} else if (!strcasecmp(colname, "meetmenum")) {
+			sccp_copy_string(buf, l->meetmenum, len);
+		} else if (!strcasecmp(colname, "meetmeopts")) {
+			sccp_copy_string(buf, l->meetmeopts, len);
+		} else if (!strcasecmp(colname, "context")) {
+			sccp_copy_string(buf, l->context, len);
+		} else if (!strcasecmp(colname, "language")) {
+			sccp_copy_string(buf, l->language, len);
+		} else if (!strcasecmp(colname, "accountcode")) {
+			sccp_copy_string(buf, l->accountcode, len);
+		} else if (!strcasecmp(colname, "musicclass")) {
+			sccp_copy_string(buf, l->musicclass, len);
+		} else if (!strcasecmp(colname, "amaflags")) {
+			sccp_copy_string(buf, l->amaflags ? "yes" : "no", len);
+		} else if (!strcasecmp(colname, "callgroup")) {
+			pbx_print_group(buf, len, l->callgroup);
+		} else if (!strcasecmp(colname, "pickupgroup")) {
+	#ifdef CS_SCCP_PICKUP
+			pbx_print_group(buf, len, l->pickupgroup);
+	#else
+			sccp_copy_string(buf, "not supported", len);
+	#endif
+		} else if (!strcasecmp(colname, "cid_name")) {
+			sccp_copy_string(buf, l->cid_name ? l->cid_name : "<not set>", len);
+		} else if (!strcasecmp(colname, "cid_num")) {
+			sccp_copy_string(buf, l->cid_num ? l->cid_num : "<not set>", len);
+		} else if (!strcasecmp(colname, "incoming_limit")) {
+			snprintf(buf, len, "%d", l->incominglimit);
+		} else if (!strcasecmp(colname, "channel_count")) {
+			snprintf(buf, len, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
+		} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
+	#ifdef CS_SCCP_REALTIME
+			sccp_copy_string(buf, l->realtime ? "Yes" : "No", len);
+	#else
+			sccp_copy_string(buf, "not supported", len);
+	#endif
+		} else if (!strcasecmp(colname, "pending_delete")) {
+			sccp_copy_string(buf, l->pendingDelete ? "yes" : "no", len);
+		} else if (!strcasecmp(colname, "pending_update")) {
+			sccp_copy_string(buf, l->pendingUpdate ? "yes" : "no", len);
+			/* regexten feature -- */
+		} else if (!strcasecmp(colname, "regexten")) {
+			sccp_copy_string(buf, l->regexten ? l->regexten : "Unset", len);
+		} else if (!strcasecmp(colname, "regcontext")) {
+			sccp_copy_string(buf, l->regcontext ? l->regcontext : "Unset", len);
+			/* -- regexten feature */
 
-	} else if (!strcasecmp(colname, "adhoc_number")) {
-		sccp_copy_string(buf, l->adhocNumber ? l->adhocNumber : "No", len);
-	} else if (!strcasecmp(colname, "newmsgs")) {
-		snprintf(buf, len, "%d", l->voicemailStatistic.newmsgs);
-	} else if (!strcasecmp(colname, "oldmsgs")) {
-		snprintf(buf, len, "%d", l->voicemailStatistic.oldmsgs);
-	} else if (!strcasecmp(colname, "num_lines")) {
-		snprintf(buf, len, "%d", SCCP_LIST_GETSIZE(&l->devices));
-	} else if (!strcasecmp(colname, "mailboxes")) {
-		/*! \todo needs to be implemented, should return a comma separated list of mailboxes */
-	} else if (!strcasecmp(colname, "cfwd")) {
-		sccp_linedevices_t *linedevice;
+		} else if (!strcasecmp(colname, "adhoc_number")) {
+			sccp_copy_string(buf, l->adhocNumber ? l->adhocNumber : "No", len);
+		} else if (!strcasecmp(colname, "newmsgs")) {
+			snprintf(buf, len, "%d", l->voicemailStatistic.newmsgs);
+		} else if (!strcasecmp(colname, "oldmsgs")) {
+			snprintf(buf, len, "%d", l->voicemailStatistic.oldmsgs);
+		} else if (!strcasecmp(colname, "num_lines")) {
+			snprintf(buf, len, "%d", SCCP_LIST_GETSIZE(&l->devices));
+		} else if (!strcasecmp(colname, "mailboxes")) {
+			/*! \todo needs to be implemented, should return a comma separated list of mailboxes */
+		} else if (!strcasecmp(colname, "cfwd")) {
+			sccp_linedevices_t *linedevice;
 
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice)
-				snprintf(tmp, sizeof(tmp), "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
-			if (first == 0) {
-				first = 1;
-				strcat(lbuf, tmp);
-			} else {
-				strcat(lbuf, ",");
-				strcat(lbuf, tmp);
+			SCCP_LIST_LOCK(&l->devices);
+			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+				if (linedevice)
+					snprintf(tmp, sizeof(tmp), "[id:%s,cfwdAll:%s,num:%s,cfwdBusy:%s,num:%s]", linedevice->device->id, linedevice->cfwdAll.enabled ? "on" : "off", linedevice->cfwdAll.number ? linedevice->cfwdAll.number : "<not set>", linedevice->cfwdBusy.enabled ? "on" : "off", linedevice->cfwdBusy.number ? linedevice->cfwdBusy.number : "<not set>");
+				if (first == 0) {
+					first = 1;
+					strcat(lbuf, tmp);
+				} else {
+					strcat(lbuf, ",");
+					strcat(lbuf, tmp);
+				}
 			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
-		snprintf(buf, len, "%s", lbuf);
-	} else if (!strcasecmp(colname, "devices")) {
-		sccp_linedevices_t *linedevice;
+			SCCP_LIST_UNLOCK(&l->devices);
+			snprintf(buf, len, "%s", lbuf);
+		} else if (!strcasecmp(colname, "devices")) {
+			sccp_linedevices_t *linedevice;
 
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice)
-				snprintf(tmp, sizeof(tmp), "%s", linedevice->device->id);
-			if (first == 0) {
-				first = 1;
-				strcat(lbuf, tmp);
-			} else {
-				strcat(lbuf, ",");
-				strcat(lbuf, tmp);
+			SCCP_LIST_LOCK(&l->devices);
+			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+				if (linedevice)
+					snprintf(tmp, sizeof(tmp), "%s", linedevice->device->id);
+				if (first == 0) {
+					first = 1;
+					strcat(lbuf, tmp);
+				} else {
+					strcat(lbuf, ",");
+					strcat(lbuf, tmp);
+				}
 			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
-		snprintf(buf, len, "%s", lbuf);
-	} else if (!strncasecmp(colname, "chanvar[", 8)) {
-		char *chanvar = colname + 8;
+			SCCP_LIST_UNLOCK(&l->devices);
+			snprintf(buf, len, "%s", lbuf);
+		} else if (!strncasecmp(colname, "chanvar[", 8)) {
+			char *chanvar = colname + 8;
 
-		PBX_VARIABLE_TYPE *v;
+			PBX_VARIABLE_TYPE *v;
 
-		chanvar = strsep(&chanvar, "]");
-		for (v = l->variables; v; v = v->next) {
-			if (!strcasecmp(v->name, chanvar)) {
-				sccp_copy_string(buf, v->value, len);
+			chanvar = strsep(&chanvar, "]");
+			for (v = l->variables; v; v = v->next) {
+				if (!strcasecmp(v->name, chanvar)) {
+					sccp_copy_string(buf, v->value, len);
+				}
 			}
+		} else {
+			pbx_log(LOG_WARNING, "SCCPLINE(%s): unknown colname: %s\n", data, colname);
+			buf[0] = '\0';
 		}
-	} else {
-		pbx_log(LOG_WARNING, "SCCPLINE(%s): unknown colname: %s\n", data, colname);
-		buf[0] = '\0';
+		sccp_line_release(l);
 	}
-	sccp_line_release(l);
 	return 0;
 }
 
@@ -501,103 +505,105 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		}
 	}
 
-	if (!strcasecmp(colname, "callid") || !strcasecmp(colname, "id")) {
-		snprintf(buf, len, "%d", c->callid);
-	} else if (!strcasecmp(colname, "format")) {
-		snprintf(buf, len, "%d", c->rtp.audio.readFormat);
-	} else if (!strcasecmp(colname, "codecs")) {
-		sccp_copy_string(buf, codec2name(c->rtp.audio.readFormat), len);
-	} else if (!strcasecmp(colname, "capability")) {
-		sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
-	} else if (!strcasecmp(colname, "calledPartyName")) {
-		sccp_copy_string(buf, c->callInfo.calledPartyName, len);
-	} else if (!strcasecmp(colname, "calledPartyNumber")) {
-		sccp_copy_string(buf, c->callInfo.calledPartyNumber, len);
-	} else if (!strcasecmp(colname, "callingPartyName")) {
-		sccp_copy_string(buf, c->callInfo.callingPartyName, len);
-	} else if (!strcasecmp(colname, "callingPartyNumber")) {
-		sccp_copy_string(buf, c->callInfo.callingPartyNumber, len);
-	} else if (!strcasecmp(colname, "originalCallingPartyName")) {
-		sccp_copy_string(buf, c->callInfo.originalCallingPartyName, len);
-	} else if (!strcasecmp(colname, "originalCallingPartyNumber")) {
-		sccp_copy_string(buf, c->callInfo.originalCallingPartyNumber, len);
-	} else if (!strcasecmp(colname, "originalCalledPartyName")) {
-		sccp_copy_string(buf, c->callInfo.originalCalledPartyName, len);
-	} else if (!strcasecmp(colname, "originalCalledPartyNumber")) {
-		sccp_copy_string(buf, c->callInfo.originalCalledPartyNumber, len);
-	} else if (!strcasecmp(colname, "lastRedirectingPartyName")) {
-		sccp_copy_string(buf, c->callInfo.lastRedirectingPartyName, len);
-	} else if (!strcasecmp(colname, "lastRedirectingPartyNumber")) {
-		sccp_copy_string(buf, c->callInfo.lastRedirectingPartyNumber, len);
-	} else if (!strcasecmp(colname, "cgpnVoiceMailbox")) {
-		sccp_copy_string(buf, c->callInfo.cgpnVoiceMailbox, len);
-	} else if (!strcasecmp(colname, "cdpnVoiceMailbox")) {
-		sccp_copy_string(buf, c->callInfo.cdpnVoiceMailbox, len);
-	} else if (!strcasecmp(colname, "originalCdpnVoiceMailbox")) {
-		sccp_copy_string(buf, c->callInfo.originalCdpnVoiceMailbox, len);
-	} else if (!strcasecmp(colname, "lastRedirectingVoiceMailbox")) {
-		sccp_copy_string(buf, c->callInfo.lastRedirectingVoiceMailbox, len);
-	} else if (!strcasecmp(colname, "passthrupartyid")) {
-		snprintf(buf, len, "%d", c->passthrupartyid);
-	} else if (!strcasecmp(colname, "state")) {
-		sccp_copy_string(buf, channelstate2str(c->state), len);
-	} else if (!strcasecmp(colname, "previous_state")) {
-		sccp_copy_string(buf, channelstate2str(c->previousChannelState), len);
-	} else if (!strcasecmp(colname, "calltype")) {
-		sccp_copy_string(buf, calltype2str(c->calltype), len);
-	} else if (!strcasecmp(colname, "dialed_number")) {
-		sccp_copy_string(buf, c->dialedNumber, len);
-	} else if (!strcasecmp(colname, "device")) {
-		sccp_copy_string(buf, c->currentDeviceId, len);
-	} else if (!strcasecmp(colname, "line")) {
-		sccp_copy_string(buf, c->line->name, len);
-	} else if (!strcasecmp(colname, "answered_elsewhere")) {
-		sccp_copy_string(buf, c->answered_elsewhere ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "privacy")) {
-		sccp_copy_string(buf, c->privacy ? "yes" : "no", len);
-	} else if (!strcasecmp(colname, "ss_action")) {
-		snprintf(buf, len, "%d", c->ss_action);
-	// } else if (!strcasecmp(colname, "monitorEnabled")) {
-	// 	sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
-#ifdef CS_SCCP_CONFERENCE
-	} else if (!strcasecmp(colname, "conference_id")) {
-		snprintf(buf, len, "%d", c->conference_id);
-	} else if (!strcasecmp(colname, "conference_participant_id")) {
-		snprintf(buf, len, "%d", c->conference_participant_id);
-#endif
-	} else if (!strcasecmp(colname, "parent")) {
-		snprintf(buf, len, "%d", c->parentChannel->callid);
-	} else if (!strcasecmp(colname, "bridgepeer")) {
-		snprintf(buf, len, "%s", (c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ? pbx_channel_name(CS_AST_BRIDGED_CHANNEL(c->owner)) : "<unknown>");
-	} else if (!strcasecmp(colname, "peerip")) {								// NO-NAT (Ip-Address Associated with the Session->sin)
-		if ((d = sccp_channel_getDevice_retained(c))) {
-			ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), len);
-			d = sccp_device_release(d);
-		}
-	} else if (!strcasecmp(colname, "recvip")) {								// NAT (Actual Source IP-Address Reported by the phone upon registration)
-		if ((d = sccp_channel_getDevice_retained(c))) {
-			ast_copy_string(buf, pbx_inet_ntoa(d->session->phone_sin.sin_addr), len);
-			d = sccp_device_release(d);
-		}
-	} else if (!strncasecmp(colname, "codec[", 6)) {
-		char *codecnum;
+	if (c) {
+		if (!strcasecmp(colname, "callid") || !strcasecmp(colname, "id")) {
+			snprintf(buf, len, "%d", c->callid);
+		} else if (!strcasecmp(colname, "format")) {
+			snprintf(buf, len, "%d", c->rtp.audio.readFormat);
+		} else if (!strcasecmp(colname, "codecs")) {
+			sccp_copy_string(buf, codec2name(c->rtp.audio.readFormat), len);
+		} else if (!strcasecmp(colname, "capability")) {
+			sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
+		} else if (!strcasecmp(colname, "calledPartyName")) {
+			sccp_copy_string(buf, c->callInfo.calledPartyName, len);
+		} else if (!strcasecmp(colname, "calledPartyNumber")) {
+			sccp_copy_string(buf, c->callInfo.calledPartyNumber, len);
+		} else if (!strcasecmp(colname, "callingPartyName")) {
+			sccp_copy_string(buf, c->callInfo.callingPartyName, len);
+		} else if (!strcasecmp(colname, "callingPartyNumber")) {
+			sccp_copy_string(buf, c->callInfo.callingPartyNumber, len);
+		} else if (!strcasecmp(colname, "originalCallingPartyName")) {
+			sccp_copy_string(buf, c->callInfo.originalCallingPartyName, len);
+		} else if (!strcasecmp(colname, "originalCallingPartyNumber")) {
+			sccp_copy_string(buf, c->callInfo.originalCallingPartyNumber, len);
+		} else if (!strcasecmp(colname, "originalCalledPartyName")) {
+			sccp_copy_string(buf, c->callInfo.originalCalledPartyName, len);
+		} else if (!strcasecmp(colname, "originalCalledPartyNumber")) {
+			sccp_copy_string(buf, c->callInfo.originalCalledPartyNumber, len);
+		} else if (!strcasecmp(colname, "lastRedirectingPartyName")) {
+			sccp_copy_string(buf, c->callInfo.lastRedirectingPartyName, len);
+		} else if (!strcasecmp(colname, "lastRedirectingPartyNumber")) {
+			sccp_copy_string(buf, c->callInfo.lastRedirectingPartyNumber, len);
+		} else if (!strcasecmp(colname, "cgpnVoiceMailbox")) {
+			sccp_copy_string(buf, c->callInfo.cgpnVoiceMailbox, len);
+		} else if (!strcasecmp(colname, "cdpnVoiceMailbox")) {
+			sccp_copy_string(buf, c->callInfo.cdpnVoiceMailbox, len);
+		} else if (!strcasecmp(colname, "originalCdpnVoiceMailbox")) {
+			sccp_copy_string(buf, c->callInfo.originalCdpnVoiceMailbox, len);
+		} else if (!strcasecmp(colname, "lastRedirectingVoiceMailbox")) {
+			sccp_copy_string(buf, c->callInfo.lastRedirectingVoiceMailbox, len);
+		} else if (!strcasecmp(colname, "passthrupartyid")) {
+			snprintf(buf, len, "%d", c->passthrupartyid);
+		} else if (!strcasecmp(colname, "state")) {
+			sccp_copy_string(buf, channelstate2str(c->state), len);
+		} else if (!strcasecmp(colname, "previous_state")) {
+			sccp_copy_string(buf, channelstate2str(c->previousChannelState), len);
+		} else if (!strcasecmp(colname, "calltype")) {
+			sccp_copy_string(buf, calltype2str(c->calltype), len);
+		} else if (!strcasecmp(colname, "dialed_number")) {
+			sccp_copy_string(buf, c->dialedNumber, len);
+		} else if (!strcasecmp(colname, "device")) {
+			sccp_copy_string(buf, c->currentDeviceId, len);
+		} else if (!strcasecmp(colname, "line")) {
+			sccp_copy_string(buf, c->line->name, len);
+		} else if (!strcasecmp(colname, "answered_elsewhere")) {
+			sccp_copy_string(buf, c->answered_elsewhere ? "yes" : "no", len);
+		} else if (!strcasecmp(colname, "privacy")) {
+			sccp_copy_string(buf, c->privacy ? "yes" : "no", len);
+		} else if (!strcasecmp(colname, "ss_action")) {
+			snprintf(buf, len, "%d", c->ss_action);
+		// } else if (!strcasecmp(colname, "monitorEnabled")) {
+		// 	sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+	#ifdef CS_SCCP_CONFERENCE
+		} else if (!strcasecmp(colname, "conference_id")) {
+			snprintf(buf, len, "%d", c->conference_id);
+		} else if (!strcasecmp(colname, "conference_participant_id")) {
+			snprintf(buf, len, "%d", c->conference_participant_id);
+	#endif
+		} else if (!strcasecmp(colname, "parent")) {
+			snprintf(buf, len, "%d", c->parentChannel->callid);
+		} else if (!strcasecmp(colname, "bridgepeer")) {
+			snprintf(buf, len, "%s", (c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ? pbx_channel_name(CS_AST_BRIDGED_CHANNEL(c->owner)) : "<unknown>");
+		} else if (!strcasecmp(colname, "peerip")) {								// NO-NAT (Ip-Address Associated with the Session->sin)
+			if ((d = sccp_channel_getDevice_retained(c))) {
+				ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), len);
+				d = sccp_device_release(d);
+			}
+		} else if (!strcasecmp(colname, "recvip")) {								// NAT (Actual Source IP-Address Reported by the phone upon registration)
+			if ((d = sccp_channel_getDevice_retained(c))) {
+				ast_copy_string(buf, pbx_inet_ntoa(d->session->phone_sin.sin_addr), len);
+				d = sccp_device_release(d);
+			}
+		} else if (!strncasecmp(colname, "codec[", 6)) {
+			char *codecnum;
 
-		// int codec = 0;
+			// int codec = 0;
 
-		codecnum = colname + 6;										// move past the '[' 
-		codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
-		// if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
-		// 	sccp_copy_string(buf, pbx_getformatname(codec), len);
-		if (skinny_codecs[atoi(codecnum)].key) {
-			sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
+			codecnum = colname + 6;										// move past the '[' 
+			codecnum = strsep(&codecnum, "]");								// trim trailing ']' if any 
+			// if ((codec = pbx_codec_pref_index(&c->codecs, atoi(codecnum)))) {
+			// 	sccp_copy_string(buf, pbx_getformatname(codec), len);
+			if (skinny_codecs[atoi(codecnum)].key) {
+				sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
+			} else {
+				buf[0] = '\0';
+			}
 		} else {
+			pbx_log(LOG_WARNING, "SCCPCHANNEL(%s): unknown colname: %s\n", data, colname);
 			buf[0] = '\0';
 		}
-	} else {
-		pbx_log(LOG_WARNING, "SCCPCHANNEL(%s): unknown colname: %s\n", data, colname);
-		buf[0] = '\0';
+		sccp_channel_release(c);
 	}
-	sccp_channel_release(c);
 	return 0;
 }
 
