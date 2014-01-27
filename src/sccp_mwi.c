@@ -215,15 +215,14 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 	sccp_line_t 		*line 		= linedevice->line;
 	sccp_device_t 		*device		= linedevice->device;
 
-	if (!line || !(device = sccp_device_retain(device))) {
+	if (line && device) {
+		device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
+		device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
+		sccp_mwi_setMWILineStatus(linedevice);								/* set mwi-line-status */
+	} else {
 		pbx_log(LOG_ERROR, "get deviceAttachedEvent where one parameter is missing. device: %s, line: %s\n", DEV_ID_LOG(device), (line) ? line->name : "null");
-		return;
 	}
 
-	device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
-	device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
-	sccp_mwi_setMWILineStatus(linedevice);								/* set mwi-line-status */
-	device = sccp_device_release(device);
 	linedevice = sccp_linedevice_release(linedevice);
 }
 
@@ -425,9 +424,6 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
 	uint32_t mask;
 	uint32_t newState = 0;
 
-	if (!(d = sccp_device_retain(d)))
-		return;
-
 	/* when l is defined we are switching on/off the button icon */
 	if (l) {
 		instance = lineDevice->lineInstance;
@@ -463,7 +459,6 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
 	}
 
 	sccp_mwi_check(d);
-	sccp_device_release(d);
 }
 
 /*!
