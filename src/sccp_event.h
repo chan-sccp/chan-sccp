@@ -56,13 +56,13 @@ struct sccp_event {
 		struct {
 			sccp_device_t *device;									/*!< SCCP device (required) */
 			sccp_feature_type_t featureType;							/*!< what feature is changed (required) */
-			sccp_linedevices_t *linedevice;								/*!< SCCP linedevice (optional) */
+			sccp_linedevices_t *optional_linedevice;						/*!< SCCP linedevice (optional) */
 		} featureChanged;										/*!< Event feature changed Structure */
 
 		struct {
 			sccp_line_t *line;									/*!< SCCP line (required) */
 			uint8_t state;										/*!< state (required) */
-			sccp_device_t *device;									/*!< SCCP device (optional) */
+			sccp_device_t *optional_device;								/*!< SCCP device (optional) */
 		} lineStatusChanged;										/*!< Event feature changed Structure */
 
 	} event;												/*!< SCCP Event Data Union */

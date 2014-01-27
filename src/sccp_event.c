@@ -67,18 +67,17 @@ void sccp_event_destroy(sccp_event_t * event)
 
 		case SCCP_EVENT_DEVICE_ATTACHED:
 		case SCCP_EVENT_DEVICE_DETACHED:
-			//event->event.deviceAttached.linedevice = (event->event.deviceAttached.linedevice);
 			event->event.deviceAttached.linedevice = sccp_linedevice_release(event->event.deviceAttached.linedevice);
 			break;
 
 		case SCCP_EVENT_FEATURE_CHANGED:
 			event->event.featureChanged.device = sccp_device_release(event->event.featureChanged.device);
-			event->event.featureChanged.linedevice = event->event.featureChanged.linedevice ? sccp_linedevice_release(event->event.featureChanged.linedevice) : NULL;
+			event->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice ? sccp_linedevice_release(event->event.featureChanged.optional_linedevice) : NULL;
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			event->event.lineStatusChanged.line = sccp_line_release(event->event.lineStatusChanged.line);
-			event->event.lineStatusChanged.device = event->event.lineStatusChanged.device ? sccp_device_release(event->event.lineStatusChanged.device) : NULL;
+			event->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device ? sccp_device_release(event->event.lineStatusChanged.optional_device) : NULL;
 			break;
 
 		case SCCP_EVENT_LINE_CHANGED:
@@ -259,13 +258,13 @@ void sccp_event_fire(const sccp_event_t * event)
 
 		case SCCP_EVENT_FEATURE_CHANGED:
 			e->event.featureChanged.device = event->event.featureChanged.device;
-			e->event.featureChanged.linedevice = event->event.featureChanged.linedevice;
+			e->event.featureChanged.optional_linedevice = event->event.featureChanged.optional_linedevice;
 			e->event.featureChanged.featureType = event->event.featureChanged.featureType;
 			break;
 
 		case SCCP_EVENT_LINESTATUS_CHANGED:
 			e->event.lineStatusChanged.line = event->event.lineStatusChanged.line;
-			e->event.lineStatusChanged.device = event->event.lineStatusChanged.device;
+			e->event.lineStatusChanged.optional_device = event->event.lineStatusChanged.optional_device;
 			e->event.lineStatusChanged.state = event->event.lineStatusChanged.state;
 			break;
 

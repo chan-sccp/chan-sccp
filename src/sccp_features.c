@@ -1383,7 +1383,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, 
 
 		event.type = SCCP_EVENT_FEATURE_CHANGED;
 		event.event.featureChanged.device = sccp_device_retain(device);
-		event.event.featureChanged.linedevice = linedevice ? sccp_linedevice_retain(linedevice) : NULL;
+		event.event.featureChanged.optional_linedevice = linedevice ? sccp_linedevice_retain(linedevice) : NULL;
 		event.event.featureChanged.featureType = featureType;
 		sccp_event_fire(&event);
 	}
