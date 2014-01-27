@@ -206,12 +206,14 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
  */
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 {
-	if (!event)
+	if (!event || !event->event.deviceAttached.linedevice) {
+		pbx_log(LOG_ERROR, "(lineStatusChangedEvent) event or linedevice not provided\n");
 		return;
+	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
 	
-	sccp_linedevices_t 	*linedevice	= sccp_linedevice_retain(event->event.deviceAttached.linedevice);
+	sccp_linedevices_t 	*linedevice	= event->event.deviceAttached.linedevice;
 	sccp_line_t 		*line 		= linedevice->line;
 	sccp_device_t 		*device		= linedevice->device;
 
@@ -222,8 +224,6 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 	} else {
 		pbx_log(LOG_ERROR, "get deviceAttachedEvent where one parameter is missing. device: %s, line: %s\n", DEV_ID_LOG(device), (line) ? line->name : "null");
 	}
-
-	linedevice = sccp_linedevice_release(linedevice);
 }
 
 /*!
@@ -232,16 +232,13 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
  */
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 {
-	if (!event)
+	if (!event || !event->event.lineStatusChanged.device) {
+		pbx_log(LOG_ERROR, "(lineStatusChangedEvent) event or device not provided\n");
 		return;
+	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
-	sccp_device_t *device = event->event.lineStatusChanged.device;
-
-	if (!device)
-		return;
-
-	sccp_mwi_check(device);
+	sccp_mwi_check(event->event.lineStatusChanged.device);
 }
 
 /*!
@@ -253,18 +250,15 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
  */
 void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 {
-	if (!event)
+	if (!event || !event->event.lineCreated.line) {
+		pbx_log(LOG_ERROR, "(linecreatedEvent) event or line not provided\n");
 		return;
+	}
 
 	sccp_mailbox_t *mailbox;
 	sccp_line_t *line = event->event.lineCreated.line;
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
-
-	if (!line) {
-		pbx_log(LOG_ERROR, "Get linecreatedEvent, but line not set\n");
-		return;
-	}
 
 	if (line && (&line->mailboxes) != NULL) {
 		SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
