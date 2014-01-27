@@ -207,7 +207,7 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 {
 	if (!event || !event->event.deviceAttached.linedevice) {
-		pbx_log(LOG_ERROR, "(lineStatusChangedEvent) event or linedevice not provided\n");
+		pbx_log(LOG_ERROR, "(deviceAttachedEvent) event or linedevice not provided\n");
 		return;
 	}
 
