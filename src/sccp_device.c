@@ -2349,7 +2349,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 			break;
 		case SCCP_FEATURE_CFWDBUSY:
 		case SCCP_FEATURE_CFWDALL:
-			if ((linedevice = event->event.featureChanged.linedevice)) {
+			if ((linedevice = event->event.featureChanged.optional_linedevice)) {
 				sccp_line_t *line = linedevice->line;
 				uint8_t instance = linedevice->lineInstance;
 

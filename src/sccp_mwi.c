@@ -232,13 +232,13 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
  */
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 {
-	if (!event || !event->event.lineStatusChanged.device) {
+	if (!event || !event->event.lineStatusChanged.optional_device) {
 		pbx_log(LOG_ERROR, "(lineStatusChangedEvent) event or device not provided\n");
 		return;
 	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
-	sccp_mwi_check(event->event.lineStatusChanged.device);
+	sccp_mwi_check(event->event.lineStatusChanged.optional_device);
 }
 
 /*!

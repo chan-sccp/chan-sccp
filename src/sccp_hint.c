@@ -350,7 +350,7 @@ void sccp_hint_eventListener(const sccp_event_t * event)
 			sccp_hint_lineStatusChanged(event->event.deviceAttached.linedevice->line, event->event.deviceAttached.linedevice->device);
 			break;
 		case SCCP_EVENT_LINESTATUS_CHANGED:
-			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.device);
+			sccp_hint_lineStatusChanged(event->event.lineStatusChanged.line, event->event.lineStatusChanged.optional_device);
 			break;
 		case SCCP_EVENT_FEATURE_CHANGED:
 			sccp_hint_handleFeatureChangeEvent(event);

@@ -195,7 +195,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 
 		case SCCP_EVENT_FEATURE_CHANGED:
 			device = event->event.featureChanged.device;						// already retained in the event
-			linedevice = event->event.featureChanged.linedevice;					// already retained in the event
+			linedevice = event->event.featureChanged.optional_linedevice;				// either NULL or already retained in the event
 			sccp_feature_type_t featureType = event->event.featureChanged.featureType;
 
 			switch (featureType) {

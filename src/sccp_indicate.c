@@ -389,7 +389,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		memset(&event, 0, sizeof(sccp_event_t));
 		event.type = SCCP_EVENT_LINESTATUS_CHANGED;
 		event.event.lineStatusChanged.line = sccp_line_retain(l);
-		event.event.lineStatusChanged.device = sccp_device_retain(d);
+		event.event.lineStatusChanged.optional_device = d ? sccp_device_retain(d) : NULL;
 		event.event.lineStatusChanged.state = c->state;
 		sccp_event_fire(&event);
 	}
