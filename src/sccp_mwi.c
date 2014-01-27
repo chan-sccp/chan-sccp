@@ -23,7 +23,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define SCCP_MWI_CHECK_INTERVAL 30
 #endif
 void sccp_mwi_checkLine(sccp_line_t * line);
-void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l);
+void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice);
 void sccp_mwi_linecreatedEvent(const sccp_event_t * event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line);
@@ -109,7 +109,7 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 			SCCP_LIST_LOCK(&line->devices);
 			SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 				if (lineDevice && lineDevice->device) {
-					sccp_mwi_setMWILineStatus(lineDevice->device, line);
+					sccp_mwi_setMWILineStatus(lineDevice);
 				} else {
 					sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "error: null line device.\n");
 				}
@@ -210,8 +210,10 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 		return;
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
-	sccp_line_t *line = event->event.deviceAttached.linedevice->line;
-	sccp_device_t *device = event->event.deviceAttached.linedevice->device;
+	
+	sccp_linedevices_t 	*linedevice	= sccp_linedevice_retain(event->event.deviceAttached.linedevice);
+	sccp_line_t 		*line 		= linedevice->line;
+	sccp_device_t 		*device		= linedevice->device;
 
 	if (!line || !(device = sccp_device_retain(device))) {
 		pbx_log(LOG_ERROR, "get deviceAttachedEvent where one parameter is missing. device: %s, line: %s\n", DEV_ID_LOG(device), (line) ? line->name : "null");
@@ -220,8 +222,9 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 
 	device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
 	device->voicemailStatistic.newmsgs += line->voicemailStatistic.newmsgs;
-	sccp_mwi_setMWILineStatus(device, line);								/* set mwi-line-status */
+	sccp_mwi_setMWILineStatus(linedevice);								/* set mwi-line-status */
 	device = sccp_device_release(device);
+	linedevice = sccp_linedevice_release(linedevice);
 }
 
 /*!
@@ -412,9 +415,11 @@ void sccp_mwi_checkLine(sccp_line_t * line)
  * \param d SCCP Device
  * \param l SCCP Line
  */
-void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
+void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
 {
 	sccp_msg_t *msg;
+	sccp_line_t *l = lineDevice->line;
+	sccp_device_t *d = lineDevice->device;
 	int instance = 0;
 	uint8_t status = 0;
 	uint32_t mask;
@@ -425,7 +430,7 @@ void sccp_mwi_setMWILineStatus(sccp_device_t * d, sccp_line_t * l)
 
 	/* when l is defined we are switching on/off the button icon */
 	if (l) {
-		instance = sccp_device_find_index_for_line(d, l->name);
+		instance = lineDevice->lineInstance;
 		status = l->voicemailStatistic.newmsgs ? 1 : 0;
 	}
 
