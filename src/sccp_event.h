@@ -44,25 +44,25 @@ struct sccp_event {
 	 */
 	union sccp_event_data {
 		struct {
-			sccp_line_t *line;									/*!< SCCP Line */
+			sccp_line_t *line;									/*!< SCCP Line (required) */
 		} lineCreated;											/*!< Event Line Created Structure */
 		struct {
-			sccp_device_t *device;									/*!< SCCP Device */
+			sccp_device_t *device;									/*!< SCCP Device (required) */
 		} deviceRegistered;										/*!< Event Device Registered Structure */
 		struct {
-			sccp_linedevices_t *linedevice;								/*!< SCCP device line */
+			sccp_linedevices_t *linedevice;								/*!< SCCP device line (required) */
 		} deviceAttached;										/*!< Event Device Attached Structure */
 
 		struct {
-			sccp_device_t *device;									/*!< SCCP device */
-			sccp_linedevices_t *linedevice;								/*!< SCCP linedevice */
-			sccp_feature_type_t featureType;							/*!< what feature is changed */
+			sccp_device_t *device;									/*!< SCCP device (required) */
+			sccp_feature_type_t featureType;							/*!< what feature is changed (required) */
+			sccp_linedevices_t *linedevice;								/*!< SCCP linedevice (optional) */
 		} featureChanged;										/*!< Event feature changed Structure */
 
 		struct {
-			sccp_device_t *device;									/*!< SCCP device */
-			sccp_line_t *line;									/*!< SCCP line */
-			uint8_t state;										/*!< state */
+			sccp_line_t *line;									/*!< SCCP line (required) */
+			uint8_t state;										/*!< state (required) */
+			sccp_device_t *device;									/*!< SCCP device (optional) */
 		} lineStatusChanged;										/*!< Event feature changed Structure */
 
 	} event;												/*!< SCCP Event Data Union */
