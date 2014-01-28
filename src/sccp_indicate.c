@@ -498,12 +498,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 						}
 					}
 
-					if (EqualLinkedId) {
-							sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s -> %s: indicate onhook (instance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), instance, c->callid);
-							remoteDevice->indicate->onhook(remoteDevice, instance, c->callid);
-					} else {
-							sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s -> %s: indicate remote onhook (instance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), instance, c->callid);
-							remoteDevice->indicate->remoteOnhook(remoteDevice, linedevice, c);
+					if (!EqualLinkedId) {
+						sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s -> %s: indicate remote onhook (instance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), instance, c->callid);
+						remoteDevice->indicate->remoteOnhook(remoteDevice, linedevice, c);
 					}
 					break;
 
