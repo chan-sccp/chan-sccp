@@ -2777,7 +2777,7 @@ static void sccp_wrapper_asterisk_set_pbxchannel_linkedid(PBX_CHANNEL_TYPE * pbx
 static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel_t * channel)	 		\
 {														\
 	static const char *empty_channel_##_field = "--no-channel-" #_field "--";				\
-	if (channel->owner) {											\
+	if (channel && channel->owner) {											\
 		return channel->owner->_field;									\
 	}													\
 	return empty_channel_##_field;										\
@@ -2786,7 +2786,7 @@ static const char *sccp_wrapper_asterisk_get_channel_##_field(const sccp_channel
 #define DECLARE_PBX_CHANNEL_STRSET(_field)									\
 static void sccp_wrapper_asterisk_set_channel_##_field(const sccp_channel_t * channel, const char * _field)	\
 { 														\
-        if (channel->owner) {											\
+        if (channel && channel->owner) {											\
         	sccp_copy_string(channel->owner->_field, _field, sizeof(channel->owner->_field));		\
         }													\
 };
@@ -2807,28 +2807,28 @@ DECLARE_PBX_CHANNEL_STRGET(name)
 
 static void sccp_wrapper_asterisk_set_channel_linkedid(const sccp_channel_t * channel, const char *new_linkedid)
 {
-	if (channel->owner) {
+	if (channel && channel->owner) {
 		sccp_wrapper_asterisk_set_pbxchannel_linkedid(channel->owner, new_linkedid);
 	}
 }
 
 static void sccp_wrapper_asterisk_set_channel_call_forward(const sccp_channel_t * channel, const char *new_call_forward)
 {
-	if (channel->owner) {
+	if (channel && channel->owner) {
 		pbx_string_field_set(channel->owner, call_forward, new_call_forward);
 	}
 }
 
 static void sccp_wrapper_asterisk_set_channel_name(const sccp_channel_t * channel, const char *new_name)
 {
-	if (channel->owner) {
+	if (channel && channel->owner) {
 		pbx_string_field_set(channel->owner, name, new_name);
 	}
 }
 
 static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp_channel_t * channel)
 {
-	if (channel->owner) {
+	if (channel && channel->owner) {
 		return channel->owner->_state;
 	}
 	return 0;
@@ -2836,17 +2836,10 @@ static enum ast_channel_state sccp_wrapper_asterisk_get_channel_state(const sccp
 
 static const struct ast_pbx *sccp_wrapper_asterisk_get_channel_pbx(const sccp_channel_t * channel)
 {
-	if (channel->owner) {
+	if (channel && channel->owner) {
 		return channel->owner->pbx;
 	}
 	return NULL;
-}
-
-static void sccp_wrapper_asterisk_set_channel_tech_pvt(const sccp_channel_t * channel)
-{
-	if (channel->owner) {
-		//              channel->owner->tech_pvt = channel;
-	}
 }
 
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen)
@@ -3082,8 +3075,6 @@ sccp_pbx_cb sccp_pbx = {
 	getChannelAppl:			sccp_wrapper_asterisk_get_channel_appl,
 	getChannelState:		sccp_wrapper_asterisk_get_channel_state,
 	getChannelPbx:			sccp_wrapper_asterisk_get_channel_pbx,
-	setChannelTechPVT:		sccp_wrapper_asterisk_set_channel_tech_pvt,
-
 
 	set_nativeAudioFormats:		sccp_wrapper_asterisk18_setNativeAudioFormats,
 	set_nativeVideoFormats:		sccp_wrapper_asterisk18_setNativeVideoFormats,
@@ -3196,7 +3187,6 @@ struct sccp_pbx_cb sccp_pbx = {
 	.getChannelAppl			= sccp_wrapper_asterisk_get_channel_appl,
 	.getChannelState		= sccp_wrapper_asterisk_get_channel_state,
 	.getChannelPbx			= sccp_wrapper_asterisk_get_channel_pbx,
-	.setChannelTechPVT		= sccp_wrapper_asterisk_set_channel_tech_pvt,
 
 	.getRemoteChannel		= sccp_asterisk_getRemoteChannel,
 	.checkhangup			= sccp_wrapper_asterisk18_checkHangup,
