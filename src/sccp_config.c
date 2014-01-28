@@ -2069,22 +2069,22 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 		return FALSE;
 	}
 
-	sccp_configurationchange_t res = sccp_config_applyGlobalConfiguration(v);
-
 	// sccp_config_set_defaults(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
-
-	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
-		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
-		GLOB(pendingUpdate = 1);
-	} else {
-		GLOB(pendingUpdate = 0);
-	}
 
 	/* setup bindaddress */
 	if (!sccp_socket_getPort(&GLOB(bindaddr) )) {
 		struct sockaddr_in *in = (struct sockaddr_in *) &GLOB(bindaddr);
 		in->sin_port = ntohs(DEFAULT_SCCP_PORT);
 		GLOB(bindaddr).ss_family = AF_INET;
+	}
+	
+	sccp_configurationchange_t res = sccp_config_applyGlobalConfiguration(v);
+	
+	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
+		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
+		GLOB(pendingUpdate = 1);
+	} else {
+		GLOB(pendingUpdate = 0);
 	}
 
 	/* setup hostname -> externip */
