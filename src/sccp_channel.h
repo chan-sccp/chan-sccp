@@ -41,17 +41,17 @@ void sccp_channel_connect(sccp_channel_t * c);
 void sccp_channel_disconnect(sccp_channel_t * c);
 
 void sccp_channel_openReceiveChannel(sccp_channel_t * c);
-void sccp_channel_closeReceiveChannel(sccp_channel_t * c);
+void sccp_channel_closeReceiveChannel(sccp_channel_t * c, boolean_t KeepPortOpen);
 void sccp_channel_updateReceiveChannel(sccp_channel_t * c);
 void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel);
-void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel);
+void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen);
 void sccp_channel_updateMultiMediaReceiveChannel(sccp_channel_t * channel);
 
 void sccp_channel_startMediaTransmission(sccp_channel_t * c);
-void sccp_channel_stopMediaTransmission(sccp_channel_t * c);
+void sccp_channel_stopMediaTransmission(sccp_channel_t * c, boolean_t KeepPortOpen);
 void sccp_channel_updateMediaTransmission(sccp_channel_t * channel);
 void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
-void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel);
+void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen);
 void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel);
 
 void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channel_t *channel);

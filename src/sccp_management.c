@@ -20,6 +20,7 @@
 #include "sccp_config.h"
 #include "sccp_features.h"
 #include "sccp_actions.h"
+#include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2174 $")
 
@@ -242,6 +243,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 	int total = 0;
 	struct tm *timeinfo;
 	char regtime[25];
+        char clientAddress[INET6_ADDRSTRLEN];
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 
@@ -250,13 +252,20 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
 		timeinfo = localtime(&device->registrationTime);
+                
+                if(device->session){
+                        sccp_copy_string(clientAddress, sccp_socket_stringify(&device->session->sin), sizeof(clientAddress));
+                }else {
+                        sprintf(clientAddress, "--"); 
+                }
+                
 		strftime(regtime, sizeof(regtime), "%c", timeinfo);
 		astman_append(s, "Event: DeviceEntry\r\n%s", idtext);
 		astman_append(s, "ChannelType: SCCP\r\n");
 		astman_append(s, "ObjectId: %s\r\n", device->id);
 		astman_append(s, "ObjectType: device\r\n");
 		astman_append(s, "Description: %s\r\n", device->description);
-		astman_append(s, "IPaddress: %s\r\n", (device->session) ? pbx_inet_ntoa(device->session->sin.sin_addr) : "--");
+		astman_append(s, "IPaddress: %s\r\n", clientAddress);
 		astman_append(s, "Reg_Status: %s\r\n", registrationstate2str(device->registrationState));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
 		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");

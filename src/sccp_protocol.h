@@ -28,7 +28,6 @@
 #endif
 
 #include "sccp_labels.h"
-
 #include "sccp_enum_macro.h"
 #include "sccp_protocol_enums.hh"
 
@@ -1063,20 +1062,36 @@ typedef union {
 	 * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 52 49 4E 47 ............RING
 	 * 00000040 - 00 00 00 00                                     ....
 	 */
-	struct {
+/*
+                <field name="sid" type="typedef" subtype="Identifier" comment="" orig="Identifier sid"/>
+                <field name="stationIpAddr" type="uint32" comment="" orig="UINT32 stationIpAddr"/>
+                <field name="deviceType" type="enum" subtype="DeviceType" comment="" orig="DeviceType deviceType"/>
+                <field name="maxStreams" type="uint32" comment="" orig="UINT32 maxStreams"/>
+                <field name="activeStreams" type="uint32" comment="" orig="UINT32 activeStreams"/>
+                <field name="protocolVer" type="uint32" comment="" orig="UINT32 protocolVer"/>
+                <field name="maxConferences" type="uint32" comment="" orig="UINT32 maxConferences"/>
+                <field name="activeConferences" type="uint32" comment="" orig="UINT32 activeConferences"/>
+                <field name="macAddress" type="char" size="12" comment="" orig="char macAddress"/>
+                <field name="ipV4AddressScope" type="uint32" comment="" orig="UINT32 ipV4AddressScope"/>
+                <field name="maxNumberOfLines" type="uint32" comment="" orig="UINT32 maxNumberOfLines"/>
+                <field name="stationIpV6Addr" type="ipaddr" subtype="uint8" size="16" endianness="big" comment="" orig="UINT8 stationIpV6Addr"/>
+                <field name="ipV6AddressScope" type="uint32" comment="" orig="UINT32 ipV6AddressScope"/>
+                <field name="firmwareLoadName" type="char" size="32" comment="" orig="char firmwareLoadName"/>
+*/
+ 	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
-		uint32_t lel_stationIpAddr;									/*c0:a8:09:24=192.168.9.36 *//*!< Station IP Address */
+		uint32_t stationIpAddr;										/*c0:a8:09:24=192.168.9.36 *//*!< Station IP Address */
 		uint32_t lel_deviceType;									/*73:00:00:00=115 *//*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		uint32_t lel_maxStreams;									/*05:00:00:00=5 *//*!< Max Streams */
 		uint32_t lel_activeStreams;									/*00:00:00:00=0 *//*!< number of active streams */
 		uint32_t phone_features;									/*11:00:72:85   =17. *//*!< PhoneFeatures (ProtocolVersion + Features) */
-		uint32_t lel_sockettype;									/*01:00:00:00 *//*!< MacAddress if 0x00=ASCII, 0x01=HEX */
-		uint32_t lel_unknown1;										/*00:00:00:00 *//*!< Unknown */
-		uint8_t lel_bytes1[12];										/* *//*!< byte array */
-		uint32_t lel_unknown2;
-		uint32_t lel_maxButtons;
+		uint32_t lel_maxConferences;
+		uint32_t lel_activeConferences;									/*00:00:00:00 *//*!< Unknown */
+		uint8_t macAddress[12];										/* *//*!< byte array */
+		uint32_t lel_ipV4AddressScope;
+		uint32_t lel_maxNumberOfLines;
 		char ipv6Address[16];
-		uint32_t lel_unknown3;
+		uint32_t lel_ipV6AddressScope;
 		char loadInfo[32];
 
 		/* 7910:
@@ -1087,6 +1102,7 @@ typedef union {
 		   ce f1 00 00 // == (61092 / 206 / 241) 1668 dn-size 420
 		 */
 	} RegisterMessage;											/*!< Register Message Structure */
+
 
 	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
@@ -1856,7 +1872,7 @@ typedef union {
 				uint32_t lel_ssValue;								/*!< Simple String Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< only used with G.723 payload */
-				uint32_t lel_conferenceId1;							/*!< Conference ID 1 */
+				uint32_t lel_callReference;							/*!< Conference ID 1 */
 				uint32_t unknown1;								/*!< Unknown */
 				uint32_t unknown2;								/*!< Unknown */
 				uint32_t unknown3;								/*!< Unknown */
@@ -1904,7 +1920,7 @@ typedef union {
 				uint32_t lel_ssValue;								/*!< Simple String Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
-				uint32_t lel_conferenceId1;							/*!< Conference ID 1 */
+				uint32_t lel_callReference;							/*!< Conference ID 1 */
 				uint32_t lel_unknown2;								/*!< Unknown */
 				uint32_t lel_unknown3;								/*!< Unknown */
 				uint32_t lel_unknown4;								/*!< Unknown */
@@ -1924,21 +1940,65 @@ typedef union {
 				uint32_t lel_unknown18;								/*!< Unknown */
 				uint32_t lel_unknown19;								/*!< Unknown */
 			} v17;
+			
+			struct {
+				uint32_t lel_conferenceId;							/*!< Conference ID */
+				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
+				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
+				char bel_remoteIpAddr[16];							/*!< This field is apparently in big-endian
+														   format, even though most other fields are
+														   little-endian. */
+				uint32_t lel_remotePortNumber;							/*!< Remote Port Number */
+				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
+				uint32_t lel_payloadType;							/*!< Media_PayloadType */
+				uint32_t lel_precedenceValue;							/*!< Precedence Value */
+				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
+				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
+				uint32_t lel_callReference;							/*!< Conference ID 1 */
+				uint32_t lel_unknown2;								/*!< Unknown */
+				uint32_t lel_unknown3;								/*!< Unknown */
+				uint32_t lel_unknown4;								/*!< Unknown */
+				uint32_t lel_unknown5;								/*!< Unknown */
+				uint32_t lel_unknown6;								/*!< Unknown */
+				uint32_t lel_unknown7;								/*!< Unknown */
+				uint32_t lel_unknown8;								/*!< Unknown */
+				uint32_t lel_unknown9;								/*!< Unknown */
+				uint32_t lel_unknown10;								/*!< Unknown */
+				uint32_t lel_unknown11;								/*!< Unknown */
+				uint32_t lel_unknown12;								/*!< Unknown */
+				uint32_t lel_unknown13;								/*!< Unknown */
+				uint32_t lel_unknown14;								/*!< Unknown */
+				uint32_t lel_unknown15;								/*!< Unknown */
+				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is set to 0x0A) */
+				uint32_t lel_unknown18;								/*!< Unknown */
+				uint32_t lel_unknown19;								/*!< Unknown */
+				uint32_t lel_unknown20;								/*!< Unknown */
+				uint32_t lel_unknown21;								/*!< Unknown */
+				uint32_t lel_unknown22;								/*!< Unknown */
+				uint32_t lel_unknown23;								/*!< Unknown */
+				uint32_t lel_unknown24;								/*!< Unknown */
+				uint32_t lel_unknown25;								/*!< Unknown */
+				uint32_t lel_unknown26;								/*!< Unknown */
+				uint32_t lel_unknown27;								/*!< Unknown */
+				uint32_t lel_unknown28;								/*!< Unknown */
+			} v22;
 		};
 	} StartMediaTransmission;										/*!< Start Media Transmission Structure */
 
 	struct {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
-		uint32_t lel_conferenceId1;									/*!< Conference ID 1 */
-		uint32_t lel_unknown1;										/*!< Unknown (proto v17) */
+		uint32_t lel_callReference;									/*!< Conference ID 1 */
+		uint32_t lel_portHandlingFlag;									/*!< 0 = Close Port, 1 = Keep Port Open */
 	} StopMediaTransmission;										/*!< Stop Media Transmission Structure */
 
 	struct {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
-		uint32_t lel_conferenceId1;									/*!< Conference ID 1 */
-		uint32_t lel_unknown1;										/*!< Unknown (proto v17) */
+		uint32_t lel_callReference;									/*!< Conference ID 1 */
+		uint32_t lel_portHandlingFlag;									/*!< 0 = Close Port, 1 = Keep Port Open */
 	} StopMultiMediaTransmission;
 
 	struct {
@@ -2179,11 +2239,13 @@ typedef union {
 	struct {
 		uint32_t lel_conferenceID;									/*!< Conference ID */
 		uint32_t lel_passThruPartyID;									/*!< Pass Through Party ID */
+		uint32_t lel_callReference;
 	} StopMulticastMediaReception;										/*!< Stop Multicast Media Reception Message Structure */
 
 	struct {
 		uint32_t lel_conferenceID;									/*!< Conference ID */
 		uint32_t lel_passThruPartyID;									/*!< Pass Through Party ID */
+		uint32_t lel_callReference;
 	} StopMulticastMediaTransmission;									/*!< Stop Multicast Media Transmission Message Structure */
 
 	struct {
@@ -2205,7 +2267,7 @@ typedef union {
 				uint32_t lel_vadValue;								/*!< VAD Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
-				uint32_t lel_conferenceId1;							/*!< Conference ID */
+				uint32_t lel_callReference;							/*!< Conference ID */
 				uint32_t unknown1;								/*!< Unknown */
 				uint32_t unknown2;								/*!< Unknown */
 				uint32_t unknown3;								/*!< Unknown */
@@ -2227,7 +2289,7 @@ typedef union {
 				uint32_t unknown15;
 				uint32_t unknown16;
 				char bel_remoteIpAddr[16];
-				uint32_t lel_unknown17;								/*!< this is always 0xFA0 */
+				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
 			} v3;
 
 			/*      OpenReceiveChannel v17
@@ -2249,7 +2311,7 @@ typedef union {
 				uint32_t lel_vadValue;								/*!< VAD Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
-				uint32_t lel_conferenceId1;							/*!< Conference ID */
+				uint32_t lel_callReference;							/*!< Conference ID */
 				uint32_t unknown1;								/*!< Unknown */
 				uint32_t unknown2;								/*!< Unknown */
 				uint32_t unknown3;								/*!< Unknown */
@@ -2270,9 +2332,52 @@ typedef union {
 				uint32_t unknown16;								/*!< Unknown */
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
 				char bel_remoteIpAddr[16];							/*!< Remote IP Address */
-				uint32_t lel_unknown17;								/*!< Unknown (this is always 0xFA0) */
-				uint32_t unknown18;								/*!< Unknown */
+				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
+				uint32_t lel_requestedIpAddrType;						/*!< Unknown */
 			} v17;
+			
+			struct {
+				uint32_t lel_conferenceId;							/*!< Conference ID */
+				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
+				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
+				uint32_t lel_payloadType;							/*!< Media_Payload Type */
+				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
+				/* protocol version 5 fields */
+				uint32_t lel_callReference;							/*!< Conference ID */
+				uint32_t unknown1;								/*!< Unknown */
+				uint32_t unknown2;								/*!< Unknown */
+				uint32_t unknown3;								/*!< Unknown */
+				uint32_t unknown4;								/*!< Unknown */
+				uint32_t unknown5;								/*!< Unknown */
+				uint32_t unknown6;								/*!< Unknown */
+				uint32_t unknown7;								/*!< Unknown */
+				uint32_t unknown8;								/*!< Unknown */
+				uint32_t unknown9;								/*!< Unknown */
+				uint32_t unknown10;								/*!< Unknown */
+				uint32_t unknown11;								/*!< Unknown */
+				uint32_t unknown12;								/*!< Unknown */
+				uint32_t unknown13;								/*!< Unknown */
+				uint32_t unknown14;								/*!< Unknown */
+				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
+				uint32_t unknown15;								/*!< Unknown */
+				uint32_t unknown16;								/*!< Unknown */
+				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
+				char bel_remoteIpAddr[16];							/*!< Remote IP Address */
+				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
+				uint32_t lel_requestedIpAddrType;						/*!< Unknown (1 with ipv6) */
+				uint32_t unknown19;								/*!< Unknown */
+				uint32_t unknown20;								/*!< Unknown */
+				uint32_t unknown21;								/*!< Unknown */
+				uint32_t unknown22;								/*!< Unknown */
+				uint32_t unknown23;								/*!< Unknown */
+				uint32_t unknown24;								/*!< Unknown */
+				uint32_t unknown25;								/*!< Unknown */
+				uint32_t unknown26;								/*!< Unknown */
+				uint32_t unknown27;								/*!< Unknown */
+				uint32_t unknown28;								/*!< Unknown */
+			} v22;
 		};
 	} OpenReceiveChannel;											/*!< Open Receive Channel Message Structure */
 
@@ -2280,14 +2385,16 @@ typedef union {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
 		/* version 5 fields */
-		uint32_t lel_conferenceId1;									/*!< Conference ID 1 */
+		uint32_t lel_callReference;									/*!< Conference ID 1 */
+		uint32_t lel_portHandlingFlag;									/*!< 0 = Close Port, 1 = Keep Port Open */
 	} CloseReceiveChannel;											/*!< Close Receive Channel */
 
 	struct {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
 		/* version 5 fields */
-		uint32_t lel_conferenceId1;									/*!< Conference ID 1 */
+		uint32_t lel_callReference;									/*!< Conference ID 1 */
+		uint32_t lel_portHandlingFlag;									/*!< 0 = Close Port, 1 = Keep Port Open */
 	} CloseMultiMediaReceiveChannel;
 
 	struct {												// Request Statistics from Phone
@@ -3180,12 +3287,12 @@ typedef struct {
 	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message);
 	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
-	void (*const sendCallforwardMessage) (const sccp_device_t * device, const void *linedevice);
+	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t *linedevice);
 	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendOpenReceiveChannel) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
-	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate, struct sockaddr_in sin);
+	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate);
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
 
 	/* parse received messages */
@@ -3200,3 +3307,5 @@ uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);
 
 #endif														/* __SCCP_PROTOCOL_H */
+
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

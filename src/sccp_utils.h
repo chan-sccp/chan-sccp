@@ -110,7 +110,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * e);
 int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsigned int softkey);
 
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr);
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin);
+sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
@@ -121,7 +121,7 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 #ifdef HAVE_LIBGC
 void gc_warn_handler(char *msg, GC_word p);
 #endif
-int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1);
+int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1);
 gcc_inline size_t sccp_strlen(const char *data);
 gcc_inline boolean_t sccp_strlen_zero(const char *data);
 gcc_inline boolean_t sccp_strequals(const char *data1, const char *data2);
@@ -130,11 +130,13 @@ int sccp_strIsNumeric(const char *s);
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
 
 void sccp_free_ha(struct sccp_ha *ha);
-struct sccp_ha *sccp_duplicate_ha_list(struct sccp_ha *original);
-int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin);
+int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
+int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
+int sccp_sockaddr_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b);
+int sccp_sockaddr_split_hostport(char *str, char **host, char **port, int flags);
+int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags);
 struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error);
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
 void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
-int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct sockaddr_storage *addr2, socklen_t len2);
 int sccp_strversioncmp(const char *s1, const char *s2);
 #endif

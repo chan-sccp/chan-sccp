@@ -207,14 +207,14 @@ static void sccp_device_startStream(const sccp_device_t *device, const char *add
 /*!
  * \brief Check device ipaddress against the ip ACL (permit/deny and permithosts entries)
  */
-static boolean_t sccp_device_checkACL(sccp_device_t * device)
+static boolean_t sccp_device_checkACL(sccp_device_t *device)
 {
 
-	struct sockaddr_in sin;
+	struct sockaddr_storage sas;
 	boolean_t matchesACL = FALSE;
 
 	/* get current socket information */
-	sccp_session_getSocketAddr(device, &sin);
+	memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
 
 	/* no permit deny information */
 	if (!device->ha) {
@@ -222,7 +222,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 		return TRUE;
 	}
 
-	if (sccp_apply_ha(device->ha, &sin) != AST_SENSE_ALLOW) {
+	if (sccp_apply_ha(device->ha, &sas) != AST_SENSE_ALLOW) {
 		// checking permithosts 
 		struct ast_str *ha_buf = pbx_str_alloca(512);
 
@@ -230,6 +230,8 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...\n", device->id, pbx_str_buffer(ha_buf));
 
+		/*! \todo check permithosts with IPv6 */
+/*
 		struct ast_hostent ahp;
 		struct hostent *hp;
 		sccp_hostname_t *permithost;
@@ -250,6 +252,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
+*/
 	} else {
 		matchesACL = TRUE;
 	}
@@ -904,6 +907,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 
 	d->registrationState = opt;
 
+	/* Handle registration completion. */
 	if (opt == SKINNY_DEVICE_RS_OK) {
 		/* this message is mandatory to finish process */
 		REQ(msg, SetLampMessage);
@@ -916,7 +920,6 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			sccp_dev_send(d, msg);
 		}
 		
-		/* Handle registration completion. */
 		if (!d->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d->session, d, NULL);
@@ -1596,10 +1599,21 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Line: %s\n", device->id, l->name);
 
+	//! \todo check for forward status during registration -MC
+	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
+	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
+		if (!device->linesRegistered) {
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
+			sccp_handle_AvailableLines(device->session, device, NULL);
+			device->linesRegistered = TRUE;
+		}
+	}
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
 		sccp_linedevice_release(linedevice);
+	} else {
+		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
 	}
 }
 

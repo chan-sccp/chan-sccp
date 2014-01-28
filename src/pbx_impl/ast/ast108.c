@@ -25,6 +25,7 @@
 #include "../../sccp_appfunctions.h"
 #include "../../sccp_management.h"
 #include "../../sccp_rtp.h"
+#include "../../sccp_socket.h"
 #include "ast108.h"
 #include <signal.h>
 
@@ -1855,8 +1856,10 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			break;
 		}
 
-		PBX_RTP_TYPE *instance = { 0, };
-		struct sockaddr_in sin = { 0, };
+
+		PBX_RTP_TYPE * instance = {0,};
+        struct sockaddr_storage sas = {0,};
+//		struct sockaddr_in sin = { 0, };
 		struct ast_sockaddr sin_tmp;
 		boolean_t directmedia = FALSE;
 
@@ -1867,34 +1870,52 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 		} else {
 			instance = trtp;
 		}
+		
+		if (d->directrtp && !d->nat && !nat_active) {						// asume directrtp
+		        ast_rtp_instance_get_remote_address(instance, &sin_tmp);
+                	memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+		        //ast_sockaddr_to_sin(&sin_tmp, &sin);
+		        if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {				// check remote sin against local device acl (to match netmask)
+				directmedia=TRUE;
 
-		if (d->directrtp && !d->nat && !nat_active) {							// asume directrtp
-			ast_rtp_instance_get_remote_address(instance, &sin_tmp);
-			ast_sockaddr_to_sin(&sin_tmp, &sin);
-			if (sccp_apply_ha(d->ha, &sin) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
-				directmedia = TRUE;
 			}
 		}
-		if (!directmedia) {										// fallback to indirectrtp
-			ast_rtp_instance_get_local_address(instance, &sin_tmp);
-			ast_sockaddr_to_sin(&sin_tmp, &sin);
-			sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
+
+		if (!directmedia) {									// fallback to indirectrtp
+		        ast_rtp_instance_get_local_address(instance, &sin_tmp);
+//		        ast_sockaddr_to_sin(&sin_tmp, &sin);
+//		        sin.sin_addr.s_addr = sin.sin_addr.s_addr ? sin.sin_addr.s_addr : d->session->ourip.s_addr;
+                	memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
+                	if (sccp_socket_is_any_addr(&sas)) {
+                               	if (sccp_socket_is_IPv4(&sas)) {
+                                        ((struct sockaddr_in6 *)&sas)->sin6_addr = ((struct sockaddr_in6 *)&d->session->ourip)->sin6_addr;
+                                } else {        
+                                        ((struct sockaddr_in *)&sas)->sin_addr = ((struct sockaddr_in *)&d->session->ourip)->sin_addr;
+                                }
+                	}
 		}
 
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_update_rtp_peer) new remote rtp ip = '%s:%d'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, ast_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), S_COR(d->directrtp, "yes", "no"), S_COR(!d->nat, "yes", "no"), S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
-		    );
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n",  
+				c->currentDeviceId, 
+				sccp_socket_stringify(&sas),
+				S_COR(d->directrtp, "yes", "no"), 
+				S_COR(!d->nat,"yes","no"), 
+				S_COR(!nat_active,"yes","no"),
+				S_COR(directmedia,"yes","no"),
+				S_COR(directmedia,"yes","no")
+			);
+		
+		if (rtp) {										// send peer info to phone
+			sccp_rtp_set_peer(c, &c->rtp.audio, &sas);
 
-		if (rtp) {											// send peer info to phone
-			sccp_rtp_set_peer(c, &c->rtp.audio, &sin);
 			c->rtp.audio.directMedia = directmedia;
 		} else if (vrtp) {
-			sccp_rtp_set_peer(c, &c->rtp.video, &sin);
+			sccp_rtp_set_peer(c, &c->rtp.video, &sas);
 			c->rtp.audio.directMedia = directmedia;
 		} else {
-			//sccp_rtp_set_peer(c, &c->rtp.text, &sin);
+			//sccp_rtp_set_peer(c, &c->rtp.text, &sas);
 			//c->rtp.audio.directMedia = directmedia;
 		}
-
 	} while (0);
 
 	/* Need a return here to break the bridge */
@@ -2171,14 +2192,14 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 
 	s = d->session;
 
-	//      next should be replaced by
-	//      ast_sockaddr_from_sin(&sock, s->ourip);
-	//      in ipv6, but for now, build a temp sin based on s->ourip
-	struct sockaddr_in sin = { 0, };
-	sin.sin_family = AF_INET;
-	sin.sin_addr = s->ourip;
-	sin.sin_port = GLOB(bindaddr.sin_port);
-	ast_sockaddr_from_sin(&sock, &sin);
+	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
+	if (GLOB(bindaddr).ss_family == AF_INET6) {
+		sock.ss.ss_family = AF_INET6;
+		sock.len = sizeof(struct sockaddr_in6);
+	} else {
+		sock.ss.ss_family = AF_INET;
+		sock.len = sizeof(struct sockaddr_in);
+	}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
 	if ((c->rtp.audio.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {
@@ -2211,9 +2232,6 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	if (skinny_codecs2pbx_codec_pref(c->preferences.audio, &astCodecPref)) {
 		ast_rtp_codecs_packetization_set(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, &astCodecPref);
 	}
-	//char pref_buf[128];
-	//      ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
-	//      sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pref: %s\n", c->line->name, c->callid, pref_buf);
 	ast_rtp_instance_set_qos(c->rtp.audio.rtp, d->audio_tos, d->audio_cos, "SCCP RTP");
 
 	/* add payload mapping for skinny codecs */
@@ -2244,14 +2262,14 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 		return FALSE;
 
 	s = d->session;
-	//      next should be replaced by
-	//      ast_sockaddr_from_sin(&sock, &s->ourip);
-	//      in ipv6, but for now, build a temp sin based on s->ourip
-	struct sockaddr_in sin = { 0, };
-	sin.sin_family = AF_INET;
-	sin.sin_addr = s->ourip;
-	sin.sin_port = GLOB(bindaddr.sin_port);
-	ast_sockaddr_from_sin(&sock, &sin);
+	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
+	if (GLOB(bindaddr).ss_family == AF_INET6) {
+		sock.ss.ss_family = AF_INET6;
+		sock.len = sizeof(struct sockaddr_in6);
+	} else {
+		sock.ss.ss_family = AF_INET;
+		sock.len = sizeof(struct sockaddr_in);
+	}
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
 	if ((c->rtp.video.rtp = ast_rtp_instance_new("asterisk", sched, &sock, NULL))) {

@@ -16,6 +16,7 @@
 #include "common.h"
 #include "sccp_device.h"
 #include "sccp_utils.h"
+#include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
@@ -524,13 +525,13 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
  * 
  */
 //sccp_device_t *sccp_device_find_byipaddress(unsigned long s_addr)
-sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_in sin)
+sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sas)
 {
 	sccp_device_t *d = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d->session && d->session->sin.sin_addr.s_addr == sin.sin_addr.s_addr && d->session->sin.sin_port == d->session->sin.sin_port) {
+		if (d->session && IN6_ARE_ADDR_EQUAL(&d->session->sin,  sas) == 0 ) {
 			d = sccp_device_retain(d);
 			break;
 		}
@@ -992,12 +993,18 @@ void gc_warn_handler(char *msg, GC_word p)
  * \retval 0 on diff
  * \retval 1 on equal
  */
-int socket_equals(struct sockaddr_in *s0, struct sockaddr_in *s1)
+int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1)
 {
-	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
-		return 0;
+//	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
+//		return 0;
+//	}
+
+
+	if (IN6_ARE_ADDR_EQUAL(s0, s1) && s0->ss_family == s1->ss_family ){
+		return 1;
 	}
-	return 1;
+
+	return 0;
 }
 
 /*!
@@ -1191,6 +1198,69 @@ void sccp_free_ha(struct sccp_ha *ha)
 	}
 }
 
+/* Helper functions for ipv6 / apply_ha / append_ha */
+/*!
+ * \brief
+ * Isolate a 32-bit section of an IPv6 address
+ *
+ * An IPv6 address can be divided into 4 32-bit chunks. This gives
+ * easy access to one of these chunks.
+ *
+ * \param sin6 A pointer to a struct sockaddr_in6
+ * \param index Which 32-bit chunk to operate on. Must be in the range 0-3.
+ */
+#define V6_WORD(sin6, index) ((uint32_t *)&((sin6)->sin6_addr))[(index)]
+
+
+/*!
+ * \brief
+ * Apply a netmask to an address and store the result in a separate structure.
+ *
+ * When dealing with IPv6 addresses, one cannot apply a netmask with a simple
+ * logical and operation. Furthermore, the incoming address may be an IPv4 address
+ * and need to be mapped properly before attempting to apply a rule.
+ *
+ * \param addr The IP address to apply the mask to.
+ * \param netmask The netmask configured in the host access rule.
+ * \param result The resultant address after applying the netmask to the given address
+ * \retval 0 Successfully applied netmask
+ * \reval -1 Failed to apply netmask
+ */
+static int apply_netmask(const struct sockaddr_storage *netaddr, const struct sockaddr_storage *netmask, struct sockaddr_storage *result)
+{
+        int res = 0;  
+
+	char *straddr = ast_strdupa(sccp_socket_stringify_addr(netaddr));
+	char *strmask = ast_strdupa(sccp_socket_stringify_addr(netmask));
+	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (apply_netmask) applying netmask to %s/%s\n", straddr, strmask);
+
+	if (netaddr->ss_family == AF_INET) {
+		struct sockaddr_in result4 = {0, };
+		struct sockaddr_in *addr4 = (struct sockaddr_in *) netaddr;
+		struct sockaddr_in *mask4 = (struct sockaddr_in *) netmask;
+		result4.sin_family = AF_INET; 
+		result4.sin_addr.s_addr = addr4->sin_addr.s_addr & mask4->sin_addr.s_addr;
+	        memcpy(result, &result4, sizeof(result4));
+        } else if (netaddr->ss_family == AF_INET6) {
+		struct sockaddr_in6 result6 = {0, };
+		struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *) netaddr;
+		struct sockaddr_in6 *mask6 = (struct sockaddr_in6 *) netmask;
+		int i;
+		result6.sin6_family = AF_INET6; 
+		for (i = 0; i < 4; ++i) {
+			V6_WORD(&result6, i) = V6_WORD(addr6, i) & V6_WORD(mask6, i);
+		}
+	        memcpy(result, &result6, sizeof(result6));
+        } else {
+		pbx_log(LOG_NOTICE, "SCCP: (apply_netmask) Unsupported address scheme\n");
+                /* Unsupported address scheme */
+                res = -1;
+        }
+        sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (apply_netmask) result applied netmask %s\n", sccp_socket_stringify_addr(result));
+
+        return res;
+}
+
 /*!
  * \brief Apply a set of rules to a given IP address
  *
@@ -1199,21 +1269,217 @@ void sccp_free_ha(struct sccp_ha *ha)
  * \retval AST_SENSE_ALLOW The IP address passes our ACL
  * \retval AST_SENSE_DENY The IP address fails our ACL  
  */
-int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
+int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr)
+{
+	return sccp_apply_ha_default(ha, addr, AST_SENSE_ALLOW);
+}
+
+/*!
+ * \brief Apply a set of rules to a given IP address
+ *
+ * \details
+ * The list of host access rules is traversed, beginning with the
+ * input rule. If the IP address given matches a rule, the "sense"
+ * of that rule is used as the return value. Note that if an IP
+ * address matches multiple rules that the last one matched will be
+ * the one whose sense will be returned.
+ *
+ * \param ha The head of the list of host access rules to follow
+ * \param addr An sockaddr_storage whose address is considered when matching rules
+ * \retval AST_SENSE_ALLOW The IP address passes our ACL
+ * \retval AST_SENSE_DENY The IP address fails our ACL
+ */
+int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue)
 {
 	/* Start optimistic */
-	int res = AST_SENSE_DENY;
+	int res = defaultValue;
+	const struct sccp_ha *current_ha;
 
-	while (ha) {
+	for (current_ha = ha; current_ha; current_ha = current_ha->next) {
+
+
+		struct sockaddr_storage result;
+		struct sockaddr_storage mapped_addr;
+		const struct sockaddr_storage *addr_to_use;
+		if (sccp_socket_is_IPv4(&ha->netaddr)) {
+			if (sccp_socket_is_IPv6(addr)) {
+				if (sccp_socket_is_mapped_IPv4(addr)) {
+                                        if (!sccp_socket_ipv4_mapped(addr, &mapped_addr)) {
+                                                pbx_log(LOG_ERROR, "%s provided to ast_sockaddr_ipv4_mapped could not be converted. That shouldn't be possible\n", sccp_socket_stringify_addr(addr));
+                                                continue;
+                                        }
+					addr_to_use = &mapped_addr;
+				} else {
+					/* An IPv4 ACL does not apply to an IPv6 address */
+					continue;
+				}
+			} else {
+				/* Address is IPv4 and ACL is IPv4. No biggie */
+				addr_to_use = addr;
+			}
+		} else {
+			if (sccp_socket_is_IPv6(addr) && !sccp_socket_is_mapped_IPv4(addr)) {
+				addr_to_use = addr;
+			} else {
+				/* Address is IPv4 or IPv4 mapped but ACL is IPv6. Skip */
+				continue;
+			}
+		}
+//		char *straddr = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
+//		char *strmask = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
+//		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s:%s/%s\n", AST_SENSE_DENY == current_ha->sense ? "deny" : "permit", straddr, strmask);
+
 		/* For each rule, if this address and the netmask = the net address
 		   apply the current rule */
-		if ((sin->sin_addr.s_addr & ha->netmask.s_addr) == ha->netaddr.s_addr) {
-			res = ha->sense;
+		if (apply_netmask(addr_to_use, &current_ha->netmask, &result)) {
+			/* Unlikely to happen since we know the address to be IPv4 or IPv6 */
+			continue;
 		}
-		ha = ha->next;
+		if (sccp_socket_cmp_addr(&result, &current_ha->netaddr) == 0) {
+//			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: result: %s\n", sccp_socket_stringify_addr(&result));
+//			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "SCCP: apply_ha_default: current_ha->netaddr: %s\n", sccp_socket_stringify_addr(&current_ha->netaddr));
+			res = current_ha->sense;
+		}
 	}
 	return res;
 }
+
+/*!
+ * \brief
+ * Parse an IPv4 or IPv6 address string.
+ *
+ * \details
+ * Parses a string containing an IPv4 or IPv6 address followed by an optional
+ * port (separated by a colon) into a struct ast_sockaddr. The allowed formats
+ * are the following:
+ *
+ * a.b.c.d
+ * a.b.c.d:port
+ * a:b:c:...:d 
+ * [a:b:c:...:d]
+ * [a:b:c:...:d]:port
+ *
+ * Host names are NOT allowed.
+ *
+ * \param[out] addr The resulting ast_sockaddr. This MAY be NULL from 
+ * functions that are performing validity checks only, e.g. ast_parse_arg().
+ * \param str The string to parse
+ * \param flags If set to zero, a port MAY be present. If set to
+ * PARSE_PORT_IGNORE, a port MAY be present but will be ignored. If set to
+ * PARSE_PORT_REQUIRE, a port MUST be present. If set to PARSE_PORT_FORBID, a
+ * port MUST NOT be present.
+ *
+ * \retval 1 Success
+ * \retval 0 Failure
+ */
+int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags)
+{
+        struct addrinfo hints;
+        struct addrinfo *res;
+        char *s;
+        char *host;
+        char *port;
+        int     e;
+
+        s = sccp_strdupa(str);
+        if (!sccp_socket_split_hostport(s, &host, &port, flags)) {
+                return 0;
+        }
+
+        memset(&hints, 0, sizeof(hints));
+        /* Hint to get only one entry from getaddrinfo */
+        hints.ai_socktype = SOCK_DGRAM;
+
+#ifdef AI_NUMERICSERV
+        hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
+#else
+        hints.ai_flags = AI_NUMERICHOST;
+#endif
+        if ((e = getaddrinfo(host, port, &hints, &res))) {
+                if (e != EAI_NONAME) { /* if this was just a host name rather than a ip address, don't print error */
+                        pbx_log(LOG_ERROR, "getaddrinfo(\"%s\", \"%s\", ...): %s\n",
+                                host, S_OR(port, "(null)"), gai_strerror(e));
+                }
+                return 0;
+        }
+
+        /*
+         * I don't see how this could be possible since we're not resolving host
+         * names. But let's be careful...
+         */
+        if (res->ai_next != NULL) {
+                pbx_log(LOG_WARNING, "getaddrinfo() returned multiple "
+                        "addresses. Ignoring all but the first.\n");   
+        }
+
+        if (addr) {
+                memcpy(addr, res->ai_addr, (res->ai_family == AF_INET6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in));
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_sockaddr_storage_parse) addr:%s\n", sccp_socket_stringify_addr(addr));
+        }
+
+        freeaddrinfo(res);
+        return 1;
+}
+
+/*!
+ * \brief
+ * Parse a netmask in CIDR notation
+ *
+ * \details
+ * For a mask of an IPv4 address, this should be a number between 0 and 32. For
+ * a mask of an IPv6 address, this should be a number between 0 and 128. This
+ * function creates an IPv6 sockaddr_storage from the given netmask. For masks of
+ * IPv4 addresses, this is accomplished by adding 96 to the original netmask.   
+ *
+ * \param[out] addr The sockaddr_stroage produced from the CIDR netmask
+ * \param is_v4 Tells if the address we are masking is IPv4.
+ * \param mask_str The CIDR mask to convert
+ * \retval -1 Failure
+ * \retval 0 Success
+ */
+static int parse_cidr_mask(struct sockaddr_storage *addr, int is_v4, const char *mask_str)
+{
+        int mask;
+
+        if (sscanf(mask_str, "%30d", &mask) != 1) {
+                return -1;
+        }
+        if (is_v4) {
+                struct sockaddr_in sin = {0,};
+                if (mask < 0 || mask > 32) {
+                        return -1;
+                }
+                sin.sin_family = AF_INET;
+                /* If mask is 0, then we already have the
+                 * appropriate all 0s address in sin from
+                 * the above memset.
+                 */
+                if (mask != 0) {
+                        sin.sin_addr.s_addr = htonl(0xFFFFFFFF << (32 - mask));
+                }
+                memcpy(addr, &sin, sizeof(sin));
+        } else {
+                struct sockaddr_in6 sin6={0,};
+                int i;
+                if (mask < 0 || mask > 128) {
+                        return -1;
+                }
+                sin6.sin6_family = AF_INET6;
+                for (i = 0; i < 4; ++i) {
+                        /* Once mask reaches 0, we don't have
+                         * to explicitly set anything anymore
+                         * since sin6 was zeroed out already
+                         */
+                        if (mask > 0) {
+                                V6_WORD(&sin6, i) = htonl(0xFFFFFFFF << (mask < 32 ? (32 - mask) : 0));
+                                mask -= mask < 32 ? mask : 32;
+                        }
+                }
+                memcpy(addr, &sin6, sizeof(sin6));
+        }
+        return 0;
+}
+
 
 /*!
  * \brief Add a new rule to a list of HAs
@@ -1230,11 +1496,11 @@ int sccp_apply_ha(struct sccp_ha *ha, struct sockaddr_in *sin)
 struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error)
 {
 	struct sccp_ha *ha;
-	char *nm;
 	struct sccp_ha *prev = NULL;
 	struct sccp_ha *ret;
-	int x;
-	char *tmp = sccp_strdupa(stuff);
+	char *tmp = ast_strdupa(stuff);
+	char *address = NULL, *mask = NULL;
+	int addr_is_v4;
 
 	ret = path;
 	while (path) {
@@ -1242,58 +1508,92 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		path = path->next;
 	}
 
-	if (!(ha = sccp_calloc(1, sizeof(*ha)))) {
+	if (!(ha = ast_calloc(1, sizeof(*ha)))) {
 		if (error) {
 			*error = 1;
 		}
 		return ret;
 	}
-	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "start parsing ha sense: %s, stuff: %s \n", sense, stuff);
-	if (!(nm = strchr(tmp, '/'))) {
-		/* assume /32. Yes, htonl does not do anything for this particular mask
-		   but we better use it to show we remember about byte order */
-		ha->netmask.s_addr = htonl(0xFFFFFFFF);
-	} else {
-		*nm = '\0';
-		nm++;
 
-		if (!strchr(nm, '.')) {
-			if ((sscanf(nm, "%30d", &x) == 1) && (x >= 0) && (x <= 32)) {
-				if (x == 0) {
-					/* This is special-cased to prevent unpredictable
-					 * behavior of shifting left 32 bits
-					 */
-					ha->netmask.s_addr = 0;
-				} else {
-					ha->netmask.s_addr = htonl(0xFFFFFFFF << (32 - x));
-				}
-			} else {
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "Invalid CIDR in %s\n", stuff);
-				sccp_free(ha);
-				if (error) {
-					*error = 1;
-				}
-				return ret;
-			}
-		} else if (!inet_aton(nm, &ha->netmask)) {
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "Invalid mask in %s\n", stuff);
-			sccp_free(ha);
+	address = strsep(&tmp, "/");
+	if (!address) {
+		address = tmp;
+	} else {
+		mask = tmp;
+	}
+	if (!sccp_sockaddr_storage_parse(&ha->netaddr, address, PARSE_PORT_FORBID)) {
+		pbx_log(LOG_WARNING, "Invalid IP address: %s\n", address);
+		sccp_free_ha(ha);
+		if (error) {
+			*error = 1;
+		}
+		return ret;
+	}
+/*
+        sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) netaddr:%s\n", sccp_socket_stringify_addr(&ha->netaddr));
+*/
+	/* If someone specifies an IPv4-mapped IPv6 address,
+	 * we just convert this to an IPv4 ACL
+	 */
+	if (sccp_socket_ipv4_mapped(&ha->netaddr, &ha->netaddr)) {
+		pbx_log(LOG_NOTICE, "IPv4-mapped ACL network address specified. "
+				"Converting to an IPv4 ACL network address.\n");
+	}
+
+	addr_is_v4 = sccp_socket_is_IPv4(&ha->netaddr);
+
+	if (!mask) {
+		parse_cidr_mask(&ha->netmask, addr_is_v4, addr_is_v4 ? "32" : "128");
+	} else if (strchr(mask, ':') || strchr(mask, '.')) {
+		int mask_is_v4;
+		/* Mask is of x.x.x.x or x:x:x:x:x:x:x:x variety */
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) mask:%s\n", mask);
+		if (!sccp_sockaddr_storage_parse(&ha->netmask, mask, PARSE_PORT_FORBID)) {
+			pbx_log(LOG_WARNING, "Invalid netmask: %s\n", mask);
+			sccp_free_ha(ha);
 			if (error) {
 				*error = 1;
 			}
 			return ret;
 		}
-	}
-
-	if (!inet_aton(tmp, &ha->netaddr)) {
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "Invalid IP address in %s\n", stuff);
-		sccp_free(ha);
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: (sccp_append_ha) strmask:%s, netmask:%s\n", mask, sccp_socket_stringify_addr(&ha->netmask));
+		/* If someone specifies an IPv4-mapped IPv6 netmask,
+		 * we just convert this to an IPv4 ACL
+		 */
+		if (sccp_socket_ipv4_mapped(&ha->netmask, &ha->netmask)) {
+			ast_log(LOG_NOTICE, "IPv4-mapped ACL netmask specified. "
+					"Converting to an IPv4 ACL netmask.\n");
+		}
+		mask_is_v4 = sccp_socket_is_IPv4(&ha->netmask);
+		if (addr_is_v4 ^ mask_is_v4) {
+			pbx_log(LOG_WARNING, "Address and mask are not using same address scheme (%d / %d)\n", addr_is_v4, mask_is_v4);
+			sccp_free_ha(ha);
+			if (error) {
+				*error = 1;
+			}
+			return ret;
+		}
+	} else if (parse_cidr_mask(&ha->netmask, addr_is_v4, mask)) {
+		pbx_log(LOG_WARNING, "Invalid CIDR netmask: %s\n", mask);
+		sccp_free_ha(ha);
 		if (error) {
 			*error = 1;
 		}
 		return ret;
 	}
-	ha->netaddr.s_addr &= ha->netmask.s_addr;
+	if (apply_netmask(&ha->netaddr, &ha->netmask, &ha->netaddr)) {
+		/* This shouldn't happen because ast_sockaddr_parse would
+		 * have failed much earlier on an unsupported address scheme
+		 */
+		char *failaddr = ast_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
+		char *failmask = ast_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		pbx_log(LOG_WARNING, "Unable to apply netmask %s to address %s\n", failaddr, failmask);
+		sccp_free_ha(ha);
+		if (error) {
+			*error = 1;
+		}
+		return ret;
+	}
 
 	ha->sense = strncasecmp(sense, "p", 1) ? AST_SENSE_DENY : AST_SENSE_ALLOW;
 
@@ -1304,18 +1604,21 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		ret = ha;
 	}
 
+	{
+		char *straddr = ast_strdupa(sccp_socket_stringify_addr(&ha->netaddr));
+		char *strmask = ast_strdupa(sccp_socket_stringify_addr(&ha->netmask));
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "%s/%s sense %d appended to acl for peer\n", straddr, strmask, ha->sense);
+	}
+
 	return ret;
 }
 
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 {
-	char str1[INET_ADDRSTRLEN];
-	char str2[INET_ADDRSTRLEN];
-
 	while (path) {
-		inet_ntop(AF_INET, &path->netaddr.s_addr, str1, INET_ADDRSTRLEN);
-		inet_ntop(AF_INET, &path->netmask.s_addr, str2, INET_ADDRSTRLEN);
-		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", str1, str2);
+		char *straddr = ast_strdupa(sccp_socket_stringify_addr(&path->netaddr));
+		char *strmask = ast_strdupa(sccp_socket_stringify_addr(&path->netmask));
+		pbx_str_append(&buf, buflen, "%s:%s/%s,", AST_SENSE_DENY == path->sense ? "deny" : "permit", straddr, strmask);
 		path = path->next;
 	}
 }

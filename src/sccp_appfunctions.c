@@ -21,6 +21,7 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_conference.h"
+#include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2235 $")
 
@@ -85,7 +86,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			sccp_session_t *s = d->session;
 
 			if (s) {
-				sccp_copy_string(buf, s->sin.sin_addr.s_addr ? pbx_inet_ntoa(s->sin.sin_addr) : "", len);
+				sccp_copy_string(buf, sccp_socket_stringify(&s->sin), len);
 			}
 		} else if (!strcasecmp(colname, "id")) {
 			sccp_copy_string(buf, d->id, len);
@@ -308,7 +309,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			c = sccp_channel_release(c);
 			return -1;
 		}
- 		l = sccp_line_retain(c->parentChannel->line);
+		l = sccp_line_retain(c->parentChannel->line);
 		c = sccp_channel_release(c);
 	} else {
 		if (!(l = sccp_line_find_byname(data, TRUE))) {
@@ -504,7 +505,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			return -1;
 		}
 	}
-
+	
 	if (c) {
 		if (!strcasecmp(colname, "callid") || !strcasecmp(colname, "id")) {
 			snprintf(buf, len, "%d", c->callid);
@@ -576,12 +577,13 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			snprintf(buf, len, "%s", (c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ? pbx_channel_name(CS_AST_BRIDGED_CHANNEL(c->owner)) : "<unknown>");
 		} else if (!strcasecmp(colname, "peerip")) {								// NO-NAT (Ip-Address Associated with the Session->sin)
 			if ((d = sccp_channel_getDevice_retained(c))) {
-				ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), len);
+				sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
+				
 				d = sccp_device_release(d);
 			}
 		} else if (!strcasecmp(colname, "recvip")) {								// NAT (Actual Source IP-Address Reported by the phone upon registration)
 			if ((d = sccp_channel_getDevice_retained(c))) {
-				ast_copy_string(buf, pbx_inet_ntoa(d->session->phone_sin.sin_addr), len);
+				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
 				d = sccp_device_release(d);
 			}
 		} else if (!strncasecmp(colname, "codec[", 6)) {
