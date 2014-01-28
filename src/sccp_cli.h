@@ -14,14 +14,7 @@
 #ifndef __SCCP_CLI_H
 #define __SCCP_CLI_H
 
-#ifdef CS_IPV6
 #define CLI_AMI_LIST_WIDTH 46
-#else
-#define CLI_AMI_LIST_WIDTH 21
-#endif
-
-
-
 void sccp_register_cli(void);
 void sccp_unregister_cli(void);
 

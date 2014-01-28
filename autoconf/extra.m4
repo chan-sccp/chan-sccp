@@ -746,14 +746,6 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_MODE], [
 	AC_MSG_NOTICE([--enable-experimental-mode: ${ac_cv_experimental_mode} (only for developers)])
 ])
 
-AC_DEFUN([CS_ENABLE_EXPERIMENTAL_NEWIP], [
-	AC_ARG_ENABLE(experimental_newip, 
-	  AC_HELP_STRING([--enable-experimental-newip], [enable experimental newip (only for developers)]), 
-	    ac_cv_experimental_newip=$enableval, ac_cv_experimental_newip=no)
-	AS_IF([test "_${ac_cv_experimental_newip}" == "_yes"], [AC_DEFINE(CS_EXPERIMENTAL_NEWIP, 1, [experimental newip enabled])])
-	AC_MSG_NOTICE([--enable-experimental-newip: ${ac_cv_experimental_newip} (only for developers)])
-])
-
 AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AC_LANG_SAVE
 	AC_LANG_C
@@ -841,14 +833,6 @@ AC_DEFUN([CS_ENABLE_VIDEOLAYER], [
 	AC_MSG_NOTICE([--enable-videolayer: ${ac_cv_streaming_videolayer}])
 ])
 
-AC_DEFUN([CS_IPv6], [
-	AC_ARG_ENABLE(IPv6, 
-	  AC_HELP_STRING([--enable-IPv6], [enable IPv6 support (experimental, developers only)]), 
-	  ac_cv_ipv6=$enableval, ac_cv_ipv6=no)
-	AS_IF([test "${ac_cv_ipv6}" == "yes"], [AC_DEFINE([CS_IPV6], 1, [Enable IPv6 support])])
-	AC_MSG_NOTICE([--enable-IPv6: ${ac_cv_ipv6}])
-])
-
 AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
 	  AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)(experimental)]), 
@@ -879,9 +863,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_VIDEO
 	CS_ENABLE_VIDEOLAYER
 	CS_ENABLE_DISTRIBUTED_DEVSTATE
-	CS_IPv6
 	CS_ENABLE_EXPERIMENTAL_MODE
-	CS_ENABLE_EXPERIMENTAL_NEWIP
 	CS_ENABLE_EXPERIMENTAL_XML
 ])
 
