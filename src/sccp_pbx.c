@@ -25,6 +25,7 @@
 #include "sccp_features.h"
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
+#include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
@@ -614,7 +615,6 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 {
 	PBX_CHANNEL_TYPE *tmp;
-
 	if (!(c = sccp_channel_retain(c))) {
 		return -1;
 	}
@@ -745,7 +745,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	// export sccp informations in asterisk dialplan
 	if (d) {
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", pbx_inet_ntoa(d->session->sin.sin_addr));
+		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", sccp_socket_stringify_addr(&d->session->sin));
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);

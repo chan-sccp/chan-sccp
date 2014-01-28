@@ -355,8 +355,14 @@ uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
  */
 int load_config(void)
 {
-	int oldport = ntohs(GLOB(bindaddr.sin_port));
+	int oldPort = 0; //ntohs(GLOB(bindaddr));
+        int newPort = 0;
 	int on = 1;
+        char addrStr[INET6_ADDRSTRLEN];
+        
+        
+        oldPort = sccp_socket_getPort(&GLOB(bindaddr));
+        
 
 	/* Copy the default jb config over global_jbconf */
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
@@ -390,14 +396,15 @@ int load_config(void)
 		return 0;
 	}
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
-	/* ok the config parse is done */
-	if ((GLOB(descriptor) > -1) && (ntohs(GLOB(bindaddr.sin_port)) != oldport)) {
+	
+        /* ok the config parse is done */
+        newPort = sccp_socket_getPort(&GLOB(bindaddr));
+	if ((GLOB(descriptor) > -1) && (newPort != oldPort)) {
 		close(GLOB(descriptor));
 		GLOB(descriptor) = -1;
 	}
 
 	if (GLOB(descriptor) < 0) {
-#ifdef CS_EXPERIMENTAL_NEWIP
 		int status;
 		struct addrinfo hints, *res;
 		char port_str[5] = "";
@@ -405,28 +412,24 @@ int load_config(void)
 		memset(&hints, 0, sizeof hints);								// make sure the struct is empty
 		hints.ai_family = AF_UNSPEC;									// don't care IPv4 or IPv6
 		hints.ai_socktype = SOCK_STREAM;								// TCP stream sockets
+                hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;     				// fill in my IP for me
 
-		if (&GLOB(bindaddr.sin_addr) != NULL) {
-			snprintf(port_str, sizeof(port_str), "%d", ntohs(GLOB(bindaddr.sin_port)));
-			if ((status = getaddrinfo(pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), port_str, &hints, &res)) != 0) {
-				pbx_log(LOG_WARNING, "Failed to get addressinfo for %s:%d, error: %s!\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), gai_strerror(status));
-				close(GLOB(descriptor));
-				GLOB(descriptor) = -1;
-				return 0;
-			}
-		} else {
-			hints.ai_flags = AI_PASSIVE;								// fill in my IP for me
-			if ((status = getaddrinfo(NULL, "cisco_sccp", &hints, &res)) != 0) {
-				pbx_log(LOG_WARNING, "Failed to get addressinfo, error: %s!\n", gai_strerror(status));
-				close(GLOB(descriptor));
-				GLOB(descriptor) = -1;
-				return 0;
-			}
-		}
+                if (sccp_socket_getPort(&GLOB(bindaddr))>0) {
+                        snprintf(port_str, sizeof(port_str), "%d", sccp_socket_getPort(&GLOB(bindaddr)));
+                } else {
+                        snprintf(port_str, sizeof(port_str), "%s", "cisco_sccp");
+                }
+                
+                sccp_copy_string(addrStr, sccp_socket_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
+                
+                if ((status = getaddrinfo(sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
+                        pbx_log(LOG_WARNING, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
+                        close(GLOB(descriptor));
+                        GLOB(descriptor) = -1;
+                        return 0;
+                }
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);			// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
-#else
-		GLOB(descriptor) = socket(AF_INET, SOCK_STREAM, 0);						//replaced
-#endif
+
 		on = 1;
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
@@ -446,32 +449,27 @@ int load_config(void)
 		if (GLOB(descriptor) < 0) {
 			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
-#ifdef CS_EXPERIMENTAL_NEWIP
-			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {			// using addrinfo hints
-#else
+                        /* get ip-address string */
 			if (bind(GLOB(descriptor), (struct sockaddr *) &GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {	//replaced
-#endif
-				pbx_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				pbx_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
 
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
-				pbx_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)), strerror(errno));
+				pbx_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
 				return 0;
 			}
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", pbx_inet_ntoa(GLOB(bindaddr.sin_addr)), ntohs(GLOB(bindaddr.sin_port)));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP listening on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
 			GLOB(reload_in_progress) = FALSE;
 			pbx_pthread_create(&GLOB(socket_thread), NULL, sccp_socket_thread, NULL);
 
 		}
-#ifdef CS_EXPERIMENTAL_NEWIP
 		freeaddrinfo(res);
-#endif
 	}
 
 	return 0;
@@ -568,8 +566,12 @@ boolean_t sccp_prePBXLoad()
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend, TRUE);
 
 	GLOB(descriptor) = -1;
-	GLOB(bindaddr.sin_port) = DEFAULT_SCCP_PORT;
-	GLOB(externrefresh) = 60;
+	
+        //GLOB(bindaddr.sin_port) = DEFAULT_SCCP_PORT;
+        GLOB(bindaddr).ss_family = AF_INET;
+        ((struct sockaddr_in*)&GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
+	
+        GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_KEEPALIVE;
 	sccp_copy_string(GLOB(dateformat), "D/M/YA", sizeof(GLOB(dateformat)));
 	sccp_copy_string(GLOB(context), "default", sizeof(GLOB(context)));
@@ -680,7 +682,6 @@ int sccp_preUnload(void)
 	sccp_device_t *d;
 	sccp_line_t *l;
 	sccp_session_t *s;
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
@@ -845,3 +846,24 @@ int sccp_reload(void)
 #ifdef CS_DEVSTATE_FEATURE
 const char devstate_db_family[] = "CustomDevstate";
 #endif
+
+/*
+ * deprecated
+ */
+int sccp_updateExternIp(){
+	/* setup hostname -> externip */
+	/*! \todo change using singular h_addr to h_addr_list (name may resolve to multiple ip-addresses */
+/*
+	struct ast_hostent ahp;
+	struct hostent *hp;
+	if (!sccp_strlen_zero(GLOB(externhost))) {
+		if (!(hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
+	        	pbx_log(LOG_WARNING, "Invalid address resolution for externhost keyword: %s\n", GLOB(externhost));
+		} else {
+			memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
+			time(&GLOB(externexpire));
+		}
+	}
+*/
+	return 0;
+}

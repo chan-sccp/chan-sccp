@@ -249,6 +249,7 @@ typedef struct sccp_ast_channel_name sccp_ast_channel_name_t;							/*!< SCCP As
 typedef struct sccp_buttonconfig sccp_buttonconfig_t;								/*!< SCCP Button Config Structure */
 typedef struct sccp_hotline sccp_hotline_t;									/*!< SCCP Hotline Structure */
 typedef struct sccp_callinfo sccp_callinfo_t;									/*!< SCCP Call Information Structure */
+typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
 
 #ifndef SOLARIS
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
@@ -548,8 +549,8 @@ typedef struct {
  * thing public and let users play with them.
  */
 struct sccp_ha {
-	struct in_addr netaddr;
-	struct in_addr netmask;
+	struct sockaddr_storage netaddr;
+	struct sockaddr_storage netmask;
 	int sense;
 	struct sccp_ha *next;
 };
@@ -698,10 +699,6 @@ struct composedId {
 	struct subscriptionId subscriptionId;
 };
 
-/*!
- * \brief SCCP Line-Devices Structure
- */
-typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
 
 /*!
  * \brief SCCP Line-Devices Structure
@@ -803,7 +800,7 @@ struct sccp_line {
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 	char id[5];												/*!< This line's ID, used for logging into (for mobility) */
 	char pin[8];												/*!< PIN number for mobility/roaming. */
-	char name[80];												/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
+	char name[StationMaxNameSize];												/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
 	char description[StationMaxNameSize];									/*!< A description for the line, displayed on in header (on7960/40) or on main  screen on 7910 */
 	char label[StationMaxNameSize];										/*!< A name for the line, displayed next to the button (7960/40). */
 
@@ -1113,13 +1110,8 @@ struct sccp_addon {
  */
 struct sccp_session {
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-#ifdef CS_EXPERIMENTAL_NEWIP
-	struct sockaddr_storage *ss;										/*!< Incoming Socket Address Storage */
-#else
-	struct sockaddr_in phone_sin;										/*!< Phone Socket Address */
-#endif
-	struct sockaddr_in sin;											/*!< Incoming Socket Address */
-	struct in_addr ourip;											/*!< Our IP is for rtp use */
+	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
+	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
 	struct pollfd fds[1];											/*!< File Descriptor */
 	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
@@ -1137,14 +1129,8 @@ struct sccp_session {
  */
 struct sccp_rtp {
 	PBX_RTP_TYPE *rtp;											/*!< pbx rtp pointer */
-#ifdef CS_EXPERIMENTAL_NEWIP
-	struct sockaddr_storage *phone_ss;									/*!< Our Phone Socket Address Storage (openreceive) */
-#endif
-	struct sockaddr_in phone;										/*!< our phone information (openreceive) */
-#ifdef CS_EXPERIMENTAL_NEWIP
-	struct sockaddr_storage *phone_remote_ss;								/*!< Phone Destination Socket Address Storage (starttransmission) */
-#endif
-	struct sockaddr_in phone_remote;									/*!< phone destination address (starttransmission) */
+	struct sockaddr_storage phone;										/*!< our phone information (openreceive) */
+	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
 	skinny_codec_t readFormat;										/*!< current read format */
 	uint8_t readState;											/*!< current read state */
 	skinny_codec_t writeFormat;										/*!< current write format */
@@ -1276,15 +1262,12 @@ struct sccp_global_vars {
 	char context[SCCP_MAX_CONTEXT];										/*!< Global / General Context */
 	char dateformat[8];											/*!< Date Format */
 
-#ifdef CS_EXPERIMENTAL_NEWIP
-	struct sockaddr_storage bindaddr_ss;									/*!< Bind Socket Storage */
-#endif
-	struct sockaddr_in bindaddr;										/*!< Bind IP Address */
+	struct sockaddr_storage bindaddr;									/*!< Bind IP Address */
 	skinny_codec_t global_preferences[SKINNY_MAX_CAPABILITIES];						/*!< Global Asterisk Codecs */
 	boolean_t prefer_quality_over_size;									/*!< When deciding which codec to choose, prefer sound quality over packet size */
 	struct sccp_ha *ha;											/*!< Permit or deny connections to the main socket */
 	struct sccp_ha *localaddr;										/*!< Localnet for Network Address Translation */
-	struct sockaddr_in externip;										/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list)) */
+	struct sockaddr_storage externip;									/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list)) */
 	char externhost[MAXHOSTNAMELEN];									/*!< External HostName */
 	int externrefresh;											/*!< External Refresh */
 	time_t externexpire;											/*!< External Expire */
@@ -1429,6 +1412,7 @@ typedef int (*sccp_sched_cb) (const void *data);
 
 int sccp_sched_add(int when, sccp_sched_cb callback, const void *data);
 int sccp_sched_del(int id);
+int sccp_updateExternIp();
 
 #if defined(__cplusplus) || defined(c_plusplus)
 /* *INDENT-ON* */

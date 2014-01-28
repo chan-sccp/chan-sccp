@@ -18,6 +18,7 @@
 #include "../../sccp_channel.h"
 #include "../../sccp_utils.h"
 #include "../../sccp_indicate.h"
+#include "../../sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2269 $")
 
@@ -766,9 +767,9 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 	if ((c = get_sccp_channel_from_pbx_channel(ast))) {
 		if ((d = sccp_channel_getDevice_retained(c))) {
 			if (!strcasecmp(args, "peerip")) {
-				ast_copy_string(buf, pbx_inet_ntoa(d->session->sin.sin_addr), buflen);
+                                sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
 			} else if (!strcasecmp(args, "recvip")) {
-				ast_copy_string(buf, pbx_inet_ntoa(d->session->phone_sin.sin_addr), buflen);
+				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
 			} else if (!strcasecmp(args, "useragent")) {
 				sccp_copy_string(buf, devicetype2str(d->skinny_type), buflen);
 			} else if (!strcasecmp(args, "from")) {

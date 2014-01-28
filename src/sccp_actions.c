@@ -240,7 +240,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterMessage.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		s = sccp_session_reject(s, "IP Not Authorized");
 		goto EXITFUNC;
@@ -364,7 +364,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		sccp_session_tokenRejectSPCP(s, 60);
 		s = sccp_session_reject(s, "IP Not Authorized");
@@ -403,50 +403,30 @@ EXITFUNC:
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_t * msg_in)
 {
 	sccp_device_t *device;
+	char *phone_ipv4, *phone_ipv6;
+	
+	uint32_t deviceInstance = letohl(msg_in->data.RegisterMessage.sId.lel_instance);
+	uint32_t userid = letohl(msg_in->data.RegisterMessage.sId.lel_userid);
+	char deviceName[StationMaxDeviceNameSize];
+	sccp_copy_string(deviceName, msg_in->data.RegisterMessage.sId.deviceName, StationMaxDeviceNameSize);
+	uint32_t deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
+	uint32_t maxStreams = letohl(msg_in->data.RegisterMessage.lel_maxStreams);
+	uint32_t activeStreams = letohl(msg_in->data.RegisterMessage.lel_activeStreams);
 	uint8_t protocolVer = letohl(msg_in->data.RegisterMessage.phone_features) & SKINNY_PHONE_FEATURES_PROTOCOLVERSION;
-	uint32_t deviceInstance = 0;
-	uint32_t deviceType = 0;
-	uint32_t userid = 0;
+	uint32_t maxConferences = letohl(msg_in->data.RegisterMessage.lel_maxConferences);
+	uint32_t activeConferences = letohl(msg_in->data.RegisterMessage.lel_activeConferences);
+	uint8_t macAddress[12];
+	memcpy(macAddress, msg_in->data.RegisterMessage.macAddress, 12);
+	uint32_t ipV4AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV4AddressScope);
+	uint32_t maxNumberOfLines = letohl(msg_in->data.RegisterMessage.lel_maxNumberOfLines);
+	uint32_t ipV6AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV6AddressScope);
 
-	deviceInstance = letohl(msg_in->data.RegisterMessage.sId.lel_instance);
-	userid = letohl(msg_in->data.RegisterMessage.sId.lel_userid);
-	deviceType = letohl(msg_in->data.RegisterMessage.lel_deviceType);
-
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", msg_in->data.RegisterMessage.sId.deviceName, deviceInstance, userid, devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
-#ifdef CS_EXPERIMENTAL_NEWIP
-	socklen_t addrlen = 0;
-	struct sockaddr_storage *session_ss = { 0 };
-
-	struct sockaddr_storage *ss = { 0 };
-	char iabuf[INET6_ADDRSTRLEN];
-	struct sockaddr_in sin = { 0 };
-
-	if (0 != msg_in->data.RegisterMessage.lel_stationIpAddr) {
-		sin.sin_family = AF_INET;
-		memcpy(&sin.sin_addr, &msg_in->data.RegisterMessage.lel_stationIpAddr, 4);
-		inet_ntop(AF_INET, &sin.sin_addr, iabuf, (socklen_t) INET_ADDRSTRLEN);
-		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv4-Address: %s\n", msg_in->data.RegisterMessage.sId.deviceName, iabuf);
-		ss = (struct sockaddr_storage *) &sin;
-	}
-#ifdef CS_IPV6
-	struct sockaddr_in6 sin6 = { 0 };
-
-	if (0 != msg_in->data.RegisterMessage.ipv6Address) {
-		sin6.sin6_family = AF_INET6;
-		memcpy(&sin6.sin6_addr, &msg_in->data.RegisterMessage.lel_stationIpAddr, 16);
-		inet_ntop(AF_INET6, &sin6.sin6_addr, iabuf, (socklen_t) INET6_ADDRSTRLEN);
-		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: IPv6-Address: %s\n", msg_in->data.RegisterMessage.sId.deviceName, iabuf);
-		ss = (struct sockaddr_storage *) &sin6;
-	}
-#endif
-#else
-	s->phone_sin.sin_family = AF_INET;
-	memcpy(&s->phone_sin.sin_addr, &msg_in->data.RegisterMessage.lel_stationIpAddr, 4);
-#endif
+	
+	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", deviceName, deviceInstance, userid, devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
 
 	// search for all devices including realtime
 	if (!maybe_d) {
-		device = sccp_device_find_byid(msg_in->data.RegisterMessage.sId.deviceName, TRUE);
+		device = sccp_device_find_byid(deviceName, TRUE);
 	} else {
 		device = sccp_device_retain(maybe_d);
 		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: cached device configuration\n", DEV_ID_LOG(device));
@@ -456,12 +436,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	 * but we cannot depend on one of the standard find functions for this, because they return null in two different cases (non-existent and refcount<0).
 	 */
 	if (!device && GLOB(allowAnonymous)) {
-		if (!(device = sccp_device_createAnonymous(msg_in->data.RegisterMessage.sId.deviceName))) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline device could not be created: %s\n", msg_in->data.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+		if (!(device = sccp_device_createAnonymous(deviceName))) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline device could not be created: %s\n", deviceName, GLOB(hotline)->line->name);
 		} else {
 			sccp_config_applyDeviceConfiguration(device, NULL);
 			sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", msg_in->data.RegisterMessage.sId.deviceName, GLOB(hotline)->line->name);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
 			device->defaultLineInstance = SCCP_FIRST_LINEINSTANCE;
 			sccp_device_addToGlobals(device);
 		}
@@ -476,20 +456,20 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		}
 
 		if (!s->device || s->device != device) {
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, pbx_inet_ntoa(s->sin.sin_addr));
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
 			s->device = sccp_session_addDevice(s, device);						// replace retained in session (already connected via tokenReq before)
 		}
 
 		/* check ACLs for this device */
 		if (device->checkACL(device) == FALSE) {
-			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr));
+			pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", deviceName, sccp_socket_stringify_addr(&s->sin));
 			device->registrationState = SKINNY_DEVICE_RS_FAILED;
 			s = sccp_session_reject(s, "IP Not Authorized");
 			goto EXITFUNC;
 		}
 
 	} else {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", msg_in->data.RegisterMessage.sId.deviceName);
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Device Unknown \n", deviceName);
 		s = sccp_session_reject(s, "Device Unknown");
 		goto EXITFUNC;
 	}
@@ -497,34 +477,44 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	device->device_features = letohl(msg_in->data.RegisterMessage.phone_features);
 	device->linesRegistered = FALSE;
 
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxbuttons='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", msg_in->data.RegisterMessage.sId.deviceName, msg_in->data.RegisterMessage.loadInfo, msg_in->data.RegisterMessage.lel_maxButtons, (device->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (device->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
+	struct sockaddr_storage register_sas;
+	if (msg_in->data.RegisterMessage.ipv6Address) {
+		register_sas.ss_family = AF_INET6;
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&register_sas;
+		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, INET6_ADDRSTRLEN);
+		phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sas));
+	}
+	register_sas.ss_family = AF_INET;
+	struct sockaddr_in *sin = (struct sockaddr_in *)&register_sas;
+	memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, INET_ADDRSTRLEN);
+	phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
 
-	if (device->nat == 0 && GLOB(localaddr) && sccp_apply_ha(GLOB(localaddr), &s->sin) != AST_SENSE_ALLOW) {
-		struct ast_str *ha_buf = pbx_str_alloca(512);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxNumberOfLines='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", deviceName, msg_in->data.RegisterMessage.loadInfo, maxNumberOfLines, (device->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (device->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ipv4Address: %s, ipV4AddressScope: %d, ipv6Address: %s, ipV6AddressScope: %d\n", deviceName, phone_ipv4, ipV4AddressScope, phone_ipv6, ipV6AddressScope);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: maxStreams: %d, activeStreams: %d, maxConferences: %d, activeConferences: %d\n", deviceName, maxStreams, activeStreams, maxConferences, activeConferences);
 
-		sccp_print_ha(ha_buf, sizeof(ha_buf), GLOB(localaddr));
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device is behind NAT. We will set externip or externhost for the RTP stream (address: %s not witin server localaddr: %s)\n", msg_in->data.RegisterMessage.sId.deviceName, pbx_inet_ntoa(s->sin.sin_addr), ast_str_buffer(ha_buf));
-		device->nat = 1;
+	/* auto NAT detection if NAT is not set as device configuration */
+	if (!device->nat && GLOB(localaddr) ) {
+		struct sockaddr_storage session_sas;
+		memcpy(&session_sas, &s->sin, sizeof(struct sockaddr_storage));
+		sccp_socket_ipv4_mapped(&session_sas, &session_sas);
+		char *session_ipv4 = strdupa(sccp_socket_stringify_host(&session_sas));
+
+		if (session_sas.ss_family == AF_INET) {
+			if (sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Session IP '%s' is outside of localnet scope. We will use externip or externhost for the RTP stream\n", deviceName, phone_ipv4);
+				device->nat = 1;
+			} else if (sccp_socket_cmp_addr(&session_sas, &register_sas)) {						// compare device->sin to the phones reported ipaddr
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4);
+				device->nat = 1;
+			} else {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Device IP '%s' falls in localnet scope\n", deviceName, session_ipv4);
+			}
+		} else {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: NAT Autodetection Skipped for IPv6.\n", deviceName);
+		}
 	}
 
-	/* We should be using sockaddr_storage in sccp_socket.c so this convertion would not be necessary here */
-#ifdef CS_EXPERIMENTAL_NEWIP
-	if (AF_INET == s->sin.sin_family) {
-		session_ss = (struct sockaddr_storage *) &s->sin;
-		addrlen = (socklen_t) INET_ADDRSTRLEN;
-	}
-#ifdef CS_IPV6
-
-	/*      if (AF_INET6==s->sin6.sin6_family) {
-	   session_ss=(struct sockaddr_storage *)&s->sin6;
-	   addrlen=(socklen_t)INET6_ADDRSTRLEN;
-	   } */
-#endif
-	if (sockaddr_cmp_addr(ss, addrlen, session_ss, addrlen)) {						// test to see if phone ip address differs from incoming socket ipaddress -> nat
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. We will use externip or externhost for the RTP stream\n", msg_in->data.RegisterMessage.sId.deviceName);
-		device->nat = 1;
-	}
-#endif
 	device->skinny_type = deviceType;
 
 	// device->session = s;
@@ -2449,30 +2439,20 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
  */
 void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	struct sockaddr_in sin = { 0 };
-	uint32_t port = 0;
 	uint32_t status = 0, callReference = 0, passThruPartyId = 0;
 	sccp_channel_t *channel = NULL;
+	
+	struct sockaddr_storage sas = { 0 };
+	d->protocol->parseOpenReceiveChannelAck((const sccp_msg_t *) msg_in, &status, &sas, &passThruPartyId, &callReference);
 
-	char iabuf[INET6_ADDRSTRLEN];
-	struct sockaddr_storage ss = { 0 };
-	d->protocol->parseOpenReceiveChannelAck((const sccp_msg_t *) msg_in, &status, &ss, &passThruPartyId, &callReference);
 
 	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
-	if (ss.ss_family == AF_INET) {
-		sin = *((struct sockaddr_in *) &ss);
-		inet_ntop(AF_INET, &sin.sin_addr, iabuf, INET_ADDRSTRLEN);
-		port = ntohs(sin.sin_port);
-		// sccp_log(0)("SCCP: (sccp_handle_open_receive_channel_ack) IPv4 (%s:%d)\n", iabuf, port);
-	} else {
-		struct sockaddr_in6 sin6 = *((struct sockaddr_in6 *) &ss);
+// 	if (d->nat || !d->directrtp) {
+//		memcpy(&sin.sin_addr, &s->sin.sin_addr, sizeof(sin.sin_addr));
+//	}
 
-		inet_ntop(AF_INET6, &sin6.sin6_addr, iabuf, INET6_ADDRSTRLEN);
-		port = ntohs(sin6.sin6_port);
-		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment (%s:%d)\n", iabuf, port);
-		return;
-	}
-
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, status, sccp_socket_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
+	
 	/*
 	   if (d->nat || !d->directrtp) {
 	   // replace listening to ipaddress with PBX rtp_instance ipaddress (keep port)
@@ -2480,8 +2460,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	   }
 	 */
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Expect RTP/UDP from '%s:%d', PassThruPartyId: %u, CallID: %u\n", d->id, status, iabuf, port, passThruPartyId, callReference);
-
+	
+ 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: %d, Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, status, sccp_socket_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
 	if (status) {
 		// rtp error from the phone
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: %d ! No RTP stream available. Possibly all the rtp streams the phone supports have been used up. Giving up.\n", d->id, status);
@@ -2511,7 +2491,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			REQ(r, CloseReceiveChannel);
 			msg_in->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
 			msg_in->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
-			msg_in->data.CloseReceiveChannel.lel_conferenceId1 = htolel(callReference);
+			msg_in->data.CloseReceiveChannel.lel_callReference = htolel(callReference);
 			sccp_dev_send(d, r);
 			channel = sccp_channel_release(channel);
 			return;
@@ -2521,9 +2501,17 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
 			sccp_channel_set_active(d, channel);
-
+            
+			uint16_t port = sccp_socket_getPort(&sas);
+			if (d->nat){
+			    memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
+			    sccp_socket_ipv4_mapped(&sas, &sas);
+			    sccp_socket_setPort(&sas, port);
+			}
+                
 			//ast_rtp_set_peer(channel->rtp.audio.rtp, &sin);
-			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sin);
+			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
+			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
 
 			sccp_channel_startMediaTransmission(channel);						/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */
 
@@ -2537,7 +2525,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
 		} else {
-			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, sccp_socket_stringify(&sas));
 			sccp_channel_endcall(channel);								// FS - 350
 		}
 		channel = sccp_channel_release(channel);
@@ -2546,14 +2534,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		int callId = passThruPartyId ^ 0xFFFFFFFF;
 
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
-
-		sccp_msg_t *r;
-
-		REQ(r, CloseReceiveChannel);
-		msg_in->data.CloseReceiveChannel.lel_conferenceId = htolel(callId);
-		msg_in->data.CloseReceiveChannel.lel_passThruPartyId = htolel(passThruPartyId);
-		msg_in->data.CloseReceiveChannel.lel_conferenceId1 = htolel(callId);
-		sccp_dev_send(d, r);
+		sccp_channel_closeReceiveChannel(channel, FALSE);
 	}
 }
 
@@ -2565,22 +2546,17 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
  */
 void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	struct sockaddr_in sin = { 0 };
-	struct sockaddr_storage ss = { 0 };
+	char addrStr[INET6_ADDRSTRLEN + 6];
+	struct sockaddr_storage sas = { 0 };
 	sccp_channel_t *channel;
 	uint32_t status = 0, partyID = 0, passThruPartyId = 0, callReference;
 
-	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_msg_t *) msg_in, &status, &ss, &passThruPartyId, &callReference);
+	d->protocol->parseOpenMultiMediaReceiveChannelAck((const sccp_msg_t *) msg_in, &status, &sas, &passThruPartyId, &callReference);
+	sccp_copy_string(addrStr, sccp_socket_stringify(&sas), sizeof(addrStr));
 
 	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
-	if (ss.ss_family == AF_INET) {
-		sin = *((struct sockaddr_in *) &ss);
-	} else {
-		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
-		return;
-	}
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s:%d', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callReference);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenMultiMediaReceiveChannelAck.  Status: %d, Remote RTP/UDP '%s', Type: %s, PassThruId: %u, CallID: %u\n", d->id, status, addrStr, (d->directrtp ? "DirectRTP" : "Indirect RTP"), partyID, callReference);
 	if (status) {
 		/* rtp error from the phone */
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission (%d). Ending call\n", DEV_ID_LOG(d), status);
@@ -2601,12 +2577,18 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: STARTING DEVICE RTP TRANSMISSION WITH STATE %s(%d)\n", d->id, sccp_indicate2str(channel->state), channel->state);
-		memcpy(&channel->rtp.video.phone, &sin, sizeof(sin));
 		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(channel)) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s:%d\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
-			// ast_rtp_set_peer(channel->rtp.video.rtp, &sin);
-			//sccp_rtp_set_peer(channel, &channel->rtp.video, &sin);
-			sccp_rtp_set_phone(channel, &channel->rtp.video, &sin);
+            
+            if (d->nat){
+			    uint16_t port = sccp_socket_getPort(&sas);
+			    memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
+			    sccp_socket_ipv4_mapped(&sas, &sas);
+			    sccp_socket_setPort(&sas, port);
+			}
+            
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Set the RTP media address to %s\n", d->id, sccp_socket_stringify(&sas));
+
+			sccp_rtp_set_phone(channel, &channel->rtp.video, &sas);
 			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
 
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
@@ -2616,7 +2598,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
 		} else {
-			pbx_log(LOG_ERROR, "%s: Can't set the RTP media address to %s:%d, no asterisk rtp channel!\n", d->id, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port));
+			pbx_log(LOG_ERROR, "%s: Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, addrStr);
 		}
 
 		sccp_msg_t *msg_out;
@@ -2822,23 +2804,27 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_device_t * d, sccp_ms
 {
 	sccp_msg_t *msg_out;
 
-	if (!s->ourip.s_addr) {
-		pbx_log(LOG_ERROR, "%s: Session IP Changed mid flight\n", DEV_ID_LOG(d));
+	if (sccp_socket_is_any_addr(&s->ourip)) {
+		pbx_log(LOG_ERROR, "%s: Session IP Unspecified\n", DEV_ID_LOG(d));
 		return;
 	}
 
 	if (s->device && s->device->session != s) {
-		pbx_log(LOG_ERROR, "%s: Wrong Session or Session Changed mid flight\n", DEV_ID_LOG(d));
+		pbx_log(LOG_ERROR, "%s: Wrong Session or Session Changed mid flight (%s)\n", DEV_ID_LOG(d), sccp_socket_stringify(&s->ourip));
 		return;
 	}
 
 	/* old protocol function replaced by the SEP file server addesses list */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending servers message\n", DEV_ID_LOG(d));
+	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Sending servers message (%s)\n", DEV_ID_LOG(d), sccp_socket_stringify(&s->ourip));
 
 	REQ(msg_out, ServerResMessage);
-	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, pbx_inet_ntoa(s->ourip), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
-	msg_out->data.ServerResMessage.serverListenPort[0] = GLOB(bindaddr.sin_port);
-	msg_out->data.ServerResMessage.serverIpAddr[0] = s->ourip.s_addr;
+	sccp_copy_string(msg_out->data.ServerResMessage.server[0].serverName, sccp_socket_stringify_addr(&s->ourip), sizeof(msg_out->data.ServerResMessage.server[0].serverName));
+	msg_out->data.ServerResMessage.serverListenPort[0] = sccp_socket_getPort(&GLOB(bindaddr));
+
+	if(s->ourip.ss_family == AF_INET){
+	        msg_out->data.ServerResMessage.serverIpAddr[0] = ((struct sockaddr_in*)&s->ourip)->sin_addr.s_addr;
+	}
+
 	sccp_dev_send(d, msg_out);
 }
 
@@ -2945,7 +2931,6 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		/* speeddial with hint. Sending empty forward message */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
 		REQ(msg_out, ForwardStatMessage);
-		msg_out->data.ForwardStatMessage.lel_status = 0;
 		msg_out->data.ForwardStatMessage.lel_lineNumber = msg_in->data.ForwardStatReqMessage.lel_lineNumber;
 		sccp_dev_send(d, msg_out);
 	}
@@ -3362,23 +3347,15 @@ void sccp_handle_KeepAliveMessage(sccp_session_t * s, sccp_device_t * d, sccp_ms
  */
 void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	struct sockaddr_in sin = { 0 };
-	struct sockaddr_storage ss = { 0 };
+	struct sockaddr_storage sas = { 0 };
 	sccp_channel_t *channel = NULL;
 	uint32_t status = 0, partyID = 0, callID = 0, callID1 = 0, passthrupartyid = 0;
 
-	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &status, &ss);
+	d->protocol->parseStartMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &status, &sas);
 
-	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
-	if (ss.ss_family == AF_INET) {
-		sin = *((struct sockaddr_in *) &ss);
-	} else {
-		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
-		return;
-	}
-
-	if (partyID)
+	if (partyID){
 		passthrupartyid = partyID;
+	}
 
 	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passthrupartyid) {
 		passthrupartyid = 0xFFFFFFFF - callID1;
@@ -3398,12 +3375,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	if (status) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: %d)\n", DEV_ID_LOG(d), status);
 		sccp_dump_msg(msg_in);
-		if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
-			sccp_channel_closeReceiveChannel(channel);
-		}
-		if (channel->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
-			sccp_channel_closeMultiMediaReceiveChannel(channel);
-		}
+		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 		sccp_channel_endcall(channel);
 	} else {
 		if (channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -3417,15 +3389,10 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
 				PBX(set_callstate) (channel, AST_STATE_UP);
 			}
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, RTP From '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: %d, Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, sccp_socket_stringify(&sas), callID, callID1, partyID);
 		} else {
 			pbx_log(LOG_WARNING, "%s: (sccp_handle_startmediatransmission_ack) Channel already down (%d). Hanging up\n", DEV_ID_LOG(d), channel->state);
-			if (channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closeReceiveChannel(channel);
-			}
-			if (channel->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closeMultiMediaReceiveChannel(channel);
-			}
+			sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 			sccp_channel_endcall(channel);
 		}
 	}

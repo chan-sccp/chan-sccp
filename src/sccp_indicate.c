@@ -262,10 +262,10 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_HOLD:
 			if (c->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closeReceiveChannel(c);
+				sccp_channel_closeReceiveChannel(c, TRUE);
 			}
 			if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closeMultiMediaReceiveChannel(c);
+				sccp_channel_closeMultiMediaReceiveChannel(c, TRUE);
 			}
 			sccp_handle_time_date_req(d->session, d, NULL);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
@@ -342,12 +342,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		case SCCP_CHANNELSTATE_INVALIDNUMBER:
 			/* this is for the earlyrtp. The 7910 does not play tones if a rtp stream is open */
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_UNKNOWN_NUMBER, 0);
-			if (c->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closeReceiveChannel(c);
-			}
-			if (c->rtp.video.writeState & SCCP_RTP_STATUS_ACTIVE) {
-				sccp_channel_closeMultiMediaReceiveChannel(c);
-			}
+			sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			break;
 		case SCCP_CHANNELSTATE_DIALING:

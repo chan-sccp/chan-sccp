@@ -93,6 +93,7 @@
 #include "sccp_utils.h"
 #include "sccp_featureButton.h"
 #include "sccp_mwi.h"
+#include "sccp_socket.h"
 #include <asterisk/paths.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
@@ -798,39 +799,22 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-
+	
 	if (sccp_strlen_zero(value)) {
 		value = strdupa("0.0.0.0");
 	}
-
-	struct ast_hostent ahp;
-	struct hostent *hp;
-
-	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *) dest);
-	struct sockaddr_in *bindaddr_new = NULL;
-
-	if (!(hp = pbx_gethostbyname(value, &ahp))) {
-		pbx_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", value);
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (&bindaddr_prev->sin_addr != NULL && hp != NULL) {
-		if ((bindaddr_new = sccp_malloc(sizeof(struct sockaddr_in)))) {
-			memcpy(&bindaddr_new->sin_addr, hp->h_addr, sizeof(struct in_addr));
-			if (bindaddr_prev->sin_addr.s_addr != bindaddr_new->sin_addr.s_addr) {
-				memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
-				changed = SCCP_CONFIG_CHANGE_CHANGED;
-			}
-			sccp_free(bindaddr_new);
-		}
-	} else if (&bindaddr_prev->sin_addr != NULL && hp->h_addr != NULL) {
-		memcpy(&bindaddr_prev->sin_addr, hp->h_addr, sizeof(struct in_addr));
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	struct sockaddr_storage bindaddr_prev = (*(struct sockaddr_storage *) dest);
+	struct sockaddr_storage bindaddr_new = {0,};
+	
+	if (!sccp_sockaddr_storage_parse(&bindaddr_new, value, PARSE_PORT_FORBID)) {
+		pbx_log(LOG_WARNING, "Invalid IP address: %s\n", value);
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	} else {
-		pbx_log(LOG_WARNING, "Invalid address: %s. SCCP disabled\n", value);
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
+	        if (sccp_socket_cmp_addr(&bindaddr_prev,&bindaddr_new)) {		// 0 = equal
+	                memcpy(&(*(struct sockaddr_storage*) dest), &bindaddr_new, sizeof(bindaddr_new));
+                        changed = SCCP_CONFIG_CHANGE_CHANGED;
+                }
 	}
-
 	return changed;
 }
 
@@ -845,17 +829,33 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
 	char *value = strdupa(v->value);
 
 	int new_port;
-	struct sockaddr_in *bindaddr_prev = &(*(struct sockaddr_in *) dest);
+	struct sockaddr_storage bindaddr_storage_prev = (*(struct sockaddr_storage *) dest);
 
 	if (sscanf(value, "%i", &new_port) == 1) {
-		if (&bindaddr_prev->sin_port != NULL) {								// reload.
-			if (bindaddr_prev->sin_port != htons(new_port)) {
-				bindaddr_prev->sin_port = htons(new_port);
+		if (bindaddr_storage_prev.ss_family == AF_INET) {
+			struct sockaddr_in bindaddr_prev = (*(struct sockaddr_in *) dest);
+			if (bindaddr_prev.sin_port != 0) {	
+				if (bindaddr_prev.sin_port != htons(new_port)) {
+					(*(struct sockaddr_in *) dest).sin_port = htons(new_port);
+					changed = SCCP_CONFIG_CHANGE_CHANGED;
+				}
+			} else {
+				(*(struct sockaddr_in *) dest).sin_port = htons(new_port);
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+			}
+		} else if (bindaddr_storage_prev.ss_family == AF_INET6) {
+			struct sockaddr_in6 bindaddr_prev = (*(struct sockaddr_in6 *) dest);
+			if (bindaddr_prev.sin6_port != 0) {
+				if (bindaddr_prev.sin6_port != htons(new_port)) {
+					(*(struct sockaddr_in6 *) dest).sin6_port = htons(new_port);
+					changed = SCCP_CONFIG_CHANGE_CHANGED;
+				}
+			} else {
+				(*(struct sockaddr_in6 *) dest).sin6_port = htons(new_port);
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 		} else {
-			pbx_log(LOG_WARNING, "Uninitialized bindaddr destination structure to set port to\n");
-			//bindaddr_prev->sin_port = htons(new_port);
+			pbx_log(LOG_WARNING, "Invalid address in bindaddr to set port to '%s'\n", value);
 			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	} else {
@@ -2081,24 +2081,14 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	}
 
 	/* setup bindaddress */
-	if (!ntohs(GLOB(bindaddr.sin_port))) {
-		GLOB(bindaddr.sin_port) = ntohs(DEFAULT_SCCP_PORT);
+	if (!sccp_socket_getPort(&GLOB(bindaddr) )) {
+		struct sockaddr_in *in = (struct sockaddr_in *) &GLOB(bindaddr);
+		in->sin_port = ntohs(DEFAULT_SCCP_PORT);
+		GLOB(bindaddr).ss_family = AF_INET;
 	}
-	GLOB(bindaddr.sin_family) = AF_INET;
 
 	/* setup hostname -> externip */
-	/* \todo change using singular h_addr to h_addr_list (name may resolve to multiple ip-addresses */
-	struct ast_hostent ahp;
-	struct hostent *hp;
-
-	if (!sccp_strlen_zero(GLOB(externhost))) {
-		if (!(hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
-			pbx_log(LOG_WARNING, "Invalid address resolution for externhost keyword: %s\n", GLOB(externhost));
-		} else {
-			memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
-			time(&GLOB(externexpire));
-		}
-	}
+	sccp_updateExternIp();		/* deprecated, not needed any more */
 
 	/* setup regcontext */
 	char newcontexts[SCCP_MAX_CONTEXT];
@@ -2131,7 +2121,7 @@ void cleanup_stale_contexts(char *new, char *old)
 	char *oldcontext, *newcontext, *stalecontext, *stringp, newlist[SCCP_MAX_CONTEXT];
 
 	while ((oldcontext = strsep(&old, "&"))) {
-		stalecontext = NULL ;
+		stalecontext = NULL;
 		sccp_copy_string(newlist, new, sizeof(newlist));
 		stringp = newlist;
 		while ((newcontext = strsep(&stringp, "&"))) {
