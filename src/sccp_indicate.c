@@ -369,7 +369,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
-		/* if it is a shalred line and a state of interest */
+		/* if it is a shared line and a state of interest */
 		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD)
 		    ) {
 			/* notify all remote devices */
@@ -413,6 +413,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	sccp_channel_t tmpChannel; 												/*!< use this channel to set original called/calling info */
 	int instance;
 	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;
+	boolean_t EqualLinkedId = FALSE;
 
 	//uint32_t privacyStatus=0;
 	if (!c || !line) {
@@ -460,15 +461,17 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		}
 
 		if ((remoteDevice = sccp_device_retain(linedevice->device))) {
-			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_indicate2str(state), state, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
 			/* check if we have one part of the remote channel */
 			if ((activeChannel = sccp_channel_get_active(remoteDevice))) {
 				if (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
 					stateVisibility = SKINNY_CALLINFO_VISIBILITY_HIDDEN;
+					EqualLinkedId = TRUE;
 				}
+				sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), PBX(getChannelLinkedId)(c), DEV_ID_LOG(remoteDevice), PBX(getChannelLinkedId)(activeChannel))
 				activeChannel = sccp_channel_release(activeChannel);
 			}
 			/* done */
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) on remote device %s for channel %s (call %08x, EqualLinkedId %s)\n", DEV_ID_LOG(device), sccp_indicate2str(state), state, DEV_ID_LOG(remoteDevice), c->designator, c->callid, EqualLinkedId ? "True" : "False");
 
 			instance = linedevice->lineInstance;//sccp_device_find_index_for_line(remoteDevice, line->name);
 			switch (state) {
@@ -494,8 +497,14 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 							break;
 						}
 					}
-					
-					remoteDevice->indicate->remoteOnhook(remoteDevice, linedevice, c);
+
+					if (EqualLinkedId) {
+							sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s -> %s: indicate onhook (instance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), instance, c->callid);
+							remoteDevice->indicate->onhook(remoteDevice, instance, c->callid);
+					} else {
+							sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s -> %s: indicate remote onhook (instance: %d, callid: %d)\n", DEV_ID_LOG(device), DEV_ID_LOG(remoteDevice), instance, c->callid);
+							remoteDevice->indicate->remoteOnhook(remoteDevice, linedevice, c);
+					}
 					break;
 
 				case SCCP_CHANNELSTATE_CONNECTED:

@@ -2228,7 +2228,6 @@ static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_line
 
 static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid)
 {
-
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
@@ -2253,7 +2252,6 @@ static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, scc
 }
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
 {
-
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
