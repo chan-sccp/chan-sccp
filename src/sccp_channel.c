@@ -1152,7 +1152,6 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
 	}
 	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
 		sccp_rtp_stop(channel);
-		sccp_rtp_destroy(channel);
 	}
 }
 /*!
@@ -1810,6 +1809,10 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
+	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
+		sccp_rtp_stop(channel);
+		sccp_rtp_destroy(channel);
+	}
 	if (channel->owner) {
 		pbx_channel_unref(channel->owner);
 	}
