@@ -4,8 +4,8 @@
   <deviceProtocol>SCCP</deviceProtocol>
   <sshUserId/>
   <sshPassword/>
-  <ipAddressMode>2</ipAddressMode>  <!-- dual mode = 2-->
-  <ipPreferenceModeControl>2</ipPreferenceModeControl>
+  <ipAddressMode>2</ipAddressMode><!-- 0 = IPv4 only, 1 = IPv6 only,  dual mode = 2-->
+  <ipPreferenceModeControl>1</ipPreferenceModeControl><!-- IPv4 = 0, IPv6 = 1 -->
   <devicePool uuid="{1b1b9eb6-7803-11d3-bdf0-00108302ead1}">
     <revertPriority>0</revertPriority>
     <name>Default</name>
