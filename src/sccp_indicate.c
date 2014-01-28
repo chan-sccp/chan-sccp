@@ -495,7 +495,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 						}
 					}
 					
-					remoteDevice->indicate->onhook(remoteDevice, instance, c->callid);
+					remoteDevice->indicate->remoteOnhook(remoteDevice, linedevice, c);
 					break;
 
 				case SCCP_CHANNELSTATE_CONNECTED:
