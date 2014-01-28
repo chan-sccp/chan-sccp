@@ -2080,6 +2080,12 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	
 	sccp_configurationchange_t res = sccp_config_applyGlobalConfiguration(v);
 	
+	/* setup bind-port */
+	if ( !sccp_socket_getPort(&GLOB(bindaddr)) ) {
+		sccp_socket_setPort(&GLOB(bindaddr), DEFAULT_SCCP_PORT);
+	}
+	
+	
 	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: major changes detected in globals, reset required -> pendingUpdate=1\n");
 		GLOB(pendingUpdate = 1);
