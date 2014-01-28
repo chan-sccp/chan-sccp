@@ -46,6 +46,7 @@ static void sccp_device_indicate_dialing(const sccp_device_t * device, const uin
 static void sccp_device_indicate_proceed(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
+static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 
 /* end indicate */
 static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone);
@@ -63,6 +64,7 @@ static sccp_push_result_t sccp_device_pushTextMessageNotSupported(const sccp_dev
 static const struct sccp_device_indication_cb sccp_device_indication_newerDevices = {
 	.remoteHold = sccp_device_new_indicate_remoteHold,
 	.remoteOffhook = sccp_device_indicate_offhook_remote,
+	.remoteOnhook = sccp_device_indicate_onhook_remote,
 	.offhook = sccp_device_indicate_offhook,
 	.onhook	= sccp_device_indicate_onhook,
 	.dialing = sccp_device_indicate_dialing,
@@ -73,6 +75,7 @@ static const struct sccp_device_indication_cb sccp_device_indication_newerDevice
 static const struct sccp_device_indication_cb sccp_device_indication_olderDevices = {
 	.remoteHold = sccp_device_old_indicate_remoteHold,
 	.remoteOffhook = sccp_device_indicate_offhook_remote,
+	.remoteOnhook = sccp_device_indicate_onhook_remote,
 	.offhook = sccp_device_indicate_offhook,
 	.onhook	= sccp_device_indicate_onhook,
 	.dialing = sccp_device_indicate_dialing,
@@ -2243,6 +2246,10 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint
 static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel){
 	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_OFFHOOK);
+}
+static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel){
+	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_keyset(device, linedevice->lineInstance, channel->callid, KEYMODE_ONHOOK);
 }
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel)
 {
