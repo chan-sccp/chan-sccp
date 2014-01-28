@@ -407,7 +407,7 @@ int load_config(void)
 	if (GLOB(descriptor) < 0) {
 		int status;
 		struct addrinfo hints, *res;
-		char port_str[5] = "";
+		char port_str[15] = "";
 
 		memset(&hints, 0, sizeof hints);								// make sure the struct is empty
 		hints.ai_family = AF_UNSPEC;									// don't care IPv4 or IPv6
@@ -417,7 +417,7 @@ int load_config(void)
                 if (sccp_socket_getPort(&GLOB(bindaddr))>0) {
                         snprintf(port_str, sizeof(port_str), "%d", sccp_socket_getPort(&GLOB(bindaddr)));
                 } else {
-                        snprintf(port_str, sizeof(port_str), "%s", "cisco_sccp");
+                        snprintf(port_str, sizeof(port_str), "%s", "cisco-sccp");
                 }
                 
                 sccp_copy_string(addrStr, sccp_socket_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
