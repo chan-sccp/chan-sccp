@@ -34,7 +34,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	boolean_t isMappedIPv4;
 
 	if (!c)
-		return -1;
+		return FALSE;
 
 	if (c->rtp.audio.rtp) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
@@ -45,10 +45,12 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 		rtpResult = (boolean_t) PBX(rtp_audio_create) ((sccp_channel_t *) c);
 	} else {
 		pbx_log(LOG_ERROR, "we should start our own rtp server, but we dont have one\n");
+		return FALSE;
 	}
 
 	if (!sccp_rtp_getUs(&c->rtp.audio, &((sccp_channel_t *) c)->rtp.audio.phone_remote)) {
 		pbx_log(LOG_WARNING, "%s: Did not get our rtp part\n", c->currentDeviceId);
+		return FALSE;
 	}
 	
 	uint16_t port = sccp_rtp_getServerPort(&c->rtp.audio);
