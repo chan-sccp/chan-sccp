@@ -1048,10 +1048,7 @@ struct sccp_device {
 	char videoSink[MAXHOSTNAMELEN];										/*!< sink to send video */
 
 	btnlist *buttonTemplate;
-
-#ifdef CS_ADV_FEATURES
 	boolean_t useRedialMenu;
-#endif
 
 	struct {
 		char *action;
