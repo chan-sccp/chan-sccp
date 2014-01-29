@@ -508,7 +508,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4);
 				device->nat = 1;
 			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Device IP '%s' falls in localnet scope\n", deviceName, session_ipv4);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Not NATTED. Device IP '%s' falls in localnet scope\n", deviceName, session_ipv4);
 			}
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: NAT Autodetection Skipped for IPv6.\n", deviceName);
