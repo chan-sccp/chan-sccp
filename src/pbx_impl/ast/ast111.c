@@ -1218,10 +1218,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 	const char *alert_info = NULL;
 
 	if (requestor) {
-		alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "_ALERT_INFO");
-		if (!alert_info) {
-			alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "__ALERT_INFO");
-		}
+		alert_info = pbx_builtin_getvar_helper((PBX_CHANNEL_TYPE *) requestor, "ALERT_INFO");
 	}
 	if (alert_info && !sccp_strlen_zero(alert_info)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", alert_info);
