@@ -146,12 +146,12 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_createDeviceStateHandler) device registered\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_deviceRegisterListener) device registered\n", DEV_ID_LOG(device));
 			sccp_devstate_deviceRegistered(device);
 			break;
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 			device = event->event.deviceRegistered.device;
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_createDeviceStateHandler) device unregistered\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_deviceRegisterListener) device unregistered\n", DEV_ID_LOG(device));
 			sccp_devstate_deviceUnRegistered(device);
 			break;
 		default:
