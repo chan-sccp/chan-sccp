@@ -1190,9 +1190,12 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 		if (channel->privateData->device) {
 			if (GLOB(transfer_on_hangup)) {								/* Complete transfer when one is in progress */
-				if (((channel->privateData->device->transferChannels.transferee) && (channel->privateData->device->transferChannels.transferer)) && ((channel == channel->privateData->device->transferChannels.transferee) || (channel == channel->privateData->device->transferChannels.transferer))
+				sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
+				sccp_channel_t *transferer = channel->privateData->device->transferChannels.transferer;
+				if (	(transferee && transferer) && (channel == transferer) && 
+					(pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
 				    ) {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
 					sccp_channel_transfer_complete(channel->privateData->device->transferChannels.transferer);
 					d = sccp_device_release(d);
 					return;
