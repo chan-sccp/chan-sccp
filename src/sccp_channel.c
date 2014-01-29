@@ -1196,7 +1196,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 					(pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
 				    ) {
 					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
-					sccp_channel_transfer_complete(channel->privateData->device->transferChannels.transferer);
+					sccp_channel_transfer_complete(transferer);
 					d = sccp_device_release(d);
 					return;
 				}
@@ -1205,21 +1205,13 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 			sccp_channel_transfer_release(channel->privateData->device, channel);
 		}
 
-		if (channel->owner) {
-			PBX(requestHangup) (channel->owner);
-		} else {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
-		}
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 		d = sccp_device_release(d);
+	}
+	if (channel->owner) {
+		PBX(requestHangup) (channel->owner);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 	} else {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "SCCP: Ending call %d on line %s (%s)\n", channel->callid, channel->line->name, sccp_indicate2str(channel->state));
-
-		if (channel->owner) {
-			PBX(requestHangup) (channel->owner);
-		} else {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
-		}
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
 	}
 }
 
