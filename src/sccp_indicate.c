@@ -356,7 +356,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			}
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
-			d->protocol->sendCallInfo(d, c, instance);
+			//d->protocol->sendCallInfo(d, c, instance);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			break;
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:								/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */

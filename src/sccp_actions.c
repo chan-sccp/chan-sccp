@@ -2323,20 +2323,17 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 			sccp_dev_stoptone(d, instance, channel->callid);
 			sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, 0);
 		} else if (lenDialed == 1) {
-			sccp_dev_stoptone(d, instance, channel->callid);
-			if (channel->state != SCCP_CHANNELSTATE_DIALING) {
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
-			}
+			sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIGITSFOLL);
 		}
 
-		if (d && channel && l) {
-			if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
-				/* We have a secondary dialtone */
-				sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
-			} else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
-				sccp_dev_stoptone(d, instance, callid);
-			}
+
+		if (lenSecDialtoneDigits && lenDialed == lenSecDialtoneDigits && !strncmp(channel->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
+			/* We have a secondary dialtone */
+			sccp_dev_starttone(d, secondary_dialtone_tone, instance, callid, 0);
+		} else if ((lenSecDialtoneDigits) && (lenDialed == lenSecDialtoneDigits + 1 || (lenDialed > 1 && lenSecDialtoneDigits > 1 && lenDialed == lenSecDialtoneDigits - 1))) {
+			sccp_dev_stoptone(d, instance, callid);
 		}
+		
 	} while (FALSE);
 
 	if (l) {
