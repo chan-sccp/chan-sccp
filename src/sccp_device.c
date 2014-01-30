@@ -1590,7 +1590,14 @@ void sccp_dev_check_displayprompt(sccp_device_t * d)
  */
 void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * device)
 {
+	#ifndef ASTDB_FAMILY_KEY_LEN
+	#define ASTDB_FAMILY_KEY_LEN 100
+	#endif
+	#ifndef ASTDB_RESULT_LEN
+	#define ASTDB_RESULT_LEN 80
+	#endif
 	sccp_linedevices_t *linedevice = NULL;
+	char tmp[256] = { 0 };
 
 	if (!l || !device || !device->session)
 		return;
@@ -1601,12 +1608,31 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	//! \todo Needs to be revised. Does not make sense to call sccp_handle_AvailableLines from here
 	if (device->registrationState != SKINNY_DEVICE_RS_OK) {
 		if (!device->linesRegistered) {
-			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(device));
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, forcing this\n", DEV_ID_LOG(device));
 			sccp_handle_AvailableLines(device->session, device, NULL);
 			device->linesRegistered = TRUE;
 		}
 	}
+	
 	if ((linedevice = sccp_linedevice_find(device, l))) {
+		if (device->registrationState != SKINNY_DEVICE_RS_OK) {				/* read cfwd status from db during registration*/
+			char family[ASTDB_FAMILY_KEY_LEN] = {0};
+			char buffer[ASTDB_RESULT_LEN] = {0};
+			sprintf(family, "SCCP/%s/%s", device->id, l->name);
+			if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+				linedevice->cfwdAll.enabled = TRUE;
+				sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
+				sprintf(tmp, "%s:%s %s %s", SKINNY_DISP_CFWDALL, linedevice->line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
+			}
+
+			if (PBX(feature_getFromDatabase) (family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+				linedevice->cfwdBusy.enabled = TRUE;
+				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
+				sprintf(tmp, "%s:%s %s %s", SKINNY_DISP_CFWDALL, linedevice->line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
+			}
+		}
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
 		sccp_linedevice_release(linedevice);
