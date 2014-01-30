@@ -2171,7 +2171,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		goto EXIT_FUNC;
 	}
 
-	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS)) {
+	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) ) {
 		len = strlen(channel->dialedNumber);
 		if (len >= (SCCP_MAX_EXTENSION - 1)) {
 			sccp_dev_displayprompt(d, lineInstance, channel->callid, "No more digits", 5);
