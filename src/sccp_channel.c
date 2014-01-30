@@ -1154,6 +1154,24 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
 		sccp_rtp_stop(channel);
 	}
 }
+
+/*
+ * \brief End all forwarding parent channels
+ */
+void sccp_channel_end_forwarding_channel(sccp_channel_t *channel) 
+{
+	sccp_channel_t *c;
+	SCCP_LIST_LOCK(&channel->line->channels);
+	SCCP_LIST_TRAVERSE(&channel->line->channels, c, list) {
+		if (c->parentChannel == channel) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel\n", c->designator);
+			c->parentChannel = sccp_channel_release(c->parentChannel);
+			sccp_channel_endcall(c);
+			channel->answered_elsewhere = TRUE;
+		}
+	}
+	SCCP_LIST_UNLOCK(&channel->line->channels);
+}
 /*!
  * \brief Hangup this channel.
  * \param channel *retained* SCCP Channel
@@ -1171,19 +1189,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	}
 
 	/* end all call forwarded channels (our children) */
-	/* should not be necessary here. Should have been handled in sccp_pbx_softswitch / sccp_pbx_answer / sccp_pbx_hangup already */
-	sccp_channel_t *c;
-
-	SCCP_LIST_LOCK(&channel->line->channels);
-	SCCP_LIST_TRAVERSE(&channel->line->channels, c, list) {
-		if (c->parentChannel == channel) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel %s-%08X\n", DEV_ID_LOG(d), c->line->name, c->callid);
-			// No need to lock because sccp_channel->line->channels is already locked. 
-			sccp_channel_endcall(c);
-			c->parentChannel = sccp_channel_release(c->parentChannel);				// release from sccp_channel_forward retain
-		}
-	}
-	SCCP_LIST_UNLOCK(&channel->line->channels);
+	sccp_channel_end_forwarding_channel(channel);
 
 	/* this is a station active endcall or onhook */
 	if ((d = sccp_channel_getDevice_retained(channel))) {
@@ -1395,20 +1401,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	}
 
 	/* end callforwards */
-	sccp_channel_t *sccp_channel_2;
-
-	SCCP_LIST_LOCK(&channel->line->channels);
-	SCCP_LIST_TRAVERSE(&channel->line->channels, sccp_channel_2, list) {
-		if (sccp_channel_2->parentChannel == channel) {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CHANNEL Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(device), l->name, sccp_channel_2->callid);
-			/* No need to lock because sccp_channel->line->channels is already locked. */
-			sccp_channel_endcall(sccp_channel_2);
-			channel->answered_elsewhere = TRUE;
-			sccp_channel_2->parentChannel = sccp_channel_release(sccp_channel_2->parentChannel);	// release from sccp_channel_forward_retain
-		}
-	}
-	SCCP_LIST_UNLOCK(&channel->line->channels);
-	/* */
+	sccp_channel_end_forwarding_channel(channel);
 
 	/** set called party name */
 	sccp_linedevices_t *linedevice = NULL;
@@ -2292,6 +2285,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		}
 	} else {
 		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
+		sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);
 		sccp_channel_endcall(sccp_forwarding_channel);
 		res = -1;
 		goto EXIT_FUNC;
