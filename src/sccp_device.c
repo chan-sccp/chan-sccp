@@ -1597,7 +1597,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	#define ASTDB_RESULT_LEN 80
 	#endif
 	sccp_linedevices_t *linedevice = NULL;
-	char tmp[256] = { 0 };
+//	char tmp[256] = { 0 };
 
 	if (!l || !device || !device->session)
 		return;
@@ -1615,24 +1615,6 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	}
 	
 	if ((linedevice = sccp_linedevice_find(device, l))) {
-		if (device->registrationState != SKINNY_DEVICE_RS_OK) {				/* read cfwd status from db during registration*/
-			char family[ASTDB_FAMILY_KEY_LEN] = {0};
-			char buffer[ASTDB_RESULT_LEN] = {0};
-			sprintf(family, "SCCP/%s/%s", device->id, l->name);
-			if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-				linedevice->cfwdAll.enabled = TRUE;
-				sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
-				sprintf(tmp, "%s:%s %s %s", SKINNY_DISP_CFWDALL, linedevice->line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
-				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
-			}
-
-			if (PBX(feature_getFromDatabase) (family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-				linedevice->cfwdBusy.enabled = TRUE;
-				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
-				sprintf(tmp, "%s:%s %s %s", SKINNY_DISP_CFWDALL, linedevice->line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
-				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
-			}
-		}
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status.  Line: %s (%d)\n", device->id, l->name, linedevice->lineInstance);
 		sccp_linedevice_release(linedevice);
@@ -1686,6 +1668,17 @@ void sccp_dev_postregistration(void *data)
 	sccp_device_t *d = data;
 	sccp_event_t event;
 
+	#ifndef ASTDB_FAMILY_KEY_LEN
+	#define ASTDB_FAMILY_KEY_LEN 100
+	#endif
+	#ifndef ASTDB_RESULT_LEN
+	#define ASTDB_RESULT_LEN 80
+	#endif
+	char family[ASTDB_FAMILY_KEY_LEN];
+	char buffer[ASTDB_RESULT_LEN] = { 0 };
+	sccp_linedevices_t *linedevice;
+	int instance;
+
 	if (!d)
 		return;
 
@@ -1698,19 +1691,26 @@ void sccp_dev_postregistration(void *data)
 	event.event.deviceRegistered.device = sccp_device_retain(d);
 	sccp_event_fire(&event);
 
-	/* read status from db */
-#ifndef ASTDB_FAMILY_KEY_LEN
-#define ASTDB_FAMILY_KEY_LEN 100
-#endif
-#ifndef ASTDB_RESULT_LEN
-#define ASTDB_RESULT_LEN 80
-#endif
-	char family[ASTDB_FAMILY_KEY_LEN];
-	char buffer[ASTDB_RESULT_LEN] = { 0 };
-
+	/* read last line/device states from db */
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
 	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
-	sprintf(family, "SCCP/%s", d->id);
+
+	for (instance = 0; instance < d->lineButtons.size; instance++) {
+		if ((linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]))) {
+			sprintf(family, "SCCP/%s/%s", d->id, linedevice->line->name);
+			if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+				linedevice->cfwdAll.enabled = TRUE;
+				sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
+				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDALL);
+			}
+			if (PBX(feature_getFromDatabase) (family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+				linedevice->cfwdBusy.enabled = TRUE;
+				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
+				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
+			}
+			sccp_linedevice_release(linedevice);
+		}
+	}
 	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		sccp_config_parse_dnd(&d->dndFeature.status, sizeof(d->dndFeature.status), (const char *) buffer, SCCP_CONFIG_DEVICE_SEGMENT);
 	}

@@ -1096,9 +1096,10 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 
 	sccp_dev_send(d, msg_out);
 
-	/* force the forward status message. Some phone does not request it registering */
 	if (l) {
-		sccp_dev_forward_status(l, lineNumber, d);
+		/* force the forward status message. Some phone does not request it registering */
+		/* moved to postregistration */
+//		sccp_dev_forward_status(l, lineNumber, d);
 
 		/* set default line on device if based on "default" config option */
 		SCCP_LIST_LOCK(&d->buttonconfig);
