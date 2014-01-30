@@ -48,7 +48,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 {
 	sccp_device_t *d;
 	sccp_line_t *l;
-	int instance;
+	int instance = 0;
 	sccp_linedevices_t *linedevice;
 
 	if (debug) {
@@ -66,8 +66,10 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		d = sccp_device_release(d);
 		return;
 	}
-	instance = sccp_device_find_index_for_line(d, l->name);
-	linedevice = sccp_linedevice_find(d, l);
+
+	if (!(instance = sccp_device_find_index_for_line(d, l->name))) {
+		pbx_log(LOG_WARNING, "SCCP: The linedevice/instance for device %s and line %s belonging to channel %d could not be found\n", DEV_ID_LOG(d), l->name, c->callid);
+	}
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
 	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_indicate2str(c->previousChannelState));
@@ -219,7 +221,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
 
-			d->indicate->connected(d, linedevice, c);
+			if ((linedevice = sccp_linedevice_find(d, l))) {
+				d->indicate->connected(d, linedevice, c);
+			 	linedevice = sccp_linedevice_release(linedevice);
+			} else {
+				pbx_log(LOG_WARNING, "%s: no linedevice availble to signal SCCP_CHANNELSTATE_CONNECTED on\n", DEV_ID_LOG(d));
+			}
 			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
@@ -393,7 +400,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 	d = sccp_device_release(d);
 	l = sccp_line_release(l);
-	linedevice = linedevice ? sccp_linedevice_release(linedevice) : linedevice;
 }
 
 /*!
