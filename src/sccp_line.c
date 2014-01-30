@@ -530,56 +530,6 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 	linedevice->line->statistic.numberOfActiveDevices++;
 	linedevice->device->configurationStatistic.numberOfLines++;
 	
-	
-// 	/* rebuild line button pointer array*/
-// 	if( device->lineButtons.size < lineInstance){
-// 		sccp_linedevices_t **instance = device->lineButtons.instance;
-// 		uint8_t oldSize = device->lineButtons.size;
-// 		
-//   
-// 		device->lineButtons.size = lineInstance + 1;									/* use one more, so we can explicit call this position */
-// 		device->lineButtons.instance = calloc(device->lineButtons.size, sizeof(sccp_linedevices_t *) );
-// 		memset(device->lineButtons.instance, 0, device->lineButtons.size * sizeof(sccp_linedevices_t *) );
-// 		
-// 		if(oldSize > 0){
-// 			uint8_t i;
-// 			for(i=0; i < oldSize;i++){
-// 				device->lineButtons.instance[i] = instance[i];
-// 			}
-// 		  
-// 			sccp_free(instance);
-// 		}
-// 	}
-// 	device->lineButtons.instance[ lineInstance ] = sccp_linedevice_retain( linedevice );
-
-
-	/* read cfwd status from db */
-#ifndef ASTDB_FAMILY_KEY_LEN
-#define ASTDB_FAMILY_KEY_LEN 100
-#endif
-#ifndef ASTDB_RESULT_LEN
-#define ASTDB_RESULT_LEN 80
-#endif
-	char family[ASTDB_FAMILY_KEY_LEN];
-	char buffer[ASTDB_RESULT_LEN];
-
-	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
-	sprintf(family, "SCCP/%s/%s", device->id, l->name);
-	if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		linedevice->cfwdAll.enabled = TRUE;
-		sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
-		sccp_feat_changed(device, linedevice, SCCP_FEATURE_CFWDALL);
-	}
-
-	if (PBX(feature_getFromDatabase) (family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		linedevice->cfwdBusy.enabled = TRUE;
-		sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
-		sccp_feat_changed(device, linedevice, SCCP_FEATURE_CFWDBUSY);
-	}
-
-	if (linedevice->cfwdAll.enabled || linedevice->cfwdBusy.enabled) {
-		sccp_dev_forward_status(l, lineInstance, device);
-	}
 	// fire event for new device
 	sccp_event_t event;
 
@@ -590,6 +540,7 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	regcontext_exten(l, &(linedevice->subscriptionId), 1);
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
+
 	l = sccp_line_release(l);
 	device = sccp_device_release(device);
 }
