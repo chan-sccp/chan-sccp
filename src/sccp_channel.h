@@ -56,6 +56,7 @@ void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel);
 
 void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channel_t *channel);
 
+void sccp_channel_end_forwarding_channel(sccp_channel_t *channel);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);

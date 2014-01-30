@@ -379,21 +379,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
 
 	/* end callforwards */
-	if (&l->channels) {
-		sccp_channel_t *channel = NULL;
-
-		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-			if (channel->parentChannel == c) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: PBX Hangup cfwd channel %s-%08X\n", DEV_ID_LOG(d), l->name, channel->callid);
-				/* No need to lock because c->line->channels is already locked. */
-				sccp_channel_endcall(channel);
-				channel->parentChannel = sccp_channel_release(channel->parentChannel);		// release from sccp_channel_forward_retain
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->channels);
-	}
-	/* done - end callforwards */
+	sccp_channel_end_forwarding_channel(c);
 
 	/* cancel transfer if in progress */
 	sccp_channel_transfer_cancel(d, c);
@@ -548,6 +534,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
 				res = -1;
 			}
+			c->parentChannel = sccp_channel_release(c->parentChannel);
 		} else {
 			/* we have no bridge and can not make a masquerade -> end call */
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
@@ -566,7 +553,6 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				res = -1;
 			}
 		}
-		c->parentChannel = sccp_channel_release(c->parentChannel);					// release parentChannel from sccp_channel_forward_retain
 		// FINISH
 	} else {
 		sccp_device_t *d = NULL;
