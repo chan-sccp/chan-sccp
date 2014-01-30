@@ -1695,8 +1695,8 @@ void sccp_dev_postregistration(void *data)
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
 	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
 
-	for (instance = 0; instance < d->lineButtons.size; instance++) {
-		if ((linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]))) {
+	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
+		if (d->lineButtons.instance[instance] && (linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]))) {
 			sprintf(family, "SCCP/%s/%s", d->id, linedevice->line->name);
 			if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 				linedevice->cfwdAll.enabled = TRUE;
