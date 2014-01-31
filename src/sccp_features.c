@@ -309,12 +309,17 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		return -1;
 	}
 
+	if (!PBX(findPickupChannelByExtenLocked)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version\n");
+		return -1;
+	}
+
 	/* copying extension into our buffer */
 	if ((context = strchr(exten, '@'))) {
 		*context++ = '\0';
 	} else {
 		if (!sccp_strlen_zero(d->directed_pickup_context)) {
-			context = (char *) strdup(d->directed_pickup_context);
+			context = (char *) strdupa(d->directed_pickup_context);
 		} else {
 			context = (char *) pbx_channel_context(original);
 		}
@@ -326,11 +331,6 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 	char *name = NULL;
 	char *number = NULL;
 	sccp_channel_t *tmpChannel;
-
-	if (!PBX(findPickupChannelByExtenLocked)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version\n");
-		return -1;
-	}
 
 	target = PBX(findPickupChannelByExtenLocked) (original, exten, context);
 	if (target) {
