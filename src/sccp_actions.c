@@ -3518,8 +3518,8 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 		return;
 	}
 	if (status) {
-		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call\n", DEV_ID_LOG(d));
-		sccp_channel_endcall(c);
+		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %d Ending call\n", DEV_ID_LOG(d), status);
+		sccp_dump_msg(msg_in);
 		c = sccp_channel_release(c);
 		return;
 	}
