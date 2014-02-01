@@ -67,9 +67,11 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 		return;
 	}
 
-	if (!(instance = sccp_device_find_index_for_line(d, l->name))) {
+	if (!(linedevice = sccp_linedevice_find(d, l))) {
 		pbx_log(LOG_WARNING, "SCCP: The linedevice/instance for device %s and line %s belonging to channel %d could not be found\n", DEV_ID_LOG(d), l->name, c->callid);
 	}
+	instance = linedevice->lineInstance;
+	
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
 	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_indicate2str(state), c->state, sccp_indicate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_indicate2str(c->previousChannelState));
@@ -221,12 +223,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_CONNECTED:
 
-			if ((linedevice = sccp_linedevice_find(d, l))) {
-				d->indicate->connected(d, linedevice, c);
-			 	linedevice = sccp_linedevice_release(linedevice);
-			} else {
-				pbx_log(LOG_WARNING, "%s: no linedevice availble to signal SCCP_CHANNELSTATE_CONNECTED on\n", DEV_ID_LOG(d));
-			}
+			d->indicate->connected(d, linedevice, c);
+			
 			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
@@ -364,6 +362,24 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 			break;
 		case SCCP_CHANNELSTATE_DIGITSFOLL:
 			//d->protocol->sendCallInfo(d, c, instance);
+			{
+				int lenDialed = 0, lenSecDialtoneDigits = 0;
+				uint32_t secondary_dialtone_tone = 0;
+				
+				lenDialed = strlen(c->dialedNumber);
+
+				/* secondary dialtone check */
+				lenSecDialtoneDigits = strlen(l->secondary_dialtone_digits);
+				secondary_dialtone_tone = l->secondary_dialtone_tone;
+				
+				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {
+					/* We have a secondary dialtone */
+					sccp_dev_starttone(d, secondary_dialtone_tone, instance, c->callid, 0);
+				} else if (lenDialed > 0) {
+					sccp_dev_stoptone(d, instance, c->callid);
+				}
+			}
+		  
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			break;
 		case SCCP_CHANNELSTATE_BLINDTRANSFER:								/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
@@ -400,6 +416,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 
 	d = sccp_device_release(d);
 	l = sccp_line_release(l);
+	linedevice = sccp_linedevice_release(linedevice);
 }
 
 /*!
