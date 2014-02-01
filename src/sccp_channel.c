@@ -1070,14 +1070,38 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+		
+		
+		
+		uint16_t usFamily	= (d->session->ourip.ss_family == AF_INET6  && !sccp_socket_is_mapped_IPv4(&d->session->ourip) ) ? AF_INET6 : AF_INET;
+		uint16_t remoteFamily	= (channel->rtp.audio.phone_remote.ss_family == AF_INET6  && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote) ) ? AF_INET6 : AF_INET;
 
-		if (d->nat) {
+		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+		if (d->nat || ((usFamily == AF_INET) != remoteFamily)) {				/* natted or needs correction for ipv6 address in remote */
 			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.video);						/* get rtp server port*/
 			memcpy(&channel->rtp.video.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));
+			sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
 			sccp_socket_setPort(&channel->rtp.video.phone_remote, port);
+			
+		} else if ((usFamily == AF_INET6) != remoteFamily) {				/* the device can do IPv6 but should send it to IPv4 address (directrtp posible) */
+			struct sockaddr_storage sas;
+			memcpy(&sas, &channel->rtp.video.phone_remote, sizeof(struct sockaddr_storage));
+			sccp_socket_ipv4_mapped(&sas, &sas);
+		  
+		} else if (!d->directrtp) {
+			/* I think we do not need this part, because phone_remote will be set on sccp_rtp_createAudioServer -MC */
+// 			sccp_rtp_getUs(&channel->rtp.audio, &channel->rtp.audio.phone_remote);
+
+// 			if(sccp_socket_is_any_addr(&channel->rtp.audio.phone_remote) && channel->rtp.audio.phone_remote.ss_family == AF_INET6){
+// 				struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
+// 				memcpy(&in6->sin6_addr, &((struct sockaddr_in6 *)&d->session->ourip)->sin6_addr, 16);
+// 			}
+
+//			channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+//          		memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(channel->rtp.audio.phone_remote));
 		}
 
-        sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
+		sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell device to send VRTP media to %s with codec: %s(%d), payloadType %d, tos %d\n", d->id, sccp_socket_stringify(&channel->rtp.video.phone_remote), codec2str(channel->rtp.video.readFormat), channel->rtp.video.readFormat, payloadType, d->audio_tos);
 
 		channel->rtp.video.readState = SCCP_RTP_STATUS_PROGRESS;
@@ -1338,17 +1362,36 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		pbx_log(LOG_ERROR, "SCCP: Channel %d has no owner\n", channel->callid);
 		return;
 	}
-
-	l = sccp_line_retain(channel->line);
-
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
-
+	
 	if (!device) {
 		pbx_log(LOG_ERROR, "SCCP: Channel %d has no device\n", (channel ? channel->callid : 0));
-		if (l)
-			l = sccp_line_release(l);
 		return;
 	}
+
+	l = sccp_line_retain(channel->line);
+#if 0	/** @todo we have to test this code section */
+	/* check if this device holds the line channel->line */
+	do{
+		sccp_linedevices_t *lineDevice = sccp_linedevice_find(device, l);
+		if (!lineDevice){
+			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
+			sccp_line_t *activeLine = sccp_dev_get_activeline(device);
+			if (!activeLine){
+				l = sccp_line_release(l); 
+				return;
+			}
+			channel->line = sccp_line_retain(activeLine);
+			sccp_line_release(l);
+			l = sccp_line_release(l); /* release two times, one for channel->line, one for l */
+			l = activeLine;
+		}
+		
+		lineDevice = sccp_linedevice_release(lineDevice);
+	}while(FALSE);
+#endif
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
+
+	
 
 	/* channel was on hold, restore active -> inc. channelcount */
 	if (channel->state == SCCP_CHANNELSTATE_HOLD) {
