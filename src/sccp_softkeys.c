@@ -178,7 +178,7 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch(c);
 
-		} else if (c->state == SCCP_CHANNELSTATE_DIALING) {
+		} else if (c->state == SCCP_CHANNELSTATE_DIGITSFOLL) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_pbx_softswitch(c);
 		}
