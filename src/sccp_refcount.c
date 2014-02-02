@@ -459,3 +459,14 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	}
 	return NULL;
 }
+
+inline void sccp_refcount_replace(const void *ptr, void *newptr, const char *filename, int lineno, const char *func) {
+	void *tmp = NULL;
+	if (newptr) {
+		tmp = sccp_refcount_retain(newptr, filename, lineno, func);
+	}
+	if (ptr) { 
+		sccp_refcount_release(ptr, filename, lineno, func);
+	}
+	ptr = tmp;
+}
