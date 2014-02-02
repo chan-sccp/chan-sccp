@@ -1481,9 +1481,10 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
  * \warning
  *   - device->buttonconfig is not always locked
  */
-sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
+sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
 {
 	sccp_buttonconfig_t *buttonconfig;
+	sccp_device_t * nonConstDevice = (sccp_device_t *)d;
 
 	if (!d || !d->session)
 		return NULL;
@@ -1491,7 +1492,7 @@ sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d)
 	if (!d->currentLine) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			if (buttonconfig->type == LINE) {
-				if ((d->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
+				if ((nonConstDevice->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
 					sccp_line_retain(d->currentLine);
 					break;
 				}
