@@ -21,6 +21,7 @@ uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage);
 void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port);
 int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage, sa_family_t type);
+int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us);
 size_t sccp_socket_sizeof(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage, struct sockaddr_storage *sockAddrStorage_mapped);

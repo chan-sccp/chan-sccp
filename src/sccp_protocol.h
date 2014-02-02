@@ -497,6 +497,20 @@ typedef struct {
 	uint8_t buttonDefinition;										/*!< set to one of the preceding Bt values */
 } StationButtonDefinition;											/*!< SKINNY Station Button Definition Structure */
 
+typedef struct {
+  uint8_t key[16];
+  uint8_t salt[16];
+} EncryptionKey;
+
+typedef struct {
+  skinny_encryptiontype_t algorithm;
+  uint16_t keylen;
+  uint16_t saltlen;
+  EncryptionKey keyData;
+  uint32_t isMKIPresent;
+  uint32_t keyDerivationRate;
+} EncryptionInfo;
+
 /*!
  * \brief SKINNY Media Payload Capability Structure
  */
@@ -2569,7 +2583,9 @@ typedef union {
 				uint32_t lel_DSCPValue;								/*!< DSCP Value */
 
 				videoParameter_t videoParameter;						/*!< Data Parameter */
-
+				EncryptionInfo encryptionInfo;
+				uint32_t unknown1;
+				uint32_t unknown2;
 			} v17;
 		};
 	} StartMultiMediaTransmission;										/*!< Start MultiMedia Transmission Message Structure */

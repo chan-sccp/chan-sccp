@@ -178,7 +178,7 @@ struct ast_channel_tech sccp_tech = {
 	.write_video 		= sccp_wrapper_asterisk111_rtp_write,
 	.indicate 		= sccp_wrapper_asterisk111_indicate,
 	.fixup 			= sccp_wrapper_asterisk111_fixup,
-	//.transfer 		= sccp_pbx_transfer,
+	.transfer 		= sccp_pbx_transfer,
 #ifdef CS_AST_RTP_INSTANCE_BRIDGE
 	.bridge 		= sccp_wrapper_asterisk111_rtpBridge,
 #endif
@@ -280,6 +280,8 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
  * \param astCodecPref Array of PBX Codec Preferences
  *
  * \return bit array fmt/Format of ast_format_type (int)
+ *
+ * \todo check bitwise operator (not sure) - DdG 
  */
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
 {
@@ -418,6 +420,8 @@ EXIT_FUNC:
  * \param data  linkId as void *
  *
  * \return int
+ *
+ * \todo I don't understand what this functions returns
  */
 static int pbx_find_channel_by_linkid(PBX_CHANNEL_TYPE * ast, const void *data)
 {
@@ -892,15 +896,6 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 #if CS_SCCP_PICKUP
 	if (line->pickupgroup) {
 		ast_channel_pickupgroup_set(*pbx_channel, line->pickupgroup);
-	}
-#endif
-#if CS_AST_HAS_NAMEDGROUP
-	if (!sccp_strlen_zero(line->namedcallgroup)) {
-		ast_channel_named_pickupgroups_set(*pbx_channel, ast_get_namedgroups(line->namedcallgroup));
-	}
-
-	if (!sccp_strlen_zero(line->namedpickupgroup)) {
-		ast_channel_named_pickupgroups_set(*pbx_channel, ast_get_namedgroups(line->namedpickupgroup));
 	}
 #endif
 
@@ -3042,6 +3037,7 @@ static int load_module(void)
 		pbx_log(LOG_WARNING, "Unable to create I/O context. SCCP channel type disabled\n");
 		return AST_MODULE_LOAD_FAILURE;
 	}
+	//! \todo how can we handle this in a pbx independent way?
 	if (!load_config()) {
 		if (ast_channel_register(&sccp_tech)) {
 			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");
@@ -3069,6 +3065,7 @@ static int unload_module(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 	ast_rtp_glue_unregister(&sccp_rtp);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
+	
 	sccp_tech.capabilities = ast_format_cap_destroy(sccp_tech.capabilities);
 	ast_channel_unregister(&sccp_tech);
 	sccp_unregister_dialplan_functions();
