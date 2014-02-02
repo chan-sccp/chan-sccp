@@ -545,3 +545,11 @@ BEGIN_ENUM(skinny,registrationstate)
         ENUM_ELEMENT(SKINNY_DEVICE_RS_OK				,,	"OK") 
 END_ENUM(skinny,registrationstate)
 
+/*!
+ * \brief Skinny Device Registration (ENUM)
+ */
+BEGIN_ENUM(skinny,encryptiontype)
+        ENUM_ELEMENT(NO_ENCRYPTION					,=0x0,	"No Encryption")
+        ENUM_ELEMENT(AES_128_HMAC_SHA1_32       			,=0x1,	"AES128 SHA1 32")
+        ENUM_ELEMENT(AES_128_HMAC_SHA1_80				,=0x2,	"AES128 SHA1 80")
+END_ENUM(skinny,encryptiontype)

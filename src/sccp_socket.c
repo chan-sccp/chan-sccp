@@ -343,7 +343,7 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 /*!
  * \brief Exchange Socket Addres Information from them to us
  */
-static int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us)
+int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us)
 {
 	int sock;
 	struct sockaddr_storage sin;

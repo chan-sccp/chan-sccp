@@ -489,6 +489,19 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, INET_ADDRSTRLEN);
 	phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
 
+	
+	/* get our IPv4 address*/
+	{
+		sccp_socket_getOurAddressfor(&register_sas, &s->ourIPv4);
+		pbx_log(LOG_WARNING, "SCCP: getOurIPv4Address %s\n", sccp_socket_stringify(&s->ourIPv4));
+	}
+	/* */
+	
+	
+	
+	
+	
+
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: device load_info='%s', maxNumberOfLines='%d', supports dynamic_messages='%s', supports abbr_dial='%s'\n", deviceName, msg_in->data.RegisterMessage.loadInfo, maxNumberOfLines, (device->device_features & SKINNY_PHONE_FEATURES_DYNAMIC_MESSAGES) == 0 ? "no" : "yes", (device->device_features & SKINNY_PHONE_FEATURES_ABBRDIAL) == 0 ? "no" : "yes");
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ipv4Address: %s, ipV4AddressScope: %d, ipv6Address: %s, ipV6AddressScope: %d\n", deviceName, phone_ipv4, ipV4AddressScope, phone_ipv6, ipV6AddressScope);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: maxStreams: %d, activeStreams: %d, maxConferences: %d, activeConferences: %d\n", deviceName, maxStreams, activeStreams, maxConferences, activeConferences);
@@ -3294,6 +3307,7 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 #endif
 		}
 	} else {
+		d->capabilities.video[0] = 0;
 		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, FALSE);
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: disable video mode softkey\n", DEV_ID_LOG(d));
 		if(previousVideoSupport == TRUE){
@@ -3520,6 +3534,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	if (status) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %d Ending call\n", DEV_ID_LOG(d), status);
 		sccp_dump_msg(msg_in);
+		c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		c = sccp_channel_release(c);
 		return;
 	}

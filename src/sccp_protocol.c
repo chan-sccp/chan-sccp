@@ -766,7 +766,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 	} else {
 		struct sockaddr_in *in = (struct sockaddr_in *)&channel->rtp.audio.phone_remote;
 		memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
-		msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(0);
+// 		msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(0);
 	 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4\n");
 	}
 	sccp_dev_send(device, msg);
@@ -865,14 +865,14 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.macroblocksperframe = htolel(1620);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.decpicbuf = htolel(8100);
 	msg->data.StartMultiMediaTransmission.v17.videoParameter.brandcpb = htolel(10000);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy1 = htolel(1);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy2 = htolel(2);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy3 = htolel(3);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy4 = htolel(4);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy5 = htolel(5);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy6 = htolel(6);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy7 = htolel(7);
-	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy8 = htolel(8);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy1 = htolel(1);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy2 = htolel(2);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy3 = htolel(3);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy4 = htolel(4);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy5 = htolel(5);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy6 = htolel(6);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy7 = htolel(7);
+// 	msg->data.StartMultiMediaTransmission.v17.videoParameter.dummy8 = htolel(8);
 
 	msg->data.StartMultiMediaTransmission.v17.lel_remotePortNumber = htolel( sccp_socket_getPort(&channel->rtp.video.phone_remote) );
 	if (channel->rtp.video.phone_remote.ss_family == AF_INET6) {
@@ -883,9 +883,9 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 	}else {
 		struct sockaddr_in *in = (struct sockaddr_in *)&channel->rtp.video.phone_remote;
 		memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
-		msg->data.StartMultiMediaTransmission.v17.lel_ipv46 = htolel(0);
 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4\n");
 	}
+	sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
 }
 

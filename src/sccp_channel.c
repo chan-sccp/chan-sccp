@@ -1068,26 +1068,37 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 //		}
 
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
-
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
+		
 		
 		
 		
 		uint16_t usFamily	= (d->session->ourip.ss_family == AF_INET6  && !sccp_socket_is_mapped_IPv4(&d->session->ourip) ) ? AF_INET6 : AF_INET;
 		uint16_t remoteFamily	= (channel->rtp.audio.phone_remote.ss_family == AF_INET6  && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote) ) ? AF_INET6 : AF_INET;
+		
+		
+		
 
 		/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-		if (d->nat || ((usFamily == AF_INET) != remoteFamily)) {				/* natted or needs correction for ipv6 address in remote */
+		
+		if ( AF_INET6 == remoteFamily && usFamily == AF_INET6) {							
+			/* we do not support video over IPv6 -> fallback to indirect media and use ourIPv4 as destination */
 			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.video);						/* get rtp server port*/
-			memcpy(&channel->rtp.video.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));
+			memcpy(&channel->rtp.video.phone_remote, &d->session->ourIPv4, sizeof(struct sockaddr_storage));	/* use ourip as destination (rtp server) */
+			sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
+			sccp_socket_setPort(&channel->rtp.video.phone_remote, port);
+		
+		} else if (d->nat || ((usFamily == AF_INET) != remoteFamily)) {							/* natted or needs correction for ipv6 address in remote */
+			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.video);						/* get rtp server port*/
+			memcpy(&channel->rtp.video.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));		/* use ourip as destination (rtp server) */
 			sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
 			sccp_socket_setPort(&channel->rtp.video.phone_remote, port);
 			
-		} else if ((usFamily == AF_INET6) != remoteFamily) {				/* the device can do IPv6 but should send it to IPv4 address (directrtp posible) */
+		} else if ((usFamily == AF_INET6) != remoteFamily) {								/* the device can do IPv6 but should send it to IPv4 address (directrtp posible) */
 			struct sockaddr_storage sas;
 			memcpy(&sas, &channel->rtp.video.phone_remote, sizeof(struct sockaddr_storage));
 			sccp_socket_ipv4_mapped(&sas, &sas);
-		  
+			
 		} else if (!d->directrtp) {
 			/* I think we do not need this part, because phone_remote will be set on sccp_rtp_createAudioServer -MC */
 // 			sccp_rtp_getUs(&channel->rtp.audio, &channel->rtp.audio.phone_remote);

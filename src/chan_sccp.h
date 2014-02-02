@@ -1119,6 +1119,7 @@ struct sccp_session {
 	volatile uint8_t session_stop;										/*!< Signal Session Stop */
 	uint8_t protocolType;
 	uint8_t gone_missing;											/*!< KeepAlive received from an unregistered device */
+	struct sockaddr_storage ourIPv4;
 };														/*!< SCCP Session Structure */
 
 /*!

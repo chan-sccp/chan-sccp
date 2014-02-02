@@ -1,4 +1,7 @@
-DROP TABLE IF EXISTS sccpdevice;
+CREATE SCHEMA IF NOT EXISTS sccp;
+
+
+DROP TABLE IF EXISTS sccp.device;
 CREATE TABLE sccpdevice (
   type varchar(45) default NULL,
   addon varchar(45) default NULL,
@@ -42,7 +45,7 @@ CREATE TABLE sccpdevice (
   PRIMARY KEY  (name)
 );
 
-DROP TABLE IF EXISTS sccpline;
+DROP TABLE IF EXISTS sccp.line;
 CREATE TABLE sccpline (
   id varchar(45) default NULL,
   pin varchar(45) default NULL,
@@ -73,10 +76,10 @@ CREATE TABLE sccpline (
   PRIMARY KEY  (name)
 );
 
-DROP TYPE IF EXISTS buttontype;
-CREATE TYPE buttontype AS ENUM ('line','speeddial','service','feature','empty');
+DROP TYPE IF EXISTS sccp.buttontype;
+CREATE TYPE sccp.buttontype AS ENUM ('line','speeddial','service','feature','empty');
 
-DROP TABLE IF EXISTS buttonconfig;
+DROP TABLE IF EXISTS sccp.buttonconfig;
 CREATE TABLE buttonconfig(
   device character varying(15) NOT NULL,
   instance integer NOT NULL DEFAULT 0,
@@ -97,7 +100,7 @@ CREATE AGGREGATE textcat_column("text") (
 );
 
 
-CREATE OR REPLACE VIEW sccpdeviceconfig AS
+CREATE OR REPLACE VIEW sccp.deviceconfig AS
         SELECT 
 
                 (SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device=sccpdevice.name ORDER BY instance) bc ) as button,
