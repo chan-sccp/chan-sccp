@@ -45,7 +45,7 @@ sccp_device_t *sccp_device_create(const char *id);
 sccp_device_t *sccp_device_createAnonymous(const char *name);
 void sccp_device_addToGlobals(sccp_device_t * device);
 
-sccp_line_t *sccp_dev_get_activeline(sccp_device_t * d);
+sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d);
 sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
