@@ -211,7 +211,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->callid = callid;
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 
-	channel->line = l;
+	channel->line = sccp_line_retain(l);
 	channel->peerIsSCCP = 0;
 	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 	channel->maxBitRate = 15000;
@@ -1831,6 +1831,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	if (channel && channel->privateData && channel->privateData->device) {
 		sccp_channel_setDevice(channel, NULL);
 	}
+	channel->line = channel->line ? sccp_channel_release(channel->line) : NULL;
 }
 
 /*!
