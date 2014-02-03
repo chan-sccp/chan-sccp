@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevices` (
 
 
 CREATE TABLE IF NOT EXISTS `sccplines` (
-  `id` varchar(45) default NULL,
+  `id` varchar(4) default NULL,
   `pin` varchar(45) default NULL,
   `label` varchar(45) default NULL,
   `description` varchar(45) default NULL,

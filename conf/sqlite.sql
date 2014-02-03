@@ -42,7 +42,7 @@ CREATE TABLE sccpdevice (
 
 
 CREATE TABLE sccpline (
-  id 				varchar(45) 	DEFAULT NULL,
+  id 				varchar(4) 	DEFAULT NULL,
   pin 				varchar(45) 	DEFAULT NULL,
   label 			varchar(45) 	DEFAULT NULL,
   description 			varchar(45) 	DEFAULT NULL,
