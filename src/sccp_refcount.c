@@ -460,13 +460,18 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	return NULL;
 }
 
-inline void sccp_refcount_replace(const void *ptr, void *newptr, const char *filename, int lineno, const char *func) {
-	void *tmp = NULL;
-	if (newptr) {
-		tmp = sccp_refcount_retain(newptr, filename, lineno, func);
+inline void *sccp_refcount_replace(void *ptr, void *newptr, const char *filename, int lineno, const char *func) {
+	if (newptr == ptr) {						// nothing changed
+		return newptr;
 	}
-	if (ptr) { 
+
+	void *tmpPtr = NULL;						// retain new one first
+	if (newptr && sccp_refcount_retain(newptr, filename, lineno, func)) {
+		tmpPtr = newptr;
+	}
+	if (ptr) { 							// release previous one after
 		sccp_refcount_release(ptr, filename, lineno, func);
 	}
-	ptr = tmp;
+	ptr = newptr;							// make sure old pointer is replaced
+	return newptr;
 }
