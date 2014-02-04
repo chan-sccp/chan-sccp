@@ -211,7 +211,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->callid = callid;
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 
-	channel->line = sccp_line_retain(l);
 	channel->peerIsSCCP = 0;
 	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 	channel->maxBitRate = 15000;
@@ -219,6 +218,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	sccp_channel_setDevice(channel, device);
 
 	sccp_line_addChannel(l, channel);
+	channel->line = sccp_line_retain(l);
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
 #if DEBUG
@@ -276,12 +276,10 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	if (!channel) {
 		return;
 	}
-	
-	if (channel->privateData->device) {
-		channel->privateData->device = sccp_device_release(channel->privateData->device);
-	}
 
-	if (device && (channel->privateData->device = sccp_device_retain((sccp_device_t *) device))) {
+	sccp_device_refreplace(channel->privateData->device, (sccp_device_t *) device);
+
+	if (channel->privateData->device) {
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
@@ -291,6 +289,22 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
+}
+
+ /*!
+ * \brief Connect an SCCP Line to an SCCP Channel
+ * \param channel SCCP Channel
+ * \param line SCCP Line
+ */
+void sccp_channel_set_line(sccp_channel_t * channel, sccp_line_t *line)
+{
+	sccp_channel_t *c = NULL;
+
+	if ((c = sccp_channel_retain(channel))) {
+		sccp_line_refreplace(c->line, line);
+		sccp_channel_updateChannelDesignator(channel);
+		c = sccp_channel_release(c);
+	}
 }
 
 /*!
@@ -444,12 +458,11 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
 		if (device->active_channel) {
 			device->active_channel->line->statistic.numberOfActiveChannels--;
-			device->active_channel = sccp_channel_release(device->active_channel);
 		}
-		if (channel) {
-			device->active_channel = sccp_channel_retain(channel);
-			sccp_channel_updateChannelDesignator(channel);
-			sccp_dev_set_activeline(device, channel->line);
+		sccp_channel_refreplace(device->active_channel, channel);
+		if (device->active_channel) {
+			sccp_channel_updateChannelDesignator(device->active_channel);
+			sccp_dev_set_activeline(device, device->active_channel->line);
 			device->active_channel->line->statistic.numberOfActiveChannels++;
 		}
 		device = sccp_device_release(device);
@@ -1386,15 +1399,15 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		sccp_linedevices_t *lineDevice = sccp_linedevice_find(device, l);
 		if (!lineDevice){
 			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
-			sccp_line_t *activeLine = sccp_dev_get_activeline(device);
-			if (!activeLine){
+			sccp_line_t *activeLine = NULL;
+			if ((activeLine = sccp_dev_get_activeline(device))) {
+				sccp_channel_set_line(channel, activeLine);
+				sccp_line_refreplace(l, activeLine);
+				sccp_line_release(activeLine);
+			} else {
 				l = sccp_line_release(l); 
 				return;
 			}
-			channel->line = sccp_line_retain(activeLine);
-			sccp_line_release(l);
-			l = sccp_line_release(l); /* release two times, one for channel->line, one for l */
-			l = activeLine;
 		}
 		
 		lineDevice = sccp_linedevice_release(lineDevice);
@@ -1952,21 +1965,20 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 						pbx_builtin_setvar_helper(sccp_channel_new->owner, "BLINDTRANSFER", pbx_channel_name(pbx_channel_bridgepeer));
 						pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", pbx_channel_name(sccp_channel_new->owner));
 					}
-					// should go own, even if there is not bridged channel (yet/anymore) ?
+					// should go on, even if there is no bridged channel (yet/anymore) ?
 					d->transferChannels.transferer = sccp_channel_retain(sccp_channel_new);
 					sccp_channel_new = sccp_channel_release(sccp_channel_new);
 				} else if (pbx_channel_appl(pbx_channel_owner) != NULL) {
-					// should go own, even if there is not bridged channel (yet/anymore) ?
 					// giving up
 					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 					sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
-					sccp_indicate(d, channel, prev_channel_state);
+					sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
 					d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 				} else {
 					// giving up
 					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 					sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, 5);
-					sccp_indicate(d, channel, prev_channel_state);
+					sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
 					d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 				}
 			} else {
