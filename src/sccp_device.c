@@ -1520,17 +1520,10 @@ sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
  */
 void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
 {
-	if (!device || !device->session)
-		return;
-
-	/* nothing changed, just return */
-	if (l == device->currentLine) {
+	if (!device || !device->session) {
 		return;
 	}
-
-	/* release old line and retain new one */
-	device->currentLine = device->currentLine ? sccp_line_release(device->currentLine) : NULL;
-	device->currentLine = l ? sccp_line_retain((sccp_line_t *) l) : NULL;
+	sccp_line_refreplace(device->currentLine, (sccp_line_t *) l);
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Set the active line %s\n", device->id, l ? l->name : "(NULL)");
 }
