@@ -17,7 +17,7 @@
 
 #define sccp_device_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_device_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_device_refreplace(x, y) 	sccp_refcount_replace(x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_device_refreplace(x, y) 	x = sccp_refcount_replace(x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /*!
  * \brief SCCP Device Indication Callback Structure
