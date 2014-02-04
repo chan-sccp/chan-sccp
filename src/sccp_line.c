@@ -115,7 +115,15 @@ void sccp_line_post_reload(void)
  */
 sccp_line_t *sccp_line_create(const char *name)
 {
-	sccp_line_t *l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
+	sccp_line_t *l = NULL;
+	
+/* 	// do make sure line->name is unique before adding.
+	if ((l = sccp_line_find_byname(name, FALSE))) {
+		sccp_line_release(l);
+		return NULL;
+	}
+*/
+	l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
 
 	if (!l) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Unable to allocate memory for a line\n");
@@ -217,10 +225,10 @@ void *sccp_create_hotline(void)
 
 //	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	hotline = sccp_line_create("Hotline");
-#ifdef CS_SCCP_REALTIME
-	hotline->realtime = TRUE;
-#endif
 	if (hotline) {
+#ifdef CS_SCCP_REALTIME
+		hotline->realtime = TRUE;
+#endif
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
@@ -880,13 +888,12 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 
 //		SCCP_RWLIST_WRLOCK(&GLOB(lines));
-		l = sccp_line_create(name);									/* already retained */
-		sccp_config_applyLineConfiguration(l, variable);
-		l->realtime = TRUE;
-		sccp_line_addToGlobals(l);									// can return previous instance on doubles
-		pbx_variables_destroy(v);
-
-		if (!l) {
+		if ((l = sccp_line_create(name))) {									/* already retained */
+			sccp_config_applyLineConfiguration(l, variable);
+			l->realtime = TRUE;
+			sccp_line_addToGlobals(l);									// can return previous instance on doubles
+			pbx_variables_destroy(v);
+		} else {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
 //		SCCP_RWLIST_UNLOCK(&GLOB(lines));

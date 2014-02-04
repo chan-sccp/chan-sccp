@@ -1249,10 +1249,10 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		d = sccp_device_release(d);
 	}
 	if (channel->owner) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, (channel->line && channel->line->name) ? channel->line->name : "NULL", sccp_indicate2str(channel->state));
 		PBX(requestHangup) (channel->owner);
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
 	} else {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, channel->line->name);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, (channel->line && channel->line->name) ? channel->line->name : "NULL");
 	}
 }
 
