@@ -210,36 +210,44 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 					buttonID = SKINNY_BUTTONTYPE_CONFERENCE;
 					break;
 
-				case SCCP_FEATURE_TEST6:
-					buttonID = SKINNY_BUTTONTYPE_TEST6;
+				case SCCP_FEATURE_DO_NOT_DISTURB:
+					buttonID = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
 					break;
 
-				case SCCP_FEATURE_TEST7:
-					buttonID = SKINNY_BUTTONTYPE_TEST7;
+				case SCCP_FEATURE_CONF_LIST:
+					buttonID = SKINNY_BUTTONTYPE_CONF_LIST;
+					break;
+					
+				case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
+					buttonID = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
+					break;
+					
+				case SCCP_FEATURE_HLOG:
+					buttonID = SKINNY_BUTTONTYPE_HLOG;
 					break;
 
-				case SCCP_FEATURE_TEST8:
-					buttonID = SKINNY_BUTTONTYPE_TEST8;
+				case SCCP_FEATURE_QRT:
+					buttonID = SKINNY_BUTTONTYPE_QRT;
 					break;
 
-				case SCCP_FEATURE_TEST9:
-					buttonID = SKINNY_BUTTONTYPE_TEST9;
+				case SCCP_FEATURE_CALLBACK:
+					buttonID = SKINNY_BUTTONTYPE_CALLBACK;
 					break;
 
-				case SCCP_FEATURE_TESTA:
-					buttonID = SKINNY_BUTTONTYPE_TESTA;
+				case SCCP_FEATURE_OTHER_PICKUP:
+					buttonID = SKINNY_BUTTONTYPE_OTHER_PICKUP;
 					break;
 
-				case SCCP_FEATURE_TESTB:
-					buttonID = SKINNY_BUTTONTYPE_TESTB;
+				case SCCP_FEATURE_VIDEO_MODE:
+					buttonID = SKINNY_BUTTONTYPE_VIDEO_MODE;
 					break;
 
-				case SCCP_FEATURE_TESTC:
-					buttonID = SKINNY_BUTTONTYPE_TESTC;
+				case SCCP_FEATURE_NEW_CALL:
+					buttonID = SKINNY_BUTTONTYPE_NEW_CALL;
 					break;
 
-				case SCCP_FEATURE_TESTD:
-					buttonID = SKINNY_BUTTONTYPE_TESTD;
+				case SCCP_FEATURE_END_CALL:
+					buttonID = SKINNY_BUTTONTYPE_END_CALL;
 					break;
 
 				case SCCP_FEATURE_TESTE:

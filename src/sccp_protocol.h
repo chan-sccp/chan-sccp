@@ -890,18 +890,18 @@ typedef union {
 	 */
 
 	struct {
-		uint32_t lel_AccessoryID;									/*!< Accessory ID */
-		uint32_t lel_AccessoryStatus;									/*!< Accessory Status */
-		uint32_t lel_unknown;										/*!< Unknown */
-	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure */
+		uint32_t lel_AccessoryID;									/*!< Accessory ID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) (MediaPathID) */
+		uint32_t lel_AccessoryStatus;									/*!< Accessory Status (0x1=On, 0x2=Off) (MediaPathEvent) */
+//		uint32_t lel_unknown;										/*!< Unknown */
+	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure (MediaPathEventMessage)*/
 
 	// Message 0x4A len 12 (cisco ip communicator uses it)
 	// 00000000 - 03 00 00 00 01 00 00 00 00 00 00 00             ............
 
 	struct {
-		uint32_t lel_unknown1;										/*!< Unknown */
-		uint32_t lel_unknown2;										/*!< Unknown */
-		uint32_t lel_unknown3;										/*!< Unknown */
+		uint32_t lel_MediaPathID;									/*!< mediaPathID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker)*/
+		uint32_t lel_MediaPathCapabilities;								/*!< mediaPathCapabilities (0x1=Enable, 0x2=Disable, 0x3=Monitor) */
+//		uint32_t lel_unknown3;										/*!< Unknown */
 	} MediaPathCapabilityMessage;										/*!< \todo MediaPath Capability Message Structure */
 
 	struct {												// INCOMPLETE
@@ -1168,8 +1168,10 @@ typedef union {
 	} EnblocCallMessage;											/*!< Enbloc Call Message - Client -> Server */
 
 	struct {
-		uint32_t lel_stimulus;										/*!< Stimulus */
+		uint32_t lel_stimulus;										/*!< Stimulus (ENUM: skinny_stimulus) */
 		uint32_t lel_stimulusInstance;									/*!< Stimulus Instance (normally set to 1 (except speed dial and line)) */
+		uint32_t lel_callReference;									/*!< Call Reference - current channel identifier */
+		uint32_t lel_stimulusStatus;									/*!< Stimulus Status */
 	} StimulusMessage;											/*!< Stimulus Message - Client -> Server */
 
 
@@ -2677,7 +2679,7 @@ typedef union {
 
 	/* SCCP Firmware version > 9.1 */
 	struct {
-		char le_data[2001];										/*!< XML Alarm Message Data */
+		char le_data[2000];										/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
 
 	struct {
