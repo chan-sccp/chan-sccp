@@ -1,35 +1,48 @@
-#!/bin/bash
-ASTSBINDIR=${$1:/usr/sbin}
-ASTVARRUNDIR=${$2:/var/run/asterisk}
-NOTIFY=${$3:root@localhost.localdomain}
+#!/bin/sh
+ASTSBINDIR=$1
+ASTVARRUNDIR=$2
+NOTIFY=$3
+
+ASTSBINDIR=${ASTSBINDIR:-/usr/sbin}
+ASTVARRUNDIR=${ASTVARRUNDIR:-/var/run/asterisk}
+NOTIFY=${NOTIFY:-/root@localhost.localdomain}
+MACHINE=`hostname`
+MAIL=`which mail`
 
 RUNDIR=/tmp
 DUMPCORE=/tmp
-ASTPIDFILE=${ASTVARRUNDIR}/aasterisk.pid
-MACHINE=`hostname`
 
 #===========================
+ASTPIDFILE=${ASTVARRUNDIR}/asterisk.pid
 PID=`cat ${ASTPIDFILE}`
 DATE=`date "+%Y-%m-%dT%H:%M:%S%z"`
+
 if test -f ${RUNDIR}/core.${PID} ; then
 	CORE=${RUNDIR}/core.${PID}
 elif test -f ${RUNDIR}/core ; then
-	CORE=${RUNDIR}/core.${PID}
+	CORE=${RUNDIR}/core
+else
+	echo "CoreDump not found"
+	exit
 fi
 
-if test -f ${CORE}; then
-	gdb -batch-silent \
-		-ex "set logging overwrite on" \
-		-ex "set logging file ${DUMPCORE}/core.`hostname`-${DATE}.bt" \
-		-ex "set logging on" \
-		-ex "set pagination off" \
-		-ex "echo backtrace:" \
-		-ex "bt" \
-		-ex "echo backtrace full:" \
-		-ex "bt full" \
-		-ex "set logging off" \
-		-ex "quit" \
-		${ASTSBINDIR}/asterisk ${CORE}
-	echo "Asterisk on $MACHINE exited on signal $EXITSIGNAL. GDB Backtrace." | \
-	cat ${DUMPCORE}/core.`hostname`-$DATE.bt | mail -s "Asterisk GDB Backtrace" $NOTIFY
+echo "Asterisk on $MACHINE died at ${DATE}. GDB Backtrace." > "${DUMPCORE}/core.`hostname`-${DATE}.bt"
+echo "" >> "${DUMPCORE}/core.`hostname`-${DATE}.bt"
+
+gdb -batch-silent \
+	-ex "set logging overwrite on" \
+	-ex "set logging file ${DUMPCORE}/core.`hostname`-${DATE}.bt" \
+	-ex "set logging on" \
+	-ex "set pagination off" \
+	-ex "echo backtrace:\n" \
+	-ex "bt" \
+	-ex "echo backtrace full:\n" \
+	-ex "bt full" \
+	-ex "set logging off" \
+	-ex "quit" \
+	${ASTSBINDIR}/asterisk ${CORE} 2&1>/dev/null
+#	-ex "echo info share ld-linux" \
+#	-ex "info share ld-linux" \
+if [ "x${MAIL}" != "x" ]; then
+	cat "${DUMPCORE}/core.`hostname`-${DATE}.bt" | mail -s "Asterisk GDB Backtrace" $NOTIFY
 fi
