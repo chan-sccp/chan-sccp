@@ -472,6 +472,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	}
 	
 	// STAGE 2: read message data
+	msgDataSegmentSize -= SCCP_PACKET_HEADER;
 	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correction because we count messageId as part of the header */
 	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
 	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Dissection %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, msg->header.length: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, msg->header.length, bytesToRead, bytesReadSoFar);
