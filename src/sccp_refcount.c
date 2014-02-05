@@ -472,6 +472,6 @@ inline void *sccp_refcount_replace(void *ptr, void *newptr, const char *filename
 	if (ptr) { 							// release previous one after
 		sccp_refcount_release(ptr, filename, lineno, func);
 	}
-	ptr = newptr;							// make sure old pointer is replaced
-	return newptr;
+	ptr = tmpPtr;							// make sure old pointer is replaced
+	return tmpPtr;
 }
