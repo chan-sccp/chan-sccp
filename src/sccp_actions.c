@@ -724,36 +724,44 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							btn[i].type = SKINNY_STIMULUS_GROUPCALLPICKUP;
 							break;
 
-						case SCCP_FEATURE_TEST6:
-							btn[i].type = SKINNY_BUTTONTYPE_TEST6;
+						case SCCP_FEATURE_DO_NOT_DISTURB:
+							btn[i].type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
+							break;
+							
+						case SCCP_FEATURE_CONF_LIST:
+							btn[i].type = SKINNY_BUTTONTYPE_CONF_LIST;
+							break;
+						
+						case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
+							btn[i].type = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
 							break;
 
-						case SCCP_FEATURE_TEST7:
-							btn[i].type = SKINNY_BUTTONTYPE_TEST7;
+						case SCCP_FEATURE_HLOG:
+							btn[i].type = SKINNY_BUTTONTYPE_HLOG;
 							break;
 
-						case SCCP_FEATURE_TEST8:
-							btn[i].type = SKINNY_BUTTONTYPE_TEST8;
+						case SCCP_FEATURE_QRT:
+							btn[i].type = SKINNY_BUTTONTYPE_QRT;
 							break;
 
-						case SCCP_FEATURE_TEST9:
-							btn[i].type = SKINNY_BUTTONTYPE_TEST9;
+						case SCCP_FEATURE_CALLBACK:
+							btn[i].type = SKINNY_BUTTONTYPE_CALLBACK;
 							break;
 
-						case SCCP_FEATURE_TESTA:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTA;
+						case SCCP_FEATURE_OTHER_PICKUP:
+							btn[i].type = SKINNY_BUTTONTYPE_OTHER_PICKUP;
 							break;
 
-						case SCCP_FEATURE_TESTB:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTB;
+						case SCCP_FEATURE_VIDEO_MODE:
+							btn[i].type = SKINNY_BUTTONTYPE_VIDEO_MODE;
 							break;
 
-						case SCCP_FEATURE_TESTC:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTC;
+						case SCCP_FEATURE_NEW_CALL:
+							btn[i].type = SKINNY_BUTTONTYPE_NEW_CALL;
 							break;
 
-						case SCCP_FEATURE_TESTD:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTD;
+						case SCCP_FEATURE_END_CALL:
+							btn[i].type = SKINNY_BUTTONTYPE_END_CALL;
 							break;
 
 						case SCCP_FEATURE_TESTE:
@@ -764,16 +772,16 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							btn[i].type = SKINNY_BUTTONTYPE_TESTF;
 							break;
 
+						case SCCP_FEATURE_TESTI:
+							btn[i].type = SKINNY_BUTTONTYPE_TESTI;
+							break;
+
 						case SCCP_FEATURE_TESTG:
 							btn[i].type = SKINNY_BUTTONTYPE_MESSAGES;
 							break;
 
 						case SCCP_FEATURE_TESTH:
 							btn[i].type = SKINNY_BUTTONTYPE_DIRECTORY;
-							break;
-
-						case SCCP_FEATURE_TESTI:
-							btn[i].type = SKINNY_BUTTONTYPE_TESTI;
 							break;
 
 						case SCCP_FEATURE_TESTJ:
@@ -893,14 +901,12 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
 {
 	uint8_t id;
 	uint8_t status;
-	uint32_t unknown = 0;
 
 	id = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryID);
 	status = letohl(msg_in->data.AccessoryStatusMessage.lel_AccessoryStatus);
 
 	d->accessoryused = id;
 	d->accessorystatus = status;
-	unknown = letohl(msg_in->data.AccessoryStatusMessage.lel_unknown);
 	switch (id) {
 		case 1:
 			d->accessoryStatus.headset = (status) ? TRUE : FALSE;
@@ -913,7 +919,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
 			break;
 	}
 
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s' (%u)\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystate2str(d->accessorystatus), unknown);
+	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Accessory '%s' is '%s'\n", DEV_ID_LOG(d), accessory2str(d->accessoryused), accessorystate2str(d->accessorystatus));
 }
 
 /*!
@@ -1178,20 +1184,27 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 	sccp_channel_t *channel = NULL, *sccp_channel_1 = NULL;
 	uint8_t stimulus;
 	uint8_t instance;
+	uint32_t callReference = 0;
+	uint32_t stimulusStatus = 0;
 	sccp_channel_t *sccp_channel_held;
 	sccp_channel_t *sccp_channel_ringing;
 
 	stimulus = letohl(msg_in->data.StimulusMessage.lel_stimulus);
 	instance = letohl(msg_in->data.StimulusMessage.lel_stimulusInstance);
+	
+	if (msg_in->header.length > 12) {
+		callReference = letohl(msg_in->data.StimulusMessage.lel_callReference);
+		stimulusStatus = letohl(msg_in->data.StimulusMessage.lel_stimulusStatus);
+	}
 
 	if (d->isAnonymous) {
 		sccp_feat_adhocDial(d, GLOB(hotline)->line);							/* use adhoc dial feture with hotline */
 		return;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d\n", d->id, stimulus2str(stimulus), stimulus, instance);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d, callreference=%d, status=%d\n", d->id, stimulus2str(stimulus), stimulus, instance, callReference, stimulusStatus);
 
-	if (!instance) {
+	if (!instance) {										/*! \todo also use the callReference if available */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
 		al = sccp_dev_get_activeline(d);
 		if (!al) {
@@ -1352,19 +1365,19 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 		case SKINNY_BUTTONTYPE_FEATURE:
 		case SKINNY_BUTTONTYPE_MOBILITY:
 		case SKINNY_BUTTONTYPE_MULTIBLINKFEATURE:
-		case SKINNY_BUTTONTYPE_TEST6:
-		case SKINNY_BUTTONTYPE_TEST7:
-		case SKINNY_BUTTONTYPE_TEST8:
-		case SKINNY_BUTTONTYPE_TEST9:
-		case SKINNY_BUTTONTYPE_TESTA:
-		case SKINNY_BUTTONTYPE_TESTB:
-		case SKINNY_BUTTONTYPE_TESTC:
-		case SKINNY_BUTTONTYPE_TESTD:
+		case SKINNY_BUTTONTYPE_DO_NOT_DISTURB:
+		case SKINNY_BUTTONTYPE_QRT:
+		case SKINNY_BUTTONTYPE_CALLBACK:
+		case SKINNY_BUTTONTYPE_OTHER_PICKUP:
+		case SKINNY_BUTTONTYPE_VIDEO_MODE:
+		case SKINNY_BUTTONTYPE_NEW_CALL:
+		case SKINNY_BUTTONTYPE_END_CALL:
+		case SKINNY_BUTTONTYPE_HLOG:
 		case SKINNY_BUTTONTYPE_TESTE:
 		case SKINNY_BUTTONTYPE_TESTF:
+		case SKINNY_BUTTONTYPE_TESTI:
 		case SKINNY_BUTTONTYPE_MESSAGES:
 		case SKINNY_BUTTONTYPE_DIRECTORY:
-		case SKINNY_BUTTONTYPE_TESTI:
 		case SKINNY_BUTTONTYPE_APPLICATION:
 			sccp_handle_feature_action(d, instance, TRUE);
 			break;
