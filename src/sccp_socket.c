@@ -866,7 +866,7 @@ static void sccp_accept_connection(void)
 #if defined(linux)
 	struct timeval tv = {1,0};							/* timeout after one second when trying to read from a socket */
 	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {				
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_RCVTIMEO: %s\n", strerror(errno));
 	}
 	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
