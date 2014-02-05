@@ -224,7 +224,7 @@ EXIT:
 	if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE + DEBUGCAT_ACTION)) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
 
-		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), mid ? msgtype2str(mid) : NULL, mid ? mid : 0, msg ? msg->header.length : 0);
+		pbx_log(LOG_NOTICE, "%s: SCCP Handle Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(d), msgtype2str(mid), mid, msg ? msg->header.length : 0);
 		sccp_dump_msg(msg);
 	}
 	return d;
