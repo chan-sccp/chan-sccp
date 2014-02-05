@@ -802,8 +802,8 @@ void *sccp_socket_device_thread(void *session)
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				//while (sccp_read_data(s, &r)) {						/* according to poll specification we should empty out the read buffer completely.*/
 														/* but that would give us trouble with timeout */
-				if (sccp_read_data(s, &msg) && msg.header.length >= 4) {
-					if (!sccp_handle_message(&msg, s)) {
+				if (sccp_read_data(s, &msg)) {
+					if (msg.header.length >= 4 && !sccp_handle_message(&msg, s)) {
 						if (s->device) {
 							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 						}
