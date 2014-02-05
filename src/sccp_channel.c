@@ -1408,10 +1408,10 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 				l = sccp_line_release(l); 
 				return;
 			}
+		} else {
+			lineDevice = sccp_linedevice_release(lineDevice);
 		}
-		
-		lineDevice = sccp_linedevice_release(lineDevice);
-	}while(FALSE);
+	} while(FALSE);
 #endif
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
 
