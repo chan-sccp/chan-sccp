@@ -1,0 +1,37 @@
+#!/bin/bash
+ASTSBINDIR=${$1:/usr/sbin}
+ASTVARRUNDIR=${$2:/var/run/asterisk}
+NOTIFY=${$3:root@localhost.localdomain}
+
+RUNDIR=/tmp
+DUMPCORE=/tmp/dumpcore
+ASTPIDFILE=${ASTVARRUNDIR}/aasterisk.pid
+MACHINE=`hostname`
+
+#===========================
+PID=`cat ${ASTPIDFILE}`
+DATE=`date "+%Y-%m-%dT%H:%M:%S%z"`
+if test -f ${RUNDIR}/core.${PID} ; then
+	CORE=${RUNDIR}/core.${PID}
+elif test -f ${RUNDIR}/core ; then
+	CORE=${RUNDIR}/core.${PID}
+fi
+
+if test -f ${CORE}; then
+	gdb -batch-silent \
+		-ex "set logging overwrite on" \
+		-ex "set logging file ${DUMPCORE}/core.`hostname`-${DATE}.bt" \
+		-ex "set logging on" \
+		-ex "set pagination off" \
+		-ex "echo backtrace:" \
+		-ex "bt" \
+		-ex "echo backtrace full:" \
+		-ex "bt full" \
+#		-ex "echo info share ld-linux" \
+#		-ex "info share ld-linux" \
+		-ex "set logging off" \
+		-ex "quit" \
+		${ASTSBINDIR}/asterisk ${CORE}
+	echo "Asterisk on $MACHINE exited on signal $EXITSIGNAL. GDB Backtrace." | \
+	cat ${DUMPCORE}/core.`hostname`-$DATE.bt | mail -s "Asterisk GDB Backtrace" $NOTIFY
+fi
