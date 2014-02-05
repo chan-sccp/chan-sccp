@@ -453,12 +453,12 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	int UnreadBytesAccordingToPacket = 0;									/* Size of sccp_data_t according to the incomming Packet */
 	int bytesToRead = 0;
 	int bytesReadSoFar = 0;
-	int bytesToSkip = 0;
 	int readlen = 0;
 	unsigned char buffer[SCCP_MAX_PACKET] = {0};
-	unsigned char *bufferptr; 
 	unsigned char *dataptr;
 	errno = 0;
+	int tries = 0;
+	int max_retries = 30;											/* arbitrairy number of tries to read a message */
 
 	// STAGE 1: read header
 	memset(msg, 0, SCCP_MAX_PACKET);	
@@ -472,22 +472,21 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	}
 	
 	// STAGE 2: read message data
-	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correcttion because we count messageId as part of the header */
+	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correction because we count messageId as part of the header */
 	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
 	dataptr = (unsigned char *) &msg->data;
 	while (bytesToRead >0) {
 		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-		bufferptr = buffer;										// reset bufferptr
-//		readlen = read(s->fds[0].fd, &msg->data, bytesToRead);						// does not work, next segment will include a header again
-		readlen = read(s->fds[0].fd, bufferptr, bytesToRead);						// use bufferptr instead
+		readlen = read(s->fds[0].fd, buffer, bytesToRead);						// use bufferptr instead
+		if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {continue;}	/* try again, blocking */
+		else if (readlen <= 0) {goto READ_ERROR;}							/* client closed socket, because read caused an error */
 		bytesReadSoFar += readlen;
 		bytesToRead -= readlen;										// if bytesToRead then more segments to read
-		memcpy(dataptr, buffer + bytesToSkip, readlen - bytesToSkip);					// skip header bytes if multiple segments
-		dataptr += readlen - bytesToSkip;								// advance dataptr
-		bytesToSkip = SCCP_PACKET_HEADER;								// skip header bytes on next segment
+		memcpy(dataptr, buffer, readlen);
+		dataptr += readlen;
 	};
 	UnreadBytesAccordingToPacket -= bytesReadSoFar;
-	// msg->header.length = bytesReadSoFar + 4;								/* Should we correct the header->length, to the length of our struct, which we know we can handle ?? */
+	tries = 0;
 	
 	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 	
@@ -498,10 +497,8 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
 			readlen= read(s->fds[0].fd, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
-			if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {continue;}			/* try again, blocking */
-// \todo //		else if (readlen == 0) {goto READ_ERROR;}						/* client closed socket, because read caused an error */
-/* \todo */		else if (readlen <= 0) {break;}								/* if we read EOF, just break reading (invalid packet information) */
-														/* would EOF not return <0 && errno, instead */
+			if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {continue;}	/* try again, blocking */
+			else if (readlen <= 0) {break;}								/* if we read EOF, just break reading (invalid packet information) */
 			bytesToRead -= readlen;
 			sccp_dump_packet((unsigned char *)discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
 		};
@@ -514,6 +511,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 READ_ERROR:
 	if (errno) {
 		pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
+		pbx_log(LOG_ERROR, "%s: stats: %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 	}
 	memset(msg, 0, SCCP_MAX_PACKET);	
 	return FALSE;
@@ -677,13 +675,13 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
 	sccp_device_t *d = NULL;
 	boolean_t found_in_list = FALSE;
-    char addrStr[INET6_ADDRSTRLEN];
+	char addrStr[INET6_ADDRSTRLEN];
 
 	if (!s) {
 		return;
 	}
 
-    sccp_copy_string(addrStr, sccp_socket_stringify_addr(&s->sin), sizeof(addrStr));
+	sccp_copy_string(addrStr, sccp_socket_stringify_addr(&s->sin), sizeof(addrStr));
 	
 	found_in_list = sccp_session_removeFromGlobals(s);
 
@@ -791,7 +789,8 @@ void *sccp_socket_device_thread(void *session)
 		} else if (0 == res) {										/* poll timeout */
 			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Timeout.\n", DEV_ID_LOG(s->device));
 			if (((int) time(0) > ((int) s->lastKeepAlive + (int) maxWaitTime))) {
-				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout);
+				sccp_copy_string(addrStr, sccp_socket_stringify_addr(&s->sin), sizeof(addrStr));
+				ast_log(LOG_NOTICE, "%s: Closing session because connection timed out after %d seconds (timeout: %d) (ip-address: %s).\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout, addrStr);
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_TIMEOUT);
 				break;
 			}
@@ -865,6 +864,10 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 	}
 #if defined(linux)
+	struct timeval tv = {1,0};							/* timeout after one second when trying to read from a socket */
+	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {				
+		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+	}
 	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
 	}

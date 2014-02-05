@@ -2677,7 +2677,7 @@ typedef union {
 
 	/* SCCP Firmware version > 9.1 */
 	struct {
-		char le_data[2000];										/*!< XML Alarm Message Data */
+		char le_data[2001];										/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
 
 	struct {
