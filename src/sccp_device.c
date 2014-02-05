@@ -791,6 +791,14 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
+/*		
+		case SKINNY_DEVICETYPE_SPA_303G:
+			for (i = 0; i < 3; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
+*/
+		case SKINNY_DEVICETYPE_SPA_502G:
 		case SKINNY_DEVICETYPE_SPA_521S:
 			for (i = 0; i < 1; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
