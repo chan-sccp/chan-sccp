@@ -10,7 +10,7 @@ TTY=9						# TTY (if you want one) for Asterisk to run on
 CONSOLE=yes					# Whether or not you want a console
 #NOTIFY=root@localhost.localdomain		# Who to notify about crashes
 NOTIFY=${NOTIFY:-}				# Who to notify about crashes
-EXEC="`dirname $0`/safe_asterisk_backtrace \"${ASTSBINDIR}\" \"${ASTVARRUNDIR}\" \"${NOTIFY}\""	
+EXEC="`dirname $0`/safe_asterisk_backtrace ${ASTSBINDIR} ${ASTVARRUNDIR} ${NOTIFY}"	
 						# Run this command if Asterisk crashes
 #LOGFILE=${ASTVARLOGDIR}/safe_asterisk.log	# Where to place the normal logfile (disabled if blank)
 SYSLOG=${SYSLOG:-}				# Which syslog facility to use (disabled if blank)
