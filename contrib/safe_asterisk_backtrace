@@ -34,6 +34,10 @@ gdb -batch-silent \
 	-ex "set logging file ${DUMPCORE}/core.`hostname`-${DATE}.bt" \
 	-ex "set logging on" \
 	-ex "set pagination off" \
+	-ex "set print elements 0" \
+	-ex "set print null-stop" \
+	-ex "set print pretty on" \
+	-ex "printf \"Program terminated with signal %d\n\", $_siginfo.si_signo"
 	-ex "echo backtrace:\n" \
 	-ex "bt" \
 	-ex "echo backtrace full:\n" \
