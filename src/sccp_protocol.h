@@ -1183,8 +1183,8 @@ typedef union {
 	 *       00000010 - 00 00 00 00                                       - ....
 	 */
 	struct {
-		uint32_t unknown1;
-		uint32_t unknown2;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
 	} OffHookMessage;											/*!< Off Hook Message Structure */
 
 	struct {
@@ -1201,8 +1201,8 @@ typedef union {
 	 *       00000010 - 00 00 00 00                                       - ....
 	 */
 	struct {
-		uint32_t unknown1;
-		uint32_t unknown2;
+		uint32_t lel_lineInstance;
+		uint32_t lel_callReference;
 	} OnHookMessage;											/*!< On Hook Message Structure */
 
 	struct {
