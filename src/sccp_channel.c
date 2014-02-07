@@ -193,6 +193,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	sccp_mutex_init(&channel->lock);
 	sccp_mutex_lock(&channel->lock);
+	channel->line = sccp_line_retain(l);
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
@@ -216,9 +217,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->maxBitRate = 15000;
 
 	sccp_channel_setDevice(channel, device);
-
 	sccp_line_addChannel(l, channel);
-	channel->line = sccp_line_retain(l);
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
 #if DEBUG
