@@ -2624,7 +2624,11 @@ CLI_ENTRY(cli_config_generate, sccp_cli_config_generate, "Generate a SCCP config
  */
 static int sccp_show_version(int fd, int argc, char *argv[])
 {
-	pbx_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
+#ifdef REVISION
+	pbx_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s %s - r%d (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, REVISION, BUILD_USER, BUILD_DATE);
+#else
+ 	pbx_cli(fd, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISION, BUILD_USER, BUILD_DATE);
+#endif
 	return RESULT_SUCCESS;
 }
 
