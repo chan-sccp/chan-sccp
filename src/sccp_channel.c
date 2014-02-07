@@ -456,14 +456,16 @@ void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * channel)
 
 	if ((device = sccp_device_retain(d))) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
-		if (device->active_channel) {
+		if (device->active_channel && device->active_channel->line) {
 			device->active_channel->line->statistic.numberOfActiveChannels--;
 		}
 		sccp_channel_refreplace(device->active_channel, channel);
 		if (device->active_channel) {
 			sccp_channel_updateChannelDesignator(device->active_channel);
 			sccp_dev_set_activeline(device, device->active_channel->line);
-			device->active_channel->line->statistic.numberOfActiveChannels++;
+			if (device->active_channel->line) {
+				device->active_channel->line->statistic.numberOfActiveChannels++;
+			}
 		}
 		device = sccp_device_release(device);
 	}
