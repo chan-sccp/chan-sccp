@@ -1241,7 +1241,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 
 	/* this is a station active endcall or onhook */
 	if ((d = sccp_channel_getDevice_retained(channel))) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %d on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, channel->line->name, sccp_indicate2str(channel->state));
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_indicate2str(channel->state));
 		if (channel->privateData->device) {
 			if (GLOB(transfer_on_hangup)) {								/* Complete transfer when one is in progress */
 				sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
@@ -1262,10 +1262,10 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		d = sccp_device_release(d);
 	}
 	if (channel->owner) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Call %d Ended on line %s (%s)\n", DEV_ID_LOG(d), channel->callid, (channel->line && channel->line->name) ? channel->line->name : "NULL", sccp_indicate2str(channel->state));
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending hangupRequest to Call %s (state: %s)\n", DEV_ID_LOG(d), channel->designator, sccp_indicate2str(channel->state));
 		PBX(requestHangup) (channel->owner);
 	} else {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %d on line %s\n", DEV_ID_LOG(d), channel->callid, (channel->line && channel->line->name) ? channel->line->name : "NULL");
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %s\n", DEV_ID_LOG(d), channel->designator);
 	}
 }
 
