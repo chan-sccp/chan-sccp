@@ -1686,9 +1686,8 @@ typedef union {
 		uint32_t lel_LostPkts;										/*!< Lost Packets */
 		uint32_t lel_Jitter;										/*!< Jitter */
 		uint32_t lel_latency;										/*!< Latency */
-		uint32_t unknown2;
-		char QualityStats[128];										/*!< QualityStatistics */
-		char unknown[461];
+		uint32_t lel_QualityStatsSize;
+		char QualityStats[600];										/*!< QualityStatistics */
 	} ConnectionStatisticsRes;										/*!< Connection Statistics Response Message - Server -> Client */
 /*
  00000000 - A0 02 00 00 14 00 00 00  23 00 00 00 31 33 37 00  - ........#...137.
@@ -1737,7 +1736,7 @@ typedef union {
 */
 	struct {
 		char DirectoryNumber[StationMaxDirnumSize];							/*!< Directory Number */
-		uint32_t lel_unknown1;
+		uint32_t lel_padding;
 		uint32_t lel_CallIdentifier;									/*!< Call Identifier */
 		uint32_t lel_StatsProcessingType;								/*!< Stats Processing Type */
 		uint32_t lel_SentPackets;									/*!< Sent Packets */
@@ -1747,14 +1746,14 @@ typedef union {
 		uint32_t lel_LostPkts;										/*!< Lost Packets */
 		uint32_t lel_Jitter;										/*!< Jitter */
 		uint32_t lel_latency;										/*!< Latency */
-		uint32_t unknown2;
-		char QualityStats[128];										/*!< QualityStatistics */
+		uint32_t lel_QualityStatsSize;
+		char QualityStats[600];										/*!< QualityStatistics */
 	} ConnectionStatisticsRes_V20;										/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 19) */
 
 /*
  00000000 - B4 00 00 00 16 00 00 00  23 00 00 00 39 38 30 31  - ........#...9801	// DirectoryNumber= 98031
  00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............	
- 00000020 - 00 00 00 00 00 00 00 00  00 00 00 00 00 5C 00 00  - .............\..	// unknown1=0, callIdentifier=0, sendPackets=5c=92
+ 00000020 - 00 00 00 00 00 00 00 00  00 00 00 00 00 5C 00 00  - .............\..	// callIdentifier=0, StatsProcessingType= 0, sendPackets=5c=92
  00000030 - 00 D0 3D 00 00 59 00 00  00 CC 3B 00 00 00 00 00  - ..=..Y....;.....	// sendOctets=D03D=53309, RecvdPackets=59=89, RecvdOctets=cc3b=52283
  00000040 - 00 00 00 00 00 00 00 00  00 6F 00 00 00 4D 4C 51  - .........o...MLQ	// lostPkts=0, Jitter=0, Latency=0, unknown2=6F000000
  00000050 - 4B 3D 30 2E 30 30 30 30  3B 4D 4C 51 4B 61 76 3D  - K=0.0000;MLQKav=
@@ -1768,10 +1767,9 @@ typedef union {
 #pragma pack(push) 
 #pragma pack(1)
 	struct {
-		char DirectoryNumber[StationMaxDirnumSize];
+		char DirectoryNumber[25];
 		uint32_t lel_CallIdentifier;									/*!< Call Identifier */
 		uint32_t lel_StatsProcessingType;								/*!< Stats Processing Type */
-		uint8_t unknown1;
 		uint32_t lel_SentPackets;									/*!< Sent Packets */
 		uint32_t lel_SentOctets;									/*!< Sent Octets */
 		uint32_t lel_RecvdPackets;									/*!< Received Packets */
@@ -1779,8 +1777,8 @@ typedef union {
 		uint32_t lel_LostPkts;										/*!< Lost Packets */
 		uint32_t lel_Jitter;										/*!< Jitter */
 		uint32_t lel_latency;										/*!< Latency */
-		uint32_t unknown2;
-		char QualityStats[128];										/*!< QualityStatistics */
+		uint32_t lel_QualityStatsSize;
+		char QualityStats[600];										/*!< QualityStatistics */
 	} ConnectionStatisticsRes_V22;										/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 19) */
 #pragma pack(pop)
 

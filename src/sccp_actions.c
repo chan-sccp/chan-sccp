@@ -2677,7 +2677,8 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 	sccp_call_statistics_t *last_call_stats = NULL;
 	sccp_call_statistics_t *avg_call_stats = NULL;
 	struct ast_str *output_buf = pbx_str_alloca(2048);
-	char QualityStats[128] = "";
+	char QualityStats[600] = "";
+	uint32_t QualityStatsSize = 0;
 
 	if ((d = sccp_device_retain(d))) {
 		// update last_call_statistics
@@ -2690,7 +2691,9 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.lel_LostPkts);
 			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.lel_Jitter);
 			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.lel_latency);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.QualityStats, sizeof(QualityStats));
+			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.lel_QualityStatsSize);
+			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.QualityStats, QualityStatsSize);
 		} else if (letohl(msg_in->header.lel_protocolVer < 22)){
 			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_CallIdentifier);
 			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_SentPackets);
@@ -2698,7 +2701,9 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_LostPkts);
 			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_Jitter);
 			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_latency);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V20.QualityStats, sizeof(QualityStats));
+			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_QualityStatsSize);
+			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V20.QualityStats, QualityStatsSize);
                 } else {
                         // ConnectionStatisticsRes_V22 has irregular packing (single byte packing), need to access unaligned data (using get_unaligned_uint32 for sparc62 / buserror machines
 #if defined(HAVE_UNALIGNED_BUSERROR)
@@ -2708,6 +2713,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			last_call_stats->packets_lost = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_LostPkts));
 			last_call_stats->jitter = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_Jitter));
 			last_call_stats->latency = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_latency));
+			QualityStatsSize = letohl(get_unaligned_uint32(msg_in->data.ConnectionStatisticsRes_V22.lel_QualityStatsSize));
 #else
 			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_CallIdentifier);
 			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_SentPackets);
@@ -2715,8 +2721,10 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_LostPkts);
 			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_Jitter);
 			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_latency);
+			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_QualityStatsSize);
 #endif
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V22.QualityStats, sizeof(QualityStats));
+			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V22.QualityStats, QualityStatsSize);
                 }
 		ast_str_append(&output_buf, 0, "%s: Call Statistics:\n", d->id);
 		ast_str_append(&output_buf, 0, "       [\n");
