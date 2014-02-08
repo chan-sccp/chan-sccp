@@ -216,9 +216,13 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device)
 	struct sockaddr_storage sas;
 	boolean_t matchesACL = FALSE;
 
+	if (!device || !device->session) {
+		return FALSE;
+	}
+	
 	/* get current socket information */
 	memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
-
+	
 	/* no permit deny information */
 	if (!device->ha) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: no deny/permit information for this device, allow all connections\n", device->id);

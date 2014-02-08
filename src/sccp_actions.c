@@ -459,6 +459,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
 			s->device = sccp_session_addDevice(s, device);						// replace retained in session (already connected via tokenReq before)
 		}
+		
+		if (!device || !device->session || !s->device) {
+			pbx_log(LOG_WARNING, "%s: Signing over the session to new device failed. Giving up.\n", DEV_ID_LOG(device));
+			goto EXITFUNC;
+		}
 
 		/* check ACLs for this device */
 		if (device->checkACL(device) == FALSE) {
