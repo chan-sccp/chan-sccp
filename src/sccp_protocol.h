@@ -107,6 +107,7 @@
 /* device reset and restart */
 #define SKINNY_DEVICE_RESET 				1
 #define SKINNY_DEVICE_RESTART				2
+#define SKINNY_DEVICE_RELOAD_CONFIG			3
 
 /* statistic processing */
 #define SKINNY_STATSPROCESSING_CLEAR			0
