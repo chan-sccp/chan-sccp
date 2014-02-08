@@ -859,6 +859,9 @@
 /* if the compiler supports __sync_fetch_and_add */
 #undef SCCP_BUILTIN_INCR
 
+/* defined SCCP_HASH_PRIME */
+#undef SCCP_HASH_PRIME
+
 /* SCCP_LITTLE_ENDIAN */
 #undef SCCP_LITTLE_ENDIAN
 
