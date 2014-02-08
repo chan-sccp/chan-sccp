@@ -931,7 +931,9 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
 void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_msg_t *msg_out;
-
+        int reason = letohl(msg_in->data.UnregisterMessage.lel_UnregisterReason);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Unregister request Received (Reason: %s)\n", DEV_ID_LOG(d), reason ? "Unknown" : "Powersave");
+                
 	/* we don't need to look for active channels. the phone does send unregister only when there are no channels */
 	REQ(msg_out, UnregisterAckMessage);
 	msg_out->data.UnregisterAckMessage.lel_status = SKINNY_UNREGISTERSTATUS_OK;

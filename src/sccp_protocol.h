@@ -1796,7 +1796,7 @@ typedef union {
 	} SoftKeyEventMessage;
 
 	struct {
-		uint32_t unknown;
+		uint32_t lel_UnregisterReason;
 	} UnregisterMessage;											/*!< Unregister Message Structure */
 
 	struct {
