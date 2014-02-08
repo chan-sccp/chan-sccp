@@ -841,11 +841,21 @@ AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_MSG_NOTICE([--enable-distributed-devicestate: ${ac_cv_use_distributed_devicestate}])
 ])
 
+AC_DEFUN([CS_WITH_HASH_SIZE], [
+	AC_ARG_WITH(hash_size, 
+	  AC_HELP_STRING([--with-hash-size], [to provide room for higher number of phones (>200), specify a prime number, bigger then number of phones times 4 (default=536)]), 
+	  [ac_cv_set_hashsize=$withval])
+	AS_IF([test 0${ac_cv_set_hashsize} -lt 536], [ac_cv_set_hashsize=536])
+	AC_DEFINE_UNQUOTED(SCCP_HASH_PRIME, `echo ${ac_cv_set_hashsize}`, [defined SCCP_HASH_PRIME])
+	AC_MSG_NOTICE([--with-hash-size: ${ac_cv_set_hashsize}])
+])
+
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_OPTIMIZATION
 	CS_ENABLE_DEBUG  
 	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
+	CS_WITH_HASH_SIZE
 	CS_DISABLE_PICKUP
 	CS_DISABLE_PARK
 	CS_DISABLE_DIRTRFR

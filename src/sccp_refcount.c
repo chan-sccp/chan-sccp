@@ -60,7 +60,7 @@
 #include "sccp_mwi.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#define SCCP_HASH_PRIME 563
+//nb: SCCP_HASH_PRIME defined in config.h, default 536
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
 #define REF_FILE "/tmp/sccp_refs"
