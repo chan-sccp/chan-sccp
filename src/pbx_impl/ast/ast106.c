@@ -1916,7 +1916,8 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 {
 	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
-	struct ast_sockaddr sock = { {0,} };
+	struct sockaddr_storage sock = { 0, };
+	struct sockaddr_in *sin;
 
 	if (!c)
 		return FALSE;
@@ -1927,20 +1928,20 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 
 	s = d->session;
 
-	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
-		sock.ss.ss_family = AF_INET6;
-		sock.len = sizeof(struct sockaddr_in6);
+		pbx_log(LOG_ERROR, "asterisk 1.6 does not support ipv6, returning FALSE\n");
+		d = sccp_device_release(d);
+		return FALSE;
 	} else {
-		sock.ss.ss_family = AF_INET;
-		sock.len = sizeof(struct sockaddr_in);
+		memcpy(&sock, &GLOB(bindaddr), sizeof(struct in_addr));
+		sin = (struct sockaddr_in *)&sock;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
- 	if ((c->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, &sock))) {
-                struct ast_sockaddr instance_addr = { {0,} };
-                ast_rtp_get_us(c->rtp.audio.rtp, &instance_addr);
-                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting rtp server instance on %s\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&sock));
+ 	if ((c->rtp.audio.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, sin->sin_addr))) {
+//		struct sockaddr_storage instance_addr = {0,};
+//		ast_rtp_get_us(c->rtp.audio.rtp, &instance_addr);
+//		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: rtp server instance created at %s:%d\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
  	} else {
 		d = sccp_device_release(d);
 		return FALSE;
@@ -1962,6 +1963,8 @@ static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
 {
 	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
+	struct sockaddr_storage sock = { 0, };
+	struct sockaddr_in *sin;
 
 	if (!c)
 		return FALSE;
@@ -1970,20 +1973,20 @@ static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
 
 	s = d->session;
 
-	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
-		sock.ss.ss_family = AF_INET6;
-		sock.len = sizeof(struct sockaddr_in6);
+		pbx_log(LOG_ERROR, "asterisk 1.6 does not support ipv6, returning FALSE\n");
+		d = sccp_device_release(d);
+		return FALSE;
 	} else {
-		sock.ss.ss_family = AF_INET;
-		sock.len = sizeof(struct sockaddr_in);
+		memcpy(&sock, &GLOB(bindaddr), sizeof(struct in_addr));
+		sin = (struct sockaddr_in *)&sock;
 	}
 
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&sock));
- 	if ((c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, &sock))) {
-                struct ast_sockaddr instance_addr = { {0,} };
-                ast_rtp_get_us(c->rtp.video.rtp, &instance_addr);
-                sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp server instance created at %s:%d\n", DEV_ID_LOG(d), ast_sockaddr_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Requesting vrtp server instance on %s\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&sock));
+ 	if ((c->rtp.video.rtp = ast_rtp_new_with_bindaddr(sched, io, 1, 0, sin->sin_addr))) {
+//		struct sockaddr_storage instance_addr = {0,};
+//		ast_rtp_get_us(c->rtp.audio.rtp, &instance_addr);
+//		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: vrtp server instance created at %s:%d\n", DEV_ID_LOG(d), sccp_socket_stringify_host(&instance_addr), ast_sockaddr_port(&instance_addr));
  	} else {
 		d = sccp_device_release(d);
 		return FALSE;
@@ -2014,16 +2017,21 @@ static boolean_t sccp_wrapper_asterisk16_checkHangup(const sccp_channel_t * chan
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+static boolean_t sccp_wrapper_asterisk16_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	//      ast_rtp_get_them(rtp, address);
-	ast_rtp_get_peer(rtp, address);
+	struct sockaddr_in *tmpaddress = (struct sockaddr_in *)address;
+	ast_rtp_get_peer(rtp, tmpaddress);
+	address = (struct sockaddr_storage *) tmpaddress;
+	address->ss_family = AF_INET;
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+static boolean_t sccp_wrapper_asterisk16_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
-	ast_rtp_get_us(rtp, address);
+	struct sockaddr_in *tmpaddress = (struct sockaddr_in *)address;
+	ast_rtp_get_us(rtp, tmpaddress);
+	address = (struct sockaddr_storage *) tmpaddress;
+	address->ss_family = AF_INET;
 	return TRUE;
 }
 
@@ -2054,12 +2062,13 @@ static boolean_t sccp_wrapper_asterisk16_getChannelByName(const char *name, PBX_
 	 */
 }
 
-static int sccp_wrapper_asterisk16_setPhoneRTPAddress(const struct sccp_rtp *rtp, const struct sockaddr_in *new_peer, int nat_active)
+static int sccp_wrapper_asterisk16_setPhoneRTPAddress(const struct sccp_rtp *rtp, const struct sockaddr_storage *new_peer, int nat_active)
 {
+	struct sockaddr_in *tmpaddress = (struct sockaddr_in *)new_peer;
 	struct sockaddr_in peer;
 
-	memcpy(&peer.sin_addr, &new_peer->sin_addr, sizeof(peer.sin_addr));
-	peer.sin_port = new_peer->sin_port;
+	memcpy(&peer.sin_addr, &tmpaddress->sin_addr, sizeof(peer.sin_addr));
+	peer.sin_port = tmpaddress->sin_port;
 
 	sccp_log((DEBUGCAT_RTP | DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (asterisk18_setPhoneRTPAddress) Update PBX to send RTP/UDP media to '%s:%d' (new remote) (NAT: %s)\n", ast_inet_ntoa(peer.sin_addr), ntohs(peer.sin_port), S_COR(nat_active,"yes","no"));
 	ast_rtp_set_peer(rtp->rtp, &peer);
