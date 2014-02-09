@@ -930,6 +930,20 @@ static void sccp_accept_connection(void)
 	sccp_session_unlock(s);
 }
 
+void sccp_socket_cleanup_timed_out() 
+{
+	sccp_session_t *session;
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+		if ((time(0) - session->lastKeepAlive) > (2 * GLOB(keepalive))) {
+			if (session->session_thread) {
+				sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
+			} else {
+				destroy_session(session, 0);
+			}
+		}
+	}
+	SCCP_LIST_TRAVERSE_SAFE_END;
+}
 
 /*!
  * \brief Socket Thread
@@ -980,6 +994,7 @@ void *sccp_socket_thread(void *ignore)
 				sccp_accept_connection();
 			}
 		}
+		sccp_socket_cleanup_timed_out();
 	}
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
