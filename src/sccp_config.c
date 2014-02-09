@@ -800,11 +800,18 @@ sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
 	
+#if ASTERISK_VERSION_GROUP == 106
+	if (sccp_strequals(value,"::")) {
+		pbx_log(LOG_ERROR, "Asterisk 1.6, does not support ipv6, '::' has been replaced with '0.0.0.0'\n");
+		value = strdupa("::");
+	}
+#endif
 	if (sccp_strlen_zero(value)) {
 		value = strdupa("0.0.0.0");
 	}
 	struct sockaddr_storage bindaddr_prev = (*(struct sockaddr_storage *) dest);
 	struct sockaddr_storage bindaddr_new = {0,};
+
 	
 	if (!sccp_sockaddr_storage_parse(&bindaddr_new, value, PARSE_PORT_FORBID)) {
 		pbx_log(LOG_WARNING, "Invalid IP address: %s\n", value);
