@@ -1382,7 +1382,7 @@ struct sccp_hotline {
 
 extern struct sccp_global_vars *sccp_globals;
 
-uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s);
+int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s);
 
 sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_codec_t requestedCodec, skinny_codec_t capabilities[], uint8_t capabilityLength, sccp_autoanswer_t autoanswer_type, uint8_t autoanswer_cause, int ringermode, sccp_channel_t ** channel);
 

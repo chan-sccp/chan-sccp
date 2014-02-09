@@ -295,7 +295,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
  * \param       msg Message as sccp_msg_t
  * \param       s Session as sccp_session_t
  */
-uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
+int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 {
 	const sccp_messageMap_cb_t *messageMap_cb = NULL;
 	uint32_t mid = 0;
@@ -311,7 +311,7 @@ uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 
 	if (!msg) {
 		pbx_log(LOG_ERROR, "%s: (sccp_handle_message) No Message Specified.\n which is required, Exiting sccp_handle_message !\n", DEV_ID_LOG(s->device));
-		return -1;
+		return -2;
 	}
 
 	mid = letohl(msg->header.lel_messageId);
@@ -324,14 +324,14 @@ uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 	if (!messageMap_cb) {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
 		sccp_handle_unknown_message(s, device, msg);
-		return 1;
+		return -3;
 	}
 
 	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
 
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
 		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
-		return 0;
+		return -4;
 	}
 	if (messageMap_cb->messageHandler_cb) {
 		messageMap_cb->messageHandler_cb(s, device, msg);
@@ -344,9 +344,8 @@ uint8_t sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(device, servername, 5);
 	}
-
 	device = device ? sccp_device_release(device) : NULL;
-	return 1;
+	return 0;
 }
 
 /**

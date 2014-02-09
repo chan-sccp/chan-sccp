@@ -1373,8 +1373,7 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 {
 	sccp_device_t *d = NULL;
 	int local_total = 0;
-        char clientAddress[INET6_ADDRSTRLEN];
-        
+        char clientAddress[INET6_ADDRSTRLEN]="";
 
 #define CLI_AMI_TABLE_NAME Sessions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Session
@@ -1386,22 +1385,21 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
 #define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 		sccp_session_lock(session);													\
-		if (session->device && (d = sccp_device_retain(session->device))) {								\
-                	sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&session->sin), sizeof(clientAddress));				\
+		sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&session->sin), sizeof(clientAddress));				\
+		d = session->device ? sccp_device_retain(session->device) : NULL;								\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\
-			d = sccp_device_release(d);												\
-		};																\
+		d = d ? sccp_device_release(d) : NULL;												\
 		sccp_session_unlock(session);													\
 
 #define CLI_AMI_TABLE_FIELDS 															\
 		CLI_AMI_TABLE_FIELD(Socket,			d,	6,	session->fds[0].fd)						\
-		CLI_AMI_TABLE_FIELD(IP,				s,	40,	clientAddress)                                  \
+		CLI_AMI_TABLE_FIELD(IP,				s,	40,	clientAddress)                                			\
 		CLI_AMI_TABLE_FIELD(Port,			d,	5,	sccp_socket_getPort(&session->sin) )    			\
 		CLI_AMI_TABLE_FIELD(KA,				d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))			\
-		CLI_AMI_TABLE_FIELD(KAI,			d,	4,	d->keepaliveinterval)						\
+		CLI_AMI_TABLE_FIELD(KAI,			d,	4,	(d) ? d->keepaliveinterval : 0)					\
 		CLI_AMI_TABLE_FIELD(Device,			s,	15,	(d) ? d->id : "--")						\
-		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestate2str(d->state) : "--")			\
+		CLI_AMI_TABLE_FIELD(State,			s,	14,	(d) ? devicestate2str(d->state) : "--")				\
 		CLI_AMI_TABLE_FIELD(Type,			s,	15,	(d) ? devicetype2str(d->skinny_type) : "--")			\
 		CLI_AMI_TABLE_FIELD(RegState,			s,	10,	(d) ? registrationstate2str(d->registrationState) : "--")	\
 		CLI_AMI_TABLE_FIELD(Token,			s,	10,	(d && d->status.token ) ?  (SCCP_TOKEN_STATE_ACK == d->status.token ? "Ack" : (SCCP_TOKEN_STATE_REJ == d->status.token ? "Reject" : "--")) : "--")
