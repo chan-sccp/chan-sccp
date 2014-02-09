@@ -9,7 +9,7 @@
 AUTOMAKE_OPTS		= gnu silent-rules subdir-objects
 csmod_LTLIBRARIES	= chan_sccp.la
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
-REVISION = $(shell @abs_top_builddir@/tools/autorevision -s VCS_SHORT_HASH)
+REVISION = $(shell @abs_srcdir@/../tools/autorevision -s VCS_SHORT_HASH)
 
 EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 
