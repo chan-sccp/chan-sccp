@@ -1,0 +1,17 @@
+Index: pbx/pbx_dundi.c
+===================================================================
+--- pbx/pbx_dundi.c	(revision 407857)
++++ pbx/pbx_dundi.c	(working copy)
+@@ -4273,6 +4273,12 @@
+ 
+ 	if (num && num <= drds->num_results) {
+ 		snprintf(buf, len, "%s/%s", drds->results[num - 1].tech, drds->results[num - 1].dest);
++		/* If Unknown Channel Tech, leave out the Channel Type of the returned string */
++		if (-1 == drds->results[num - 1].techint) {
++			snprintf(buf, len, "%s", drds->results[num - 1].dest);
++		} else {
++			snprintf(buf, len, "%s/%s", drds->results[num - 1].tech, drds->results[num - 1].dest);
++		}
+ 		res = 0;
+ 	} else
+ 		ast_log(LOG_WARNING, "Result number %u is not valid for DUNDi query results for ID %s!\n", num, args.id);
