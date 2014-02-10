@@ -403,7 +403,7 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 	
-	if (c->calltype == SKINNY_CALLTYPE_INBOUND && SCCP_LIST_GETSIZE(&c->line->devices) > 1 && pbx_channel_state(c->owner) != AST_STATE_UP) {
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND && 1 < c->subscribers--) { // && pbx_channel_state(c->owner) != AST_STATE_UP) {
 		if (d && d->indicate && d->indicate->onhook) {
 			d->indicate->onhook(d, lineInstance, c->callid);
 		}
