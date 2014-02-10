@@ -60,6 +60,7 @@
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sys/stat.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
