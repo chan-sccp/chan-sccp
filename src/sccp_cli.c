@@ -2424,7 +2424,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
 				if(change == SCCP_CONFIG_NEEDDEVICERESET){
 					device->pendingUpdate = 1;
-					sccp_device_sendReset(device, SKINNY_DEVICE_RELOAD_CONFIG);
+					sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
 				}
 				if (device->realtime) {
 					pbx_variables_destroy(v);
@@ -2478,7 +2478,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 								change =  sccp_config_applyDeviceConfiguration(device, v);
 							}
 							device->pendingUpdate = 1;
-							sccp_device_sendReset(device, SKINNY_DEVICE_RELOAD_CONFIG);
+							sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
 							if (device->realtime && dv) {
 								pbx_variables_destroy(dv);
 							}
