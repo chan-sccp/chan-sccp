@@ -261,18 +261,41 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	/*Currently rejecting token until further notice */
 	boolean_t sendAck = FALSE;
 	int last_digit = deviceName[strlen(deviceName)];
-
-	if (!strcasecmp("true", GLOB(token_fallback))) {
-		/* we are the primary server */
-		if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
-			sendAck = TRUE;
+	if (!sccp_strlen_zero(GLOB(token_fallback))) {
+		if (!strcasecmp("true", GLOB(token_fallback))) {
+			/* we are the primary server */
+			if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
+				sendAck = TRUE;
+			}
+		} else if (!strcasecmp("odd", GLOB(token_fallback))) {
+			if (last_digit % 2 != 0)
+				sendAck = TRUE;
+		} else if (!strcasecmp("even", GLOB(token_fallback))) {
+			if (last_digit % 2 == 0)
+				sendAck = TRUE;
+		} else if (!strcasecmp("false", GLOB(token_fallback))) {
+			sendAck = FALSE;
+		} else if (!pbx_fileexists(GLOB(token_fallback), NULL, NULL)) {
+			char command[SCCP_PATH_MAX];
+			char buff[19]="";
+			char output[20]="";
+			snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_socket_stringify_host(&s->sin), devicetype2str(deviceType));
+			FILE *pp;
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *)command);
+			pp = popen(command, "r");
+			if (pp != NULL) {
+				while (fgets(buff, sizeof(buff), pp)) {
+					strncat(output, buff, strlen(output) - 1);
+				}
+				pclose(pp);
+				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *)output);
+				if (sccp_strcaseequals(output, "ACK\n")) {
+					sendAck=TRUE;
+				}
+			} else {
+			       pbx_log(LOG_WARNING, "%s: (token_request) Unable to execute '%s'\n", deviceName, (char *)command);
+			}
 		}
-	} else if (!strcasecmp("odd", GLOB(token_fallback))) {
-		if (last_digit % 2 != 0)
-			sendAck = TRUE;
-	} else if (!strcasecmp("even", GLOB(token_fallback))) {
-		if (last_digit % 2 == 0)
-			sendAck = TRUE;
 	}
 
 	/* some test to detect active calls */

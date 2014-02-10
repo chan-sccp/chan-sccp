@@ -151,8 +151,12 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"hotline_context",	offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_line,context),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				""},
 	{"hotline_extension", 	offsetof(struct sccp_global_vars,hotline), offsize(sccp_hotline_t,exten),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
 	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
-																																					"Possible values are: true/false/odd/even (odd/even uses the last digit of the MAC address to make the decision)\n"
-																																					"Value can be changed online via CLI/AMI command \"fallback=[true/false]\"\n"},
+																																					"Possible values are: true/false/odd/even/script (default false)\n" 
+																																					"active/passive cluster: true on active/false on passive\n" 
+																																					"active/active cluster: even on active1/off on active2\n"
+																																					"more complex cluster: use script. It will be called with three arguments, namely mac-address, ip-address, devicetype.\n"
+																																					"                      and it should return 'ACK' (without the quotes) to acknowledge the token, and pull the device to this server.\n" 
+																																					"Value can be changed online via CLI/AMI command \"sccp set fallback true/false/odd/even/script\"\n"},
 	{"backoff_time", 		G_OBJ_REF(token_backoff_time),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"60",				"Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)\n"},
 	{"server_priority", 		G_OBJ_REF(server_priority),		TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc\n"
 																																					"For active-active (fallback=odd/even) use 1 for both\n"},

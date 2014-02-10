@@ -91,6 +91,13 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #define SCCP_BRANCH "trunk"
 #endif
 
+#define SCCP_FILENAME_MAX 80
+#if defined(PATH_MAX)
+#define SCCP_PATH_MAX PATH_MAX
+#else
+#define	SCCP_PATH_MAX 2048
+#endif
+
 #define SCCP_MIN_KEEPALIVE 30
 #define SCCP_LOCK_TRIES 10
 #define SCCP_LOCK_USLEEP 100
@@ -1347,7 +1354,7 @@ struct sccp_global_vars {
 	sccp_hotline_t *hotline;										/*!< HotLine */
 
 	unsigned int pendingUpdate:1;
-	char token_fallback[7];											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
+	char token_fallback[SCCP_PATH_MAX];									/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
 

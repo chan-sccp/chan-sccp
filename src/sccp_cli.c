@@ -284,10 +284,11 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	char tmpname[80];
 	char *ret = NULL;
 	
-	char *types[] = { "device", "channel", "line"};
+	char *types[] = { "device", "channel", "line", "fallback"};
 	
 	char *properties_channel[] = { "hold"};
 	char *properties_device[] = { "ringtone", "backgroundImage"};
+	char *properties_fallback[] = { "true", "false", "odd", "even", "path" };
 	
 	char *values_hold[] = { "on", "off"};
 	
@@ -300,7 +301,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
-		case 3:		// device / channel / line
+		case 3:		// device / channel / line / fallback
 			if( strstr(line, "device") != NULL ){
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -325,6 +326,12 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					SCCP_LIST_UNLOCK(&l->channels);
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(lines));
+			} else if( strstr(line, "fallback") != NULL ){
+				for (i = 0; i < ARRAY_LEN(properties_fallback); i++) {
+					if (!strncasecmp(word, properties_fallback[i], wordlen) && ++which > state) {
+						return strdup(properties_fallback[i]);
+					}
+				}
 			}
 			break;
 		case 4:		// properties
@@ -2852,14 +2859,16 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	int cli_result = RESULT_SUCCESS;
 	
 	
-	if (argc < 5)
+	if (argc < 2)
 		return RESULT_SHOWUSAGE;
-	if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]))
+	if (pbx_strlen_zero(argv[2]))
 		return RESULT_SHOWUSAGE;
-
-	
 	
 	if (!strcmp("channel", argv[2])) {
+		if (argc < 5)
+			return RESULT_SHOWUSAGE;
+		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]))
+			return RESULT_SHOWUSAGE;
 		// sccp set channel SCCP/test123-123 hold on
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
 			char line[80];
@@ -2920,10 +2929,8 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		c = sccp_channel_release(c);
 	  
 	} else if (!strcmp("device", argv[2])) {
-		// sccp set device SEP00000 ringtone http://1234
-		if (argc < 6){
+		if (argc < 6)
 			return RESULT_SHOWUSAGE;
-		} 
 		
 		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5])){
 			return RESULT_SHOWUSAGE;
@@ -2961,12 +2968,43 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		}
 		
 		device = device ? sccp_device_release(device) : NULL;
+	} else if (sccp_strcaseequals("fallback", argv[2])) {
+		if (argc < 4){
+			return RESULT_SHOWUSAGE;
+		} 
+		if (pbx_strlen_zero(argv[3])){
+			return RESULT_SHOWUSAGE;
+		}
+		char *fallback_option = sccp_strdupa(argv[3]);
+		if (sccp_strcaseequals(fallback_option, "odd")) {
+			sccp_copy_string(GLOB(token_fallback), "odd", sizeof(GLOB(token_fallback)));
+		} else if (sccp_strcaseequals(fallback_option, "even")) {
+			sccp_copy_string(GLOB(token_fallback), "even", sizeof(GLOB(token_fallback)));
+		} else if (sccp_strcaseequals(fallback_option, "true")) {
+			sccp_copy_string(GLOB(token_fallback), "true", sizeof(GLOB(token_fallback)));
+		} else if (sccp_strcaseequals(fallback_option, "false")) {
+			sccp_copy_string(GLOB(token_fallback), "false", sizeof(GLOB(token_fallback)));
+		} else if (!pbx_fileexists(fallback_option, NULL, NULL)) {
+			struct stat sb;
+			if (stat(fallback_option, &sb) == 0 && sb.st_mode & S_IXUSR) {
+				sccp_copy_string(GLOB(token_fallback), fallback_option, sizeof(GLOB(token_fallback)));
+			} else {
+				pbx_log(LOG_WARNING, "Script %s, either not found or not executable by this user\n", fallback_option);
+				return RESULT_FAILURE;
+			}
+		} else if (sccp_strcaseequals(fallback_option, "path")) {
+			pbx_log(LOG_WARNING, "Please specify a path to a script, using a fully qualified path (i.e. /etc/asterisk/tokenscript.sh)\n");
+			return RESULT_FAILURE;
+		} else {
+			pbx_log(LOG_WARNING, "fallback option '%s' is unknown\n", fallback_option);
+			return RESULT_FAILURE;
+		}
 	}
 	
 	return cli_result;
 }
 
-static char set_object_usage[] = "Usage: sccp set channel|device settings\n" "sccp set channel <channelId> hold <on/off>|device <deviceId> [ringtone <ringtone>|backgroundImage <url>|variable <variable>]\n";
+static char set_object_usage[] = "Usage: sccp set channel|device|fallback settings\n" "sccp set channel <channelId> hold <on/off>|device <deviceId> [ringtone <ringtone>|backgroundImage <url>|variable <variable>]|fallback [true|false|odd|even|script path]\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "set"
