@@ -261,6 +261,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	/*Currently rejecting token until further notice */
 	boolean_t sendAck = FALSE;
 	int last_digit = deviceName[strlen(deviceName)];
+	int token_backoff_time = GLOB(token_backoff_time);
 	if (!sccp_strlen_zero(GLOB(token_fallback))) {
 		if (!strcasecmp("true", GLOB(token_fallback))) {
 			/* we are the primary server */
@@ -291,6 +292,8 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *)output);
 				if (sccp_strcaseequals(output, "ACK\n")) {
 					sendAck=TRUE;
+				} else {
+					scanf(output, "%d\n", &output);
 				}
 			} else {
 			       pbx_log(LOG_WARNING, "%s: (token_request) Unable to execute '%s'\n", deviceName, (char *)command);
@@ -307,7 +310,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 		sccp_session_tokenAck(s);
 	} else {
 		sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverPriority=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), serverPriority, GLOB(token_backoff_time));
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		sccp_session_tokenReject(s, token_backoff_time);
 	}
 
 	device->status.token = (sendAck) ? SCCP_TOKEN_STATE_ACK : SCCP_TOKEN_STATE_REJ;
