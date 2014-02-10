@@ -1574,20 +1574,27 @@ sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
+	
+	int addon_counter=0;
 	for (; v; v = v->next) {										/* addition */
-		if (!sccp_strlen_zero(v->value)) {
-			if ((addon_type = addonstr2enum(v->value))) {
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
-				if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
-					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
-					break;
+		if (2 > addon_counter++) {
+			if (!sccp_strlen_zero(v->value)) {
+				if ((addon_type = addonstr2enum(v->value))) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new addon: %d\n", addon_type);
+					if (!(addon = sccp_calloc(1, sizeof(sccp_addon_t)))) {
+						pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new addon\n");
+						break;
+					}
+					addon->type = addon_type;
+					SCCP_LIST_INSERT_TAIL(addonList, addon, list);
+					changed |= SCCP_CONFIG_CHANGE_CHANGED;
+				} else {
+					changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
 				}
-				addon->type = addon_type;
-				SCCP_LIST_INSERT_TAIL(addonList, addon, list);
-				changed |= SCCP_CONFIG_CHANGE_CHANGED;
-			} else {
-				changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
+		} else {
+			pbx_log(LOG_ERROR, "SCCP: maximum number(2) of addon's has been reached\n");
+			changed |= SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	}
 	return changed;
