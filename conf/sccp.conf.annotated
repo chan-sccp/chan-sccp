@@ -133,7 +133,7 @@ fallback = no									  ; Immediately fallback to primairy/master server when it
 										  ; active/passive cluster: true on active/false on passive
 										  ; active/active cluster: even on active1/off on active2
 										  ; more complex cluster: use script. It will be called with three arguments, namely mac-address, ip-address, devicetype.
-										  ;                       and it should return 'ACK' (without the quotes) to acknowledge the token, and pull the device to this server.
+										  ;                       and it should return 'ACK' (without the quotes) to acknowledge the token, or a value for the number of seconds to backoff and try again.
 										  ; Value can be changed online via CLI/AMI command "sccp set fallback true/false/odd/even/script"
 backoff_time = 60                                                                 ; Time to wait before re-asking to fallback to primairy server (Token Reject Backoff Time)
 server_priority = 1								  ; Server Priority for fallback: 1=Primairy, 2=Secundary, 3=Tertiary etc
