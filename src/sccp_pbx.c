@@ -124,29 +124,33 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			assert(linedevice->device);
 
-			if (linedevice->device->session)
+			c->subscribers++;
+
+			if (linedevice->device->session) {
 				hasSession = TRUE;
+			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 		if (!hasSession) {
 			pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device connected to this line or device has no valid session\n", (c ? c->callid : 0));
-			if (l)
+			if (l) {
 				l = sccp_line_release(l);
+			}
 			return -1;
 		}
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line\n", (c ? c->callid : 0));
-		if (l)
+		if (l) {
 			l = sccp_line_release(l);
+		}
 		return -1;
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->name, PBX(getChannelName) (c));
 
 	/* if incoming call limit is reached send BUSY */
-	if (SCCP_RWLIST_GETSIZE(&l->channels) > l->incominglimit) {						/* >= just to be sure :-) */
+	if ((l->incominglimit && SCCP_RWLIST_GETSIZE(&l->channels) >= l->incominglimit)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		l = sccp_line_release(l);
 		pbx_setstate(c->owner, AST_STATE_BUSY);
@@ -206,10 +210,9 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		assert(linedevice->device);
-
-		/* do we have cfwd enabled? */
-		if (linedevice->cfwdAll.enabled) {
+		/* do we have cfwd enabled? (only check on a non-shared line) */
+		/*! \todo on a shared line we would have to check if all subscribers have forwarded their line. And which cfwdnumber should we pick in that case */
+		if (c->subscribers == 1 && linedevice->cfwdAll.enabled) {
 			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
 			if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number) == 0) {
 				sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);

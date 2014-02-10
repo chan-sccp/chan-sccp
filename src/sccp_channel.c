@@ -1392,6 +1392,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		pbx_log(LOG_ERROR, "SCCP: Channel %d has no device\n", (channel ? channel->callid : 0));
 		return;
 	}
+	channel->subscribers = 1;
 
 	l = sccp_line_retain(channel->line);
 #if 0	/** @todo we have to test this code section */

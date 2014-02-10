@@ -1232,6 +1232,7 @@ struct sccp_channel {
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
 
+	uint8_t subscribers;											/*!< Used to determine if a sharedline should be hungup immediately, if everybody declined the call */
 	struct subscriptionId subscriptionId;
 	unsigned int maxBitRate;
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
