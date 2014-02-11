@@ -32,8 +32,8 @@ void sccp_line_addToGlobals(sccp_line_t * line);
 sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line);
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, struct subscriptionId *subscriptionId);
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
-void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel);
-void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c);
+void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel);
+void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel);
 void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
 void sccp_line_kill_channels(sccp_line_t * l);
 
