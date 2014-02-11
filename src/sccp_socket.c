@@ -803,7 +803,7 @@ void *sccp_socket_device_thread(void *session)
 				//while (sccp_read_data(s, &r)) {						/* according to poll specification we should empty out the read buffer completely.*/
 														/* but that would give us trouble with timeout */
 				if (sccp_read_data(s, &msg)) {
-					if (sccp_handle_message(&msg, s) != 0) {
+					if (msg.header.length < 4 || sccp_handle_message(&msg, s)!=0) {
 						if (s->device) {
 							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
 						}
@@ -934,7 +934,7 @@ void sccp_socket_cleanup_timed_out()
 {
 	sccp_session_t *session;
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-		if ((time(0) - session->lastKeepAlive) > (2 * GLOB(keepalive))) {
+		if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive))) {
 			if (session->session_thread) {
 				sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
 			} else {
