@@ -1693,7 +1693,6 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
 void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_channel_t *channel;
-	sccp_buttonconfig_t *buttonconfig = NULL;
 	
 	uint32_t lineInstance = letohl(msg_in->data.OnHookMessage.lel_lineInstance);
 	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
@@ -1702,31 +1701,22 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
-	/* checking for registered lines */
-	uint8_t numberOfLines = 0;
-
-	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-		if (buttonconfig->type == LINE)
-			numberOfLines++;
-	}
-	if (!numberOfLines) {
+	if (!d->lineButtons.size > SCCP_FIRST_LINEINSTANCE) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 		return;
 	}
 
-	/* get the active channel */
-	if ((channel = sccp_channel_get_active(d))) {
+	if (lineInstance && callid && (channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid))) {
+		sccp_channel_endcall(channel);
+		channel = sccp_channel_release(channel);
+	} else  if ((channel = sccp_channel_get_active(d))) {
 		sccp_channel_endcall(channel);
 		channel = sccp_channel_release(channel);
 	} else {
-		if (lineInstance && callid && d && d->indicate && d->indicate->onhook) {
-			d->indicate->onhook(d, lineInstance, callid);
-		} else {
-			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-			sccp_dev_stoptone(d, 0, 0);
-		}
+		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+		sccp_dev_stoptone(d, 0, 0);
 	}
 
 	return;
@@ -2440,18 +2430,8 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	}
 
 	if (l && callid) {
-//		c = sccp_find_channel_on_line_byid(l, callid);							// only return channels with state != SCCP_CHANNELSTATE_DOWN
-														// maybe we should change the find function instead
-		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "(soft_key_event) Channel %u state: %d\n", c->callid, c->state);
-			if (c && c->callid == callid) {
-				c = sccp_channel_retain(c);
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (soft_key_event) Found channel by callid: %u\n", c->currentDeviceId, c->callid);
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->channels);
+//		c = sccp_find_channel_on_line_byid(l, callid);							// only returns channels with state != SCCP_CHANNELSTATE_DOWN
+		c = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
 	}
 	do {
 		softkeyMap_cb = sccp_getSoftkeyMap_by_SoftkeyEvent(event);
