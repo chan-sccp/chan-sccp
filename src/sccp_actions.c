@@ -292,9 +292,12 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *)output);
 				if (sccp_strcaseequals(output, "ACK\n")) {
 					sendAck=TRUE;
+				} else if(sscanf(output, "%d\n", &token_backoff_time) == 1) {
+					sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (token_request), sets token_backoff_time=%d\n", deviceName, token_backoff_time);
+                    sendAck=TRUE;
 				} else {
-					scanf(output, "%d\n", &output);
-				}
+                    pbx_log(LOG_WARNING, "%s: (token_request) script '%s' return unknown result\n", deviceName, GLOB(token_fallback));
+                }
 			} else {
 			       pbx_log(LOG_WARNING, "%s: (token_request) Unable to execute '%s'\n", deviceName, (char *)command);
 			}
