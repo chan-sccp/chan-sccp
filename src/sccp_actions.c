@@ -2421,10 +2421,11 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 
 	/* we have no line and call information -> use default line */
 	if (!lineInstance && !callid && (event == SKINNY_LBL_NEWCALL || event == SKINNY_LBL_REDIAL)) {
-		if (d->defaultLineInstance > 0)
+		if (d->defaultLineInstance > 0) {
 			lineInstance = d->defaultLineInstance;
-		else
+		} else {
 			l = sccp_dev_get_activeline(d);
+		}
 	}
 
 	if (lineInstance) {
@@ -2432,7 +2433,18 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	}
 
 	if (l && callid) {
-		c = sccp_find_channel_on_line_byid(l, callid);
+//		c = sccp_find_channel_on_line_byid(l, callid);							// only return channels with state != SCCP_CHANNELSTATE_DOWN
+														// maybe we should change the find function instead
+		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "(soft_key_event) Channel %u state: %d\n", c->callid, c->state);
+			if (c && c->callid == callid) {
+				c = sccp_channel_retain(c);
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (soft_key_event) Found channel by callid: %u\n", c->currentDeviceId, c->callid);
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->channels);
 	}
 	do {
 		softkeyMap_cb = sccp_getSoftkeyMap_by_SoftkeyEvent(event);
@@ -2453,14 +2465,13 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 			}
 
 			/* disable callplane for this device */
-			sccp_device_sendcallstate(d, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			sccp_dev_set_cplane(d, lineInstance, 0);
-			sccp_dev_set_keyset(d, lineInstance, callid, KEYMODE_ONHOOK);
+			if (d && d->indicate && d->indicate->onhook) {
+				d->indicate->onhook(d, lineInstance, callid);
+			}
 			break;
 		}
 		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? sccp_channel_toString(c) : "UNDEF");
 		softkeyMap_cb->softkeyEvent_cb(d, l, lineInstance, c);
-
 	} while (FALSE);
 
 	c = c ? sccp_channel_release(c) : NULL;
