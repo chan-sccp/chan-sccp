@@ -1395,8 +1395,10 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		sccp_session_lock(session);													\
 		sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&session->sin), sizeof(clientAddress));				\
 		d = session->device ? sccp_device_retain(session->device) : NULL;								\
+		if (d || (argc == 4 && sccp_strcaseequals(argv[3],"all"))) {									\
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 														\
+		}																\
 		d = d ? sccp_device_release(d) : NULL;												\
 		sccp_session_unlock(session);													\
 
@@ -1419,8 +1421,8 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 	return RESULT_SUCCESS;
 }
 
-static char cli_sessions_usage[] = "Usage: sccp show sessions\n" "	Show All SCCP Sessions.\n";
-static char ami_sessions_usage[] = "Usage: SCCPShowSessions\n" "Show All SCCP Sessions.\n\n" "PARAMS: None\n";
+static char cli_sessions_usage[] = "Usage: sccp show sessions [all]\n" "	Show [All] SCCP Sessions.\n";
+static char ami_sessions_usage[] = "Usage: SCCPShowSessions\n" "Show [All] SCCP Sessions.\n\n" "Optional PARAMS: all\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "show", "sessions"
