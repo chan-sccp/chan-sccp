@@ -1694,6 +1694,9 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 {
 	sccp_channel_t *channel;
 	sccp_buttonconfig_t *buttonconfig = NULL;
+	
+	uint32_t lineInstance = letohl(msg_in->data.OnHookMessage.lel_lineInstance);
+	uint32_t callid = letohl(msg_in->data.OnHookMessage.lel_callReference);
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	d->state = SCCP_DEVICESTATE_ONHOOK;
@@ -1718,8 +1721,12 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 		sccp_channel_endcall(channel);
 		channel = sccp_channel_release(channel);
 	} else {
-		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-		sccp_dev_stoptone(d, 0, 0);
+		if (lineInstance && callid && d && d->indicate && d->indicate->onhook) {
+			d->indicate->onhook(d, lineInstance, callid);
+		} else {
+			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+			sccp_dev_stoptone(d, 0, 0);
+		}
 	}
 
 	return;
