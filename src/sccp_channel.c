@@ -2546,6 +2546,34 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
 }
 
 /*!
+ * Find channel by lineInstance and CallId, connected to a particular device;
+ * \return *refcounted* SCCP Channel (can be null)
+ */
+sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t *d, const uint32_t lineInstance, const uint32_t callid)
+{
+	if (!d || !lineInstance || !callid) {
+		return NULL;
+	}
+	sccp_channel_t *c = NULL;
+	sccp_line_t *l = NULL;
+
+	if ((l = sccp_line_find_byid((sccp_device_t *)d, lineInstance))) {
+		SCCP_LIST_LOCK(&l->channels);
+		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
+			if (c && c->callid == callid) {
+				c = sccp_channel_retain(c);
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel by callid: %u\n", c->currentDeviceId, c->callid);
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->channels);
+	}
+	l = l ? sccp_line_release(l) : NULL;	
+	return c;
+}
+
+/*!
  * \brief Find Line by ID
  *
  * \callgraph
