@@ -614,7 +614,7 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 	sccp_line_t *l = NULL;
 	sccp_channel_t *c = NULL;
 
-	if ((l = sccp_line_retain(l))) {
+	if ((l = sccp_line_retain(line))) {
 		l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
