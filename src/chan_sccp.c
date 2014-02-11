@@ -324,14 +324,14 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 	if (!messageMap_cb) {
 		pbx_log(LOG_WARNING, "SCCP: Unknown Message %x. Don't know how to handle it. Skipping.\n", mid);
 		sccp_handle_unknown_message(s, device, msg);
-		return -3;
+		return 0;
 	}
 
 	device = check_session_message_device(s, msg, msgtype2str(mid), messageMap_cb->deviceIsNecessary);	/* retained device returned */
 
 	if (messageMap_cb->messageHandler_cb && messageMap_cb->deviceIsNecessary == TRUE && !device) {
 		pbx_log(LOG_ERROR, "SCCP: Device is required to handle this message %s(%x), but none is provided. Exiting sccp_handle_message\n", msgtype2str(mid), mid);
-		return -4;
+		return -3;
 	}
 	if (messageMap_cb->messageHandler_cb) {
 		messageMap_cb->messageHandler_cb(s, device, msg);
