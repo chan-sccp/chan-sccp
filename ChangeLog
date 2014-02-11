@@ -1,3 +1,141 @@
+2014-02-11  ddegroot
+
+	* [r5166] src/chan_sccp.c: Revert skipping unknown message
+	  (regression)
+
+	* [r5165] src/sccp_pbx.c: Regression on l->incominglimit check
+	  (Corrected)
+
+	* [r5164] src/sccp_pbx.c: Revert callforward check only for
+	  non-shared line (sccp_pbx_call)
+
+2014-02-11  marcelloceschia
+
+	* [r5163] src/sccp_actions.c: fixes compiler warning and result
+	  parsing
+
+	* [r5162] src/sccp_actions.c: fixes compiler warning and result
+	  parsing
+
+	* [r5161] src/sccp_config_entries.hh: correct annotation for
+	  transfer_on_hangup
+
+	* [r5160] conf/sccp.conf.annotated, src/sccp_config_entries.hh:
+	  correct annotation for transfer_on_hangup
+
+2014-02-10  ddegroot
+
+	* [r5159] conf/sccp.conf.annotated, src/sccp_actions.c,
+	  src/sccp_config_entries.hh: Allow the tokenack script to set the
+	  value for the backoff time, by returning a value instead of ACK
+
+	* [r5158] src/chan_sccp.h, src/sccp_channel.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: Countdown the number of endcall
+	  buttonpresses on a sharedline, so that the last one, can actually
+	  end the call, and the caller will be hungup, to notify everybody
+	  declined the call (RB: 53)
+
+	* [r5157] src/sccp_cli.c: Revert to using SCCP_DEVICE_RESTART(0x2),
+	  not all devices seem to like SCCP_DEVICE_RELOAD_CONFIG (0x3)
+
+	* [r5156] src/sccp_config.c: Check maximum number of addons per
+	  device, during config loading
+
+	* [r5155] src/sccp_cli.c, src/sccp_refcount.c: Fix compile warnings
+
+	* [r5154] src/sccp_refcount.c: Tread more carefull when printing
+	  debug output during refcount_release (prevent segfault
+	  (&obj_info[obj->type])->debugcat, which can happens when multiple
+	  releases coincide (sccp_event release for example))
+
+	* [r5153] conf/sccp.conf.annotated, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_cli.c, src/sccp_config_entries.hh:
+	  Extended sccp.conf fallback option to also allow a script to make
+	  the decision if a TokenAck should be sent. The script will be
+	  called with three arguments (namely mac-address, ipaddress,
+	  devicetype), and should report back ACK if it want\'s to
+	  acknowledge the Token
+
+	* [r5152] contrib/app_sms.patch[DEL],
+	  contrib/asterisk-1.8_message-backport.patch[DEL],
+	  contrib/asterisk_patches[ADD],
+	  contrib/asterisk_patches/app_sms.patch[CPY],
+	  contrib/asterisk_patches/asterisk-1.8_message-backport.patch[CPY],
+	  contrib/asterisk_patches/backport_monitor_feature.patch[CPY],
+	  contrib/asterisk_patches/dundi.patch[ADD],
+	  contrib/asterisk_patches/outband-message-support.patch[CPY],
+	  contrib/asterisk_patches/res_xmpp.patch[CPY],
+	  contrib/backport_monitor_feature.patch[DEL],
+	  contrib/outband-message-support.patch[DEL],
+	  contrib/res_xmpp.patch[DEL]: Move contrib/patches to
+	  contrib/asterisk_patches. Add dundi patch, which is still pending
+	  after one year in digium jira
+
+2014-02-09  ddegroot
+
+	* [r5151] src/sccp_socket.c: Cleanup already timed out session.
+
+	* [r5150] src/chan_sccp.c, src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_socket.c: sccp show sessions, should show device which
+	  do create a session, but never send Register nor TokenAck
+
+	* [r5149] src/sccp_socket.c: Reduce loglevel for sccp_read_data
+	  Dissection Log Entry
+
+	* [r5148] src/sccp_actions.c: Replace warning(getOurIPV4Address)
+	  with sccplog during register
+
+	* [r5147] src/sccp_actions.c: Replace warning(getOurIPV4Address)
+	  with sccplog during register
+
+	* [r5146] src/Makefile.am, src/Makefile.in: Update path to
+	  tools/autorevision
+
+	* [r5145] tools/autorevision[ADD]: Add autorevision
+
+	* [r5144] src/pbx_impl/ast/ast106.c, src/sccp_config.c: Make trunk
+	  compile against asterisk 1.6.2.x again.
+
+2014-02-08  ddegroot
+
+	* [r5143] autoconf/extra.m4, configure, src/Makefile.in,
+	  src/config.h.in, src/sccp_refcount.c: Added configure option to
+	  'with-hash-size' for locations with large numbers of phones
+	  (>200). You need to set this option to a prime number which is
+	  higher then the number of phones times 4-5
+
+	* [r5142] src/sccp_actions.c, src/sccp_device.c: Tread carefully
+	  when deadling with crossover sessions, during register
+
+	* [r5141] src/sccp_actions.c, src/sccp_protocol.h: Show Unregister
+	  Reason
+
+	* [r5140] src/sccp_actions.c, src/sccp_protocol.h: Update
+	  ConnectionStatisticsRes handling
+
+	* [r5139] src/sccp_cli.c, src/sccp_protocol.h: Use
+	  SCCP_RESTART_CONFIG_RELOAD(3) to restart devices when sccp reload
+	  is called (alas, no speed improvement so far)
+
+	* [r5138] src/sccp_device.c, src/sccp_protocol_enums.hh: Added
+	  SPA_303G (phone with three line buttons. Thanks Tamas)
+
+2014-02-07  ddegroot
+
+	* [r5137] src/sccp_channel.c: Move channel->line retain up, to
+	  occur before setDevice and line_addChannel
+
+	* [r5136] src/sccp_channel.c: Fix segfault when
+	  device->active_channel->line = 0x0
+
+	* [r5135] src/sccp_channel.c: Update debug comments for
+	  sccp_channel_endcall
+
+	* [r5134] ChangeLog, src/Makefile.am, src/Makefile.in,
+	  src/sccp_cli.c: Update revisionnumber to latest repository
+	  revision, during every run of make instead of configure, so that
+	  sccp show version, can output the correct one.
+
 2014-02-07  marcelloceschia
 
 	* [r5133] src/sccp_protocol.h: add lel_lineInstance,

@@ -475,8 +475,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2014-02-07 16:02:05 +0100 (vr, 07 feb 2014) $
-# REVISION: $Revision: 5134 $
+# DATE:     $Date: 2014-02-09 17:09:22 +0100 (zo, 09 feb 2014) $
+# REVISION: $Revision: 5146 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules subdir-objects
 csmod_LTLIBRARIES = chan_sccp.la
@@ -511,7 +511,7 @@ chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
 	$(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS) $(COVERAGE_CFLAGS) \
 	$(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) \
 	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall \
-	-DREVISION=$(SCCP_REVISION)
+	-DREVISION=$(REVISION)
 chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
