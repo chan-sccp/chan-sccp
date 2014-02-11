@@ -210,9 +210,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		/* do we have cfwd enabled? (only check on a non-shared line) */
-		/*! \todo on a shared line we would have to check if all subscribers have forwarded their line. And which cfwdnumber should we pick in that case */
-		if (c->subscribers == 1 && linedevice->cfwdAll.enabled) {
+		/* do we have cfwd enabled? */
+		if (linedevice->cfwdAll.enabled) {
 			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
 			if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number) == 0) {
 				sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
