@@ -605,21 +605,25 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
  *  - line->channels is not always locked
  * 
  */
-void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
+void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 {
-	if (!l || !channel)
+	
+	if (!line || !channel)
 		return;
+
+	sccp_line_t *l = NULL;
+	sccp_channel_t *c = NULL;
 
 	if ((l = sccp_line_retain(l))) {
 		l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
-		if ((channel = sccp_channel_retain(channel))) {							// Add into list retained
-			sccp_channel_updateChannelDesignator(channel);
-			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", channel->callid, l->name);
+		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
+			sccp_channel_updateChannelDesignator(c);
+			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST)
-				SCCP_LIST_INSERT_TAIL(&l->channels, channel, list);
+				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);
 			else
-				SCCP_LIST_INSERT_HEAD(&l->channels, channel, list);
+				SCCP_LIST_INSERT_HEAD(&l->channels, c, list);
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		l = sccp_line_release(l);
@@ -636,19 +640,20 @@ void sccp_line_addChannel(sccp_line_t * l, sccp_channel_t * channel)
  *  - line->channels is not always locked
  * 
  */
-void sccp_line_removeChannel(sccp_line_t * l, sccp_channel_t * c)
+void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 {
-	sccp_channel_t *channel;
-
-	if (!l || !c)
+	if (!line || !channel)
 		return;
 
-	if ((l = sccp_line_retain(l))) {
+	sccp_channel_t *c;
+	sccp_line_t *l;
+
+	if ((l = sccp_line_retain(line))) {
 		SCCP_LIST_LOCK(&l->channels);
-		if ((channel = SCCP_LIST_REMOVE(&l->channels, c, list))) {
-			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", channel->callid, l->name);
+		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
+			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", c->callid, l->name);
 			l->statistic.numberOfActiveChannels--;
-			channel = sccp_channel_release(channel);						// Remove retain from list
+			channel = sccp_channel_release(c);						// Remove retain from list
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		l = sccp_line_release(l);
