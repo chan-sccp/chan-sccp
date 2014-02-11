@@ -150,7 +150,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk request to call %s\n", l->name, PBX(getChannelName) (c));
 
 	/* if incoming call limit is reached send BUSY */
-	if ((l->incominglimit && SCCP_RWLIST_GETSIZE(&l->channels) >= l->incominglimit)) {
+	if ((l->incominglimit && SCCP_RWLIST_GETSIZE(&l->channels) > l->incominglimit)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Incoming calls limit (%d) reached on SCCP/%s... sending busy\n", l->incominglimit, l->name);
 		l = sccp_line_release(l);
 		pbx_setstate(c->owner, AST_STATE_BUSY);
