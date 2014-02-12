@@ -2503,6 +2503,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
 			force_reload=TRUE;
 		} else {
+			if (pbx_fileexists(argv[2], NULL, NULL)) {
+				pbx_cli(fd, "The config file '%s' you requested to load does not exist. Aborting reload\n", argv[2]);
+				returnval = RESULT_FAILURE;
+				goto EXIT;
+			}
+			
 			pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[2], GLOB(config_file_name));
 			if (!sccp_strequals(GLOB(config_file_name), argv[2])) {
 				force_reload=TRUE;
