@@ -259,10 +259,12 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	// device->session = s;
 
 	/*Currently rejecting token until further notice */
-	boolean_t sendAck = FALSE;
+	boolean_t sendAck = TRUE;
 	int last_digit = deviceName[strlen(deviceName)];
 
-	if (!strcasecmp("true", GLOB(token_fallback))) {
+	if (sccp_false(GLOB(token_fallback))) {
+		sendAck = FALSE;
+	} else if (sccp_true(GLOB(token_fallback))) {
 		/* we are the primary server */
 		if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
 			sendAck = TRUE;
@@ -273,6 +275,8 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	} else if (!strcasecmp("even", GLOB(token_fallback))) {
 		if (last_digit % 2 == 0)
 			sendAck = TRUE;
+	} else {
+		pbx_log(LOG_WARNING, "%s: did not understand global fallback value: '%s'... sending default value 'ACK'\n", deviceName, GLOB(token_fallback));
 	}
 
 	/* some test to detect active calls */
