@@ -1356,7 +1356,7 @@ struct sccp_global_vars {
 	sccp_hotline_t *hotline;										/*!< HotLine */
 
 	unsigned int pendingUpdate:1;
-	char token_fallback[SCCP_PATH_MAX];									/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
+	char *token_fallback;											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
 
