@@ -263,7 +263,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	int last_digit = deviceName[strlen(deviceName)];
 	int token_backoff_time = GLOB(token_backoff_time);
 	if (!sccp_strlen_zero(GLOB(token_fallback))) {
-		if (!strcasecmp("true", GLOB(token_fallback))) {
+		if (!strcasecmp("true", GLOB(token_fallback)) || !strcasecmp("yes", GLOB(token_fallback)) || !strcasecmp("on", GLOB(token_fallback))) {
 			/* we are the primary server */
 			if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
 				sendAck = TRUE;
@@ -274,7 +274,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 		} else if (!strcasecmp("even", GLOB(token_fallback))) {
 			if (last_digit % 2 == 0)
 				sendAck = TRUE;
-		} else if (!strcasecmp("false", GLOB(token_fallback))) {
+		} else if (!strcasecmp("false", GLOB(token_fallback)) || !strcasecmp("no", GLOB(token_fallback)) || !strcasecmp("off", GLOB(token_fallback))) {
 			sendAck = FALSE;
 		} else if (!pbx_fileexists(GLOB(token_fallback), NULL, NULL)) {
 			char command[SCCP_PATH_MAX];
