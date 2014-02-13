@@ -262,21 +262,25 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	boolean_t sendAck = TRUE;
 	int last_digit = deviceName[strlen(deviceName)];
 
-	if (sccp_false(GLOB(token_fallback))) {
-		sendAck = FALSE;
-	} else if (sccp_true(GLOB(token_fallback))) {
-		/* we are the primary server */
-		if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
-			sendAck = TRUE;
+	if (!sccp_strlen_zero(GLOB(token_fallback))) {
+		if (sccp_false(GLOB(token_fallback))) {
+			sendAck = FALSE;
+		} else if (sccp_true(GLOB(token_fallback))) {
+			/* we are the primary server */
+			if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
+				sendAck = TRUE;
+			}
+		} else if (!strcasecmp("odd", GLOB(token_fallback))) {
+			if (last_digit % 2 != 0)
+				sendAck = TRUE;
+		} else if (!strcasecmp("even", GLOB(token_fallback))) {
+			if (last_digit % 2 == 0)
+				sendAck = TRUE;
+		} else {
+			pbx_log(LOG_WARNING, "%s: did not understand global fallback value: '%s'... sending default value 'ACK'\n", deviceName, GLOB(token_fallback));
 		}
-	} else if (!strcasecmp("odd", GLOB(token_fallback))) {
-		if (last_digit % 2 != 0)
-			sendAck = TRUE;
-	} else if (!strcasecmp("even", GLOB(token_fallback))) {
-		if (last_digit % 2 == 0)
-			sendAck = TRUE;
 	} else {
-		pbx_log(LOG_WARNING, "%s: did not understand global fallback value: '%s'... sending default value 'ACK'\n", deviceName, GLOB(token_fallback));
+		pbx_log(LOG_WARNING, "%s: global fallback value is empty... sending default value 'ACK'\n", deviceName);
 	}
 
 	/* some test to detect active calls */
