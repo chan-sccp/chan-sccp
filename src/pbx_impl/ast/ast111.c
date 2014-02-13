@@ -899,7 +899,7 @@ boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * channel, PBX
 #endif
 #if CS_AST_HAS_NAMEDGROUP
 	if (!sccp_strlen_zero(line->namedcallgroup)) {
-		ast_channel_named_pickupgroups_set(*pbx_channel, ast_get_namedgroups(line->namedcallgroup));
+		ast_channel_named_callgroups_set(*pbx_channel, ast_get_namedgroups(line->namedcallgroup));
 	}
 
 	if (!sccp_strlen_zero(line->namedpickupgroup)) {
@@ -1006,7 +1006,6 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	} else {												// after this moment c might have gone already
 	        pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
-
 	ast_channel_tech_pvt_set(ast_channel, NULL);
 	c = c ? sccp_channel_release(c) : NULL;
 	/* postponing ast_channel_unref to sccp_channel destructor */
