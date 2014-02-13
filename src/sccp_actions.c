@@ -38,6 +38,7 @@
 #include "sccp_indicate.h"
 #include "sccp_rtp.h"
 #include <asterisk/unaligned.h>
+#include <sys/stat.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <math.h>
@@ -217,7 +218,15 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, devicetype2str(deviceType), deviceType);
 
-	// Search for already known devices -> Cleanup
+	/* if s already has a device assigned to it, something is wrong. clean it up first, and have the device try again */
+	if (s->device && s->device->session && s->device->session != s) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", DEV_ID_LOG(s->device));
+		sccp_socket_stop_sessionthread(s->device->session, SKINNY_DEVICE_RS_FAILED);
+		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		goto EXITFUNC;
+	}
+
+	// Search for the device (including realtime), if does not exist and hotline is requested create one.
 	device = sccp_device_find_byid(deviceName, TRUE);
 	if (!device && GLOB(allowAnonymous)) {
 		device = sccp_device_createAnonymous(msg_in->data.RegisterMessage.sId.deviceName);
@@ -246,36 +255,59 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 		goto EXITFUNC;
 	}
 
-	if (device->session && device->session != s) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", device->id);
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
-		s = sccp_session_reject(s, "Crossover session not allowed");
-		device->session = sccp_session_reject(device->session, "Crossover session not allowed");
-		goto EXITFUNC;
-	}
-
-	/* all checks passed, assign session to device */
-	// device->session = s;
-
-	/*Currently rejecting token until further notice */
+	/* accepting token by default */
 	boolean_t sendAck = TRUE;
 	int last_digit = deviceName[strlen(deviceName)];
+	int token_backoff_time = GLOB(token_backoff_time) >= 30 ? GLOB(token_backoff_time) : 60;
 
 	if (!sccp_strlen_zero(GLOB(token_fallback))) {
 		if (sccp_false(GLOB(token_fallback))) {
 			sendAck = FALSE;
 		} else if (sccp_true(GLOB(token_fallback))) {
 			/* we are the primary server */
-			if (serverPriority == 1) {									// need to check if it gets increased by changing xml.cnf member priority ?
+			if (serverPriority == 1) {
 				sendAck = TRUE;
 			}
 		} else if (!strcasecmp("odd", GLOB(token_fallback))) {
-			if (last_digit % 2 != 0)
+			if (last_digit % 2 != 0) {
 				sendAck = TRUE;
+			}
 		} else if (!strcasecmp("even", GLOB(token_fallback))) {
-			if (last_digit % 2 == 0)
+			if (last_digit % 2 == 0) {
 				sendAck = TRUE;
+			}
+#if CS_EXPERIMENTAL
+		} else if (strstr(GLOB(token_fallback), "/") != NULL) {
+			struct stat sb = {0};
+			if (stat(GLOB(token_fallback), &sb) == 0 && sb.st_mode & S_IXUSR) {
+			        char command[SCCP_PATH_MAX];
+			        char buff[19]="";
+			        char output[20]="";
+			        snprintf(command, SCCP_PATH_MAX, "%s %s %s %s", GLOB(token_fallback), deviceName, sccp_socket_stringify_host(&s->sin), devicetype2str(deviceType));
+			        FILE *pp;
+			        sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (token_request), executing '%s'\n", deviceName, (char *)command);
+			        pp = popen(command, "r");
+			        if (pp != NULL) {
+			                while (fgets(buff, sizeof(buff), pp)) {
+			                        strncat(output, buff, strlen(output) - 1);
+                                        }
+                                        pclose(pp);
+                                        sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *)output);
+                                        if (sccp_strcaseequals(output, "ACK\n")) {
+                                                sendAck=TRUE;
+                                        } else if(sscanf(output, "%d\n", &token_backoff_time) == 1 && token_backoff_time>30) {
+                                                 sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (token_request), sets new token_backoff_time=%d\n", deviceName, token_backoff_time);
+                                                 sendAck=FALSE;
+                                        } else { 
+                                                pbx_log(LOG_WARNING, "%s: (token_request) script '%s' return unknown result: '%s'\n", deviceName, GLOB(token_fallback), (char *)output);
+                                        }
+                                } else { 
+                                        pbx_log(LOG_WARNING, "%s: (token_request) Unable to execute '%s'\n", deviceName, (char *)command);
+                                }
+			} else {
+				pbx_log(LOG_WARNING, "Script %s, either not found or not executable by this user\n", GLOB(token_fallback));
+			}
+#endif
 		} else {
 			pbx_log(LOG_WARNING, "%s: did not understand global fallback value: '%s'... sending default value 'ACK'\n", deviceName, GLOB(token_fallback));
 		}
@@ -288,11 +320,11 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 
 	device->registrationState = SKINNY_DEVICE_RS_TOKEN;
 	if (sendAck) {
-		sccp_log_and((DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token acknowledgement\n", deviceName);
+		sccp_log_and((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Acknowledging phone token request\n", deviceName);
 		sccp_session_tokenAck(s);
 	} else {
-		sccp_log_and((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverPriority=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), serverPriority, GLOB(token_backoff_time));
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
+		sccp_log_and((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Sending phone a token rejection (sccp.conf:fallback=%s, serverPriority=%d), ask again in '%d' seconds\n", deviceName, GLOB(token_fallback), serverPriority, GLOB(token_backoff_time));
+		sccp_session_tokenReject(s, token_backoff_time);
 	}
 
 	device->status.token = (sendAck) ? SCCP_TOKEN_STATE_ACK : SCCP_TOKEN_STATE_REJ;
