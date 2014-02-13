@@ -151,7 +151,7 @@ SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete tran
 
 	{"hotline_context",	offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_line,context),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				""},
 	{"hotline_extension", 	offsetof(struct sccp_global_vars,hotline), offsize(sccp_hotline_t,exten),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
-	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
+	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
 																																					"Possible values are: true/false/odd/even/script (default false)\n" 
 																																					"active/passive cluster: true on active/false on passive\n" 
 																																					"active/active cluster: even on active1/off on active2\n"
