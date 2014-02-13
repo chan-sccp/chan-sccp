@@ -302,10 +302,20 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		return -1;
 	}
 
+
 	original = c->owner;
 
 	if (!c->line || !(d = sccp_channel_getDevice_retained(c))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) no device\n");
+		return -1;
+	}
+
+	if (!c->line->pickupgroup
+#if CS_AST_HAS_NAMEDGROUP
+		&& sccp_strlen_zero(c->line->namedpickupgroup)
+#endif
+	) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (directed pickup) no pickupgroup(s) configured for this line\n", d->id);
 		return -1;
 	}
 
