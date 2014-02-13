@@ -771,7 +771,13 @@ int sccp_preUnload(void)
 	sccp_threadpool_destroy(GLOB(general_threadpool));
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the threadpool\n");
 	sccp_refcount_destroy();
-	sccp_free(GLOB(config_file_name));
+	if (GLOB(config_file_name)) {
+		sccp_free(GLOB(config_file_name));
+	}
+        if (GLOB(token_fallback)) {
+        	sccp_free(GLOB(token_fallback));
+	}
+                                
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));
 	//      pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
