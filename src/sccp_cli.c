@@ -2989,25 +2989,26 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			sccp_copy_string(GLOB(token_fallback), "odd", sizeof(GLOB(token_fallback)));
 		} else if (sccp_strcaseequals(fallback_option, "even")) {
 			sccp_copy_string(GLOB(token_fallback), "even", sizeof(GLOB(token_fallback)));
-		} else if (sccp_strcaseequals(fallback_option, "true")) {
+		} else if (sccp_true(fallback_option)) {
 			sccp_copy_string(GLOB(token_fallback), "true", sizeof(GLOB(token_fallback)));
-		} else if (sccp_strcaseequals(fallback_option, "false")) {
+		} else if (sccp_false(fallback_option)) {
 			sccp_copy_string(GLOB(token_fallback), "false", sizeof(GLOB(token_fallback)));
-		} else if (!pbx_fileexists(fallback_option, NULL, NULL)) {
-			struct stat sb;
-			if (stat(fallback_option, &sb) == 0 && sb.st_mode & S_IXUSR) {
-				sccp_copy_string(GLOB(token_fallback), fallback_option, sizeof(GLOB(token_fallback)));
-			} else {
-				pbx_log(LOG_WARNING, "Script %s, either not found or not executable by this user\n", fallback_option);
-				return RESULT_FAILURE;
-			}
-		} else if (sccp_strcaseequals(fallback_option, "path")) {
-			pbx_log(LOG_WARNING, "Please specify a path to a script, using a fully qualified path (i.e. /etc/asterisk/tokenscript.sh)\n");
-			return RESULT_FAILURE;
+//		} else if (!pbx_fileexists(fallback_option, NULL, NULL)) {
+//			struct stat sb;
+//			if (stat(fallback_option, &sb) == 0 && sb.st_mode & S_IXUSR) {
+//				sccp_copy_string(GLOB(token_fallback), fallback_option, sizeof(GLOB(token_fallback)));
+//			} else {
+//				pbx_log(LOG_WARNING, "Script %s, either not found or not executable by this user\n", fallback_option);
+//				return RESULT_FAILURE;
+//			}
+//		} else if (sccp_strcaseequals(fallback_option, "path")) {
+//			pbx_log(LOG_WARNING, "Please specify a path to a script, using a fully qualified path (i.e. /etc/asterisk/tokenscript.sh)\n");
+//			return RESULT_FAILURE;
 		} else {
 			pbx_log(LOG_WARNING, "fallback option '%s' is unknown\n", fallback_option);
 			return RESULT_FAILURE;
 		}
+		pbx_cli(fd, "New global fallback value: %s\n", GLOB(token_fallback));
 	}
 	
 	return cli_result;

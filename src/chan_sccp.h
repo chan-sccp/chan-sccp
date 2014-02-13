@@ -123,6 +123,7 @@ static inline unsigned long long bswap_64(unsigned long long x)
 
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
+#define sccp_false(x) (pbx_false(x) ? 1 : 0)
 
 // When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
 #define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }

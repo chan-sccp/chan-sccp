@@ -297,6 +297,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_strip ast_strip
 #define pbx_trim_blanks ast_trim_blanks
 #define pbx_true ast_true
+#define pbx_false ast_false
 #define pbx_tvnow ast_tvnow
 #define pbx_unregister_file_version ast_unregister_file_version
 #define pbx_update_use_count ast_update_use_count
