@@ -30805,6 +30805,8 @@ $as_echo "" >&6; }
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${T_MD}Generating Configuration and Makefiles${T_ME}" >&5
 $as_echo "${T_MD}Generating Configuration and Makefiles${T_ME}" >&6; }
 
+ac_config_commands="$ac_config_commands tools/autorevision"
+
 ac_config_files="$ac_config_files Makefile README doc/Makefile src/Makefile contrib/gen_sccpconf/Makefile"
 
 
@@ -32064,6 +32066,7 @@ do
     "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
+    "tools/autorevision") CONFIG_COMMANDS="$CONFIG_COMMANDS tools/autorevision" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "README") CONFIG_FILES="$CONFIG_FILES README" ;;
     "doc/Makefile") CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
@@ -33554,6 +33557,7 @@ compiler_lib_search_path=$lt_compiler_lib_search_path_CXX
 _LT_EOF
 
  ;;
+    "tools/autorevision":C) cd ${ac_abs_top_srcdir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>null ;;
 
   esac
 done # for ac_tag

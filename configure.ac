@@ -107,6 +107,7 @@ AC_SUBST(CPU_OPTIONS)
 AC_SUBST(prefix)
 
 CONFIGURE_PART([Generating Configuration and Makefiles])
+AC_CONFIG_COMMANDS([tools/autorevision], [cd ${ac_abs_top_srcdir};${ac_abs_top_srcdir}/tools/autorevision -t h -o ${ac_abs_top_srcdir}/.revision > ${ac_abs_top_builddir}/src/revision.h 2>null])
 AC_CONFIG_FILES([
    Makefile
    README
