@@ -82,6 +82,9 @@ static inline unsigned long long bswap_64(unsigned long long x)
 
 #define SCCP_TECHTYPE_STR "SCCP"
 
+#define RET_STRING(_a) #_a
+#define STRINGIFY(_a) RET_STRING(_a)
+
 /* Versioning */
 #ifndef SCCP_VERSION
 #define SCCP_VERSION "custom"
@@ -89,6 +92,12 @@ static inline unsigned long long bswap_64(unsigned long long x)
 
 #ifndef SCCP_BRANCH
 #define SCCP_BRANCH "trunk"
+#endif
+
+#ifdef REVISION
+#define GetRevision() STRINGIFY(REVISION)
+#else
+#define GetRevision() SCCP_REVISION
 #endif
 
 #define SCCP_FILENAME_MAX 80

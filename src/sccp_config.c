@@ -2798,7 +2798,12 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	char *description_part = "";
 
 	if (strlen(req_segment) == 0) {										// return all segments
+		astman_append(s, "Chan-sccp-b: \r\n");
+		astman_append(s, "Branch: %s\r\n", SCCP_BRANCH);
+		astman_append(s, "Version: %s\r\n", SCCP_VERSION);
+		astman_append(s, "Revision: %s\r\n\r\n",  GetRevision());;
 		astman_send_listack(s, m, "List of segments will follow", "start");
+		
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
 			astman_append(s, "Event: SegmentEntry\r\n");
 			astman_append(s, "Segment: %s\r\n\r\n", sccpConfigSegments[i].name);
@@ -2838,7 +2843,6 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 						astman_append(s, "Event: AttributeEntry\r\n");
 						astman_append(s, "Segment: %s\r\n", sccpConfigSegment->name);
 						astman_append(s, "Option: %s\r\n", config->name);
-						astman_append(s, "Size: %d\r\n", (int) config->size - 1);
 						astman_append(s, "Required: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "true" : "false");
 						astman_append(s, "Deprecated: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) ? "true" : "false");
 						astman_append(s, "Obsolete: %s\r\n", ((config->flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) ? "true" : "false");
@@ -2848,16 +2852,23 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 						switch (config->type) {
 							case SCCP_CONFIG_DATATYPE_BOOLEAN:
 								astman_append(s, "Type: BOOLEAN\r\n");
+								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
 								break;
 							case SCCP_CONFIG_DATATYPE_INT:
 								astman_append(s, "Type: INT\r\n");
+								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
 								break;
 							case SCCP_CONFIG_DATATYPE_UINT:
 								astman_append(s, "Type: UNSIGNED INT\r\n");
+								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
 								break;
 							case SCCP_CONFIG_DATATYPE_STRINGPTR:
+								astman_append(s, "Type: STRING\r\n");
+								astman_append(s, "Size: *\r\n");
+								break;
 							case SCCP_CONFIG_DATATYPE_STRING:
 								astman_append(s, "Type: STRING\r\n");
+								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
 								break;
 							case SCCP_CONFIG_DATATYPE_PARSER:
 								astman_append(s, "Type: PARSER\r\n");
@@ -2865,6 +2876,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								break;
 							case SCCP_CONFIG_DATATYPE_CHAR:
 								astman_append(s, "Type: CHAR\r\n");
+								astman_append(s, "Size: 1\r\n");
 								break;
 						}
 						if (config->defaultValue && !strlen(config->defaultValue) == 0) {
