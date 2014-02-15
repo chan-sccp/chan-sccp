@@ -764,14 +764,20 @@ repoTest() {
 	else
 		local bzrDepth="0"
 	fi
-	if [ ! -z "$(svn info 2>/dev/null)" ]; then
-		local stringz="Working Copy Root Path: "
-		local svnPath="$(svn info | grep "${stringz}" | tr -d "${stringz}")"
-		local svnDepth="$(pathSegment "${svnPath}")"
-		REPONUM="$(expr ${REPONUM} + 1)"
-	else
-		local svnDepth="0"
-	fi
+        if [ ! -z "$(svn info 2>/dev/null)" ]; then
+                local stringz="Working Copy Root Path: "
+                if [ ! -z "`svn info | grep "${stringz}"`" ]; then
+                        local svnPath="$(svn info | grep "${stringz}" | tr -d "${stringz}")"
+                        local svnDepth="$(pathSegment "${svnPath}")"
+                        REPONUM="$(expr ${REPONUM} + 1)"
+                else
+                        local svnPath="$(svn info | grep "URL: " | tr -d "${stringz}")"
+                        local svnDepth="$(pathSegment "${svnPath}")"
+                        REPONUM="$(expr ${REPONUM} + 1)"
+                fi
+        else
+                local svnDepth="0"
+        fi
 
 	# Do not do more work then we have to.
 	if [ "${REPONUM}" = "0" ]; then
