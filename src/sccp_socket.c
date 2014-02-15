@@ -346,7 +346,7 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us)
 {
 	int sock;
-	struct sockaddr_storage sin;
+	struct sockaddr_storage sin = {0};
 	socklen_t slen;
 
 	sin.ss_family = them->ss_family;

@@ -204,7 +204,7 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
  */
 void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_msg_t * msg_in)
 {
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 	char *deviceName = "";
 	uint32_t serverPriority = GLOB(server_priority);
 	uint32_t deviceInstance = 0;
