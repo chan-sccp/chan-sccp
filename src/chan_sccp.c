@@ -45,6 +45,7 @@
 #include "sccp_rtp.h"
 
 #include "sccp_devstate.h"
+#include "revision.h"
 #include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")

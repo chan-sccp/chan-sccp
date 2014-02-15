@@ -475,13 +475,12 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2014-02-11 22:37:39 +0100 (di, 11 feb 2014) $
-# REVISION: $Revision: 5173 $
+# DATE:     $Date: 2014-02-15 01:23:23 +0100 (za, 15 feb 2014) $
+# REVISION: $Revision: 5187 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules subdir-objects
-csmod_LTLIBRARIES = chan_sccp.la
-MOSTLYCLEANFILES = *.gcda *.gcno *.gcov
-REVISION = "r$(shell cd @abs_srcdir@/../src;@abs_srcdir@/../tools/autorevision -s VCS_SHORT_HASH)"
+csmod_LTLIBRARIES = chan_sccp.la 
+MOSTLYCLEANFILES = *.gcda *.gcno *.gcov revision.h
 EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_event.h sccp_labels.h sccp_utils.h sccp_adv_features.h \
@@ -491,14 +490,15 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_hint.h sccp_lock.h sccp_refcount.h sccp_protocol.h \
 	sccp_dllists.h sccp_indicate.h sccp_management.h sccp_mwi.h \
 	common.h sccp_rtp.h sccp_appfunctions.h sccp_socket.h \
-	sccp_cli_table.h sccp_devstate.h chan_sccp.c sccp_channel.c \
-	sccp_device.c sccp_indicate.c sccp_pbx.c pbx_impl/pbx_impl.c \
-	sccp_softkeys.c sccp_featureButton.c sccp_line.c sccp_utils.c \
-	sccp_actions.c sccp_cli.c sccp_features.c sccp_config.c \
-	sccp_hint.c sccp_refcount.c sccp_event.c sccp_adv_features.c \
-	sccp_management.c sccp_mwi.c sccp_conference.c sccp_rtp.c \
-	sccp_appfunctions.c sccp_protocol.c sccp_socket.c \
-	sccp_threadpool.c sccp_devstate.c
+	sccp_cli_table.h sccp_devstate.h revision.h chan_sccp.c \
+	sccp_channel.c sccp_device.c sccp_indicate.c sccp_pbx.c \
+	pbx_impl/pbx_impl.c sccp_softkeys.c sccp_featureButton.c \
+	sccp_line.c sccp_utils.c sccp_actions.c sccp_cli.c \
+	sccp_features.c sccp_config.c sccp_hint.c sccp_refcount.c \
+	sccp_event.c sccp_adv_features.c sccp_management.c sccp_mwi.c \
+	sccp_conference.c sccp_rtp.c sccp_appfunctions.c \
+	sccp_protocol.c sccp_socket.c sccp_threadpool.c \
+	sccp_devstate.c
 
 #if CS_EXPERIMENTAL_XML
 #chan_sccp_la_SOURCES	+=      sccp_webservice.h       sccp_xml.h 		sccp_xml_embedded.h	sccp_webservice.c	\
@@ -506,13 +506,12 @@ chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 #endif 
 EXTRA_chan_sccp_la_SOURCES = $(am__append_1)
 chan_sccp_la_LIBADD = $(PTHREAD_CFLAGS) $(GCLIBS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS)
-chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR)
+chan_sccp_la_DEPENDENCIES = $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) revision.h
 chan_sccp_la_CFLAGS = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) \
 	$(PTHREAD_CFLAGS) $(GCFLAGS) $(GCLIBS) $(COVERAGE_CFLAGS) \
 	$(EVENT_CFLAGS) $(LIBEXSLT_CFLAGS) $(LIBCURL_CFLAGS) \
-	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall \
-	-DREVISION="$(REVISION)"
-chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS) -DREVISION="$(REVISION)"
+	-D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall
+chan_sccp_la_LDFLAGS = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -1093,6 +1092,15 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
+
+.PHONY: revision.h
+
+revision.h:
+	$(shell 																\
+		cd "@abs_top_srcdir@/src";														\
+		test "`@abs_top_srcdir@/tools/autorevision -t h |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`" &&	\
+		@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >"@abs_builddir@/revision.h" 2>/dev/null			\
+	)
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)

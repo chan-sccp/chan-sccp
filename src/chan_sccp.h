@@ -94,8 +94,8 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #define SCCP_BRANCH "trunk"
 #endif
 
-#ifdef REVISION
-#define GetRevision() STRINGIFY(REVISION)
+#if defined(VCS_SHORT_HASH)
+#define GetRevision() VCS_SHORT_HASH 
 #else
 #define GetRevision() SCCP_REVISION
 #endif

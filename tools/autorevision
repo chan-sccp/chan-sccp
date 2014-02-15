@@ -1,9 +1,11 @@
 #!/bin/sh
 
-# Copyright (c) 2012 dak180
-# See http://opensource.org/licenses/bsd-license.php for licence terms
+# Copyright (c) 2012 - 2014 dak180 and contributors. See
+# http://opensource.org/licenses/mit-license.php or the included
+# COPYING.md for licence terms.
 #
-# autorevision - extracts metadata about the head version from your repository.
+# autorevision - extracts metadata about the head version from your
+# repository.
 
 # Usage message.
 arUsage() {
@@ -14,6 +16,7 @@ usage: ./autorevision {-t output-type | -s symbol} [-o cache-file [-f] ] [-V]
 	-s symbol		= specify symbol output
 	-o cache-file		= specify cache file location
 	-f			= force the use of cache data
+	-U			= check for untracked files in svn
 	-V			= emit version and exit
 	-?			= help message
 
@@ -27,6 +30,7 @@ The folowing are valid output types:
 	php			= PHP file
 	ini			= INI file
 	js			= javascript file
+	json			= JSON file
 	java			= Java file
 	javaprop		= Java properties file
 	tex			= (La)TeX file
@@ -35,11 +39,13 @@ The folowing are valid output types:
 The following are valid symbols:
 	VCS_TYPE
 	VCS_BASENAME
+	VCS_UUID
 	VCS_NUM
 	VCS_DATE
 	VCS_BRANCH
 	VCS_TAG
 	VCS_TICK
+	VCS_EXTRA
 	VCS_FULL_HASH
 	VCS_SHORT_HASH
 	VCS_WC_MODIFIED
@@ -48,9 +54,9 @@ EOF
 }
 
 # Config
-ARVERSION="1.4"
+ARVERSION="&&ARVERSION&&"
 TARGETFILE="/dev/stdout"
-while getopts ":t:o:s:Vf" OPTION; do
+while getopts ":t:o:s:VfU" OPTION; do
 	case "${OPTION}" in
 		t)
 			AFILETYPE="${OPTARG}"
@@ -63,6 +69,9 @@ while getopts ":t:o:s:Vf" OPTION; do
 		;;
 		s)
 			VAROUT="${OPTARG}"
+		;;
+		U)
+			UNTRACKEDFILES="1"
 		;;
 		V)
 			echo "autorevision ${ARVERSION}"
@@ -87,6 +96,12 @@ elif [ -z "${CACHEFILE}" ] && [ "${CACHEFORCE}" = "1" ]; then
 	arUsage
 fi
 
+# Make sure that the path we are given is one we can source
+# (dash, we are looking at you).
+if [ ! -z "${CACHEFILE}" ] && ! echo "${CACHEFILE}" | grep -q '^\.*/'; then
+	CACHEFILE="./${CACHEFILE}"
+fi
+
 
 # Functions to extract data from different repo types.
 # For git repos
@@ -97,8 +112,13 @@ gitRepo() {
 
 	VCS_BASENAME="$(basename "${PWD}")"
 
+	VCS_UUID="$(git rev-list --max-parents=0 HEAD 2>/dev/null)"
+	if [ -z "${VCS_UUID}" ]; then
+		VCS_UUID="$(git rev-list --topo-order HEAD | tail -n 1)"
+	fi
+
 	 # Is the working copy clean?
-	test -z "$(git status -uno --porcelain)"
+	test -z "$(git status --untracked-files=normal --porcelain)"
 	VCS_WC_MODIFIED="${?}"
 
 	# Enumeration of changesets
@@ -108,17 +128,25 @@ gitRepo() {
 		VCS_NUM="$(git rev-list HEAD | wc -l)"
 	fi
 
-	# The full revision hash
-	VCS_FULL_HASH="$(git rev-parse HEAD)"
+	# This may be a git-svn remote.  If so, report the Subversion revision.
+	if [ -z "$(git config svn-remote.svn.url 2>/dev/null)" ]
+	then
+		# The full revision hash
+		VCS_FULL_HASH="$(git rev-parse HEAD)"
 
-	# The short hash
-	VCS_SHORT_HASH="$(echo "${VCS_FULL_HASH}" | cut -b 1-7)"
+		# The short hash
+		VCS_SHORT_HASH="$(echo "${VCS_FULL_HASH}" | cut -b 1-7)"
+	else
+		# The git-svn revision number
+		VCS_FULL_HASH="$(git svn find-rev HEAD)"
+		VCS_SHORT_HASH="${VCS_FULL_HASH}"
+	fi
 
 	# Current branch
 	VCS_BRANCH="$(git rev-parse --symbolic-full-name --verify "$(git name-rev --name-only --no-undefined HEAD 2>/dev/null)" 2>/dev/null | sed -e 's:refs/heads/::' | sed -e 's:refs/::')"
 
 	# Cache the description
-	DESCRIPTION="$(git describe --long --tags 2>/dev/null)"
+	local DESCRIPTION="$(git describe --long --tags 2>/dev/null)"
 
 	# Current or last tag ancestor (empty if no tags)
 	VCS_TAG="$(echo "${DESCRIPTION}" | sed -e "s:-g${VCS_SHORT_HASH}\$::" | sed -e 's:-[0-9]*$::')"
@@ -142,8 +170,10 @@ hgRepo() {
 
 	VCS_BASENAME="$(basename "${PWD}")"
 
+	VCS_UUID="$(hg log -r "0" -l 1 --template '{node}\n')"
+
 	# Is the working copy clean?
-	hg sum | grep -q 'commit: (clean)'
+	test -z "$(hg status -duram)"
 	VCS_WC_MODIFIED="${?}"
 
 	# Enumeration of changesets
@@ -164,7 +194,8 @@ hgRepo() {
 	fi
 
 	# Current or last tag ancestor (excluding auto tags, empty if no tags)
-	VCS_TAG="$(hg log -r "${VCS_NUM}" -l 1 --template '{latesttag}\n' 2>/dev/null | sed -e 's:qtip::' -e 's:tip::' -e 's:qbase::' -e 's:qparent::' -e "s:$(hg --config 'extensions.color=' --color never qtop 2>/dev/null)::" | cut -d ' ' -f 1)"
+#	VCS_TAG="$(hg log -r "${VCS_NUM}" -l 1 --template '{latesttag}\n' 2>/dev/null | sed -e 's:qtip::' -e 's:tip::' -e 's:qbase::' -e 's:qparent::' -e "s:$(hg --config 'extensions.color=' --color never qtop 2>/dev/null)::" | cut -d ' ' -f 1)"
+	VCS_TAG="$(hg log -r "${VCS_NUM}" -l 1 --template '{latesttag}\n' 2>/dev/null | sed -e 's:qtip::' -e 's:tip::' -e 's:qbase::' | cut -d ' ' -f 1)"
 
 	# Distance to last tag or an alias of VCS_NUM if there is no tag
 	if [ ! -z "${VCS_TAG}" ]; then
@@ -184,6 +215,9 @@ bzrRepo() {
 	VCS_TYPE="bzr"
 
 	VCS_BASENAME="$(basename "${PWD}")"
+
+	# Currently unimplemented because more investigation is needed.
+	VCS_UUID=""
 
 	# Is the working copy clean?
 	bzr version-info --custom --template='{clean}\n' | grep -q '1'
@@ -221,9 +255,9 @@ svnRepo() {
 
 	case "${PWD}" in
 	/*trunk*|/*branches*|/*tags*)
-		fn="${PWD}"
+		local fn="${PWD}"
 		while [ "$(basename "${fn}")" != 'trunk' ] && [ "$(basename "${fn}")" != 'branches' ] && [ "$(basename "${fn}")" != 'tags' ] && [ "$(basename "${fn}")" != '/' ]; do
-			fn="$(dirname "${fn}")"
+			local fn="$(dirname "${fn}")"
 		done
 		fn="$(dirname "${fn}")"
 		if [ "${fn}" = '/' ]; then
@@ -235,14 +269,27 @@ svnRepo() {
 	*) VCS_BASENAME="$(basename "${PWD}")" ;;
 	esac
 
+	VCS_UUID="$(svn info | sed -n -e 's:Repository UUID\: ::p')"
+
 	# Cache svnversion output
-	SVNVERSION="$(svnversion)"
+	local SVNVERSION="$(svnversion)"
 
 	# Is the working copy clean?
 	echo "${SVNVERSION}" | grep -q "M"
 	case "${?}" in
-		0) VCS_WC_MODIFIED="1";;
-		1) VCS_WC_MODIFIED="0";;
+		0)
+			VCS_WC_MODIFIED="1"
+		;;
+		1)
+			if [ ! -z "${UNTRACKEDFILES}"]; then
+			# `svnversion` does not detect untracked files and `svn status` is really slow, so only run it if we really have to.
+				if [ -z "$(svn status)" ]; then
+					VCS_WC_MODIFIED="0"
+				else
+					VCS_WC_MODIFIED="1"
+				fi
+			fi
+		;;
 	esac
 
 	# Enumeration of changesets
@@ -257,8 +304,8 @@ svnRepo() {
 	# Current branch
 	case "${PWD}" in
 	/*trunk*|/*branches*|/*tags*)
-		lastbase=""
-		fn="${PWD}"
+		local lastbase=""
+		local fn="${PWD}"
 		while :
 		do
 			base="$(basename "${fn}")"
@@ -272,8 +319,8 @@ svnRepo() {
 				VCS_BRANCH=""
 				break
 			fi
-			lastbase="${base}"
-			fn="$(dirname "${fn}")"
+			local lastbase="${base}"
+			local fn="$(dirname "${fn}")"
 		done
 		;;
 	*) VCS_BRANCH="" ;;
@@ -299,12 +346,14 @@ hOutput() {
 #define AUTOREVISION_H
 
 #define VCS_TYPE		"${VCS_TYPE}"
-#define VCS_BASENAME	"${VCS_BASENAME}"
+#define VCS_BASENAME		"${VCS_BASENAME}"
+#define VCS_UUID		"${VCS_UUID}"
 #define VCS_NUM			${VCS_NUM}
 #define VCS_DATE		"${VCS_DATE}"
 #define VCS_BRANCH		"${VCS_BRANCH}"
 #define VCS_TAG			"${VCS_TAG}"
 #define VCS_TICK		${VCS_TICK}
+#define VCS_EXTRA		"${VCS_EXTRA}"
 
 #define VCS_FULL_HASH		"${VCS_FULL_HASH}"
 #define VCS_SHORT_HASH		"${VCS_SHORT_HASH}"
@@ -325,12 +374,14 @@ xcodeOutput() {
 #define AUTOREVISION_H
 
 #define VCS_TYPE		${VCS_TYPE}
-#define VCS_BASENAME	${VCS_BASENAME}
+#define VCS_BASENAME		${VCS_BASENAME}
+#define VCS_UUID		${VCS_UUID}
 #define VCS_NUM			${VCS_NUM}
 #define VCS_DATE		${VCS_DATE}
 #define VCS_BRANCH		${VCS_BRANCH}
 #define VCS_TAG			${VCS_TAG}
 #define VCS_TICK		${VCS_TICK}
+#define VCS_EXTRA		${VCS_EXTRA}
 
 #define VCS_FULL_HASH		${VCS_FULL_HASH}
 #define VCS_SHORT_HASH		${VCS_SHORT_HASH}
@@ -350,11 +401,13 @@ shOutput() {
 
 VCS_TYPE="${VCS_TYPE}"
 VCS_BASENAME="${VCS_BASENAME}"
+VCS_UUID="${VCS_UUID}"
 VCS_NUM=${VCS_NUM}
 VCS_DATE="${VCS_DATE}"
 VCS_BRANCH="${VCS_BRANCH}"
 VCS_TAG="${VCS_TAG}"
 VCS_TICK=${VCS_TICK}
+VCS_EXTRA="${VCS_EXTRA}"
 
 VCS_FULL_HASH="${VCS_FULL_HASH}"
 VCS_SHORT_HASH="${VCS_SHORT_HASH}"
@@ -376,11 +429,13 @@ pyOutput() {
 
 VCS_TYPE = "${VCS_TYPE}"
 VCS_BASENAME = "${VCS_BASENAME}"
+VCS_UUID = "${VCS_UUID}"
 VCS_NUM = ${VCS_NUM}
 VCS_DATE = "${VCS_DATE}"
 VCS_BRANCH = "${VCS_BRANCH}"
 VCS_TAG = "${VCS_TAG}"
 VCS_TICK = ${VCS_TICK}
+VCS_EXTRA = "${VCS_EXTRA}"
 
 VCS_FULL_HASH = "${VCS_FULL_HASH}"
 VCS_SHORT_HASH = "${VCS_SHORT_HASH}"
@@ -398,11 +453,13 @@ plOutput() {
 
 \$VCS_TYPE = "${VCS_TYPE}";
 \$VCS_BASENAME = "${VCS_BASENAME}"
+\$VCS_UUID = "${VCS_UUID}"
 \$VCS_NUM = ${VCS_NUM};
 \$VCS_DATE = "${VCS_DATE}";
 \$VCS_BRANCH = "${VCS_BRANCH}";
 \$VCS_TAG = "${VCS_TAG}";
 \$VCS_TICK = ${VCS_TICK};
+\$VCS_EXTRA = "${VCS_EXTRA}";
 
 \$VCS_FULL_HASH = "${VCS_FULL_HASH}";
 \$VCS_SHORT_HASH = "${VCS_SHORT_HASH}";
@@ -424,11 +481,13 @@ luaOutput() {
 
 VCS_TYPE = "${VCS_TYPE}"
 VCS_BASENAME = "${VCS_BASENAME}"
+VCS_UUID = "${VCS_UUID}"
 VCS_NUM = ${VCS_NUM}
 VCS_DATE = "${VCS_DATE}"
 VCS_BRANCH = "${VCS_BRANCH}"
 VCS_TAG = "${VCS_TAG}"
 VCS_TICK = ${VCS_TICK}
+VCS_EXTRA = "${VCS_EXTRA}"
 
 VCS_FULL_HASH = "${VCS_FULL_HASH}"
 VCS_SHORT_HASH = "${VCS_SHORT_HASH}"
@@ -451,11 +510,13 @@ phpOutput() {
 
 $GLOBALS["VCS_TYPE"] = "${VCS_TYPE}";
 $GLOBALS["VCS_BASENAME"] = "${VCS_BASENAME}";
+$GLOBALS["VCS_UUID"] = "${VCS_UUID}";
 $GLOBALS["VCS_NUM"] = ${VCS_NUM};
 $GLOBALS["VCS_DATE"] = "${VCS_DATE}";
 $GLOBALS["VCS_BRANCH"] = "${VCS_BRANCH}";
 $GLOBALS["VCS_TAG"] = "${VCS_TAG}";
 $GLOBALS["VCS_TICK"] = ${VCS_TICK};
+$GLOBALS["VCS_EXTRA"] = "${VCS_EXTRA}";
 
 $GLOBALS["VCS_FULL_HASH"] = "${VCS_FULL_HASH}";
 $GLOBALS["VCS_SHORT_HASH"] = "${VCS_SHORT_HASH}";
@@ -478,11 +539,13 @@ iniOutput() {
 [VCS]
 VCS_TYPE = "${VCS_TYPE}"
 VCS_BASENAME = "${VCS_BASENAME}"
+VCS_UUID = "${VCS_UUID}"
 VCS_NUM = ${VCS_NUM}
 VCS_DATE = "${VCS_DATE}"
 VCS_BRANCH = "${VCS_BRANCH}"
 VCS_TAG = "${VCS_TAG}"
 VCS_TICK = ${VCS_TICK}
+VCS_EXTRA = "${VCS_EXTRA}"
 VCS_FULL_HASH = "${VCS_FULL_HASH}"
 VCS_SHORT_HASH = "${VCS_SHORT_HASH}"
 VCS_WC_MODIFIED = ${VCS_WC_MODIFIED}
@@ -502,11 +565,13 @@ jsOutput() {
 var autorevision = {
 	VCS_TYPE: "${VCS_TYPE}",
 	VCS_BASENAME: "${VCS_BASENAME}",
+	VCS_UUID: "${VCS_UUID}",
 	VCS_NUM: ${VCS_NUM},
 	VCS_DATE: "${VCS_DATE}",
 	VCS_BRANCH: "${VCS_BRANCH}",
 	VCS_TAG: "${VCS_TAG}",
 	VCS_TICK: ${VCS_TICK},
+	VCS_EXTRA: "${VCS_EXTRA}",
 
 	VCS_FULL_HASH: "${VCS_FULL_HASH}",
 	VCS_SHORT_HASH: "${VCS_SHORT_HASH}",
@@ -523,6 +588,32 @@ if (typeof module !== 'undefined') {
 EOF
 }
 
+# For JSON output
+jsonOutput() {
+	case "${VCS_WC_MODIFIED}" in
+		1) VCS_WC_MODIFIED="true" ;;
+		0) VCS_WC_MODIFIED="false" ;;
+	esac
+	cat > "${TARGETFILE}" << EOF
+{
+	"VCS_TYPE": "${VCS_TYPE}",
+	"VCS_BASENAME": "${VCS_BASENAME}",
+	"VCS_UUID": "${VCS_UUID}",
+	"VCS_NUM": ${VCS_NUM},
+	"VCS_DATE": "${VCS_DATE}",
+	"VCS_BRANCH":"${VCS_BRANCH}",
+	"VCS_TAG": "${VCS_TAG}",
+	"VCS_TICK": ${VCS_TICK},
+	"VCS_EXTRA": "${VCS_EXTRA}",
+
+	"VCS_FULL_HASH": "${VCS_FULL_HASH}",
+	"VCS_SHORT_HASH": "${VCS_SHORT_HASH}",
+
+	"VCS_WC_MODIFIED": ${VCS_WC_MODIFIED}
+}
+EOF
+}
+
 # For Java output
 javaOutput() {
 	case "${VCS_WC_MODIFIED}" in
@@ -532,16 +623,16 @@ javaOutput() {
 	cat > "${TARGETFILE}" << EOF
 /* Generated by autorevision - do not hand-hack! */
 
-import java.util.Date;
-
 public class autorevision {
     public static final String VCS_TYPE = "${VCS_TYPE}";
     public static final String VCS_BASENAME = "${VCS_BASENAME}";
+    public static final String VCS_UUID = "${VCS_UUID}";
     public static final long VCS_NUM = ${VCS_NUM};
-    public static final Date VCS_DATE = new Date($(date -d ${VCS_DATE} +%s));
+    public static final String VCS_DATE = "${VCS_DATE}";
     public static final String VCS_BRANCH = "${VCS_BRANCH}";
     public static final String VCS_TAG = "${VCS_TAG}";
     public static final long VCS_TICK = ${VCS_TICK};
+    public static final String VCS_EXTRA = "${VCS_EXTRA}";
 
     public static final String VCS_FULL_HASH = "${VCS_FULL_HASH}";
     public static final String VCS_SHORT_HASH = "${VCS_SHORT_HASH}";
@@ -562,11 +653,13 @@ javapropOutput() {
 
 VCS_TYPE=${VCS_TYPE}
 VCS_BASENAME=${VCS_BASENAME}
+VCS_UUID=${VCS_UUID}
 VCS_NUM=${VCS_NUM}
 VCS_DATE=${VCS_DATE}
 VCS_BRANCH=${VCS_BRANCH}
 VCS_TAG=${VCS_TAG}
 VCS_TICK=${VCS_TICK}
+VCS_EXTRA=${VCS_EXTRA}
 
 VCS_FULL_HASH=${VCS_FULL_HASH}
 VCS_SHORT_HASH=${VCS_SHORT_HASH}
@@ -580,13 +673,15 @@ m4Output() {
 	cat > "${TARGETFILE}" << EOF
 define(\`VCS_TYPE', \`${VCS_TYPE}')dnl
 define(\`VCS_BASENAME', \`${VCS_BASENAME}')dnl
+define(\`VCS_UUID', \`${VCS_UUID}')dnl
 define(\`VCS_NUM', \`${VCS_NUM}')dnl
 define(\`VCS_DATE', \`${VCS_DATE}')dnl
 define(\`VCS_BRANCH', \`${VCS_BRANCH}')dnl
 define(\`VCS_TAG', \`${VCS_TAG}')dnl
 define(\`VCS_TICK', \`${VCS_TICK}')dnl
+define(\`VCS_EXTRA', \`${VCS_EXTRA}')dnl
 define(\`VCS_FULLHASH', \`${VCS_FULL_HASH}')dnl
-define(\`VCS_SHIRTHASH', \`${VCS_SHORT_HASH}')dnl
+define(\`VCS_SHORTHASH', \`${VCS_SHORT_HASH}')dnl
 define(\`VCS_WC_MODIFIED', \`${VCS_WC_MODIFIED}')dnl
 EOF
 }
@@ -601,11 +696,13 @@ texOutput() {
 % Generated by autorevision - do not hand-hack!
 \def \vcsType {${VCS_TYPE}}
 \def \vcsBasename {${VCS_BASENAME}}
+\def \vcsUUID {${VCS_UUID}}
 \def \vcsNum {${VCS_NUM}}
 \def \vcsDate {${VCS_DATE}}
 \def \vcsBranch {${VCS_BRANCH}}
 \def \vcsTag {${VCS_TAG}}
 \def \vcsTick {${VCS_TICK}}
+\def \vcsExtra {${VCS_EXTRA}}
 \def \vcsFullHash {${VCS_FULL_HASH}}
 \def \vcsShortHash {${VCS_SHORT_HASH}}
 \def \vcsWCModified {${VCS_WC_MODIFIED}}
@@ -615,24 +712,107 @@ EOF
 
 
 
-# Detect and collect repo data.
+# Helper functions
+# Count path segments
+pathSegment() {
+	local pathz="${1}"
+	local depth="0"
+
+	if [ ! -z "${pathz}" ]; then
+		while [ ! "${pathz}" = "/" ] && [ ! "${pathz}" = "." ]; do
+			pathz="$(dirname "${pathz}")"
+			depth="$(expr ${depth} + 1)"
+		done
+	fi
+	echo ${depth}
+}
+
+# Largest of four numbers
+multiCompare() {
+	local larger="${1}"
+	local numA="${2}"
+	local numB="${3}"
+	local numC="${4}"
+
+	[ "${numA}" -gt "${larger}" ] && larger="${numA}"
+	[ "${numB}" -gt "${larger}" ] && larger="${numB}"
+	[ "${numC}" -gt "${larger}" ] && larger="${numC}"
+	echo "${larger}"
+}
+
+# Test for repositories
+repoTest() {
+	REPONUM="0"
+	if [ ! -z "$(git rev-parse HEAD 2>/dev/null)" ]; then
+		local gitPath="$(git rev-parse --show-toplevel)"
+		local gitDepth="$(pathSegment "${gitPath}")"
+		REPONUM="$(expr ${REPONUM} + 1)"
+	else
+		local gitDepth="0"
+	fi
+	if [ ! -z "$(hg root 2>/dev/null)" ]; then
+		local hgPath="$(hg root 2>/dev/null)"
+		local hgDepth="$(pathSegment "${hgPath}")"
+		REPONUM="$(expr ${REPONUM} + 1)"
+	else
+		local hgDepth="0"
+	fi
+	if [ ! -z "$(bzr root 2>/dev/null)" ]; then
+		local bzrPath="$(bzr root 2>/dev/null)"
+		local bzrDepth="$(pathSegment "${bzrPath}")"
+		REPONUM="$(expr ${REPONUM} + 1)"
+	else
+		local bzrDepth="0"
+	fi
+	if [ ! -z "$(svn info 2>/dev/null)" ]; then
+		local stringz="Working Copy Root Path: "
+		local svnPath="$(svn info | grep "${stringz}" | tr -d "${stringz}")"
+		local svnDepth="$(pathSegment "${svnPath}")"
+		REPONUM="$(expr ${REPONUM} + 1)"
+	else
+		local svnDepth="0"
+	fi
+
+	# Do not do more work then we have to.
+	if [ "${REPONUM}" = "0" ]; then
+		return
+	fi
+
+	# Figure out which repo is the deepest and use it.
+	local wonRepo="$(multiCompare "${gitDepth}" "${hgDepth}" "${bzrDepth}" "${svnDepth}")"
+	if [ "${wonRepo}" = "${gitDepth}" ]; then
+		gitRepo
+	elif [ "${wonRepo}" = "${hgDepth}" ]; then
+		hgRepo
+	elif [ "${wonRepo}" = "${bzrDepth}" ]; then
+		bzrRepo
+	elif [ "${wonRepo}" = "${svnDepth}" ]; then
+		svnRepo
+	fi
+}
+
+
+
+# Detect which repos we are in and gather data.
 if [ -f "${CACHEFILE}" ] && [ "${CACHEFORCE}" = "1" ]; then
 	# When requested only read from the cache to populate our symbols.
-	source "${CACHEFILE}"
-elif [ ! -z "$(git rev-parse HEAD 2>/dev/null)" ]; then
-	gitRepo
-elif [ ! -z "$(hg root 2>/dev/null)" ]; then
-	hgRepo
-elif [ ! -z "$(bzr root 2>/dev/null)" ]; then
-	bzrRepo
-elif [ ! -z "$(svn info 2>/dev/null)" ]; then
-	svnRepo
-elif [ -f "${CACHEFILE}" ]; then
-	# We are not in a repo; try to use a previously generated cache to populate our symbols.
-	source "${CACHEFILE}"
+	. "${CACHEFILE}"
 else
-	echo "error: No repo or cache detected." 1>&2
-	exit 1
+	# If a value is not set through the environment set VCS_EXTRA to nothing.
+	if [ -z "${VCS_EXTRA}" ]; then
+		VCS_EXTRA=""
+	fi
+	repoTest
+
+	if [ -f "${CACHEFILE}" ] && [ "${REPONUM}" = "0" ]; then
+		# We are not in a repo; try to use a previously generated cache to populate our symbols.
+		. "${CACHEFILE}"
+		# Do not overwrite the cache if we know we are not going to write anything new.
+		CACHEFORCE="1"
+	elif [ "${REPONUM}" = "0" ]; then
+		echo "error: No repo or cache detected." 1>&2
+		exit 1
+	fi
 fi
 
 
@@ -658,6 +838,9 @@ if [ ! -z "${VAROUT}" ]; then
 		echo "${VCS_SHORT_HASH}"
 	elif [ "${VAROUT}" = "VCS_WC_MODIFIED" ]; then
 		echo "${VCS_WC_MODIFIED}"
+	else
+		echo "error: Not a valid output symbol." 1>&2
+		exit 1
 	fi
 fi
 
@@ -682,6 +865,8 @@ if [ ! -z "${AFILETYPE}" ]; then
 		iniOutput
 	elif [ "${AFILETYPE}" = "js" ]; then
 		jsOutput
+	elif [ "${AFILETYPE}" = "json" ]; then
+		jsonOutput
 	elif [ "${AFILETYPE}" = "java" ]; then
 		javaOutput
 	elif [ "${AFILETYPE}" = "javaprop" ]; then
