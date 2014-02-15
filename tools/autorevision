@@ -164,48 +164,47 @@ gitRepo() {
 
 # For hg repos
 hgRepo() {
-	cd "$(hg root)"
+        cd "$(hg root)"
 
-	VCS_TYPE="hg"
+        VCS_TYPE="hg"
 
-	VCS_BASENAME="$(basename "${PWD}")"
+        VCS_BASENAME="$(basename "${PWD}")"
 
-	VCS_UUID="$(hg log -r "0" -l 1 --template '{node}\n')"
+        VCS_UUID="$(hg log -r "0" -l 1 --template '{node}\n')"
 
-	# Is the working copy clean?
-	test -z "$(hg status -duram)"
-	VCS_WC_MODIFIED="${?}"
+        # Is the working copy clean?
+        test -z "$(hg status -duram)"
+        VCS_WC_MODIFIED="${?}"
 
-	# Enumeration of changesets
-	VCS_NUM="$(hg id -n | tr -d '+')"
+        # Enumeration of changesets
+        VCS_NUM="$(hg id -n | tr -d '+')"
 
-	# The full revision hash
-	VCS_FULL_HASH="$(hg log -r "${VCS_NUM}" -l 1 --template '{node}\n')"
+        # The full revision hash
+        VCS_FULL_HASH="$(hg log -l 1 --template '{node}\n')"
 
-	# The short hash
-	VCS_SHORT_HASH="$(hg id -i | tr -d '+')"
+        # The short hash
+        VCS_SHORT_HASH="$(hg id -i | tr -d '+')"
 
-	# Current bookmark (bookmarks are roughly equivalent to git's branches)
-	# or branch if no bookmark
-	VCS_BRANCH="$(hg id -B | cut -d ' ' -f 1)"
-	# Fall back to the branch if there are no bookmarks
-	if [ -z "${VCS_BRANCH}" ]; then
-		VCS_BRANCH="$(hg id -b)"
-	fi
+        # Current bookmark (bookmarks are roughly equivalent to git's branches)
+        # or branch if no bookmark
+        VCS_BRANCH="$(hg id -B | cut -d ' ' -f 1)"
+        # Fall back to the branch if there are no bookmarks
+        if [ -z "${VCS_BRANCH}" ]; then
+                VCS_BRANCH="$(hg id -b)"
+        fi
 
-	# Current or last tag ancestor (excluding auto tags, empty if no tags)
-#	VCS_TAG="$(hg log -r "${VCS_NUM}" -l 1 --template '{latesttag}\n' 2>/dev/null | sed -e 's:qtip::' -e 's:tip::' -e 's:qbase::' -e 's:qparent::' -e "s:$(hg --config 'extensions.color=' --color never qtop 2>/dev/null)::" | cut -d ' ' -f 1)"
-	VCS_TAG="$(hg log -r "${VCS_NUM}" -l 1 --template '{latesttag}\n' 2>/dev/null | sed -e 's:qtip::' -e 's:tip::' -e 's:qbase::' | cut -d ' ' -f 1)"
+        # Current or last tag ancestor (excluding auto tags, empty if no tags)
+        VCS_TAG="$(hg log -l 1 --template '{latesttag}\n' 2>/dev/null | sed -e 's:qtip::' -e 's:tip::' -e 's:qbase::' | cut -d ' ' -f 1)"
 
-	# Distance to last tag or an alias of VCS_NUM if there is no tag
-	if [ ! -z "${VCS_TAG}" ]; then
-		VCS_TICK="$(hg log -r "${VCS_NUM}" -l 1 --template '{latesttagdistance}\n' 2>/dev/null)"
-	else
-		VCS_TICK="${VCS_NUM}"
-	fi
+        # Distance to last tag or an alias of VCS_NUM if there is no tag
+        if [ ! -z "${VCS_TAG}" ]; then
+                VCS_TICK="$(hg log -l 1 --template '{latesttagdistance}\n' 2>/dev/null)"
+        else
+                VCS_TICK="${VCS_NUM}"
+        fi
 
-	# Date of the current commit
-	VCS_DATE="$(hg log -r "${VCS_NUM}" -l 1 --template '{date|isodatesec}\n' 2>/dev/null | sed -e 's: :T:' | sed -e 's: ::')"
+        # Date of the current commit
+        VCS_DATE="$(hg log -r "${VCS_NUM}" -l 1 --template '{date|isodatesec}\n' 2>/dev/null | sed -e 's: :T:' | sed -e 's: ::')"
 }
 
 # For bzr repos
