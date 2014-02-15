@@ -56,7 +56,7 @@ chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS
 
 revision.h:
 	$(shell 																\
-		cd "@abs_top_srcdir@/src";														\
+		cd "@abs_top_srcdir@/src";													\
 		test "`@abs_top_srcdir@/tools/autorevision -t h |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`" &&	\
 		@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >"@abs_builddir@/revision.h" 2>/dev/null			\
 	)

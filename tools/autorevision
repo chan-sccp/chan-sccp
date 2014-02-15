@@ -8,6 +8,9 @@
 # repository.
 
 # Usage message.
+
+export LANGUAGE=C
+
 arUsage() {
 	cat > "/dev/stderr" << EOF
 usage: ./autorevision {-t output-type | -s symbol} [-o cache-file [-f] ] [-V]
@@ -770,7 +773,7 @@ repoTest() {
                         local svnDepth="$(pathSegment "${svnPath}")"
                         REPONUM="$(expr ${REPONUM} + 1)"
                 else
-                        local svnPath="$(svn info | grep "URL" | tr -d "${stringz}")"
+                        local svnPath="$(svn info | grep "URL: " | tr -d "${stringz}")"
                         local svnDepth="$(pathSegment "${svnPath}")"
                         REPONUM="$(expr ${REPONUM} + 1)"
                 fi
