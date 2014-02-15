@@ -29,25 +29,15 @@ fi
 echo "Asterisk on $MACHINE died at ${DATE}. GDB Backtrace." > "${DUMPCORE}/core.`hostname`-${DATE}.bt"
 echo "" >> "${DUMPCORE}/core.`hostname`-${DATE}.bt"
 
-gdb -batch-silent \
-	-ex "set logging overwrite on" \
-	-ex "set logging file ${DUMPCORE}/core.`hostname`-${DATE}.bt" \
-	-ex "set logging on" \
+gdb -batch \
 	-ex "set pagination off" \
 	-ex "set print elements 0" \
 	-ex "set print null-stop" \
 	-ex "set print pretty on" \
-	-ex "echo Program terminated with signal" \
-	-ex "print $_siginfo.si_signo" \
-	-ex "echo backtrace:\n" \
 	-ex "bt" \
-	-ex "echo backtrace full:\n" \
 	-ex "bt full" \
-	-ex "set logging off" \
 	-ex "quit" \
-	${ASTSBINDIR}/asterisk ${CORE} 2&1>/dev/null
-#	-ex "echo info share ld-linux" \
-#	-ex "info share ld-linux" \
+	${ASTSBINDIR}/asterisk ${CORE} 2>&1| grep -v "New LWP" >> "${DUMPCORE}/core.`hostname`-${DATE}.bt"
 if [ "x${MAIL}" != "x" ]; then
 	cat "${DUMPCORE}/core.`hostname`-${DATE}.bt" | mail -s "Asterisk GDB Backtrace" $NOTIFY
 fi
