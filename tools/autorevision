@@ -771,7 +771,7 @@ repoTest() {
                         local svnDepth="$(pathSegment "${svnPath}")"
                         REPONUM="$(expr ${REPONUM} + 1)"
                 else
-                        local svnPath="$(svn info | grep "URL: " | tr -d "${stringz}")"
+                        local svnPath="$(svn info | grep "URL" | tr -d "${stringz}")"
                         local svnDepth="$(pathSegment "${svnPath}")"
                         REPONUM="$(expr ${REPONUM} + 1)"
                 fi
