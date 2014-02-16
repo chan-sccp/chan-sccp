@@ -10,7 +10,7 @@ include $(top_srcdir)/amdoxygen.am
 
 AUTOMAKE_OPTS			= gnu silent-rules
 #EXTRA_DIST 			= .version tools conf
-EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf
+EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf .revision
 #SUBDIRS 			= src doc contrib/gen_sccpconf
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
@@ -97,6 +97,7 @@ release:
 	  echo "Please edit the NEWS file now..."; \
 	  /usr/bin/joe NEWS; \
 	  /usr/bin/debchange; \
+	  tools/autorevision -o .revision -t m4 2>&1 >/dev/null; \
 	fi 
 	@$(MAKE) dist-gzip
 

@@ -1,4 +1,123 @@
+2014-02-15  ddegroot
+
+	* [r5194] configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in, tools/autorevision: Correct output to /dev/null
+	  instead of null. Make autorevision play nice on other language
+	  machine, by forcing LANGUAGE=C
+
+	* [r5193] tools/autorevision: Fix autorevision for mercurial
+	  repository
+
+	* [r5192] src/sccp_actions.c, src/sccp_socket.c: Fix compile
+	  warning
+
+	* [r5191] tools/autorevision: Fix autorevision for svn of a
+	  different language
+
+	* [r5190] tools/autorevision: Fix autorevision for outdated svn
+	  versions
+
+	* [r5189] configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h,
+	  tools/autorevision: Update repository revison during every run of
+	  make, instead of depending on configure. This way user reports,
+	  should include the correct chan-sccp-b version and revision.
+
+	* [r5188] contrib/safe_asterisk_backtrace: Update
+	  safe_asterisk_backtrace script
+
+	* [r5187] src/Makefile.am, src/Makefile.in, src/chan_sccp.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/astTrunk.c, src/sccp_cli.c,
+	  src/sccp_cli_table.h, src/sccp_config.c: Use the output from
+	  tools/autorevision if available to display the currently running
+	  revision, updated during make, instead of configure. Include
+	  revision output in AMI Function SCCPConfigMetaData (Which returns
+	  information about all possible sccp configuration options)
+
+2014-02-13  ddegroot
+
+	* [r5186] src/chan_sccp.c: Free GLOB(config_file_name) and
+	  GLOB(token_fallback), if they are set, during unload.
+
+	* [r5185] src/pbx_impl/ast/ast111.c, src/sccp_refcount.c,
+	  src/sccp_rtp.c: Prevent compile warnings
+
+	* [r5184] src/sccp_actions.c: Updating TokenRequest, fallback using
+	  script has been set to experimental, and is not included in
+	  normal build yet
+
+	* [r5183] src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config_entries.hh: Found the actual cause for the
+	  register issue reported by Pavel/Niklas/David. I found out that
+	  creating a character array of size 4096 inside the general
+	  struct, was causing these issues (Used PATH_MAX from limits.h
+	  without realizing it was this big). I have replaced it with a
+	  pointer, and adapted sccp_cli and sccp_config to free and set it.
+
+	* [r5182] src/sccp_features.c: Check if
+	  line->pickupgroup/line->named_pickupgroup have been set before
+	  trying directed pickup
+
+	* [r5181] src/pbx_impl/ast/ast111.c, src/sccp_features.c: Correct
+	  ast_channel_named_pickupgroups_set to
+	  ast_channel_named_callgroups_set (Issue Reported by Antonio
+	  Guirado)
+
+	* [r5180] src/sccp_actions.c: Check fallback, being empty when
+	  processing tokenack
+
+	* [r5179] src/chan_sccp.h, src/pbx_impl/ast/define.h,
+	  src/sccp_actions.c, src/sccp_cli.c: Check fallback value more
+	  carefully when processing tokenack / cli command. Added
+	  sccp_false as a counterpart for sccp_true
+
+	* [r5178] src/sccp_actions.c, src/sccp_socket.c: Revert to previous
+	  working state (r5152) (issue reported by : Pavel / Niklas /
+	  David)
+
+	* [r5177] src/sccp_actions.c: Check if token_fallback is
+	  true/yes/on or false/no/off
+
+2014-02-12  ddegroot
+
+	* [r5176] src/sccp_cli.c: Prevent loading non existing config file
+
 2014-02-11  ddegroot
+
+	* [r5175] src/sccp_socket.c: Revert to previous behaviour to handle
+	  devices which connect, but do not start to register
+
+	* [r5174] src/sccp_cli.c: Add 'all' parameter to sccp show session,
+	  to show session which have non registered devices
+
+	* [r5173] src/Makefile.am, src/Makefile.in: Fix revision when
+	  compiling in a seperate build directory
+
+	* [r5172] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h: Update sccp_handle_endcall (thanks Marcello).
+	  Added find function for channel using device, callid and
+	  lineInstance
+
+	* [r5171] src/sccp_actions.c: Handle onhook, using provided
+	  lineInstance and callid. (Fixing issue where endcall button is
+	  required to hangup the call)
+
+	* [r5170] src/sccp_actions.c: Fix softkey endcall, on channel whith
+	  SCCP_CHANNELSTATE_DOWN (congested or otherwise).
+
+	* [r5169] src/sccp_line.c: Fix checking if channel_retain actuall
+	  found a channel, instead of overwriting channel with NULL in
+	  sccp_line_removeChannel / sccp_line_addChannel
+
+	* [r5168] src/sccp_line.c, src/sccp_line.h: Fix checking if
+	  channel_retain actuall found a channel, instead of overwriting
+	  channel with NULL in sccp_line_removeChannel /
+	  sccp_line_addChannel
+
+	* [r5167] ChangeLog, src/Makefile.am, src/Makefile.in: Use
+	  -DREVISION instead of -DSCCP_REVISION
 
 	* [r5166] src/chan_sccp.c: Revert skipping unknown message
 	  (regression)
