@@ -446,7 +446,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 	if (pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)) {
 		// wait for blocker before issuing softhangup
 		while (!pbx_channel_blocker(ast_channel) && tries < 50) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (requestHangup) Blocker set but no blocker found yet, waiting...!\n");
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (forceHangup) Blocker set but no blocker found yet, waiting...!\n");
 			usleep(50);
 			tries++;
 		}
@@ -479,13 +479,20 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 	switch (pbx_hangup_type) {
 		case PBX_HARD_HANGUP:
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
-			ast_indicate(ast_channel, -1);
-			ast_hangup(ast_channel);
+			ast_channel_lock(ast_channel);
+			if (pbx_channel_state(ast_channel) == AST_STATE_OFFHOOK && !pbx_channel_pbx(ast_channel)) {
+//			if (!pbx_channel_pbx(ast_channel)) {
+				ast_indicate(ast_channel, -1);
+				ast_hangup(ast_channel);
+			} else {
+				ast_queue_hangup(ast_channel);
+			}
+			ast_channel_unlock(ast_channel);
 			break;
 		case PBX_SOFT_HANGUP:
 			// wait for blocker before issuing softhangup
 			while (!pbx_channel_blocker(ast_channel) && tries < 50) {
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (requestHangup) Blocker set but no blocker found yet, waiting...!\n");
+				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (forceHangup) Blocker set but no blocker found yet, waiting...!\n");
 				usleep(50);
 				tries++;
 			}
@@ -548,8 +555,15 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		ast_queue_hangup(ast_channel);
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
-		ast_hangup(ast_channel);
-		// ast_queue_hangup(ast_channel);
+		ast_channel_lock(ast_channel);
+		if (pbx_channel_state(ast_channel) == AST_STATE_OFFHOOK && !pbx_channel_pbx(ast_channel)) {
+//		if (!pbx_channel_pbx(ast_channel)) {
+			ast_indicate(ast_channel, -1);
+			ast_hangup(ast_channel);
+		} else {
+			ast_queue_hangup(ast_channel);
+		}
+		ast_channel_unlock(ast_channel);
 	}
 
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
