@@ -937,6 +937,7 @@ void sccp_socket_cleanup_timed_out()
 		if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive))) {
 			if (session->session_thread) {
 				sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
+				session->session_thread = AST_PTHREADT_NULL;
 			} else {
 				destroy_session(session, 0);
 			}
