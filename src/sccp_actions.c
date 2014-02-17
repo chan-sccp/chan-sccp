@@ -1565,7 +1565,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), channel->state);
 
 		// Channel already in use
-		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
+		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 			len = strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
 			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
