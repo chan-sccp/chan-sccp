@@ -95,8 +95,6 @@ sccp_channel_t *__sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id, c
 #define sccp_channel_find_byid(_x) __sccp_channel_find_byid(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_channel_find_byid(uint32_t id, const char *filename, int lineno, const char *func);
 
-sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t *d, const uint32_t lineInstance, const uint32_t callid);
-
 #define sccp_channel_find_bypassthrupartyid(_x) __sccp_channel_find_bypassthrupartyid(_x,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_channel_t *__sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid, const char *filename, int lineno, const char *func);
 
@@ -113,6 +111,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state);
 #endif
+sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t *d, const uint32_t lineInstance, const uint32_t callid);
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);
