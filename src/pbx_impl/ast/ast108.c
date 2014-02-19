@@ -2180,7 +2180,6 @@ static int sccp_wrapper_asterisk18_rtp_stop(sccp_channel_t * channel)
 
 static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 {
-	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
@@ -2189,8 +2188,6 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 		return FALSE;
 	if (!(d = sccp_channel_getDevice_retained(c)))
 		return FALSE;
-
-	s = d->session;
 
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
@@ -2251,7 +2248,6 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 
 static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 {
-	sccp_session_t *s;
 	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
@@ -2261,7 +2257,6 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 	if (!(d = sccp_channel_getDevice_retained(c)))
 		return FALSE;
 
-	s = d->session;
 	memcpy(&sock.ss, &GLOB(bindaddr), sizeof(struct sockaddr_storage));
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
 		sock.ss.ss_family = AF_INET6;
@@ -2332,21 +2327,23 @@ static boolean_t sccp_wrapper_asterisk18_checkHangup(const sccp_channel_t * chan
 	return (!res) ? TRUE : FALSE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+static boolean_t sccp_wrapper_asterisk18_rtpGetPeer(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
 	struct ast_sockaddr addr;
 
 	ast_rtp_instance_get_remote_address(rtp, &addr);
-	ast_sockaddr_to_sin(&addr, address);
+//	ast_sockaddr_to_sin(&addr, address);
+        memcpy(address, &addr.ss, sizeof(struct sockaddr_storage));
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_in *address)
+static boolean_t sccp_wrapper_asterisk18_rtpGetUs(PBX_RTP_TYPE * rtp, struct sockaddr_storage *address)
 {
 	struct ast_sockaddr addr;
 
 	ast_rtp_instance_get_local_address(rtp, &addr);
-	ast_sockaddr_to_sin(&addr, address);
+//	ast_sockaddr_to_sin(&addr, address);
+	memcpy(address, &addr.ss, sizeof(struct sockaddr_storage));
 	return TRUE;
 }
 
@@ -2361,15 +2358,13 @@ static boolean_t sccp_wrapper_asterisk18_getChannelByName(const char *name, PBX_
 	return TRUE;
 }
 
-static int sccp_wrapper_asterisk18_setPhoneRTPAddress(const struct sccp_rtp *rtp, const struct sockaddr_in *new_peer, int nat_active)
+static int sccp_wrapper_asterisk18_setPhoneRTPAddress(const struct sccp_rtp *rtp, const struct sockaddr_storage *new_peer, int nat_active)
 {
 	struct ast_sockaddr ast_sockaddr_dest;
 	int res;
 
-	((struct sockaddr_in *) new_peer)->sin_family = AF_INET;
-	ast_sockaddr_from_sin(&ast_sockaddr_dest, new_peer);
-	ast_sockaddr_set_port(&ast_sockaddr_dest, ntohs(new_peer->sin_port));
-
+        memcpy(&ast_sockaddr_dest.ss, new_peer, sizeof(struct sockaddr_storage));
+        ast_sockaddr_dest.len = (ast_sockaddr_dest.ss.ss_family == AF_INET6) ? sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
 	res = ast_rtp_instance_set_remote_address(rtp->rtp, &ast_sockaddr_dest);
 
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (asterisk18_setPhoneRTPAddress) Update PBX to send RTP/UDP media to '%s:%d' (new remote) (NAT: %s)\n", ast_sockaddr_stringify_host(&ast_sockaddr_dest), ast_sockaddr_port(&ast_sockaddr_dest), S_COR(nat_active, "yes", "no"));
@@ -3430,7 +3425,15 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 
-AST_MODULE_INFO(ASTERISK_GPL_KEY, sccp_versionstr,.nonoptreq = "chan_local");
+//AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, sccp_versionstr,.nonoptreq = "chan_local");
+AST_MODULE_INFO(ASTERISK_GPL_KEY,
+	AST_MODFLAG_LOAD_ORDER, 
+	sccp_versionstr,
+	.load = load_module,
+	.unload = unload_module,
+	.reload = module_reload,
+	.load_pri = AST_MODPRI_DEFAULT,
+	.nonoptreq = "chan_local");
 #endif
 
 PBX_CHANNEL_TYPE *sccp_search_remotepeer_locked(int (*const found_cb) (PBX_CHANNEL_TYPE * c, void *data), void *data)
