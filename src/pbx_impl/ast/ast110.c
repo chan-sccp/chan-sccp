@@ -3035,7 +3035,7 @@ static struct ast_module_info __mod_info = {
 	NULL,
 	NULL,
 	AST_MODULE,
-	"Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " " GetRevision() " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
+	sccp_versionstr,
 	ASTERISK_GPL_KEY,
 	AST_MODFLAG_LOAD_ORDER,
 	AST_BUILDOPT_SUM,
@@ -3057,7 +3057,7 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 
-AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, "Skinny Client Control Protocol (SCCP). SCCP-Release: " SCCP_VERSION " " SCCP_BRANCH " " GetRevision() " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
+AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, sccp_versionstr,
         .load = load_module,
         .unload = unload_module,
         .reload = module_reload,

@@ -3110,7 +3110,7 @@ static struct ast_module_info __mod_info = {
 	NULL,
 	NULL,
 	AST_MODULE,
-	"Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
+	sccp_versionstr,
 	ASTERISK_GPL_KEY,
 	AST_MODFLAG_LOAD_ORDER,
 	AST_BUILDOPT_SUM,
@@ -3132,7 +3132,7 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 #if ASTERISK_VERSION_NUMBER > 10601
-AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " " GetRevision() " (built by '" BUILD_USER "' on '" BUILD_DATE "', NULL)",
+AST_MODULE_INFO(ASTERISK_GPL_KEY, sccp_versionstr, NULL)",
 	.load = load_module,
 	.unload = unload_module,
         .reload = module_reload,
@@ -3140,7 +3140,7 @@ AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, "Skinny Client Control
         .description = "Skinny Client Control Protocol (SCCP)",
 );
 #else
-AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " " SCCP_BRANCH " " GetRevision() " (built by '" BUILD_USER "' on '" BUILD_DATE "')");
+AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, sccp_versionstr);
 #endif
 #endif
 

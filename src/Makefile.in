@@ -160,7 +160,9 @@ am__EXTRA_chan_sccp_la_SOURCES_DIST = pbx_impl/ast/define.h \
 	pbx_impl/ast/ast110.c pbx_impl/ast/ast111.h \
 	pbx_impl/ast/ast111.c pbx_impl/ast/astTrunk.h \
 	pbx_impl/ast/astTrunk.c
-chan_sccp_la_OBJECTS = $(am_chan_sccp_la_OBJECTS)
+nodist_chan_sccp_la_OBJECTS =
+chan_sccp_la_OBJECTS = $(am_chan_sccp_la_OBJECTS) \
+	$(nodist_chan_sccp_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -202,7 +204,8 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(chan_sccp_la_SOURCES) $(EXTRA_chan_sccp_la_SOURCES)
+SOURCES = $(chan_sccp_la_SOURCES) $(EXTRA_chan_sccp_la_SOURCES) \
+	$(nodist_chan_sccp_la_SOURCES)
 DIST_SOURCES = $(chan_sccp_la_SOURCES) \
 	$(am__EXTRA_chan_sccp_la_SOURCES_DIST)
 am__can_run_installinfo = \
@@ -481,6 +484,10 @@ top_srcdir = @top_srcdir@
 AUTOMAKE_OPTS = gnu silent-rules subdir-objects
 csmod_LTLIBRARIES = chan_sccp.la 
 MOSTLYCLEANFILES = *.gcda *.gcno *.gcov revision.h
+
+# revision.h
+nodist_chan_sccp_la_SOURCES = .revision
+CLEANFILES = .revision
 EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 chan_sccp_la_SOURCES = chan_sccp.h sccp_cli.h sccp_threadpool.h \
 	sccp_event.h sccp_labels.h sccp_utils.h sccp_adv_features.h \
@@ -996,6 +1003,7 @@ mostlyclean-generic:
 	-test -z "$(MOSTLYCLEANFILES)" || rm -f $(MOSTLYCLEANFILES)
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -1092,15 +1100,24 @@ uninstall-am: uninstall-csmodLTLIBRARIES
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
 	tags tags-am uninstall uninstall-am uninstall-csmodLTLIBRARIES
 
+.PHONY: 			.revision
 
-.PHONY: revision.h
+chan_sccp_la.$(OBJEXT): revision.h .revision
 
-revision.h:
-	$(shell 																\
-		cd "@abs_top_srcdir@/src";													\
-		test "`@abs_top_srcdir@/tools/autorevision -t h |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`" &&	\
-		@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >"@abs_builddir@/revision.h" 2>/dev/null			\
-	)
+revision.h: Makefile .revision
+	@cd "@abs_top_srcdir@/src"
+
+.revision: Makefile
+	@cd "@abs_top_srcdir@/src";																				\
+	if test -f @abs_builddir@/revision.h; then																		\
+		if test ! -z "`find @abs_builddir@/revision.h -mmin +10`"; then															\
+			if test "`@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`"; then 	\
+				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;						\
+			fi 																					\
+		fi 																						\
+	else 																							\
+		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null; 								\
+	fi
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
