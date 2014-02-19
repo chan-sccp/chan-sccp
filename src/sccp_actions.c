@@ -3569,7 +3569,6 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
  */
 void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	struct sockaddr_in sin = { 0 };
 	struct sockaddr_storage ss = { 0 };
 
 	sccp_channel_t *c;
@@ -3580,9 +3579,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &status, &ss);
 
 	/* converting back to sin/sin6 for now until all sockaddresses are stored/passed as sockaddr_storage */
-	if (ss.ss_family == AF_INET) {
-		sin = *((struct sockaddr_in *) &ss);
-	} else {
+	if (ss.ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
 		return;
 	}
@@ -3603,7 +3600,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 	/* update status */
 	c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
 
-	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, Remote TCP/IP '%s:%d', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, pbx_inet_ntoa(sin.sin_addr), ntohs(sin.sin_port), callID, callID1, partyID);
+	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, sccp_socket_stringify(&ss), callID, callID1, partyID);
 
 	c = sccp_channel_release(c);
 }
