@@ -2725,46 +2725,46 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		last_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_LAST];
 		strncpy(last_call_stats->type, "LAST", sizeof(last_call_stats->type));
 		if (letohl(msg_in->header.lel_protocolVer < 20)) {
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.lel_latency);
-			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.lel_QualityStatsSize);
+			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_CallIdentifier);
+			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_SentPackets);
+			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_RecvdPackets);
+			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_LostPkts);
+			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_Jitter);
+			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_latency);
+			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_QualityStatsSize);
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.QualityStats, QualityStatsSize);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v3.QualityStats, QualityStatsSize);
 		} else if (letohl(msg_in->header.lel_protocolVer < 22)){
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_latency);
-			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes_V20.lel_QualityStatsSize);
+			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_CallIdentifier);
+			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_SentPackets);
+			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_RecvdPackets);
+			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_LostPkts);
+			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_Jitter);
+			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_latency);
+			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_QualityStatsSize);
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V20.QualityStats, QualityStatsSize);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v20.QualityStats, QualityStatsSize);
                 } else {
                         // ConnectionStatisticsRes_V22 has irregular packing (single byte packing), need to access unaligned data (using get_unaligned_uint32 for sparc62 / buserror machines
 #if defined(HAVE_UNALIGNED_BUSERROR)
-			last_call_stats->num = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_CallIdentifier));
-			last_call_stats->packets_sent = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_SentPackets));
-			last_call_stats->packets_received = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_RecvdPackets));
-			last_call_stats->packets_lost = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_LostPkts));
-			last_call_stats->jitter = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_Jitter));
-			last_call_stats->latency = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes_V22.lel_latency));
-			QualityStatsSize = letohl(get_unaligned_uint32(msg_in->data.ConnectionStatisticsRes_V22.lel_QualityStatsSize));
+			last_call_stats->num = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier));
+			last_call_stats->packets_sent = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets));
+			last_call_stats->packets_received = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_RecvdPackets));
+			last_call_stats->packets_lost = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts));
+			last_call_stats->jitter = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter));
+			last_call_stats->latency = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_latency));
+			QualityStatsSize = letohl(get_unaligned_uint32(msg_in->data.ConnectionStatisticsRes.v22.lel_QualityStatsSize));
 #else
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_latency);
-			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes_V22.lel_QualityStatsSize);
+			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier);
+			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets);
+			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_RecvdPackets);
+			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts);
+			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter);
+			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_latency);
+			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_QualityStatsSize);
 #endif
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes_V22.QualityStats, QualityStatsSize);
+			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v22.QualityStats, QualityStatsSize);
                 }
 		ast_str_append(&output_buf, 0, "%s: Call Statistics:\n", d->id);
 		ast_str_append(&output_buf, 0, "       [\n");
