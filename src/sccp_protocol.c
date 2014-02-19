@@ -913,6 +913,77 @@ static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t * device, co
  */
 static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority)
 {
+#if CS_EXPERIMENTAL
+	int data_len = strlen(xmlData);
+	int msg_len = 0;
+	int hdr_len = 0;
+	int padding = 0;
+	
+	if (device->protocolversion > 17) {
+		int num_segments = data_len / StationMaxXMLMessage + 1;
+		int segment = 0;
+		sccp_msg_t *msg[num_segments];
+		hdr_len = sizeof(msg[0]->data.UserToDeviceDataVersion1Message);
+		int Sequence = 0x0000;
+		int xmlDataStart = 0;
+		while (data_len) {
+			if (data_len > StationMaxXMLMessage) {
+				msg_len = StationMaxXMLMessage;
+			} else {
+				msg_len = data_len;
+				Sequence = 0x0002;
+			}
+			data_len -= msg_len;
+			
+			padding = ((msg_len + hdr_len) % 4);
+			padding = (padding > 0) ? 4 - padding : 4;
+			msg[segment] = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(Sequence);
+			if (Sequence == 0x0000) {
+				Sequence = 0x0001;
+			}		
+			
+			if (msg_len) {
+				memcpy(&msg[segment]->data.UserToDeviceDataVersion1Message.data, xmlData + xmlDataStart, msg_len);
+				xmlDataStart += msg_len;
+			}
+			sccp_dump_msg(msg[segment]);
+			sccp_dev_send(device, msg[segment]);
+			usleep(10);
+			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int)strlen(xmlData), padding, hdr_len + msg_len + padding);
+			segment++;
+		}
+	} else if (data_len < StationMaxXMLMessage) {
+		sccp_msg_t *msg = NULL;
+		hdr_len = sizeof(msg->data.UserToDeviceDataVersion1Message);
+		msg_len = data_len;
+		padding = ((msg_len + hdr_len) % 4);
+		padding = (padding > 0) ? 4 - padding : 4;
+
+		msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
+		msg->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
+		msg->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
+		msg->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
+		msg->data.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
+		msg->data.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(0x0002);
+		msg->data.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
+		msg->data.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
+
+		if (msg_len) {
+			memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
+		}
+		sccp_dev_send(device, msg);
+		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
+	} else {
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (msg-size: %d). Skipping !\n", DEV_ID_LOG(device), data_len);
+	}
+#else
 	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(xmlData);
@@ -938,6 +1009,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 	} else {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d). Skipping !\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
 	}
+#endif
 }
 
 /* done - sendUserToDeviceData */
