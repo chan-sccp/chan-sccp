@@ -1914,7 +1914,6 @@ static int sccp_wrapper_asterisk16_rtp_stop(sccp_channel_t * channel)
 
 static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 {
-	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
 	struct sockaddr_storage sock = { 0, };
 	struct sockaddr_in *sin;
@@ -1925,8 +1924,6 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 		return FALSE;
 
 	//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "%s: (asterisk16_create_audio_rtp) format: %d\n", DEV_ID_LOG(d), (int) codecs);
-
-	s = d->session;
 
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "asterisk 1.6 does not support ipv6, returning FALSE\n");
@@ -1961,7 +1958,6 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 
 static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
 {
-	sccp_session_t *s = NULL;
 	sccp_device_t *d = NULL;
 	struct sockaddr_storage sock = { 0, };
 	struct sockaddr_in *sin;
@@ -1970,8 +1966,6 @@ static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
 		return FALSE;
 	if (!(d = sccp_channel_getDevice_retained(c)))
 		return FALSE;
-
-	s = d->session;
 
 	if (GLOB(bindaddr).ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "asterisk 1.6 does not support ipv6, returning FALSE\n");
@@ -3132,7 +3126,7 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 #if ASTERISK_VERSION_NUMBER > 10601
-AST_MODULE_INFO(ASTERISK_GPL_KEY, sccp_versionstr, NULL)",
+AST_MODULE_INFO(ASTERISK_GPL_KEY, sccp_versionstr,
 	.load = load_module,
 	.unload = unload_module,
         .reload = module_reload,
