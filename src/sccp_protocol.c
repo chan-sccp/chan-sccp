@@ -598,12 +598,9 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device
 		memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in6->sin6_addr, 16);
 		msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(1);
 		msg->data.OpenReceiveChannel.v17.lel_requestedIpAddrType = htolel(1);					//for ipv6 this value have to me > 0, lel_ipv46 doesn't matter
- 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv6, port: %d\n", in6->sin6_port);
 	} else {
         	struct sockaddr_in *in = (struct sockaddr_in *)&sas;
         	memcpy(&msg->data.OpenReceiveChannel.v17.bel_remoteIpAddr, &in->sin_addr, 4);
-//         	msg->data.OpenReceiveChannel.v17.lel_ipv46 = htolel(0);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4, port: %d\n", in->sin_port);
 	}
 	msg->data.OpenReceiveChannel.v17.lel_remotePortNumber = htolel(sccp_socket_getPort(&sas));
 	sccp_dev_send(device, msg);
@@ -636,12 +633,9 @@ static void sccp_protocol_sendOpenReceiveChannelv22(const sccp_device_t * device
 		memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in6->sin6_addr, 16);
 		msg->data.OpenReceiveChannel.v22.lel_ipv46 = htolel(1);						//for ipv6 this value have to me > 0, lel_ipv46 doesn't matter
 		msg->data.OpenReceiveChannel.v22.lel_requestedIpAddrType = htolel(1);
- 		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv6, port: %d\n", in6->sin6_port);
 	} else {
         	struct sockaddr_in *in = (struct sockaddr_in *)&sas;
         	memcpy(&msg->data.OpenReceiveChannel.v22.bel_remoteIpAddr, &in->sin_addr, 4);
-//         	msg->data.OpenReceiveChannel.v22.lel_ipv46 = htolel(0);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4, port: %d\n", in->sin_port);
 	}
 	msg->data.OpenReceiveChannel.v22.lel_remotePortNumber = htolel(sccp_socket_getPort(&sas));
 	sccp_dev_send(device, msg);
@@ -762,12 +756,9 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
 		memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &in6->sin6_addr, 16);
 		msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(1);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv6\n");
 	} else {
 		struct sockaddr_in *in = (struct sockaddr_in *)&channel->rtp.audio.phone_remote;
 		memcpy(&msg->data.StartMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
-// 		msg->data.StartMediaTransmission.v17.lel_ipv46 = htolel(0);
-	 	sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4\n");
 	}
 	sccp_dev_send(device, msg);
 }
@@ -796,12 +787,9 @@ static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * de
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
 		memcpy(&msg->data.StartMediaTransmission.v22.bel_remoteIpAddr, &in6->sin6_addr, 16);
 		msg->data.StartMediaTransmission.v22.lel_ipv46 = htolel(1);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv6\n");
 	} else {
 		struct sockaddr_in *in = (struct sockaddr_in *)&channel->rtp.audio.phone_remote;
 		memcpy(&msg->data.StartMediaTransmission.v22.bel_remoteIpAddr, &in->sin_addr, 4);
-// 		msg->data.StartMediaTransmission.v22.lel_ipv46 = htolel(0);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4\n");
 	}
 	sccp_dev_send(device, msg);
 }
@@ -879,11 +867,9 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.video.phone_remote;
 		memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &in6->sin6_addr, 16);
 		msg->data.StartMultiMediaTransmission.v17.lel_ipv46 = htolel(1);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv6\n");
 	}else {
 		struct sockaddr_in *in = (struct sockaddr_in *)&channel->rtp.video.phone_remote;
 		memcpy(&msg->data.StartMultiMediaTransmission.v17.bel_remoteIpAddr, &in->sin_addr, 4);
-		sccp_log(DEBUGCAT_RTP)(VERBOSE_PREFIX_3 "SCCP: IPv4\n");
 	}
 	sccp_dump_msg(msg);
 	sccp_dev_send(device, msg);
