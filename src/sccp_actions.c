@@ -469,7 +469,15 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		device = sccp_device_find_byid(deviceName, TRUE);
 	} else {
 		device = sccp_device_retain(maybe_d);
-		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: cached device configuration\n", DEV_ID_LOG(device));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), registrationstate2str(device->registrationState));
+	}
+
+	if (device && device->session && device->session != s) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), registrationstate2str(device->registrationState));
+		device->registrationState = SKINNY_DEVICE_RS_FAILED;
+		device->session = sccp_session_reject(s, "Crossover session not allowed, come back later");
+		s = sccp_session_reject(s, "Crossover session not allowed, come back later");
+		goto EXITFUNC;                                                                                  // come back later
 	}
 
 	/*! \todo We need a fix here. If deviceName was provided and specified in sccp.conf we should not continue to anonymous,
@@ -488,13 +496,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	}
 
 	if (device) {
-		if (device->session && device->session != s) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration! Fixing up to new session\n", DEV_ID_LOG(device));
-			sccp_socket_stop_sessionthread(device->session, SKINNY_DEVICE_RS_FAILED);
-			// device->session->device->registrationState = SKINNY_DEVICE_RS_FAILED;
-			// s->device = sccp_session_addDevice(s, d);
-		}
-
 		if (!s->device || s->device != device) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
 			s->device = sccp_session_addDevice(s, device);						// replace retained in session (already connected via tokenReq before)
