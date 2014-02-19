@@ -649,7 +649,11 @@ boolean_t sccp_postPBX_load()
 
 	// initialize sccp_revisionstr and sccp_versionstr
 #ifdef VCS_SHORT_HASH
-	sprintf(sccp_revisionstr, "%s%s", VCS_SHORT_HASH, VCS_WC_MODIFIED ? "M" : "");
+#ifdef VCS_WC_MODIFIED
+	sprintf(sccp_revisionstr, "%sM", VCS_SHORT_HASH);
+#else
+	sprintf(sccp_revisionstr, "%s", VCS_SHORT_HASH);
+#endif
 #else
 	sprintf(sccp_revisionstr, "%s", SCCP_REVISION);
 #endif
