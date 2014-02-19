@@ -70,7 +70,7 @@
 #define ServerMaxNameSize				48
 #define StationMaxServiceURLSize			256
 #define StationMaxPorts					16
-#define StationMaxXMLMessage				2048
+#define StationMaxXMLMessage				2000
 #define StationMaxImageVersionSize			32
 
 #define APPID_CONFERENCE				9081
