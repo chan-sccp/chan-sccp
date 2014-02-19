@@ -480,8 +480,7 @@ int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * ast_channel, pbx_hangup
 		case PBX_HARD_HANGUP:
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
 			ast_channel_lock(ast_channel);
-			if (pbx_channel_state(ast_channel) == AST_STATE_OFFHOOK && !pbx_channel_pbx(ast_channel)) {
-//			if (!pbx_channel_pbx(ast_channel)) {
+			if (!pbx_channel_pbx(ast_channel)) {
 				ast_indicate(ast_channel, -1);
 				ast_hangup(ast_channel);
 			} else {
@@ -556,8 +555,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
 		ast_channel_lock(ast_channel);
-		if (pbx_channel_state(ast_channel) == AST_STATE_OFFHOOK && !pbx_channel_pbx(ast_channel)) {
-//		if (!pbx_channel_pbx(ast_channel)) {
+		if (!pbx_channel_pbx(ast_channel)) {
 			ast_indicate(ast_channel, -1);
 			ast_hangup(ast_channel);
 		} else {
