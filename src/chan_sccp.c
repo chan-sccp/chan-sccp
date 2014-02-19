@@ -511,6 +511,7 @@ int sccp_sched_del(int id)
 boolean_t sccp_prePBXLoad()
 {
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
+	
 #ifdef HAVE_LIBGC
 	GC_INIT();
 	(void) GC_set_warn_proc(gc_warn_handler);
@@ -645,6 +646,16 @@ boolean_t sccp_prePBXLoad()
 boolean_t sccp_postPBX_load()
 {
 	pbx_mutex_lock(&GLOB(lock));
+
+	// initialize sccp_revisionstr and sccp_versionstr
+#ifdef VCS_SHORT_HASH
+	sprintf(sccp_revisionstr, "%s%s", VCS_SHORT_HASH, VCS_WC_MODIFIED ? "M" : "");
+#else
+	sprintf(sccp_revisionstr, "%s", SCCP_REVISION);
+#endif
+	sprintf(sccp_versionstr, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, sccp_revisionstr, BUILD_USER, BUILD_DATE);
+	
+	
 	GLOB(module_running) = TRUE;
 #if DEBUG
 	//      segv_init();
@@ -873,3 +884,4 @@ int sccp_updateExternIp(){
 */
 	return 0;
 }
+

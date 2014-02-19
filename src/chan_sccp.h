@@ -93,12 +93,8 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #ifndef SCCP_BRANCH
 #define SCCP_BRANCH "trunk"
 #endif
-
-#if defined(VCS_SHORT_HASH)
-#define GetRevision() VCS_SHORT_HASH 
-#else
-#define GetRevision() SCCP_REVISION
-#endif
+char sccp_versionstr[300];
+char sccp_revisionstr[30];
 
 #define SCCP_FILENAME_MAX 80
 #if defined(PATH_MAX)
@@ -1442,5 +1438,4 @@ int sccp_updateExternIp();
 #ifdef CS_DEVSTATE_FEATURE
 extern const char devstate_db_family[];
 #endif
-
 #endif														/* __CHAN_SCCP_H */

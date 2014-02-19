@@ -6,11 +6,14 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
-AUTOMAKE_OPTS		= gnu silent-rules subdir-objects
-csmod_LTLIBRARIES	= chan_sccp.la 
-MOSTLYCLEANFILES 	= *.gcda *.gcno *.gcov revision.h
+AUTOMAKE_OPTS			= gnu silent-rules subdir-objects
+csmod_LTLIBRARIES		= chan_sccp.la 
+MOSTLYCLEANFILES 		= *.gcda *.gcno *.gcov revision.h
 
-.PHONY: revision.h
+# revision.h
+nodist_chan_sccp_la_SOURCES 	= .revision
+CLEANFILES			= .revision
+.PHONY: 			.revision
 
 EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 
@@ -54,12 +57,22 @@ chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CF
 chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall 
 chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(GCLIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 
-revision.h:
-	$(shell 																\
-		cd "@abs_top_srcdir@/src";													\
-		test "`@abs_top_srcdir@/tools/autorevision -t h |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`" &&	\
-		@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision >"@abs_builddir@/revision.h" 2>/dev/null			\
-	)
+chan_sccp_la.$(OBJEXT): revision.h .revision
+
+revision.h: Makefile .revision
+	@cd "@abs_top_srcdir@/src"
+
+.revision: Makefile
+	@cd "@abs_top_srcdir@/src";																				\
+	if test -f @abs_builddir@/revision.h; then																		\
+		if test ! -z "`find @abs_builddir@/revision.h -mmin +10`"; then															\
+			if test "`@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`"; then 	\
+				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;						\
+			fi 																					\
+		fi 																						\
+	else 																							\
+		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null; 								\
+	fi
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
