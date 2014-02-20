@@ -101,8 +101,14 @@ size_t sccp_socket_sizeof(const struct sockaddr_storage *sockAddrStorage)
 
 static int sccp_socket_is_ipv6_link_local(const struct sockaddr_storage *sockAddrStorage)
 {
-	const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&sockAddrStorage;
-	return sccp_socket_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr);
+	union {
+		struct sockaddr_storage ss;
+		struct sockaddr_in sin;
+		struct sockaddr_in6 sin6;
+	} tmp_addr = {
+		.ss = *sockAddrStorage,
+	};
+	return sccp_socket_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_LINKLOCAL(&tmp_addr.sin6.sin6_addr);
 }
 
 boolean_t sccp_socket_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage)
@@ -346,37 +352,41 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct sockaddr_storage *us)
 {
 	int sock;
-	struct sockaddr_storage sin = {0};
 	socklen_t slen;
 
-	sin.ss_family = them->ss_family;
+	union {
+		struct sockaddr_storage ss;
+		struct sockaddr_in sin;
+		struct sockaddr_in6 sin6;
+	} tmp_addr = {
+		.ss = *them,
+	};
+
 	if (sccp_socket_is_IPv6(them)){
-		((struct sockaddr_in6 *)&sin)->sin6_port = htons(sccp_socket_getPort( &GLOB(bindaddr)) );
-		((struct sockaddr_in6 *)&sin)->sin6_addr = ((struct sockaddr_in6 *)them)->sin6_addr;
+		tmp_addr.sin6.sin6_port = htons(sccp_socket_getPort( &GLOB(bindaddr)) );
 		slen = sizeof(struct sockaddr_in6);
 	} else if (sccp_socket_is_IPv4(them)) {
-		((struct sockaddr_in *)&sin)->sin_port = htons(sccp_socket_getPort( &GLOB(bindaddr)) );
-		((struct sockaddr_in *)&sin)->sin_addr = ((struct sockaddr_in *)them)->sin_addr;
+		tmp_addr.sin.sin_port = htons(sccp_socket_getPort( &GLOB(bindaddr)) );
 		slen = sizeof(struct sockaddr_in);
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Unspecified them format: %s\n", sccp_socket_stringify(them));
 		return -1;
 	}
 
-	if ((sock = socket(sin.ss_family, SOCK_DGRAM, 0)) < 0) {
+	if ((sock = socket(tmp_addr.ss.ss_family, SOCK_DGRAM, 0)) < 0) {
 		return -1;
 	}
 
-	if (connect(sock, (const struct sockaddr *) &sin, sizeof(sin))) {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(&sin));
+	if (connect(sock, (const struct sockaddr *) &tmp_addr, sizeof(tmp_addr))) {
+		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(&tmp_addr.ss));
 		return -1;
 	}
-	if (getsockname(sock, (struct sockaddr *) &sin, &slen)) {
+	if (getsockname(sock, (struct sockaddr *) &tmp_addr, &slen)) {
 		close(sock);
 		return -1;
 	}
 	close(sock);
-	memcpy(us, &sin, slen);
+	memcpy(us, &tmp_addr, slen);
 	return 0;
 }
 
