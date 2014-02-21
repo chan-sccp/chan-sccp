@@ -1165,7 +1165,16 @@ typedef union {
 	} KeypadButtonMessage;											/*!< KeyPad Button Message - Client -> Server */
 
 	struct {
-		char calledParty[StationMaxDirnumSize];								/*!< Called Party */
+		union {
+			struct {
+				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
+				uint32_t lel_lineInstance;
+			} v18;
+			struct __attribute__((__packed__)) {							/* packing needed because of char[25] */
+				char calledParty[25];								/*!< Called Party */
+				uint32_t lel_lineInstance;
+			} v22;
+		};
 	} EnblocCallMessage;											/*!< Enbloc Call Message - Client -> Server */
 
 	struct {
@@ -2426,8 +2435,7 @@ typedef union {
 	} ConnectionStatisticsReq;										/*!< Connection Statistics Request Message Structure */
 
 	struct {												// Request Statistics from Phone
-		char DirectoryNumber[StationMaxDirnumSize];							/*!< Directory Number */
-		uint8_t byte;
+		char DirectoryNumber[25];									/*!< Directory Number*/
 		uint32_t lel_callReference;									/*!< Call Reference */
 		uint32_t lel_StatsProcessing;									/*!< Statistics Processing */
 	} ConnectionStatisticsReq_V19;										/*!< Connection Statistics Request Message Structure */
@@ -3324,6 +3332,7 @@ typedef struct {
 	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
 	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
 	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
+	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t *lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 gcc_inline boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);

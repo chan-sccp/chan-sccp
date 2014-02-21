@@ -2928,39 +2928,56 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_channel_t *channel = NULL;
+#if 0
 	sccp_line_t *l = NULL;
+#endif
+	sccp_linedevices_t *linedevice = NULL;
 	int len = 0;
+	
+	char calledParty[25] = {0};
+	uint32_t lineInstance;
 
-	if (msg_in && !sccp_strlen_zero(msg_in->data.EnblocCallMessage.calledParty)) {
-		channel = sccp_channel_get_active(d);
-		if (channel) {
-			if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
+	if (d->protocol->parseEnblocCall) {
+		d->protocol->parseEnblocCall((const sccp_msg_t *) msg_in, calledParty, &lineInstance);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: EnblocCall, party: %s, lineInstance %d\n", DEV_ID_LOG(d), calledParty, lineInstance);
 
-				/* for anonymous devices we just want to call the extension defined in hotine->exten -> ignore dialed number -MC */
-				if (d->isAnonymous) {
+		if (!sccp_strlen_zero(calledParty)) {
+			channel = sccp_channel_get_active(d);
+			if (channel) {
+				if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
+					/* for anonymous devices we just want to call the extension defined in hotine->exten -> ignore dialed number -MC */
+					if (d->isAnonymous) {
+						channel = sccp_channel_release(channel);
+						return;
+					}
+
+					len = strlen(channel->dialedNumber);
+					sccp_copy_string(channel->dialedNumber + len, calledParty, sizeof(channel->dialedNumber) - len);
+					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+					sccp_pbx_softswitch(channel);
 					channel = sccp_channel_release(channel);
 					return;
 				}
-
-				len = strlen(channel->dialedNumber);
-				sccp_copy_string(channel->dialedNumber + len, msg_in->data.EnblocCallMessage.calledParty, sizeof(channel->dialedNumber) - len);
-				channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-				sccp_pbx_softswitch(channel);
+				sccp_pbx_senddigits(channel, calledParty);
 				channel = sccp_channel_release(channel);
-				return;
+			} else if ((linedevice = sccp_linedevice_findByLineinstance(d, lineInstance))) {
+				if ((channel = sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL))) {
+					channel = sccp_channel_release(channel);
+				}
+				linedevice = sccp_linedevice_release(linedevice);
+#if 0
+			} else {									// last resort, should not be necessary, as the lineInstance should be available.
+				// Pull up a channel
+				l = sccp_dev_get_activeline(d);
+				if (l) {
+					channel = sccp_channel_newcall(l, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
+					channel = channel ? sccp_channel_release(channel) : NULL;
+					l = sccp_line_release(l);
+				}
+#endif				
 			}
-			sccp_pbx_senddigits(channel, msg_in->data.EnblocCallMessage.calledParty);
-			channel = sccp_channel_release(channel);
-		} else {
-			// Pull up a channel
-			l = sccp_dev_get_activeline(d);
-			if (l) {
-				channel = sccp_channel_newcall(l, d, msg_in->data.EnblocCallMessage.calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
-				channel = channel ? sccp_channel_release(channel) : NULL;
-				l = sccp_line_release(l);
-			}
-		}
 
+		}
 	}
 }
 
