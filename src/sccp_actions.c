@@ -2656,12 +2656,12 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		msg_out->data.MiscellaneousCommandMessage.lel_miscCommandType = htolel(1);			/* videoFastUpdatePicture */
 		sccp_dev_send(d, msg_out);
 
-		msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_in->data.FlowControlNotifyMessage));
-		msg_out->data.FlowControlNotifyMessage.lel_conferenceID = htolel(channel->callid);
-		msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		msg_out->data.FlowControlNotifyMessage.lel_callReference = htolel(channel->callid);
-		msg_out->data.FlowControlNotifyMessage.lel_maxBitRate = htolel(0x00000c80);
-		sccp_dev_send(d, msg_out);
+// 		msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_in->data.FlowControlNotifyMessage));
+// 		msg_out->data.FlowControlNotifyMessage.lel_conferenceID = htolel(channel->callid);
+// 		msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
+// 		msg_out->data.FlowControlNotifyMessage.lel_callReference = htolel(channel->callid);
+// 		msg_out->data.FlowControlNotifyMessage.lel_maxBitRate = htolel(0x00000c80);
+// 		sccp_dev_send(d, msg_out);
 
 		PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
 		channel = sccp_channel_release(channel);
