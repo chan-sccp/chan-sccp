@@ -453,7 +453,7 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
  * \lock
  *      - session
  */
-static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
+static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 {
 	if (!s || s->session_stop) {
 		return 0;
@@ -473,7 +473,7 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	// STAGE 1: read header
 	memset(msg, 0, SCCP_MAX_PACKET);	
 	readlen = read(s->fds[0].fd, (&msg->header), SCCP_PACKET_HEADER);
-	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) { return TRUE;}					/* try again later, return TRUE with empty r */
+	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) { return 0;}                    /* try again later, return TRUE with empty r */
 	else if (readlen <= 0) {goto READ_ERROR;}								/* error || client closed socket */
 	
 	msg->header.length = letohl(msg->header.length);
@@ -518,7 +518,12 @@ static boolean_t sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 		sccp_dump_msg(msg);
 	}
 
-	return TRUE;
+	/* process message */
+	if ((sccp_handle_message(msg, s) == 0)) {
+		return msg->header.length + 8;
+	} else {
+		return -2;
+	}
 	
 READ_ERROR:
 	if (errno) {
@@ -526,7 +531,7 @@ READ_ERROR:
 		pbx_log(LOG_ERROR, "%s: stats: %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 	}
 	memset(msg, 0, SCCP_MAX_PACKET);	
-	return FALSE;
+	return -1;
 }
 
 /*!
@@ -756,6 +761,7 @@ void *sccp_socket_device_thread(void *session)
 	int res;
 	double maxWaitTime;
 	int pollTimeout;
+	int read_result = 0;
 	sccp_msg_t msg = { {0,} };
 	char addrStr[INET6_ADDRSTRLEN];
 
@@ -810,23 +816,16 @@ void *sccp_socket_device_thread(void *session)
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
 				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
-				//while (sccp_read_data(s, &r)) {						/* according to poll specification we should empty out the read buffer completely.*/
-														/* but that would give us trouble with timeout */
-				if (sccp_read_data(s, &msg)) {
-					if (sccp_handle_message(&msg, s) != 0) {
-						if (s->device) {
-							sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
-						}
-						sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
-						break;
-					}
+				while ((read_result = sccp_read_data(s, &msg)) > 0) {
 					s->lastKeepAlive = time(0);
-				} else {
-					// pbx_log(LOG_NOTICE, "%s: Socket read failed\n", DEV_ID_LOG(s->device));	/* gives misleading information, could be just a close connection by the client side */
+				}
+				if (read_result < 0) {
+					if (s->device) {
+						sccp_device_sendReset(s->device, SKINNY_DEVICE_RESTART);
+					}
 					sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 					break;
 				}
-				//}
 			} else {										/* POLLHUP / POLLERR */
 				pbx_log(LOG_NOTICE, "%s: Closing session because we received POLLPRI/POLLHUP/POLLERR\n", DEV_ID_LOG(s->device));
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
