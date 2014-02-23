@@ -431,19 +431,23 @@ int load_config(void)
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);			// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
 
 		on = 1;
-		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0)
+		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0)
+		}
+		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-		else if (GLOB(sccp_tos))
+                } else if (GLOB(sccp_tos)) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
-		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0)
+                }
+		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
+                }
 #if defined(linux)
-		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0)
+		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
-		else if (GLOB(sccp_cos))
+		} else if (GLOB(sccp_cos)) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
+                }
 #endif
 
 		if (GLOB(descriptor) < 0) {
@@ -485,9 +489,9 @@ int load_config(void)
 int sccp_sched_add(int when, sccp_sched_cb callback, const void *data)
 {
 
-	if (!PBX(sched_add))
+	if (!PBX(sched_add)) {
 		return 1;
-
+        }
 	return PBX(sched_add) (when, callback, data);
 }
 
@@ -498,9 +502,9 @@ int sccp_sched_add(int when, sccp_sched_cb callback, const void *data)
  */
 int sccp_sched_del(int id)
 {
-	if (!PBX(sched_del))
+	if (!PBX(sched_del)) {
 		return 1;
-
+        }
 	return PBX(sched_del) (id);
 }
 
@@ -676,9 +680,9 @@ boolean_t sccp_postPBX_load()
  */
 int sccp_sched_free(void *ptr)
 {
-	if (!ptr)
+	if (!ptr) {
 		return -1;
-
+        }
 	sccp_free(ptr);
 	return 0;
 
@@ -773,12 +777,12 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Killed the socket thread\n");
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
-	if (GLOB(ha))
+	if (GLOB(ha)) {
 		sccp_free_ha(GLOB(ha));
-
-	if (GLOB(localaddr))
+        }
+	if (GLOB(localaddr)) {
 		sccp_free_ha(GLOB(localaddr));
-
+        }
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
 
 	sccp_hint_module_stop();

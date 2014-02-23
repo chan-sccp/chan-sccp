@@ -625,9 +625,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	btnlist *btn;
 	sccp_buttonconfig_t *buttonconfig;
 
-	if (!d || !&d->buttonconfig)
+	if (!d || !&d->buttonconfig) {
 		return NULL;
-
+        }
 	if (!(btn = sccp_malloc(sizeof(btnlist) * StationMaxButtonTemplateSize))) {
 		return NULL;
 	}
@@ -644,17 +644,17 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 			sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
-			if (buttonconfig->instance > 0)
+			if (buttonconfig->instance > 0) {
 				continue;
-
-			if (buttonconfig->type == LINE) {
+                        }
+                        if (buttonconfig->type == LINE) {
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for line position for line '%s'\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 			}
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: btn[%.2d].type = %d\n", DEV_ID_LOG(d), i, btn[i].type);
 
-				if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name)
+				if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name) 
 				    && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE)) {
 
 					btn[i].type = SKINNY_BUTTONTYPE_LINE;
@@ -678,13 +678,11 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					break;
 
 				} else if (buttonconfig->type == EMPTY && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
-
 					btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
 					buttonconfig->instance = btn[i].instance = 0;
 					break;
 
 				} else if (buttonconfig->type == SERVICE && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
-
 					btn[i].type = SKINNY_BUTTONTYPE_SERVICEURL;
 					buttonconfig->instance = btn[i].instance = serviceInstance++;
 					break;
@@ -880,9 +878,9 @@ void sccp_handle_AvailableLines(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	line_count = 0;
 
 	/** \todo why do we get the message twice  */
-	if (d->linesRegistered)
+	if (d->linesRegistered) {
 		return;
-
+        }
 	btn = d->buttonTemplate;
 
 	if (!btn) {
@@ -1264,8 +1262,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 	switch (stimulus) {
 
 		case SKINNY_BUTTONTYPE_LASTNUMBERREDIAL:							// We got a Redial Request
-			if (sccp_strlen_zero(d->lastNumber))
+			if (sccp_strlen_zero(d->lastNumber)) {
 				goto func_exit;
+                        }
 			channel = sccp_channel_get_active(d);
 			if (channel) {
 				if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
@@ -1290,11 +1289,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			if (!l) {
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
 				sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
-				if (k.valid)
+				if (k.valid) {
 					sccp_handle_speeddial(d, &k);
-				else
+				} else {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-				goto func_exit;
+                                }
+                                goto func_exit;
 			}
 
 			if (strlen(l->adhocNumber) > 0) {
@@ -1351,11 +1351,12 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 
 		case SKINNY_BUTTONTYPE_SPEEDDIAL:
 			sccp_dev_speed_find_byindex(d, instance, FALSE, &k);
-			if (k.valid)
+			if (k.valid) {
 				sccp_handle_speeddial(d, &k);
-			else
+			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-			break;
+                        }
+                        break;
 
 		case SKINNY_BUTTONTYPE_HOLD:
 			/* this is the hard hold button. When we are here we are putting on hold the active_channel */
@@ -1376,9 +1377,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 				sccp_channel_hold(channel);
 			} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
 				sccp_channel_1 = sccp_channel_get_active(d);
-				if (sccp_channel_1) {
-					if (sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK)
-						sccp_channel_endcall(sccp_channel_1);
+				if (sccp_channel_1 && sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK) {
+					sccp_channel_endcall(sccp_channel_1);
 				}
 				sccp_channel_resume(d, channel, TRUE);
 			} else {
@@ -1432,9 +1432,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			}
 			l = sccp_dev_get_activeline(d);
 			if (!l) {
-				if (!instance)
+				if (!instance) {
 					instance = SCCP_FIRST_LINEINSTANCE;
-
+                                }
 				l = sccp_line_find_byid(d, instance);
 				if (!l) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
@@ -1453,9 +1453,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			}
 			l = sccp_dev_get_activeline(d);
 			if (!l) {
-				if (!instance)
+				if (!instance) {
 					instance = SCCP_FIRST_LINEINSTANCE;
-
+                                }
 				l = sccp_line_find_byid(d, instance);
 				if (!l) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
@@ -1474,9 +1474,9 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			}
 			l = sccp_dev_get_activeline(d);
 			if (!l) {
-				if (!instance)
+				if (!instance) {
 					instance = SCCP_FIRST_LINEINSTANCE;
-
+                                }
 				l = sccp_line_find_byid(d, instance);
 				if (!l) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
@@ -1502,10 +1502,11 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 
 		case SKINNY_BUTTONTYPE_BLFSPEEDDIAL:								//busy lamp field type speeddial
 			sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
-			if (k.valid)
+			if (k.valid) {
 				sccp_handle_speeddial(d, &k);
-			else
+			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+                        }
 			break;
 
 		case SKINNY_STIMULUS_GROUPCALLPICKUP:								/*!< pickup feature button */
@@ -1558,8 +1559,9 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 	sccp_line_t *l;
 	int len;
 
-	if (!k || !d || !d->session)
+	if (!k || !d || !d->session) {
 		return;
+        }
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
 	if ((channel = sccp_channel_get_active(d))) {
@@ -1683,8 +1685,9 @@ void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
 {
 	sccp_msg_t *msg_out;
 
-	if (!d || !d->session)
+	if (!d || !d->session) {
 		return;
+        }
 	REQ(msg_out, BackSpaceReqMessage);
 	msg_out->data.BackSpaceReqMessage.lel_lineInstance = htolel(line);
 	msg_out->data.BackSpaceReqMessage.lel_callReference = htolel(callid);
@@ -1903,25 +1906,25 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		if (buttonconfig->type == LINE) {
 			l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
 			if (l) {
-				if (!sccp_strlen_zero(l->trnsfvm))
+				if (!sccp_strlen_zero(l->trnsfvm)) {
 					trnsfvm = 1;
-
-				if (l->meetme)
+                                }
+				if (l->meetme) {
 					meetme = 1;
-
-				if (!sccp_strlen_zero(l->meetmenum))
+                                }
+				if (!sccp_strlen_zero(l->meetmenum)) {
 					meetme = 1;
-
+                                }
 #ifdef CS_SCCP_PICKUP
-				if (l->pickupgroup)
+				if (l->pickupgroup) {
 					pickupgroup = 1;
+                                }
 #endif
 #ifdef CS_AST_HAS_NAMEDGROUP
 				if (!sccp_strlen_zero(l->namedpickupgroup)) {
 					pickupgroup = 1;
 				}
 #endif
-
 				l = sccp_line_release(l);
 			}
 		}
@@ -2118,9 +2121,9 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	// char servername[StationMaxDisplayNotifySize];
 	sccp_msg_t *msg_out;
 
-	if (!s)
+	if (!s) {
 		return;
-
+        }
 	REQ(msg_out, DefineTimeDate);
 
 	/* modulate the timezone by full hours only */
@@ -2811,12 +2814,14 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 		avg_call_stats->opinion_score_listening_quality = CALC_AVG(last_call_stats->opinion_score_listening_quality, avg_call_stats->opinion_score_listening_quality, avg_call_stats->num);
 		avg_call_stats->avg_opinion_score_listening_quality = CALC_AVG(last_call_stats->avg_opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality, avg_call_stats->num);
 		avg_call_stats->mean_opinion_score_listening_quality = CALC_AVG(last_call_stats->mean_opinion_score_listening_quality, avg_call_stats->mean_opinion_score_listening_quality, avg_call_stats->num);
-		if (avg_call_stats->max_opinion_score_listening_quality < last_call_stats->max_opinion_score_listening_quality)
+		if (avg_call_stats->max_opinion_score_listening_quality < last_call_stats->max_opinion_score_listening_quality) {
 			avg_call_stats->max_opinion_score_listening_quality = last_call_stats->max_opinion_score_listening_quality;
+                }
 		avg_call_stats->interval_concealement_ratio = CALC_AVG(last_call_stats->interval_concealement_ratio, avg_call_stats->interval_concealement_ratio, avg_call_stats->num);
 		avg_call_stats->cumulative_concealement_ratio = CALC_AVG(last_call_stats->cumulative_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->num);
-		if (avg_call_stats->max_concealement_ratio < last_call_stats->max_concealement_ratio)
+		if (avg_call_stats->max_concealement_ratio < last_call_stats->max_concealement_ratio) {
 			avg_call_stats->max_concealement_ratio = last_call_stats->max_concealement_ratio;
+                }
 		avg_call_stats->concealed_seconds = CALC_AVG(last_call_stats->concealed_seconds, avg_call_stats->concealed_seconds, avg_call_stats->num);
 		avg_call_stats->severely_concealed_seconds = CALC_AVG(last_call_stats->severely_concealed_seconds, avg_call_stats->severely_concealed_seconds, avg_call_stats->num);
 		avg_call_stats->variance_opinion_score_listening_quality = CALC_AVG(last_call_stats->variance_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->num);
@@ -2828,17 +2833,6 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * d, scc
 			       avg_call_stats->opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality,
 			       avg_call_stats->mean_opinion_score_listening_quality, avg_call_stats->max_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->interval_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->max_concealement_ratio, (int) avg_call_stats->concealed_seconds, (int) avg_call_stats->severely_concealed_seconds);
 		ast_str_append(&output_buf, 0, "       ]\n");
-
-		// update global_call_statistics
-		/*
-		   avg_call_stats = &GLOB(avg_call_statistics);
-		   avg_call_stats->packets_sent  = ((avg_call_stats->packets_sent * (avg_call_stats->num) ) + last_call_stats->packets_sent) / (avg_call_stats->num + 1);
-		   avg_call_stats->packets_received  = ((avg_call_stats->packets_received * (avg_call_stats->num) ) + last_call_stats->packets_received) / (avg_call_stats->num + 1);
-		   avg_call_stats->packets_lost  = ((avg_call_stats->packets_lost * (avg_call_stats->num) ) + last_call_stats->packets_lost) / (avg_call_stats->num + 1);
-		   avg_call_stats->jitter  = ((avg_call_stats->jitter * (avg_call_stats->num) ) + last_call_stats->jitter) / (avg_call_stats->num + 1);
-		   avg_call_stats->latency  = ((avg_call_stats->latency * (avg_call_stats->num) ) + last_call_stats->latency) / (avg_call_stats->num + 1);
-		   avg_call_stats->num++;
-		 */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s", pbx_str_buffer(output_buf));
 		d = sccp_device_release(d);
 	}
@@ -2896,15 +2890,16 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 
 	uint8_t speeddials = 0;
 
-	if (!&d->buttonconfig)
+	if (!&d->buttonconfig) {
 		return;
-
+        }
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->type == SPEEDDIAL)
+		if (config->type == SPEEDDIAL) {
 			speeddials++;
-		else if (config->type == LINE)
+		} else if (config->type == LINE) {
 			lines++;
+                }
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 
@@ -2928,9 +2923,6 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_channel_t *channel = NULL;
-#if 0
-	sccp_line_t *l = NULL;
-#endif
 	sccp_linedevices_t *linedevice = NULL;
 	int len = 0;
 	
@@ -2965,16 +2957,6 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 					channel = sccp_channel_release(channel);
 				}
 				linedevice = sccp_linedevice_release(linedevice);
-#if 0
-			} else {									// last resort, should not be necessary, as the lineInstance should be available.
-				// Pull up a channel
-				l = sccp_dev_get_activeline(d);
-				if (l) {
-					channel = sccp_channel_newcall(l, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
-					channel = channel ? sccp_channel_release(channel) : NULL;
-					l = sccp_line_release(l);
-				}
-#endif				
 			}
 
 		}
@@ -3095,10 +3077,12 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
 				char buffer[dummy_len + 2];
 
 				memset(&buffer[0], 0, dummy_len + 2);
-				if (URL_len)
+				if (URL_len) {
 					memcpy(&buffer[0], config->button.service.url, URL_len);
-				if (label_len)
+                                }
+				if (label_len) {
 					memcpy(&buffer[URL_len + 1], config->label, label_len);
+                                }
 				memcpy(&msg_out->data.ServiceURLStatDynamicMessage.dummy, &buffer[0], dummy_len + 2);
 			}
 		}
@@ -3262,12 +3246,12 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 			featureStat2 = ((d->priFeature.status & 0xf00) >> 8) - 1;
 			featureStat3 = ((d->priFeature.status & 0xf0000) >> 16) - 1;
 
-			if (2 == featureStat2 && 6 == featureStat1)
+			if (2 == featureStat2 && 6 == featureStat1) {
 				featureStat3 = (featureStat3 + 1) % 2;
-
-			if (6 == featureStat1)
+                        }
+			if (6 == featureStat1) {
 				featureStat2 = (featureStat2 + 1) % 3;
-
+                        }
 			featureStat1 = (featureStat1 + 1) % 7;
 
 			d->priFeature.status = ((featureStat3 + 1) << 16) | ((featureStat2 + 1) << 8) | (featureStat1 + 1);

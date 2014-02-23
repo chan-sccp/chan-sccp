@@ -979,16 +979,16 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		SCCP_LIST_LOCK(&conference->participants);
 		SCCP_LIST_TRAVERSE(&conference->participants, part, list) {
-			if (part->pendingRemoval)
+			if (part->pendingRemoval) {
 				continue;
-
+			}
 			strcat(xmlStr, "<MenuItem>");
 
-			if (part->isModerator)
+			if (part->isModerator) {
 				use_icon = 0;
-			else
+			} else {
 				use_icon = 2;
-
+			}
 			if (part->features.mute) {
 				++use_icon;
 			}
@@ -1531,10 +1531,9 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(MuteOnEntry,	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\
 
 #include "sccp_cli_table.h"
-
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -1596,9 +1595,9 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 		pbx_log(LOG_WARNING, "At least a valid ConferenceId needs to be supplied\n");
 		CLI_AMI_RETURN_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 	}
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -1685,8 +1684,9 @@ int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const 
 	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
 		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
 	}
-	if (s)
+	if (s) {
 		*total = local_total;
+	}
 	return res;
 }
 

@@ -25,8 +25,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 void dummyproc1(void)
 {
 	/* this is a dummy proc */
-	if (0)
+	if (0) {
 		dummyproc2();
+	}
 }
 
 /*!
@@ -35,6 +36,7 @@ void dummyproc1(void)
 void dummyproc2(void)
 {
 	/* this is a dummy proc */
-	if (0)
+	if (0) {
 		dummyproc1();
+	}
 }
