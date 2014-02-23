@@ -155,9 +155,9 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 	sccp_device_t *device = NULL;
 	sccp_linedevices_t *linedevice = NULL;
 
-	if (!event)
+	if (!event) {
 		return;
-
+	}
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;						// already retained in the event
@@ -836,12 +836,13 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 	for (x = 0; x < curlen; x++) {
 		int cr;												/* set if we have \r */
 
-		if (str[x] == '\r' && x + 1 < curlen && str[x + 1] == '\n')
+		if (str[x] == '\r' && x + 1 < curlen && str[x + 1] == '\n') {
 			cr = 2;											/* Found. Update length to include \r\n */
-		else if (str[x] == '\n')
+		} else if (str[x] == '\n') {
 			cr = 1;											/* also accept \n only */
-		else
+		} else {
 			continue;
+		}
 		/* don't keep empty lines */
 		if (x && m->hdrcount < ARRAY_LEN(m->headers)) {
 			/* ... but trim \r\n and terminate the header string */
