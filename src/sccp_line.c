@@ -130,7 +130,6 @@ sccp_line_t *sccp_line_create(const char *name)
 		return NULL;
 	}
 	memset(l, 0, sizeof(sccp_line_t));
-	pbx_mutex_init(&l->lock);
 	sccp_copy_string(l->name, name, sizeof(l->name));
 
 	SCCP_LIST_HEAD_INIT(&l->channels);
@@ -251,7 +250,6 @@ void *sccp_create_hotline(void)
 /*!
  * \brief Kill all Channels of a specific Line
  * \param l SCCP Line
- * \note Should be Called with a lock on l->lock
  *
  * \callgraph
  * \callergraph
@@ -314,8 +312,6 @@ int __sccp_line_destroy(const void *ptr)
 
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 
-	sccp_mutex_lock(&l->lock);
-
 	// cleanup linedevices
 	sccp_line_removeDevice(l, NULL);
 	if (SCCP_LIST_EMPTY(&l->devices)) {
@@ -371,9 +367,6 @@ int __sccp_line_destroy(const void *ptr)
 		pbx_variables_destroy(l->variables);
 		l->variables = NULL;
 	}
-
-	sccp_mutex_unlock(&l->lock);
-	pbx_mutex_destroy(&l->lock);
 	return 0;
 }
 
@@ -420,7 +413,6 @@ int sccp_line_destroy(const void *ptr)
 /*!
  * \brief Delete an SCCP line
  * \param l SCCP Line
- * \note Should be Called without a lock on l->lock
  */
 void sccp_line_delete_nolock(sccp_line_t * l)
 {
@@ -745,8 +737,6 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
  * \brief check the DND status for single/shared lines
  * On shared line we will return dnd status if all devices in dnd only.
  * single line signaling dnd if device is set to dnd
- * 
- * \param line  SCCP Line (locked)
  */
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 {
