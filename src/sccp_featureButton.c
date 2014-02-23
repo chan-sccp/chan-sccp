@@ -139,7 +139,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				case SCCP_FEATURE_MONITOR:
 					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), device->monitorFeature.status);
 					if (device->inuseprotocolversion > 15) {					// multiple States
-                                                buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
+						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 						switch (device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
@@ -320,9 +320,9 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	// char *sspecifier = 0;
 	const char *dev;
 
-	if (!data || !ast_event)
+	if (!data || !ast_event) {
 		return;
-
+	}
 	dev = pbx_event_get_ie_str(ast_event, AST_EVENT_IE_DEVICE);
 
 	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");

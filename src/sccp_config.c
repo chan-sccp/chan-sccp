@@ -1524,13 +1524,13 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 
 static int addonstr2enum(const char *addonstr)
 {
-	if (!strcasecmp(addonstr, "7914"))
+	if (!strcasecmp(addonstr, "7914")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
-	else if (!strcasecmp(addonstr, "7915"))
+	} else if (!strcasecmp(addonstr, "7915")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
-	else if (!strcasecmp(addonstr, "7916"))
+	} else if (!strcasecmp(addonstr, "7916")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
-	else {
+	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", addonstr);
 		return 0;
 	}
@@ -1878,8 +1878,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			}
 			break;
 		case SERVICE:
-			if (SERVICE == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.service.url, options)
-			    ) {
+			if (SERVICE == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.service.url, options)) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Service Button Definition remained the same\n");
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
@@ -1893,8 +1892,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			sccp_copy_string(config->button.service.url, options, sizeof(config->button.service.url));
 			break;
 		case FEATURE:
-			if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)
-			    ) {
+			if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)) {
 				if ((!args && !config->button.feature.options) || sccp_strequals(config->button.feature.options, args)) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -2154,8 +2152,9 @@ void cleanup_stale_contexts(char *new, char *old)
 			}
 
 		}
-		if (stalecontext)
+		if (stalecontext) {
 			ast_context_destroy(ast_context_find(stalecontext), "SCCP");
+		}	
 	}
 }
 
@@ -2203,9 +2202,9 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 		const char *utype;
 
-		if (!strcasecmp(cat, "general"))
+		if (!strcasecmp(cat, "general")) {
 			continue;
-
+                }
 		utype = pbx_variable_retrieve(GLOB(cfg), cat, "type");
 		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_readDevicesLines) Reading Section Of Type %s\n", utype);
 
@@ -2538,8 +2537,9 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softKeySetConfiguration, list) {
-		if (!strcasecmp(softKeySetConfiguration->name, name))
+		if (!strcasecmp(softKeySetConfiguration->name, name)) {
 			break;
+                }
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
 
@@ -2600,9 +2600,9 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			if (SoftKeyModes[i].id == keyMode) {
 
 				/* cleanup old value */
-				if (softKeySetConfiguration->modes[i].ptr)
+				if (softKeySetConfiguration->modes[i].ptr) {
 					sccp_free(softKeySetConfiguration->modes[i].ptr);
-
+				}
 				uint8_t *softkeyset = sccp_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
 
 				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
@@ -2638,9 +2638,9 @@ uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
 	char *splitter;
 	char *label;
 
-	if (!data)
+	if (!data) {
 		return 0;
-
+        }
 	strcpy(labels, data);
 	splitter = labels;
 	while ((label = strsep(&splitter, ",")) != NULL && (i + 1) < StationMaxSoftKeySetDefinition) {
@@ -2683,9 +2683,9 @@ int sccp_config_getSoftkeyLbl(char *key)
  */
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 {
-	if (!device)
+	if (!device) {
 		return;
-
+        }
 #ifdef CS_DEVSTATE_FEATURE
 	char buf[256] = "";
 	sccp_devstate_specifier_t *specifier;
@@ -2708,10 +2708,11 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 
 	/* dndFeature */
 	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer))) {
-		if (!strcasecmp(buffer, "silent"))
+		if (!strcasecmp(buffer, "silent")) {
 			device->dndFeature.status = SCCP_DNDMODE_SILENT;
-		else
+		} else {
 			device->dndFeature.status = SCCP_DNDMODE_REJECT;
+                }
 	} else {
 		device->dndFeature.status = SCCP_DNDMODE_OFF;
 	}

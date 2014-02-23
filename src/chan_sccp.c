@@ -611,42 +611,6 @@ boolean_t sccp_prePBXLoad()
 	return TRUE;
 }
 
-#if DEBUG
-
-/* 
- * Segfault Handler
- * Copied from  Author : Andrew Tridgell <junkcode@tridgell.net>
- *		URL    : http://www.samba.org/ftp/unpacked/junkcode/segv_handler/
- */
-/*
-   static int segv_handler(int sig)
-   {
-   char cmd[100];
-   char progname[100];
-   char *p;
-   int n;
-
-   n = readlink("/proc/self/exe", progname, sizeof(progname));
-   progname[n] = 0;
-
-   p = strrchr(progname, '/');
-   *p = 0;
-
-   snprintf(cmd, sizeof(cmd), "chan-sccp-b_backtrace %d > /var/log/asterisk/chan-sccp-b_%s.%d.backtrace 2>&1", (int)getpid(), p + 1, (int)getpid());
-   system(cmd);
-   signal(SIGSEGV, SIG_DFL);
-   return 0;
-   }
-
-   static void segv_init() __attribute__ ((constructor));
-   void segv_init(void)
-   {
-   signal(SIGSEGV, (sighandler_t) segv_handler);
-   signal(SIGBUS, (sighandler_t) segv_handler);
-   }
- */
-#endif
-
 boolean_t sccp_postPBX_load()
 {
 	pbx_mutex_lock(&GLOB(lock));
@@ -665,9 +629,6 @@ boolean_t sccp_postPBX_load()
 	
 	
 	GLOB(module_running) = TRUE;
-#if DEBUG
-	//      segv_init();
-#endif
 	sccp_refcount_schedule_cleanup((const void *) 0);
 	pbx_mutex_unlock(&GLOB(lock));
 	return TRUE;
