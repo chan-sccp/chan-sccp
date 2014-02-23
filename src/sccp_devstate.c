@@ -140,9 +140,9 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 {
 	sccp_device_t *device;
 
-	if (!event)
+	if (!event) {
 		return;
-
+	}
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;

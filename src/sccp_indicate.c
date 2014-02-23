@@ -394,8 +394,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, 
 	/* if channel state has changed, notify the others */
 	if (c->state != c->previousChannelState) {
 		/* if it is a shared line and a state of interest */
-		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD)
-		    ) {
+		if ((SCCP_RWLIST_GETSIZE(&l->devices) > 1) && (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DOWN || c->state == SCCP_CHANNELSTATE_ONHOOK || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_HOLD)) {
 			/* notify all remote devices */
 			__sccp_indicate_remote_device(d, c, l, state);
 		}
@@ -446,8 +445,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	uint8_t stateVisibility = (!c->privacy) ? SKINNY_CALLINFO_VISIBILITY_DEFAULT : SKINNY_CALLINFO_VISIBILITY_HIDDEN;
 
 	/** \todo move this to channel->privacy */
-	//if (sccp_channel_getDevic(c))
+	//if (sccp_channel_getDevic(c)) {
 	//	privacyStatus = sccp_channel_getDevic(c)->privacyFeature.status & SCCP_PRIVACYFEATURE_HINT;
+	//}
 	///* do not display private lines */
 	//if (state !=SCCP_CHANNELSTATE_CONNECTED && (c->privacy || privacyStatus > 0) ){
 	//	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "privacyStatus status is set, ignore remote devices\n");
