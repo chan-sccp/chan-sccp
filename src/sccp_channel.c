@@ -165,8 +165,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	sccp_mutex_lock(&callCountLock);
 	callid = callCount++;
 	/* callcount limit should be reset at his upper limit :) */
-	if (callCount == 0xFFFFFFFF)
+	if (callCount == 0xFFFFFFFF) {
 		callCount = 1;
+	}
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
 	sccp_mutex_unlock(&callCountLock);
 
@@ -703,11 +704,11 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 	}
 
 	/*! \todo We need to test what we have to copy in the DirectoryNumber */
-	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND)
+	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 		sccp_copy_string(msg->data.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.DirectoryNumber));
-	else
+	} else {
 		sccp_copy_string(msg->data.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.DirectoryNumber));
-
+	}
 	msg->data.ConnectionStatisticsReq.lel_callReference = htolel((channel) ? channel->callid : 0);
 	msg->data.ConnectionStatisticsReq.lel_StatsProcessing = htolel(SKINNY_STATSPROCESSING_CLEAR);
 	sccp_dev_send(d, msg);
@@ -1309,8 +1310,9 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		int ret = sccp_channel_hold(channel);
 
 		channel = sccp_channel_release(channel);
-		if (!ret)
+		if (!ret) {
 			return NULL;
+		}
 	}
 
 	channel = sccp_channel_allocate(l, device);
@@ -1597,8 +1599,9 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	sccp_channel_setDevice(channel, NULL);
 
 #ifdef CS_MANAGER_EVENTS
-	if (GLOB(callevents))
+	if (GLOB(callevents)) {
 		manager_event(EVENT_FLAG_CALL, "Hold", "Status: On\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID) (channel));
+	}
 #endif
 
 	if (l) {
@@ -1817,8 +1820,9 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	
 	if (d) {
 		/* deactive the active call if needed */
-		if (d->active_channel == channel)
+		if (d->active_channel == channel) {
 			sccp_channel_set_active(d, NULL);
+		}
 		sccp_channel_transfer_release(d, channel);
 #ifdef CS_SCCP_CONFERENCE
 		if (d->conference && d->conference == channel->conference) {
@@ -2609,8 +2613,9 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 #else
 		channel = sccp_find_channel_on_line_byid(l, id);
 #endif
-		if (channel)
+		if (channel) {
 			break;
+		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
@@ -2673,9 +2678,9 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
-	if (!channel)
+	if (!channel) {
 		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
-
+	}
 	return channel;
 }
 
@@ -2723,8 +2728,9 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 			SCCP_LIST_UNLOCK(&l->channels);
 
 			l = sccp_line_release(l);
-			if (channelFound)
+			if (channelFound) {
 				break;
+			}
 		}
 	}
 	if (!c || !channelFound) {
@@ -2813,9 +2819,9 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
-	if (!(d = sccp_device_retain(d)))
+	if (!(d = sccp_device_retain(d))) {
 		return NULL;
-
+	}
 	uint8_t instance = 0;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++){
 		if ((l = sccp_line_retain(d->lineButtons.instance[instance]->line))) {
@@ -2842,10 +2848,11 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 			SCCP_LIST_UNLOCK(&l->channels);
 			l = sccp_line_release(l);
 
-			if (channelFound)
+			if (channelFound) {
 				break;
+			}
 		}
-		}
+	}
 	d = sccp_device_release(d);
 
 	return channel;
@@ -2864,9 +2871,9 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
 {
-	if (!d)
+	if (!d) {
 		return NULL;
-
+	}
 	sccp_selectedchannel_t *sc = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
@@ -2893,9 +2900,9 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 	sccp_selectedchannel_t *sc = NULL;
 	uint8_t count = 0;
 
-	if (!(d = sccp_device_retain(d)))
+	if (!(d = sccp_device_retain(d))) {
 		return 0;
-
+	}
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
 
 	SCCP_LIST_LOCK(&d->selectedChannels);

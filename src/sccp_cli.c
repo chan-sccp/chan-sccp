@@ -237,10 +237,12 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 	for (i = 0; i < ARRAY_LEN(extra_cmds); i++) {
 		if (!strncasecmp(word, extra_cmds[i], wordlen)) {
 			// skip "no" and "none" if in debugno mode
-			if (debugno && !strncasecmp("no", extra_cmds[i], strlen("no")))
+			if (debugno && !strncasecmp("no", extra_cmds[i], strlen("no"))) {
 				continue;
-			if (++which > state)
+			}
+			if (++which > state) {
 				return strdup(extra_cmds[i]);
+			}
 		}
 	}
 	// check categories
@@ -248,17 +250,20 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 		// if in debugno mode
 		if (debugno) {
 			// then skip the categories which are not currently active
-			if ((GLOB(debug) & sccp_debug_categories[i].category) != sccp_debug_categories[i].category)
+			if ((GLOB(debug) & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
 				continue;
+			}
 		} else {
 			// not debugno then skip the categories which are already active
-			if ((GLOB(debug) & sccp_debug_categories[i].category) == sccp_debug_categories[i].category)
+			if ((GLOB(debug) & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
 				continue;
+			}
 		}
 		// find a match with partial category
 		if (!strncasecmp(word, sccp_debug_categories[i].key, wordlen)) {
-			if (++which > state)
+			if (++which > state) {
 				return strdup(sccp_debug_categories[i].key);
+			}
 		}
 	}
 	return ret;
@@ -641,9 +646,9 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 #include "sccp_cli_table.h"
 
 	// end of table definition
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -1020,9 +1025,9 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		// \todo handle shared line
 		d = NULL;
 
-		if (!channel || (channel->line != l))
+		if (!channel || (channel->line != l)) {
 			channel = NULL;
-
+		}
 		memset(&cap_buf, 0, sizeof(cap_buf));
 
 		if (channel && channel->owner) {
@@ -1077,8 +1082,9 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 			for (v = l->variables; v; v = v->next)
 				pbx_cli(fd, "| %-13s %-9s %-30s = %-74.74s |\n", "", "Variable:", v->name, v->value);
 
-			if (strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, ""))
+			if (strcmp(l->defaultSubscriptionId.number, "") || strcmp(l->defaultSubscriptionId.name, "")) {
 				pbx_cli(fd, "| %-13s %-9s %-30s %-76.76s |\n", "", "SubscrId:", l->defaultSubscriptionId.number, l->defaultSubscriptionId.name);
+			}
 		}
 	}
 	if (!s) {
@@ -1255,9 +1261,9 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #include "sccp_cli_table.h"
 	}
 	sccp_line_release(l);
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	} 
 	return RESULT_SUCCESS;
 }
 
@@ -1322,8 +1328,9 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 			
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
-			if (d)													\
+			if (d) {												\
 				 sccp_device_release(d);									\
+			}													\
 		}														\
 		SCCP_LIST_UNLOCK(&l->channels);											\
 		sccp_line_release(l);
@@ -1343,8 +1350,9 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(Direct,		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		
 #include "sccp_cli_table.h"
 
-	if (s)
+	if (s) {
 		*total = local_total;
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -1415,9 +1423,9 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(Token,			s,	10,	(d && d->status.token ) ?  (SCCP_TOKEN_STATE_ACK == d->status.token ? "Ack" : (SCCP_TOKEN_STATE_REJ == d->status.token ? "Reject" : "--")) : "--")
 #include "sccp_cli_table.h"
 
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	} 
 	return RESULT_SUCCESS;
 }
 
@@ -1575,12 +1583,12 @@ static void *sccp_cli_threadpool_test_thread(void *data)
  */
 static int sccp_test(int fd, int argc, char *argv[])
 {
-	if (argc < 3)
+	if (argc < 3) {
 		return RESULT_SHOWUSAGE;
-
-	if (sccp_strlen_zero(argv[2]))
+	}
+	if (sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
-
+	}
 #ifdef CS_EXPERIMENTAL
 	// OpenReceiveChannel TEST
 	if (!strcasecmp(argv[2], "openreceivechannel")) {
@@ -1873,9 +1881,9 @@ CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
  */
 static int sccp_show_refcount(int fd, int argc, char *argv[])
 {
-	if (argc < 3)
+	if (argc < 3) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	sccp_refcount_print_hashtable(fd);
 	return RESULT_SUCCESS;
 }
@@ -1938,9 +1946,9 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 
 #include "sccp_cli_table.h"
 
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -2005,9 +2013,9 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -2072,8 +2080,9 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Device '%s' not found!\n", argv[3]);
 	}
 
-	if (s)
+	if (s) {
 		*total = local_total;
+	}
 	return res;
 }
 
@@ -2157,9 +2166,9 @@ static int sccp_system_message(int fd, int *total, struct mansession *s, const s
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
-	if (s)
+	if (s) {
 		*total = local_total;
-		
+	}	
 	return res;
 }
 
@@ -2230,9 +2239,9 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 		res = RESULT_FAILURE;
 	}
 
-	if (s)
+	if (s) {
 		*total = local_total;
-
+	}
 	return res;
 }
 static char cli_dnd_device_usage[] = "Usage: sccp dnd <deviceId> [off|reject|silent]\n" "       Send a dnd to an SCCP Device. Optionally specifying new DND state  [off|reject|silent]\n";
@@ -2291,12 +2300,12 @@ static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 	sccp_device_t *d;
 	sccp_line_t *l;
 
-	if (argc < 5)
+	if (argc < 5) {
 		return RESULT_SHOWUSAGE;
-
-	if (sccp_strlen_zero(argv[4]))
+	}
+	if (sccp_strlen_zero(argv[4])) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
 		l = sccp_line_find_byname(argv[4], FALSE);
 		if (!l) {
@@ -2344,10 +2353,11 @@ static int sccp_do_debug(int fd, int argc, char *argv[])
 
 	char *debugcategories = sccp_get_debugcategories(new_debug);
 
-	if (argc > 2)
+	if (argc > 2) {
 		pbx_cli(fd, "SCCP new debug status: (%d -> %d) %s\n", GLOB(debug), new_debug, debugcategories);
-	else
+	} else {
 		pbx_cli(fd, "SCCP debug status: (%d) %s\n", GLOB(debug), debugcategories);
+	}
 	sccp_free(debugcategories);
 
 	GLOB(debug) = new_debug;
@@ -2375,9 +2385,9 @@ CLI_ENTRY(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usag
  */
 static int sccp_no_debug(int fd, int argc, char *argv[])
 {
-	if (argc < 3)
+	if (argc < 3) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	GLOB(debug) = 0;
 	pbx_cli(fd, "SCCP Debugging Disabled\n");
 	return RESULT_SUCCESS;
@@ -2411,9 +2421,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	int returnval = RESULT_FAILURE;
 	sccp_configurationchange_t change;
 
-	if (argc < 2 || argc > 4)
+	if (argc < 2 || argc > 4) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	pbx_mutex_lock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_cli(fd, "SCCP reloading already in progress.\n");
@@ -2690,19 +2700,21 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	sccp_device_t *d;
 	boolean_t restart = TRUE;
 
-	if (argc < 3 || argc > 4)
+	if (argc < 3 || argc > 4) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	if (!strcasecmp(argv[1], "reset")) {
 		if (argc == 4) {
-			if (strcasecmp(argv[3], "restart"))
+			if (strcasecmp(argv[3], "restart")) {
 				return RESULT_SHOWUSAGE;
+			}
 			restart = TRUE;
-		} else
+		} else {
 			restart = FALSE;
-	} else if (argc != 3)
+		}
+	} else if (argc != 3) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	pbx_cli(fd, VERBOSE_PREFIX_2 "%s: %s request sent to the device\n", argv[2], argv[1]);
 
 	d = sccp_device_find_byid(argv[2], FALSE);
@@ -2723,11 +2735,11 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	//	pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
 	//	return RESULT_SUCCESS;
 	//}
-	if (!restart)
+	if (!restart) {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
-	else
+	} else {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
-
+	}
 	pthread_cancel(d->session->session_thread);
 
 	d = sccp_device_release(d);
@@ -2769,9 +2781,9 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 	sccp_msg_t *msg;
 	sccp_device_t *d;
 
-	if (argc != 3)
+	if (argc != 3) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	pbx_cli(fd, "%s: %s request sent to the device\n", argv[2], argv[1]);
 
 	d = sccp_device_find_byid(argv[2], FALSE);
@@ -2886,17 +2898,19 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 	int res;
 	int cli_result = RESULT_SUCCESS;
 	
-	
-	if (argc < 2)
+	if (argc < 2) {
 		return RESULT_SHOWUSAGE;
-	if (pbx_strlen_zero(argv[2]))
+	}
+	if (pbx_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
-	
+	}
 	if (!strcmp("channel", argv[2])) {
-		if (argc < 5)
+		if (argc < 5) {
 			return RESULT_SHOWUSAGE;
-		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]))
+		}
+		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4])) {
 			return RESULT_SHOWUSAGE;
+		}
 		// sccp set channel SCCP/test123-123 hold on
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
 			char line[80];
@@ -2957,9 +2971,9 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		c = sccp_channel_release(c);
 	  
 	} else if (!strcmp("device", argv[2])) {
-		if (argc < 6)
+		if (argc < 6) {
 			return RESULT_SHOWUSAGE;
-		
+		}
 		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5])){
 			return RESULT_SHOWUSAGE;
 		}
@@ -3143,11 +3157,12 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
 
-	if (argc < 3)
+	if (argc < 3) {
 		return RESULT_SHOWUSAGE;
-	if (pbx_strlen_zero(argv[2]))
+	}
+	if (pbx_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
-
+	}
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		char line[80]; 
 		int channel;
@@ -3218,8 +3233,9 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 		}
 	}
 	sccp_device_release(d);
-	if (s)
+	if (s) {
 		*total = local_total;
+	}
 	return RESULT_SUCCESS;
 }
 
