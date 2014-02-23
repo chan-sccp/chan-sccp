@@ -106,8 +106,9 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 
 					pbx_log(LOG_ERROR, "%s: 3\n", DEV_ID_LOG(device));
 
-					if (PBX(get_callerid_name))
+					if (PBX(get_callerid_name)) {
 						PBX(get_callerid_number) (c, &number);
+                                        }
 					if (number) {
 						sccp_line_cfwd(l, device, type, number);
 						pbx_log(LOG_ERROR, "%s: 4\n", DEV_ID_LOG(device));
@@ -349,11 +350,12 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		/* fixup callinfo */
 		tmpChannel = CS_AST_CHANNEL_PVT(target);
 		if (tmpChannel) {
-			if (PBX(get_callerid_name))
+			if (PBX(get_callerid_name)) {
 				PBX(get_callerid_name) (tmpChannel, &name);
-
-			if (PBX(get_callerid_number))
+                        }
+			if (PBX(get_callerid_number)) {
 				PBX(get_callerid_number) (tmpChannel, &number);
+                        }
 		}
 		pbx_log(LOG_NOTICE, "SCCP: (directed_pickup) %s callerid is ('%s'-'%s')\n", pbx_channel_name(tmp), name ? name : "", number ? number : "");
 		tmp = NULL;
@@ -399,14 +401,15 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 					ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 					if (ringermode && !sccp_strlen_zero(ringermode)) {
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Found ALERT_INFO=%s\n", ringermode);
-						if (strcasecmp(ringermode, "inside") == 0)
+						if (strcasecmp(ringermode, "inside") == 0) {
 							c->ringermode = SKINNY_RINGTYPE_INSIDE;
-						else if (strcasecmp(ringermode, "feature") == 0)
+						} else if (strcasecmp(ringermode, "feature") == 0) {
 							c->ringermode = SKINNY_RINGTYPE_FEATURE;
-						else if (strcasecmp(ringermode, "silent") == 0)
+						} else if (strcasecmp(ringermode, "silent") == 0) {
 							c->ringermode = SKINNY_RINGTYPE_SILENT;
-						else if (strcasecmp(ringermode, "urgent") == 0)
+						} else if (strcasecmp(ringermode, "urgent") == 0) {
 							c->ringermode = SKINNY_RINGTYPE_URGENT;
+                                                }
 					}
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
 				}
@@ -547,27 +550,29 @@ void sccp_feat_updatecid(sccp_channel_t * c)
 {
 	char *name = NULL, *number = NULL;
 
-	if (!c || !c->owner)
+	if (!c || !c->owner) {
 		return;
-
+        }
 	if (!c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 		if (!ast_bridged_channel(c->owner)) {
 			return;
 		}
 	}
 
-	if (PBX(get_callerid_name))
+	if (PBX(get_callerid_name)) {
 		PBX(get_callerid_name) (c, &name);
-
-	if (PBX(get_callerid_number))
+        }
+	if (PBX(get_callerid_number)) {
 		PBX(get_callerid_number) (c, &number);
-
+        }
 	sccp_channel_set_callingparty(c, name, number);
 
-	if (name)
+	if (name) {
 		sccp_free(name);
-	if (number)
+        }
+	if (number) {
 		sccp_free(number);
+        }
 }
 
 /*!
@@ -604,10 +609,11 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 	}
 
 	if (!lineInstance) {
-		if (d->defaultLineInstance)
+		if (d->defaultLineInstance) {
 			lineInstance = d->defaultLineInstance;
-		else
+		} else {
 			lineInstance = 1;
+                }
 	}
 
 	l = sccp_line_find_byid(d, lineInstance);
@@ -842,9 +848,9 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 	sccp_channel_t *moderator_channel = NULL;
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
 
-	if (!c)
+	if (!c) {
 		return;
-
+        }
 	if ((d = sccp_device_retain(d))) {
 		if (!d->allow_conference) {
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -1233,9 +1239,9 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
 	/* sorry but this is private code -FS */
 	sccp_device_t *d = NULL;
 
-	if (!c || !(d = sccp_channel_getDevice_retained(c)))
+	if (!c || !(d = sccp_channel_getDevice_retained(c))) {
 		return -1;
-
+        }
 	uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -1328,9 +1334,9 @@ int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum)
 	/* sorry but this is private code -FS */
 	sccp_device_t *d = NULL;
 
-	if (!c || !(d = sccp_channel_getDevice_retained(c)))
+	if (!c || !(d = sccp_channel_getDevice_retained(c))) {
 		return -1;
-
+        }
 	uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
 
 	sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
@@ -1351,9 +1357,9 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 {
 	sccp_channel_t *c = NULL;
 
-	if (!d || !d->session || !line)
+	if (!d || !d->session || !line) {
 		return;
-
+        }
 	sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: handling hotline\n", d->id);
 	if ((c = sccp_channel_get_active(d))) {
 		if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK)) {
@@ -1408,9 +1414,9 @@ void sccp_feat_channelstateChanged(sccp_device_t * device, sccp_channel_t * chan
 {
 	uint8_t state;
 
-	if (!channel || !device)
+	if (!channel || !device) {
 		return;
-
+        }
 	state = channel->state;
 	switch (state) {
 		case SCCP_CHANNELSTATE_CONNECTED:

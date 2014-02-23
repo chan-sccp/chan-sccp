@@ -322,9 +322,9 @@ void sccp_hint_eventListener(const sccp_event_t * event)
 {
 	sccp_device_t *device;
 
-	if (!event)
+	if (!event) {
 		return;
-
+	}
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 			device = event->event.deviceRegistered.device;
@@ -448,9 +448,9 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	/* get exten and context */
 	splitter = buffer;
 	hint_exten = strsep(&splitter, "@");
-	if (hint_exten)
+	if (hint_exten) {
 		pbx_strip(hint_exten);
-
+	}
 	hint_context = splitter;
 	if (hint_context) {
 		pbx_strip(hint_context);
@@ -517,12 +517,12 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	sccp_hint_list_t *hint = NULL;
 	char hint_dialplan[256] = "";
 
-	if (sccp_strlen_zero(hint_exten))
+	if (sccp_strlen_zero(hint_exten)) {
 		return NULL;
-
-	if (sccp_strlen_zero(hint_context))
+	}
+	if (sccp_strlen_zero(hint_context)) {
 		hint_context = GLOB(context);
-
+	}
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_create) Create hint for exten: %s context: %s\n", hint_exten, hint_context);
 
 	pbx_get_hint(hint_dialplan, sizeof(hint_dialplan) - 1, NULL, 0, NULL, hint_context, hint_exten);
@@ -1157,8 +1157,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 	sccp_linedevices_t *lineDevice;
 	sccp_line_t *line = lineState->line;
 
-	//if (SCCP_LIST_GETSIZE(&line->devices) > 1) 
-	{
+	do {
 		/* we have to check if all devices on this line are dnd=SCCP_DNDMODE_REJECT, otherwise do not propagate DND status */
 		boolean_t allDevicesInDND = TRUE;
 
@@ -1174,17 +1173,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 		if (allDevicesInDND) {
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
-	}
-	//else {
-	//	SCCP_LIST_LOCK(&line->devices);
-	//	sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices);
-	//	if (lineDevice && lineDevice->device) {
-	//		if (lineDevice->device->dndFeature.enabled && lineDevice->device->dndFeature.status == SCCP_DNDMODE_REJECT) {
-	//			lineState->state = SCCP_CHANNELSTATE_DND;
-	//		}
-	//	}
-	//	SCCP_LIST_UNLOCK(&line->devices);
-	//}
+	} while(0);
 
 	if (lineState->state == SCCP_CHANNELSTATE_DND) {
 		sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
