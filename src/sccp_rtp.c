@@ -33,9 +33,9 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	sccp_device_t *device = NULL;
 	boolean_t isMappedIPv4;
 
-	if (!c)
+	if (!c) {
 		return FALSE;
-
+        }
 	if (c->rtp.audio.rtp) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "we already have a rtp server, we use this one\n");
 		return TRUE;
@@ -89,9 +89,9 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
 {
 	boolean_t rtpResult = FALSE;
 
-	if (!c)
+	if (!c) {
 		return FALSE;
-
+        }
 	if (c->rtp.video.rtp) {
 		pbx_log(LOG_ERROR, "we already have a rtp server, why dont we use this?\n");
 		return TRUE;
@@ -116,9 +116,9 @@ int sccp_rtp_createVideoServer(const sccp_channel_t * c)
  */
 void sccp_rtp_stop(sccp_channel_t * c)
 {
-	if (!c)
+	if (!c) {
 		return;
-
+        }
 	if (PBX(rtp_stop)) {
 		PBX(rtp_stop) (c);
 	} else {

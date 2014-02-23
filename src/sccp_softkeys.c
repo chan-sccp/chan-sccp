@@ -60,8 +60,9 @@ void sccp_softkey_clear()
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
-			if (k->modes[i].ptr)
+			if (k->modes[i].ptr) {
 				sccp_free(k->modes[i].ptr);
+			}
 		}
 		sccp_free(k);
 	}
@@ -304,9 +305,9 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		line = sccp_line_retain(l);
 	}
 
-	if (!line && d && d->currentLine)
+	if (!line && d && d->currentLine) {
 		line = sccp_dev_get_activeline(d);
-
+	}
 	if (!line) {
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
 		sccp_dev_displayprompt(d, 0, 0, "No line available", 5);
@@ -439,18 +440,18 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 
 	if (!strcasecmp(d->dndFeature.configOptions, "reject")) {
 		/* config is set to: dnd=reject */
-		if (d->dndFeature.status == SCCP_DNDMODE_OFF)
+		if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
 			d->dndFeature.status = SCCP_DNDMODE_REJECT;
-		else
+		} else {
 			d->dndFeature.status = SCCP_DNDMODE_OFF;
-
+		}
 	} else if (!strcasecmp(d->dndFeature.configOptions, "silent")) {
 		/* config is set to: dnd=silent */
-		if (d->dndFeature.status == SCCP_DNDMODE_OFF)
+		if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
 			d->dndFeature.status = SCCP_DNDMODE_SILENT;
-		else
+		} else {
 			d->dndFeature.status = SCCP_DNDMODE_OFF;
-
+		}
 	} else {
 		/* for all other config us the toggle mode */
 		switch (d->dndFeature.status) {
@@ -532,16 +533,19 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	if (!c) {
-		if (l)
+		if (l) {
 			ast_log(LOG_WARNING, "%s: (sccp_sk_answer) Pressed the answer key without any channel on line %s\n", d->id, l->name);
+		}
 		return;
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
-	if (c->owner)
+	if (c->owner) {
 		pbx_channel_lock(c->owner);
+	}
 	sccp_channel_answer(d, c);
-	if (c->owner)
+	if (c->owner) {
 		pbx_channel_unlock(c->owner);
+	}
 }
 
 /*!
@@ -560,9 +564,9 @@ void sccp_sk_dirtrfr(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	sccp_selectedchannel_t *x;
 	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
 
-	if (!(d = sccp_device_retain(d)))
+	if (!(d = sccp_device_retain(d))) {
 		return;
-
+	}
 	if ((sccp_device_selectedchannels_count(d)) != 2) {
 		if (SCCP_RWLIST_GETSIZE(&l->channels) == 2) {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", d->id);
@@ -988,8 +992,9 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	if (line) {
 		sccp_feat_handle_directed_pickup(line, lineInstance, d);
 		line = sccp_line_release(line);
-		if (c && c->scheduler.digittimeout)
+		if (c && c->scheduler.digittimeout) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		}
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 	}
@@ -1020,8 +1025,9 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (line) {
 		sccp_feat_grouppickup(line, d);
 		line = sccp_line_release(line);
-		if (c && c->scheduler.digittimeout)
+		if (c && c->scheduler.digittimeout) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		}
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
 	}

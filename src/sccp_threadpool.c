@@ -70,12 +70,12 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 #if defined(__GNUC__) && __GNUC__ > 3 && defined(HAVE_SYS_INFO_H)
 	threadsN = get_nprocs_conf();										// get current number of active processors
 #endif
-	if (!threadsN || threadsN < THREADPOOL_MIN_SIZE)
+	if (!threadsN || threadsN < THREADPOOL_MIN_SIZE) {
 		threadsN = THREADPOOL_MIN_SIZE;
-
-	if (threadsN > THREADPOOL_MAX_SIZE)
+	}
+	if (threadsN > THREADPOOL_MAX_SIZE) {
 		threadsN = THREADPOOL_MAX_SIZE;
-
+	}
 	/* Make new thread pool */
 	tp_p = (sccp_threadpool_t *) malloc(sizeof(sccp_threadpool_t));						/* MALLOC thread pool */
 	if (tp_p == NULL) {
@@ -188,8 +188,9 @@ void sccp_threadpool_thread_end(void *p)
 	SCCP_LIST_UNLOCK(&(tp_p->threads));
 
 	ast_cond_signal(&(tp_p->exit));
-	if (res)
+	if (res) {
 		free(res);
+	}
 }
 
 /* What each individual thread is doing */

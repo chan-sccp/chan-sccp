@@ -313,11 +313,12 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		v = v->next;
 	}
 
-	if (cid_name)
+	if (cid_name) {
 		free(cid_name);
-	if (cid_number)
+	}
+	if (cid_number) {
 		free(cid_number);
-
+	}
 	l = sccp_line_release(l);
 
 	return isRinging != TRUE;
@@ -631,8 +632,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device == d)
+			if (linedevice->device == d) {
 				break;
+                        }
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 
@@ -720,12 +722,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 
 	pbx_update_use_count();
 
-	if (PBX(set_callerid_number))
+	if (PBX(set_callerid_number)) {
 		PBX(set_callerid_number) (c, c->callInfo.callingPartyNumber);
-
-	if (PBX(set_callerid_name))
+        }
+	if (PBX(set_callerid_name)) {
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
-
+        }
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
 	//PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
@@ -792,8 +794,8 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
 		if ((d = sccp_channel_getDevice_retained(c))) {
-			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))
-				&& ((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
+			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus)) &&
+                            ((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches More\n", c->dialedNumber);
 				d = sccp_device_release(d);
 				return SCCP_EXTENSION_MATCHMORE;
@@ -964,8 +966,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 			if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
-				if (c->owner && !pbx_check_hangup(c->owner))
+				if (c->owner && !pbx_check_hangup(c->owner)) {
 					pbx_builtin_setvar_helper(c->owner, "SCCP_MEETME_ROOM", shortenedNumber);
+                                }
 				sccp_copy_string(shortenedNumber, c->line->meetmenum, sizeof(shortenedNumber));
 
 				//sccp_copy_string(c->dialedNumber, SKINNY_DISP_CONFERENCE, sizeof(c->dialedNumber));
@@ -1074,9 +1077,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 	/*! \todo DdG: Extra wait time is incurred when checking pbx_exists_extension, when a wrong number is dialed. storing extension_exists status for sccp_log use */
 	int extension_exists = SCCP_EXTENSION_NOTEXISTS;
 
-	if (!sccp_strlen_zero(shortenedNumber) && (pbx_channel && !pbx_check_hangup(pbx_channel))
+	if (!sccp_strlen_zero(shortenedNumber) && (pbx_channel && !pbx_check_hangup(pbx_channel)) &&
 	/*  && (extension_exists = pbx_exists_extension(pbx_channel, pbx_channel_context(pbx_channel), shortenedNumber, 1, l->cid_num)) */
-	    && ((extension_exists = PBX(extension_status(c)) != SCCP_EXTENSION_NOTEXISTS))
+	    ((extension_exists = PBX(extension_status(c)) != SCCP_EXTENSION_NOTEXISTS))
 	    ) {
 		/* found an extension, let's dial it */
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
@@ -1134,8 +1137,9 @@ EXIT_FUNC:
  */
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
 {
-	if (PBX(send_digit))
+	if (PBX(send_digit)) {
 		PBX(send_digit) (c, digit);
+        }
 }
 
 /*!
@@ -1145,8 +1149,9 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
  */
 void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits)
 {
-	if (PBX(send_digits))
+	if (PBX(send_digits)) {
 		PBX(send_digits) (c, digits);
+        }
 }
 
 #if 0
