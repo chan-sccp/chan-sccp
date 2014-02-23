@@ -814,58 +814,12 @@ struct sccp_devstate_specifier {
  * \note A line is the equivalent of a 'phone line' going to the phone.
  */
 struct sccp_line {
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-	char id[5];												/*!< This line's ID, used for logging into (for mobility) */
-	char pin[8];												/*!< PIN number for mobility/roaming. */
+//	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	char id[8];												/*!< This line's ID, used for logging into (for mobility) */
 	char name[StationMaxNameSize];												/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
-	char description[StationMaxNameSize];									/*!< A description for the line, displayed on in header (on7960/40) or on main  screen on 7910 */
-	char label[StationMaxNameSize];										/*!< A name for the line, displayed next to the button (7960/40). */
-
-	SCCP_LIST_HEAD (, sccp_mailbox_t) mailboxes;								/*!< Mailbox Linked List Entry. To check for messages */
-	char vmnum[SCCP_MAX_EXTENSION];										/*!< Voicemail number to Dial */
-	char meetmenum[SCCP_MAX_EXTENSION];									/*!< Meetme Extension to be Dialed (\todo TO BE REMOVED) */
-	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
-	char context[SCCP_MAX_CONTEXT];										/*!< The context we use for Outgoing Calls. */
-	char language[SCCP_MAX_LANGUAGE];									/*!< language we use for calls */
-	char accountcode[SCCP_MAX_ACCOUNT_CODE];								/*!< accountcode used in cdr */
-	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< musicclass assigned when getting moh */
-	int amaflags;												/*!< amaflags */
-	sccp_group_t callgroup;											/*!< callgroups assigned (seperated by commas) to this lines */
-#ifdef CS_SCCP_PICKUP
-	sccp_group_t pickupgroup;										/*!< pickupgroup assigned to this line */
-#endif
-#ifdef CS_AST_HAS_NAMEDGROUP
-	char *namedcallgroup;											/*!< Named Call Group */
-	char *namedpickupgroup;											/*!< Named Pickup Group */
-#endif
-	char cid_name[SCCP_MAX_EXTENSION];									/*!< Caller(Name) to use on outgoing calls */
-	char cid_num[SCCP_MAX_EXTENSION];									/*!< Caller(ID) to use on outgoing calls  */
-	uint16_t incominglimit;											/*!< max incoming calls limit */
-	SCCP_LIST_HEAD (, sccp_channel_t) channels;								/*!< Linked list of current channels for this line */
-	SCCP_RWLIST_ENTRY (sccp_line_t) list;									/*!< global list entry */
-	SCCP_LIST_HEAD (, sccp_linedevices_t) devices;								/*!< The device this line is currently registered to. */
-
-	char *trnsfvm;												/*!< transfer to voicemail softkey. Basically a call forward */
-	char secondary_dialtone_digits[10];									/*!< secondary dialtone digits */
-	uint8_t secondary_dialtone_tone;									/*!< secondary dialtone tone */
-
-	boolean_t echocancel;											/*!< echocancel phone support */
-	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
-	boolean_t meetme;											/*!< Meetme on/off */
-	boolean_t transfer;											/*!< Transfer Phone Support */
-
 #ifdef CS_SCCP_REALTIME
 	boolean_t realtime;											/*!< is it a realtimeconfiguration */
 #endif
-	PBX_VARIABLE_TYPE *variables;										/*!< Channel variables to set */
-	uint8_t dnd;												/*!< dnd on line */
-	uint8_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
-	struct subscriptionId defaultSubscriptionId;								/*!< default subscription id for shared lines */
-
-	/* this is for reload routines */
-	unsigned int pendingDelete:1;										/*!< this bit will tell the scheduler to delete this line when unused */
-	unsigned int pendingUpdate:1;										/*!< this bit will tell the scheduler to update this line when unused */
-
 	/*!
 	 * \brief Statistic for Line Structure
 	 */
@@ -875,6 +829,40 @@ struct sccp_line {
 		uint8_t numberOfHoldChannels;									/*!< Number of Hold Channels */
 		uint8_t numberOfDNDDevices;									/*!< Number of DND Devices */
 	} statistic;												/*!< Statistics for Line Structure */
+	SCCP_RWLIST_ENTRY (sccp_line_t) list;									/*!< global list entry */
+	uint32_t configurationStatus;										/*!< what is the current configuration status - @see sccp_config_status_t */
+
+	uint8_t incominglimit;											/*!< max incoming calls limit */
+	uint8_t secondary_dialtone_tone;									/*!< secondary dialtone tone */
+	char secondary_dialtone_digits[10];									/*!< secondary dialtone digits */
+
+	char *trnsfvm;												/*!< transfer to voicemail softkey. Basically a call forward */
+	sccp_group_t callgroup;											/*!< callgroups assigned (seperated by commas) to this lines */
+#ifdef CS_SCCP_PICKUP
+	sccp_group_t pickupgroup;										/*!< pickupgroup assigned to this line */
+#endif
+#ifdef CS_AST_HAS_NAMEDGROUP
+	char *namedcallgroup;											/*!< Named Call Group */
+	char *namedpickupgroup;											/*!< Named Pickup Group */
+#endif
+
+	char cid_num[SCCP_MAX_EXTENSION];									/*!< Caller(ID) to use on outgoing calls  */
+	char cid_name[SCCP_MAX_EXTENSION];									/*!< Caller(Name) to use on outgoing calls */
+
+	int amaflags;												/*!< amaflags */
+	boolean_t echocancel;											/*!< echocancel phone support */
+	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
+	boolean_t meetme;											/*!< Meetme on/off */
+	boolean_t transfer;											/*!< Transfer Phone Support */
+	uint16_t dnd;												/*!< dnd on line */
+	uint16_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
+
+	SCCP_LIST_HEAD (, sccp_mailbox_t) mailboxes;								/*!< Mailbox Linked List Entry. To check for messages */
+	SCCP_LIST_HEAD (, sccp_channel_t) channels;								/*!< Linked list of current channels for this line */
+	SCCP_LIST_HEAD (, sccp_linedevices_t) devices;								/*!< The device this line is currently registered to. */
+
+	PBX_VARIABLE_TYPE *variables;										/*!< Channel variables to set */
+	struct subscriptionId defaultSubscriptionId;								/*!< default subscription id for shared lines */
 
 	/*!
 	 * \brief VoiceMail Statistics Structure
@@ -884,11 +872,25 @@ struct sccp_line {
 		int oldmsgs;											/*!< Old Messages */
 	} voicemailStatistic;											/*!< VoiceMail Statistics Structure */
 
-	uint32_t configurationStatus;										/*!< what is the current configuration status - @see sccp_config_status_t */
 	char adhocNumber[SCCP_MAX_EXTENSION];									/*!< number that should be dialed when device offhocks this line */
+	/* this is for reload routines */
+	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
+	boolean_t pendingUpdate;										/*!< this bit will tell the scheduler to update this line when unused */
 
+	char pin[8];												/*!< PIN number for mobility/roaming. */
+
+	/* \todo next entries are not used much, should be changed into pointers, to preserve space */
 	char regexten[SCCP_MAX_EXTENSION];									/*!< Extension for auto-extension (DUNDI) */
 	char regcontext[SCCP_MAX_CONTEXT];									/*!< Context for auto-extension (DUNDI) */
+	char description[StationMaxNameSize];									/*!< A description for the line, displayed on in header (on7960/40) or on main  screen on 7910 */
+	char label[StationMaxNameSize];										/*!< A name for the line, displayed next to the button (7960/40). */
+	char vmnum[SCCP_MAX_EXTENSION];										/*!< Voicemail number to Dial */
+	char meetmenum[SCCP_MAX_EXTENSION];									/*!< Meetme Extension to be Dialed (\todo TO BE REMOVED) */
+	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
+	char context[SCCP_MAX_CONTEXT];										/*!< The context we use for Outgoing Calls. */
+	char language[SCCP_MAX_LANGUAGE];									/*!< language we use for calls */
+	char accountcode[SCCP_MAX_ACCOUNT_CODE];								/*!< accountcode used in cdr */
+	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< musicclass assigned when getting moh */
 };														/*!< SCCP Line Structure */
 
 /*!
