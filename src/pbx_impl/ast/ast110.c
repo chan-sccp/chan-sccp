@@ -1247,8 +1247,9 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, stru
 						autoanswer_cause = AST_CAUSE_CONGESTION;
                                         }
 				}
-				if (autoanswer_cause)
+				if (autoanswer_cause) {
 					*cause = autoanswer_cause;
+                                }
 				/* check for ringer options */
 			} else if (!strncasecmp(optv[opti], "ringer=", 7)) {
 				optv[opti] += 7;

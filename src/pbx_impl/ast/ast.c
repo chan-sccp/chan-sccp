@@ -608,8 +608,9 @@ boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value))
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key) || sccp_strlen_zero(value)) {
 		return FALSE;
+	}
 	res = ast_db_put(family, key, value);
 	return (!res) ? TRUE : FALSE;
 }
@@ -618,8 +619,9 @@ boolean_t sccp_asterisk_getFromDatabase(const char *family, const char *key, cha
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key))
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) {
 		return FALSE;
+	}
 	res = ast_db_get(family, key, out, outlen);
 	return (!res) ? TRUE : FALSE;
 }
@@ -628,8 +630,9 @@ boolean_t sccp_asterisk_removeFromDatabase(const char *family, const char *key)
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key))
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) {
 		return FALSE;
+	}
 	res = ast_db_del(family, key);
 	return (!res) ? TRUE : FALSE;
 }
@@ -638,8 +641,9 @@ boolean_t sccp_asterisk_removeTreeFromDatabase(const char *family, const char *k
 {
 	int res;
 
-	if (sccp_strlen_zero(family) || sccp_strlen_zero(key))
+	if (sccp_strlen_zero(family) || sccp_strlen_zero(key)) {
 		return FALSE;
+	}
 	res = ast_db_deltree(family, key);
 	return (!res) ? TRUE : FALSE;
 }
