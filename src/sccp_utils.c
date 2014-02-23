@@ -79,17 +79,20 @@ int sccp_addons_taps(sccp_device_t * d)
 	sccp_addon_t *cur = NULL;
 	int taps = 0;
 
-	if (!strcasecmp(d->config_type, "7914"))
+	if (!strcasecmp(d->config_type, "7914")) {
 		return 28;											// on compatibility mode it returns 28 taps for a double 7914 addon
-
+	}
 	SCCP_LIST_LOCK(&d->addons);
 	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7914)
+		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7914) {
 			taps += 14;
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON)
+		}
+		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON) {
 			taps += 12;
-		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON)
+		}
+		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON) {
 			taps += 24;
+		}
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Found (%d) taps on device addon (%d)\n", (d->id ? d->id : "SCCP"), taps, cur->type);
 	}
 	SCCP_LIST_UNLOCK(&d->addons);
@@ -105,9 +108,9 @@ void sccp_addons_clear(sccp_device_t * d)
 {
 	sccp_addon_t *addon;
 
-	if (!d)
+	if (!d) {
 		return;
-
+		}
 	// while ((AST_LIST_REMOVE_HEAD(&d->addons, list))) ;
 	while ((addon = SCCP_LIST_REMOVE_HEAD(&d->addons, list))) {
 		sccp_free(addon);
@@ -178,8 +181,9 @@ void sccp_dev_dbclean()
 		}
 		entry = entry->next;
 	}
-	if (entry)
+	if (entry) {
 		pbx_db_freetree(entry);
+	}
 }
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
@@ -269,9 +273,9 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * co
 		end += len;
 		size -= len;
 	}
-	if (start == end)
+	if (start == end) {
 		pbx_copy_string(start, "nothing)", size);
-	else if (size > 2) {
+	} else if (size > 2) {
 		*(end - 2) = ')';
 		*(end - 1) = '\0';
 	}
@@ -286,16 +290,17 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 	skinny_codec_t *old_skinny_codec_prefs = { 0 };
 	int x, y = 0;
 
-	if (ARRAY_LEN(skinny_codec_prefs))
+	if (ARRAY_LEN(skinny_codec_prefs)) {
 		return;
-
+	}
 	memcpy(old_skinny_codec_prefs, skinny_codec_prefs, sizeof(skinny_codec_t));
 	memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		// if not found element copy to new array
-		if (SKINNY_CODEC_NONE == old_skinny_codec_prefs[x])
+		if (SKINNY_CODEC_NONE == old_skinny_codec_prefs[x]) {
 			break;
+		}
 		if (old_skinny_codec_prefs[x] == skinny_codec) {
 //			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d, skipping\n", codec2name(skinny_codec), skinny_codec, x);
 			continue;
@@ -453,8 +458,9 @@ char *pbx_skip_nonblanks(char *str)
 char *pbx_strip(char *s)
 {
 	s = pbx_skip_blanks(s);
-	if (s)
+	if (s) {
 		pbx_trim_blanks(s);
+	}
 	return s;
 }
 #endif
@@ -475,9 +481,9 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 	char *scan;
 	int paren = 0;
 
-	if (!buf || !array || !arraylen)
+	if (!buf || !array || !arraylen) {
 		return 0;
-
+	}
 	memset(array, 0, arraylen * sizeof(*array));
 
 	scan = buf;
@@ -485,11 +491,12 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 	for (argc = 0; *scan && (argc < arraylen - 1); argc++) {
 		array[argc] = scan;
 		for (; *scan; scan++) {
-			if (*scan == '(')
+			if (*scan == '(') {
 				paren++;
-			else if (*scan == ')') {
-				if (paren)
+			} else if (*scan == ')') {
+				if (paren) {
 					paren--;
+				}
 			} else if ((*scan == delim) && !paren) {
 				*scan++ = '\0';
 				break;
@@ -497,9 +504,9 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 		}
 	}
 
-	if (*scan)
+	if (*scan) {
 		array[argc++] = scan;
-
+	}
 	return argc;
 }
 #endif
@@ -547,9 +554,9 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sas)
  */
 sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
 {
-	if (!str)
+	if (!str) {
 		return SCCP_FEATURE_UNKNOWN;
-
+	}
 	uint32_t i;
 
 	for (i = 0; i < ARRAY_LEN(sccp_feature_types); i++) {
@@ -811,8 +818,8 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	if (FALSE == filterPhones) {
 		/* Accept phone for calling if all phones shall be called. */
 		result = TRUE;
-	} else if (0 != strlen(subscriptionIdNum)								/* We already know that we won't search for a trivial subscriptionId. */
-		   &&0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))) {	/* Do the match! */
+	} else if (0 != strlen(subscriptionIdNum) &&								/* We already know that we won't search for a trivial subscriptionId. */
+		   (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number))) ) {	/* Do the match! */
 		result = FALSE;
 	}
 #if 0
@@ -959,13 +966,15 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 
 		memset(&buffer[0], 0, sizeof(buffer));
 
-		if (dirNum_len)
+		if (dirNum_len) {
 			memcpy(&buffer[0], dirNum, dirNum_len);
-		if (FQDN_len)
+		}
+		if (FQDN_len) {
 			memcpy(&buffer[dirNum_len + 1], fqdn, FQDN_len);
-		if (lineDisplayName_len)
+		}
+		if (lineDisplayName_len) {
 			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
-
+		}
 		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
 	}
 
@@ -1085,8 +1094,9 @@ int sccp_strIsNumeric(const char *s)
 		char c;
 
 		while ((c = *s++)) {
-			if (!isdigit(c))
+			if (!isdigit(c)) {
 				return 0;
+			}
 		}
 		return 1;
 	}
@@ -1228,7 +1238,7 @@ void sccp_free_ha(struct sccp_ha *ha)
  */
 static int apply_netmask(const struct sockaddr_storage *netaddr, const struct sockaddr_storage *netmask, struct sockaddr_storage *result)
 {
-        int res = 0;  
+	int res = 0;  
 
 	char *straddr = ast_strdupa(sccp_socket_stringify_addr(netaddr));
 	char *strmask = ast_strdupa(sccp_socket_stringify_addr(netmask));
@@ -1630,10 +1640,11 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
  */
 const char *sccp_channel_toString(sccp_channel_t * c)
 {
-	if (c && c->designator)
+	if (c && c->designator) {
 		return (const char *) c->designator;
-	else
+	} else {
 		return "";
+	}
 }
 
 /*!
@@ -1649,9 +1660,9 @@ void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group)
 	int first = 1;
 	uint8_t max = (sizeof(sccp_group_t) * 8) - 1;
 
-	if (!group)
+	if (!group) {
 		return;
-
+	}
 	for (i = 0; i <= max; i++) {
 		if (group & ((sccp_group_t) 1 << i)) {
 			if (!first) {
@@ -1675,14 +1686,18 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 	struct sockaddr_in6 *p1_in6 = (struct sockaddr_in6 *) addr1;
 	struct sockaddr_in6 *p2_in6 = (struct sockaddr_in6 *) addr2;
 
-	if (len1 < len2)
+	if (len1 < len2) {
 		return -1;
-	if (len1 > len2)
+	}
+	if (len1 > len2) {
 		return 1;
-	if (p1_in->sin_family < p2_in->sin_family)
+	}
+	if (p1_in->sin_family < p2_in->sin_family) {
 		return -1;
-	if (p1_in->sin_family > p2_in->sin_family)
+	}
+	if (p1_in->sin_family > p2_in->sin_family) {
 		return 1;
+	}
 	/* compare ip4 */
 	if (p1_in->sin_family == AF_INET) {
 		return memcmp(&p1_in->sin_addr, &p2_in->sin_addr, INET_ADDRSTRLEN);
@@ -1704,23 +1719,24 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 	p2 = strcspn(s2, digits);
 	while (p1 == p2 && s1[p1] != '\0' && s2[p2] != '\0') {
 		/* Different prefix */
-		if ((ret = strncmp(s1, s2, p1)) != 0)
+		if ((ret = strncmp(s1, s2, p1)) != 0) {
 			return ret;
-
+		}
 		s1 += p1;
 		s2 += p2;
 
 		lz1 = lz2 = 0;
-		if (*s1 == '0')
+		if (*s1 == '0') {
 			lz1 = 1;
-		if (*s2 == '0')
+		}
+		if (*s2 == '0') {
 			lz2 = 1;
-
-		if (lz1 > lz2)
+		}
+		if (lz1 > lz2) {
 			return -1;
-		else if (lz1 < lz2)
+		} else if (lz1 < lz2) {
 			return 1;
-		else if (lz1 == 1) {
+		} else if (lz1 == 1) {
 			/*
 			 * If the common prefix for s1 and s2 consists only of zeros, then the
 			 * "longer" number has to compare less. Otherwise the comparison needs
@@ -1735,37 +1751,40 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 			p2 = strspn(s2, digits);
 
 			/* Catch empty strings */
-			if (p1 == 0 && p2 > 0)
+			if (p1 == 0 && p2 > 0) {
 				return 1;
-			else if (p2 == 0 && p1 > 0)
+			} else if (p2 == 0 && p1 > 0) {
 				return -1;
-
+			}
 			/* Prefixes are not same */
 			if (*s1 != *s2 && *s1 != '0' && *s2 != '0') {
-				if (p1 < p2)
+				if (p1 < p2) {
 					return 1;
-				else if (p1 > p2)
+				} else if (p1 > p2) {
 					return -1;
+				}
 			} else {
-				if (p1 < p2)
+				if (p1 < p2) {
 					ret = strncmp(s1, s2, p1);
-				else if (p1 > p2)
+				} else if (p1 > p2) {
 					ret = strncmp(s1, s2, p2);
-				if (ret != 0)
+				}
+				if (ret != 0) {
 					return ret;
+				}
 			}
 		}
 
 		p1 = strspn(s1, digits);
 		p2 = strspn(s2, digits);
 
-		if (p1 < p2)
+		if (p1 < p2) {
 			return -1;
-		else if (p1 > p2)
+		} else if (p1 > p2) {
 			return 1;
-		else if ((ret = strncmp(s1, s2, p1)) != 0)
+		} else if ((ret = strncmp(s1, s2, p1)) != 0) {
 			return ret;
-
+		}
 		/* Numbers are equal or not present, try with next ones. */
 		s1 += p1;
 		s2 += p2;

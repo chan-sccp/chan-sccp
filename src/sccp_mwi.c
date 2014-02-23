@@ -132,9 +132,9 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 	sccp_mailbox_subscriber_list_t *subscription = data;
 
 	pbx_log(LOG_NOTICE, "Got mwi-event\n");
-	if (!subscription || !event)
+	if (!subscription || !event) {
 		return;
-
+        }
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", (subscription->mailbox) ? subscription->mailbox : "NULL", (subscription->context) ? subscription->context : "NULL");
 
 	/* for calculation store previous voicemail counts */
@@ -164,9 +164,9 @@ int sccp_mwi_checksubscription(const void *ptr)
 {
 	sccp_mailbox_subscriber_list_t *subscription = (sccp_mailbox_subscriber_list_t *) ptr;
 
-	if (!subscription)
+	if (!subscription) {
 		return -1;
-
+        }
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
 	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
@@ -285,10 +285,10 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list) {
-		if (strlen(mailbox) == strlen(subscription->mailbox)
-		    && strlen(context) == strlen(subscription->context)
-		    && !strcmp(mailbox, subscription->mailbox)
-		    && !strcmp(context, subscription->context)) {
+		if (strlen(mailbox) == strlen(subscription->mailbox) &&
+		    strlen(context) == strlen(subscription->context) &&
+		    !strcmp(mailbox, subscription->mailbox) &&
+		    !strcmp(context, subscription->context)) {
 			break;
 		}
 	}
@@ -352,8 +352,9 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 	/* we already have this subscription */
 	SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {
-		if (line == mailboxLine->line)
+		if (line == mailboxLine->line) {
 			break;
+                }
 	}
 
 	if (!mailboxLine) {

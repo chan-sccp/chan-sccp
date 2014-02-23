@@ -132,8 +132,9 @@ void sccp_refcount_destroy(void)
 			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
 			while ((obj = SCCP_RWLIST_REMOVE_HEAD(&(objects[x])->refCountedObjects, list))) {
 				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
-				if ((&obj_info[obj->type])->destructor)
+				if ((&obj_info[obj->type])->destructor) {
 					(&obj_info[obj->type])->destructor(obj->data);
+				}
 #ifndef SCCP_ATOMIC
 				ast_mutex_destroy(&obj->lock);
 #endif
@@ -414,8 +415,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 		refcountval = ATOMIC_INCR((&obj->refcount), 1, &obj->lock);
 		newrefcountval = refcountval + 1;
 
-		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)))
-		    == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
+		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
 			ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
 		return obj->data;

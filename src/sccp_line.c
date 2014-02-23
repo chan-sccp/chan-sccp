@@ -80,9 +80,9 @@ void sccp_line_post_reload(void)
 	sccp_linedevices_t *linedevice;
 
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
-		if (!l->pendingDelete && !l->pendingUpdate)
+		if (!l->pendingDelete && !l->pendingUpdate) {
 			continue;
-
+		}
 		if ((l = sccp_line_retain(l))) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -261,9 +261,9 @@ void sccp_line_kill_channels(sccp_line_t * l)
 {
 	sccp_channel_t *c;
 
-	if (!l)
+	if (!l) {
 		return;
-
+	}
 	// SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
 		if ((sccp_channel_retain(c))) {
@@ -318,9 +318,9 @@ int __sccp_line_destroy(const void *ptr)
 
 	// cleanup linedevices
 	sccp_line_removeDevice(l, NULL);
-	if (SCCP_LIST_EMPTY(&l->devices))
+	if (SCCP_LIST_EMPTY(&l->devices)) {
 		SCCP_LIST_HEAD_DESTROY(&l->devices);
-
+	}
 	// cleanup mailboxes
 	if (l->trnsfvm) {
 		sccp_free(l->trnsfvm);
@@ -329,14 +329,16 @@ int __sccp_line_destroy(const void *ptr)
 
 	SCCP_LIST_LOCK(&l->mailboxes);
 	while ((mailbox = SCCP_LIST_REMOVE_HEAD(&l->mailboxes, list))) {
-		if (!mailbox)
+		if (!mailbox) {
 			break;
-
+		}
 		sccp_mwi_unsubscribeMailbox(&mailbox);
-		if (mailbox->mailbox)
+		if (mailbox->mailbox) {
 			sccp_free(mailbox->mailbox);
-		if (mailbox->context)
+		}
+		if (mailbox->context) {
 			sccp_free(mailbox->context);
+		}
 		sccp_free(mailbox);
 	}
 	SCCP_LIST_UNLOCK(&l->mailboxes);
@@ -389,10 +391,12 @@ int __sccp_lineDevice_destroy(const void *ptr)
 	sccp_linedevices_t *linedevice = (sccp_linedevices_t *) ptr;
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: LineDevice FREE %p\n", DEV_ID_LOG(linedevice->device), linedevice);
-	if (linedevice->line)
+	if (linedevice->line) {
 		linedevice->line = sccp_line_release(linedevice->line);
-	if (linedevice->device)
+	}
+	if (linedevice->device) {
 		linedevice->device = sccp_device_release(linedevice->device);
+	}
 	return 0;
 }
 
@@ -440,9 +444,9 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 {
 	sccp_linedevices_t *linedevice = NULL;
 
-	if (!line || !device)
+	if (!line || !device) {
 		return;
-
+	}
 	if ((linedevice = sccp_linedevice_find(device, line))) {
 		if (type == SCCP_CFWD_NONE) {
 			linedevice->cfwdAll.enabled = 0;
@@ -607,10 +611,9 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
  */
 void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 {
-	
-	if (!line || !channel)
+	if (!line || !channel) {
 		return;
-
+	}
 	sccp_line_t *l = NULL;
 	sccp_channel_t *c = NULL;
 
@@ -620,10 +623,11 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 			sccp_channel_updateChannelDesignator(c);
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
-			if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST)
+			if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST) {
 				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);
-			else
+			} else {
 				SCCP_LIST_INSERT_HEAD(&l->channels, c, list);
+			}	
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 		l = sccp_line_release(l);
@@ -642,9 +646,9 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
  */
 void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 {
-	if (!line || !channel)
+	if (!line || !channel) {
 		return;
-
+	}
 	sccp_channel_t *c;
 	sccp_line_t *l;
 
