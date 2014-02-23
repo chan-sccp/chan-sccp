@@ -1046,6 +1046,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 
 	// int packetSize;
 	channel->rtp.video.readFormat = SKINNY_CODEC_H264;
+	PBX(set_nativeVideoFormats)(channel, SKINNY_CODEC_H264);
 	//// packetSize = 3840;
 	// packetSize = 1920;
 
