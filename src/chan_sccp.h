@@ -1125,19 +1125,19 @@ struct sccp_addon {
  * \note This contains the current session the phone is in
  */
 struct sccp_session {
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
-	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
-	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
-	struct pollfd fds[1];											/*!< File Descriptor */
-	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
-	sccp_device_t *device;											/*!< Associated Device */
 	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
+	sccp_device_t *device;											/*!< Associated Device */
+	struct pollfd fds[1];											/*!< File Descriptor */
+	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
 	boolean_t needcheckringback;										/*!< Need Check Ring Back. (0/1) default 1 */
-	pthread_t session_thread;										/*!< Session Thread */
-	volatile uint8_t session_stop;										/*!< Signal Session Stop */
-	uint8_t protocolType;
+	uint16_t protocolType;
 	uint8_t gone_missing;											/*!< KeepAlive received from an unregistered device */
+	volatile uint8_t session_stop;										/*!< Signal Session Stop */
+	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
+	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	pthread_t session_thread;										/*!< Session Thread */
+	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
 	struct sockaddr_storage ourIPv4;
 };														/*!< SCCP Session Structure */
 
@@ -1160,7 +1160,18 @@ struct sccp_rtp {
  * \note This contains the current channel information
  */
 struct sccp_channel {
-	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	uint32_t callid;											/*!< Call ID */
+	uint32_t passthrupartyid;										/*!< Pass Through ID */
+	uint16_t state;												/*!< Internal channel state SCCP_CHANNELSTATE_* */
+	uint16_t previousChannelState;										/*!< Previous channel state SCCP_CHANNELSTATE_* */
+	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
+	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
+	sccp_line_t *line;											/*!< SCCP Line */
+	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
+	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
+	char designator[CHANNEL_DESIGNATOR_SIZE];
+	struct subscriptionId subscriptionId;
+	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 
 #if DEBUG
 	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel, const char *filename, int lineno, const char *func);	/*!< temporary function to retrieve refcounted device */
@@ -1187,67 +1198,47 @@ struct sccp_channel {
 		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Capabilities */
 	} remoteCapabilities;
 
-	sccp_callinfo_t callInfo;
-
-	uint32_t callid;											/*!< Call ID */
-	char designator[CHANNEL_DESIGNATOR_SIZE];
-	uint32_t passthrupartyid;										/*!< Pass Through ID */
-
-	uint8_t state;												/*!< Internal channel state SCCP_CHANNELSTATE_* */
-	uint8_t previousChannelState;										/*!< Previous channel state SCCP_CHANNELSTATE_* */
-	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
-
 	struct {
-		int digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
-		unsigned int deactivate:1;									/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
-		int totaldigittime;										/*!< Total Time used to enter Number (Enbloc-Emu) */
-		int totaldigittimesquared;									/*!< Total Time Squared used to enter Number (Enbloc-Emu) */
+		uint32_t digittimeout;										/*!< Digit Timeout on Dialing State (Enbloc-Emu) */
+		boolean_t deactivate;										/*!< Deactivate Enbloc-Emulation (Time Deviation Found) */
+		uint32_t totaldigittime;									/*!< Total Time used to enter Number (Enbloc-Emu) */
+		uint32_t totaldigittimesquared;									/*!< Total Time Squared used to enter Number (Enbloc-Emu) */
 	} enbloc;
 
 	struct {
-		int digittimeout;										/*!< Schedule for Timeout on Dialing State */
+		uint32_t digittimeout;										/*!< Schedule for Timeout on Dialing State */
 	} scheduler;
 
-	uint8_t ringermode;											/*!< Ringer Mode */
-
-	char dialedNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
-	//sccp_device_t *device;                                                                                /*!< SCCP Device */
-
-	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
-	sccp_line_t *line;											/*!< SCCP Line */
+	boolean_t privacy;											/*!< Private */
 
 	struct {
 		struct sccp_rtp audio;										/*!< Asterisk RTP */
 		struct sccp_rtp video;										/*!< Video RTP session */
 	} rtp;
 
-	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
+	uint16_t ringermode;											/*!< Ringer Mode */
+	uint16_t autoanswer_cause;										/*!< Auto Answer Cause */
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
-	uint8_t autoanswer_cause;										/*!< Auto Answer Cause */
-	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
 
 	/* don't allow sccp phones to monitor (hint) this call */
-	boolean_t privacy;											/*!< Private */
-	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
 	sccp_softswitch_action_t ss_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
-	uint8_t ss_data;											/*!< Simple Switch Integer param */
+	uint16_t ss_data;											/*!< Simple Switch Integer param */
+	uint16_t subscribers;											/*!< Used to determine if a sharedline should be hungup immediately, if everybody declined the call */
 
-	/* feature sets */
-	//boolean_t monitorEnabled;                                                                             /*!< Monitor Enabled Feature */
+	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
 
 	sccp_conference_t *conference;										/*!< are we part of a conference? // to be removed instead of conference_id */
 	uint32_t conference_id;											/*!< Conference ID (might be safer to use instead of conference) */
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
-	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
 
-	uint8_t subscribers;											/*!< Used to determine if a sharedline should be hungup immediately, if everybody declined the call */
-	struct subscriptionId subscriptionId;
 	unsigned int maxBitRate;
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*isMicrophoneEnabled) (void);
 
-	//      char linkedid[SCCP_MAX_EXTENSION];
+	/* next should be converted to pointers, to reduce size */
+	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
+	sccp_callinfo_t callInfo;
 };														/*!< SCCP Channel Structure */
 
 /*!

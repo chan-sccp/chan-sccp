@@ -192,8 +192,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 
-	sccp_mutex_init(&channel->lock);
-	sccp_mutex_lock(&channel->lock);
 	channel->line = sccp_line_retain(l);
 
 	/* this is for dialing scheduler */
@@ -230,7 +228,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
-	sccp_mutex_unlock(&channel->lock);
 //	sccp_rtp_createAudioServer(channel);
 	return channel;
 }
@@ -722,8 +719,6 @@ void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
  * At this point we choose the codec for receive channel and tell them to device.
  * We will get a OpenReceiveChannelAck message that includes all information.
  *
- * \param channel a locked SCCP Channel
- * 
  */
 void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 {
@@ -1782,7 +1777,6 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 /*!
  * \brief Cleanup Channel before Free.
  * \param channel SCCP Channel
- * \note we assume channel is locked
  *
  * \callgraph
  * \callergraph
@@ -1856,7 +1850,6 @@ void sccp_channel_clean(sccp_channel_t * channel)
 /*!
  * \brief Destroy Channel
  * \param channel SCCP Channel
- * \note We assume channel is locked
  *
  * \callgraph
  * \callergraph
@@ -1881,7 +1874,6 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	if (channel->privateData) {
 		sccp_free(channel->privateData);
 	}
-	sccp_mutex_destroy(&channel->lock);
 
 	return;
 }
@@ -2690,7 +2682,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  *
  * \param d SCCP Device
  * \param passthrupartyid Party ID
- * \return *locked* SCCP Channel - can be NULL if no channel with this id was found. 
+ * \return retained SCCP Channel - can be NULL if no channel with this id was found. 
  *
  * \note does not take channel state into account, this need to be asserted in the calling function
  * \note this is different from the sccp_channel_find_bypassthrupartyid behaviour
