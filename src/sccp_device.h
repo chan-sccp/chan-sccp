@@ -48,6 +48,8 @@ void sccp_device_addToGlobals(sccp_device_t * device);
 
 sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d);
 sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance);
+sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d);
+void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * c);
 
 #define REQ(x,y) x = sccp_build_packet(y, sizeof(x->data.y))
 #define REQCMD(x,y) x = sccp_build_packet(y, 0)

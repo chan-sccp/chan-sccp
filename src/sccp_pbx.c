@@ -251,7 +251,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 			continue;
 		}
 
-		if ((active_channel = sccp_channel_get_active(linedevice->device))) {
+		if ((active_channel = sccp_device_getActiveChannel(linedevice->device))) {
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
 			isRinging = TRUE;
 			active_channel = sccp_channel_release(active_channel);
@@ -357,7 +357,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 
 	d = sccp_channel_getDevice_retained(c);
 	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
-		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_channel_get_active_nolock(d))		/* Caused active channels never to be full released */
+		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))		/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel) {
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		}

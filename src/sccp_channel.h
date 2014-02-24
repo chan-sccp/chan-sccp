@@ -24,10 +24,8 @@
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedid);
 
-sccp_channel_t *sccp_channel_get_active(const sccp_device_t * d);
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
-void sccp_channel_set_active(sccp_device_t * d, sccp_channel_t * c);
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
 void sccp_channel_send_callinfo2(sccp_channel_t * c);
 void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state);

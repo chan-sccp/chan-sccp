@@ -320,7 +320,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		 * (Can't select line after already off-hook - https://sourceforge.net/p/chan-sccp-b/discussion/652060/thread/878fe455/?limit=25#c06e/6006/a54d) 
 		 */
 		sccp_channel_t *activeChannel = NULL;	
-		if (!adhocNumber && (activeChannel = sccp_channel_get_active( d )) )  {
+		if (!adhocNumber && (activeChannel = sccp_device_getActiveChannel( d )) )  {
 			if (activeChannel->line != l && strlen(activeChannel->dialedNumber) == 0){
 				sccp_channel_endcall(activeChannel);
 			}

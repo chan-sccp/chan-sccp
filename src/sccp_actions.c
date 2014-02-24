@@ -1265,7 +1265,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			if (sccp_strlen_zero(d->lastNumber)) {
 				goto func_exit;
                         }
-			channel = sccp_channel_get_active(d);
+			channel = sccp_device_getActiveChannel(d);
 			if (channel) {
 				if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
 					sccp_copy_string(channel->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
@@ -1303,7 +1303,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			}
 
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
-			if ((channel = sccp_channel_get_active(d))) {
+			if ((channel = sccp_device_getActiveChannel(d))) {
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, channel->callid, (l) ? l->name : "(nil)");
 				if (channel->state != SCCP_CHANNELSTATE_CONNECTED) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
@@ -1376,7 +1376,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
 				sccp_channel_hold(channel);
 			} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
-				sccp_channel_1 = sccp_channel_get_active(d);
+				sccp_channel_1 = sccp_device_getActiveChannel(d);
 				if (sccp_channel_1 && sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK) {
 					sccp_channel_endcall(sccp_channel_1);
 				}
@@ -1391,7 +1391,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
 				break;
 			}
-			channel = sccp_channel_get_active(d);
+			channel = sccp_device_getActiveChannel(d);
 			if (channel) {
 				sccp_channel_transfer(channel, d);
 			}
@@ -1489,7 +1489,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			break;
 		case SKINNY_BUTTONTYPE_CALLPARK:								// Call parking
 #ifdef CS_SCCP_PARK
-			channel = sccp_channel_get_active(d);
+			channel = sccp_device_getActiveChannel(d);
 			if (!channel) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot park while no calls in progress\n", d->id);
 				goto func_exit;
@@ -1564,7 +1564,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
         }
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Speeddial Button (%d) pressed, configured number is (%s)\n", d->id, k->instance, k->ext);
-	if ((channel = sccp_channel_get_active(d))) {
+	if ((channel = sccp_device_getActiveChannel(d))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: channel state %d\n", DEV_ID_LOG(d), channel->state);
 
 		// Channel already in use
@@ -1627,7 +1627,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 		return;
 	}
 
-	if ((channel = sccp_channel_get_active(d))) {
+	if ((channel = sccp_device_getActiveChannel(d))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook with a call (%d) in progess. Skip it!\n", d->id, channel->callid);
 		channel = sccp_channel_release(channel);
 		return;
@@ -1726,7 +1726,7 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 	if (lineInstance && callid && (channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid))) {
 		sccp_channel_endcall(channel);
 		channel = sccp_channel_release(channel);
-	} else  if ((channel = sccp_channel_get_active(d))) {
+	} else  if ((channel = sccp_device_getActiveChannel(d))) {
 		sccp_channel_endcall(channel);
 		channel = sccp_channel_release(channel);
 	} else {
@@ -2173,7 +2173,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	}
 	if (callid) {
 		if (d->active_channel && d->active_channel->callid == callid) {
-			channel = sccp_channel_get_active(d);
+			channel = sccp_device_getActiveChannel(d);
 			if (l && channel->line != l) {
 				l = sccp_line_release(l);
 			}
@@ -2195,7 +2195,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	 * should get the active channel on device
 	 */
 	if (!channel) {
-		channel = sccp_channel_get_active(d);
+		channel = sccp_device_getActiveChannel(d);
 		pbx_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel %d instead.\n", DEV_ID_LOG(d), callid, (l ? l->name : (channel ? channel->line->name : "Undef")), lineInstance, (channel ? channel->callid : 0));
 		if (channel && !l) {
 			l = sccp_line_retain(channel->line);
@@ -2549,7 +2549,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_indicate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
-			sccp_channel_set_active(d, channel);
+//			sccp_device_setActiveChannel(d, channel);			// replaced by setDevice
+
+//			if (d->active_channel != channel) {				// (RB: answer should have already done this)
+//				sccp_channel_setDevice(channel, d);
+//			}
             
 			uint16_t port = sccp_socket_getPort(&sas);
 			if (d->nat){
@@ -2934,7 +2938,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: EnblocCall, party: %s, lineInstance %d\n", DEV_ID_LOG(d), calledParty, lineInstance);
 
 		if (!sccp_strlen_zero(calledParty)) {
-			channel = sccp_channel_get_active(d);
+			channel = sccp_device_getActiveChannel(d);
 			if (channel) {
 				if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 					/* for anonymous devices we just want to call the extension defined in hotine->exten -> ignore dialed number -MC */
@@ -3213,7 +3217,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 #ifdef CS_SCCP_FEATURE_MONITOR
 		case SCCP_FEATURE_MONITOR:
 			if (TRUE == toggleState) {
-			        sccp_channel_t * channel = channel = sccp_channel_get_active(d);
+			        sccp_channel_t * channel = channel = sccp_device_getActiveChannel(d);
 				sccp_feat_monitor(d, NULL, 0, channel);
 				channel = channel ? sccp_channel_release(channel) : NULL;
 			}
