@@ -358,8 +358,8 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
-				if (SetEntries[y] == TRUE) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
+				if (SetEntries[y] == TRUE && strstr(sccpConfigSegment->config[y].name, "|")==0) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
 					return SCCP_CONFIG_NOUPDATENEEDED;
 				}
 			}
@@ -687,7 +687,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		skip = FALSE;
 		for (x = 0; x < sccpConfigSegment->config_size; x++) {
 			if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && SetEntries[x]) {
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
 				skip = TRUE;
 				break;
 			}
