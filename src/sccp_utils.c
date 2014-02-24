@@ -538,7 +538,8 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sas)
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d->session && IN6_ARE_ADDR_EQUAL(&d->session->sin,  sas) == 0 ) {
+//		if (d->session && IN6_ARE_ADDR_EQUAL(&d->session->sin,  sas) == 0 ) {
+		if (d->session && sccp_socket_cmp_addr(&d->session->sin,  sas) == 0 ) {
 			d = sccp_device_retain(d);
 			break;
 		}
