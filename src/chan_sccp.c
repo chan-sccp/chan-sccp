@@ -431,6 +431,7 @@ int load_config(void)
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);			// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
 
 		on = 1;
+
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
 		}
@@ -454,7 +455,7 @@ int load_config(void)
 			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
                         /* get ip-address string */
-			if (bind(GLOB(descriptor), (struct sockaddr *) &GLOB(bindaddr), sizeof(GLOB(bindaddr))) < 0) {	//replaced
+			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
 				pbx_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
 				GLOB(descriptor) = -1;
