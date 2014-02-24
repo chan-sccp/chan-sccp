@@ -568,8 +568,8 @@ typedef struct {
 struct sccp_ha {
 	struct sockaddr_storage netaddr;
 	struct sockaddr_storage netmask;
-	int sense;
 	struct sccp_ha *next;
+	int sense;
 };
 
 /*!
@@ -664,7 +664,7 @@ typedef enum {
 } sccp_call_statistics_type_t;
 
 typedef struct sccp_call_statistic {
-	char type[5];
+	char type[8];
 	uint32_t num;
 	uint32_t packets_sent;
 	uint32_t packets_received;
@@ -1144,13 +1144,13 @@ struct sccp_session {
  */
 struct sccp_rtp {
 	PBX_RTP_TYPE *rtp;											/*!< pbx rtp pointer */
+	uint16_t readState;											/*!< current read state */
+	uint16_t writeState;											/*!< current write state */
+	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
+	skinny_codec_t readFormat;										/*!< current read format */
+	skinny_codec_t writeFormat;										/*!< current write format */
 	struct sockaddr_storage phone;										/*!< our phone information (openreceive) */
 	struct sockaddr_storage phone_remote;									/*!< phone destination address (starttransmission) */
-	skinny_codec_t readFormat;										/*!< current read format */
-	uint8_t readState;											/*!< current read state */
-	skinny_codec_t writeFormat;										/*!< current write format */
-	uint8_t writeState;											/*!< current write state */
-	boolean_t directMedia;											/*!< Show if we are running in directmedia mode (set in pbx_impl during rtp bridging) */
 };														/*!< SCCP RTP Structure */
 
 /*!
@@ -1243,6 +1243,10 @@ struct sccp_channel {
  * \brief SCCP Global Variable Structure
  */
 struct sccp_global_vars {
+	int descriptor;												/*!< Server Socket Descriptor */
+	int keepalive;												/*!< KeepAlive */
+	int32_t debug;												/*!< Debug */
+	int module_running;
 	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
 
 #if ASTERISK_VERSION_GROUP < 110
@@ -1257,49 +1261,41 @@ struct sccp_global_vars {
 	SCCP_RWLIST_HEAD (, sccp_line_t) lines;									/*!< SCCP Lines */
 
 	sccp_mutex_t socket_lock;										/*!< Socket Lock */
+	sccp_mutex_t usecnt_lock;										/*!< Use Counter Asterisk Lock */
+	int usecnt;												/*!< Keep track of when we're in use. */
+	int amaflags;												/*!< AmaFlags */
 	pthread_t socket_thread;										/*!< Socket Thread */
 	pthread_t mwiMonitorThread;										/*!< MWI Monitor Thread */
-	int descriptor;												/*!< Server Socket Descriptor */
-	int usecnt;												/*!< Keep track of when we're in use. */
-	sccp_mutex_t usecnt_lock;										/*!< Use Counter Asterisk Lock */
 
-	int keepalive;												/*!< KeepAlive */
-	int32_t debug;												/*!< Debug */
-	char servername[StationMaxDisplayNotifySize];								/*!< ServerName */
-	char context[SCCP_MAX_CONTEXT];										/*!< Global / General Context */
 	char dateformat[8];											/*!< Date Format */
 
 	struct sockaddr_storage bindaddr;									/*!< Bind IP Address */
-	skinny_codec_t global_preferences[SKINNY_MAX_CAPABILITIES];						/*!< Global Asterisk Codecs */
-	boolean_t prefer_quality_over_size;									/*!< When deciding which codec to choose, prefer sound quality over packet size */
 	struct sccp_ha *ha;											/*!< Permit or deny connections to the main socket */
 	struct sccp_ha *localaddr;										/*!< Localnet for Network Address Translation */
 	struct sockaddr_storage externip;									/*!< External IP Address (\todo should change to an array of external ip's, because externhost could resolv to multiple ip-addresses (h_addr_list)) */
-	char externhost[MAXHOSTNAMELEN];									/*!< External HostName */
-	int externrefresh;											/*!< External Refresh */
-	time_t externexpire;											/*!< External Expire */
-
-	uint8_t firstdigittimeout;										/*!< First Digit Timeout. Wait up to 16 seconds for first digit */
-	int digittimeout;											/*!< Digit Timeout. How long to wait for following digits */
-	char digittimeoutchar;											/*!< Digit End Character. What char will force the dial (Normally '#') */
-	boolean_t recorddigittimeoutchar;									/*!< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
 	boolean_t simulate_enbloc;										/*!< Simulated Enbloc Dialing for older device to speed up dialing */
+	int externrefresh;											/*!< External Refresh */
+
+	time_t externexpire;											/*!< External Expire */
+	boolean_t recorddigittimeoutchar;									/*!< Record Digit Time Out Char. Whether to include the digittimeoutchar in the call logs */
+	uint8_t firstdigittimeout;										/*!< First Digit Timeout. Wait up to 16 seconds for first digit */
+	uint8_t digittimeout;											/*!< Digit Timeout. How long to wait for following digits */
+	char digittimeoutchar;											/*!< Digit End Character. What char will force the dial (Normally '#') */
 
 	uint8_t autoanswer_ring_time;										/*!< Auto Answer Ring Time */
 	uint8_t autoanswer_tone;										/*!< Auto Answer Tone */
 	uint8_t remotehangup_tone;										/*!< Remote Hangup Tone */
 	uint8_t transfer_tone;											/*!< Transfer Tone */
-	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
+	uint8_t dndmode;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
+	uint16_t protocolversion;										/*!< Skinny Protocol Version */
+	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 
-	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
-	char language[SCCP_MAX_LANGUAGE];									/*!< Language */
 
 #ifdef CS_MANAGER_EVENTS
 	boolean_t callevents;											/*!< Call Events */
 #endif
-	char accountcode[SCCP_MAX_ACCOUNT_CODE];								/*!< Account Code */
 
 	unsigned int sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
 	unsigned int audio_tos;											/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
@@ -1312,7 +1308,6 @@ struct sccp_global_vars {
 	boolean_t silencesuppression;										/*!< Silence Suppression Support (Boolean, default=on)  */
 	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=on) */
 	sccp_channelstate_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
-	uint8_t dndmode;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
 	boolean_t privacy;											/*!< Privacy Support (Length=2) */
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
@@ -1328,35 +1323,38 @@ struct sccp_global_vars {
 	sccp_group_t pickupgroup;										/*!< PickUp Group */
 	boolean_t directed_pickup_modeanswer;									/*!< Directed PickUp Mode Answer (boolean, default" on) */
 #endif
-	int amaflags;												/*!< AmaFlags */
-	uint8_t protocolversion;										/*!< Skinny Protocol Version */
 	call_answer_order_t callanswerorder;									/*!< Call Answer Order */
+	boolean_t meetme;											/*!< Meetme on/off */
+	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
+	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
+#if ASTERISK_VERSION_NUMBER >= 10400
+	struct ast_jb_conf global_jbconf;									/*!< Global Jitter Buffer Configuration */
+#endif
+	char servername[StationMaxDisplayNotifySize];								/*!< ServerName */
+	char context[SCCP_MAX_CONTEXT];										/*!< Global / General Context */
+	skinny_codec_t global_preferences[SKINNY_MAX_CAPABILITIES];						/*!< Global Asterisk Codecs */
+	char externhost[MAXHOSTNAMELEN];									/*!< External HostName */
+	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
+	char language[SCCP_MAX_LANGUAGE];									/*!< Language */
+	char accountcode[SCCP_MAX_ACCOUNT_CODE];								/*!< Account Code */
 	char regcontext[SCCP_MAX_CONTEXT];									/*!< Context for auto-extension (DUNDI) */
 #ifdef CS_SCCP_REALTIME
 	char realtimedevicetable[45];										/*!< Database Table Name for SCCP Devices */
 	char realtimelinetable[45];										/*!< Database Table Name for SCCP Lines */
 #endif
-	boolean_t meetme;											/*!< Meetme on/off */
-	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
-#if ASTERISK_VERSION_NUMBER >= 10400
-	struct ast_jb_conf global_jbconf;									/*!< Global Jitter Buffer Configuration */
-#endif
-
 	char used_context[SCCP_MAX_EXTENSION];									/*!< placeholder to check if context are already used in regcontext (DUNDI) */
-
-	boolean_t reload_in_progress;										/*!< Reload in Progress */
 
 	char *config_file_name;											/*!< SCCP Config File Name in Use */
 	struct ast_config *cfg;
-	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
 	sccp_hotline_t *hotline;										/*!< HotLine */
 
-	unsigned int pendingUpdate:1;
 	char *token_fallback;											/*!< Fall back immediatly on TokenReq (true/false/odd/even) */
 	int token_backoff_time;											/*!< Backoff time on TokenReject */
 	int server_priority;											/*!< Server Priority to fallback to */
 
-	int module_running;
+	boolean_t reload_in_progress;										/*!< Reload in Progress */
+
+	boolean_t pendingUpdate;
 };														/*!< SCCP Global Varable Structure */
 
 /*!
