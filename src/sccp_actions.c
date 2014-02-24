@@ -1,4 +1,4 @@
-
+ 
 /*!
  * \file	sccp_actions.c
  * \brief	SCCP Actions Class
@@ -289,7 +289,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 			        pp = popen(command, "r");
 			        if (pp != NULL) {
 			                while (fgets(buff, sizeof(buff), pp)) {
-			                        strncat(output, buff, strlen(output) - 1);
+			                        strncat(output, buff, 19 - strlen(output));
                                         }
                                         pclose(pp);
                                         sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: (token_request), script result='%s'\n", deviceName, (char *)output);
