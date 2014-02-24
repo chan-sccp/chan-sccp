@@ -1204,7 +1204,7 @@ struct sccp_channel {
 	} enbloc;
 
 	struct {
-		uint32_t digittimeout;										/*!< Schedule for Timeout on Dialing State */
+		int digittimeout;										/*!< Schedule for Timeout on Dialing State */
 	} scheduler;
 
 	boolean_t privacy;											/*!< Private */
