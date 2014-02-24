@@ -1539,6 +1539,59 @@ void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
 }
 
 /*!
+ * \brief Get Active Channel
+ * \param d SCCP Device
+ * \return SCCP Channel
+ */
+sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d)
+{
+	sccp_channel_t *channel;
+
+	if (!d || !d->active_channel) {
+		return NULL;
+	}
+
+	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n", d->id);
+
+	if (!(channel = sccp_channel_retain(d->active_channel))) {
+		return NULL;
+	}
+
+	if (channel->state == SCCP_CHANNELSTATE_DOWN) {
+		channel = sccp_channel_release(channel);
+		return NULL;
+	}
+
+	return channel;
+}
+
+/*!
+ * \brief Set SCCP Channel to Active
+ * \param d SCCP Device
+ * \param channel SCCP Channel
+ */
+void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * channel)
+{
+	sccp_device_t *device = NULL;
+
+	if ((device = sccp_device_retain(d))) {
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
+		if (device->active_channel && device->active_channel->line) {
+			device->active_channel->line->statistic.numberOfActiveChannels--;
+		}
+		sccp_channel_refreplace(device->active_channel, channel);
+		if (device->active_channel) {
+			sccp_channel_updateChannelDesignator(device->active_channel);
+			sccp_dev_set_activeline(device, device->active_channel->line);
+			if (device->active_channel->line) {
+				device->active_channel->line->statistic.numberOfActiveChannels++;
+			}
+		}
+		device = sccp_device_release(device);
+	}
+}
+
+/*!
  * \brief Reschedule Display Prompt Check
  * \param d SCCP Device
  *

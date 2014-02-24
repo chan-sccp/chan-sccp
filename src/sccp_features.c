@@ -85,7 +85,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 	}
 
 	/* look if we have a call  */
-	if ((c = sccp_channel_get_active(device))) {
+	if ((c = sccp_device_getActiveChannel(device))) {
 		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
 			// we have a channel, checking if
 			if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
@@ -152,7 +152,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 			pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", DEV_ID_LOG(device), l->name);
 			goto EXIT;
 		}
-		sccp_channel_set_active(device, c);
+//		sccp_device_setActiveChannel(device, c);
 
 		if (!sccp_pbx_channel_allocate(c, NULL)) {
 			pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
@@ -217,7 +217,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 	}
 
 	/* look if we have a call */
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		// we have a channel, checking if
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
 			// we are dialing but without entering a number :D -FS
@@ -251,7 +251,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-	sccp_channel_set_active(d, c);
+//	sccp_device_setActiveChannel(d, c);
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
@@ -386,7 +386,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 
 				pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		/* reset picked up channel */
 				sccp_channel_setDevice(c, d);
-				sccp_channel_set_active(d, c);
+//				sccp_device_setActiveChannel(d, c);
 				sccp_channel_updateChannelCapability(c);
 				if (d->directed_pickup_modeanswer) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
@@ -396,7 +396,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 					instance = sccp_device_find_index_for_line(d, c->line->name);
 					sccp_dev_stoptone(d, instance, c->callid);
 					sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-					sccp_channel_set_active(d, NULL);
+//					sccp_device_setActiveChannel(d, NULL);
 					c->ringermode = SKINNY_RINGTYPE_OUTSIDE;				// default ring
 					ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 					if (ringermode && !sccp_strlen_zero(ringermode)) {
@@ -513,7 +513,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);
 		sccp_channel_setDevice(c, d);
-		sccp_channel_set_active(d, c);
+//		sccp_device_setActiveChannel(d, c);
 		sccp_channel_updateChannelCapability(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);						/* connect calls - reinstate audio */
 	} else {
@@ -589,7 +589,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Voicemail Button pressed on line (%d)\n", d->id, lineInstance);
 
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		if (!c->line || sccp_strlen_zero(c->line->vmnum)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 			c = sccp_channel_release(c);
@@ -706,7 +706,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 	}
 
 	/* look if we have a call */
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		if (!sccp_channel_hold(c)) {
 			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_TEMP_FAIL, 5);
 			c = sccp_channel_release(c);
@@ -721,7 +721,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 		c->ss_data = 0;											/* not needed here */
 		c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-		sccp_channel_set_active(d, c);
+//		sccp_device_setActiveChannel(d, c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 		/* ok the number exist. allocate the asterisk channel */
@@ -954,7 +954,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	}
 
 	/* look if we have a call */
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		// we have a channel, checking if
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
 			// we are dialing but without entering a number :D -FS
@@ -986,7 +986,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-	sccp_channel_set_active(d, c);
+//	sccp_device_setActiveChannel(d, c);
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
@@ -1177,7 +1177,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 	}
 
 	/* look if we have a call */
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		// we have a channel, checking if
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
 			// we are dialing but without entering a number :D -FS
@@ -1209,7 +1209,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-	sccp_channel_set_active(d, c);
+//	sccp_device_setActiveChannel(d, c);
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
@@ -1269,7 +1269,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	}
 
 	/* look if we have a call */
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		// we have a channel, checking if
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
 			// we are dialing but without entering a number :D -FS
@@ -1303,7 +1303,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
-	sccp_channel_set_active(d, c);
+//	sccp_device_setActiveChannel(d, c);
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
@@ -1361,7 +1361,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 		return;
         }
 	sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: handling hotline\n", d->id);
-	if ((c = sccp_channel_get_active(d))) {
+	if ((c = sccp_device_getActiveChannel(d))) {
 		if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 			sccp_copy_string(c->dialedNumber, line->adhocNumber, sizeof(c->dialedNumber));
 

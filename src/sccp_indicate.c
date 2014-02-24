@@ -485,7 +485,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 		if ((remoteDevice = sccp_device_retain(linedevice->device))) {
 			/* check if we have one part of the remote channel */
-			if ((activeChannel = sccp_channel_get_active(remoteDevice))) {
+			if ((activeChannel = sccp_device_getActiveChannel(remoteDevice))) {
 				if (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
 					stateVisibility = SKINNY_CALLINFO_VISIBILITY_HIDDEN;
 				}
