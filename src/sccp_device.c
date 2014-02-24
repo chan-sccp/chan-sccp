@@ -398,7 +398,6 @@ sccp_device_t *sccp_device_create(const char *id)
 	}
 
 	memset(d, 0, sizeof(sccp_device_t));
-	pbx_mutex_init(&d->lock);
 	sccp_copy_string(d->id, id, sizeof(d->id));
 	SCCP_LIST_HEAD_INIT(&d->buttonconfig);
 	SCCP_LIST_HEAD_INIT(&d->selectedChannels);
@@ -1931,7 +1930,6 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
-	sccp_mutex_lock(&d->lock);										// using real device lock while using refcount
 
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart */
@@ -1995,8 +1993,6 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
-	sccp_mutex_unlock(&d->lock);										// using real device lock while using refcount
-	pbx_mutex_destroy(&d->lock);
 	return 0;
 }
 
