@@ -1010,7 +1010,8 @@ int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1)
 //	}
 
 
-	if (IN6_ARE_ADDR_EQUAL(s0, s1) && s0->ss_family == s1->ss_family ){
+//	if (IN6_ARE_ADDR_EQUAL(s0, s1) && s0->ss_family == s1->ss_family ){
+	if (sccp_socket_cmp_addr(s0, s1) && s0->ss_family == s1->ss_family ){
 		return 1;
 	}
 
