@@ -270,7 +270,7 @@ sccp_device_t *sccp_channel_getDevice_retained(const sccp_channel_t * channel)
  */
 void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * device)
 { 
-	if (!channel) {
+	if (!channel || !channel->privateData) {
 		return;
 	}
 	
