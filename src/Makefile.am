@@ -65,7 +65,7 @@ revision.h: Makefile .revision
 .revision: Makefile
 	@cd "@abs_top_srcdir@/src";																				\
 	if test -f @abs_builddir@/revision.h; then																		\
-		if test ! -z "`find @abs_builddir@/revision.h -mmin +10`"; then															\
+		if test ! -z "`find @abs_builddir@/revision.h -mmin +60`"; then															\
 			if test "`@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`"; then 	\
 				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;						\
 			fi 																					\
