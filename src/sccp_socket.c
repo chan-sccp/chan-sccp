@@ -377,11 +377,11 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 		return -1;
 	}
 
-	if (connect(sock, (const struct sockaddr *) &tmp_addr, sizeof(tmp_addr))) {
+	if (connect(sock, (const struct sockaddr *) &tmp_addr.ss, sizeof(tmp_addr))) {
 		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(&tmp_addr.ss));
 		return -1;
 	}
-	if (getsockname(sock, (struct sockaddr *) &tmp_addr, &slen)) {
+	if (getsockname(sock, (struct sockaddr *) &tmp_addr.ss, &slen)) {
 		close(sock);
 		return -1;
 	}
