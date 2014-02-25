@@ -39,6 +39,13 @@ void sccp_session_close(sccp_session_t * s);
 void sccp_socket_device_thread_exit(void *session);
 void *sccp_socket_device_thread(void *session);
 
+union sockaddr_union {
+	struct sockaddr sa;
+	struct sockaddr_storage ss;
+	struct sockaddr_in sin;
+	struct sockaddr_in6 sin6;
+};
+
 boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
 	return (sockAddrStorage->ss_family == AF_INET) ? TRUE : FALSE;
@@ -70,11 +77,7 @@ void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_
 
 int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 {
-	union {
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmp_addr = {
+	union sockaddr_union tmp_addr = {
 		.ss = *sockAddrStorage,
 	};
 
@@ -101,11 +104,7 @@ size_t sccp_socket_sizeof(const struct sockaddr_storage *sockAddrStorage)
 
 static int sccp_socket_is_ipv6_link_local(const struct sockaddr_storage *sockAddrStorage)
 {
-	union {
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmp_addr = {
+	union sockaddr_union tmp_addr = {
 		.ss = *sockAddrStorage,
 	};
 	return sccp_socket_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_LINKLOCAL(&tmp_addr.sin6.sin6_addr);
@@ -354,11 +353,7 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 	int sock;
 	socklen_t slen;
 
-	union {
-		struct sockaddr_storage ss;
-		struct sockaddr_in sin;
-		struct sockaddr_in6 sin6;
-	} tmp_addr = {
+	union sockaddr_union tmp_addr = {
 		.ss = *them,
 	};
 
@@ -377,11 +372,11 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 		return -1;
 	}
 
-	if (connect(sock, (const struct sockaddr *) &tmp_addr.ss, sizeof(tmp_addr))) {
+	if (connect(sock, &tmp_addr.sa, sizeof(tmp_addr))) {
 		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(&tmp_addr.ss));
 		return -1;
 	}
-	if (getsockname(sock, (struct sockaddr *) &tmp_addr.ss, &slen)) {
+	if (getsockname(sock, &tmp_addr.sa, &slen)) {
 		close(sock);
 		return -1;
 	}
