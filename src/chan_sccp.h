@@ -1048,7 +1048,7 @@ struct sccp_device {
 	struct {
 		softkey_modes *modes;										/*!< used softkeySet */
 		uint8_t size;											/*!< how many softkeysets are provided by modes */
-		uint8_t activeMask[16];										/*!< enabled softkeys mask */
+		uint32_t activeMask[16];									/*!< enabled softkeys mask */
 	} softKeyConfiguration;											/*!< SoftKeySet configuration */
 	
 	struct {
