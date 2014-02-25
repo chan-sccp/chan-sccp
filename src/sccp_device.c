@@ -405,7 +405,7 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
 #endif
-	memset(d->softKeyConfiguration.activeMask, 0xFF, sizeof(d->softKeyConfiguration.activeMask));
+	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
 
 	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
