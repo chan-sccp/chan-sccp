@@ -1477,6 +1477,12 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		}
 
 		PBX(set_connected_line) (channel, channel->callInfo.calledPartyNumber, channel->callInfo.calledPartyName, AST_CONNECTED_LINE_UPDATE_SOURCE_ANSWER);
+		
+		/** check for monitor request */
+		if ( (device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_REQUESTED) && !(device->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE)) {
+			pbx_log(LOG_NOTICE, "%s: request monitor\n", device->id);
+			sccp_feat_monitor(non_const_device, NULL, 0, channel);
+		}
 
 		sccp_indicate(non_const_device, channel, SCCP_CHANNELSTATE_CONNECTED);
 		non_const_device = sccp_device_release(non_const_device);
