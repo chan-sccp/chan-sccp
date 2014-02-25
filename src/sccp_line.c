@@ -318,9 +318,9 @@ int __sccp_line_destroy(const void *ptr)
 		SCCP_LIST_HEAD_DESTROY(&l->devices);
 	}
 	// cleanup mailboxes
-	if (l->trnsfvm) {
-		sccp_free(l->trnsfvm);
-	}
+//	if (l->trnsfvm) {
+//		sccp_free(l->trnsfvm);
+//	}
 	sccp_mailbox_t *mailbox = NULL;
 
 	SCCP_LIST_LOCK(&l->mailboxes);
@@ -341,14 +341,16 @@ int __sccp_line_destroy(const void *ptr)
 	if (SCCP_LIST_EMPTY(&l->mailboxes)) {
 		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
 	}
-#if CS_AST_HAS_NAMEDGROUP
-	if (l->namedcallgroup) {
-		sccp_free(l->namedcallgroup);
-	}
-	if (l->namedpickupgroup) {
-		sccp_free(l->namedpickupgroup);
-	}
-#endif
+//#if CS_AST_HAS_NAMEDGROUP
+//	if (l->namedcallgroup) {
+//		sccp_free(l->namedcallgroup);
+//	}
+//	if (l->namedpickupgroup) {
+//		sccp_free(l->namedpickupgroup);
+//	}
+//#endif
+	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
+	
 	
 	// cleanup channels
 	sccp_channel_t *c = NULL;
