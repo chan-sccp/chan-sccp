@@ -850,6 +850,9 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 
 static int sccp_wrapper_asterisk111_setNativeVideoFormats(const sccp_channel_t * channel, uint32_t formats)
 {
+    struct ast_format fmt;
+    ast_format_set(&fmt, skinny_codec2pbx_codec(formats), 0);
+    ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
 	return 1;
 }
 
@@ -3050,6 +3053,7 @@ static int load_module(void)
 
 	sccp_tech.capabilities = ast_format_cap_alloc();
 	ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_AUDIO);
+ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_VIDEO);
 
 	io = io_context_create();
 	if (!io) {
