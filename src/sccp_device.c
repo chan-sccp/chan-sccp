@@ -1004,6 +1004,11 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 	}
 #endif
 
+	/* deactivate monitor softkey for all states excl. connected -MC */
+	if (softKeySetIndex != KEYMODE_CONNTRANS && softKeySetIndex != KEYMODE_CONNECTED) {
+		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_MONITOR, FALSE);
+	}
+
 	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 
@@ -1846,16 +1851,15 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		/** normaly we should only remove this when removing the device from globals,
 		 *  in this case we can do this also when device unregistered, so we do not set this multiple times -MC
 		 */
-//		if (d->backgroundImage) {
-//			sccp_free(d->backgroundImage);
-//			d->backgroundImage = NULL;
-//		}
+		if (d->backgroundImage) {
+			sccp_free(d->backgroundImage);
+			d->backgroundImage = NULL;
+		}
 
-//		if (d->ringtone) {
-//			sccp_free(d->ringtone);
-//			d->ringtone = NULL;
-//		}
-		sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
+		if (d->ringtone) {
+			sccp_free(d->ringtone);
+			d->ringtone = NULL;
+		}
 
 		/* hang up open channels and remove device from line */
 		sccp_device_t *tmpDevice = NULL;
