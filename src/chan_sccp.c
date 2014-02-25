@@ -756,9 +756,10 @@ int sccp_preUnload(void)
 	if (GLOB(config_file_name)) {
 		sccp_free(GLOB(config_file_name));
 	}
-        if (GLOB(token_fallback)) {
-        	sccp_free(GLOB(token_fallback));
-	}
+//        if (GLOB(token_fallback)) {
+//       	sccp_free(GLOB(token_fallback));
+//	}
+	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
                                 
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));

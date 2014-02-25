@@ -790,6 +790,47 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	}
 }
 
+/*
+ * \brief automatically free all STRINGPTR objects allocated during config parsing and object initialization
+ *
+ * \note This makes it easier to change character arrays to stringptr in structs, without having to think about cleaning up after them.
+ *
+ */
+void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment) 
+{
+	const SCCPConfigOption *sccpConfigOption = sccp_find_segment(segment)->config;
+	uint8_t i = 0, arraySize = 0;
+	void *dst;
+	char *str;
+
+	switch (segment) {
+		case SCCP_CONFIG_GLOBAL_SEGMENT:
+			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
+			break;
+		case SCCP_CONFIG_DEVICE_SEGMENT:
+			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
+			break;
+		case SCCP_CONFIG_LINE_SEGMENT:
+			arraySize = ARRAY_LEN(sccpLineConfigOptions);
+			break;
+		case SCCP_CONFIG_SOFTKEY_SEGMENT:
+			pbx_log(LOG_ERROR, "softkey default loading not implemented yet\n");
+			break;
+	}
+	
+	for (i = 0; i < arraySize; i++) {
+		if (sccpConfigOption[i].type == SCCP_CONFIG_DATATYPE_STRINGPTR) {
+			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
+			str = *(void **) dst;
+			if (str) {
+//				pbx_log(LOG_NOTICE, "SCCP: Freeing '%s'\n", sccpConfigOption[i].name);
+				sccp_free(str);
+				str = NULL;
+			}
+		}	
+	}		
+}
+
 /*!
  * \brief Config Converter/Parser for Bind Address
  *
