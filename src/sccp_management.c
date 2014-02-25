@@ -900,6 +900,13 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					} else {
 						d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					}
+					sccp_msg_t *msg_out = NULL;
+					REQ(msg_out, RecordingStatusMessage);
+					
+					msg_out->data.RecordingStatusMessage.lel_callReference = htolel(channel->callid);
+					msg_out->data.RecordingStatusMessage.lel_status = (d->monitorFeature.status & SCCP_FEATURE_MONITOR_STATE_ACTIVE) ? htolel(1) : htolel(0);
+					sccp_dev_send(d, msg_out);
+					
 					sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 					d = sccp_device_release(d);
 				}
