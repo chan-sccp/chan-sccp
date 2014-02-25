@@ -2872,6 +2872,8 @@ typedef union {
 	} CallCountRespMessage;											/*!< CallCount Response Message Structure */
 
 	struct {
+		uint32_t lel_callReference;
+		uint32_t lel_status;
 	} RecordingStatusMessage;										/*!< Recording Status Message Structure */
 
 } sccp_data_t;													/*!< SKINNY Data Structure */
@@ -3107,7 +3109,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_MEETME,
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
-	SKINNY_LBL_RMLSTC,
+	SKINNY_LBL_MONITOR,
 	SKINNY_LBL_CALLBACK,
 	SKINNY_LBL_BARGE,
 	SKINNY_LBL_DND,
@@ -3121,7 +3123,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_INTRCPT,
 	SKINNY_LBL_EMPTY,
 	SKINNY_LBL_DIAL,
-	//      SKINNY_LBL_CBARGE,
+//      SKINNY_LBL_CBARGE,
 };														/*!< SKINNY Soft Keys Map as INT */
 
 /*!
@@ -3234,6 +3236,7 @@ static uint8_t skSet_Conntrans[] = {
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
 	SKINNY_LBL_VIDEO_MODE,
+	SKINNY_LBL_MONITOR,
 	//      SKINNY_LBL_CFWDNOANSWER,
 };														/*!< SKINNY SoftKeys Set "Connected With Transfer" as INT */
 
