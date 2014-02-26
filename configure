@@ -649,8 +649,6 @@ LIBOBJS
 CPU_OPTIONS
 csmoddir
 PBX_MODDIR
-GCFLAGS
-GCLIBS
 LIBEXSLT_LIBS
 LIBEXSLT_CFLAGS
 CS_EXPERIMENTAL_XML_FALSE
@@ -980,7 +978,6 @@ enable_videolayer
 enable_distributed_devicestate
 enable_experimental_mode
 enable_experimental_xml
-with_libgc
 with_astmoddir
 '
       ac_precious_vars='build_alias
@@ -1711,8 +1708,6 @@ Optional Packages:
   --with-hash-size        to provide room for higher number of phones (>200),
                           specify a prime number, bigger then number of phones
                           times 4 (default=536)
-  --with-libgc=yes|no     use garbage collector (libgc) as allocator
-                          (experimental)
   --with-astmoddir=PATH   Location of the Asterisk Module Directory
 
 Some influential environment variables:
@@ -30634,112 +30629,6 @@ $as_echo "$as_me: --enable-experimental-xml: ${ac_cv_experimental_xml} (only for
 
 
 
-
-# Check whether --with-libgc was given.
-if test "${with_libgc+set}" = set; then :
-  withval=$with_libgc; uselibgc="$withval"
-fi
-
-	if test "x$uselibgc" = "xyes"; then
-	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GC_malloc in -lgc" >&5
-$as_echo_n "checking for GC_malloc in -lgc... " >&6; }
-if ${ac_cv_lib_gc_GC_malloc+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgc  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char GC_malloc ();
-int
-main ()
-{
-return GC_malloc ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gc_GC_malloc=yes
-else
-  ac_cv_lib_gc_GC_malloc=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gc_GC_malloc" >&5
-$as_echo "$ac_cv_lib_gc_GC_malloc" >&6; }
-if test "x$ac_cv_lib_gc_GC_malloc" = xyes; then :
-
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for GC_pthread_create in -lgc" >&5
-$as_echo_n "checking for GC_pthread_create in -lgc... " >&6; }
-if ${ac_cv_lib_gc_GC_pthread_create+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgc  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char GC_pthread_create ();
-int
-main ()
-{
-return GC_pthread_create ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gc_GC_pthread_create=yes
-else
-  ac_cv_lib_gc_GC_pthread_create=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gc_GC_pthread_create" >&5
-$as_echo "$ac_cv_lib_gc_GC_pthread_create" >&6; }
-if test "x$ac_cv_lib_gc_GC_pthread_create" = xyes; then :
-
-
-$as_echo "#define HAVE_LIBGC 1" >>confdefs.h
-
-		GCLIBS="-lgc"
-		GCFLAGS="-DGC_LINUX_THREADS -D_REENTRANT"
-		msg_gc=yes
-
-fi
-
-
-else
-  as_fn_error $? "*** LIBGC support will not be built (LIBGC library not found) ***" "$LINENO" 5
-
-fi
-
-	fi
-	if test "${enable_debug}" = "yes"; then
-		GCFLAGS="$GCFLAGS -DGC_FIND_LEAK -DGC_PRINT_STATS"
-	fi
-
-
-
-
 CFLAGS=${CFLAGS_saved}
 CPPFLAGS=${CPPFLAGS_saved}
 LDFLAGS=${LDFLAGS_saved}
@@ -33766,7 +33655,7 @@ echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
 echo "        CPPFLAGS : ${CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${GCLIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "         PBX_LIB : ${PBX_LIB}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"

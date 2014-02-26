@@ -517,16 +517,6 @@ boolean_t sccp_prePBXLoad()
 {
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
 	
-#ifdef HAVE_LIBGC
-	GC_INIT();
-	(void) GC_set_warn_proc(gc_warn_handler);
-
-	GC_enable();
-#if DEBUG > 0
-	GC_find_leak = 1;
-#endif
-#endif
-
 	/* make globals */
 	sccp_globals = (struct sccp_global_vars *) sccp_malloc(sizeof(struct sccp_global_vars));
 	if (!sccp_globals) {
@@ -721,9 +711,7 @@ int sccp_preUnload(void)
 	if ((GLOB(socket_thread) != AST_PTHREADT_NULL) && (GLOB(socket_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(socket_thread));
 		pthread_kill(GLOB(socket_thread), SIGURG);
-#ifndef HAVE_LIBGC
 		pthread_join(GLOB(socket_thread), NULL);
-#endif
 	}
 	GLOB(socket_thread) = AST_PTHREADT_STOP;
 	sccp_globals_unlock(socket_lock);

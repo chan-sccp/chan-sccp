@@ -982,18 +982,6 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 	return msg;
 }
 
-#ifdef HAVE_LIBGC
-
-/*!
- * \brief Verbose Logging Hanler for the GC Garbage Collector
- */
-void gc_warn_handler(char *msg, GC_word p)
-{
-	pbx_log(LOG_ERROR, "LIBGC: WARNING");
-	pbx_log(LOG_ERROR, msg, (unsigned long) p);
-}
-#endif
-
 /*!
  * \brief Compare the information of two socket with one another
  * \param s0 Socket Information

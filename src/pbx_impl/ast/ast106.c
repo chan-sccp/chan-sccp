@@ -3067,9 +3067,7 @@ static int unload_module(void)
 	if ((GLOB(monitor_thread) != AST_PTHREADT_NULL) && (GLOB(monitor_thread) != AST_PTHREADT_STOP)) {
 		pthread_cancel(GLOB(monitor_thread));
 		pthread_kill(GLOB(monitor_thread), SIGURG);
-#ifndef HAVE_LIBGC
 		pthread_join(GLOB(monitor_thread), NULL);
-#endif
 	}
 	GLOB(monitor_thread) = AST_PTHREADT_STOP;
 

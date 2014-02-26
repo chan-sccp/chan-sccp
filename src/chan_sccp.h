@@ -137,23 +137,6 @@ char sccp_revisionstr[30];
 
 #define GLOB(x) sccp_globals->x
 
-#ifdef HAVE_LIBGC
-#if HAVE_LIBPTHREAD
-#define GC_PTHREADS
-#define GC_THREADS
-#undef _REENTRANT
-#define _REENTRANT
-
-//#            define GC_REDIRECT_TO_LOCAL
-#include <gc/gc_local_alloc.h>
-#include <gc/gc_backptr.h>
-#endif
-#include <gc/gc.h>
-#define CHECK_LEAKS() GC_gcollect()
-#else
-#define CHECK_LEAKS()
-#endif
-
 #if defined(LOW_MEMORY)
 #define SCCP_FILE_VERSION(file, version)
 #else

@@ -16,35 +16,11 @@
 #define pbx_context ast_context
 #define pbx_module ast_module
 // sccp redefinitions
-#ifdef HAVE_LIBGC
-#undef malloc
-#undef calloc
-#undef realloc
-#undef strdup
-#define malloc(x) GC_MALLOC(x)
-#define calloc(n,x) GC_MALLOC((n)*(x))
-#define realloc(p,x) GC_REALLOC((p),(x))
-#define strdup(s) GC_STRDUP((s))
-#define sccp_malloc(x) GC_MALLOC(x)
-#define sccp_calloc(n,x) GC_MALLOC((n)*(x))
-#define sccp_realloc(p,x) GC_REALLOC((p),(x))
-#define sccp_strdup(s) GC_STRDUP((s))
-#undef free
-#undef sccp_free
-#if DEBUG > 0
-#define free(x) { (x) = NULL; GC_FREE(x); }
-#define sccp_free(x) { (x) = NULL; GC_FREE(x); }
-#else
-#define free(x) { (x) = NULL; }
-#define sccp_free(x) { (x) = NULL; }
-#endif
-#else
 #define sccp_malloc ast_malloc
 #define sccp_calloc ast_calloc
 #define sccp_realloc ast_realloc
 #define sccp_strdup ast_strdup
 #define sccp_free(x) {ast_free((void *)x); (x) = NULL; }
-#endif
 #define sccp_asprintf ast_asprintf
 #define sccp_vasprintf ast_vasprintf
 #define sccp_calloc_cache ast_calloc_cache

@@ -3106,13 +3106,8 @@ static int unload_module(void)
 		sched = NULL;
 	}
 
-	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Running Cleanup\n");
-#ifdef HAVE_LIBGC
-	//      sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Collect a little:%d\n",GC_collect_a_little());
-	//      CHECK_LEAKS();
-	//      GC_gcollect();
-#endif
+	sccp_free(sccp_globals);
 	pbx_log(LOG_NOTICE, "Module chan_sccp unloaded\n");
 	return 0;
 }
