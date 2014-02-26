@@ -1175,6 +1175,23 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *channel)
 	}
 	SCCP_LIST_UNLOCK(&channel->line->channels);
 }
+
+/*!
+ * \brief Scheduled Hangup for a channel channel (Used by invalid number)
+ */
+int sccp_channel_sched_endcall_by_callid(const void *data)
+{
+	uint32_t callid = *(uint32_t *)data;
+	sccp_channel_t *channel;
+	
+	if (callid && (channel = sccp_channel_find_byid(callid))) {
+		channel->scheduler.hangup = 0;
+		sccp_channel_endcall(channel);
+		channel = sccp_channel_release(channel);
+	}
+	return 0;
+}
+
 /*!
  * \brief Hangup this channel.
  * \param channel *retained* SCCP Channel
@@ -1761,6 +1778,10 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	d = sccp_channel_getDevice_retained(channel);
 	// l = channel->line;
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %08x\n", channel->callid);
+	
+	if (channel->scheduler.hangup) {
+		channel->scheduler.hangup = SCCP_SCHED_DEL(channel->scheduler.hangup);
+	}
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (channel->owner) {

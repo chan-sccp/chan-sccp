@@ -371,7 +371,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		}
 
 		if (res == 0) {
-			SCCP_SCHED_DEL(c->scheduler.digittimeout);
+			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			c->calltype = SKINNY_CALLTYPE_INBOUND;
 			c->state = SCCP_CHANNELSTATE_PROCEED;
 			c->answered_elsewhere = TRUE;
