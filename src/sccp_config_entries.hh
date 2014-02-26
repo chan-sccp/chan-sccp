@@ -61,8 +61,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																														  							"not all the tones can be played in a connected state, so you have to try.\n"},
 	{"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Passive hangup notification. 0 for none\n"},
 	{"transfer_tone", 		G_OBJ_REF(transfer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Confirmation tone on transfer. Works only between SCCP devices\n"},
-	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									
-SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time (default: 'off').\n"
+	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time (default: 'off').\n"
 																																					"Will complete transfer, when the transferer hangups up, after the destination has been reached.\n"
 																																					"To cancel the transfer, either press resume on the transfered channel or have the receiving party hangup first.\n"},
 	{"callwaiting_tone", 		G_OBJ_REF(callwaiting_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x2d",				"Sets to 0 to disable the callwaiting tone\n"},
@@ -186,11 +185,11 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"imageversion", 		D_OBJ_REF(imageversion), 		TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)\n"},
 	{"deny|permit", 		D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"
 																																					"This device can register only using this ip address\n"},
-	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Type of Service (TOS)  (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"
+	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Type of Service (TOS)  (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"
 																																					"Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none\n"},
-	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
-	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the video/rtp packets Type of Service (TOS)  (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
-	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS) (defaults to 5)\n"},
+	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
+	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the video/rtp packets Type of Service (TOS)  (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
+	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS) (defaults to 5)\n"},
 	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
 	{"nat", 			D_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support (default Off)\n"},
