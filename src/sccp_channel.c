@@ -1161,19 +1161,18 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
 /*
  * \brief End all forwarding parent channels
  */
-void sccp_channel_end_forwarding_channel(sccp_channel_t *channel) 
+void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel) 
 {
-	sccp_channel_t *c;
-	SCCP_LIST_LOCK(&channel->line->channels);
-	SCCP_LIST_TRAVERSE(&channel->line->channels, c, list) {
-		if (c->parentChannel == channel) {
+	sccp_channel_t *c = NULL;
+	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&orig_channel->line->channels, c, list) {
+		if (c->parentChannel == orig_channel) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel\n", c->designator);
 			c->parentChannel = sccp_channel_release(c->parentChannel);
 			sccp_channel_endcall(c);
-			channel->answered_elsewhere = TRUE;
+			orig_channel->answered_elsewhere = TRUE;
 		}
 	}
-	SCCP_LIST_UNLOCK(&channel->line->channels);
+	SCCP_LIST_TRAVERSE_SAFE_END;
 }
 
 /*!
