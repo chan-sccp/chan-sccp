@@ -856,7 +856,6 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	char *option_name = "";
 	char *option_tokens = "";
 	char *option_tokens_saveptr;
-	int token_index = 0;
 
 	boolean_t referralValueFound = FALSE;
 	PBX_VARIABLE_TYPE *v;
@@ -937,7 +936,6 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
 				option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
 				first_option_name = strdupa(option_name);
-				token_index = 0;
 				while (option_name != NULL) {
 					/* search for the default values in the referred segment, if found break so we can pass on the cat_root */
 					for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
@@ -948,11 +946,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 						}
 					}
 					option_name = strtok_r(NULL, "|", &option_tokens_saveptr);
-					token_index++;
 				}
-			}
-			
-			if (referral_cat) {
+				
 				if (referralValueFound) {				/* if referred to other segment and a value was found, pass the newly found cat_root directly to setValue */
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Refer parameter %s to %s\n", first_option_name, referral_cat);
 					sccp_config_object_setValue(obj, cat_root, sccpDstConfig[i].name, "", 0, segment, SetEntries);
