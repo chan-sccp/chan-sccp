@@ -137,7 +137,7 @@ void sccp_handle_XMLAlarmMessage(sccp_session_t * no_s, sccp_device_t * no_d, sc
 	   char neighborPortID[StationMaxNameSize];
 	 */
 
-	char *xmlData = sccp_strdupa((char *) &msg_in->data.RegisterMessage);
+	char *xmlData = sccp_strdupa((char *) &msg_in->data.XMLAlarmMessage);
 	char *state = "";
 	char *line = "";
 
@@ -229,7 +229,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	// Search for the device (including realtime), if does not exist and hotline is requested create one.
 	device = sccp_device_find_byid(deviceName, TRUE);
 	if (!device && GLOB(allowAnonymous)) {
-		device = sccp_device_createAnonymous(msg_in->data.RegisterMessage.sId.deviceName);
+		device = sccp_device_createAnonymous(msg_in->data.RegisterTokenRequest.sId.deviceName);
 		sccp_config_applyDeviceConfiguration(device, NULL);
 		sccp_config_addButton(&device->buttonconfig, 1, LINE, GLOB(hotline)->line->name, NULL, NULL);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: hotline name: %s\n", deviceName, GLOB(hotline)->line->name);
@@ -249,7 +249,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	device->skinny_type = deviceType;
 
 	if (device->checkACL(device) == FALSE) {
-		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterMessage.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
+		pbx_log(LOG_NOTICE, "%s: Rejecting device: Ip address '%s' denied (deny + permit/permithosts).\n", msg_in->data.RegisterTokenRequest.sId.deviceName, sccp_socket_stringify_addr(&s->sin));
 		device->registrationState = SKINNY_DEVICE_RS_FAILED;
 		s = sccp_session_reject(s, "IP Not Authorized");
 		goto EXITFUNC;
