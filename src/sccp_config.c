@@ -839,60 +839,36 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
  */
 static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
 {
-	uint8_t i = 0;
+	if (!GLOB(cfg)) {
+		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+		return;
+	}
+	/* destination segment */
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
-	const SCCPConfigOption *sccpDstConfig = sccp_find_segment(segment)->config;
-	const SCCPConfigOption *sccpDefaultConfigOption;
-	sccp_device_t *my_device = NULL;
-	sccp_line_t *my_line = NULL;
-	int flags;												/* enum wrapper */
-	int type;												/* enum wrapper */
 
-	sccp_device_t *referral_device = NULL;									/* need to find a way to find the default device to copy */
+	/* destination/source config */
+	const SCCPConfigOption *sccpDstConfig = sccpConfigSegment->config;
+	const SCCPConfigOption *sccpDefaultConfigOption;
+
+	/* segment referral for default values  */
+ 	sccp_device_t *referral_device = NULL;									/* need to find a way to find the default device to copy */
 	char *referral_cat = "";
 	sccp_config_segment_t search_segment_type;
+	boolean_t referralValueFound = FALSE;
 
+	/* tokenparsing */
 	char *first_option_name = "";
 	char *option_name = "";
 	char *option_tokens = "";
 	char *option_tokens_saveptr;
 
-	boolean_t referralValueFound = FALSE;
-	PBX_VARIABLE_TYPE *v;
-	PBX_VARIABLE_TYPE *cat_root;
-	uint8_t arraySize = 0;
-
 	// already Set
 	int x;
 	boolean_t skip = FALSE;
 
-	/* check if not already set using it's own parameter in the sccp.conf file */
-	switch (segment) {
-		case SCCP_CONFIG_GLOBAL_SEGMENT:
-			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
-			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "setting [general] defaults\n");
-			break;
-		case SCCP_CONFIG_DEVICE_SEGMENT:
-			my_device = &(*(sccp_device_t *) obj);
-			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
-			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
-			break;
-		case SCCP_CONFIG_LINE_SEGMENT:
-			my_line = &(*(sccp_line_t *) obj);
-			arraySize = ARRAY_LEN(sccpLineConfigOptions);
-			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL");
-			break;
-		case SCCP_CONFIG_SOFTKEY_SEGMENT:
-			pbx_log(LOG_ERROR, "softkey default loading not implemented yet\n");
-			break;
-	}
-	if (!GLOB(cfg)) {
-		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
-		return;
-	}
 	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
-	for (i = 0; i < arraySize; i++) {
-
+	uint8_t i = 0;
+	for (i = 0; i < sccpConfigSegment->config_size; i++) {
 		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the SetEntries array and check the boolean flag, skip if true */
 		skip = FALSE;
 		for (x = 0; x < sccpConfigSegment->config_size; x++) {
@@ -905,8 +881,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		if (skip) {											// skip default value if already set
 			continue;
 		}
-		flags = sccpDstConfig[i].flags;
-		type = sccpDstConfig[i].type;
+		int flags = sccpDstConfig[i].flags;
+		int type = sccpDstConfig[i].type;
 
 		if (((flags & SCCP_CONFIG_FLAG_OBSOLETE) != SCCP_CONFIG_FLAG_OBSOLETE)) {			// has not been set already and is not obsolete
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, option_name, flags, type);
@@ -931,6 +907,9 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 			/* check to see if there is a default value to be found in the config file within referred segment */
 			if (referral_cat) {
 				/* tokenize all option parameters */
+				PBX_VARIABLE_TYPE *v;
+				PBX_VARIABLE_TYPE *cat_root;
+
 				referralValueFound = FALSE;
 				option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
 				sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
@@ -983,27 +962,13 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
  */
 void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment) 
 {
-	const SCCPConfigOption *sccpConfigOption = sccp_find_segment(segment)->config;
-	uint8_t i = 0, arraySize = 0;
+	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
+	const SCCPConfigOption *sccpConfigOption = sccpConfigSegment->config;
 	void *dst;
 	char *str;
 
-	switch (segment) {
-		case SCCP_CONFIG_GLOBAL_SEGMENT:
-			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
-			break;
-		case SCCP_CONFIG_DEVICE_SEGMENT:
-			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
-			break;
-		case SCCP_CONFIG_LINE_SEGMENT:
-			arraySize = ARRAY_LEN(sccpLineConfigOptions);
-			break;
-		case SCCP_CONFIG_SOFTKEY_SEGMENT:
-			pbx_log(LOG_ERROR, "softkey default loading not implemented yet\n");
-			break;
-	}
-	
-	for (i = 0; i < arraySize; i++) {
+	uint8_t i = 0;
+	for (i = 0; i < sccpConfigSegment->config_size; i++) {
 		if (sccpConfigOption[i].type == SCCP_CONFIG_DATATYPE_STRINGPTR) {
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(void **) dst;
