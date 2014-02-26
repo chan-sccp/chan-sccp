@@ -118,9 +118,6 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
 char *sccp_get_debugcategories(int32_t debugvalue);
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
-#ifdef HAVE_LIBGC
-void gc_warn_handler(char *msg, GC_word p);
-#endif
 int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1);
 gcc_inline size_t sccp_strlen(const char *data);
 gcc_inline boolean_t sccp_strlen_zero(const char *data);

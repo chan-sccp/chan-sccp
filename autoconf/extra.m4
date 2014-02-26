@@ -877,28 +877,6 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_EXPERIMENTAL_XML
 ])
 
-AC_DEFUN([CS_PARSE_WITH_LIBGC], [
-	AC_ARG_WITH(libgc,
-	  [AC_HELP_STRING([--with-libgc=yes|no],[use garbage collector (libgc) as allocator (experimental)])],
-	    uselibgc="$withval")
-	if test "x$uselibgc" = "xyes"; then
-	  AC_CHECK_LIB(gc,GC_malloc,[
-	    AC_CHECK_LIB(gc,GC_pthread_create,[
-		AC_DEFINE(HAVE_LIBGC, 1, [Define to 1 if libgc is available])
-		GCLIBS="-lgc"
-		GCFLAGS="-DGC_LINUX_THREADS -D_REENTRANT"
-		msg_gc=yes
-	    ])
-	  ], [AC_MSG_ERROR(*** LIBGC support will not be built (LIBGC library not found) ***)
-	  ])
-	fi
-	if test "${enable_debug}" = "yes"; then
-		GCFLAGS="$GCFLAGS -DGC_FIND_LEAK -DGC_PRINT_STATS"
-	fi
-	AC_SUBST(GCLIBS)
-	AC_SUBST(GCFLAGS)
-])
-
 AC_DEFUN([CS_SETUP_MODULE_DIR], [
 	AC_ARG_WITH([astmoddir],
 	    [AC_HELP_STRING([--with-astmoddir=PATH],[Location of the Asterisk Module Directory])],

@@ -442,9 +442,6 @@
 /* Define to 1 if you have the <libexslt/exslt.h> header file. */
 #undef HAVE_LIBEXSLT_EXSLT_H
 
-/* Define to 1 if libgc is available */
-#undef HAVE_LIBGC
-
 /* Define to 1 if you have the `ltdl' library (-lltdl). */
 #undef HAVE_LIBLTDL
 
