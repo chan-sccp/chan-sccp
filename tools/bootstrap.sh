@@ -63,6 +63,10 @@ autoconf${MY_AC_VER}
 
 echo "Running configure script..."
 echo
-./configure
+if test -f config.log; then
+	make
+else
+	./configure
+fi
 
 exit 0
