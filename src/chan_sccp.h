@@ -703,7 +703,7 @@ struct sccp_cfwd_information {
  * \note for addressing individual devices on shared line
  */
 struct subscriptionId {
-	char number[8];												/*!< will be added to cid */
+	char number[SCCP_MAX_EXTENSION];									/*!< will be added to cid */
 	char name[SCCP_MAX_EXTENSION];										/*!< will be added to cidName */
 	char aux[SCCP_MAX_EXTENSION];										/*!< auxiliary parameter. Allows for phone-specific behaviour on a line. */
 };
