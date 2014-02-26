@@ -1205,6 +1205,7 @@ struct sccp_channel {
 
 	struct {
 		int digittimeout;										/*!< Schedule for Timeout on Dialing State */
+		int hangup;											/*!< Automatic hangup after invalid/congested indication */
 	} scheduler;
 
 	boolean_t privacy;											/*!< Private */
@@ -1380,7 +1381,7 @@ struct sccp_hotline {
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); 		\
 	} 														\
 	id = -1; 			/* this might be seen as a side effect */					\
-/*	(_sched_res); */ 		/* return value never used */							\
+	(_sched_res); 	 												\
 })
 
 extern struct sccp_global_vars *sccp_globals;
