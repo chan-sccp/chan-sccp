@@ -1077,22 +1077,6 @@ typedef union {
 	 * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 52 49 4E 47 ............RING
 	 * 00000040 - 00 00 00 00                                     ....
 	 */
-/*
-                <field name="sid" type="typedef" subtype="Identifier" comment="" orig="Identifier sid"/>
-                <field name="stationIpAddr" type="uint32" comment="" orig="UINT32 stationIpAddr"/>
-                <field name="deviceType" type="enum" subtype="DeviceType" comment="" orig="DeviceType deviceType"/>
-                <field name="maxStreams" type="uint32" comment="" orig="UINT32 maxStreams"/>
-                <field name="activeStreams" type="uint32" comment="" orig="UINT32 activeStreams"/>
-                <field name="protocolVer" type="uint32" comment="" orig="UINT32 protocolVer"/>
-                <field name="maxConferences" type="uint32" comment="" orig="UINT32 maxConferences"/>
-                <field name="activeConferences" type="uint32" comment="" orig="UINT32 activeConferences"/>
-                <field name="macAddress" type="char" size="12" comment="" orig="char macAddress"/>
-                <field name="ipV4AddressScope" type="uint32" comment="" orig="UINT32 ipV4AddressScope"/>
-                <field name="maxNumberOfLines" type="uint32" comment="" orig="UINT32 maxNumberOfLines"/>
-                <field name="stationIpV6Addr" type="ipaddr" subtype="uint8" size="16" endianness="big" comment="" orig="UINT8 stationIpV6Addr"/>
-                <field name="ipV6AddressScope" type="uint32" comment="" orig="UINT32 ipV6AddressScope"/>
-                <field name="firmwareLoadName" type="char" size="32" comment="" orig="char firmwareLoadName"/>
-*/
  	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
 		uint32_t stationIpAddr;										/*c0:a8:09:24=192.168.9.36 *//*!< Station IP Address */
