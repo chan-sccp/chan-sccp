@@ -358,7 +358,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
-				if (SetEntries[y] == TRUE && strstr(sccpConfigSegment->config[y].name, "|")==0) {
+				if (SetEntries[y] == TRUE) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
 					return SCCP_CONFIG_NOUPDATENEEDED;
 				}
@@ -553,7 +553,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 				if (sccpConfigOption->converter_f) {
 					PBX_VARIABLE_TYPE *new_var = NULL;
 
-					if (cat_root) {
+					if (cat_root && sccp_strequals(value, "GENERATED_DEFAULT_SET")) {		// automatically created cat_root by sccp_config_set_defaults
+						changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, cat_root, segment);
+					} else if (cat_root) {
 						/* Create new variable structure for Multi Entry Parameters */
 						if ((new_var = createVariableSetForMultiEntryParameters(cat_root, sccpConfigOption->name, new_var))) {
 							changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
@@ -622,6 +624,8 @@ static char *sccp_config_getNthToken(const char *intokens, int index, const char
 	return (token && strlen(token) && token_index == index) ? strdup(token) : NULL;
 }
 
+
+#ifndef CS_EXPERIMENTAL
 /*!
  * \brief Set SCCP obj defaults from predecessor (device / global)
  *
@@ -768,6 +772,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				} else {
 					// get defaultValue from self
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "config parameter %s using local source segment default: %s\n", option_name, sccpDstConfig[i].defaultValue);
+
+					/* if multi token, and both are not defined, then create a new variable structure include all default values */
 					if ((default_value = sccp_config_getNthToken(sccpDstConfig[i].defaultValue, token_index, "|"))) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "config parameter %s using default %s\n", option_name, default_value);
 						sccp_config_object_setValue(obj, NULL, option_name, default_value, 0, segment, SetEntries);
@@ -789,6 +795,191 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		}
 	}
 }
+#else														/* New version of the default parser, completely overhauled */
+/*!
+ * \brief Set SCCP obj defaults from predecessor (device / global)
+ *
+ * check if we can find the param name in the segment specified and retrieving its value or default value
+ * copy the string from the defaultSegment and run through the converter again
+ */
+static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segment, boolean_t *SetEntries)
+{
+	uint8_t i = 0;
+	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
+	const SCCPConfigOption *sccpDstConfig = sccp_find_segment(segment)->config;
+	const SCCPConfigOption *sccpDefaultConfigOption;
+	sccp_device_t *my_device = NULL;
+	sccp_line_t *my_line = NULL;
+	int flags;												/* enum wrapper */
+	int type;												/* enum wrapper */
+
+	sccp_device_t *referral_device = NULL;									/* need to find a way to find the default device to copy */
+	char *referral_cat = "";
+	sccp_config_segment_t search_segment_type;
+
+	char *first_option_name = "";
+	char *option_name = "";
+	char *option_tokens = "";
+	char *option_tokens_saveptr;
+	int token_index = 0;
+
+	boolean_t valueFound = FALSE;
+	char *defaultvalue = "";
+	PBX_VARIABLE_TYPE *v;
+	PBX_VARIABLE_TYPE *cat_root;
+	uint8_t arraySize = 0;
+
+	// already Set
+	int x;
+	boolean_t skip = FALSE;
+
+	/* check if not already set using it's own parameter in the sccp.conf file */
+	switch (segment) {
+		case SCCP_CONFIG_GLOBAL_SEGMENT:
+			arraySize = ARRAY_LEN(sccpGlobalConfigOptions);
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "setting [general] defaults\n");
+			break;
+		case SCCP_CONFIG_DEVICE_SEGMENT:
+			my_device = &(*(sccp_device_t *) obj);
+			arraySize = ARRAY_LEN(sccpDeviceConfigOptions);
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "setting device[%s] defaults\n", my_device ? my_device->id : "NULL");
+			break;
+		case SCCP_CONFIG_LINE_SEGMENT:
+			my_line = &(*(sccp_line_t *) obj);
+			arraySize = ARRAY_LEN(sccpLineConfigOptions);
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "setting line[%s] defaults\n", my_line ? my_line->name : "NULL");
+			break;
+		case SCCP_CONFIG_SOFTKEY_SEGMENT:
+			pbx_log(LOG_ERROR, "softkey default loading not implemented yet\n");
+			break;
+	}
+	if (!GLOB(cfg)) {
+		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+		return;
+	}
+	/* find the defaultValue, first check the reference, if no reference is specified, us the local defaultValue */
+	for (i = 0; i < arraySize; i++) {
+
+		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the SetEntries array and check the boolean flag, skip if true */
+		skip = FALSE;
+		for (x = 0; x < sccpConfigSegment->config_size; x++) {
+			if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && SetEntries[x]) {
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
+				skip = TRUE;
+				break;
+			}
+		}
+		if (skip) {											// skip default value if already set
+			continue;
+		}
+		flags = sccpDstConfig[i].flags;
+		type = sccpDstConfig[i].type;
+
+		if (((flags & SCCP_CONFIG_FLAG_OBSOLETE) != SCCP_CONFIG_FLAG_OBSOLETE)) {			// has not been set already and is not obsolete
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, option_name, flags, type);
+
+			/* check if referring to another segment, or ourself*/
+			if ((flags & SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) == SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) {		/* get default value from device */
+				referral_device = &(*(sccp_device_t *) obj);
+				referral_cat = strdupa(referral_device->id);
+				search_segment_type = SCCP_CONFIG_DEVICE_SEGMENT;
+
+			} else if ((flags & SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) == SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT) {	/* get default value from global */
+				referral_cat = "general";
+				search_segment_type = SCCP_CONFIG_GLOBAL_SEGMENT;
+
+			} else {												/* get default value from our own segment */
+				referral_cat = strdupa(sccpConfigSegment->name);
+				search_segment_type = segment;
+			}
+			
+			// create a new cat_root
+			PBX_VARIABLE_TYPE *new_cat_root = NULL;
+			PBX_VARIABLE_TYPE *new_variable = NULL;
+
+			// tokenize all options
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s\n", sccpDstConfig[i].name);
+			option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
+
+			// search for the default values in the referred segment 
+			valueFound = FALSE;
+			sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
+			option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
+                        first_option_name = strdupa(option_name);
+			token_index = 0;
+			while (option_name != NULL) {
+				for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
+					if (!strcasecmp((const char *) option_name, v->name)) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Add name:%s, value: %s to new_cat_root\n", option_name, v->value);
+						if (!new_variable) {
+							new_cat_root = pbx_variable_new(v->name, v->value, "");
+							new_variable = new_cat_root;
+						} else {
+							new_variable->next = pbx_variable_new(v->name, v->value, "");
+							new_variable = new_variable->next;
+						}
+						valueFound = TRUE;
+					}
+				}
+				option_name = strtok_r(NULL, "|", &option_tokens_saveptr);
+				token_index++;
+			}
+
+			// if this is a multitoken option, and default could not be found, concatenate name and value
+			if (!valueFound) {
+				// get defaultValue from default_segment
+				sccpDefaultConfigOption = sccp_find_config(search_segment_type, sccpDstConfig[i].name);
+				if (sccpDefaultConfigOption) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s found value:%s in source segment\n", sccpDstConfig[i].name, sccpDefaultConfigOption->defaultValue);
+					if (!sccp_strlen_zero(sccpDefaultConfigOption->defaultValue)) {
+                                                // reset option tokens
+                                                option_tokens_saveptr = NULL; 
+						sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
+                                                option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
+                                                token_index = 0;
+
+						while (option_name != NULL) {
+							defaultvalue = strdupa(sccp_config_getNthToken(sccpDefaultConfigOption->defaultValue, token_index, "|"));
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Add name:%s, value: %s to new_cat_root\n", option_name, defaultvalue);
+							if (!new_variable) {
+								new_cat_root = pbx_variable_new(option_name, defaultvalue, "");
+								new_variable = new_cat_root;
+							} else {
+								new_variable->next = pbx_variable_new(option_name, defaultvalue, "");
+								new_variable = new_variable->next;
+							}
+							option_name = strtok_r(NULL, "|", &option_tokens_saveptr);
+							token_index++;
+						}
+					}
+				} else {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s not found in source segment\n", option_name);
+				}
+			}
+			
+			// if cat_root != null -> call sccp_config_setValue
+			if (new_cat_root) {
+				if (type == SCCP_CONFIG_DATATYPE_PARSER && ((flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY)) {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Set parameter %s\n", first_option_name);
+					// using flag "GENERATED_DEFAULT_SET", will prevent the cat_root from being rebuild twice
+					sccp_config_object_setValue(obj, new_cat_root, new_cat_root->name, "GENERATED_DEFAULT_SET", 0, segment, SetEntries);
+				} else {
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Set parameter %s\n", first_option_name);
+					sccp_config_object_setValue(obj, new_cat_root, new_cat_root->name, new_cat_root->value, 0, segment, SetEntries);
+				}
+                        } else {
+                                sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "clearing parameter %s\n", first_option_name);
+                                if (type == SCCP_CONFIG_DATATYPE_STRINGPTR) {
+                                        sccp_config_object_setValue(obj, NULL, first_option_name, "", 0, segment, SetEntries);
+                                }
+			}
+			
+			// destroy new_cat_root
+			pbx_variables_destroy(new_cat_root);
+		}
+	}
+}
+#endif
 
 /*
  * \brief automatically free all STRINGPTR objects allocated during config parsing and object initialization
