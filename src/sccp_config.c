@@ -281,18 +281,18 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 	sprintf(option_name, "%s%s", configOptionName, delims);							// add delims to string
 	token = strtok(option_name, delims);
 	while (token != NULL) {
-		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Token %s/%s\n", option_name, token);
+		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, token);
 		for (v = cat_root; v; v = v->next) {
 			if (!strcasecmp(token, v->name)) {
 				if (!tmp) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Create new variable set (%s=%s)\n", v->name, v->value);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Create new variable set (%s=%s)\n", v->name, v->value);
 					if (!(out = pbx_variable_new(v->name, v->value, ""))) {
 						pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
 						goto EXIT;
 					}
 					tmp = out;
 				} else {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Add to variable set (%s=%s)\n", v->name, v->value);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Add to variable set (%s=%s)\n", v->name, v->value);
 					if (!(tmp->next = pbx_variable_new(v->name, v->value, ""))) {
 						pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
 						pbx_variables_destroy(out);
@@ -321,16 +321,16 @@ static PBX_VARIABLE_TYPE *createVariableSetForTokenizedDefault(const char *confi
 	char *option_name = strtok_r(option_name_tokens, "|", &option_name_tokens_saveptr);
 	char *option_value = strtok_r(option_value_tokens, "|", &option_value_tokens_saveptr);
 	while (option_name != NULL && option_value != NULL) {
-		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Token %s/%s\n", option_name, option_value);
+		sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Token %s/%s\n", option_name, option_value);
 		if (!tmp) {
-			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Create new variable set (%s=%s)\n", option_name, option_value);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Create new variable set (%s=%s)\n", option_name, option_value);
 			if (!(out = pbx_variable_new(option_name, option_value, ""))) {
 				pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
 				goto EXIT;
 			}
 			tmp = out;
 		} else {
-			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("Add to variable set (%s=%s)\n", option_name, option_value);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Add to variable set (%s=%s)\n", option_name, option_value);
 			if (!(tmp->next = pbx_variable_new(option_name, option_value, ""))) {
 				pbx_log(LOG_ERROR, "SCCP: (sccp_config) Error while creating new var structure\n");
 				pbx_variables_destroy(out);
@@ -350,7 +350,7 @@ EXIT:
  *
  * \todo add errormsg return to sccpConfigOption->converter_f: so we can have a fixed format the returned errors to the user
  */
-static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, uint8_t lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
+static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VARIABLE_TYPE * cat_root, const char *name, const char *value, int lineno, const sccp_config_segment_t segment, boolean_t *SetEntries)
 {
 	const SCCPConfigSegment *sccpConfigSegment = sccp_find_segment(segment);
 	const SCCPConfigOption *sccpConfigOption = sccp_find_config(segment, name);
@@ -361,7 +361,10 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;						/* indicates config value is changed or not */
 	sccp_configurationchange_t changes = SCCP_CONFIG_NOUPDATENEEDED;
 
-	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter: %s = '%s' in line %d\n", sccpConfigSegment->name, name, value, lineno);
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter: %s %s%s%s (line: %d)\n", sccpConfigSegment->name, 
+		name, 
+		value ? "= '" : "", value ? value : "", value ? "' " : "",
+		lineno);
 
 	short int int8num;
 	int int16num;
@@ -377,7 +380,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	char *tmp_value;
 
 	if (!sccpConfigOption) {
-		pbx_log(LOG_WARNING, "Unknown param at %s:%d:%s='%s'\n", sccpConfigSegment->name, lineno, name, value);
+		pbx_log(LOG_WARNING, "SCCP: Unknown param at %s:%d:%s='%s'\n", sccpConfigSegment->name, lineno, name, value);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
@@ -396,7 +399,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		for (y = 0; y < sccpConfigSegment->config_size; y++) {
 			if (sccpConfigOption->offset == sccpConfigSegment->config[y].offset) {
 				if (SetEntries[y] == TRUE) {
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIP\n", y, sccpConfigSegment->config[y].name);
+					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for MultiEntry %s -> SKIPPING\n", y, sccpConfigSegment->config[y].name);
 					return SCCP_CONFIG_NOUPDATENEEDED;
 				}
 			}
@@ -404,18 +407,18 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 	}
 
 	if ((flags & SCCP_CONFIG_FLAG_IGNORE) == SCCP_CONFIG_FLAG_IGNORE) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d ignored\n", name, value, lineno);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s='%s' in line %d ignored\n", name, value, lineno);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_CHANGED) == SCCP_CONFIG_FLAG_CHANGED) {
-		pbx_log(LOG_NOTICE, "changed config param at %s='%s' in line %d\n - %s -> please check sccp.conf file\n", name, value, lineno, sccpConfigOption->description);
+		pbx_log(LOG_NOTICE, "SCCP: changed config param at %s='%s' in line %d\n - %s -> please check sccp.conf file\n", name, value, lineno, sccpConfigOption->description);
 	} else if ((flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED && lineno > 0) {
-		pbx_log(LOG_NOTICE, "deprecated config param at %s='%s' in line %d\n - %s -> using old implementation\n", name, value, lineno, sccpConfigOption->description);
+		pbx_log(LOG_NOTICE, "SCCP: deprecated config param at %s='%s' in line %d\n - %s -> using old implementation\n", name, value, lineno, sccpConfigOption->description);
 	} else if ((flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE && lineno > 0) {
-		pbx_log(LOG_WARNING, "obsolete config param at %s='%s' in line %d\n - %s -> param skipped\n", name, value, lineno, sccpConfigOption->description);
+		pbx_log(LOG_WARNING, "SCCP: obsolete config param at %s='%s' in line %d\n - %s -> param skipped\n", name, value, lineno, sccpConfigOption->description);
 		return SCCP_CONFIG_NOUPDATENEEDED;
 	} else if ((flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
 		if (NULL == value) {
-			pbx_log(LOG_WARNING, "required config param at %s='%s' - %s\n", name, value, sccpConfigOption->description);
+			pbx_log(LOG_WARNING, "SCCP: required config param at %s='%s' - %s\n", name, value, sccpConfigOption->description);
 			return SCCP_CONFIG_WARNING;
 		}
 	}
@@ -443,11 +446,11 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 			if (!sccp_strlen_zero(value)) {
 				if (strlen(value) > sccpConfigOption->size - 1) {
-					pbx_log(LOG_NOTICE, "config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int) sccpConfigOption->size - 1);
+					pbx_log(LOG_NOTICE, "SCCP: config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int) sccpConfigOption->size - 1);
 				}
 				if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
 					if (GLOB(reload_in_progress)) {
-						sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "config parameter %s '%s' != '%s'\n", name, str, value);
+						sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s '%s' != '%s'\n", name, str, value);
 					}
 					changed = SCCP_CONFIG_CHANGE_CHANGED;
 					pbx_copy_string(dst, value, sccpConfigOption->size);
@@ -607,13 +610,13 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			break;
 
 		default:
-			pbx_log(LOG_WARNING, "Unknown param at %s='%s'\n", name, value);
+			pbx_log(LOG_WARNING, "SCCP: Unknown param at %s='%s'\n", name, value);
 			return SCCP_CONFIG_NOUPDATENEEDED;
 	}
 
 	if (SCCP_CONFIG_CHANGE_CHANGED == changed) {
 		if (GLOB(reload_in_progress)) {
-			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
+			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "SCCP: config parameter %s='%s' in line %d changed. %s\n", name, value, lineno, SCCP_CONFIG_NEEDDEVICERESET == sccpConfigOption->change ? "(causes device reset)" : "");
 		}
 		changes = sccpConfigOption->change;
 	}
@@ -625,7 +628,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 
 			for (x = 0; x < sccpConfigSegment->config_size; x++) {
 				if (sccpConfigOption->offset == sccpConfigSegment->config[x].offset) {
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config) Set Entry[%d] = TRUE for %s\n", x, sccpConfigSegment->config[x].name);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_object_setValue) Set Entry[%d] = TRUE for %s\n", x, sccpConfigSegment->config[x].name);
 					SetEntries[x] = TRUE;
 				}
 			}
@@ -873,7 +876,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		skip = FALSE;
 		for (x = 0; x < sccpConfigSegment->config_size; x++) {
 			if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && SetEntries[x]) {
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
 				skip = TRUE;
 				break;
 			}
@@ -885,7 +888,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		int type = sccpDstConfig[i].type;
 
 		if (((flags & SCCP_CONFIG_FLAG_OBSOLETE) != SCCP_CONFIG_FLAG_OBSOLETE)) {			// has not been set already and is not obsolete
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, sccpDstConfig[i].name, flags, type);
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "parsing %s parameter %s looking for defaultValue (flags: %d, type: %d)\n", sccpConfigSegment->name, sccpDstConfig[i].name, flags, type);
 
 			/* check if referring to another segment, or ourself*/
 			if ((flags & SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) == SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) {		/* get default value from device */
@@ -902,7 +905,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				search_segment_type = segment;
 			}
 			
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s default lookup %s %s\n", sccpDstConfig[i].name, referral_cat ? "via referral through" : "", referral_cat ? referral_cat : "");
+			sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter:'%s' defaultValue %s lookup %s%s\n", sccpDstConfig[i].name, referral_cat ? "referred" : "direct", referral_cat ? "via " : "", referral_cat ? referral_cat : "");
 
 			/* check to see if there is a default value to be found in the config file within referred segment */
 			if (referral_cat) {
@@ -919,7 +922,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 					/* search for the default values in the referred segment, if found break so we can pass on the cat_root */
 					for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
 						if (!strcasecmp((const char *) option_name, v->name)) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Add name:%s, value: %s to new_cat_root\n", option_name, v->value);
+							sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Found name:'%s', value:'%s', use referred config-file value from segment '%s'\n", option_name, v->value, referral_cat);
 							referralValueFound = TRUE;
 							break;
 						}
@@ -928,26 +931,26 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				}
 				
 				if (referralValueFound) {				/* if referred to other segment and a value was found, pass the newly found cat_root directly to setValue */
-					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Refer parameter %s to %s\n", first_option_name, referral_cat);
-					sccp_config_object_setValue(obj, cat_root, sccpDstConfig[i].name, "", 0, segment, SetEntries);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Refer default value lookup for parameter:'%s' through '%s' segment\n", first_option_name, referral_cat);
+					sccp_config_object_setValue(obj, cat_root, sccpDstConfig[i].name, NULL, __LINE__, segment, SetEntries);
 					continue;
 				} else { 						/* if referred but no default value was found, pass on the defaultValue of the referred segment in raw string form (including tokens)*/
 					sccpDefaultConfigOption = sccp_find_config(search_segment_type, sccpDstConfig[i].name);
 					if (sccpDefaultConfigOption && !sccp_strlen_zero(sccpDefaultConfigOption->defaultValue)) {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Set parameter '%s' to '%s'\n", sccpDstConfig[i].name, sccpDstConfig[i].defaultValue);
-						sccp_config_object_setValue(obj, NULL, sccpDstConfig[i].name, sccpDefaultConfigOption->defaultValue, 0, segment, SetEntries);
+						sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Set parameter '%s' to segment default, being:'%s'\n", sccpDstConfig[i].name, sccpDstConfig[i].defaultValue);
+						sccp_config_object_setValue(obj, NULL, sccpDstConfig[i].name, sccpDefaultConfigOption->defaultValue, __LINE__, segment, SetEntries);
 						continue;
 					}
 				}
 			} else if (!sccp_strlen_zero(sccpDstConfig[i].defaultValue)) {	/* Non-Referral, pass defaultValue on in raw string format (including tokens) */
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "Set parameter '%s' to '%s'\n", sccpDstConfig[i].name, sccpDstConfig[i].defaultValue);
-				sccp_config_object_setValue(obj, NULL, sccpDstConfig[i].name, sccpDstConfig[i].defaultValue, 0, segment, SetEntries);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Set parameter '%s' to own default, being:'%s'\n", sccpDstConfig[i].name, sccpDstConfig[i].defaultValue);
+				sccp_config_object_setValue(obj, NULL, sccpDstConfig[i].name, sccpDstConfig[i].defaultValue, __LINE__, segment, SetEntries);
 				continue;
                         }
                         
 			if (type == SCCP_CONFIG_DATATYPE_STRINGPTR) {			 /* If nothing was found, clear variable, incase of a STRINGPTR */
-				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "clearing parameter %s\n", first_option_name);
-				sccp_config_object_setValue(obj, NULL, first_option_name, "", 0, segment, SetEntries);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Clearing parameter %s\n", first_option_name);
+				sccp_config_object_setValue(obj, NULL, first_option_name, "", __LINE__, segment, SetEntries);
 			}
 		}
 	}
