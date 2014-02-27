@@ -785,7 +785,7 @@ void *sccp_socket_device_thread(void *session)
 		maxWaitTime += (maxWaitTime / 100) * keepaliveAdditionalTimePercent;
 		pollTimeout = maxWaitTime * 1000;
 
-		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "%s: set poll timeout %d/%d for session %d\n", DEV_ID_LOG(s->device), (int) maxWaitTime, pollTimeout / 1000, s->fds[0].fd);
 
 		pthread_testcancel();										/* poll is also a cancellation point */
 		res = sccp_socket_poll(s->fds, 1, pollTimeout);
@@ -809,7 +809,7 @@ void *sccp_socket_device_thread(void *session)
 		} else if (res > 0) {										/* poll data processing */
 			if (s->fds[0].revents & POLLIN || s->fds[0].revents & POLLPRI) {			/* POLLIN | POLLPRI */
 				/* we have new data -> continue */
-				sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
+				sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Session New Data Arriving\n", DEV_ID_LOG(s->device));
 				while ((read_result = sccp_read_data(s, &msg)) > 0) {
 					s->lastKeepAlive = time(0);
 				}
@@ -826,7 +826,7 @@ void *sccp_socket_device_thread(void *session)
 				break;
 			}
 		} else {											/* poll returned invalid res */
-			sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
+			pbx_log(LOG_NOTICE, "%s: Poll Returned invalid result: %d.\n", DEV_ID_LOG(s->device), res);
 		}
 		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	}
