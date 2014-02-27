@@ -1701,7 +1701,7 @@ static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			instance = trtp;
 		}
 		
-		if (d->directrtp && !d->nat && !nat_active) {						// asume directrtp
+		if (d->directrtp && !d->nat && !nat_active && !c->conference) {				// asume directrtp
 		        ast_rtp_instance_get_remote_address(instance, &sin_tmp);
                 	memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
 		        //ast_sockaddr_to_sin(&sin_tmp, &sin);
