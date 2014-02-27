@@ -859,12 +859,6 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 	sccp_config_segment_t search_segment_type;
 	boolean_t referralValueFound = FALSE;
 
-	/* tokenparsing */
-	char *first_option_name = "";
-	char *option_name = "";
-	char *option_tokens = "";
-	char *option_tokens_saveptr;
-
 	// already Set
 	int x;
 	boolean_t skip = FALSE;
@@ -914,10 +908,12 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				PBX_VARIABLE_TYPE *cat_root;
 
 				referralValueFound = FALSE;
-				option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
+
+				/* tokenparsing */
+				char *option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
 				sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
-				option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
-				first_option_name = strdupa(option_name);
+				char *option_tokens_saveptr;
+				char *option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
 				while (option_name != NULL) {
 					/* search for the default values in the referred segment, if found break so we can pass on the cat_root */
 					for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
@@ -931,7 +927,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				}
 				
 				if (referralValueFound) {				/* if referred to other segment and a value was found, pass the newly found cat_root directly to setValue */
-					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Refer default value lookup for parameter:'%s' through '%s' segment\n", first_option_name, referral_cat);
+					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Refer default value lookup for parameter:'%s' through '%s' segment\n", sccpDstConfig[i].name, referral_cat);
 					sccp_config_object_setValue(obj, cat_root, sccpDstConfig[i].name, NULL, __LINE__, segment, SetEntries);
 					continue;
 				} else { 						/* if referred but no default value was found, pass on the defaultValue of the referred segment in raw string form (including tokens)*/
@@ -949,8 +945,8 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
                         }
                         
 			if (type == SCCP_CONFIG_DATATYPE_STRINGPTR) {			 /* If nothing was found, clear variable, incase of a STRINGPTR */
-				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Clearing parameter %s\n", first_option_name);
-				sccp_config_object_setValue(obj, NULL, first_option_name, "", __LINE__, segment, SetEntries);
+				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Clearing parameter %s\n", sccpDstConfig[i].name);
+				sccp_config_object_setValue(obj, NULL, sccpDstConfig[i].name, "", __LINE__, segment, SetEntries);
 			}
 		}
 	}
