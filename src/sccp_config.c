@@ -885,7 +885,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		int type = sccpDstConfig[i].type;
 
 		if (((flags & SCCP_CONFIG_FLAG_OBSOLETE) != SCCP_CONFIG_FLAG_OBSOLETE)) {			// has not been set already and is not obsolete
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, option_name, flags, type);
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: parsing %s parameter %s looking for default (flags: %d, type: %d)\n", sccpConfigSegment->name, sccpDstConfig[i].name, flags, type);
 
 			/* check if referring to another segment, or ourself*/
 			if ((flags & SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) == SCCP_CONFIG_FLAG_GET_DEVICE_DEFAULT) {		/* get default value from device */
@@ -902,7 +902,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				search_segment_type = segment;
 			}
 			
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s default lookup\n", sccpDstConfig[i].name);
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "config parameter %s default lookup %s %s\n", sccpDstConfig[i].name, referral_cat ? "via referral through" : "", referral_cat ? referral_cat : "");
 
 			/* check to see if there is a default value to be found in the config file within referred segment */
 			if (referral_cat) {
