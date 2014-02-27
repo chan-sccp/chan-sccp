@@ -1523,12 +1523,12 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 																\
-		CLI_AMI_TABLE_FIELD(Id,			d,	3,	conference->id)										\
-		CLI_AMI_TABLE_FIELD(Participants,	d,	12,	SCCP_LIST_GETSIZE(&conference->participants))								\
-		CLI_AMI_TABLE_FIELD(Moderators,		d,	12,	conference->num_moderators)								\
-		CLI_AMI_TABLE_FIELD(Announce,		s,	12,	conference->playback_announcements ? "Yes" : "No")					\
-		CLI_AMI_TABLE_FIELD(MuteOnEntry,	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\
+#define CLI_AMI_TABLE_FIELDS 																		\
+		CLI_AMI_TABLE_FIELD(Id,			"3.3d",		3,	conference->id)										\
+		CLI_AMI_TABLE_FIELD(Participants,	"-12.12d",	12,	SCCP_LIST_GETSIZE(&conference->participants))						\
+		CLI_AMI_TABLE_FIELD(Moderators,		"-12.12d",	12,	conference->num_moderators)								\
+		CLI_AMI_TABLE_FIELD(Announce,		"-12.12s",	12,	conference->playback_announcements ? "Yes" : "No")					\
+		CLI_AMI_TABLE_FIELD(MuteOnEntry,	"-12.12s",	12,	conference->mute_on_entry ? "Yes" : "No")						\
 
 #include "sccp_cli_table.h"
 	if (s) {
@@ -1581,13 +1581,13 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_FIELDS 												\
-			CLI_AMI_TABLE_FIELD(Id,			d,	3,	participant->id)					\
-			CLI_AMI_TABLE_FIELD(ChannelName,	s,	20,	participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL")		\
-			CLI_AMI_TABLE_FIELD(Moderator,		s,	11,	participant->isModerator ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(Muted,		s,	5,	participant->features.mute ? "Yes" : "No")			\
-			CLI_AMI_TABLE_FIELD(Announce,		s,	8,	participant->playback_announcements ? "Yes" : "No")	\
-			CLI_AMI_TABLE_FIELD(ConfList,		s,	8,	(participant->device && participant->device->conferencelist_active) ? "YES" : "NO") 
+#define CLI_AMI_TABLE_FIELDS 																					\
+			CLI_AMI_TABLE_FIELD(Id,			"3.3d",		3,	participant->id)											\
+			CLI_AMI_TABLE_FIELD(ChannelName,	"-20.20s",	20,	participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL")	\
+			CLI_AMI_TABLE_FIELD(Moderator,		"-11.11s",	11,	participant->isModerator ? "Yes" : "No")								\
+			CLI_AMI_TABLE_FIELD(Muted,		"-5.5s",	5,	participant->features.mute ? "Yes" : "No")								\
+			CLI_AMI_TABLE_FIELD(Announce,		"-8.8s",	8,	participant->playback_announcements ? "Yes" : "No")							\
+			CLI_AMI_TABLE_FIELD(ConfList,		"-8.8s",	8,	(participant->device && participant->device->conferencelist_active) ? "YES" : "NO") 
 
 #include "sccp_cli_table.h"
 		conference = sccp_conference_release(conference);
