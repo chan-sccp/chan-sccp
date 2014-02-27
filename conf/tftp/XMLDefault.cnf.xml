@@ -1,0 +1,82 @@
+<!--
+  Example XMLDefault.cnf.xml file, with all known devices with there loadInformationNumbers and some of the firmware versions filled in.
+-->
+<Default>
+  <callManagerGroup>
+  <members>
+    <member priority="0">
+      <callManager>
+        <ports>
+          <ethernetPhonePort>2000</ethernetPhonePort>
+        </ports>
+        <processNodeName>10.0.0.1</processNodeName>
+      </callManager>
+    </member>
+    <member priority="1">
+      <callManager>
+        <ports>
+          <ethernetPhonePort>2000</ethernetPhonePort>
+        </ports>
+        <processNodeName>10.0.0.2</processNodeName>
+      </callManager>
+    </member>
+  </members>
+  </callManagerGroup>
+  <loadInformation30008  model="Cisco IP Phone 7902"></loadInformation30008>
+  <loadInformation20000  model="Cisco IP Phone 7905"></loadInformation20000>
+  <loadInformation369    model="Cisco IP Phone 7906"></loadInformation369>
+  <loadInformation6      model="Cisco IP Phone 7910">SCCP11.9-0-2SR1S</loadInformation6>
+  <loadInformation307    model="Cisco IP Phone 7911"></loadInformation307>
+  <loadInformation30007  model="Cisco IP Phone 7912"></loadInformation30007>
+  <loadInformation30002  model="Cisco IP Phone 7920"></loadInformation30002>
+  <loadInformation365    model="Cisco IP Phone 7921"></loadInformation365>
+  <loadInformation348    model="Cisco IP Phone 7931">SCCP31.8-3-3S</loadInformation348>
+  <loadInformation9      model="Cisco IP Conference Station 7935"></loadInformation9>
+  <loadInformation30019  model="Cisco IP Phone 7936"></loadInformation30019>
+  <loadInformation431    model="Cisco IP Conference Station 7937"></loadInformation431>
+  <loadInformation8      model="Cisco IP Phone 7940">P00308010200</loadInformation8>
+  <loadInformation115    model="Cisco IP Phone 7941"></loadInformation115>
+  <loadInformation309    model="Cisco IP Phone 7941GE"></loadInformation309>
+  <loadInformation434    model="Cisco IP Phone 7942"></loadInformation434>
+  <loadInformation435    model="Cisco IP Phone 7945"></loadInformation435>
+  <loadInformation7      model="Cisco IP Phone 7960">P00308010200</loadInformation7>
+  <loadInformation5      model="Cisco IP Phone 7961">SCCP41.8-3-3S</loadInformation5>
+  <loadInformation30018  model="Cisco IP Phone 7961">SCCP41.8-3-3S</loadInformation30018>
+  <loadInformation308    model="Cisco IP Phone 7961GE"></loadInformation308>
+  <loadInformation404    model="Cisco IP Phone 7962">SCCP42.9-3-1-1S</loadInformation404>
+  <loadInformation436    model="Cisco IP Phone 7965"></loadInformation436>
+  <loadInformation30006  model="Cisco IP Phone 7970">SCCP70.9-3-1-1S</loadInformation30006>
+  <loadInformation119    model="Cisco IP Phone 7971">SCCP70.9-3-1-1S</loadInformation119>
+  <loadInformation437    model="Cisco IP Phone 7975"></loadInformation437>
+  <loadInformation302    model="Cisco IP Phone 7985"></loadInformation302>
+  <loadInformation30016  model="Cisco IP Communicator"></loadInformation30016>
+  <loadInformation275    model="Nokia E Series"></loadInformation275>
+  <loadInformation376    model="Nokia ICC client"></loadInformation376>
+  <loadInformation547    model="Cisco 6901"></loadInformation547>
+  <loadInformation548    model="Cisco 6911"></loadInformation548>
+  <loadInformation495    model="Cisco 6921"></loadInformation495>
+  <loadInformation496    model="Cisco 6941"></loadInformation496>
+  <loadInformation564    model="Cisco 6945"></loadInformation564>
+  <loadInformation497    model="Cisco 6961"></loadInformation497>
+  <loadInformation586    model="Cisco 8941"></loadInformation586>
+  <loadInformation585    model="Cisco 8945"></loadInformation585>
+  <loadInformation80011  model ="Cisco SPA 303G"></loadInformation80011>
+  <loadInformation80000  model ="Cisco SPA 521S"></loadInformation80000>
+  <loadInformation80003  model ="Cisco SPA 502G"></loadInformation80003>
+  <loadInformation80004  model ="Cisco SPA 504G"></loadInformation80004>
+  <loadInformation80005  model ="Cisco SPA 525G"></loadInformation80005>
+  <loadInformation80009  model ="Cisco SPA 525G2"></loadInformation80009>
+  <loadInformation124    model ="Cisco IP Phone 7914 14-Button Line Expansion Module">S00105000400</loadInformation124>
+  <loadInformation227    model ="Cisco IP Phone 7915 12-Button Line Expansion Module"></loadInformation227>
+  <loadInformation228    model ="Cisco IP Phone 7915 24-Button Line Expansion Module"></loadInformation228>
+  <loadInformation229    model ="Cisco IP Phone 7916 12-Button Line Expansion Module"></loadInformation229>
+  <loadInformation230    model ="Cisco IP Phone 7916 24-Button Line Expansion Module"></loadInformation230>
+
+  <authenticationURL>http://10.0.0.3/authentication.php</authenticationURL>
+  <idleURL>http://10.0.0.3/idle.php</idleURL> 
+  <informationURL>http://10.0.0.3/help/help.php</informationURL> 
+  <messagesURL></messagesURL> 
+  <proxyServerURL></proxyServerURL> 
+  <servicesURL>http://10.0.0.3/menu.php</servicesURL> 
+  <directoryURL>http://10.0.0.3/directory.php</directoryURL>
+</Default>
