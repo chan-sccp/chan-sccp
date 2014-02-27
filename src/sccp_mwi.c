@@ -602,28 +602,28 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_BEFORE_ITERATION 												\
- 		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {					\
- 			line = mailboxLine->line;										\
- 			snprintf(linebuf,sizeof(linebuf),"%30s",line->name);							\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 													\
+ 		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {						\
+ 			line = mailboxLine->line;											\
+ 			snprintf(linebuf,sizeof(linebuf),"%30s",line->name);								\
  		}
 
 #ifdef CS_AST_HAS_EVENT
-#define CLI_AMI_TABLE_FIELDS 													\
- 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
- 		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
- 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
- 		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
- 		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)\
- 		CLI_AMI_TABLE_FIELD(Sub,			s,	3,	subscription->event_sub ? "YES" : "NO")
+#define CLI_AMI_TABLE_FIELDS 														\
+ 		CLI_AMI_TABLE_FIELD(Mailbox,		"-10.10s",	10,	subscription->mailbox)				\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-30.30s",	30,	linebuf)					\
+ 		CLI_AMI_TABLE_FIELD(Context,		"-15.15s",	15,	subscription->context)				\
+ 		CLI_AMI_TABLE_FIELD(New,		"3.3d",		3,	subscription->currentVoicemailStatistic.newmsgs)\
+ 		CLI_AMI_TABLE_FIELD(Old,		"3.3d",		3,	subscription->currentVoicemailStatistic.oldmsgs)\
+ 		CLI_AMI_TABLE_FIELD(Sub,		"-3.3s",	3,	subscription->event_sub ? "YES" : "NO")
 #include "sccp_cli_table.h"
 #else
-#define CLI_AMI_TABLE_FIELDS 													\
- 		CLI_AMI_TABLE_FIELD(Mailbox,			s,	10,	subscription->mailbox)				\
- 		CLI_AMI_TABLE_FIELD(LineName,			s,	30,	linebuf)					\
- 		CLI_AMI_TABLE_FIELD(Context,			s,	15,	subscription->context)				\
- 		CLI_AMI_TABLE_FIELD(New,			d,	3,	subscription->currentVoicemailStatistic.newmsgs)\
- 		CLI_AMI_TABLE_FIELD(Old,			d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
+#define CLI_AMI_TABLE_FIELDS 														\
+ 		CLI_AMI_TABLE_FIELD(Mailbox,		"-10.10s",	10,	subscription->mailbox)				\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-30.30s",	30,	linebuf)					\
+ 		CLI_AMI_TABLE_FIELD(Context,		"-15.15s",	15,	subscription->context)				\
+ 		CLI_AMI_TABLE_FIELD(New,		"3.3d",		3,	subscription->currentVoicemailStatistic.newmsgs)\
+ 		CLI_AMI_TABLE_FIELD(Old,		"3.3d",		3,	subscription->currentVoicemailStatistic.oldmsgs)
 #include "sccp_cli_table.h"
 #endif
 

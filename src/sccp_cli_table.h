@@ -52,7 +52,7 @@ CLI_AMI_TABLE_FIELDS
     pbx_cli(fd, "|\n");
 
 pbx_cli(fd, "+ ");
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,"%.*s ",_c,	"==================================================================================================================================================================");
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,"%." STRINGIFY(_c) "s ",	"==================================================================================================================================================================");
 CLI_AMI_TABLE_FIELDS
 #undef CLI_AMI_TABLE_FIELD
     pbx_cli(fd, "+\n");
@@ -73,7 +73,7 @@ CLI_AMI_TABLE_FIELDS
 
 	/* iterator through list */
 if (!s) {
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,STRINGIFY(%*_b%s),-_c,_d," ");
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,"%" _b " ",_d);
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_LOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
 	_CLI_AMI_TABLE_LIST_ITERATOR(CLI_AMI_TABLE_LIST_ITER_HEAD, CLI_AMI_TABLE_LIST_ITER_VAR, list) {
@@ -88,7 +88,7 @@ if (!s) {
 #endif
 #undef CLI_AMI_TABLE_FIELD
 } else {
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) astman_append(s, STRINGIFY(%s: %_b\r\n),#_a,_d); local_total++;
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) astman_append(s, "%s: %" _b "\r\n",#_a,_d); local_total++;
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_LOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
 	_CLI_AMI_TABLE_LIST_ITERATOR(CLI_AMI_TABLE_LIST_ITER_HEAD, CLI_AMI_TABLE_LIST_ITER_VAR, list) {
