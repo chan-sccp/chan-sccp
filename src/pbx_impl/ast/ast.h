@@ -352,9 +352,7 @@ sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
 #endif
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
-int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * pbx_channel, pbx_hangup_type_t pbx_hangup_type);
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * pbx_channel);
-int sccp_wrapper_asterisk_forceHangup(PBX_CHANNEL_TYPE * pbx_channel, pbx_hangup_type_t pbx_hangup_type);
 
 /***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
