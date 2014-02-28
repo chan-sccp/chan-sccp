@@ -927,7 +927,6 @@ struct sccp_device {
 	char description[40];											/*!< Internal Description. Skinny protocol does not use it */
 
 	uint16_t linesCount;											/*!< Number of Lines */
-	uint16_t digittimeout;											/*< Digit Timeout. How long to wait for following digits */
 	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
 	const struct sccp_device_indication_cb *indicate;
 

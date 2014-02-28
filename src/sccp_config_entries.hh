@@ -231,7 +231,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					" - button = line,98099@12:Phone2!silent\n"
 																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
 																																					" - button = feature,cfwdall,1234\n"},
-	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},
+/*	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},*/
 	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions (Boolean, default=no). experimental configuration param that may be removed in further version \n"},
 #ifdef CS_SCCP_CONFERENCE
 	{"conf_allow",			D_OBJ_REF(allow_conference),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Allow the use of conference"},
