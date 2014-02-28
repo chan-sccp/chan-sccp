@@ -1070,8 +1070,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_DOWN:
 					case SCCP_CHANNELSTATE_ONHOOK:
-					case SCCP_CHANNELSTATE_ZOMBIE:
-					case SCCP_CHANNELSTATE_CONGESTION:
 						iconstate = SKINNY_CALLSTATE_ONHOOK;
 						break;
 					case SCCP_CHANNELSTATE_RINGING:
@@ -1079,6 +1077,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							iconstate = SKINNY_CALLSTATE_RINGIN;
 						}
 						break;
+					case SCCP_CHANNELSTATE_ZOMBIE:
+					case SCCP_CHANNELSTATE_CONGESTION:
 					case SCCP_CHANNELSTATE_CONNECTED:
 					case SCCP_CHANNELSTATE_OFFHOOK:
 					case SCCP_CHANNELSTATE_RINGOUT:
