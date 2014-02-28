@@ -170,7 +170,10 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 	conference->isLocked = FALSE;
 	conference->isOnHold = FALSE;
 	conference->linkedid = strdup(PBX(getChannelLinkedId) (channel));
-	conference->mute_on_entry = device->conf_mute_on_entry;
+	if (device->conf_mute_on_entry) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Device: %s Mute on Entry: On -> All participant of conference: SCCPCONF/%04d, will be muted\n", DEV_ID_LOG(device), conferenceID);
+		conference->mute_on_entry = device->conf_mute_on_entry;
+	}
 	conference->playback_announcements = device->conf_play_general_announce;
 	sccp_copy_string(conference->playback_language, pbx_channel_language(channel->owner), sizeof(conference->playback_language));
 	SCCP_LIST_HEAD_INIT(&conference->participants);
@@ -274,6 +277,10 @@ static sccp_conference_participant_t *sccp_conference_createParticipant(sccp_con
 	participant->conferenceBridgePeer = NULL;
 	participant->playback_announcements = conference->playback_announcements;				// default
 	participant->onMusicOnHold = FALSE;
+	if (conference->mute_on_entry) {
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Participant: %d will be muted on entry\n", participant->id);
+		participant->features.mute = 1;
+	}
 
 	return participant;
 }
@@ -293,9 +300,6 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 	AST_LIST_TRAVERSE(&bridge->channels, bridge_channel, entry) {
 		sccp_log((DEBUGCAT_HIGH + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Bridge Channel %p.\n", conference->id, bridge_channel);
 		if ((participant = sccp_conference_participant_findByPBXChannel(conference, bridge_channel->chan))) {
-			if (conference->mute_on_entry) {
-				participant->features.mute = 1;
-			}
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Connecting Bridge Channel %p to Participant %d.\n", conference->id, bridge_channel, participant->id);
 			participant->bridge_channel = bridge_channel;
 			participant = sccp_participant_release(participant);
@@ -557,6 +561,12 @@ static void *sccp_conference_thread(void *data)
 	return NULL;
 }
 
+void sccp_conference_update(sccp_conference_t * conference)
+{
+	sccp_conference_connect_bridge_channels_to_participants(conference);
+	sccp_conference_update_conflist(conference);
+}
+
 /*!
  * \brief This function is called when the minimal number of occupants of a confernce is reached or when the last moderator hangs-up
  */
@@ -566,7 +576,7 @@ void sccp_conference_start(sccp_conference_t * conference)
 	//playback_to_conference(conference, "conf-enteringno", -1);
 	//playback_to_conference(conference, NULL, conference->id);
 	playback_to_conference(conference, "conf-placeintoconf", -1);
-	sccp_conference_connect_bridge_channels_to_participants(conference);
+	sccp_conference_update(conference);
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
 		manager_event(EVENT_FLAG_CALL, "SCCPConfStarted", "ConfId: %d\r\n", conference->id);
@@ -574,11 +584,6 @@ void sccp_conference_start(sccp_conference_t * conference)
 #endif
 }
 
-void sccp_conference_update(sccp_conference_t * conference)
-{
-	sccp_conference_update_conflist(conference);
-	sccp_conference_connect_bridge_channels_to_participants(conference);
-}
 
 /*!
  * \brief This function is called when the minimal number of occupants of a confernce is reached or when the last moderator hangs-up
