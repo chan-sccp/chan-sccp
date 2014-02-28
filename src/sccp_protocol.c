@@ -940,7 +940,7 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 				memcpy(&msg[segment]->data.UserToDeviceDataVersion1Message.data, xmlData + xmlDataStart, msg_len);
 				xmlDataStart += msg_len;
 			}
-			sccp_dump_msg(msg[segment]);
+			//sccp_dump_msg(msg[segment]);
 			sccp_dev_send(device, msg[segment]);
 			usleep(10);
 			sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d/%d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, (int)strlen(xmlData), padding, hdr_len + msg_len + padding);
