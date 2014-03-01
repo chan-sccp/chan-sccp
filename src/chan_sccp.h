@@ -123,7 +123,7 @@ char sccp_revisionstr[30];
 #define THREADPOOL_MAX_SIZE 10
 #define THREADPOOL_RESIZE_INTERVAL 10
 
-#define CHANNEL_DESIGNATOR_SIZE 20
+#define CHANNEL_DESIGNATOR_SIZE 32
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 
 /*! \todo I don't like the -1 returned value */
@@ -707,8 +707,8 @@ struct composedId {
 struct sccp_linedevices {
 	sccp_device_t *device;											/*!< SCCP Device */
 	sccp_line_t *line;											/*!< SCCP Line */
-	uint16_t lineInstance;											/*!< line instance of this->line on this->device */
-	uint16_t __padding1[3];
+	uint8_t lineInstance;											/*!< line instance of this->line on this->device */
+	uint8_t __padding1[3];
 	SCCP_LIST_ENTRY (sccp_linedevices_t) list;								/*!< Device Linked List Entry */
 
 	sccp_cfwd_information_t cfwdAll;									/*!< cfwd information */
