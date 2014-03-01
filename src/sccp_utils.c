@@ -290,9 +290,6 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 	skinny_codec_t *old_skinny_codec_prefs = { 0 };
 	int x, y = 0;
 
-	if (ARRAY_LEN(skinny_codec_prefs)) {
-		return;
-	}
 	memcpy(old_skinny_codec_prefs, skinny_codec_prefs, sizeof(skinny_codec_t));
 	memset(skinny_codec_prefs, 0, SKINNY_MAX_CAPABILITIES);
 
