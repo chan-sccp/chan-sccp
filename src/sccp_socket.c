@@ -423,20 +423,22 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId out of bounds: %d < %u > %d, cancelling read.\n", SCCP_MESSAGE_LOW_BOUNDARY, messageId, SCCP_MESSAGE_HIGH_BOUNDARY);
 		return -1;
 	}
-	if (DEBUG) {
-		boolean_t Found = FALSE;
-		uint32_t x;
-		for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
-			if (messageId == x) {
-				Found = TRUE;
-				break;
-			}
-		}
-		if (!Found) {
-			pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId %d could not be found in the array of known messages, cancelling read.\n", messageId);
-			//return -1;										/* not returning -1 in this case, so that we can see the message we would otherwise miss */
+
+#if DEBUG
+	boolean_t Found = FALSE;
+	uint32_t x;
+	for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
+		if (messageId == x) {
+			Found = TRUE;
+			break;
 		}
 	}
+	if (!Found) {
+		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId %d could not be found in the array of known messages, cancelling read.\n", messageId);
+		//return -1;										/* not returning -1 in this case, so that we can see the message we would otherwise miss */
+	}
+#endif
+
 
 	return msgtype2size(messageId);
 }
