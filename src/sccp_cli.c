@@ -393,38 +393,41 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 
 static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
+	char *completerStr;
+	
+	completerStr = NULL;
 	switch (completer) {
 		case SCCP_CLI_NULL_COMPLETER:
-			return NULL;
+			completerStr = NULL;
 			break;
 		case SCCP_CLI_DEVICE_COMPLETER:
-			return sccp_complete_device(line, word, pos, state);
+			completerStr = sccp_complete_device(line, word, pos, state);
 			break;
 		case SCCP_CLI_CONNECTED_DEVICE_COMPLETER:
-			return sccp_complete_connected_device(line, word, pos, state);
+			completerStr = sccp_complete_connected_device(line, word, pos, state);
 			break;
 		case SCCP_CLI_LINE_COMPLETER:
-			return sccp_complete_line(line, word, pos, state);
+			completerStr = sccp_complete_line(line, word, pos, state);
 			break;
 		case SCCP_CLI_CONNECTED_LINE_COMPLETER:
-			return sccp_complete_connected_line(line, word, pos, state);
+			completerStr = sccp_complete_connected_line(line, word, pos, state);
 			break;
 		case SCCP_CLI_CHANNEL_COMPLETER:
-			return sccp_complete_channel(line, word, pos, state);
+			completerStr = sccp_complete_channel(line, word, pos, state);
 			break;
 		case SCCP_CLI_CONFERENCE_COMPLETER:
 #ifdef CS_SCCP_CONFERENCE
-			return sccp_complete_conference(line, word, pos, state);
+			completerStr = sccp_complete_conference(line, word, pos, state);
 #endif
 			break;
 		case SCCP_CLI_DEBUG_COMPLETER:
-			return sccp_complete_debug(line, word, pos, state);
+			completerStr = sccp_complete_debug(line, word, pos, state);
 			break;
 		case SCCP_CLI_SET_COMPLETER:
-			return sccp_complete_set(line, word, pos, state);
+			completerStr = sccp_complete_set(line, word, pos, state);
 			break;
 	}
-	return NULL;
+	return completerStr;
 }
 
 /* --- Support Functions ---------------------------------------------------------------------------------------------- */
