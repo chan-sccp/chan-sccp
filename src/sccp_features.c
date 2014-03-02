@@ -390,6 +390,9 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 				sccp_channel_updateChannelCapability(c);
 				if (d->directed_pickup_modeanswer) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+#if CS_EXPERIMENTAL
+					c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;		/* part of new requestHangup implementation */
+#endif					
 				} else {
 					uint8_t instance;
 
@@ -426,6 +429,11 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Exten '%s@%s' Picked up Succesfully\n", exten, context);
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Failed to pickup up Exten '%s@%s'\n", exten, context);
+		int instance = sccp_device_find_index_for_line(d, c->line->name);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, 5);
+		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
+		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
+		c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
 	}
 	d = sccp_device_release(d);
 #endif
