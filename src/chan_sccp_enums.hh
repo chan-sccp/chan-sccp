@@ -80,19 +80,6 @@ BEGIN_ENUM(sccp,channelstate)
         ENUM_ELEMENT(SCCP_CHANNELSTATE_DND 				,=0xFF,	"DND")
 END_ENUM(sccp,channelstate)												/*!< internal Chan_SCCP Call State c->callstate */
 
-/*!
- * \brief Skinny Miscellaneous Command Type (Enum)
- */
-BEGIN_ENUM(sccp,miscCommandType)
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE		,,	"videoFreezePicture") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE	,,	"videoFastUpdatePicture") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB		,,	"videoFastUpdateGOB") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB		,,	"videoFastUpdateMB") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_LOSTPICTURE			,,	"lostPicture") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE		,,	"lostPartialPicture") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE	,,	"recoveryReferencePicture") 
-        ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF	,,	"temporalSpatialTradeOff") 
-END_ENUM(sccp,miscCommandType)
 
 BEGIN_ENUM(sccp,devicestate)
         ENUM_ELEMENT(SCCP_DEVICESTATE_ONHOOK				,,	"On Hook"	)
