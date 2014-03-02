@@ -296,10 +296,12 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 				return;
 			}
 			if (skinny_codec_prefs[x] == skinny_codec) {
+//				sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "found codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 				found = 1;
 			}
 		} else {
 			if (x + 1 < SKINNY_MAX_CAPABILITIES) {					// move all remaining member left one, deleting the found one
+//				sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "moving %d to %d\n", x+1, x);
 				skinny_codec_prefs[x] = skinny_codec_prefs[x+1];
 			}
 			if (skinny_codec_prefs[x+1] == SKINNY_CODEC_NONE) {			// exit early if the rest can only be NONE
@@ -316,12 +318,16 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 {
 	int x = 0;
 
+	// append behaviour: remove old entry, move all other entries left, append 
+	skinny_codec_pref_remove(skinny_codec_pref,skinny_codec);
+
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		if (skinny_codec_pref[x] == skinny_codec) {
-			return x;
-		}
+		// insert behaviour: skip if already there (cheaper)
+//		if (skinny_codec_pref[x] == skinny_codec) {
+//			return x;
+//		}
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
-			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' as pos %d\n", codec2name(skinny_codec), skinny_codec, x);
+			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 			skinny_codec_pref[x] = skinny_codec;
 			return x;
 		}
