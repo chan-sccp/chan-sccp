@@ -287,7 +287,8 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * co
  */
 static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
-	skinny_codec_t *old_skinny_codec_prefs = { 0 };
+//	skinny_codec_t *old_skinny_codec_prefs = { 0 };
+	skinny_codec_t old_skinny_codec_prefs[SKINNY_MAX_CAPABILITIES];
 	int x, y = 0;
 
 	memcpy(old_skinny_codec_prefs, skinny_codec_prefs, sizeof(skinny_codec_t));
