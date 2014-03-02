@@ -238,7 +238,11 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
-	sccp_mwi_check(event->event.lineStatusChanged.optional_device);
+	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN || 
+		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_ONHOOK ||
+		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_RINGING) {				/* these are the only events we are interested in */
+		sccp_mwi_check(event->event.lineStatusChanged.optional_device);
+	}
 }
 
 /*!
