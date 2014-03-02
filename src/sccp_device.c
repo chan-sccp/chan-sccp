@@ -497,6 +497,7 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 // 	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, redial_active);
 // 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_REDIAL, redial_active);
 	
+	/** \todo needs some improvements to reduce sofkeySet update -MC */
 	if(redial_active == TRUE){
 		uint8_t keymode;
 		for (keymode=0; i<KEYMODE_LAST; keymode++){
