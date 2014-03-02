@@ -359,10 +359,10 @@ int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_
 					codec = skinny_codecs[x].codec;
 					found = TRUE;
 					if (allowing) {
-						sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(skinny_codec));
+//						sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "appending codec '%s'\n", codec2name(codec));
 						skinny_codec_pref_append(skinny_codec_prefs, codec);
 					} else {
-						sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(skinny_codec));
+//						sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "removing codec '%s'\n", codec2name(codec));
 						skinny_codec_pref_remove(skinny_codec_prefs, codec);
 					}
 				}
