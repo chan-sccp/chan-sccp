@@ -932,6 +932,9 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 			msg[segment]->data.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
 			msg[segment]->data.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
 			msg[segment]->data.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(Sequence);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_conferenceID = htolel(callReference);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_appInstanceID = htolel(appID);
+			msg[segment]->data.UserToDeviceDataVersion1Message.lel_routing = htolel(1);
 			if (Sequence == 0x0000) {
 				Sequence = 0x0001;
 			}		
