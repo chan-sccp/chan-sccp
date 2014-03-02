@@ -332,7 +332,7 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 /*!
  * \brief Parse Skinny Codec Allow / Disallow Config Lines
  */
-int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, skinny_codec_t * skinny_codec_mask, const char *list, int allowing)
+int sccp_parse_allow_disallow(skinny_codec_t * skinny_codec_prefs, const char *list, int allowing)
 {
 	int errors = 0;
 
