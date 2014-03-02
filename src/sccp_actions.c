@@ -2661,17 +2661,17 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		sccp_msg_t *msg_out;
 
 		msg_out = sccp_build_packet(MiscellaneousCommandMessage, sizeof(msg_in->data.MiscellaneousCommandMessage));
-		msg_out->data.MiscellaneousCommandMessage.lel_conferenceId = htolel(channel->callid);
-		msg_out->data.MiscellaneousCommandMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
-		msg_out->data.MiscellaneousCommandMessage.lel_callReference = htolel(channel->callid);
-		msg_out->data.MiscellaneousCommandMessage.lel_miscCommandType = htolel(1);			/* videoFastUpdatePicture */
+		msg_out->data.MiscellaneousCommandMessage.lel_conferenceId 	= htolel(channel->callid);
+		msg_out->data.MiscellaneousCommandMessage.lel_passThruPartyId 	= htolel(channel->passthrupartyid);
+		msg_out->data.MiscellaneousCommandMessage.lel_callReference 	= htolel(channel->callid);
+		msg_out->data.MiscellaneousCommandMessage.lel_miscCommandType	= htolel(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);		/* videoFastUpdatePicture */
 		sccp_dev_send(d, msg_out);
 
 // 		msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_in->data.FlowControlNotifyMessage));
 // 		msg_out->data.FlowControlNotifyMessage.lel_conferenceID = htolel(channel->callid);
 // 		msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId = htolel(channel->passthrupartyid);
 // 		msg_out->data.FlowControlNotifyMessage.lel_callReference = htolel(channel->callid);
-// 		msg_out->data.FlowControlNotifyMessage.lel_maxBitRate = htolel(0x00000c80);
+// 		msg_out->data.FlowControlNotifyMessage.lel_maxBitRate = htolel(500000);
 // 		sccp_dev_send(d, msg_out);
 
 		PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
