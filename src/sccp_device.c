@@ -500,7 +500,7 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 	/** \todo needs some improvements to reduce sofkeySet update -MC */
 	if(redial_active == TRUE){
 		uint8_t keymode;
-		for (keymode=0; i<KEYMODE_LAST; keymode++){
+		for (keymode=0; keymode<KEYMODE_LAST; keymode++){
 			sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, keymode, redial_active);
 			sccp_dev_set_keyset(device, 0, 0, keymode);
 		}
