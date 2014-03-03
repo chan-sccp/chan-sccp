@@ -912,9 +912,9 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				/* tokenparsing */
 				char *option_tokens = alloca(strlen(sccpDstConfig[i].name) + 1);
 				sprintf(option_tokens, "%s|", sccpDstConfig[i].name);
-				char *option_tokens_saveptr;
+				char *option_tokens_saveptr = NULL;
 				char *option_name = strtok_r(option_tokens, "|", &option_tokens_saveptr);
-				while (option_name != NULL) {
+				do {
 					/* search for the default values in the referred segment, if found break so we can pass on the cat_root */
 					for (cat_root = v = ast_variable_browse(GLOB(cfg), referral_cat); v; v = v->next) {
 						if (!strcasecmp((const char *) option_name, v->name)) {
@@ -923,8 +923,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 							break;
 						}
 					}
-					option_name = strtok_r(NULL, "|", &option_tokens_saveptr);
-				}
+				} while ((option_name = strtok_r(NULL, "|", &option_tokens_saveptr)) != NULL);
 				
 				if (referralValueFound) {				/* if referred to other segment and a value was found, pass the newly found cat_root directly to setValue */
 					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Refer default value lookup for parameter:'%s' through '%s' segment\n", sccpDstConfig[i].name, referral_cat);
