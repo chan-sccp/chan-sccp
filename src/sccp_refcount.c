@@ -463,26 +463,23 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	return NULL;
 }
 
-inline void *sccp_refcount_replace(void *ptr, void *newptr, const char *filename, int lineno, const char *func) {
-	if (newptr == ptr) {						// nothing changed
-		return newptr;
+inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func) {
+	if (&newptr == replaceptr) {					// nothing changed
+		return;
 	}
 
 	void *tmpNewPtr = NULL;						// retain new one first
-	void *oldPtr = ptr;
+	void *oldPtr = *replaceptr;
 	if (newptr) {
 		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {
-			ptr = tmpNewPtr;
+			*replaceptr = tmpNewPtr;
 			if (oldPtr) { 							// release previous one after
 				sccp_refcount_release(oldPtr, filename, lineno, func);
 			}
-		} else {
-			pbx_log(LOG_NOTICE, "failed to retain new point, returning previous one\n");
 		}
 	} else {
 		if (oldPtr) { 							// release previous one after
-			ptr = sccp_refcount_release(oldPtr, filename, lineno, func);
+			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);
 		}
 	}
-	return ptr;
 }

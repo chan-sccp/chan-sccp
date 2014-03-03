@@ -18,7 +18,7 @@
 
 #define sccp_channel_release(x) 	sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_channel_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_channel_refreplace(x, y)	x = sccp_refcount_replace(x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_channel_refreplace(x, y)	sccp_refcount_replace((void **)&x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /* live cycle */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
