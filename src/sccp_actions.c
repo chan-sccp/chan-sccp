@@ -2173,23 +2173,25 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	}
 
 	if (lineInstance) {
+		// use channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid); instead
 		l = sccp_line_find_byid(d, lineInstance);
 	}
 	if (callid) {
+		// \todo cleanup this mess
 		if (d->active_channel && d->active_channel->callid == callid) {
 			channel = sccp_device_getActiveChannel(d);
-			if (l && channel->line != l) {
+			if (l && channel && channel->line != l) {
 				l = sccp_line_release(l);
 			}
 			if (!l) {
-				l = channel ? sccp_line_retain(channel->line) : NULL;
+				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
 			}
 		} else {
 			if (l) {
 				channel = sccp_find_channel_on_line_byid(l, callid);
 			} else {
 				channel = sccp_channel_find_byid(callid);
-				l = channel ? sccp_line_retain(channel->line) : NULL;
+				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
 			}
 		}
 	}
