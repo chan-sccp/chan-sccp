@@ -17,10 +17,10 @@
 
 #define sccp_linedevice_retain(x) 	sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_linedevice_release(x) 	sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_linedevice_refreplace(x, y) x = sccp_refcount_replace(x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_linedevice_refreplace(x, y) sccp_refcount_replace((void **)&x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_line_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 #define sccp_line_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_line_refreplace(x, y)	x = sccp_refcount_replace(x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_line_refreplace(x, y)	sccp_refcount_replace((void **)&x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);
