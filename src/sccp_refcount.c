@@ -474,14 +474,14 @@ inline void *sccp_refcount_replace(void *ptr, void *newptr, const char *filename
 		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {
 			ptr = tmpNewPtr;
 			if (oldPtr) { 							// release previous one after
-				sccp_refcount_release(ptr, filename, lineno, func);
+				sccp_refcount_release(oldPtr, filename, lineno, func);
 			}
 		} else {
 			pbx_log(LOG_NOTICE, "failed to retain new point, returning previous one\n");
 		}
 	} else {
 		if (oldPtr) { 							// release previous one after
-			ptr = sccp_refcount_release(ptr, filename, lineno, func);
+			ptr = sccp_refcount_release(oldPtr, filename, lineno, func);
 		}
 	}
 	return ptr;
