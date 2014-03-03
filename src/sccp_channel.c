@@ -153,7 +153,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	int callid;
 
 	/* If there is no current line, then we can't make a call in, or out. */
-	if (!l) {
+	if (!(l = sccp_line_retain(l))) {
 		pbx_log(LOG_ERROR, "SCCP: Tried to open channel on a device with no lines\n");
 		return NULL;
 	}
@@ -192,7 +192,8 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 
-	channel->line = sccp_line_retain(l);
+//	channel->line = sccp_line_retain(l);
+	channel->line = l;				/* retain at function start -> passing to channel->line. Should never be NULL until channel destruction */
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
@@ -276,7 +277,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	
 	/** for previous device,set active channel to null */
 	if (!device && channel->privateData->device){
-		sccp_device_setActiveChannel(channel->privateData->device, NULL);  
+ 		sccp_device_setActiveChannel(channel->privateData->device, NULL);  
 	}
 
 	sccp_device_refreplace(channel->privateData->device, (sccp_device_t *) device);
@@ -1569,11 +1570,11 @@ int sccp_channel_hold(sccp_channel_t * channel)
 		}
 	}
  	//sccp_rtp_stop(channel);
-//	sccp_device_setActiveChannel(d, NULL);
+// 	sccp_device_setActiveChannel(d, NULL);
 	sccp_dev_set_activeline(d, NULL);
 	sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);							// this will also close (but not destroy) the RTP stream
 	sccp_channel_setDevice(channel, NULL);
-
+	
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
 		manager_event(EVENT_FLAG_CALL, "Hold", "Status: On\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", PBX(getChannelName) (channel), PBX(getChannelUniqueID) (channel));
@@ -1830,7 +1831,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	if (channel && channel->privateData && channel->privateData->device) {
 		sccp_channel_setDevice(channel, NULL);
 	}
-	channel->line = channel->line ? sccp_channel_release(channel->line) : NULL;
+//	channel->line = channel->line ? sccp_channel_release(channel->line) : NULL;
 }
 
 /*!
@@ -1854,6 +1855,8 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}
+//	sccp_channel_set_line(channel, NULL);
+	sccp_channel_release(channel->line);
 	if (channel->owner) {
 		pbx_channel_unref(channel->owner);
 	}
