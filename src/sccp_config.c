@@ -869,7 +869,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 		/* Lookup the first offset of the struct variable we want to set default for, find the corresponding entry in the SetEntries array and check the boolean flag, skip if true */
 		skip = FALSE;
 		for (x = 0; x < sccpConfigSegment->config_size; x++) {
-			if (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && SetEntries[x]) {
+			if ( (sccpDstConfig[i].offset == sccpConfigSegment->config[x].offset && SetEntries[x]) || (sccpConfigSegment->config[x].flags & (SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_OBSOLETE)) ) {
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: (sccp_config_set_defaults) skip setting default (SetEntry[%d] = TRUE for %s)\n", x, sccpConfigSegment->config[x].name);
 				skip = TRUE;
 				break;
