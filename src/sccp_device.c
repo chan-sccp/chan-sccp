@@ -405,7 +405,7 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
 #endif
-	memset(d->softKeyConfiguration.activeMask, 0xFFFFFFFF, sizeof(d->softKeyConfiguration.activeMask));
+	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
 
 	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
@@ -492,19 +492,10 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 		sccp_copy_string(device->lastNumber, "", sizeof(device->lastNumber));
 		redial_active = FALSE;
 	}
-// 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, redial_active);
-// 	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, redial_active);
-// 	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, redial_active);
-// 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_REDIAL, redial_active);
-	
-	/** \todo needs some improvements to reduce sofkeySet update -MC */
-	if(redial_active == TRUE){
-		uint8_t keymode;
-		for (keymode=0; keymode<KEYMODE_LAST; keymode++){
-			sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, keymode, redial_active);
-			sccp_dev_set_keyset(device, 0, 0, keymode);
-		}
-	}
+	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, redial_active);
+	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, redial_active);
+	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, redial_active);
+	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_REDIAL, redial_active);
 }
 
 /*!
