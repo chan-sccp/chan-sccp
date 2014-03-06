@@ -279,7 +279,11 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 		case AST_EXTENSION_REMOVED:
 		case AST_EXTENSION_DEACTIVATED:
 		case AST_EXTENSION_UNAVAILABLE:
-			hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
+			if (cidName && !strcasecmp(cidName, "DND")) {
+				hint->currentState = SCCP_CHANNELSTATE_DND;
+			} else {
+				hint->currentState = SCCP_CHANNELSTATE_CONGESTION;
+			}
 			break;
 		case AST_EXTENSION_NOT_INUSE:
 			hint->currentState = SCCP_CHANNELSTATE_ONHOOK;
