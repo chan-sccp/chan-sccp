@@ -392,20 +392,15 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 
 				pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		/* reset picked up channel */
 				sccp_channel_setDevice(c, d);
-//				sccp_device_setActiveChannel(d, c);
 				sccp_channel_updateChannelCapability(c);
 				if (d->directed_pickup_modeanswer) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
-#if CS_EXPERIMENTAL
-					c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;		/* part of new requestHangup implementation */
-#endif					
 				} else {
 					uint8_t instance;
 
 					instance = sccp_device_find_index_for_line(d, c->line->name);
 					sccp_dev_stoptone(d, instance, c->callid);
 					sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
-//					sccp_device_setActiveChannel(d, NULL);
 					c->ringermode = SKINNY_RINGTYPE_OUTSIDE;				// default ring
 					ringermode = pbx_builtin_getvar_helper(c->owner, "ALERT_INFO");
 					if (ringermode && !sccp_strlen_zero(ringermode)) {
@@ -527,7 +522,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 
 		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);
 		sccp_channel_setDevice(c, d);
-//		sccp_device_setActiveChannel(d, c);
 		sccp_channel_updateChannelCapability(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);						/* connect calls - reinstate audio */
 	} else {
@@ -538,13 +532,10 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) pickup failed (someone else picked it up already or not in the correct callgroup)\n", DEV_ID_LOG(d));
 		int instance = sccp_device_find_index_for_line(d, l->name);
 
-		sccp_dev_set_message(d, "Pickup Failed", 5, FALSE, TRUE);					/* use messageStack */
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP, 5);
+		sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, c->callid, 2);
-		sleep(1);											/* give a little time for tone to get delivered, before hanging up */
-
-		/* hangup */
-		pbx_channel_set_hangupcause(c->owner, AST_CAUSE_CALL_REJECTED);
-		pbx_hangup(c->owner);
+		c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
 	}
 #endif	
 	c = sccp_channel_release(c);
