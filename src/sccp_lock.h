@@ -63,8 +63,8 @@
 #      define ATOMIC_INCR(_a,_b,_c) 		__sync_fetch_and_add(_a,_b)
 #      define ATOMIC_DECR(_a,_b,_c) 		__sync_fetch_and_add(_a,-_b)
 #    else
-#      define ATOMIC_INCR(_a,_b,_c) 		AO_fetch_and_add(_a,_b)
-#      define ATOMIC_DECR(_a,_b,_c) 		AO_fetch_and_add(_a,-_b)
+#      define ATOMIC_INCR(_a,_b,_c) 		AO_fetch_and_add((volatile size_t *)_a,_b)
+#      define ATOMIC_DECR(_a,_b,_c) 		AO_fetch_and_add((volatile size_t *)_a,-_b)
 #    endif
 
 #    ifdef SCCP_BUILTIN_CAS32
@@ -78,7 +78,7 @@
 #    ifdef SCCP_BUILTIN_CAS_PTR
 #      define CAS_PTR(_a,_b,_c, _d) 		__sync_bool_compare_and_swap(_a, _b, _c)
 #    else
-#      define CAS_PTR(_a,_b,_c, _d) 		AO_compare_and_swap((uintptr_t *)_a, (uintptr_t)_b, _(uintptr_t)_c)
+#      define CAS_PTR(_a,_b,_c, _d) 		AO_compare_and_swap((uintptr_t *)_a, (uintptr_t)_b, (uintptr_t)_c)
 #    endif
 
 #  else														/* SCCP_ATOMIC */
