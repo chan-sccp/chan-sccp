@@ -213,7 +213,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"pickupmodeanswer", 		D_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"on = asterisk way, the call has been answered when picked up (Deprecated use direct_pickup_modeanswer instead)\n"},
 
 	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension (default: on)\n"},
-	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"sccp",				"context where direct pickup search for extensions. if not set current contect will be use.\n"},
+	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"context where direct pickup search for extensions. if not set current contect will be use.\n"},
 	{"directed_pickup_modeanswer", 	D_OBJ_REF(directed_pickup_modeanswer),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up (default: on)\n"},
 #endif
 	{"monitor", 			D_OBJ_REF(monitorFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				""},
