@@ -2068,10 +2068,13 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
 			beep = TRUE;
-			sscanf(argv[6], "%d", &timeout);
+		} else {
+			sscanf(argv[5], "%d", &timeout);
 		}
-		sscanf(argv[5], "%d", &timeout);
 	}
+	if (argc > 6) { 
+		sscanf(argv[6], "%d", &timeout);
+	} 
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to %s (beep: %d, timeout: %d)\n", argv[3], d->id, beep, timeout);
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
