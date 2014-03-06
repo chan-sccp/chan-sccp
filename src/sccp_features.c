@@ -294,12 +294,12 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 	char *context;
 
 	if (sccp_strlen_zero(exten)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) zero exten\n");
+		pbx_log(LOG_ERROR, "SCCP: (directed_pickup) zero exten. Giving up.\n");
 		return -1;
 	}
 
 	if (!c || !c->owner) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) no channel\n");
+		pbx_log(LOG_ERROR, "SCCP: (directed_pickup) no channel found. Giving up.\n");
 		return -1;
 	}
 
@@ -307,7 +307,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 	original = c->owner;
 
 	if (!c->line || !(d = sccp_channel_getDevice_retained(c))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) no device\n");
+		pbx_log(LOG_WARNING, "SCCP: (directed_pickup) no device found. Giving up.\n");
 		return -1;
 	}
 
@@ -316,12 +316,12 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		&& sccp_strlen_zero(c->line->namedpickupgroup)
 #endif
 	) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (directed pickup) no pickupgroup(s) configured for this line\n", d->id);
+		pbx_log(LOG_WARNING, "%s: (directed pickup) no pickupgroup(s) configured for this line. Giving up.\n", d->id);
 		return -1;
 	}
 
 	if (!PBX(findPickupChannelByExtenLocked)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version\n");
+		pbx_log(LOG_WARNING, "SCCP: (directed_pickup) findPickupChannelByExtenLocked not implemented for this asterisk version. Giving up.\n");
 		return -1;
 	}
 
@@ -332,9 +332,15 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		if (!sccp_strlen_zero(d->directed_pickup_context)) {
 			context = (char *) strdupa(d->directed_pickup_context);
 		} else {
-			context = (char *) pbx_channel_context(original);
+			context = (char *) strdupa(pbx_channel_context(original));
 		}
 	}
+	
+	if (sccp_strlen_zero(context)) {
+		pbx_log(LOG_ERROR, "SCCP: (directed_pickup) We could not find a context for this line. Giving up !\n");
+		return -1;
+	}
+	
 	PBX_CHANNEL_TYPE *target = NULL;									/* potential pickup target */
 	PBX_CHANNEL_TYPE *tmp = NULL;
 	const char *ringermode = NULL;
