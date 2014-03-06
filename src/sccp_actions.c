@@ -1084,7 +1084,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 		if (config->type == SPEEDDIAL && config->instance == 0) {
 			config->instance = speeddialInstance++;
 		} else if (config->type == SPEEDDIAL && config->instance != 0) {
-			speeddialInstance = config->instance;
+			speeddialInstance = config->instance + 1;
 		}
 	}
 	/* done */
