@@ -1634,6 +1634,10 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 	int errors = 0;
 	struct sccp_ha *ha = *(struct sccp_ha **) dest;
 
+	if (ha) {
+		sccp_free(ha);
+	}
+	
 	for (; v; v = v->next) {
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
 		if (sccp_strcaseequals(v->name, "deny")) {
