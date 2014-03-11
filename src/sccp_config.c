@@ -1632,12 +1632,10 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	int error = 0;
 	int errors = 0;
-	struct sccp_ha *ha = *(struct sccp_ha **) dest;
 
-	if (ha) {
-		sccp_free(ha);
-	}
-	
+	struct sccp_ha *prev_ha = *(struct sccp_ha **) dest;
+	struct sccp_ha *ha = NULL;
+
 	for (; v; v = v->next) {
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("sccp_config_parse_deny_permit: name: %s, value:%s\n", v->name, v->value);
 		if (sccp_strcaseequals(v->name, "deny")) {
@@ -1660,11 +1658,34 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 		errors |= error;
 	}
 	if (!error) {
-		*(struct sccp_ha **) dest = ha;
-		// FIXME
-		//changed = SCCP_CONFIG_CHANGE_CHANGED;
+		// compare ha elements
+		struct sccp_ha *hal = ha;
+		struct sccp_ha *prev_hal = prev_ha;
+		do  {
+			if (
+				((prev_hal && !hal) || (!prev_hal && hal)) ||
+				((prev_hal->next && !hal->next) || (!prev_hal->next && hal->next)) ||
+				sccp_socket_cmp_addr(&hal->netaddr, &prev_hal->netaddr) ||
+				sccp_socket_cmp_addr(&hal->netmask, &prev_hal->netmask) ||
+				(hal->sense != prev_hal->sense) 
+			) {
+				sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Changed\n");
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				if (prev_ha) {
+					sccp_free_ha(prev_ha);
+				}
+				*(struct sccp_ha **) dest = ha;
+				break;
+			}
+			prev_hal = prev_hal->next;
+			hal = hal->next;
+		} while (prev_hal && hal);
+	} else {
+		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Invalid\n");
+		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
+	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Return: %d\n", changed);
 	return changed;
 }
 
