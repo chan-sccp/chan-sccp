@@ -1013,9 +1013,9 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 /*!
  * \brief OpenReceiveChannelAck
  */
-static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
-	*status = letohl(msg->data.OpenReceiveChannelAck.v3.lel_status);
+	*mediastatus = letohl(msg->data.OpenReceiveChannelAck.v3.lel_mediastatus);
 	*callReference = letohl(msg->data.OpenReceiveChannelAck.v3.lel_callReference);
 	*passthrupartyid = letohl(msg->data.OpenReceiveChannelAck.v3.lel_passThruPartyId);
 
@@ -1026,9 +1026,9 @@ static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, u
 	pbx_log(LOG_WARNING, "SCCP: (parseOpenReceiveChannelAckV3) IPv4\n");
 }
 
-static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
-	*status = letohl(msg->data.OpenReceiveChannelAck.v17.lel_status);
+	*mediastatus = letohl(msg->data.OpenReceiveChannelAck.v17.lel_mediastatus);
 	*callReference = letohl(msg->data.OpenReceiveChannelAck.v17.lel_callReference);
 	*passthrupartyid = letohl(msg->data.OpenReceiveChannelAck.v17.lel_passThruPartyId);
 
@@ -1049,9 +1049,9 @@ static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, 
 	sccp_dump_msg((sccp_msg_t *)msg);
 }
 
-static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
-	*status = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_status);
+	*mediastatus = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_mediastatus);
 	*passthrupartyid = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_passThruPartyId);
 	*callReference = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_callReference);
 
@@ -1061,9 +1061,9 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_
 	sin->sin_port = htons(htolel(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
+static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
 {
-	*status = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_status);
+	*mediastatus = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_mediastatus);
 	*passthrupartyid = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_passThruPartyId);
 	*callReference = letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_callReference);
 
@@ -1084,12 +1084,12 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_msg
 /*!
  * \brief StartMediaTransmissionAck
  */
-static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMediaTransmissionAck.v3.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMediaTransmissionAck.v3.lel_callReference);
 	*callID1 = letohl(msg->data.StartMediaTransmissionAck.v3.lel_callReference1);
-	*status = letohl(msg->data.StartMediaTransmissionAck.v3.lel_smtStatus);
+	*mediastatus = letohl(msg->data.StartMediaTransmissionAck.v3.lel_mediastatus);
 
 	ss->ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
@@ -1097,12 +1097,12 @@ static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_msg_t * ms
 	sin->sin_port = htons(htolel(msg->data.StartMediaTransmissionAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMediaTransmissionAck.v17.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMediaTransmissionAck.v17.lel_callReference);
 	*callID1 = letohl(msg->data.StartMediaTransmissionAck.v17.lel_callReference1);
-	*status = letohl(msg->data.StartMediaTransmissionAck.v17.lel_smtStatus);
+	*mediastatus = letohl(msg->data.StartMediaTransmissionAck.v17.lel_mediastatus);
 
 	if (letohl(msg->data.StartMediaTransmissionAck.v17.lel_ipv46) == 0) {				// read ipv4 address
 		ss->ss_family = AF_INET;
@@ -1121,12 +1121,12 @@ static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_msg_t * m
 /*!
  * \brief StartMultiMediaTransmissionAck
  */
-static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_callReference);
 	*callID1 = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_callReference1);
-	*status = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_smtStatus);
+	*mediastatus = letohl(msg->data.StartMultiMediaTransmissionAck.v3.lel_mediastatus);
 
 	ss->ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
@@ -1134,12 +1134,12 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_msg_t
 	sin->sin_port = htons(htolel(msg->data.StartMultiMediaTransmissionAck.v3.lel_portNumber));
 }
 
-static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss)
+static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss)
 {
 	*partyID = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_passThruPartyId);
 	*callID = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_callReference);
 	*callID1 = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_callReference1);
-	*status = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_smtStatus);
+	*mediastatus = letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_mediastatus);
 
 	if (letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_ipv46) == 0) {				// read ipv4 address
 		ss->ss_family = AF_INET;

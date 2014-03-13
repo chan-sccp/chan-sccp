@@ -1012,7 +1012,7 @@ typedef union {
 				uint32_t lel_callReference1;							/*!< Call Reference1 */
 				uint32_t bel_ipAddr;								/*!< Ip Address Array (This field is apparently in big-endian format, even though most other fields are in little-endian format.) */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_smtStatus;								/*!< Start Media Transmission Status */
+				uint32_t lel_mediastatus;							/*!< Start Media Transmission Status */
 			} v3;
 
 			/* this is from a 6911
@@ -1033,7 +1033,7 @@ typedef union {
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_smtStatus;								/*!< startmediatransmission status */
+				uint32_t lel_mediastatus;							/*!< startmediatransmission status */
 			} v17;
 		};
 	} StartMediaTransmissionAck;										/*!< Start Media Transmission Acknowledgement Structure */
@@ -1558,7 +1558,7 @@ typedef union {
 	struct {
 		union {
 			struct {
-				uint32_t lel_status;								/*!< receiveChanStatus */
+				uint32_t lel_mediastatus;							/*!< receiveChanStatus */
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
@@ -1581,7 +1581,7 @@ typedef union {
 			   00000020 - 01 00 00 00 00 00 00 00                           - ........
 			 */
 			struct {
-				uint32_t lel_status;								/*!< Receive Channel Status */
+				uint32_t lel_mediastatus;							/*!< Receive Channel Status */
 				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
@@ -1600,7 +1600,7 @@ typedef union {
 	struct {
 		union {
 			struct {
-				uint32_t lel_status;								/*!< receiveChanStatus */
+				uint32_t lel_mediastatus;							/*!< receiveChanStatus */
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
@@ -1610,7 +1610,7 @@ typedef union {
 			} v3;
 
 			struct {
-				uint32_t lel_status;								/*!< status */
+				uint32_t lel_mediastatus;							/*!< status */
 				/* include IPv6 support */
 				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format,
@@ -2598,7 +2598,7 @@ typedef union {
 				uint32_t lel_callReference1;							/*!< Call Reference1 */
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format, even though most other fields are little-endian. */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_smtStatus;								/*!< Start Media Transmission Status */
+				uint32_t lel_mediastatus;							/*!< Start Media Transmission Status */
 				uint32_t lel_unknown2;								/*!< Unknown 2 */
 			} v3;
 
@@ -2609,7 +2609,7 @@ typedef union {
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
-				uint32_t lel_smtStatus;								/*!< startmediatransmission status */
+				uint32_t lel_mediastatus;							/*!< startmediatransmission status */
 				uint32_t lel_unknown2;								/*!< Unknown */
 			} v17;
 		};
@@ -3315,10 +3315,10 @@ typedef struct {
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
 
 	/* parse received messages */
-	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, uint32_t * status, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, uint32_t * status, struct sockaddr_storage *ss);
+	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss);
+	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss);
 	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t *lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
