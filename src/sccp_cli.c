@@ -2755,7 +2755,12 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	} else {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 	}
-	pthread_cancel(d->session->session_thread);
+
+	usleep(20);
+	sccp_session_t *s;
+	if (d && (s = d->session) && AST_PTHREADT_NULL != s->session_thread) {
+		pthread_cancel(s->session_thread);
+	}
 
 	d = sccp_device_release(d);
 	return RESULT_SUCCESS;
