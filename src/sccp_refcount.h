@@ -47,6 +47,9 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 inline void *sccp_refcount_release(const void *ptr, const char *filename, int lineno, const char *func);
 inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_print_hashtable(int fd);
+#ifdef CS_EXPERIMENTAL
+int sccp_refcount_force_release(long findobj, char *identifier);
+#endif
 
 /* *INDENT-OFF* */
 /* Automatically Retain/Release */

@@ -391,6 +391,35 @@ void sccp_refcount_print_hashtable(int fd)
 	
 }
 
+#ifdef CS_EXPERIMENTAL
+int sccp_refcount_force_release(long findobj, char *identifier)
+{
+	int x= 0;
+	RefCountedObject *obj = NULL;
+	void *ptr = NULL;
+
+	ast_rwlock_rdlock(&objectslock);
+	for (x = 0; x < SCCP_HASH_PRIME; x++) {
+		if (objects[x] && &(objects[x])->refCountedObjects) {
+			SCCP_RWLIST_RDLOCK(&(objects[x])->refCountedObjects);
+			SCCP_RWLIST_TRAVERSE(&(objects[x])->refCountedObjects, obj, list) {
+				if (sccp_strequals(obj->identifier, identifier) && (long)obj == findobj) {
+					ptr = obj->data;
+				}
+			}
+			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
+		}
+	}
+	ast_rwlock_unlock(&objectslock);
+	if (ptr) {
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "Forcefully releasing one instance of %s\n", identifier);
+		sccp_refcount_release(ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		return 1;
+	}
+	return 0;
+}
+#endif
+
 void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 {
 	RefCountedObject *obj = NULL;

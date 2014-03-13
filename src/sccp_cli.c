@@ -1858,6 +1858,17 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
+#ifdef CS_EXPERIMENTAL
+	if (!strcasecmp(argv[2], "remove_reference")) {									/*  WIP */
+		long findobj = 0;
+		if (argc == 5 && sscanf(argv[3], "%lx", &findobj) == 1) {
+			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "SCCP: Reducing Refounct of 0x%lx, %s, %s by one\n", findobj, argv[3], argv[4]);
+			if (sccp_refcount_force_release(findobj, argv[4])) {
+				return RESULT_SUCCESS;
+			}
+		}
+	}
+#endif	 
 #endif
 	return RESULT_FAILURE;
 }
