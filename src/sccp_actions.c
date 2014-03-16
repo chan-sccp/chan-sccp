@@ -276,7 +276,6 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 			if (last_digit % 2 == 0) {
 				sendAck = TRUE;
 			}
-#if CS_EXPERIMENTAL
 		} else if (strstr(GLOB(token_fallback), "/") != NULL) {
 			struct stat sb = {0};
 			if (stat(GLOB(token_fallback), &sb) == 0 && sb.st_mode & S_IXUSR) {
@@ -307,7 +306,6 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 			} else {
 				pbx_log(LOG_WARNING, "Script %s, either not found or not executable by this user\n", GLOB(token_fallback));
 			}
-#endif
 		} else {
 			pbx_log(LOG_WARNING, "%s: did not understand global fallback value: '%s'... sending default value 'ACK'\n", deviceName, GLOB(token_fallback));
 		}
