@@ -274,21 +274,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 					conveyor->callid = c->callid;
 					conveyor->linedevice = sccp_linedevice_retain(linedevice);
 
-#if !CS_EXPERIMENTAL												/* new default */
 					sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_pbx_call_autoanswer_thread, (void *) conveyor);
-#else
-					pthread_t t;
-					pthread_attr_t attr;
-
-					pthread_attr_init(&attr);
-					pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-					if (pbx_pthread_create(&t, &attr, sccp_pbx_call_autoanswer_thread, conveyor)) {
-						pbx_log(LOG_WARNING, "%s: Unable to create switch thread for channel (%s-%08x) %s\n", DEV_ID_LOG(linedevice->device), l->name, c->callid, strerror(errno));
-						sccp_free(conveyor);
-					}
-					pthread_detach(t);
-					pthread_attr_destroy(&attr);
-#endif
 				}
 			}
 		}

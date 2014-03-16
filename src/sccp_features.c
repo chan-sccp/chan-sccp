@@ -1149,19 +1149,7 @@ static void *sccp_feat_meetme_thread(void *data)
  */
 void sccp_feat_meetme_start(sccp_channel_t * c)
 {
-#if CS_EXPERIMENTAL
 	sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_feat_meetme_thread, (void *) c);
-#else
-	pthread_attr_t attr;
-	pthread_t t;
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-	if (pbx_pthread_create(&t, &attr, sccp_feat_meetme_thread, c) < 0) {
-		pbx_log(LOG_WARNING, "SCCP: Cannot create a MeetMe thread (%s).\n", strerror(errno));
-	}
-	pthread_attr_destroy(&attr);
-#endif
 }
 
 /*!
