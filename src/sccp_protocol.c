@@ -900,7 +900,6 @@ static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t * device, co
  */
 static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority)
 {
-#if CS_EXPERIMENTAL
 	int data_len = strlen(xmlData);
 	int msg_len = 0;
 	int hdr_len = 0;
@@ -973,33 +972,6 @@ static void sccp_protocol_sendUserToDeviceDataVersion1Message(const sccp_device_
 	} else {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (msg-size: %d). Skipping !\n", DEV_ID_LOG(device), data_len);
 	}
-#else
-	sccp_msg_t *msg = NULL;
-
-	int msg_len = strlen(xmlData);
-	int hdr_len = sizeof(msg->data.UserToDeviceDataVersion1Message);
-	int padding = ((msg_len + hdr_len) % 4);
-	padding = (padding > 0) ? 4 - padding : 4;
-
-	if (device->protocolversion > 17 || msg_len < StationMaxXMLMessage) {
-		msg = sccp_build_packet(UserToDeviceDataVersion1Message, hdr_len + msg_len + padding);
-		msg->data.UserToDeviceDataVersion1Message.lel_appID = htolel(appID);
-		msg->data.UserToDeviceDataVersion1Message.lel_lineInstance = htolel(lineInstance);
-		msg->data.UserToDeviceDataVersion1Message.lel_callReference = htolel(callReference);
-		msg->data.UserToDeviceDataVersion1Message.lel_transactionID = htolel(transactionID);
-		msg->data.UserToDeviceDataVersion1Message.lel_sequenceFlag = htolel(0x0002);
-		msg->data.UserToDeviceDataVersion1Message.lel_displayPriority = htolel(priority);
-		msg->data.UserToDeviceDataVersion1Message.lel_dataLength = htolel(msg_len);
-
-		if (msg_len) {
-			memcpy(&msg->data.UserToDeviceDataVersion1Message.data, xmlData, msg_len);
-		}
-		sccp_dev_send(device, msg);
-		sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message sent to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d).\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
-	} else {
-		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "%s: (sccp_protocol_sendUserToDeviceDataVersion1Message) Message to large to send to device  (hdr_len: %d, msglen: %d, padding: %d, msg-size: %d). Skipping !\n", DEV_ID_LOG(device), hdr_len, msg_len, padding, hdr_len + msg_len + padding);
-	}
-#endif
 }
 
 /* done - sendUserToDeviceData */
