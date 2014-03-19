@@ -208,8 +208,8 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 
 	sccp_conference_participant_t *participant = sccp_conference_createParticipant(conference);
 
-	if (participant) {
-		conference->num_moderators++;
+	if (participant && conference) {
+		conference->num_moderators = 1;
 		participant->channel = sccp_channel_retain(channel);
 		participant->device = sccp_device_retain(device);
 		participant->conferenceBridgePeer = channel->owner;

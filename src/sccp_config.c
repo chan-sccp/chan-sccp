@@ -730,7 +730,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 					}
 				} while ((option_name = strtok_r(NULL, "|", &option_tokens_saveptr)) != NULL);
 				
-				if (referralValueFound) {				/* if referred to other segment and a value was found, pass the newly found cat_root directly to setValue */
+				if (referralValueFound && v) {				/* if referred to other segment and a value was found, pass the newly found cat_root directly to setValue */
 					sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Refer default value lookup for parameter:'%s' through '%s' segment\n", sccpDstConfig[cur_elem].name, referral_cat);
 					sccp_config_object_setValue(obj, cat_root, sccpDstConfig[cur_elem].name, v->value, __LINE__, segment, SetEntries);
 					continue;
@@ -1465,14 +1465,17 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 		// compare ha elements
 		struct sccp_ha *hal = ha;
 		struct sccp_ha *prev_hal = prev_ha;
-		do  {
+		do {
 			if (
-				((prev_hal && !hal) || (!prev_hal && hal)) ||
-				((prev_hal->next && !hal->next) || (!prev_hal->next && hal->next)) ||
-				sccp_socket_cmp_addr(&hal->netaddr, &prev_hal->netaddr) ||
-				sccp_socket_cmp_addr(&hal->netmask, &prev_hal->netmask) ||
-				(hal->sense != prev_hal->sense) 
+				(prev_hal && hal) &&
+				((prev_hal->next && hal->next) || (!prev_hal->next && !hal->next)) &&
+				!sccp_socket_cmp_addr(&hal->netaddr, &prev_hal->netaddr) &&
+				!sccp_socket_cmp_addr(&hal->netmask, &prev_hal->netmask) &&
+				(hal->sense == prev_hal->sense) 
 			) {
+				prev_hal = prev_hal->next;
+				hal = hal->next;
+			} else {
 				sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Changed\n");
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 				if (prev_ha) {
@@ -1481,8 +1484,6 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 				*(struct sccp_ha **) dest = ha;
 				break;
 			}
-			prev_hal = prev_hal->next;
-			hal = hal->next;
 		} while (prev_hal && hal);
 	} else {
 		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Invalid\n");
