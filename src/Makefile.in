@@ -476,8 +476,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2014-02-24 12:48:25 +0100 (ma, 24 feb 2014) $
-# REVISION: $Revision: 5229 $
+# DATE:     $Date: 2014-02-26 14:01:37 +0100 (wo, 26 feb 2014) $
+# REVISION: $Revision: 5256 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules subdir-objects
 csmod_LTLIBRARIES = chan_sccp.la 
