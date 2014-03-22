@@ -493,7 +493,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) %s bridging to dialplan application %s\n", c->currentDeviceId, PBX(getChannelName) (c), PBX(getChannelAppl) (c));
 		}
 
-		/* at this point we do not have a pointer to ou bridge channel so we search for it -MC */
+		/* at this point we do not have a pointer to our bridge channel so we search for it -MC */
 		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
 
 		if (!sccp_strlen_zero(bridgePeerChannelName)) {
@@ -509,18 +509,30 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			pbx_setstate(br, AST_STATE_UP);
 
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n", pbx_channel_name(br), pbx_channel_name(astForwardedChannel));
+
+#ifdef CS_EXPERIMENTAL
+//                        c->parentChannel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+#endif
+
 			if (!pbx_channel_masquerade(astForwardedChannel, br)) {
+#ifdef CS_EXPERIMENTAL
+//				c->parentChannel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+#endif
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(astForwardedChannel));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(pbx_channel_state(br)));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 #if ASTERISK_VERSION_GROUP > 106
-				//pbx_indicate(c->owner, AST_CONTROL_REDIRECTING);		// hangling should be implemented in pbx_impl like connectedline
+				//pbx_indicate(c->owner, AST_CONTROL_REDIRECTING);		// handling should be implemented in pbx_impl like connectedline
 				pbx_indicate(br, AST_CONTROL_CONNECTED_LINE);
+#endif
+#ifdef CS_EXPERIMENTAL
+//                                ast_softhangup(c->parentChannel->owner, AST_CAUSE_NORMAL_CLEARING);
 #endif
 			} else {
 				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
+                                
 				res = -1;
 			}
 			c->parentChannel = sccp_channel_release(c->parentChannel);
@@ -530,17 +542,30 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 
+                        pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
 			if (pbx_channel_state(c->owner) == AST_STATE_RING && pbx_channel_state(astForwardedChannel) == AST_STATE_DOWN && PBX(getChannelPbx) (c)) {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", PBX(getChannelPbx) (c) ? "yes" : "no");
 				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_CALL_REJECTED);
+#ifdef CS_EXPERIMENTAL
+				c->parentChannel->hangupRequest(c->parentChannel); 
+#else
 				pbx_queue_hangup(astForwardedChannel);
+#endif
 			} else {
 				pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
 				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
+#ifdef CS_EXPERIMENTAL
+				c->parentChannel->hangupRequest(c->parentChannel); 
+#else
 				pbx_queue_hangup(astForwardedChannel);
+#endif
 				sccp_channel_endcall(c);
 				res = -1;
 			}
+#ifdef CS_EXPERIMENTAL
+                        pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
+                        res = -1;
+#endif
 		}
 		// FINISH
 	} else {
@@ -863,9 +888,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 	if (!(l = sccp_line_retain(c->line))) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <line> available. Returning from dial thread. Exiting\n");
-		if (pbx_channel) {
-			PBX(requestHangup) (pbx_channel);
-		}
+		c->hangupRequest(c);
 		goto EXIT_FUNC;
 	}
 	uint8_t instance = sccp_device_find_index_for_line(d, l->name);
@@ -1075,7 +1098,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		/* Answer dialplan command works only when in RINGING OR RING ast_state */
 		PBX(set_callstate) (c, AST_STATE_RING);
 
-		int8_t pbxStartResult = pbx_pbx_start(pbx_channel);
+		enum ast_pbx_result pbxStartResult = pbx_pbx_start(pbx_channel);
 
 		/* \todo replace AST_PBX enum using pbx_impl wrapper enum */
 		switch (pbxStartResult) {
@@ -1088,7 +1111,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 				break;
-			default:
+			case AST_PBX_SUCCESS:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #ifdef CS_MANAGER_EVENTS
 				if (GLOB(callevents)) {

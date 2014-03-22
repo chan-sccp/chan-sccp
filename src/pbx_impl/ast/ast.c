@@ -429,6 +429,35 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 	}
 }
 
+#ifdef CS_EXPERIMENTAL
+boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
+{
+	boolean_t res = FALSE;
+	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+
+	ast_channel_lock(pbx_channel);								/* lock is required here so we don't mess up cdr_update */
+	if (!ast_check_hangup(pbx_channel)) {							/* if channel is not already been hungup */
+		res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
+	} else {
+		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
+	}
+	ast_channel_unlock(pbx_channel);
+	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+	return res;
+}
+
+boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
+{
+	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+	return ast_hangup(channel->owner) ? FALSE : TRUE;
+}
+
+boolean_t sccp_wrapper_asterisk_dummyHangup(sccp_channel_t *channel)
+{
+	pbx_log(LOG_NOTICE, "%s: hangup request, replaced by dummy. Hangup not performed\n", channel->designator);
+	return FALSE;
+}
+#else
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 	if (!ast_channel) {
@@ -483,6 +512,7 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
 	return TRUE;
 }
+#endif
 
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value)
 {
@@ -769,6 +799,53 @@ static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE *pbx_channel) {
 	return TRUE;
 }
 
+#ifdef CS_EXPERIMENTAL
+enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
+	enum ast_pbx_result res = AST_PBX_FAILED;
+	sccp_channel_t *channel = NULL;
+
+	if (!pbx_channel) {
+		pbx_log(LOG_ERROR, "SCCP: (pbx_pbx_start) called without pbx channel\n");
+		return res;
+	}
+	
+	if((channel = get_sccp_channel_from_pbx_channel(pbx_channel))){
+		ast_channel_lock(pbx_channel);
+		
+		// check if the pickup extension was entered
+		const char *dialedNumber = PBX(getChannelExten)(channel);
+		const char *pickupexten = ast_pickup_ext();
+		if (sccp_strequals(dialedNumber, pickupexten)) {
+			if (sccp_asterisk_doPickup(pbx_channel)) {
+				res = AST_PBX_SUCCESS;
+			}
+			ast_channel_unlock(pbx_channel);
+			channel = sccp_channel_release(channel);
+			goto EXIT;
+		}
+		
+		channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+		res = ast_pbx_start(pbx_channel);			// starting ast_pbx_start with a locked ast_channel so we know exactly where we end up when/if the __ast_pbx_run get started
+		if (res == 0) {						// thread started successfully
+			do {						// wait for thread to become ready
+				ast_safe_sleep(pbx_channel, 10);
+			} while (!ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && !ast_channel_pbx(pbx_channel) && ast_check_hangup(pbx_channel));
+			
+			/* test if __ast_pbx_run got started correctly and if the channel has not already been hungup */
+			if (ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && ast_channel_pbx(pbx_channel) && !ast_check_hangup(pbx_channel)) {
+				sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: (pbx_pbx_start) autoloop has started, set requestHangup = requestQueueHangup\n", channel->designator);
+				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+			} else {
+				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, dummyHangup should remain. Will already be hungup/being hungup\n", channel->designator);
+			}
+		}
+		ast_channel_unlock(pbx_channel);
+		channel = sccp_channel_release(channel);
+	}
+EXIT:
+	return res;
+}
+#else
 enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 	enum ast_pbx_result res = AST_PBX_FAILED;
 	sccp_channel_t *channel = NULL;
@@ -797,5 +874,6 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 EXIT:
 	return res;
 }
-
+#endif
+ 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;
