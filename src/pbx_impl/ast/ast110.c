@@ -1431,20 +1431,50 @@ static int sccp_wrapper_asterisk110_answer(PBX_CHANNEL_TYPE * chan)
  */
 static int sccp_wrapper_asterisk110_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", newchan->name);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s and %s\n", ast_channel_name(oldchan), ast_channel_name(newchan));
 	sccp_channel_t *c = NULL;
+	int res = 0;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(newchan))) {
-		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", oldchan->name, (void *) oldchan, newchan->name, (void *) newchan);
-		return -1;
+		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", ast_channel_name(oldchan), (void *) oldchan, ast_channel_name(newchan), (void *) newchan);
+		res = -1;
+	} else {
+		if (c->owner != oldchan) {
+			ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
+			res = -1;
+		} else {
+#ifdef CS_EXPERIMENTAL
+			/* during a masquerade, fixup gets called twice, The Zombie channel name will have been changed to include '<ZOMBI>' */
+			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
+			if (!strstr(ast_channel_name(newchan),"<ZOMBIE>")) {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
+				
+				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
+				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+				if (!sccp_strlen_zero(c->line->language)) {
+					ast_channel_language_set(newchan, c->line->language);
+				}
+			} else {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestHangup\n", c->designator);
+				// set channel requestHangup to use ast_hangup (as it will not be part of __ast_pbx_run anymore, upon returning from masquerade) 
+				c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
+			}			
+#else
+			if (!sccp_strlen_zero(c->line->language)) {
+				ast_channel_language_set(newchan, c->line->language);
+			}
+#endif
+			c->owner = ast_channel_ref(newchan);
+			ast_channel_unref(oldchan);
+			//! \todo force update of rtp peer for directrtp
+			// sccp_wrapper_asterisk111_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
+
+			//! \todo update remote capabilities after fixup
+
+		}
+		c = sccp_channel_release(c);
 	}
-
-	c->owner = newchan;
-	c->owner = ast_channel_ref(c->owner);
-	oldchan = ast_channel_unref(oldchan);
-	c = sccp_channel_release(c);
-
-	return 0;
+	return res;
 }
 
 #if 0

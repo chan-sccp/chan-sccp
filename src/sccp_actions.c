@@ -1617,8 +1617,8 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
  */
 void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	sccp_line_t *l;
-	sccp_channel_t *channel;
+	sccp_line_t *l = NULL ;
+	sccp_channel_t *channel = NULL;
 
 	if (d->isAnonymous) {
 		sccp_feat_adhocDial(d, GLOB(hotline)->line);
@@ -1632,8 +1632,6 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 	}
 
 	/* we need this for callwaiting, hold, answer and stuff */
-	d->state = SCCP_DEVICESTATE_OFFHOOK;
-
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
 
 	/* checking for registered lines */
@@ -1645,6 +1643,9 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 	}
 	/* end line check */
 
+	/* \todo This should be changed, to handle and atomic version of sccp_channel_answer if it would return Success/Failed
+	 * (think of two phones on a shared line, picking up at the same time) 
+	 */
 	if ((channel = sccp_channel_find_bystate_on_device(d, SKINNY_CALLSTATE_RINGIN))) {
 		/* Answer the ringing channel. */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);

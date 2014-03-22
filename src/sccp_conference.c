@@ -214,7 +214,9 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->device = sccp_device_retain(device);
 		participant->conferenceBridgePeer = channel->owner;
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
-			PBX(requestHangup) (channel->owner);
+#ifdef CS_EXPERIMENTAL
+			channel->hangupRequest(channel);
+#endif			
 			return NULL;
 		}
 		sccp_conference_addParticipant_toList(conference, participant);
@@ -322,12 +324,20 @@ static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participan
 		}
 		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
+#ifdef CS_EXPERIMENTAL
+			pbx_hangup(participant->conferenceBridgePeer);
+#else
 			PBX(requestHangup) (participant->conferenceBridgePeer);
+#endif
 			//participant_ast_channel = pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
+#ifdef CS_EXPERIMENTAL
+			pbx_hangup(participant->conferenceBridgePeer);
+#else
 			PBX(requestHangup) (participant->conferenceBridgePeer);
+#endif
 			return FALSE;
 		}
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Added Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));

@@ -229,6 +229,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
+#ifdef CS_EXPERIMENTAL
+	channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;
+#endif
 //	sccp_rtp_createAudioServer(channel);
 	return channel;
 }
@@ -1235,7 +1238,11 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	}
 	if (channel->owner) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending hangupRequest to Call %s (state: %s)\n", DEV_ID_LOG(d), channel->designator, sccp_indicate2str(channel->state));
+#ifdef CS_EXPERIMENTAL
+		channel->hangupRequest(channel);
+#else
 		PBX(requestHangup) (channel->owner);
+#endif		
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %s\n", DEV_ID_LOG(d), channel->designator);
 	}
@@ -1340,6 +1347,11 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
  *
  * \callgraph
  * \callergraph
+ *
+ * \todo sccp_channel_answer should be changed to make the answer action an atomic one. Either using locks or atomics to change the c->state and c->answered_elsewhere
+ *       Think of multiple devices on a shared line, whereby two answer the incoming call at exactly the same time.
+ *       Adding a mutex for just c->state should not be impossible, be would require quite a bit of lock debugging (again)
+ *       Can also be solved atomically by using a CAS32 / ATOMIC_INCR
  */
 void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 {

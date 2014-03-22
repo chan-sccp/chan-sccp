@@ -250,7 +250,6 @@ typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connec
 #ifndef SOLARIS
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
 #else
-
 // solaris already has a defintion for boolean_t, having B_FALSE and B_TRUE as members
 #define FALSE B_FALSE
 #define TRUE B_TRUE
@@ -1215,6 +1214,8 @@ struct sccp_channel {
 	unsigned int maxBitRate;
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
+//	boolean_t (*hangupRequest) (sccp_channel_t * channel);
+	boolean_t (*hangupRequest) (sccp_channel_t * channel);
 	boolean_t (*isMicrophoneEnabled) (void);
 
 	/* next should be converted to pointers, to reduce size */

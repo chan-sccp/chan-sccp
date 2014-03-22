@@ -850,9 +850,9 @@ static int sccp_wrapper_asterisk111_setNativeAudioFormats(const sccp_channel_t *
 
 static int sccp_wrapper_asterisk111_setNativeVideoFormats(const sccp_channel_t * channel, uint32_t formats)
 {
-    struct ast_format fmt;
-    ast_format_set(&fmt, skinny_codec2pbx_codec(formats), 0);
-    ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
+	struct ast_format fmt;
+	ast_format_set(&fmt, skinny_codec2pbx_codec(formats), 0);
+	ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
 	return 1;
 }
 
@@ -1459,7 +1459,7 @@ static int sccp_wrapper_asterisk111_answer(PBX_CHANNEL_TYPE * chan)
  */
 static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s\n", ast_channel_name(newchan));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s and %s\n", ast_channel_name(oldchan), ast_channel_name(newchan));
 	sccp_channel_t *c = NULL;
 	int res = 0;
 
@@ -1471,10 +1471,28 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
 			res = -1;
 		} else {
-			c->owner = ast_channel_ref(newchan);
+#ifdef CS_EXPERIMENTAL
+			/* during a masquerade, fixup gets called twice, The Zombie channel name will have been changed to include '<ZOMBI>' */
+			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
+			if (!strstr(ast_channel_name(newchan),"<ZOMBIE>")) {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
+				
+				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
+				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+				if (!sccp_strlen_zero(c->line->language)) {
+					ast_channel_language_set(newchan, c->line->language);
+				}
+			} else {
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestHangup\n", c->designator);
+				// set channel requestHangup to use ast_hangup (as it will not be part of __ast_pbx_run anymore, upon returning from masquerade) 
+				c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
+			}			
+#else
 			if (!sccp_strlen_zero(c->line->language)) {
 				ast_channel_language_set(newchan, c->line->language);
 			}
+#endif
+			c->owner = ast_channel_ref(newchan);
 			ast_channel_unref(oldchan);
 			//! \todo force update of rtp peer for directrtp
 			// sccp_wrapper_asterisk111_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
@@ -2788,7 +2806,7 @@ sccp_pbx_cb sccp_pbx = {
 	set_callstate:			sccp_wrapper_asterisk111_setCallState,
 	checkhangup:			sccp_wrapper_asterisk111_checkHangup,
 	hangup:				NULL,
-	requestHangup:			sccp_wrapper_asterisk_requestHangup,
+//	requestHangup:			sccp_wrapper_asterisk_requestHangup,
 	extension_status:		sccp_wrapper_asterisk111_extensionStatus,
 
 	setPBXChannelLinkedId:		sccp_wrapper_asterisk_set_pbxchannel_linkedid,
@@ -2905,7 +2923,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	 
 	/* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk111_allocPBXChannel,
-	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
+//	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
 	.extension_status 		= sccp_wrapper_asterisk111_extensionStatus,
 	.setPBXChannelLinkedId		= sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	.getChannelByName 		= sccp_wrapper_asterisk111_getChannelByName,
@@ -3081,6 +3099,7 @@ ast_format_cap_add_all_by_type(sccp_tech.capabilities, AST_FORMAT_TYPE_VIDEO);
 
 static int unload_module(void)
 {
+	pbx_log(LOG_NOTICE, "SCCP: Module Unload\n");
 	sccp_preUnload();
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP RTP protocol\n");
 	ast_rtp_glue_unregister(&sccp_rtp);
