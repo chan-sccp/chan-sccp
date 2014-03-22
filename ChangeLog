@@ -1,3 +1,521 @@
+2014-03-19  ddegroot
+
+	* [r5324] src/sccp_conference.c, src/sccp_config.c: Prevent null
+	  pointer derefences
+
+2014-03-16  ddegroot
+
+	* [r5323] src/sccp_config.c: Activated new implementation of
+	  sccp_config_set_defaults (removed CS_EXPERIMENTAL block)
+
+	* [r5322] src/sccp_features.c, src/sccp_pbx.c: Activated use of
+	  sccp_threadpool_add_work (removed CS_EXPERIMENTAL block)
+
+	* [r5321] src/sccp_actions.c: Activated implementation of tokenack
+	  fallback script handling (removed CS_EXPERIMENTAL block)
+
+	* [r5320] src/sccp_protocol.c: Activated new implementation of
+	  sccp_protocol_sendUserToDeviceDataVersion1Message (removed
+	  CS_EXPERIMENTAL block)
+
+2014-03-13  ddegroot
+
+	* [r5319] src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_protocol_enums.hh: Added
+	  skinny_mediastatus_t enum to OpenReceiveChannelAck,
+	  Start(Multi)MediaTransmissionAck
+
+	* [r5318] src/sccp_cli.c: Fix segfault during 'sccp restart
+	  SEP...', maybe pthread_cancel should be removed completely at
+	  this location.
+
+	* [r5317] src/sccp_cli.c, src/sccp_refcount.c, src/sccp_refcount.h:
+	  Added refcount force release (temporary function)
+
+2014-03-11  ddegroot
+
+	* [r5316] src/sccp_config.c: Added comparison to
+	  sccp_config_parse_deny_permit to notify CHANGED so that devices
+	  can be forced to reload when permit/deny has changes (if
+	  necessary)
+
+2014-03-10  ddegroot
+
+	* [r5315] src/sccp_config.c: Destroy results from previous
+	  sccp_config_parse_deny_permit, before running again (Reported by
+	  Sander Smeenk). This funktion still needs a comparison to report
+	  back change, which is not so simple to add.
+
+2014-03-06  ddegroot
+
+	* [r5314] src/sccp_cli.c: Fix sccp message with beep but without
+	  timeout
+
+	* [r5313] src/sccp_lock.h: Removed stray '_' from
+	  AO_compare_and_swap. Cast volatile int to volatile size_t for
+	  ATOMIC_INCR/ATOMIC_DECR when using libatomic-ops (Reported by
+	  Steve Hanselman).
+
+	* [r5312] src/sccp_device.c: 894x phone apparently support 10
+	  speeddials with only 4 buttons (6 displayed in a dropdown menu)
+	  (Bug: #219/Reported by hhornung).
+
+	* [r5311] src/sccp_actions.c: Correction fur unconfigured
+	  speeddialbuttons count
+
+	* [r5310] src/sccp_features.c: Update sccp_features.c to prevent
+	  compile failures / Display pickup failed message / automatically
+	  after failed (g)pickup.
+
+	* [r5309] src/sccp_config_entries.hh, src/sccp_features.c: Use
+	  channel context for directed_pickup_context, when parameter is
+	  not set. This will be copied from the line->context when the
+	  channel is created (Reported by Steve Hanselman)
+
+	* [r5308] src/sccp_config.c: Fix for line context to be retrieved
+	  from global default (fixes #204)
+
+2014-03-06  marcelloceschia
+
+	* [r5307] src/sccp_config.c: fix issue with default values,
+	  references #204
+
+	* [r5306] src/sccp_hint.c: check for DND on
+	  AST_EXTENSION_UNAVAILABLE
+
+2014-03-05  marcelloceschia
+
+	* [r5305] src/sccp_device.c: revert redial softkey fix due to
+	  softkey issues on 7960, rported by Steve Hanselman
+
+2014-03-04  marcelloceschia
+
+	* [r5304] src/sccp_config.c: do not set default values for
+	  DEPRECATED/OBSOLETE config parameters
+
+	* [r5303] src/sccp_config.c: do not set default values for
+	  DEPRECATED/OBSOLETE config parameters
+
+2014-03-03  ddegroot
+
+	* [r5302] src/sccp_config.c: Small update new
+	  sccp_config_set_defaults
+
+	* [r5301] src/sccp_actions.c: Prevent segfault in
+	  sccp_handle_keypad_button (stopgap measure, channel->line should
+	  always be set). Added todo comment to clean this up
+
+	* [r5300] src/sccp_channel.h, src/sccp_device.h, src/sccp_line.h,
+	  src/sccp_refcount.c, src/sccp_refcount.h: Revision2 of
+	  sccp_refcount_refreplace (Use inplace replacement) (references
+	  #199)
+
+	* [r5299] src/sccp_refcount.c: Revise1 sccp_refcount_refreplace
+	  (Non-Final) (references #199)
+
+	* [r5298] src/sccp_refcount.c: Revise sccp_refcount_refreplace
+	  (Non-Final) (references #199)
+
+	* [r5297] src/sccp_channel.c: Only release channel->line during
+	  sccp_channel_destroy, not in sccp_channel_cleanup
+
+	* [r5296] src/sccp_device.c: Fix sccp_device_setActiveChannel
+	  (references #199)
+
+2014-03-02  ddegroot
+
+	* [r5295] src/sccp_protocol.c: Update
+	  UserToDeviceDataVersion1Message
+
+2014-03-02  marcelloceschia
+
+	* [r5294] src/sccp_actions.c: use
+	  SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE
+
+	* [r5293] src/chan_sccp_enums.hh, src/sccp_protocol_enums.hh: move
+	  miscCommandType into sccp_protocol_enums
+
+	* [r5292] src/sccp_device.c: fix
+
+	* [r5291] src/sccp_device.c: add todo
+
+	* [r5290] src/sccp_device.c: fixes #155, fix provided by Diederik
+	  de Groot;needs some improvements to reduce sofkeySet update
+
+	* [r5289] src/sccp_protocol_enums.hh: add dummy keymode to iterate
+	  over all modes
+
+2014-03-02  ddegroot
+
+	* [r5288] src/sccp_mwi.c: Filter the important lineStatusChanged
+	  States for mwi check
+
+	* [r5287] src/sccp_utils.c: Added comment about inserting /
+	  appending behaviour (re-activated append behaviour, to conform to
+	  previous implementation)
+
+	* [r5286] src/sccp_config.c, src/sccp_utils.c, src/sccp_utils.h:
+	  Remove skinny_codec_mask from sccp_parse_allow_disallow, as it
+	  was not used anymore anyway
+
+	* [r5285] src/sccp_utils.c: Fix skinny_codec_pref_remove
+
+	* [r5284] src/sccp_utils.c: Fix skinny_codec_pref_remove (related
+	  to revision #5280 / #5282)
+
+	* [r5283] src/sccp_utils.c: Fix skinny_codec_pref_remove (related
+	  to revision #5280)
+
+	* [r5282] src/sccp_features.c: When pickup fails, inform the user
+	  and close down the channel nicely
+
+2014-03-01  ddegroot
+
+	* [r5281] src/chan_sccp.h: Channel->designator being cut short.
+	  Changed lineInstance back to uint8_t
+
+2014-03-01  marcelloceschia
+
+	* [r5280] src/sccp_utils.c: fixes unreachable code warning
+
+	* [r5279] src/sccp_cli.c: fixes unreachable code warning
+
+	* [r5278] src/sccp_socket.c: fixes unreachable code warning
+
+2014-02-28  ddegroot
+
+	* [r5277] src/sccp_hint.c: Show device unavailable hint for
+	  protocolversin <=11 (Reported by Stefan Gofferje)
+
+	* [r5276] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/pbx_impl.h: Remove
+	  forceHangup (not used anymore)
+
+	* [r5275] src/chan_sccp.h, src/sccp_cli.c,
+	  src/sccp_config_entries.hh: Removed device->devicetimeout, which
+	  is not being used
+
+	* [r5274] src/sccp_conference.c, src/sccp_protocol.c: When
+	  conf_mute_on_entry is switched on, show this in debug when
+	  creating the conference and also update conflist to reflect this
+	  state (Reported by Alena Juk)
+
+2014-02-27  ddegroot
+
+	* [r5273] src/sccp_cli.c, src/sccp_cli_table.h,
+	  src/sccp_conference.c, src/sccp_mwi.c: Update cli output table to
+	  include fmt for CLI_AMI_TABLE_FIELD, so that max string length
+	  can be bound. Also allowing for alignment (for example to show
+	  most-significant part of ip-address, when column with is to small
+	  to show completely).
+
+	* [r5272] conf/tftp/XMLDefault.cnf.xml[ADD]: Added
+	  XMLDefault.cnf.xml sample
+
+	* [r5271] src/pbx_impl/ast/ast111.c, src/sccp_rtp.c: Prevent
+	  directrtp during conference
+
+	* [r5270] src/sccp_socket.c: Make sccp_read_data a little less
+	  verbose when not having set both socket and high
+
+	* [r5269] src/sccp_socket.c: Make sccp_read_data a little less
+	  verbose when not having set both socket and high
+
+	* [r5268] src/sccp_config.c: Remove use of first_option_name
+
+	* [r5267] src/sccp_config.c: Update debug messages, level and
+	  indentation for sccp_config_object_setValue and new version
+	  sccp_config_set_defaults
+
+	* [r5266] src/sccp_config.c: Show lookup via referrel in debug
+	  statement in new sccp_config_default_value implementation
+
+2014-02-26  ddegroot
+
+	* [r5265] src/sccp_config.c: Simplify new sccp_config_default_value
+	  implementation
+
+	* [r5264] src/sccp_config.c: Remove unused from new
+	  sccp_config_default_value implementation
+
+	* [r5263] src/sccp_config.c: Simplified new
+	  sccp_config_default_value implementation
+
+	* [r5262] src/sccp_config.c: Completely overhauled
+	  sccp_config_set_defaults in a CS_EXPERIMENTAL block, will be
+	  tested over the coming days, before being made active by default
+
+	* [r5261] src/sccp_config_entries.hh: Fixed some of the entries,
+	  where device segment entries are pointing to device segment
+	  entries to get there defaults, that did not make sense
+
+	* [r5260] tools/bootstrap.sh: Make bootstrap run make when
+	  config.log already exists, and therefor configure was already
+	  run. When configure has changed, make will rerun configure with
+	  the same settings as before
+
+	* [r5259] src/sccp_actions.c, src/sccp_protocol.h: Cleanup
+	  misnomers
+
+	* [r5258] src/sccp_channel.c: Possible fix for
+	  sccp_channel_end_forwarding_channel when used during autoanswer
+	  (Reported by Stefan Gofferje: Requires renewed test)
+
+	* [r5256] Makefile.in, autoconf/extra.m4, configure, configure.ac,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/config.h.in, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/ast/define.h, src/sccp_utils.c, src/sccp_utils.h:
+	  Removal of libgc detection/infrastructure (Not used anyway)
+
+	* [r5255] src/chan_sccp.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c:
+	  Schedule automatic hangup after invalidnumber / congestion
+	  indication using c->callid (rb: 55)
+
+2014-02-26  marcelloceschia
+
+	* [r5254] src/sccp_line.c: fixes wrong struct declaration
+
+2014-02-26  ddegroot
+
+	* [r5253] src/chan_sccp.h: revert size reduction of subscriptionId
+	  struct
+
+2014-02-25  marcelloceschia
+
+	* [r5252] src/sccp_protocol.c: fixes #193 (Enbloc Call Message not
+	  handled for 7912)
+
+2014-02-25  ddegroot
+
+	* [r5251] src/sccp_device.c: Reverted r5250 partially, to reinclude
+	  change i made this morning
+
+2014-02-25  marcelloceschia
+
+	* [r5250] src/sccp_device.c: deactivate monitor softkey for all
+	  states excl. connected
+
+	* [r5249] src/sccp_channel.c: activate recording for inbound calls
+	  when state is requested
+
+	* [r5248] src/sccp_management.c: use RecordingStatusMessage
+
+	* [r5247] src/sccp_actions.c: add custom softkey monitor
+
+	* [r5246] src/sccp_device.c: fixes activeMask issue
+
+	* [r5245] src/sccp_labels.h: redefine label for dial and monitor
+
+	* [r5244] src/sccp_protocol.h: add custom softkey monitor; add
+	  RecordingStatusMessage
+
+	* [r5243] src/pbx_impl/ast/ast111.c: fixes native formati issue for
+	  video
+
+	* [r5242] src/chan_sccp.h: fixes activeMask issue
+
+2014-02-25  ddegroot
+
+	* [r5241] src/chan_sccp.c, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_device.c, src/sccp_line.c: Manage STRINGPTR allocated
+	  memory automatically when destroying structs
+
+	* [r5240] src/sccp_socket.c: Extend the sockaddr_union to include
+	  the generic struct sockaddr sa as well
+
+	* [r5239] src/sccp_socket.c: Adapt sccp_socket_getOurAddressfor to
+	  using the union correctly (Reported by David Cecchin)
+
+2014-02-24  marcelloceschia
+
+	* [r5238] src/sccp_config.c: diederiks config fix
+
+	* [r5237] src/chan_sccp.c: correct wrong socket binding, found on
+	  freeBSD by David Cecchin
+
+2014-02-24  ddegroot
+
+	* [r5236] src/sccp_channel.c: Fix potential null pointer
+	  dereference
+
+	* [r5235] src/sccp_actions.c: Fix potential out-of-bound array
+	  access
+
+	* [r5234] src/sccp_utils.c: Replaced IN6_ARE_ADDR_EQUAL with
+	  sccp_socket_cmp_addr (Issue with netinet6/in6.h instead of
+	  netinet/in.h)
+
+	* [r5233] src/sccp_utils.c: Replaced IN6_ARE_ADDR_EQUAL with
+	  sccp_socket_cmp_addr (Issue with netinet6/in6.h instead of
+	  netinet/in.h)
+
+	* [r5232] src/chan_sccp.h: Fix channel->scheduler.digittimeout
+
+	* [r5231] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: Rename sccp_channel_set_active to
+	  sccp_device_setActiveChannel. Only call
+	  sccp_channel_setActiveChannel from sccp_channel_setDevice, to
+	  make sure they are always updated at the same time (rb: 49)
+
+	* [r5230] src/chan_sccp.h, src/sccp_config_entries.hh: Reordered
+	  and packed sccp_global_vars struct to minimized size and lineup
+	  to 64 byte cache lines
+
+	* [r5229] src/Makefile.am, src/Makefile.in: Check revision during
+	  make only once every hour instead of every 10 minutes
+
+	* [r5228] src/chan_sccp.h, src/sccp_device.c, src/sccp_protocol.h:
+	  Reordered and packed sccp_device and sccp_callinfo struct to
+	  minimized size and lineup to 64 byte cache lines
+
+2014-02-23  marcelloceschia
+
+	* [r5227] src/sccp_channel.c: alway set nativeVideoFormats (must be
+	  set to get Confbridge working with sccp video)
+
+2014-02-23  ddegroot
+
+	* [r5226] src/chan_sccp.h, src/sccp_channel.c: Reordered and packed
+	  sccp_channel and sccp_session struct to minimized size and lineup
+	  to 64 byte cache lines
+
+	* [r5225] src/chan_sccp.h, src/sccp_line.c: Removed unused
+	  line->lock. Reordered and packed sccp_line struct to minimized
+	  size and lineup to 64 byte cache lines
+
+	* [r5224] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c: Adding
+	  accolates to if statements
+
+	* [r5223] src/pbx_impl/ast/ast110.c: Adding accolates to if
+	  statements
+
+	* [r5222] src/pbx_impl/ast/ast108.c: Adding accolates to if
+	  statements
+
+	* [r5221] Makefile.in, configure, src/pbx_impl/ast/ast106.c: Adding
+	  accolates to if statements
+
+	* [r5220] src/sccp_line.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_protocol.c, src/sccp_refcount.c, src/sccp_rtp.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_threadpool.c,
+	  src/sccp_utils.c: Adding accolates to if statements
+
+	* [r5219] src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_management.c: Adding accolates to if statements
+
+	* [r5218] src/chan_sccp.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_devstate.c, src/sccp_featureButton.c,
+	  src/sccp_indicate.c: Adding accolates to if statements
+
+	* [r5217] src/chan_sccp.c, src/sccp_actions.c,
+	  src/sccp_adv_features.c, src/sccp_appfunctions.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_conference.c: Adding
+	  accolates to if statements
+
+2014-02-22  marcelloceschia
+
+	* [r5216] src/sccp_socket.c: diederiks socket patch
+
+2014-02-21  marcelloceschia
+
+	* [r5215] src/sccp_device.c: fixes issue #189
+
+	* [r5214] src/sccp_actions.c: disable FlowControlNotifyMessage
+	  after OpenMultiMediaReceiveAck, references #188
+
+2014-02-21  ddegroot
+
+	* [r5213] src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Update Enbloc dial message + handling (rb:
+	  51)
+
+2014-02-20  ddegroot
+
+	* [r5212] src/sccp_socket.c: strict aliasing issue resolved using
+	  union instead of casting (Jacob)
+
+2014-02-19  ddegroot
+
+	* [r5211] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c:
+	  Fixes for asterisk 1.6 and 1.8
+
+	* [r5210] src/sccp_protocol.c: Remove dependency on aliasing of
+	  sockaddr_storage, for debugging purposes
+
+	* [r5209] src/sccp_actions.c: Remove dependency on aliasing of
+	  sockaddr_storage, for debugging purposes
+
+	* [r5208] tools/autorevision: Remove errors when which cannot find
+	  repository maintenance programs. Relax warning about not being
+	  able to find a repository.
+
+	* [r5207] src/chan_sccp.c: Fix check for VCS_WC_MODIFIED
+
+	* [r5206] src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_cli.c, src/sccp_config.c: Check repository revision once
+	  during every compile and write revision.h only when revision has
+	  changed (fallback on .revision cache file if using tgz). Use a
+	  static sccp_revisionstr and sccp_version_str, initialized once
+	  during module load
+
+	* [r5205] src/sccp_protocol.h: Revert change of
+	  StationMaxXMLMessage back to 2000
+
+2014-02-19  marcelloceschia
+
+	* [r5204] src/sccp_actions.c, src/sccp_protocol.h: fixes waring for
+	  Connection Statistics Response Message
+
+2014-02-19  ddegroot
+
+	* [r5202] src/sccp_cli.c, src/sccp_protocol.c, src/sccp_protocol.h:
+	  Make it possible to send bigger UserToDevice XML Messages
+	  (CS_EXPERIMENTAL for now)
+
+	* [r5201] src/pbx_impl/ast/ast.c: Only check pbx_channel_pbx during
+	  force and request hangup
+
+	* [r5200] src/sccp_actions.c: Check crossover session earlier,
+	  before creating anything new
+
+2014-02-18  ddegroot
+
+	* [r5199] src/sccp_channel.h: Moved
+	  sccp_find_channel_by_lineInstance_and_callid outside of DEBUG
+	  block
+
+2014-02-17  ddegroot
+
+	* [r5198] src/sccp_socket.c: When running
+	  sccp_socket_cleanup_timed_out, set thread to null, to be able to
+	  run destroy on the next run
+
+	* [r5197] src/pbx_impl/ast/ast.c: First version of a fix to correct
+	  longstanding hangup issue (ending in segfault in
+	  ast_timer_enable_continuous)
+
+	* [r5196] src/sccp_actions.c: Allow speeddial use after starting
+	  entering digits (Reported by Jeffrey)
+
+2014-02-16  ddegroot
+
+	* [r5195] ChangeLog, Makefile.am, Makefile.in, src/Makefile.in,
+	  tools/autorevision: Speedup autorevision by checking if the
+	  repository binaries exist on the system, before calling them. Add
+	  .revision cache file to released tgz during make release.
+
 2014-02-15  ddegroot
 
 	* [r5194] configure, configure.ac, src/Makefile.am,
@@ -820,2148 +1338,4 @@
 
 	* [r5000] src/sccp_config.c: Fix sccp_config_set_defaults setting
 	  multientry values twice (fixes #160)
-
-	* [r4999] src/sccp_config.c: Fix parsing of disallow/allow (fixes
-	  #157)
-
-2013-11-02  ddegroot
-
-	* [r4998] src/sccp_actions.c: Update debug output for
-	  sccp_handle_soft_key_set_req (added free for outputStr)
-
-	* [r4997] src/sccp_actions.c: Update debug output for
-	  sccp_handle_soft_key_set_req
-
-	* [r4996] src/sccp_featureButton.c: Fix debug output
-	  VERBOSE_PREFIX_3
-
-	* [r4995] src/sccp_featureButton.c: Fix debug output line end
-
-2013-11-01  ddegroot
-
-	* [r4994] src/sccp_features.c: Toggle monitor state without
-	  checking for asterisk monitor state (async call). (references
-	  #135)
-
-	* [r4993] src/pbx_impl/ast/ast.c, src/sccp_features.c: Toggle
-	  monitor state without checking for asterisk monitor state (async
-	  call).
-
-	* [r4992] src/sccp_conference.c: Update conflist when using
-	  conference cli/ami commands
-
-	* [r4991] src/sccp_conference.c: Fix debug output on
-	  kick_participant when a moderator is involved
-
-	* [r4990] src/sccp_conference.c: Fix Moderate button in ConfList
-	  (Reported bu Alena)
-
-2013-10-31  ddegroot
-
-	* [r4989] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast111.h,
-	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
-	  src/sccp_actions.c, src/sccp_device.c, src/sccp_featureButton.c,
-	  src/sccp_features.c, src/sccp_features.h, src/sccp_pbx.c,
-	  src/sccp_utils.c: Fix monitor/recording for protocolVersion<=15
-	  phones. Reinstate messageStack messages for monitor state. Fix
-	  loading monitor state from database. PBX(feature_monitor) returns
-	  state of the monitoring state more accurately.
-
-2013-10-31  marcelloceschia
-
-	* [r4988] src/pbx_impl/ast/ast108.c: fixes logging
-
-2013-10-30  ddegroot
-
-	* [r4987] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c: Fix extension matcher to check for
-	  zero length pickup extension (which it should not match against)
-	  (reported by Leonid)
-
-2013-10-29  ddegroot
-
-	* [r4986] src/sccp_config.c, src/sccp_device.c, src/sccp_pbx.c:
-	  Cleanup use of sccp_device setLastNumberDialed (redial mask issue
-	  not fixed yet)
-
-	* [r4985] src/sccp_device.c: Do not update lastNumberDialed not
-	  disable redial button when using RedialMenu
-
-	* [r4984] src/chan_sccp.h, src/sccp_actions.c,
-	  src/sccp_config_entries.hh: Added global parameter
-	  server_priority to support in the selection of the server during
-	  token/fallback handling. If you have a multiple asterisk servers
-	  and are using fallback=true, then set server_priority in order or
-	  presedence per server.
-
-	* [r4983] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c: cleanup canmatch display in debug
-	  log
-
-	* [r4982] src/sccp_features.c: Fix unlock issue during directed
-	  pickup
-
-	* [r4981] src/sccp_config.c, src/sccp_device.c, src/sccp_device.h,
-	  src/sccp_pbx.c: Handle updating lastNumberDialed and Activing
-	  redial button in one place
-
-2013-10-27  ddegroot
-
-	* [r4980] src/Makefile.in, src/sccp_features.c: Fix DEBUGCAT
-	  compile error
-
-	* [r4979] src/Makefile.am, src/Makefile.in, src/sccp_features.c:
-	  Added experimental gpickup version for review
-
-	* [r4978] src/pbx_impl/ast/ast.c: Fix ast_channel_name (Reported by
-	  Andrew Thomas)
-
-	* [r4977] src/pbx_impl/ast/ast.c: Fix pbx_pbx_start
-
-2013-10-27  marcelloceschia
-
-	* [r4976] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: check for
-	  pickup extension during the extension state check, closes #154
-
-	* [r4975] src/sccp_actions.c: remove pickup in
-	  sccp_handle_keypad_button, references #154
-
-2013-10-27  ddegroot
-
-	* [r4974] src/pbx_impl/ast/ast.c: Fix missing channel refcount
-	  release. Use PBX_CHANNEL_TYPE instead of ast_channel
-	  (compatibility asterisk 1.6)
-
-	* [r4973] src/pbx_impl/ast/ast.c: Fix bug #203
-
-	* [r4972] src/sccp_channel.c: Fix callgroup/pickupgroup setting for
-	  pre-11 asterisk versions
-
-	* [r4971] src/pbx_impl/ast/ast.c: Fix compile warning, make sure
-	  pickup_exten is matched in full, not partial
-
-2013-10-27  marcelloceschia
-
-	* [r4970] src/sccp_pbx.c: move sccp_softkey_setSoftkeyState to
-	  success states
-
-	* [r4969] src/sccp_softkeys.c, src/sccp_softkeys.h: remove unused
-	  function sccp_sk_set_keystate
-
-	* [r4968] src/pbx_impl/ast/ast111.c: check for pickup extension in
-	  extensionstatus lookup, references #154
-
-	* [r4967] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
-	  src/pbx_impl/ast/define.h: create pbx_pbx_start function, remove
-	  define, references #154
-
-2013-10-26  ddegroot
-
-	* [r4966] src/sccp_cli.c: Prevent compile warning
-
-2013-10-25  ddegroot
-
-	* [r4965] src/sccp_actions.c, src/sccp_protocol.h: Added V20
-	  ConnectionStatistics Handling, Fixed V22 ConnectionStatistics
-	  handling using 1 byte packing to access unaligned struct data
-	  (Reported by Leonid)
-
-2013-10-25  marcelloceschia
-
-	* [r4964] src/sccp_pbx.c: set last dialed number from
-	  shortenedNumber, but only if extension exists and dial was
-	  successfull
-
-	* [r4963] src/sccp_pbx.c: set last dialed number from
-	  shortenedNumber, but only if extension exists and dial was
-	  successfull
-
-2013-10-22  ddegroot
-
-	* [r4962] src/sccp_channel.c: Prevent segfault when trying to
-	  transfer a dialplan application (more research is required)
-
-2013-10-21  ddegroot
-
-	* [r4961] src/sccp_actions.c, src/sccp_features.c: Force
-	  conferencelist_active, when manually pressing the conflist
-	  softkey
-
-	* [r4960] src/sccp_appfunctions.c, src/sccp_cli.c: Show
-	  conf_show_conflist status in cli and appfunctions
-
-	* [r4959] src/sccp_actions.c: Fix
-	  sccp_handle_device_to_user_response
-
-	* [r4958] src/sccp_channel.c, src/sccp_event.c, src/sccp_line.c,
-	  src/sccp_management.c, src/sccp_rtp.c, src/sccp_socket.c,
-	  src/sccp_softkeys.c, src/sccp_utils.c: Manual reindent
-
-	* [r4957] conf/database_updates/migrate_to_mysql-v5.sql,
-	  conf/mysql-v5.sql, conf/postgres.sql, conf/sccp.conf.annotated,
-	  conf/sqlite.sql, conf/sqlite3.sql, src/chan_sccp.h,
-	  src/config.h.in, src/sccp_conference.c,
-	  src/sccp_config_entries.hh: Added conf_show_conflist to device
-	  parameters in sccp.conf, if you like you can switch of showing
-	  the conflist when the moderator starts a new conference
-
-2013-10-20  marcelloceschia
-
-	* [r4956] src/sccp_channel.c, src/sccp_indicate.c: fixes #150 (To
-	  Unkown Number in placed calls) and removes asterisk state in
-	  indicate
-
-2013-10-20  ddegroot
-
-	* [r4955] autoconf/asterisk.m4, autoconf/extra.m4, configure,
-	  src/Makefile.in, src/config.h.in: Fix compile against
-	  asterisk-1.6 / asterisk-1.8
-
-	* [r4954] Makefile.in, autoconf/asterisk.m4, autoconf/extra.m4,
-	  configure, configure.ac, contrib/gen_sccpconf/Makefile.in,
-	  doc/Makefile.in, src/Makefile.am, src/Makefile.in,
-	  src/chan_sccp.c, src/config.h.in, src/sccp_utils.c,
-	  src/sccp_utils.h: Add warning when using deprecated compiler
-	  versions. Remark out a number of asterisk.m4 check which are
-	  currently not used anyway (somewhat faster configure). Add
-	  --enable-experimental-xml (future functionality).
-
-	* [r4953] src/sccp_indicate.c: Change ONHOOK indicate: order of
-	  setting channel DOWN to fix openreceivechannel checking order.
-	  Remark out some lines, to prevent setting stuff twice
-
-	* [r4952] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c: Update
-	  sccp_wrapper_asterisk_extensionStatus debug output
-
-2013-10-18  ddegroot
-
-	* [r4951] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c: Fix
-	  sccp_log compile error (Reported by Alena Juk)
-
-2013-10-17  ddegroot
-
-	* [r4950] src/chan_sccp.c, src/sccp_channel.c, src/sccp_cli.c:
-	  manual reindent
-
-	* [r4949] src/chan_sccp.c, src/chan_sccp.h, src/common.h,
-	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
-	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/astTrunk.c,
-	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/ast/define.h,
-	  src/pbx_impl/pbx_impl.c, src/pbx_impl/pbx_impl.h,
-	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
-	  src/sccp_adv_features.h, src/sccp_appfunctions.c,
-	  src/sccp_appfunctions.h, src/sccp_channel.c, src/sccp_channel.h,
-	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_cli_table.h,
-	  src/sccp_conference.c, src/sccp_conference.h, src/sccp_config.h,
-	  src/sccp_device.c, src/sccp_device.h, src/sccp_devstate.c,
-	  src/sccp_devstate.h, src/sccp_dllists.h, src/sccp_enum_macro.h,
-	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
-	  src/sccp_featureButton.h, src/sccp_features.h, src/sccp_hint.h,
-	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
-	  src/sccp_line.h, src/sccp_lock.h, src/sccp_management.h,
-	  src/sccp_mwi.h, src/sccp_pbx.h, src/sccp_protocol.h,
-	  src/sccp_refcount.h, src/sccp_rtp.h, src/sccp_socket.h,
-	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_threadpool.h,
-	  src/sccp_utils.h: manual reindent
-
-	* [r4948] src/sccp_device.c, src/sccp_pbx.c, src/sccp_protocol.c,
-	  src/sccp_socket.c: use sccp_log_and where DEBUGCAT_HIGH is used
-
-	* [r4947] src/sccp_config.c, src/sccp_featureButton.c,
-	  src/sccp_features.c, src/sccp_hint.c, src/sccp_indicate.c,
-	  src/sccp_line.c, src/sccp_management.c, src/sccp_mwi.c,
-	  src/sccp_pbx.c, src/sccp_protocol.c, src/sccp_refcount.c,
-	  src/sccp_rtp.c, src/sccp_socket.c, src/sccp_softkeys.c,
-	  src/sccp_threadpool.c, src/sccp_utils.c: manual reindent
-
-	* [r4946] src/sccp_channel.c: Fix transfer not showing keyset
-	  DIGITSFOLL when entering the extension
-
-	* [r4945] src/chan_sccp.c, src/chan_sccp.h, src/pbx_impl/ast/ast.c,
-	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_actions.c,
-	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_conference.c,
-	  src/sccp_config.c, src/sccp_device.c, src/sccp_devstate.c,
-	  src/sccp_event.c, src/sccp_featureButton.c, src/sccp_features.c,
-	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_line.c,
-	  src/sccp_mwi.c, src/sccp_pbx.c, src/sccp_protocol.c,
-	  src/sccp_refcount.c, src/sccp_rtp.c, src/sccp_socket.c,
-	  src/sccp_softkeys.c, src/sccp_threadpool.c, src/sccp_utils.c: Fix
-	  sccp_log by adding sccp_log_and
-
-2013-10-17  marcelloceschia
-
-	* [r4944] src/chan_sccp.h: fixes sccp_log issue, fixes #149
-
-2013-10-16  ddegroot
-
-	* [r4943] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_channel.c: postpone
-	  ast_channel_unref until sccp_channel destructor when channel is
-	  being hungup
-
-2013-10-16  marcelloceschia
-
-	* [r4942] src/sccp_actions.c: check if channel is still alive
-	  (state != onhook) on sccp_handle_open_receive_channel_ack
-
-2013-10-16  ddegroot
-
-	* [r4941] src/sccp_actions.c: Show StationIdentifier->userId during
-	  register
-
-	* [r4940] src/sccp_config.c: Fix sccp_config_getNthToken
-
-2013-10-15  ddegroot
-
-	* [r4939] src/sccp_actions.c, src/sccp_config.c: Clarify Device is
-	  behind NAT message duing register
-
-	* [r4938] src/sccp_actions.c: Suppress the auto nat detection
-	  message, when nat is already set for this device.
-
-	* [r4937] src/sccp_actions.c: Suppress the auto nat detection
-	  message, when nat is already set for this device.
-
-	* [r4936] src/sccp_config.c: Only skip parser if we are dealing
-	  with a multi_entry paramater that has already been parsed
-	  completely, fixing the bindaddr / port issue reported by Niklas
-	  Larsson.
-
-	* [r4935] src/sccp_cli.c: Added sccp reload line ...
-
-	* [r4934] src/sccp_actions.c: Suppress warning when endcall event
-	  is received without a channel, other party must have hungup
-	  shortly before us. Set the warning message to timeout after 5
-	  seconds, reinstated starttone for other events. (Reported by
-	  Nikola Ciprich))
-
-	* [r4933] src/sccp_config.c: Refactored/Simplified
-	  sccp_config_set_defaults
-
-	* [r4932] src/sccp_config.c: Do not pass empty default values to
-	  object_setValue
-
-	* [r4931] src/sccp_actions.c: Removed nasty beep when channel is
-	  not provided during softkey handling (for example during End
-	  Call) (reported by Nikola Ciprich
-
-	* [r4930] src/sccp_cli.c: Added CLI command completion for sccp
-	  reload
-
-	* [r4929] src/sccp_config.c: Removed some superfluous debug logging
-	  from parse_permithosts
-
-2013-10-14  ddegroot
-
-	* [r4928] src/chan_sccp.c, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
-	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_cli.c,
-	  src/sccp_conference.c, src/sccp_config.c, src/sccp_dllists.h,
-	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_line.c,
-	  src/sccp_management.c, src/sccp_pbx.c, src/sccp_softkeys.c,
-	  src/sccp_threadpool.c: Changed SCCP_LIST_GETSIZE(head) from
-	  head.size to (head)->size so that it can be used univerally in
-	  the same manner as the other sccp_dllist.h commands. Adapted all
-	  locations which use SCCP_LIST_GETSIZE / or (head).size up till
-	  now.
-
-	* [r4927] src/sccp_config.c: Fix parsing permithosts using dest
-	  solution again
-
-	* [r4926] src/sccp_config.c: Remove extra debug entries
-
-	* [r4925] src/sccp_config.c: Fix parsing permithosts by using
-	  offsetof(struct sccp_device,permithosts), until we have found the
-	  'correct' solution
-
-	* [r4924] src/sccp_config.c: Handle multi_entry correctly for
-	  default values
-
-	* [r4923] src/sccp_dllists.h: Fix size count SCCP_LIST_REMOVE_HEAD
-	  when function is called, but nothing is removed the count was off
-	  by 1
-
-	* [r4922] src/sccp_cli.c, src/sccp_config.c: Unset
-	  global_conf_filename when file specified during reload could not
-	  be found. When using 'sccp reload device SEP' and a non-realtime
-	  device, the config file needs to be reloaded to notice any
-	  changes.
-
-	* [r4921] src/sccp_channel.c, src/sccp_pbx.c: Add setvar variables
-	  on incoming call
-
-	* [r4920] src/sccp_config.c: Fix setting setvar variables on device
-	  and line
-
-	* [r4919] src/sccp_config.c: Fix type in
-	  sccp_config_readDevicesLines
-
-	* [r4918] src/sccp_config.c: Fix permithost change detection
-
-	* [r4917] src/sccp_actions.c, src/sccp_protocol.h: Fix Connection
-	  Statistics Response Processing (Issue Reported by Leonid Korokh)
-
-	* [r4916] src/pbx_impl/ast/astTrunk.c: Prevent call to
-	  queue_connected_line_update without a valid channel->owner (issue
-	  reported by Leonid)
-
-	* [r4915] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c: Prevent call to
-	  queue_connected_line_update without a valid channel->owner (issue
-	  reported by Leonid)
-
-	* [r4914] src/sccp_config.c: Made parse_mailbox order independent
-
-	* [r4913] src/sccp_cli.c, src/sccp_config.c: Add output of
-	  permithosts to 'sccp show device'. Fix setvar variables reloading
-
-	* [r4912] src/sccp_config.c: Simplify setvar setting
-
-2013-10-13  ddegroot
-
-	* [r4911] src/sccp_config.c: Fix parse_mailbox
-
-	* [r4910] src/sccp_config.c: Update sccp_config_parse_variables to
-	  handle multi_entry parameters
-
-	* [r4909] src/sccp_config.c: Update addition in parse_permithosts /
-	  parse_addon
-
-	* [r4908] src/sccp_config.c: Updated parse_addons to use same
-	  method as parse_permithosts
-
-	* [r4907] src/sccp_utils.c, src/sccp_utils.h: Cleanup unused
-	  functions from sccp_utils.?
-
-	* [r4906] src/sccp_config.c: Moved multi_entry parses together
-
-	* [r4905] src/sccp_config.c: Fix setValue SetEntries check
-
-	* [r4904] src/sccp_config.c: Fix segfault when removing permithost
-	  (parse_permithosts) .
-
-	* [r4903] src/sccp_config.c: Update parse_permithosts. Update debug
-	  flags in parse_button. Remove debug statement about paramater
-	  changes on initial load.
-
-	* [r4902] src/sccp_config.c: Updated mailbox parser to handle
-	  multi_entry parameters.
-
-	* [r4901] src/sccp_config.c: Updating parsers to handle multi_entry
-	  parameters. Fix parse_addons to remove entries that have been
-	  removed from config and report CHANGE back when this has
-	  happened.
-
-	* [r4900] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
-	  src/pbx_impl/ast/define.h, src/sccp_cli.c, src/sccp_config.c: Use
-	  pbx_variable_new instead of ast_variable_new. Fix segfault when
-	  running 'sccp reload force' after running 'sccp reload device
-	  ...', because of errornous pbx_variables_destroy of GLOB(cfg)
-	  during 'sccp reload device ...', which should only happen for
-	  realtime devices.
-
-	* [r4899] src/sccp_cli.c, src/sccp_config.c, src/sccp_config.h,
-	  src/sccp_config_entries.hh: Initial fix for sccp_config parser to
-	  handle multi_entry paramaters better. Fix for config parser
-	  during realtime device reload.
-
-2013-10-13  marcelloceschia
-
-	* [r4898] src/sccp_utils.c: fixing sccp_strcaseequals
-
-	* [r4897] src/sccp_utils.c: fixing sccp_strequals
-
-2013-10-12  ddegroot
-
-	* [r4896] src/sccp_config.c: Skip multientry config paramaters when
-	  checking for change (Temporary measure)
-
-2013-10-11  ddegroot
-
-	* [r4895] conf/postgres.sql: Fix postresql sql file
-
-2013-10-11  marcelloceschia
-
-	* [r4894] src/sccp_softkeys.c: make it posible to change line after
-	  off-hook, fixes #147
-
-	* [r4893] conf/postgres.sql: fixes database definition issue
-
-2013-10-11  ddegroot
-
-	* [r4892] src/sccp_cli.c, src/sccp_config.c: Added string field
-	  size to 'sccp config generate'
-
-2013-10-10  ddegroot
-
-	* [r4891] src/sccp_config.c: Issue a warning when sccp.conf
-	  parameters contain strings that will not fit. When check if
-	  strings have changed during a reload, also take into account the
-	  length of the string to check
-
-	* [r4890] src/sccp_softkeys.c: Prevent redial on a device without a
-	  registered line to release this 'line'
-
-2013-10-06  ddegroot
-
-	* [r4889] src/sccp_softkeys.c: Fix implicit declaration of function
-	  ‘sccp_rtp_createVideoServer (fixes #146)
-
-	* [r4888] src/sccp_protocol.c, src/sccp_protocol.h: Force inlining
-	  of sccp_protocol_isProtocolSupported because it is being called
-	  for every incoming message
-
-	* [r4887] src/sccp_actions.c: Revert Registration Debug about
-	  Phone/Server/Joint Capability
-
-	* [r4886] src/sccp_actions.c: Update Registration Debug about Joint
-	  Capability
-
-	* [r4885] src/sccp_actions.c, src/sccp_socket.c: update
-	  protocollversion 21 issue, references #145
-
-2013-10-05  marcelloceschia
-
-	* [r4884] src/sccp_protocol.c, src/sccp_protocol.h,
-	  src/sccp_socket.c: tries to fix protocollversion 21 issue,
-	  references #145
-
-2013-10-05  ddegroot
-
-	* [r4883] src/sccp_features.c: Cleanup sccp_feat_join (handle error
-	  cases / use resume swap)
-
-	* [r4882] src/sccp_channel.c: Set the correct keysets during
-	  channel_hold/channel_resume when dealing with confence. During
-	  new call, put conference on hold as well
-
-	* [r4881] src/sccp_conference.c: Fix
-	  sccp_conference_hold/sccp_conference_resume
-
-2013-10-03  marcelloceschia
-
-	* [r4880] src/sccp_protocol.c: tries to fix protocollversion 21
-	  issue, references #145
-
-2013-09-24  marcelloceschia
-
-	* [r4878] src/sccp_pbx.c: fixes empty phonebook entry for placed
-	  calls, fixes #143
-
-2013-09-24  ddegroot
-
-	* [r4877] src/sccp_actions.c, src/sccp_config.c, src/sccp_device.c,
-	  src/sccp_devstate.c, src/sccp_pbx.c, src/sccp_softkeys.c: Fix
-	  potential nullpointer derefences (Warned about by llvm/scan-build
-	  3.4)
-
-2013-09-22  ddegroot
-
-	* [r4876] src/sccp_channel.c, src/sccp_conference.c,
-	  src/sccp_device.c, src/sccp_device.h, src/sccp_protocol.h: Use
-	  set_keyset CONNCONF when running conference, during conference
-	  the CONFRN button is disabled, whilst the CONFLIST and JOIN
-	  buttons are enabled, upon ending the Conference, this is
-	  reversed. Fixes #141
-
-2013-09-16  ddegroot
-
-	* [r4871] src/sccp_cli.c, src/sccp_conference.c,
-	  src/sccp_conference.h: Fix ami implementation for sccpconference
-	  command
-
-	* [r4868] src/sccp_cli_table.h: Fix generic ami table output
-
-2013-09-15  ddegroot
-
-	* [r4867] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c: Added .description to module
-	  registration, so 'module show line chan_' shows the correct
-	  module name
-
-	* [r4866] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c: Return AST_MODULE_LOAD_FAILURE when
-	  chan_skinny.so is already loaded, so that chan_sccp.so is not
-	  partially loaded, but unloaded instead
-
-	* [r4865] src/sccp_channel.c, src/sccp_device.c, src/sccp_line.c:
-	  Use d->lineButtons to traverse linedevices, in lookup functions
-
-	* [r4864] src/sccp_cli.c: Remove old '#if 0' remarked code
-
-	* [r4861] autoconf/asterisk.m4, configure: Cleanup after removal of
-	  sccp_lock.c
-
-	* [r4860] src/Makefile.in, src/sccp_channel.c: Fix cfwd debug line
-
-2013-09-14  ddegroot
-
-	* [r4859] src/Makefile.am, src/Makefile.in, src/pbx_impl/ast/ast.h,
-	  src/sccp_lock.c[DEL], src/sccp_lock.h: Simplified sccp_lock.h /
-	  removed sccp_lock.c / Added include for asterisk/buildopts.h and
-	  asterisk/config.h (fixes #138)
-
-2013-09-13  ddegroot
-
-	* [r4858] Makefile.in, contrib/gen_sccpconf/Makefile.in,
-	  doc/Makefile.in, src/Makefile.in, src/chan_sccp.c,
-	  src/chan_sccp.h, src/common.h, src/pbx_impl/ast/ast.c,
-	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast104.h,
-	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast106.h,
-	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast108.h,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast110.h,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast111.h,
-	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/ast/astTrunk.h,
-	  src/pbx_impl/pbx_impl.h, src/sccp_actions.c,
-	  src/sccp_adv_features.c, src/sccp_appfunctions.c,
-	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_conference.c,
-	  src/sccp_config.c, src/sccp_device.c, src/sccp_devstate.c,
-	  src/sccp_dllists.h, src/sccp_event.c, src/sccp_event.h,
-	  src/sccp_featureButton.c, src/sccp_features.c, src/sccp_hint.c,
-	  src/sccp_indicate.c, src/sccp_line.c, src/sccp_lock.c,
-	  src/sccp_lock.h, src/sccp_management.c, src/sccp_mwi.c,
-	  src/sccp_pbx.c, src/sccp_protocol.c, src/sccp_protocol.h,
-	  src/sccp_refcount.c, src/sccp_refcount.h, src/sccp_rtp.c,
-	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_threadpool.c,
-	  src/sccp_threadpool.h, src/sccp_utils.c: Moved specificly
-	  required includes back to actual source files, instead of
-	  misusing common.h for everything
-
-2013-09-12  ddegroot
-
-	* [r4857] NEWS, aclocal.m4, autoconf/extra.m4, configure,
-	  src/config.h.in, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_channel.c: Removed
-	  CS_EXPERIMENTAL_CODEC and CS_EXPERIMENTAL_RTP
-
-2013-09-11  ddegroot
-
-	* [r4856] src/sccp_protocol.h: Reverted: Use sccp_mid_t for
-	  lel_messageId instead of uint32_t
-
-	* [r4855] src/sccp_protocol.h: Use sccp_mid_t for lel_messageId
-	  instead of uint32_t
-
-	* [r4854] src/chan_sccp.c, src/chan_sccp.h, src/sccp_actions.c,
-	  src/sccp_actions.h, src/sccp_channel.c, src/sccp_cli.c,
-	  src/sccp_device.c, src/sccp_device.h, src/sccp_devstate.c,
-	  src/sccp_featureButton.c, src/sccp_hint.c, src/sccp_mwi.c,
-	  src/sccp_protocol.c, src/sccp_protocol.h, src/sccp_socket.c,
-	  src/sccp_socket.h, src/sccp_softkeys.c, src/sccp_utils.c,
-	  src/sccp_utils.h: Renamed sccp_moo_t to sccp_msg_t and
-	  sccp_moo_t->msg to sccp_msg_t->data
-
-	* [r4853] src/sccp_device.c: Updated d->skinny_type parsing
-
-	* [r4852] src/sccp_config.c: Suppress warning about uninitialized
-	  variables
-
-2013-09-08  ddegroot
-
-	* [r4851] src/sccp_features.c: Fix conference with selected
-	  channels
-
-2013-09-05  ddegroot
-
-	* [r4850] src/sccp_refcount.c: Renamed find_obj and remove_obj,
-	  refined checks before final free of object
-
-2013-09-04  marcelloceschia
-
-	* [r4849] src/sccp_actions.c: fix posible refcount issue in
-	  sccp_handle_dialtone
-
-2013-09-02  ddegroot
-
-	* [r4848] src/chan_sccp.h, src/sccp_protocol.h, src/sccp_socket.c:
-	  Refined session handling and socket read methods (Related to
-	  issue reported by Niklas Larsson)
-
-	* [r4847] autoconf/extra.m4, configure: Fix issue #194:
-	  gnu98-inline and old gcc compilers
-
-2013-08-17  marcelloceschia
-
-	* [r4846] src/pbx_impl/ast/ast.c: references #135
-
-2013-08-16  marcelloceschia
-
-	* [r4845] src/sccp_appfunctions.c: fixes dialplan function
-	  SCCPCHANNEL when called with fqcn, closes #134
-
-	* [r4844] src/sccp_actions.c: write the new devstate back to
-	  ast_db, this is necessary to show the correct state for devstate
-	  list only; references #133
-
-	* [r4843] src/chan_sccp.c, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
-	  src/sccp_appfunctions.c, src/sccp_devstate.c:
-	  ast_enable_distributed_devstate in ast modules
-
-	* [r4842] src/sccp_devstate.c: ast_enable_distributed_devstate on
-	  devstate module load
-
-2013-08-16  ddegroot
-
-	* [r4841] src/sccp_actions.c, src/sccp_devstate.c: Fix compile
-	  warning about unused buffer. Reduced debug prefix level for
-	  devstate changes.
-
-2013-08-15  marcelloceschia
-
-	* [r4840] src/Makefile.in, src/sccp_actions.c,
-	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_devstate.c,
-	  src/sccp_featureButton.c, src/sccp_line.c: fixes some devstate
-	  issue, references #133
-
-	* [r4839] src/chan_sccp.c: fixing devstate feature, references #133
-
-	* [r4838] src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
-	  src/sccp_actions.c, src/sccp_devstate.c[ADD],
-	  src/sccp_devstate.h[ADD], src/sccp_featureButton.c,
-	  src/sccp_indicate.c: fixing devstate feature, references #133
-
-2013-08-12  ddegroot
-
-	* [r4837] contrib/phone_screenshot/scr2img: Fix scr2img
-
-	* [r4836] contrib/phone_screenshot/phone_screenshot: Fix
-	  phone_screenshot
-
-2013-08-04  marcelloceschia
-
-	* [r4835] src/sccp_device.c, src/sccp_device.h,
-	  src/sccp_indicate.c: some test with phonebook entries
-
-2013-08-02  marcelloceschia
-
-	* [r4834] src/sccp_actions.c, src/sccp_channel.c, src/sccp_pbx.c:
-	  fixes Codec mismatch on channel SCCP/xxx-yyy setting read/write
-	  format to a from unknown native formats (nothing)
-
-2013-08-01  marcelloceschia
-
-	* [r4833] src/sccp_actions.c, src/sccp_line.c: fixes issue with
-	  hotline devices
-
-	* [r4832] src/sccp_actions.c, src/sccp_line.c, src/sccp_pbx.c: use
-	  SCCP_CHANNELSTATE_DIALING on dial only
-
-	* [r4831] src/sccp_actions.c, src/sccp_pbx.c: commit missing files
-	  for dialNumberFix
-
-	* [r4830] src/sccp_protocol.c: fix
-
-	* [r4829] src/sccp_indicate.c: fixes DialedNumberMessage issue
-
-	* [r4828] src/chan_sccp.h: add sccp_phonebook_t
-
-2013-07-29  ddegroot
-
-	* [r4827] src/sccp_channel.c: Remove/Refactor
-	  sccp_channel_unsetDevice
-
-	* [r4826] src/sccp_channel.c: Fix sccp_channel_setDevice /
-	  sccp_channel_unsetDevice (thanks Marcello).
-
-	* [r4825] src/sccp_utils.c, src/sccp_utils.h: Update
-	  sccp_utils_findBestCodec (added logging where necessary). Use
-	  const codecs for sccp_multiple_codecs2str.
-
-2013-07-26  ddegroot
-
-	* [r4824] src/sccp_config.c: Added sample for more precise change
-	  checking to sccp_config_parse_codec_preferences. Clarified that
-	  sccp_parse_allow_disallow returns the number of errors that
-	  occurred during parsing.
-
-	* [r4822] src/sccp_utils.c: Fix sccp_parse_allow_disallow to skip
-	  empty entries (for example from default) without resetting
-	  codecs.
-
-	* [r4821] src/sccp_config.c: Fix alreadySetEntries[] when parsing
-	  codec disallow/allow preferences (Reported by Phillipe Teissier).
-
-2013-07-23  ddegroot
-
-	* [r4820] src/pbx_impl/ast/ast106.h: Fix dialing out using
-	  asterisk-1.6.2 (pbx_channel_ref / pbx_channel_unref not
-	  implemented correctly).
-
-2013-07-21  marcelloceschia
-
-	* [r4819] src/sccp_device.c, src/sccp_device.h,
-	  src/sccp_softkeys.c: fixes 124, End Call on Shared Line
-
-2013-07-20  ddegroot
-
-	* [r4818] src/sccp_device.c: Fix sccp_dev_cleanup with open
-	  channels (fix segfault)
-
-2013-07-20  marcelloceschia
-
-	* [r4817] src/sccp_actions.c: revert 4769
-
-2013-07-19  ddegroot
-
-	* [r4816] src/chan_sccp.c, src/sccp_actions.c, src/sccp_utils.c,
-	  src/sccp_utils.h: Added sccp_dump_moo. Replaced most instances of
-	  sccp_dump_packet with sccp_dump_moo.
-
-2013-07-18  ddegroot
-
-	* [r4815] src/sccp_config.c, src/sccp_softkeys.c: Activate Redial
-	  button when restoring lastDialedNumber from ASTDB database
-
-2013-07-17  ddegroot
-
-	* [r4814] src/sccp_socket.c: close connection when
-	  sccp_process_data cannot make head or tails of the message
-	  received
-
-2013-07-16  ddegroot
-
-	* [r4813] src/sccp_cli.c: Scanning for SCCP/????-?????, needs to
-	  use hex for channelId
-
-	* [r4812] src/sccp_cli.c: scan for SCCP/????-?????, need to use hex
-	  for channelId
-
-	* [r4811] src/sccp_actions.c, src/sccp_cli.c: Update
-	  SCCPAnswerCall1, making deviceId mandatory instead of optional
-
-	* [r4810] src/sccp_cli.c: Fix SCCPDndDevice
-
-	* [r4809] src/sccp_cli.c: Fix SCCPDndDevice
-
-	* [r4808] src/sccp_cli.c: replaced cli function
-	  'sccp_remote_answer' / sccp answer with a more feature & failure
-	  complete cli/ami version (ami name: 'SCCPAnswerCall1' during
-	  testing).
-
-	* [r4807] src/sccp_device.c: Changed DEBUGCAT for
-	  sccp_device_find_byid
-
-	* [r4806] src/sccp_conference.c: Fix sccp_conference cli action
-
-	* [r4804] src/sccp_pbx.c: BugFix: Null pointer check to make sure
-	  pbx_channel is not null when returning context string (Reported
-	  by Philippe Teissier)
-
-	* [r4803] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
-	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
-	  src/pbx_impl/ast/astTrunk.h, src/sccp_cli.c: Update error message
-	  from SCCPMesaageDevice(s)
-
-	* [r4802] src/sccp_cli.c: Clarify use of cli-function : 'sccp set'
-	  (still a little murky)
-
-	* [r4801] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
-	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
-	  src/pbx_impl/ast/astTrunk.h, src/sccp_cli.c,
-	  src/sccp_conference.c: Renamed CLI_AMI_ERROR to
-	  CLI_AMI_RETURN_ERROR, to clarify that this command returns
-	  immediatly. Use printf format in CLI_AMI_RETURN_ERROR. Fixed
-	  SCCPMessageDevice (missing one comma in CLI_AMI_PARAMAS).
-	  Rectified use of CLI_AMI_ERROR in sccp_conference.
-
-2013-07-16  marcelloceschia
-
-	* [r4800] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
-	  autoconf/config.sub, autoconf/depcomp, autoconf/extra.m4,
-	  autoconf/install-sh, autoconf/missing, configure,
-	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
-	  src/Makefile.in, src/config.h.in: fixes configure/compile issue
-	  with x86_64
-
-2013-07-15  ddegroot
-
-	* [r4799] Makefile.in, aclocal.m4, autoconf/extra.m4, configure,
-	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
-	  src/Makefile.in: Redefinition of ULONG from 'long long unsigned
-	  int' to the more readable 'unsigned long long' variety
-
-	* [r4798] src/chan_sccp.h: Reducing size of sccp_group_t on systems
-	  which do not cope well with misaligned access (sparc64 for
-	  example). Having an unsigned long long inside sccp_channel_t
-	  causes havoc on these. Size reduction is only applied on systems
-	  that do not like misalinged memory accesses.
-
-	* [r4797] src/chan_sccp.h, src/sccp_channel.c: Remove unused
-	  pthread conditional from sccp_channel_t. Causes unaligned access
-	  issues on sparc64.
-
-2013-07-15  marcelloceschia
-
-	* [r4796] src/sccp_actions.c: fix answer softkey issue
-
-2013-07-14  ddegroot
-
-	* [r4795] src/sccp_actions.c: Moved const uint8_t *b outside the
-	  loop, which caused unaligned memory acces on sparc. There is no
-	  need to update *b, which always points to the same v->ptr (just
-	  at an offset on consequetive loop traversals (on x86_64 that
-	  is)), this causes a BUS Error on Sparc though.
-
-2013-07-14  marcelloceschia
-
-	* [r4794] src/sccp_protocol.c: fix all INET_ADDRSTRLEN
-
-2013-07-13  marcelloceschia
-
-	* [r4792] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c: use
-	  sccp_channel_openMultiMediaReceiveChannel
-
-2013-07-13  ddegroot
-
-	* [r4791] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c: DirectRTP compile fixes for
-	  asterisk-1.6 / asterisk-1.8 / asterisk-1.10
-
-	* [r4790] src/chan_sccp.h, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/astTrunk.c,
-	  src/pbx_impl/ast/astTrunk.h, src/pbx_impl/pbx_impl.h,
-	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_channel.h,
-	  src/sccp_cli.c, src/sccp_features.c, src/sccp_indicate.c,
-	  src/sccp_line.c, src/sccp_pbx.c, src/sccp_rtp.c, src/sccp_rtp.h,
-	  src/sccp_utils.c: Commit of the directrtp project
-
-	* [r4789] src/sccp_management.c: Making AMI answerCall function a
-	  little more precise
-
-	* [r4788] src/sccp_utils.c: Fix short read in
-	  sccp_socket_processdata reported by valgrind
-
-	* [r4787] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
-	  src/sccp_device.c, src/sccp_rtp.c: Fix using uninitialized memory
-	  reported by valgrind
-
-2013-07-12  marcelloceschia
-
-	* [r4786] src/pbx_impl/ast/ast111.c: cleanup code
-
-2013-07-11  ddegroot
-
-	* [r4785] src/sccp_cli.c: Fix for sccp_message_device.
-
-	* [r4784] src/sccp_cli.c: Converted CLI:sccp dnd device to
-	  CLI/AMI:SCCPDndDevice.
-
-	* [r4783] src/sccp_cli.c: Converted CLI:sccp system message to
-	  CLI/AMI:SCCPSystemMessage.
-
-	* [r4782] src/sccp_cli.c: Converted CLI:sccp message device to
-	  CLI/AMI:SCCPMessageDevice. Added comments to explain how to use
-	  CLI_AMI_ENTRY macro's
-
-2013-07-09  marcelloceschia
-
-	* [r4781] src/sccp_device.c: fixes issue in
-	  sccp_device_find_index_for_line
-
-2013-07-08  marcelloceschia
-
-	* [r4780] src/sccp_actions.c, src/sccp_device.c, src/sccp_line.c,
-	  src/sccp_line.h: use functions to create and delete
-	  lineButtonArray
-
-2013-07-08  ddegroot
-
-	* [r4779] src/sccp_config.c: Fix sccp reload for buttons, by
-	  clearing out previous values (on button update). Needed an
-	  improved check for empty options and args
-
-	* [r4778] src/sccp_config.c: Fix sccp reload for buttons, by
-	  clearing out previous values (on button update)
-
-2013-07-06  marcelloceschia
-
-	* [r4777] src/sccp_device.c: fixes lineButtons.instance cleanup
-
-	* [r4776] src/sccp_actions.c, src/sccp_line.c: add check for
-	  btn[i].ptr and d->lineButtons.instance[instance]
-
-	* [r4775] src/sccp_device.c: use lineButtons for
-	  sccp_device_find_index_for_line
-
-	* [r4774] src/chan_sccp.h, src/sccp_actions.c, src/sccp_device.c:
-	  add some defines for instance offsets
-
-	* [r4773] src/chan_sccp.h, src/sccp_actions.c, src/sccp_device.c,
-	  src/sccp_line.c, src/sccp_line.h: add some lineButton array for
-	  fast linedevice access
-
-2013-07-05  ddegroot
-
-	* [r4770] src/sccp_actions.c, src/sccp_device.c: Fix warning during
-	  register
-
-2013-07-05  marcelloceschia
-
-	* [r4769] src/sccp_actions.c:
-
-	* [r4768] src/sccp_device.c: comment Device does not support
-	  RegisterAvailableLinesMessage fix
-
-	* [r4767] src/sccp_protocol.h: add comments for
-	  sccp_deviceProtocol_t
-
-	* [r4766] src/chan_sccp.c: use registration finished identifier to
-	  set registration state
-
-	* [r4765] src/sccp_actions.c: revert changes for SPA504G test
-
-	* [r4764] src/sccp_protocol.c, src/sccp_protocol.h: add
-	  registration finished identifier
-
-	* [r4763] src/sccp_actions.c: test for SPA504G
-
-2013-07-04  marcelloceschia
-
-	* [r4761] src/sccp_channel.c: fixes wrong debuf string
-
-	* [r4760] src/sccp_indicate.c: fixes tone after endcall on
-	  transferer channel, closes #120
-
-2013-07-04  ddegroot
-
-	* [r4759] src/sccp_config.c: Fixed reset of buttonindex, when
-	  loading multiple lines
-
-	* [r4758] src/sccp_config.c: Fix sccp reload for buttonconfig
-	  parsing (detect reordering of buttons / detect change of
-	  buttondefinition) (Reported by Andy Bradford / Alena Juk / #188)
-
-2013-07-04  marcelloceschia
-
-	* [r4757] src/sccp_actions.c: fixes issue with SPA504G that does
-	  not request buttonTemplate before AvailableLines Message
-
-2013-07-02  ddegroot
-
-	* [r4755] src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
-	  src/pbx_impl/ast/astTrunk.h, src/sccp_pbx.c: Fix compile error
-	  for ast106, Fix pbx_channel_ref for other channel drivers
-
-2013-06-28  marcelloceschia
-
-	* [r4752] src/sccp_actions.c, src/sccp_protocol.h: testing for
-	  SPA504G
-
-2013-06-28  ddegroot
-
-	* [r4749] NEWS, autoconf/acinclude.m4, configure,
-	  tools/versioncheck: Fix tools/versioncheck for make release
-
-	* [r4746] .version, Makefile.in, NEWS, aclocal.m4, configure,
-	  contrib/gen_sccpconf/Makefile.in, debian/changelog,
-	  doc/Makefile.in, src/Makefile.in: V4.1 Stable Release
-
-	* [r4745] src/sccp_actions.c, src/sccp_device.c,
-	  src/sccp_protocol_enums.hh: Added SPA504G to devicetypes (Issues
-	  Reported By: Kumar Shantanu)
-
-2013-06-26  ddegroot
-
-	* [r4744] src/pbx_impl/ast/ast110.c: Fix connectedline for transfer
-	  (ast_channel_connected() -> ast->connected....)
-
-	* [r4743] src/pbx_impl/ast/ast108.c: Fix connectedline for transfer
-	  (ast_channel_connected() -> ast->connected....)
-
-	* [r4742] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c: Update
-	  connectedline for transfer, to set the correct callInfo
-
-	* [r4741] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c: Update
-	  connectedline for transfer, to set the correct callInfo
-
-2013-06-23  ddegroot
-
-	* [r4740] contrib/gen_sccpconf/gen_sccpconf.c: Fix doxygen header
-
-	* [r4739] doc/doxygen.cfg: Include *.hh file in doxygen generation
-
-	* [r4738] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
-	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_device.c,
-	  src/sccp_device.h, src/sccp_event.c, src/sccp_features.c,
-	  src/sccp_hint.c, src/sccp_indicate.c, src/sccp_line.c,
-	  src/sccp_line.h, src/sccp_management.c, src/sccp_mwi.c,
-	  src/sccp_pbx.c, src/sccp_rtp.c, src/sccp_socket.c,
-	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h:
-	  Reindented source files
-
-	* [r4737] src/chan_sccp.h, src/common.h, src/sccp_conference.c,
-	  src/sccp_conference.h, src/sccp_config.c, src/sccp_config.h:
-	  Reindented sccp_conference / sccp_config
-
-	* [r4736] src/sccp_channel.c, src/sccp_channel.h: Reindent
-	  sccp_channel
-
-	* [r4735] src/sccp_appfunctions.c: Reindent sccp_appfunctions.c
-
-	* [r4734] src/sccp_actions.c: Reindent sccp_actions.c
-
-	* [r4733] src/chan_sccp.c: Reindent chan_sccp.c
-
-	* [r4732] src/chan_sccp.h: Reindent chan_sccp.h
-
-	* [r4731] src/chan_sccp.h, src/chan_sccp_enums.hh,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast111.h,
-	  src/pbx_impl/ast/define.h, src/sccp_cli_table.h,
-	  src/sccp_config_entries.hh, src/sccp_enum_macro.h,
-	  src/sccp_event_enums.hh, src/sccp_features.c,
-	  src/sccp_protocol.h, src/sccp_protocol_enums.hh: Update/Fix
-	  doxygen file header, Update doxygen structure comments
-
-2013-06-22  ddegroot
-
-	* [r4730] src/sccp_channel.c, src/sccp_channel.h, src/sccp_pbx.c:
-	  Added sccp_channel_transfer_release and
-	  sccp_channel_transfer_cancel functions
-
-2013-06-21  ddegroot
-
-	* [r4729] ChangeLog, conf/sccp.conf, conf/sccp.conf.annotated,
-	  src/chan_sccp.h, src/sccp_channel.c, src/sccp_cli.c,
-	  src/sccp_config_entries.hh: Added global config parameter:
-	  'transfer_on_hangup' (default=off), which will complete transfer,
-	  when the transferer hangups up, after the destination has been
-	  reached. Making a second press of the transfer button
-	  unnecessary. However this does make cancelling a transfer a
-	  little harder, either press resume on the transfered channel or
-	  have the receiving party hangup first (might be considered a
-	  negative side effect, there for 'transfer_on_hangup' is switched
-	  'off' by default).
-
-	* [r4728] src/sccp_channel.c, src/sccp_pbx.c: Fix Transfer Issue
-	  Part 2: When the receiver of a transfered channel hangs up,
-	  without accepting the transfered channel, older SCCP phones would
-	  not display the callplane of the transfered call upon hangup
-	  (Reported by Sander Smeenk: 'Transfer Bug?'). Updated previous
-	  fix, to simulate sccp_channel_hold more closely and take care of
-	  the device refcount being of by +1
-
-	* [r4727] src/sccp_channel.c, src/sccp_pbx.c: Fix Transfer Issue:
-	  When the receiver of a transfered channel hangsup, without
-	  accepting the transfered channel, older SCCP phones would not
-	  display the callplane of the transfered call upon hangup. There
-	  was/is a previous work around in sccp_channel_endcall, but this
-	  would only be run when the transferer hungup before transfering
-	  the call (Reported by Sander Smeenk: 'Transfer Bug?')
-
-2013-06-20  ddegroot
-
-	* [r4726] src/chan_sccp.h, src/chan_sccp_enums.hh,
-	  src/sccp_appfunctions.c, src/sccp_cli.c, src/sccp_config.c,
-	  src/sccp_config.h, src/sccp_utils.c, src/sccp_utils.h: renamed
-	  button_type_t to sccp_config_buttontype_t (chan_sccp_enums.hh).
-	  removed sccp_diff_t and light_t enums.
-
-	* [r4725] src/sccp_cli.c: Fix cli:sccp config generate, to accept
-	  arbitrairy file name
-
-	* [r4724] src/sccp_protocol.h: Removed button_modes struct, because
-	  it is never used anywhere
-
-2013-06-19  ddegroot
-
-	* [r4723] src/sccp_pbx.c: revert handling of sccp_pbx_softswitch in
-	  case \!c->owner (keep the added ast_channel_refcount)
-
-	* [r4722] src/sccp_pbx.c: Remedy loss of pbx_channel during
-	  sccp_pbx_softswitch, by taking an extra reference for the time of
-	  this function
-
-	* [r4721] ChangeLog, contrib/gen_sccpconf/gen_sccpconf.c,
-	  contrib/gen_sccpconf/gen_sccpconf.h, doc/00_Index.doc,
-	  doc/35_How_To.doc, doc/90_Developers_Guide.doc,
-	  src/sccp_actions.c, src/sccp_config.c, src/sccp_device.c,
-	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_line.c:
-	  Update/fix doxygen warnings
-
-	* [r4720] conf/sccp.conf.annotated: Update conf/sccp.conf.annotated
-	  to use the information produced by gen_sccpconf
-	  sccp.conf.annotated ALL instead
-
-	* [r4719] src/sccp_config_entries.hh: Add description information
-	  for buttons
-
-	* [r4718] contrib/gen_sccpconf/gen_sccpconf.c: Fix description
-	  generation for gen_sccpconf
-
-	* [r4717] contrib/gen_sccpconf/Makefile.am,
-	  contrib/gen_sccpconf/Makefile.in,
-	  contrib/gen_sccpconf/gen_sccpconf.c,
-	  contrib/gen_sccpconf/gen_sccpconf.h: Fix/update gen_sccp
-
-2013-06-18  marcelloceschia
-
-	* [r4716] src/sccp_device.c: remove comment
-
-	* [r4715] Makefile.in, aclocal.m4, configure,
-	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
-	  src/Makefile.in, src/sccp_actions.c, src/sccp_device.c,
-	  src/sccp_device.h, src/sccp_hint.c, src/sccp_softkeys.c: use
-	  boolean indicator in sccp_dev_speed_find_byindex
-
-2013-06-18  ddegroot
-
-	* [r4714] src/sccp_device.c, src/sccp_device.h: finish: revert the
-	  revert of void sccp_dev_speed_find_byindex
-
-	* [r4713] src/sccp_pbx.c: Check existance of pbx_channel before
-	  running pbx_check_hangup (reported by Leonid)
-
-	* [r4712] src/sccp_actions.c: Fix videoformat2str compile warning
-
-2013-06-18  marcelloceschia
-
-	* [r4711] src/sccp_device.c: revert the revert
-
-2013-06-18  ddegroot
-
-	* [r4710] src/sccp_hint.c: Fix warning about non-initalized
-	  iconstate, when d->allowRinginNotification is false, by moving
-	  the break, inside the check
-
-	* [r4709] Makefile.in, autoconf/extra.m4, configure: fix configure
-	  --enable-gcov
-
-	* [r4708] src/common.h, src/sccp_enum_macro.h, src/sccp_utils.c,
-	  src/sccp_utils.h: Replaced inline with gcc_inline when using
-	  non-gcc compiler
-
-	* [r4707] src/sccp_config.c: Fix warning about enum-conversion for
-	  dtmfmode
-
-	* [r4706] src/sccp_actions.c: Fix implicit-function-declaration for
-	  sccp_videoformat2str
-
-	* [r4705] src/sccp_device.c, src/sccp_device.h: reverting
-	  sccp_dev_speed_find_byindex changes back to unspefic uint8_t
-	  type, passing either SCCP_BUTTONTYPE or SKINNY_BUTTONTYPE to this
-	  function
-
-2013-06-18  marcelloceschia
-
-	* [r4704] src/sccp_hint.c: fixes compile warnings in hint, do not
-	  use default state for switch
-
-2013-06-18  ddegroot
-
-	* [r4703] src/Makefile.in, src/sccp_protocol.h: Commented out
-	  ButtonTemplateMessageSingle (which was a special single instance
-	  of ButtonTemplateMessage, not used anywhere and conflicting
-	  MsgId)
-
-	* [r4702] src/Makefile.am, src/Makefile.in: Add sccp_enum_macro.h
-	  to EXTRA_DIST so that it will included during make release
-
-	* [r4701] src/sccp_hint.c: Fix sccp_hint.c compile (after last
-	  commit)
-
-2013-06-18  marcelloceschia
-
-	* [r4700] src/sccp_hint.c: set hint->previousState in asterisk
-	  callback
-
-2013-06-17  ddegroot
-
-	* [r4699] src/sccp_config.c: Pervious Permit/Deny config parser
-	  return value change, causes sccp reload to restart all devices
-	  every time. Because it is difficult evaluate if ha changed
-	  between reloads. Instead of setting alreadySetEntries on
-	  SCCP_CONFIG_CHANGE_CHANGED it is now set on
-	  \!SCCP_CONFIG_CHANGE_INVALIDVALUE, which yields the correct
-	  behaviour (though less precise)
-
-	* [r4698] src/sccp_config.c: Permit/Deny config parser did not
-	  include SCCP_CONFIG_CHANGE_CHANGED upon successfully setting the
-	  new value
-
-2013-06-16  ddegroot
-
-	* [r4697] src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
-	  src/chan_sccp.h, src/chan_sccp_enums.hh[ADD], src/common.h,
-	  src/sccp_enum.c[DEL], src/sccp_enum.h[DEL],
-	  src/sccp_enum_entries.hh[DEL], src/sccp_enum_macro.h[ADD],
-	  src/sccp_event.c, src/sccp_event.h, src/sccp_event_enums.hh[ADD],
-	  src/sccp_protocol.c, src/sccp_protocol.h,
-	  src/sccp_protocol_enums.hh[ADD]: Split sccp_enum_entries.hh based
-	  on their namespaces / allegiance to
-	  chan_sccp_enums.hh/sccp_event_enums.hh/sccp_protocol_enums.hh.
-	  Created sccp_enum_macro.h to cope with this split.
-
-	* [r4696] src/sccp_enum_entries.hh: Updated enum sample to follow
-	  the current macro code
-
-	* [r4695] src/sccp_enum_entries.hh: Added simple verification
-	  method comment to sccp_enum_entries.hh (+Reindent)
-
-	* [r4694] src/chan_sccp.c, src/sccp_actions.c, src/sccp_cli.c,
-	  src/sccp_device.c, src/sccp_enum_entries.hh, src/sccp_pbx.c,
-	  src/sccp_socket.c: Reverted: Rename of SKINNY_DEVICE_RS_* enum
-	  entries to SCCP_DEVICE_RS_* (Back to SKINNY_DEVICE_RS_*)
-
-	* [r4693] src/sccp_hint.c, src/sccp_utils.c, src/sccp_utils.h:
-	  Removed sccp_channelstate2AstDeviceState from sccp_utils
-
-	* [r4692] src/sccp_device.c: Fix compilation when compiles without
-	  CS_AST_HAS_EVENT
-
-	* [r4691] src/sccp_config.c, src/sccp_device.c,
-	  src/sccp_featureButton.c, src/sccp_mwi.c: Fix compilation when
-	  compiles without CS_AST_HAS_EVENT
-
-	* [r4690] src/sccp_enum_entries.hh: Fix lampmode index
-
-	* [r4689] ChangeLog, Makefile.am, Makefile.in: Update ChangeLog
-
-	* [r4688] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_channel.c,
-	  src/sccp_device.c, src/sccp_enum_entries.hh, src/sccp_features.c,
-	  src/sccp_indicate.c, src/sccp_pbx.c: Replaced SKINNY_STATION_*
-	  with SKINNY_RINGTYPE_*
-
-	* [r4687] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_enum_entries.hh,
-	  src/sccp_hint.c: Replaced SCCP_BLF_STATUS_* with
-	  SKINNY_BLF_STATUS_*
-
-	* [r4686] src/sccp_device.c, src/sccp_device.h,
-	  src/sccp_enum_entries.hh: Replaced skinny_callPriority_t with
-	  skinny_callpriority_t
-
-	* [r4685] src/chan_sccp.c, src/sccp_actions.c, src/sccp_cli.c,
-	  src/sccp_device.c, src/sccp_enum_entries.hh, src/sccp_pbx.c,
-	  src/sccp_socket.c: Renamed SKINNY_DEVICE_RS_* enum entries with
-	  SCCP_DEVICE_RS_*
-
-	* [r4684] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
-	  src/pbx_impl/ast/astTrunk.c, src/pbx_impl/pbx_impl.h,
-	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_cli.c,
-	  src/sccp_device.c, src/sccp_enum.h, src/sccp_management.c:
-	  Cleanup old enum names / function definitions
-	  
-	  Replaced:
-	  skinny_busylampfield_state_t -> skinny_busylampfield_state_t
-	  registrationstate2str -> registrationstate2str
-	  sccp_autoanswer_t -> sccp_autoanswer_t
-	  accessorystate2str -> accessorystate2str
-	  keymode2str -> keymode2str
-
-	* [r4683] src/chan_sccp.h, src/pbx_impl/ast/ast106.c,
-	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
-	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
-	  src/sccp_appfunctions.c, src/sccp_cli.c, src/sccp_config.c,
-	  src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum_entries.hh,
-	  src/sccp_features.c, src/sccp_features.h, src/sccp_hint.c,
-	  src/sccp_hint.h, src/sccp_indicate.c, src/sccp_line.c,
-	  src/sccp_line.h, src/sccp_utils.c, src/sccp_utils.h: Cleanup old
-	  enum names / function definitions
-	  
-	  Replace:
-	  channelstate2str -> channelstate2str
-	  devicestate2str -> devicestate2str
-	  skinny_lampmode_t -> skinny_lampMode_t
-	  lampmode2str -> lampMode2str
-
-	* [r4682] src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h,
-	  src/sccp_actions.c, src/sccp_config.c, src/sccp_device.c,
-	  src/sccp_device.h, src/sccp_enum.c, src/sccp_enum.h,
-	  src/sccp_enum_entries.hh, src/sccp_event.c, src/sccp_features.c,
-	  src/sccp_features.h, src/sccp_line.c, src/sccp_line.h,
-	  src/sccp_management.c, src/sccp_protocol.h, src/sccp_utils.c,
-	  src/sccp_utils.h: Moved most of the enum declarations to
-	  sccp_enum_entries.hh.
-	  SCCP(event_type,channelState,miscCommandType,devicestate,callforward,registrationstate,dtmfmode,autoanswer,dndmode,accessory,accessorystate)
-	  and
-	  SKINNY(devfeature,calltype,callstate,tone,callPriority,callinfo_visibility,callsecuritystate,lampMode,busylampfield_state,alarm,devicetype,stimulus,buttontype,videoformat,ringtype,receivetransmit,keymode).
-	  This replaces a loarge number of looping map-traversals with
-	  finite switch cases (reducing CPU usage and gaining compiler
-	  warnings on faulty assignments).
-
-2013-06-14  ddegroot
-
-	* [r4681] src/Makefile.am, src/Makefile.in, src/common.h,
-	  src/sccp_config.c, src/sccp_enum.c[ADD], src/sccp_enum.h[ADD],
-	  src/sccp_enum_entries.hh, src/sccp_event.h, src/sccp_protocol.h,
-	  src/sccp_utils.c, src/sccp_utils.h: event2str is the first of
-	  several enums which will move to sccp_enum_entries.hh. Replacing
-	  the ARR2STR macro so that the looping lookup cost is not be
-	  incured, instead it will make use of a finite flat switch/case.
-
-	* [r4680] src/sccp_utils.c, src/sccp_utils.h: Inline sccp_strlen,
-	  sccp_strlen_zero, sccp_strequals, sccp_strcaseequals, because
-	  they get called a lot
-
-	* [r4679] src/sccp_config_entries.hh[CPY]: rename
-	  sccp_config_entries.h sccp_enum_entries.hh, because it is not a
-	  real headerfile
-
-	* [r4678] src/Makefile.am, src/Makefile.in,
-	  src/sccp_config_entries.h[DEL], src/sccp_enum_entries.hh[ADD]:
-	  rename sccp_config_entries.h sccp_enum_entries.hh, because it is
-	  not a real headerfile
-
-	* [r4677] src/sccp_config.c: Added comment to sccp_config, to
-	  explain how SetEntries / alreadySetEntries work together, to skip
-	  setting default values multiple times for the same struct
-	  variable
-
-	* [r4676] src/sccp_device.c: Reduce the number of calls to
-	  sccp_addons_taps
-
-	* [r4675] src/sccp_config.c, src/sccp_config.h, src/sccp_device.c:
-	  Fix setting default for deprecated config parameters pointing to
-	  the same struct variable as another config paramater (reported by
-	  Steve Walker in regards to directed_pickup and deprecated
-	  pickupexten)
-
-2013-06-13  ddegroot
-
-	* [r4674] src/sccp_cli.c, src/sccp_config.c: Make 'sccp reload
-	  force' work
-
-	* [r4673] src/sccp_cli.c: Added 'force' option to 'sccp reload'
-
-2013-06-10  ddegroot
-
-	* [r4672] src/sccp_hint.c: Switching (back) from
-	  SCCP_CHANNELSTATE_ZOMBIE to using SCCP_CHANNELSTATE_CONGESTION
-	  when a line does not have device attached to it
-	  (unavailable/unregistered/not registered yet)
-
-	* [r4671] Makefile.am, Makefile.in, autoconf/extra.m4, configure,
-	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
-	  src/Makefile.am, src/Makefile.in: Added profile / gcov / lcov
-	  support to configure/make system
-
-2013-06-10  marcelloceschia
-
-	* [r4670] src/sccp_hint.c: use the same dnd code for shared and
-	  simple line
-
-	* [r4669] src/sccp_hint.c: cleanup hint code
-
-	* [r4668] src/sccp_hint.c: set calltype on notifyPBX
-
-	* [r4667] src/sccp_hint.c: cleanup hint code
-
-2013-06-09  ddegroot
-
-	* [r4666] src/sccp_hint.c: update fix cid on hint for devices with
-	  inuseprotocolversion < 15 and unset calltype / handle
-	  unregistered devices cleanly
-
-2013-06-08  ddegroot
-
-	* [r4665] src/sccp_cli.c, src/sccp_protocol.h: Added priority to
-	  CleanPriNotify Message (Verified). Added sccp test message
-	  StatusBar, to verify some assumptions (will be removed again)
-
-2013-06-08  marcelloceschia
-
-	* [r4664] src/sccp_hint.c: fixes cid on hint for devices with
-	  inuseprotocolversion < 15 and unset calltype
-
-2013-06-06  ddegroot
-
-	* [r4663] src/chan_sccp.h, src/sccp_config.c: Set minimum
-	  device/global keepalive value to 30
-
-2013-06-05  ddegroot
-
-	* [r4662] src/sccp_config_entries.h: Remove REQUIRED FLAG from the
-	  device_type/device config paramater
-
-2013-05-29  ddegroot
-
-	* [r4661] autoconf/asterisk.m4, configure, src/Makefile.am,
-	  src/Makefile.in, src/pbx_impl/ast/ast.h,
-	  src/pbx_impl/ast/ast111.c[ADD], src/pbx_impl/ast/ast111.h[ADD],
-	  src/pbx_impl/pbx_impl.h, src/sccp_channel.c, src/sccp_hint.c:
-	  Detect difference between asterisk-11-branch / asterisk-trunk by
-	  checking for uuid.h. Added dedicated ast111.c/ast111.h version
-	  for asterisk-11-branch because of functional divergence since the
-	  introduction of the new asterisk bridging code, requiring a
-	  seperate astTrunk.c version
-
-	* [r4660] autoconf/asterisk.m4, configure: Added configure warning
-	  when asterisk revision goes beyond 389378 (currently not
-	  supported, we are working on it)
-
-	* [r4659] src/sccp_features.c: Add bridged_channel check to
-	  selectchannel option (sccp_features)
-
-	* [r4658] configure.ac: Added configure warning when asterisk
-	  revision goes beyond 389899 (currently not supported, we are
-	  working on it)
-
-	* [r4657] autoconf/asterisk.m4, configure, src/config.h.in: Added
-	  configure warning when asterisk revision goes beyond 389899
-	  (currently not supported, we are working on it)
-
-2013-05-29  marcelloceschia
-
-	* [r4656] src/sccp_conference.c: fixes nullpointer issue in
-	  set_connected_line
-
-2013-05-28  ddegroot
-
-	* [r4655] autoconf/asterisk.m4, configure, configure.ac,
-	  src/chan_sccp.h, src/config.h.in, src/pbx_impl/ast/astTrunk.c,
-	  src/pbx_impl/ast/define.h, src/sccp_conference.c,
-	  src/sccp_features.c: Make compatible with latest asterisk-trunk
-	  (new channel bridging code) (FYI: there is an issue with
-	  retrieving channel_bridge_peer at this moment, which may/will
-	  cause issues during transfer/conference/pickup, this needs some
-	  more investigation)
-
-2013-05-27  ddegroot
-
-	* [r4654] src/sccp_config.c: Fixing default context for mailbox.
-	  Added mailboxes to sccp show line. Generalized mwi event
-	  handling. Update some of the debug message in sccp_mwi.c
-
-	* [r4653] src/sccp_cli.c, src/sccp_mwi.c: Fixing default context
-	  for mailbox. Added mailboxes to sccp show line. Generalized mwi
-	  event handling. Update some of the debug message in sccp_mwi.c
-
-	* [r4652] src/sccp_indicate.c: Removed multithreaded remote
-	  indication handling (experimental-mode), again. Reduced the
-	  number of cases where indicate_remote_device is called
-
-2013-05-26  ddegroot
-
-	* [r4651] src/sccp_indicate.c: Small fix for non-experimental-mode
-
-	* [r4650] src/sccp_indicate.c: Added remote device indication using
-	  a seperate thread (via threadpool) (in CS_EXPERIMENTAL block)
-
-	* [r4649] src/sccp_indicate.c: only invoke remote device indication
-	  if any
-
-	* [r4648] src/sccp_indicate.c, src/sccp_pbx.c: Simplify and reduce
-	  calls to remote indication
-
-2013-05-22  marcelloceschia
-
-	* [r4647] conf/sccp.conf.annotated: add allowRinginNotification
-
-2013-05-21  ddegroot
-
-	* [r4646] src/sccp_socket.c: Fix error handling when poll returns 0
-	  in sccp_socket.c
-
-	* [r4645] src/sccp_indicate.c: Use d instead of device in
-	  sccp_indicate. Cleanup some of the older comments. Continue
-	  instead of break where linedevice->device is not found in
-	  sccp_indicate_remote_device
-
-2013-05-18  ddegroot
-
-	* [r4644] src/sccp_actions.c, src/sccp_protocol.c,
-	  src/sccp_protocol.h: Use sockaddr_storage instead of sockaddr_in
-	  in sccp_protocol parse functions. Warn when receiving ipv6
-	  addresses in skinny media/rtp message handling in sccp_actions.c
-	  (for now)
-
-2013-05-18  marcelloceschia
-
-	* [r4643] src/sccp_socket.c, src/sccp_socket.h: add 2 helper
-	  functions
-
-2013-05-17  ddegroot
-
-	* [r4642] autoconf/extra.m4, configure, src/config.h.in: Removal of
-	  CPU_COUNT as it is not used in the source code, and might give of
-	  false signals for example during cross compilation
-
-2013-05-16  marcelloceschia
-
-	* [r4641] src/sccp_actions.c: revert 4640
-
-2013-05-16  ddegroot
-
-	* [r4640] src/sccp_actions.c: Fix warning about uninitialized
-	  variables in sccp_handle_XMLAlarmMessage (Reported by Jacob
-	  Miles)
-
-2013-05-15  marcelloceschia
-
-	* [r4639] conf/sccp.conf: add example for default line selection
-
-2013-05-14  ddegroot
-
-	* [r4636] src/chan_sccp.c, src/chan_sccp.h,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Removal
-	  of do_monitor/restart_monitor funktions for asterisk version 10
-	  and up (Lock issue reported by Niklas Larsson)
-
-	* [r4635] src/pbx_impl/ast/ast106.c: Fix compilation against
-	  asterisk-1.6.2 (removed ast_sched_context_destroy which does not
-	  exist in this version)
-
-	* [r4634] src/pbx_impl/ast/ast106.h, src/sccp_management.c: Fix
-	  compilation against asterisk-1.6.2
-
-	* [r4633] autoconf/asterisk.m4, configure: Fix asterisk/manager.h
-	  detection
-
-2013-05-11  ddegroot
-
-	* [r4631] autoconf/extra.m4, configure: Added ULONG check option
-	  when cross compilation (Openwrt)
-
-	* [r4630] autoconf/extra.m4, configure: Added ULONG check option
-	  when cross compilation
-
-2013-05-10  ddegroot
-
-	* [r4629] Makefile.in, autoconf/acinclude.m4, autoconf/extra.m4,
-	  configure, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
-	  src/Makefile.in: Fix PBX_MODDIR setting when compiling directly
-	  against the asterisk source directory (where lib/asterisk/modules
-	  directory will not exist) (Reported by Nikola Ciprich)
-
-2013-05-09  ddegroot
-
-	* [r4628] src/sccp_pbx.c: Reverting device!=NULL check before
-	  calling sccp_indicate
-
-	* [r4627] src/sccp_pbx.c: Search for 'd' or retain of 'd' could
-	  result in 'd' still being NULL
-
-2013-05-09  marcelloceschia
-
-	* [r4626] src/pbx_impl/ast/ast.h, src/pbx_impl/ast/astTrunk.c:
-	  remove sccp_kill_tech
-
-2013-05-09  ddegroot
-
-	* [r4625] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
-	  autoconf/config.sub, autoconf/depcomp, autoconf/install-sh,
-	  autoconf/missing, configure, contrib/gen_sccpconf/Makefile.in,
-	  doc/Makefile.in, src/Makefile.in, src/config.h.in: Re-bootstrap
-	  for manager_custom_hook
-
-2013-05-09  marcelloceschia
-
-	* [r4624] INSTALL, Makefile.in, aclocal.m4, autoconf/config.guess,
-	  autoconf/config.sub, autoconf/depcomp, autoconf/install-sh,
-	  autoconf/missing, contrib/gen_sccpconf/Makefile.in,
-	  doc/Makefile.in, src/Makefile.in, src/config.h.in,
-	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_channel.h,
-	  src/sccp_device.c, src/sccp_device.h, src/sccp_featureButton.c,
-	  src/sccp_indicate.c, src/sccp_pbx.c: fixes, #77, fixes some other
-	  issues, cleanup indication, cleanup sccp_dev_set_cplane
-
-	* [r4623] src/sccp_features.c: use feature_monitor from pbx
-	  interface, references #77
-
-	* [r4622] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
-	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
-	  src/pbx_impl/pbx_impl.h: add feature_monitor in pbx interface,
-	  references #77
-
-	* [r4621] src/sccp_featureButton.c: fixes log, references #77
-
-	* [r4620] src/chan_sccp.h: indent
-
-	* [r4619] src/sccp_features.c: fixes monitorFeature reset, change
-	  automon feature using ast_find_call_feature (needs to be moved to
-	  ast*), references #77
-
-	* [r4618] src/sccp_utils.c: fixes findBestCodec
-
-	* [r4617] autoconf/asterisk.m4, configure: check for struct
-	  manager_custom_hook, references #77
-
-	* [r4616] src/sccp_management.c: fixes wrong string comparison,
-	  references #77
-
-	* [r4615] src/sccp_features.c: send digits when on monitor feature
-
-	* [r4614] src/pbx_impl/ast/astTrunk.c: implement
-	  getFeatureExtension for asterisk >= 12
-
-	* [r4613] src/pbx_impl/ast/ast.c: apply redirection update patch
-	  provided by pavel
-
-2013-05-08  marcelloceschia
-
-	* [r4612] src/sccp_protocol.c: fixes padding for dynamic message
-	  lenght
-
-2013-05-06  marcelloceschia
-
-	* [r4611] src/chan_sccp.h: fixes #117, compile with LOW_MEMORY
-
-	* [r4610] astTrunkConferenceWorkaround.patch[DEL]: remove patch
-
-	* [r4609] src/sccp_rtp.c: wrong rtp usage in sccp_rtp_set_phone
-
-2013-05-06  ddegroot
-
-	* [r4608] src/sccp_protocol.h: ILBC key/name/description mapping
-
-	* [r4607] src/sccp_protocol.h: ILBC key/name/description mapping
-
-2013-05-06  marcelloceschia
-
-	* [r4606] src/sccp_actions.c: do not use directRTP if nat is set
-
-	* [r4605] src/sccp_protocol.h: change g729b/low codec key to ilbc
-
-2013-05-03  ddegroot
-
-	* [r4604] contrib/gen_sccpconf/Makefile.am,
-	  contrib/gen_sccpconf/Makefile.in,
-	  contrib/gen_sccpconf/gen_sccpconf.1[ADD]: Added man page for
-	  gen_sccpconf to satisfy rpmbuild
-
-	* [r4603] ChangeLog, autoconf/asterisk.m4, configure,
-	  src/pbx_impl/ast/define.h, src/sccp_config.c: Fix
-	  ast_enable_distributed_devstate compile warning
-
-	* [r4602] src/sccp_socket.c: Fix compile warning
-
-2013-05-02  ddegroot
-
-	* [r4601] src/sccp_actions.c: Fix compile warning about device
-	  being used uninitalized (Reported by Holger Hornung)
-
-	* [r4600] src/sccp_channel.c: Fix transfer with
-	  local_channel->state = PROGRESS (Provided by Niklas Larsson)
-
-	* [r4599] src/sccp_socket.c: Fix debug statement in sccp_socket.c:
-	  sccp_process_data
-
-	* [r4598] autoconf/acinclude.m4, autoconf/extra.m4, configure,
-	  configure.ac: Fix --with-astmoddir configure option (By request:
-	  Marcello)
-
-	* [r4597] autoconf/acinclude.m4, autoconf/extra.m4, configure:
-	  Update --with-astmoddir configure option (By request: Marcello)
-
-	* [r4596] src/sccp_socket.c: Adapt sccp_socket_: sccp_process_data
-	  to handle DynamicUpdateCapabilitiesMessage correctly (Holger
-	  Hornung)
-
-	* [r4595] autoconf/acinclude.m4, autoconf/extra.m4, configure:
-	  Removed --with-callweaver option from configure. Added ppc64 to
-	  astmoddir setting using /usr/lib64 if it exists.
-
-	* [r4594] ChangeLog, autoconf/extra.m4, configure: Added
-	  --with-astmoddir configure option (By request: Marcello)
-
-	* [r4593] src/sccp_protocol.h: Extended
-	  DynamicUpdateCapabilitiesMessage to fix length (Holger Hornung)
-
-	* [r4592] src/sccp_protocol.h: Extended
-	  DynamicUpdateCapabilitiesMessage to fix length (Holger Hornung)
-
-	* [r4591] src/sccp_protocol.h: Extended
-	  DynamicUpdateCapabilitiesMessage to fix length
-
-	* [r4590] src/sccp_protocol.h: Replaced Unknown_0x0044_Message by
-	  DynamicUpdateCapabilitiesMessage (Follows previous
-	  UpdateCapabilitiesMessage exactly)
-
-2013-05-01  ddegroot
-
-	* [r4589] doc/10_What_Is_Chan_SCCP.doc: Update What is SCCP doc
-
-2013-04-28  ddegroot
-
-	* [r4588] src/sccp_device.c: Added hold, transfer, conference and
-	  redial buttons for 8941 phones
-
-	* [r4587] src/sccp_protocol.h: Extended capture of 0x0044 SPCP
-	  message (Thanks to Holger)
-
-	* [r4586] src/sccp_protocol.h: Added first capture of 0x0044 SPCP
-	  message (Thanks to Holger)
-
-2013-04-26  ddegroot
-
-	* [r4585] src/sccp_actions.c: Renamed d -> device / added single
-	  exit point for tokenAck / register functions. No change in
-	  handling.
-
-	* [r4584] src/sccp_device.c: Fix number of buttons on 8941
-	  (https://sourceforge.net/p/chan-sccp-b/bugs/181)
-
-	* [r4583] src/sccp_socket.c: Fix newPacketSize when it equals
-	  SCCP_MAX_PACKET (https://sourceforge.net/p/chan-sccp-b/bugs/181)
-
-2013-04-25  ddegroot
-
-	* [r4582] src/sccp_conference.c, src/sccp_features.c: Fix
-	  pbx_channel_unref in conference und pickup
-
-	* [r4581] src/sccp_protocol.h: Added dummy message 0x0044 as
-	  unknown (https://sourceforge.net/p/chan-sccp-b/bugs/181)
-
-	* [r4580] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
-	  src/sccp_event.c, src/sccp_hint.c, src/sccp_refcount.c,
-	  src/sccp_refcount.h: Module unload /
-	  SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT (fixes #106)
-
-2013-04-23  ddegroot
-
-	* [r4579] src/sccp_protocol.c: Updated
-	  sendUserToDeviceDataVersion1Message
-
-	* [r4578] src/chan_sccp.h, src/sccp_actions.c, src/sccp_protocol.c,
-	  src/sccp_protocol.h: Reduced the ConfList Message size, to cram
-	  in as much information as possible
-
-	* [r4577] src/sccp_conference.c: Prevent UserToDevice messages
-	  larger than 2048 being to old protocol devices (which would cause
-	  a buffer overflow and a subsequent full reset of the device
-	  (Reported by Alena Juk))
-
-2013-04-22  ddegroot
-
-	* [r4576] src/sccp_refcount.c: Added sched_yield during refcount
-	  object removal, to allow other threads to finish their work
-	  before cleaning out the object
-
-2013-04-20  ddegroot
-
-	* [r4575] src/pbx_impl/ast/astTrunk.c: Changing scheduled
-	  (SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT * 10) to
-	  (SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT * 3) for astTrunk only (for
-	  now).
-
-	* [r4574] autoconf/asterisk.m4, configure,
-	  src/pbx_impl/ast/astTrunk.c, src/sccp_config.c: Latest
-	  asterisk-trunk version removed the
-	  'ast_enable_distributed_devstate' command, added a test for it to
-	  configure and escaped this code in sccp_config.c. From reading
-	  the asterisk sources, i am assuming that distributed devstate is
-	  now always enabled (possibly when res_jabber or res_ais is
-	  loaded).
-
-2013-04-18  marcelloceschia
-
-	* [r4573] src/sccp_socket.c: fix segmentation fault after global ip
-	  reject, cloese #105
-
-2013-04-16  ddegroot
-
-	* [r4572] src/pbx_impl/ast/ast.h: commented out REF_DEBUG
-
-	* [r4571] src/pbx_impl/ast/ast.h, src/sccp_actions.c,
-	  src/sccp_socket.c: Fix for realtime devices (as per request by
-	  Marcello).
-
-2013-04-16  marcelloceschia
-
-	* [r4570] conf/sccp.conf.annotated: add a default line example
-
-2013-04-15  ddegroot
-
-	* [r4569] src/sccp_socket.c: Extended logging on 'poll returned 0,
-	  errno Success' to include device->id and ip-address
-
-2013-04-14  ddegroot
-
-	* [r4568] ChangeLog, src/sccp_channel.c, src/sccp_channel.h,
-	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
-	  src/sccp_line.h, src/sccp_utils.c, src/sccp_utils.h: Moved the
-	  sccp_...._find functions from sccp_utils to the appropriate
-	  locations
-
-	* [r4567] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c,
-	  src/sccp_utils.h: Fix sccp_line_find_byname change
-
-	* [r4566] src/chan_sccp.c, src/sccp_actions.c,
-	  src/sccp_appfunctions.c, src/sccp_cli.c, src/sccp_config.c,
-	  src/sccp_device.c, src/sccp_featureButton.c, src/sccp_features.c,
-	  src/sccp_hint.c, src/sccp_management.c, src/sccp_mwi.c,
-	  src/sccp_softkeys.c, src/sccp_utils.c, src/sccp_utils.h: Removed
-	  sccp_line_find_realtime_byname. Renamed
-	  sccp_line_find_realtime_byname_wo to
-	  sccp_line_find_realtime_byname. Updated all function calls to
-	  sccp_line_find_realtime_byname to include realtime (TRUE/FALSE).
-	  Updated all function calls to sccp_line_find_realtime_byname_wo
-	  to use sccp_line_find_realtime_byname instead.
-
-	* [r4565] src/sccp_conference.c: Fix conference compilation against
-	  asterisk-1.6.2 (connected line update).
-
-	* [r4564] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
-	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/astTrunk.h: Sync cli
-	  macro's for all version (removed alloca in astTrunk 3 weeks ago,
-	  without negative side effects)
-
-2013-04-11  ddegroot
-
-	* [r4563] src/sccp_config.c: Using GETSIZE to generate a unique
-	  l->id instead of copying l->name if it was not provided in
-	  sccp.conf
-
-	* [r4562] src/chan_sccp.c, src/sccp_cli.c, src/sccp_config.c,
-	  src/sccp_config.h: Force update when switching config files using
-	  sccp reload [...]
-
-	* [r4561] src/chan_sccp.c, src/sccp_config.c, src/sccp_line.c,
-	  src/sccp_line.h, src/sccp_utils.c: Update/Cleanup
-	  sccp_line_addToGlobals
-
-2013-04-11  marcelloceschia
-
-	* [r4560] src/sccp_pbx.c: fixes device refcount issue, cloese #100
-
-2013-04-10  marcelloceschia
-
-	* [r4559] src/sccp_conference.c: fixes conference issue
-
-2013-04-10  ddegroot
-
-	* [r4558] src/sccp_config.c, src/sccp_line.c, src/sccp_utils.c:
-	  Revert changes to sccp_line_addToGlobals
-
-2013-04-09  marcelloceschia
-
-	* [r4557] src/sccp_socket.c: fixes session unlock
-
-2013-04-09  ddegroot
-
-	* [r4556] src/sccp_config.c, src/sccp_utils.c: Update flow to use
-	  sccp_line_addToGlobals
-
-	* [r4555] src/sccp_line.c: Revised sccp_line_addToGlobals to have a
-	  single exit point and auto release new line that was going to be
-	  added, if it was already found in the globals list
-
-	* [r4554] src/sccp_indicate.c: cleanup return from sccp_indicate.c
-
-	* [r4553] src/sccp_line.c: Fix module line destroy
-
-	* [r4552] src/sccp_line.c: Fixing refcount when sccp reload for
-	  changes in line cid_name / label
-
-	* [r4551] src/sccp_hint.c: Wenn release retained device in a
-	  safe_loop, no need to retain a reference around it (we are
-	  releasing one remember) (saving multiple useless retain/releases)
-
-	* [r4550] src/sccp_cli.c: We reloading using a different file, no
-	  need to check file changed status
-
-	* [r4549] src/sccp_device.c, src/sccp_line.c: Fixing sccp reload
-	  for changes in line cid_name / label (one down, one to go)
-
-2013-04-08  ddegroot
-
-	* [r4548] src/sccp_channel.c: Fix transfer cleanup mistake
-	  (reported by Alena/Leonid)
-
-2013-04-07  ddegroot
-
-	* [r4547] src/sccp_indicate.c: Fix refcount issue in sccp_indicate
-	  (returning without release) (Thanks Pavel).
-
-	* [r4546] src/sccp_line.c: Cleanup / Refactor of sccp_line.c
-
-	* [r4545] src/sccp_device.c, src/sccp_device.h, src/sccp_lock.h:
-	  Cleanup / Refactor of sccp_device.c
-
-2013-04-06  ddegroot
-
-	* [r4544] src/sccp_channel.c: Cleanup / Refactor of sccp_channel.c
-
-	* [r4543] src/sccp_channel.c: Enabled WITHREF for experimental mode
-	  only (Mute/Unmute Conference Partitipant to test)
-
-	* [r4542] src/sccp_channel.c, src/sccp_refcount.h: Added some debug
-	  output to WITHREF macro's for testing purposes
-
-	* [r4541] src/sccp_channel.c, src/sccp_conference.c,
-	  src/sccp_refcount.h: Added some debug output to WITHREF macro's
-	  for testing purposes
-
-	* [r4540] src/sccp_channel.c: Show WITHREF/GETWITHREF solution
-
-	* [r4539] src/sccp_channel.c, src/sccp_refcount.h: Show
-	  WITHREF/GETWITHREF solution
-
-	* [r4538] src/sccp_channel.c, src/sccp_channel.h,
-	  src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
-	  src/sccp_line.h: Sorted header by type of function. Removed local
-	  implementation of sccp_channel_retain/sccp_channel_release
-
-	* [r4537] src/sccp_utils.c, src/sccp_utils.h: Remove unused
-	  function array2str
-
-2013-04-05  marcelloceschia
-
-	* [r4536] src/pbx_impl/ast/astTrunk.c: fixes warnings
-
-	* [r4535] src/pbx_impl/ast/astTrunk.c: fixes posible refcount issue
-	  in sccp_wrapper_recvdigit_end
-
-	* [r4534] src/pbx_impl/ast/astTrunk.c: fixes posible refcount issue
-	  in sccp_wrapper_asterisk111_rtpBridge
-
-	* [r4533] src/pbx_impl/ast/ast.c: fixes refcount issue in
-	  sccp_asterisk_pbx_fktChannelWrite
-
-	* [r4532] src/pbx_impl/ast/ast.c: fixes refcount issue in
-	  sccp_asterisk_pbx_fktChannelWrite
-
-2013-04-05  ddegroot
-
-	* [r4531] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
-	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/astTrunk.c: Copied
-	  loading order from astTrunk to other versions, so that
-	  chan-sccp-b is loaded later, and dialplan warnings should be
-	  reduced
-
-	* [r4530] src/pbx_impl/ast/astTrunk.h: Remove unnecessary call to
-	  strdupa. Pointer to astman_get_header should suffice (Needs to be
-	  copied to previous implementation when no side effects are noted)
-
-	* [r4529] src/sccp_cli.c: Use provided argv[2] instead of calling
-	  astman_get_header again
-
-	* [r4528] src/sccp_utils.h: Use gnu strdupa if available
-
-	* [r4527] src/sccp_config.c, src/sccp_config.h: Fixing possible
-	  null-pointer dereferences / Removed unnecessary retain/release
-
-	* [r4526] src/sccp_utils.c: Fixing free issue on return from
-	  re-alloc
-
-	* [r4525] src/sccp_conference.c: Fixing possible null-pointer
-	  dereferences
-
-	* [r4524] src/sccp_socket.c: Fixing possible null-pointer
-	  dereferences
-
-2013-04-04  marcelloceschia
-
-	* [r4523] src/sccp_cli.c: rename sccp_set_hold, add backgroundImage
-
-	* [r4522] src/sccp_config_entries.h: cleanup
-	  SCCP_CONFIG_NOUPDATENEEDED
-
-	* [r4521] src/sccp_cli.c: tests with set functions
-
-	* [r4520] src/sccp_utils.c: apply default configuration for
-	  realtime devices
-
-	* [r4519] src/sccp_config.c, src/sccp_config.h: splitt
-	  applyDeviceConfiguration and applyDeviceDefaults
-
-2013-04-04  ddegroot
-
-	* [r4518] src/sccp_cli.c: Renamed some of the completer properties
-
-	* [r4517] src/sccp_config_entries.h: Update sccp_config_entries for
-	  softkeyset (not really used yet)
-
-	* [r4516] src/sccp_cli.c: Renamed some of the completer properties
-
-2013-04-04  marcelloceschia
-
-	* [r4515] src/sccp_device.c: fixes xml messages
-
-	* [r4514] src/sccp_cli.c, src/sccp_cli.h: some test with set
-	  function
-
-	* [r4513] src/sccp_cli.c: some test with set function
-
-2013-04-03  ddegroot
-
-	* [r4512] src/sccp_features.c: Quick/Ugly fix for missing
-	  ast_do_pickup (Reported by Dmity)
-
-2013-04-02  ddegroot
-
-	* [r4511] src/pbx_impl/ast/ast110.c: Fixing park issue for
-	  asterisk-10-branch (Reported and tested by Mark Lemmo)
-
-2013-03-30  marcelloceschia
-
-	* [r4510] src/sccp_actions.c, src/sccp_device.c: move videomode and
-	  join default set to action
-
-2013-03-29  ddegroot
-
-	* [r4509] src/pbx_impl/ast/ast.c: Added deprecation to unused
-	  functions in ast.c
-
-	* [r4508] src/sccp_config.c, src/sccp_config_entries.h: Suppress
-	  warning about empty context (deprecated: pickupexten). Add
-	  logging output for subscriptionId.
-
-2013-03-28  ddegroot
-
-	* [r4507] src/pbx_impl/ast/ast.c, src/sccp_conference.c: Fix
-	  compilation on asterisk-10
-
-2013-03-28  marcelloceschia
-
-	* [r4506] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h: kill tech
-	  for asterisk, used after hangup
-
-	* [r4505] src/sccp_conference.c: fixes compile issue with asterisk
-	  < 11
-
-2013-03-27  ddegroot
-
-	* [r4504] src/sccp_rtp.c: Remove device dependency completely by
-	  using c->currentDeviceId (Related to destroying rtp server fix)
-
-2013-03-27  marcelloceschia
-
-	* [r4503] src/sccp_rtp.c: do not check for device whe destroying
-	  rtp server
-
-	* [r4502] src/sccp_conference.c: workaround to update other channel
-	  as well
-
-	* [r4501] src/sccp_conference.c: workaround to update other channel
-	  as well
-
-2013-03-27  ddegroot
-
-	* [r4500] src/sccp_conference.c: Fix setting confstr
 
