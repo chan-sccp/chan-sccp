@@ -1480,7 +1480,7 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
 				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 				if (!sccp_strlen_zero(c->line->language)) {
-					pbx_channel_language_set(newchan, c->line->language);
+					ast_channel_language_set(newchan, c->line->language);
 				}
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestHangup\n", c->designator);
@@ -1489,7 +1489,7 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			}			
 #else
 			if (!sccp_strlen_zero(c->line->language)) {
-				pbx_channel_language_set(newchan, c->line->language);
+				ast_channel_language_set(newchan, c->line->language);
 			}
 #endif
 			c->owner = ast_channel_ref(newchan);
