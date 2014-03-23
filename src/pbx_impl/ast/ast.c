@@ -828,11 +828,11 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 		res = ast_pbx_start(pbx_channel);			// starting ast_pbx_start with a locked ast_channel so we know exactly where we end up when/if the __ast_pbx_run get started
 		if (res == 0) {						// thread started successfully
 			do {						// wait for thread to become ready
-				ast_safe_sleep(pbx_channel, 10);
-			} while (!ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && !ast_channel_pbx(pbx_channel) && ast_check_hangup(pbx_channel));
+				pbx_safe_sleep(pbx_channel, 10);
+			} while (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && !pbx_channel_pbx(pbx_channel) && pbx_check_hangup(pbx_channel));
 			
 			/* test if __ast_pbx_run got started correctly and if the channel has not already been hungup */
-			if (ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && ast_channel_pbx(pbx_channel) && !ast_check_hangup(pbx_channel)) {
+			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && pbx_channel_pbx(pbx_channel) && !pbx_check_hangup(pbx_channel)) {
 				sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: (pbx_pbx_start) autoloop has started, set requestHangup = requestQueueHangup\n", channel->designator);
 				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 			} else {
