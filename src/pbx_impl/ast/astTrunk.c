@@ -1480,7 +1480,7 @@ static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			}			
 #else
 			if (!sccp_strlen_zero(c->line->language)) {
-				pbx_channel_language_set(newchan, c->line->language);
+				ast_channel_language_set(newchan, c->line->language);
 			}
 #endif
 			c->owner = ast_channel_ref(newchan);
