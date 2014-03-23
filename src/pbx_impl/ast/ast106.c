@@ -1622,12 +1622,12 @@ static int sccp_wrapper_asterisk16_answer(PBX_CHANNEL_TYPE * chan)
  */
 static int sccp_wrapper_asterisk16_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s and %s\n", ast_channel_name(oldchan), ast_channel_name(newchan));
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: we got a fixup request for %s and %s\n", pbx_channel_name(oldchan), pbx_channel_name(newchan));
 	sccp_channel_t *c = NULL;
 	int res = 0;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(newchan))) {
-		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", ast_channel_name(oldchan), (void *) oldchan, ast_channel_name(newchan), (void *) newchan);
+		pbx_log(LOG_WARNING, "sccp_pbx_fixup(old: %s(%p), new: %s(%p)). no SCCP channel to fix\n", pbx_channel_name(oldchan), (void *) oldchan, pbx_channel_name(newchan), (void *) newchan);
 		res = -1;
 	} else {
 		if (c->owner != oldchan) {
@@ -1637,13 +1637,13 @@ static int sccp_wrapper_asterisk16_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 #ifdef CS_EXPERIMENTAL
 			/* during a masquerade, fixup gets called twice, The Zombie channel name will have been changed to include '<ZOMBI>' */
 			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
-			if (!strstr(ast_channel_name(newchan),"<ZOMBIE>")) {
+			if (!strstr(pbx_channel_name(newchan),"<ZOMBIE>")) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
 				
 				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
 				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 				if (!sccp_strlen_zero(c->line->language)) {
-					ast_channel_language_set(newchan, c->line->language);
+					ast_string_field_set(newchan, language, c->line->language);
 				}
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestHangup\n", c->designator);
@@ -1652,7 +1652,7 @@ static int sccp_wrapper_asterisk16_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 			}			
 #else
 			if (!sccp_strlen_zero(c->line->language)) {
-				ast_channel_language_set(newchan, c->line->language);
+				ast_string_field_set(newchan, language, c->line->language);
 			}
 #endif
 			//! \todo force update of rtp peer for directrtp
@@ -2793,7 +2793,9 @@ sccp_pbx_cb sccp_pbx = {
 	set_callstate:			sccp_wrapper_asterisk16_setCallState,
 	checkhangup:			sccp_wrapper_asterisk16_checkHangup,
 	hangup:				NULL,
+#ifndef CS_EXPERIMENTAL
 	requestHangup:			sccp_wrapper_asterisk_requestHangup,
+#endif
 	extension_status:		sccp_wrapper_asterisk16_extensionStatus,
 
 	setPBXChannelLinkedId:		sccp_wrapper_asterisk_set_pbxchannel_linkedid,
