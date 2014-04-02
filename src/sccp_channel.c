@@ -308,6 +308,10 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
  */
 void sccp_channel_set_line(sccp_channel_t * channel, sccp_line_t *line)
 {
+	if (!channel->line || !line) {
+		pbx_log(LOG_NOTICE, "SCCP: Major Issue, channel->line is null or would be set to null, not allowed\n");
+		return;
+	}
 	sccp_channel_t *c = NULL;
 
 	if ((c = sccp_channel_retain(channel))) {
@@ -1168,6 +1172,11 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
 void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel) 
 {
 	sccp_channel_t *c = NULL;
+	
+	if (!orig_channel || !orig_channel->line) {
+		return;
+	}
+	
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&orig_channel->line->channels, c, list) {
 		if (c->parentChannel == orig_channel) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel\n", c->designator);
