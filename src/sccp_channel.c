@@ -150,10 +150,11 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	sccp_channel_t *channel;
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	struct sccp_private_channel_data *private_data;
+	sccp_line_t * line;
 	int callid;
 
 	/* If there is no current line, then we can't make a call in, or out. */
-	if (!(l = sccp_line_retain(l))) {
+	if (!(line = sccp_line_retain(l))) {
 		pbx_log(LOG_ERROR, "SCCP: Tried to open channel on a device with no lines\n");
 		return NULL;
 	}
@@ -170,7 +171,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	}
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
 	sccp_mutex_unlock(&callCountLock);
-
+	
 	channel = (sccp_channel_t *) sccp_refcount_object_alloc(sizeof(sccp_channel_t), SCCP_REF_CHANNEL, designator, __sccp_channel_destroy);
 	if (!channel) {
 		/* error allocating memory */
@@ -192,8 +193,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->privateData->microphone = TRUE;
 	channel->privateData->device = NULL;
 
-//	channel->line = sccp_line_retain(l);
-	channel->line = l;				/* retain at function start -> passing to channel->line. Should never be NULL until channel destruction */
+	channel->line = line;				/* retain at function start -> passing to channel->line. Should never be NULL until channel destruction */
 
 	/* this is for dialing scheduler */
 	channel->scheduler.digittimeout = -1;
@@ -301,11 +301,13 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 }
 
- /*!
+// remarked out, channel->line should be read-only and constant. It should always be the same, and not changed.
+/*!
  * \brief Connect an SCCP Line to an SCCP Channel
  * \param channel SCCP Channel
  * \param line SCCP Line
  */
+#if 0
 void sccp_channel_set_line(sccp_channel_t * channel, sccp_line_t *line)
 {
 	if (!channel->line || !line) {
@@ -320,6 +322,7 @@ void sccp_channel_set_line(sccp_channel_t * channel, sccp_line_t *line)
 		c = sccp_channel_release(c);
 	}
 }
+#endif
 
 /*!
  * \brief recalculating read format for channel 
@@ -1401,7 +1404,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			/** this device does not have the original line, mybe it is pickedup with cli or ami function */
 			sccp_line_t *activeLine = NULL;
 			if ((activeLine = sccp_dev_get_activeline(device))) {
-				sccp_channel_set_line(channel, activeLine);
+//				sccp_channel_set_line(channel, activeLine);			// function is to be removed
 				sccp_line_refreplace(l, activeLine);
 				sccp_line_release(activeLine);
 			} else {
@@ -1876,7 +1879,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}
-//	sccp_channel_set_line(channel, NULL);
+//	sccp_channel_set_line(channel, NULL);					// function will be removed
 	sccp_channel_release(channel->line);
 	if (channel->owner) {
 		pbx_channel_unref(channel->owner);
