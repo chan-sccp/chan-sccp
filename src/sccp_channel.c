@@ -1485,6 +1485,9 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			sprintf(channel->callInfo.calledPartyName, "%s%s", channel->line->cid_name, (channel->line->defaultSubscriptionId.name) ? channel->line->defaultSubscriptionId.name : "");
 		}
 		linedevice = sccp_linedevice_release(linedevice);
+		
+		PBX(set_callerid_number)(channel, channel->callInfo.calledPartyNumber);
+		PBX(set_callerid_name)(channel, channel->callInfo.calledPartyName);
 	}
 
 	/* done */
