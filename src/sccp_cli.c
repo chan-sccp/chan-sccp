@@ -2451,125 +2451,139 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 	}
 
 	if (argc > 2) {
-		if (sccp_strequals("device", argv[2]) && argc > 3) {
-			sccp_device_t *device = sccp_device_find_byid(argv[3], FALSE);
-			PBX_VARIABLE_TYPE *v = NULL;
-			
-			if(!device){
-				pbx_cli(fd, "Could not find device %s\n", argv[3]);
-				const char *utype;
-				utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
-				if (utype && !strcasecmp(utype, "device") ){
-					device = sccp_device_create(argv[3]);
-				} else {
-					pbx_cli(fd, "Could not find device %s in config\n", argv[3]);
-					goto EXIT;
-				}
-			}
-			if (device->realtime){
-				v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
-			} else {
-				if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
-					v = ast_variable_browse(GLOB(cfg), argv[3]);
-				}
-			}
-			if(v){
-				change =  sccp_config_applyDeviceConfiguration(device, v);
-				sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
-				pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
-				if(change == SCCP_CONFIG_NEEDDEVICERESET){
-					device->pendingUpdate = 1;
-					sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
-				}
-				if (device->realtime) {
-					pbx_variables_destroy(v);
-				}
-			} else {
-				device->pendingDelete = 1;
-			}
-			
-			device = sccp_device_release(device);
-			returnval = RESULT_SUCCESS;
-			goto EXIT;
-		} else if (sccp_strequals("line", argv[2]) && argc > 3) {
-			sccp_line_t *line = sccp_line_find_byname(argv[3], FALSE);
-			PBX_VARIABLE_TYPE *v = NULL;
-			PBX_VARIABLE_TYPE *dv = NULL;			
-
-			if(!line) {
-				pbx_cli(fd, "Could not find line %s\n", argv[3]);
-				const char *utype;
-				utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
-				if (utype && !strcasecmp(utype, "line") ) {
-					line = sccp_line_create(argv[3]);
-				} else {
-					pbx_cli(fd, "Could not find line %s in config\n", argv[3]);
-					goto EXIT;
-				}
-			}
-			if (line->realtime){
-				v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
-			} else {
-				if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
-					v = ast_variable_browse(GLOB(cfg), argv[3]);
-				}
-			}
-			if(v) {
-				change =  sccp_config_applyLineConfiguration(line, v);
-				sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
-				pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
-				if(change == SCCP_CONFIG_NEEDDEVICERESET){
-					sccp_device_t *device = NULL;
-					sccp_linedevices_t *lineDevice = NULL;
-					SCCP_LIST_LOCK(&line->devices);
-					SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
-						if ((device = sccp_device_retain(lineDevice->device))) {
-							if (device->realtime){
-								if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
-									change =  sccp_config_applyDeviceConfiguration(device, dv);
-								}
-							} else {
-								v = ast_variable_browse(GLOB(cfg), device->id);
-								change =  sccp_config_applyDeviceConfiguration(device, v);
-							}
-							device->pendingUpdate = 1;
-							sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
-							if (device->realtime && dv) {
-								pbx_variables_destroy(dv);
-							}
-							device = sccp_device_release(device);
-						}
+		if (sccp_strequals("device", argv[2])) {
+			if (argc == 4) {
+				sccp_device_t *device = sccp_device_find_byid(argv[3], FALSE);
+				PBX_VARIABLE_TYPE *v = NULL;
+				
+				if(!device){
+					pbx_cli(fd, "Could not find device %s\n", argv[3]);
+					const char *utype;
+					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
+					if (utype && !strcasecmp(utype, "device") ){
+						device = sccp_device_create(argv[3]);
+					} else {
+						pbx_cli(fd, "Could not find device %s in config\n", argv[3]);
+						goto EXIT;
 					}
-					SCCP_LIST_UNLOCK(&line->devices);
 				}
-				if (line->realtime) {
-					pbx_variables_destroy(v);
+				if (device->realtime){
+					v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
+				} else {
+					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
+						v = ast_variable_browse(GLOB(cfg), argv[3]);
+					}
 				}
+				if(v){
+					change =  sccp_config_applyDeviceConfiguration(device, v);
+					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
+					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
+					if(change == SCCP_CONFIG_NEEDDEVICERESET){
+						device->pendingUpdate = 1;
+						sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
+					}
+					if (device->realtime) {
+						pbx_variables_destroy(v);
+					}
+				} else {
+					device->pendingDelete = 1;
+				}
+				
+				device = sccp_device_release(device);
+				returnval = RESULT_SUCCESS;
 			} else {
-				line->pendingDelete = 1;
+				pbx_cli(fd, "Usage: sccp reload device [SEP00???????], device name required\n");
 			}
-			
-			line = sccp_device_release(line);
-			returnval = RESULT_SUCCESS;
 			goto EXIT;
-		} else if (sccp_strequals("force", argv[2])) {
+		} else if (sccp_strequals("line", argv[2])) { 
+			if (argc == 4) {
+				sccp_line_t *line = sccp_line_find_byname(argv[3], FALSE);
+				PBX_VARIABLE_TYPE *v = NULL;
+				PBX_VARIABLE_TYPE *dv = NULL;			
+
+				if(!line) {
+					pbx_cli(fd, "Could not find line %s\n", argv[3]);
+					const char *utype;
+					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
+					if (utype && !strcasecmp(utype, "line") ) {
+						line = sccp_line_create(argv[3]);
+					} else {
+						pbx_cli(fd, "Could not find line %s in config\n", argv[3]);
+						goto EXIT;
+					}
+				}
+				if (line->realtime){
+					v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
+				} else {
+					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
+						v = ast_variable_browse(GLOB(cfg), argv[3]);
+					}
+				}
+				if(v) {
+					change =  sccp_config_applyLineConfiguration(line, v);
+					sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
+					pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
+					if(change == SCCP_CONFIG_NEEDDEVICERESET){
+						sccp_device_t *device = NULL;
+						sccp_linedevices_t *lineDevice = NULL;
+						SCCP_LIST_LOCK(&line->devices);
+						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
+							if ((device = sccp_device_retain(lineDevice->device))) {
+								if (device->realtime){
+									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
+										change =  sccp_config_applyDeviceConfiguration(device, dv);
+									}
+								} else {
+									v = ast_variable_browse(GLOB(cfg), device->id);
+									change =  sccp_config_applyDeviceConfiguration(device, v);
+								}
+								device->pendingUpdate = 1;
+								sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
+								if (device->realtime && dv) {
+									pbx_variables_destroy(dv);
+								}
+								device = sccp_device_release(device);
+							}
+						}
+						SCCP_LIST_UNLOCK(&line->devices);
+					}
+					if (line->realtime) {
+						pbx_variables_destroy(v);
+					}
+				} else {
+					line->pendingDelete = 1;
+				}
+				
+				line = sccp_device_release(line);
+				returnval = RESULT_SUCCESS;
+			} else {
+				pbx_cli(fd, "Usage: sccp reload line [extension], line name required\n");
+			}
+			goto EXIT;
+		} else if (sccp_strequals("force", argv[2]) && argc == 3) {
 			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
 			force_reload=TRUE;
-		} else {
-			if (pbx_fileexists(argv[2], NULL, NULL)) {
-				pbx_cli(fd, "The config file '%s' you requested to load does not exist. Aborting reload\n", argv[2]);
-				returnval = RESULT_FAILURE;
+		} else if (sccp_strequals("file", argv[2])) { 
+			if (argc == 4) {
+				if (!pbx_fileexists(argv[3], NULL, NULL)) {
+					pbx_cli(fd, "The config file '%s' you requested to load does not exist. Aborting reload\n", argv[3]);
+					goto EXIT;
+				}
+				
+				pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[3], GLOB(config_file_name));
+				if (!sccp_strequals(GLOB(config_file_name), argv[3])) {
+					force_reload=TRUE;
+				}
+				if (GLOB(config_file_name)) {
+					sccp_free(GLOB(config_file_name));
+				}	
+				GLOB(config_file_name) = sccp_strdup(argv[3]);
+			} else {
+				pbx_cli(fd, "Usage: sccp reload file [filename], filename is required\n");
 				goto EXIT;
 			}
-			
-			pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[2], GLOB(config_file_name));
-			if (!sccp_strequals(GLOB(config_file_name), argv[2])) {
-				force_reload=TRUE;
-			}
-			if (GLOB(config_file_name)) {
-				sccp_free(GLOB(config_file_name));
-			}	
-			GLOB(config_file_name) = sccp_strdup(argv[2]);
+		} else {
+			return RESULT_SHOWUSAGE;
 		}
 	}
 	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload);
@@ -2616,7 +2630,7 @@ EXIT:
 	return returnval;
 }
 
-static char reload_usage[] = "Usage: SCCP reload [force|filename|device|line]\n" "       Reloads SCCP configuration from sccp.conf or optional [force|filename|device|line]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
+static char reload_usage[] = "Usage: SCCP reload [force|file filename|device devicename|line linename]\n" "       Reloads SCCP configuration from sccp.conf or filename [force|file filename|device devicename|line linename]\n" "       (It will send a reset to all device which have changed (when they have an active channel reset will be postponed until device goes onhook))\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
