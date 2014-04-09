@@ -2444,6 +2444,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		pbx_cli(fd, "SCCP reloading already in progress.\n");
 		goto EXIT;
 	}
+	
+	if (!GLOB(cfg)) {
+		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
+		goto EXIT;
+	}
 
 	if (argc > 2) {
 		if (sccp_strequals("device", argv[2]) && argc > 3) {
