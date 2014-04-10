@@ -373,6 +373,23 @@ struct {												\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
+#define SCCP_LIST_FIND(head, var, field, compare, retain) ({						\
+	__typeof(var) __tmp = NULL;									\
+	for((__tmp) = (head)->first; (__tmp); (__tmp) = (__tmp)->field.next) {				\
+	        if ((__tmp) && compare) {								\
+	        	if (retain) {									\
+		                (var) = sccp_refcount_retain((__tmp), __FILE__, __LINE__, __PRETTY_FUNCTION__);	\
+			} else {									\
+				(var) = (__tmp);							\
+			}										\
+			break;										\
+	        }											\
+	}                                                                                               \
+	(var);												\
+})
+
+#define SCCP_RWLIST_FIND SCCP_LIST_FIND
+
 #define SCCP_LIST_GETSIZE(head) (head)->size
 #define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
 #endif														/* _SCCP_DLLISTS_H */
