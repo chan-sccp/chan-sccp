@@ -41,10 +41,8 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type, char *number);
 
 // find line
+sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);
 #if DEBUG
-#define sccp_line_find_byname(_x,_y) __sccp_line_find_byname(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
-sccp_line_t *__sccp_line_find_byname(const char *name, uint8_t realtime, const char *filename, int lineno, const char *func);
-
 #define sccp_line_find_byid(_x,_y) __sccp_line_find_byid(_x,_y,__FILE__,__LINE__,__PRETTY_FUNCTION__)
 sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const char *filename, int lineno, const char *func);
 
@@ -53,7 +51,6 @@ sccp_line_t *__sccp_line_find_byid(sccp_device_t * d, uint16_t instance, const c
 sccp_line_t *__sccp_line_find_realtime_byname(const char *name, const char *filename, int lineno, const char *func);
 #endif														// CS_SCCP_REALTIME
 #else														// DEBUG
-sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);
 sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance);
 
 #ifdef CS_SCCP_REALTIME

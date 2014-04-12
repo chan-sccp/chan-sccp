@@ -2571,50 +2571,27 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
  *
  * \callgraph
  * \callergraph
- * 
- */
-#if DEBUG
-/*!
- * \param name Device ID (hostname)
- * \param useRealtime Use RealTime as Boolean
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return SCCP Device - can bee null if device is not found
- */
-sccp_device_t *__sccp_device_find_byid(const char *name, boolean_t useRealtime, const char *filename, int lineno, const char *func)
-#else
-/*!
+ *
  * \param name Device ID (hostname)
  * \param useRealtime Use RealTime as Boolean
  * \return SCCP Device - can bee null if device is not found
  */
-sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
-#endif
+sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime)
 {
 	sccp_device_t *d = NULL;
 
-	if (sccp_strlen_zero(name)) {
+	if (sccp_strlen_zero(id)) {
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "SCCP: Not allowed to search for device with name ''\n");
 		return NULL;
 	}
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
-	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if (d && d->id && !strcasecmp(d->id, name)) {
-#if DEBUG
-			d = sccp_refcount_retain(d, filename, lineno, func);
-#else
-			d = sccp_device_retain(d);
-#endif
-			break;
-		}
-	}
+	d = SCCP_RWLIST_FIND(&GLOB(devices), d, list, (sccp_strcaseequals(d->id, id)), TRUE);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 #ifdef CS_SCCP_REALTIME
 	if (!d && useRealtime) {
-		d = sccp_device_find_realtime_byid(name);
+		d = sccp_device_find_realtime_byid(id);
 	}
 #endif
 
@@ -2622,7 +2599,6 @@ sccp_device_t *sccp_device_find_byid(const char *name, boolean_t useRealtime)
 }
 
 #ifdef CS_SCCP_REALTIME
-
 /*!
  * \brief Find Device via RealTime
  *
