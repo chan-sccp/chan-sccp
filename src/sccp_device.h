@@ -122,4 +122,6 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 #endif
 #endif
 
+void sccp_device_setLamp(const sccp_device_t *device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
+
 #endif														/* __SCCP_DEVICE_H */
