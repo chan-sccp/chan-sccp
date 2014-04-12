@@ -942,8 +942,8 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
 {
 	sccp_linedevices_t *linedevice = NULL;
-	sccp_line_t *l = NULL;
-	if (!line) {
+	sccp_line_t *l = (sccp_line_t *) line;       // loose const qualifier, to be able to lock the list;
+	if (!l) {
 		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
 		return NULL;
 	}
@@ -951,8 +951,6 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line ? line->name : "UNDEF");
 		return NULL;
 	}
-
-	l = (sccp_line_t *) line;
 	
 	SCCP_LIST_LOCK(&l->devices);
 	linedevice = SCCP_LIST_FIND(&l->devices, linedevice, list, (device == linedevice->device), TRUE);
