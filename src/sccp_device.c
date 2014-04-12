@@ -780,15 +780,18 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			break;
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
+#ifdef CS_SCCP_VIDEO
 			d->capabilities.video[0] = SKINNY_CODEC_H264;
 			d->capabilities.video[1] = SKINNY_CODEC_H263;
-#ifdef CS_SCCP_VIDEO
 			sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
 #endif
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			for (i = 0; i < 10; i++) {					// 4 visible, 6 in dropdown
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
+// 			for (i = 5; i <= 10; i++) {
+// 				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+// 			}
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
@@ -880,7 +883,10 @@ int sccp_dev_send(const sccp_device_t * d, sccp_msg_t * msg)
 	int result = -1;
 
 	if (d && d->session && msg) {
-		sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, msgtype2str(letohl(msg->header.lel_messageId)));
+		sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, msgtype2str(letohl(msg->header.lel_messageId)));
+		if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
+			sccp_dump_msg(msg);
+		}
 		result = sccp_session_send(d, msg);
 	} else {
 		sccp_free(msg);
@@ -2363,6 +2369,7 @@ static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_li
 
 static void sccp_device_indicate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel){
 	sccp_dev_stoptone(device, lineInstance, channel->callid);
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
 	if (device->protocol) {
 		if (device->protocol->sendDialedNumber) {
 			device->protocol->sendDialedNumber(device, channel);
@@ -2655,3 +2662,18 @@ sccp_device_t *sccp_device_find_realtime(const char *name)
 	return NULL;
 }
 #endif
+
+void sccp_device_setLamp(const sccp_device_t *device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode) {
+	sccp_msg_t *msg;
+
+	REQ(msg, SetLampMessage);
+
+	if (msg) {
+		msg->data.SetLampMessage.lel_stimulus = htolel(stimulus);
+		msg->data.SetLampMessage.lel_stimulusInstance = instance;
+		msg->data.SetLampMessage.lel_lampMode = htolel(mode);
+		sccp_dev_send(device, msg);
+	}
+}
+// kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets on;
+
