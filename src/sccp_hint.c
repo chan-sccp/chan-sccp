@@ -1117,9 +1117,16 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				sccp_device_sendcallstate(d, subscriber->instance, 0, iconstate, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** do not set visibility to COLLAPSED, this will hidde callInfo in state CALLREMOTEMULTILINE */
 
 				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK || hint->currentState == SCCP_CHANNELSTATE_CONGESTION) {
+					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_OFF);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
+					
+				} else if (hint->currentState == SCCP_CHANNELSTATE_RINGING && d->allowRinginNotification ) {
+					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_BLINK);
+					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
+					
 				} else {
 					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
+					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE,subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
 			}
