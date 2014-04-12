@@ -2515,45 +2515,19 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  * 
- */
-#if DEBUG
-/*!
- * \param l     SCCP Line
- * \param id    channel ID as int
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return *refcounted* SCCP Channel (can be null)
- */
-sccp_channel_t *__sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id, const char *filename, int lineno, const char *func)
-#else
-/*!
  * \param l     SCCP Line
  * \param id    channel ID as int
  * \return *refcounted* SCCP Channel (can be null)
  */
 sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
-#endif
 {
 	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
 	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
-		if (c && c->callid == id && c->state != SCCP_CHANNELSTATE_DOWN) {
-#if DEBUG
-			c = sccp_refcount_retain(c, filename, lineno, func);
-#else
-			c = sccp_channel_retain(c);
-#endif
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel by callid: %u\n", c->currentDeviceId, c->callid);
-			break;
-		}
-	}
+	c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid = id && c->state != SCCP_CHANNELSTATE_DOWN), TRUE);
 	SCCP_LIST_UNLOCK(&l->channels);
-
 	return c;
 }
 
@@ -2571,17 +2545,11 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
 
 	if ((l = sccp_line_find_byid((sccp_device_t *)d, lineInstance))) {
 		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Channel %u state: %d\n", c->callid, c->state);
-			if (c && c->callid == callid) {
-				c = sccp_channel_retain(c);
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel by callid: %u\n", c->currentDeviceId, c->callid);
-				break;
-			}
-		}
+		c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid = callid), TRUE);
 		SCCP_LIST_UNLOCK(&l->channels);
+
+		l = sccp_line_release(l);	
 	}
-	l = l ? sccp_line_release(l) : NULL;	
 	return c;
 }
 
@@ -2591,23 +2559,10 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
  * \callgraph
  * \callergraph
  * 
- */
-#if DEBUG
-/*!
- * \param id ID as int
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return *refcounted* SCCP Channel (can be null)
- */
-sccp_channel_t *__sccp_channel_find_byid(uint32_t id, const char *filename, int lineno, const char *func)
-#else
-/*!
  * \param id ID as int
  * \return *refcounted* SCCP Channel (can be null)
  */
 sccp_channel_t *sccp_channel_find_byid(uint32_t id)
-#endif
 {
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l = NULL;
@@ -2616,11 +2571,7 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-#if DEBUG
-		channel = __sccp_find_channel_on_line_byid(l, id, filename, lineno, func);
-#else
 		channel = sccp_find_channel_on_line_byid(l, id);
-#endif
 		if (channel) {
 			break;
 		}
@@ -2641,25 +2592,12 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
  * \callgraph
  * \callergraph
  * 
- */
-#if DEBUG
-/*!
- * \param passthrupartyid Party ID
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
- */
-sccp_channel_t *__sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid, const char *filename, int lineno, const char *func)
-#else
-/*!
  * \param passthrupartyid Party ID
  * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
  */
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
-#endif
 {
-	sccp_channel_t *channel = NULL;
+	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u\n", passthrupartyid);
@@ -2667,29 +2605,18 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 		SCCP_LIST_LOCK(&l->channels);
-		SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%u: Found channel partyID: %u state: %d\n", channel->callid, channel->passthrupartyid, channel->state);
-			if (channel->passthrupartyid == passthrupartyid && channel->state != SCCP_CHANNELSTATE_DOWN) {
-#if DEBUG
-				channel = sccp_refcount_retain(channel, filename, lineno, func);
-#else
-				channel = sccp_channel_retain(channel);
-#endif
-				sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel for callid %u by passthrupartyid %d\n", channel->currentDeviceId, channel->callid, channel->passthrupartyid);
-				break;
-			}
-		}
+		c = SCCP_LIST_FIND(&l->channels, c, list, (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN), TRUE);
 		SCCP_LIST_UNLOCK(&l->channels);
-		if (channel) {
+		if (c) {
 			break;
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
-	if (!channel) {
+	if (!c) {
 		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
 	}
-	return channel;
+	return c;
 }
 
 /*!
@@ -2716,32 +2643,22 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 	uint8_t instance = 0;
 	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
-	boolean_t channelFound = FALSE;
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++){
 		if ((l = sccp_line_retain(d->lineButtons.instance[instance]->line))) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", DEV_ID_LOG(d), l->name);
 			SCCP_LIST_LOCK(&l->channels);
-			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				//if (c->passthrupartyid == passthrupartyid && c->state != SCCP_CHANNELSTATE_DOWN) {
-				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found channel passthrupartyid: %u, callid: %u,  state: %d on line %s\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, c->state, l->name);
-				if (c->passthrupartyid == passthrupartyid) {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Found channel (passthrupartyid: %u, callid: %u) on line %s with state %d\n", DEV_ID_LOG(d), c->passthrupartyid, c->callid, l->name, c->state);
-					c = sccp_channel_retain(c);
-					channelFound = TRUE;
-					break;
-				}
-			}
+			c = SCCP_LIST_FIND(&l->channels, c, list, (c->passthrupartyid == passthrupartyid), TRUE);
 			SCCP_LIST_UNLOCK(&l->channels);
 
 			l = sccp_line_release(l);
-			if (channelFound) {
+			if (c) {
 				break;
 			}
 		}
 	}
-	if (!c || !channelFound) {
+	if (!c) {
 		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u on device %s\n", passthrupartyid, DEV_ID_LOG(d));
 	}
 
@@ -2754,45 +2671,21 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  * \callgraph
  * \callergraph
  * 
- */
-#if DEBUG
-/*!
- * \param l SCCP Line
- * \param state State
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return *refcounted* SCCP Channel
- */
-sccp_channel_t *__sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state, const char *filename, int lineno, const char *func)
-#else
-/*!
  * \param l SCCP Line
  * \param state State
  * \return *refcounted* SCCP Channel
  */
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state)
-#endif
 {
-	sccp_channel_t *channel = NULL;
+	sccp_channel_t *c = NULL;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
 	SCCP_LIST_LOCK(&l->channels);
-	SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-		if (channel && channel->state == state) {
-#if DEBUG
-			channel = sccp_refcount_retain(channel, filename, lineno, func);
-#else
-			channel = sccp_channel_retain(channel);
-#endif
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel for callid %d by state %d\n", channel->currentDeviceId, channel->callid, channel->state);
-			break;
-		}
-	}
+	c = SCCP_LIST_FIND(&l->channels, c, list, (c->state == state), TRUE);
 	SCCP_LIST_UNLOCK(&l->channels);
 
-	return channel;
+	return c;
 }
 
 /*!
@@ -2801,29 +2694,14 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * \callgraph
  * \callergraph
  * 
- */
-#if DEBUG
-/*!
- * \param d SCCP Device
- * \param state State as int
- * \param filename Debug FileName
- * \param lineno Debug LineNumber
- * \param func Debug Function Name
- * \return *refcounted* SCCP Channel
- */
-sccp_channel_t *__sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state, const char *filename, int lineno, const char *func)
-#else
-/*!
  * \param d SCCP Device
  * \param state State as int
  * \return *refcounted* SCCP Channel
  */
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t state)
-#endif
 {
-	sccp_channel_t *channel = NULL;
+	sccp_channel_t *c = NULL;
 	sccp_line_t *l = NULL;
-	boolean_t channelFound = FALSE;
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by state '%d'\n", state);
 
@@ -2835,35 +2713,18 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, uint8_t s
 		if ((l = sccp_line_retain(d->lineButtons.instance[instance]->line))) {
 			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
 			SCCP_LIST_LOCK(&l->channels);
-			SCCP_LIST_TRAVERSE(&l->channels, channel, list) {
-				if (channel->state == state) {
-					/* check that subscriptionId matches */
-					if (sccp_util_matchSubscriptionId(channel, d->lineButtons.instance[instance]->subscriptionId.number)) {
-#if DEBUG
-						channel = sccp_refcount_retain(channel, filename, lineno, func);
-#else
-						channel = sccp_channel_retain(channel);
-#endif
-						sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), channel->callid);
-						channelFound = TRUE;
-						break;
-					} else {
-						sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Found channel (%d), but it does not match subscriptionId %s \n", DEV_ID_LOG(d), channel->callid, d->lineButtons.instance[instance]->subscriptionId.number);
-					}
-
-				}
-			}
+			c = SCCP_LIST_FIND(&l->channels, c, list, (c->state == state && sccp_util_matchSubscriptionId(c, d->lineButtons.instance[instance]->subscriptionId.number)), TRUE);
 			SCCP_LIST_UNLOCK(&l->channels);
-			l = sccp_line_release(l);
 
-			if (channelFound) {
+			l = sccp_line_release(l);
+			if (c) {
 				break;
 			}
 		}
 	}
 	d = sccp_device_release(d);
 
-	return channel;
+	return c;
 }
 
 /*!
@@ -2887,12 +2748,7 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
-	SCCP_LIST_TRAVERSE(&d->selectedChannels, sc, list) {
-		if (sc->channel == channel) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Found channel (%d)\n", DEV_ID_LOG(d), channel->callid);
-			break;
-		}
-	}
+	sc = SCCP_LIST_FIND(&d->selectedChannels, sc, list, (sc->channel == channel), TRUE);
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 	return sc;
 }
@@ -2905,7 +2761,6 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  */
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 {
-	sccp_selectedchannel_t *sc = NULL;
 	uint8_t count = 0;
 
 	if (!(d = sccp_device_retain(d))) {
@@ -2914,9 +2769,7 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
-	SCCP_LIST_TRAVERSE(&d->selectedChannels, sc, list) {
-		count++;
-	}
+	count = SCCP_LIST_GETSIZE(&d->selectedChannels);
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 	return count;
