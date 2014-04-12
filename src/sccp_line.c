@@ -788,11 +788,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
  * \callergraph
  * 
  */
-#if DEBUG
-sccp_line_t *__sccp_line_find_byname(const char *name, uint8_t useRealtime, const char *filename, int lineno, const char *func)
-#else
 sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
-#endif
 {
 	sccp_line_t *l = NULL;
 	
