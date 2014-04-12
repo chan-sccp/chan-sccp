@@ -606,7 +606,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 		case SKINNY_DEVICETYPE_30VIP:
 			/* 13 rows, 2 columns */
 			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_LINE;
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}	
 			/* Column 2 */
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
@@ -618,7 +618,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 				(btn++)->type = SKINNY_BUTTONTYPE_UNDEFINED;
 			}
 			for (i = 0; i < 13; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_12SPPLUS:
@@ -2357,6 +2357,7 @@ static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_li
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
 	sccp_dev_stoptone(device, linedevice->lineInstance, channel->callid);
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, linedevice->lineInstance, SKINNY_LAMP_ON);
 	sccp_device_sendcallstate(device, linedevice->lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 	if (device->protocol && device->protocol->sendCallInfo) {
 		device->protocol->sendCallInfo(device, channel, linedevice->lineInstance);
