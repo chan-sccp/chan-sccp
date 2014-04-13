@@ -2526,7 +2526,7 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
 
 	SCCP_LIST_LOCK(&l->channels);
-	c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid = id && c->state != SCCP_CHANNELSTATE_DOWN), TRUE);
+	c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid == id && c->state != SCCP_CHANNELSTATE_DOWN), TRUE);
 	SCCP_LIST_UNLOCK(&l->channels);
 	return c;
 }
@@ -2545,7 +2545,7 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
 
 	if ((l = sccp_line_find_byid((sccp_device_t *)d, lineInstance))) {
 		SCCP_LIST_LOCK(&l->channels);
-		c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid = callid), TRUE);
+		c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid == callid), TRUE);
 		SCCP_LIST_UNLOCK(&l->channels);
 
 		l = sccp_line_release(l);	
