@@ -2343,6 +2343,7 @@ static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sc
 }
 static void sccp_device_indicate_onhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel){
 
+	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, linedevice->lineInstance, SKINNY_LAMP_OFF);
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, linedevice->lineInstance, channel->callid);
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, linedevice->lineInstance, channel->callid);
