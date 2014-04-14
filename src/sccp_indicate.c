@@ -607,6 +607,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 
 					sccp_dev_set_ringer(remoteDevice, SKINNY_RINGTYPE_OFF, instance, c->callid);
 					sccp_dev_clearprompt(remoteDevice, instance, c->callid);
+					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 					sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					//sccp_channel_send_callinfo(remoteDevice, c, instance);
 					remoteDevice->protocol->sendCallInfo(remoteDevice, &tmpChannel, instance);
