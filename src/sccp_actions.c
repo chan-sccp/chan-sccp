@@ -1715,7 +1715,7 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: is Onhook\n", DEV_ID_LOG(d));
 
-	if (!d->lineButtons.size > SCCP_FIRST_LINEINSTANCE) {
+	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
 		sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
