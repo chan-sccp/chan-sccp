@@ -558,7 +558,7 @@ void sccp_feat_updatecid(sccp_channel_t * c)
 	if (!c || !c->owner) {
 		return;
         }
-	if ((c->calltype != SKINNY_CALLTYPE_OUTBOUND) && (!ast_bridged_channel(c->owner)) {
+	if ((c->calltype != SKINNY_CALLTYPE_OUTBOUND) && (!ast_bridged_channel(c->owner))) {
 		return;
 	}
 
