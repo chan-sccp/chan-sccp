@@ -2514,11 +2514,6 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 	
  	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Got OpenChannel ACK.  Status: '%s' (%d), Remote RTP/UDP '%s', Type: %s, PassThruPartyId: %u, CallID: %u\n", d->id, mediastatus2str(mediastatus), mediastatus, sccp_socket_stringify(&sas), (d->directrtp ? "DirectRTP" : "Indirect RTP"), passThruPartyId, callReference);
-	if (mediastatus) {
-		// rtp error from the phone
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: '%s' (%d) ! No RTP stream available. Possibly all the rtp streams the phone supports have been used up. Giving up.\n", d->id, mediastatus2str(mediastatus), mediastatus);
-		return;
-	}
 
 	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
 		passThruPartyId = 0xFFFFFFFF - callReference;
@@ -2529,6 +2524,14 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		channel = sccp_channel_retain(d->active_channel);
 	} else {
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+	if (mediastatus) {
+		// rtp error from the phone
+		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: '%s' (%d) ! No RTP stream available. Possibly all the rtp streams the phone supports have been used up. Giving up.\n", d->id, mediastatus2str(mediastatus), mediastatus);
+		if (channel) {
+			sccp_channel_endcall(channel);
+		}
+		return;
 	}
 	if (channel && channel->state != SCCP_CHANNELSTATE_ONHOOK) {						// && sccp_channel->state != SCCP_CHANNELSTATE_DOWN) {
 		if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER) {
@@ -2590,7 +2593,9 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		int callId = passThruPartyId ^ 0xFFFFFFFF;
 
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
-		sccp_channel_closeReceiveChannel(channel, FALSE);
+		if (channel) {
+			sccp_channel_closeReceiveChannel(channel, FALSE);
+		}
 	}
 }
 
