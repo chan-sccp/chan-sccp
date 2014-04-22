@@ -278,7 +278,7 @@ int sccp_rtp_get_sampleRate(skinny_codec_t codec)
 	if (PBX(rtp_get_sampleRate)) {
 		return PBX(rtp_get_sampleRate) (codec);
 	} else {
-		return (uint8_t) 3840;
+		return 3840;
 	}
 }
 
