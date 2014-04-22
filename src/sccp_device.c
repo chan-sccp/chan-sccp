@@ -313,7 +313,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 	boolean_t res = FALSE;
 
 	if (d && (d->pendingUpdate || d->pendingDelete)) {
-	\	if ((d = sccp_device_retain(d))) {
+		if ((d = sccp_device_retain(d))) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
