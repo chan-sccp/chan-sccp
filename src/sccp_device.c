@@ -313,8 +313,8 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 	boolean_t res = FALSE;
 
 	if (d && (d->pendingUpdate || d->pendingDelete)) {
-		do {
-			if ((d = sccp_device_retain(d))) {
+	\	if ((d = sccp_device_retain(d))) {
+			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
 					break;
@@ -346,10 +346,10 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 					SCCP_LIST_TRAVERSE_SAFE_END;
 					SCCP_LIST_UNLOCK(&d->buttonconfig);
 				}
-				d = sccp_device_release(d);
 				res = TRUE;
-			}
-		} while (0);
+			} while (0);
+			d = sccp_device_release(d);
+		}
 	}
 	return res;
 }
