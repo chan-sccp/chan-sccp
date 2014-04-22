@@ -51,8 +51,8 @@ extern "C" {
 }
 #endif
 #undef HAVE_PBX_MESSAGE_H
-struct sched_context *sched = 0;
-struct io_context *io = 0;
+static struct sched_context *sched = 0;
+static struct io_context *io = 0;
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, format_t format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause);
 static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout);
@@ -2974,7 +2974,7 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk108_getExtensionState(c
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)
-struct ast_rtp_glue sccp_rtp = {
+static struct ast_rtp_glue sccp_rtp = {
 	/* *INDENT-OFF* */
 	type:		SCCP_TECHTYPE_STR,
 	mod:		NULL,
@@ -2990,7 +2990,7 @@ struct ast_rtp_glue sccp_rtp = {
 /*!
  * \brief using RTP Glue Engine
  */
-struct ast_rtp_glue sccp_rtp = {
+static struct ast_rtp_glue sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,
 	.get_rtp_info = sccp_wrapper_asterisk18_get_rtp_info,
 	.get_vrtp_info = sccp_wrapper_asterisk18_get_vrtp_info,
@@ -3058,7 +3058,7 @@ static const struct ast_msg_tech sccp_msg_tech = {
 #endif
 #endif
 
-boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *newLanguage)
+static boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *newLanguage)
 {
 
 	ast_string_field_set(pbxChannel, language, newLanguage);

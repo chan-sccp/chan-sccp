@@ -1519,7 +1519,7 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #define NUM_LOOPS 20
 #define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
-struct refcount_test {
+static struct refcount_test {
 	int id;
 	int loop;
 	unsigned int threadid;

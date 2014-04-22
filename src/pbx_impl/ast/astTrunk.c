@@ -42,9 +42,9 @@ extern "C" {
 #if defined(__cplusplus) || defined(c_plusplus)
 }
 #endif
-struct ast_sched_context *sched = 0;
-struct io_context *io = 0;
-struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
+static struct ast_sched_context *sched = 0;
+static struct io_context *io = 0;
+static struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, struct ast_format_cap *format, const PBX_CHANNEL_TYPE * requestor, const char *dest, int *cause);
 static int sccp_wrapper_asterisk111_call(PBX_CHANNEL_TYPE * chan, const char *addr, int timeout);
@@ -2685,7 +2685,7 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk111_getExtensionState(c
  * \brief using RTP Glue Engine
  */
 #if defined(__cplusplus) || defined(c_plusplus)
-struct ast_rtp_glue sccp_rtp = {
+static struct ast_rtp_glue sccp_rtp = {
 	/* *INDENT-OFF* */
 	type:	SCCP_TECHTYPE_STR,
 	mod:	NULL,
@@ -2697,7 +2697,7 @@ struct ast_rtp_glue sccp_rtp = {
 	/* *INDENT-ON* */
 };
 #else
-struct ast_rtp_glue sccp_rtp = {
+static struct ast_rtp_glue sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,
 	.get_rtp_info = sccp_wrapper_asterisk111_get_rtp_info,
 	.get_vrtp_info = sccp_wrapper_asterisk111_get_vrtp_info,
@@ -2777,7 +2777,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	return ast_manager_register2(action, authority, func, ast_module_info->self, synopsis, description);
 }
 
-boolean_t sccp_wrapper_asterisk111_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *language)
+static boolean_t sccp_wrapper_asterisk111_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *language)
 {
 
 	ast_channel_language_set(pbxChannel, language);

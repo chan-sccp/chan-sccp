@@ -154,8 +154,8 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
 #endif
 
 /* ========================================================================================================================= List Declarations */
-SCCP_LIST_HEAD (, struct sccp_hint_lineState) lineStates;
-SCCP_LIST_HEAD (, sccp_hint_list_t) sccp_hint_subscriptions;
+static SCCP_LIST_HEAD (, struct sccp_hint_lineState) lineStates;
+static SCCP_LIST_HEAD (, sccp_hint_list_t) sccp_hint_subscriptions;
 
 /* ========================================================================================================================= Module Start/Stop */
 /*!
@@ -322,7 +322,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
  * \param event SCCP Event
  * 
  */
-void sccp_hint_eventListener(const sccp_event_t * event)
+static void sccp_hint_eventListener(const sccp_event_t * event)
 {
 	sccp_device_t *device;
 
@@ -614,7 +614,7 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
  * \brief Handle Hint Status Update
  * \param lineState SCCP LineState
  */
-void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = NULL;
 
@@ -648,7 +648,7 @@ void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
  * \brief set hint status for a line with more then one channel
  * \param lineState SCCP LineState
  */
-void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
 	sccp_channel_t *channel = NULL;
@@ -706,7 +706,7 @@ void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineStat
  * \param lineState SCCP LineState
  * 
  */
-void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
 	sccp_channel_t *channel = NULL;
@@ -898,7 +898,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
  * \brief Notify Asterisk of Hint State Change
  * \param lineState SCCP LineState
  */
-void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
+static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 {
 	char channelName[100];
 	sccp_hint_list_t *hint = NULL;

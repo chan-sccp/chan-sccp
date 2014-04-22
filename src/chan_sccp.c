@@ -83,7 +83,7 @@ static struct ast_jb_conf default_jbconf = {
 /*!
  * \brief       Global null frame
  */
-PBX_FRAME_TYPE sccp_null_frame;											/*!< Asterisk Structure */
+static PBX_FRAME_TYPE sccp_null_frame;											/*!< Asterisk Structure */
 
 /*!
  * \brief       Global variables
