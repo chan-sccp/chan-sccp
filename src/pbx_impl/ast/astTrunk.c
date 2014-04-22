@@ -3148,7 +3148,7 @@ static struct ast_module_info __mod_info = {
 	NULL,
 	NULL,
 	AST_MODULE,
-	sccp_versionstr,
+	SCCP_VERSIONSTR,
 	ASTERISK_GPL_KEY,
 	AST_MODFLAG_LOAD_ORDER,
 	AST_BUILDOPT_SUM,
@@ -3170,7 +3170,7 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 
-AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, sccp_versionstr,
+AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, SCCP_VERSIONSTR,
         .load = load_module,
         .unload = unload_module,
         .reload = module_reload,

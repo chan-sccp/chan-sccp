@@ -3155,7 +3155,7 @@ static struct ast_module_info __mod_info = {
 	NULL,
 	NULL,
 	AST_MODULE,
-	sccp_versionstr,
+	SCCP_VERSIONSTR,
 	ASTERISK_GPL_KEY,
 	AST_MODFLAG_LOAD_ORDER,
 	AST_BUILDOPT_SUM,
@@ -3177,7 +3177,7 @@ static const __attribute__ ((unused))
 struct ast_module_info *ast_module_info = &__mod_info;
 #else
 #if ASTERISK_VERSION_NUMBER > 10601
-AST_MODULE_INFO(ASTERISK_GPL_KEY, sccp_versionstr,
+AST_MODULE_INFO(ASTERISK_GPL_KEY, SCCP_VERSIONSTR,
 	.load = load_module,
 	.unload = unload_module,
         .reload = module_reload,
@@ -3185,7 +3185,7 @@ AST_MODULE_INFO(ASTERISK_GPL_KEY, sccp_versionstr,
         .description = "Skinny Client Control Protocol (SCCP)",
 );
 #else
-AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, sccp_versionstr);
+AST_MODULE_INFO_STANDARD(ASTERISK_GPL_KEY, SCCP_VERSIONSTR);
 #endif
 #endif
 

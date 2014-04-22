@@ -2820,7 +2820,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 		astman_append(s, "Chan-sccp-b: \r\n");
 		astman_append(s, "Branch: %s\r\n", SCCP_BRANCH);
 		astman_append(s, "Version: %s\r\n", SCCP_VERSION);
-		astman_append(s, "Revision: %s\r\n\r\n",  sccp_revisionstr);;
+		astman_append(s, "Revision: %s\r\n\r\n",  SCCP_REVISIONSTR);;
 		astman_send_listack(s, m, "List of segments will follow", "start");
 		
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
