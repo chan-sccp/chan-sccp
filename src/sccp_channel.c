@@ -2019,7 +2019,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
  */
 void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
 {
-	if (!d | !c) {
+	if (!d || !c) {
 		return;
 	}
 
