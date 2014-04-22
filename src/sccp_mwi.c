@@ -47,7 +47,7 @@ void sccp_mwi_module_start(void)
 /*!
  * \brief Stop MWI Monitor
  */
-void sccp_mwi_module_stop()
+void sccp_mwi_module_stop(void)
 {
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
 	sccp_mailboxLine_t *sccp_mailboxLine = NULL;

@@ -754,6 +754,9 @@ void sccp_socket_device_thread_exit(void *session)
 void *sccp_socket_device_thread(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
+	if (!s) {
+		return NULL;
+	}
 	uint8_t keepaliveAdditionalTimePercent = 10;
 	int res;
 	double maxWaitTime;
@@ -935,7 +938,7 @@ static void sccp_accept_connection(void)
 	sccp_session_unlock(s);
 }
 
-void sccp_socket_cleanup_timed_out() 
+static void sccp_socket_cleanup_timed_out(void) 
 {
 	sccp_session_t *session;
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {

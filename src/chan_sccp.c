@@ -516,7 +516,7 @@ int sccp_sched_del(int id)
  * \brief       Load the actual chan_sccp module
  * \return      Success as int
  */
-boolean_t sccp_prePBXLoad()
+boolean_t sccp_prePBXLoad(void)
 {
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
 	
@@ -605,7 +605,7 @@ boolean_t sccp_prePBXLoad()
 	return TRUE;
 }
 
-boolean_t sccp_postPBX_load()
+boolean_t sccp_postPBX_load(void)
 {
 	pbx_mutex_lock(&GLOB(lock));
 
@@ -829,7 +829,7 @@ const char devstate_db_family[] = "CustomDevstate";
 /*
  * deprecated
  */
-int sccp_updateExternIp(){
+int sccp_updateExternIp(void){
 	/* setup hostname -> externip */
 	/*! \todo change using singular h_addr to h_addr_list (name may resolve to multiple ip-addresses */
 /*

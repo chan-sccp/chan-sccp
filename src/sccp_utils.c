@@ -152,7 +152,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
  * \brief Clean Asterisk Database Entries in the "SCCP" Family
  * 
  */
-void sccp_dev_dbclean()
+void sccp_dev_dbclean(void)
 {
 	struct ast_db_entry *entry = NULL;
 	sccp_device_t *d;
@@ -578,9 +578,9 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 	char family[25];
 	char cfwdLineStore[60];
 	sccp_linedevices_t *linedevice = NULL;
-	sccp_device_t *device = event->event.featureChanged.device;
+	sccp_device_t *device = NULL;
 
-	if (!event || !device) {
+	if (!event || !(device = event->event.featureChanged.device)) {
 		return;
 	}
 

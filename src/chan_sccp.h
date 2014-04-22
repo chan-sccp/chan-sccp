@@ -1401,7 +1401,7 @@ typedef int (*sccp_sched_cb) (const void *data);
 
 int sccp_sched_add(int when, sccp_sched_cb callback, const void *data);
 int sccp_sched_del(int id);
-int sccp_updateExternIp();
+int sccp_updateExternIp(void);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 /* *INDENT-ON* */

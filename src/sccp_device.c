@@ -2457,13 +2457,13 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 {
 	sccp_linedevices_t *linedevice = NULL;
-	sccp_device_t *device = event->event.featureChanged.device;
+	sccp_device_t *device = NULL;
 
 	char tmp[256] = { 0 };
 	size_t len = sizeof(tmp);
 	char *s = tmp;
 
-	if (!event || !device) {
+	if (!event || !(device = event->event.featureChanged.device)) {
 		return;
 	}
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);

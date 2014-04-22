@@ -161,7 +161,7 @@ SCCP_LIST_HEAD (, sccp_hint_list_t) sccp_hint_subscriptions;
 /*!
  * \brief starting hint-module
  */
-void sccp_hint_module_start()
+void sccp_hint_module_start(void)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Starting hint system\n");
 	SCCP_LIST_HEAD_INIT(&lineStates);
@@ -173,7 +173,7 @@ void sccp_hint_module_start()
  * \brief stop hint-module
  *
  */
-void sccp_hint_module_stop()
+void sccp_hint_module_stop(void)
 {
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Stopping hint system\n");
 	{

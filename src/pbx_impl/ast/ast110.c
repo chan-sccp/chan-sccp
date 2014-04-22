@@ -1733,7 +1733,7 @@ static int sccp_wrapper_asterisk110_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 
 	/* Need a return here to break the bridge */
 	d = d ? sccp_device_release(d) : NULL;
-	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (asterisk110_update_rtp_peer) Result: %d\n", c->currentDeviceId, result);
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (asterisk110_update_rtp_peer) Result: %d\n", c ? c->currentDeviceId : NULL, result);
 	return result;
 }
 

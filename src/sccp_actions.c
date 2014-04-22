@@ -830,12 +830,9 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 
 					}
 					break;
-				} else {
-					continue;
 				}
 				sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE", buttonconfig->label);
 			}
-
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 
@@ -1652,7 +1649,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 		sccp_channel_answer(d, channel);
 	} else {
 		/* use default line if it is set */
-		if (d && d->defaultLineInstance > 0) {
+		if (d->defaultLineInstance > 0) {
 			sccp_log_and((DEBUGCAT_LINE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "using default line with instance: %u", d->defaultLineInstance);
 			l = sccp_line_find_byid(d, d->defaultLineInstance);
 		} else {
@@ -2169,6 +2166,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 
 	if (!d) {												// should never be possible, d should have been retained in calling function
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(s->device));
+		return;
 	}
 
 	if (lineInstance) {
