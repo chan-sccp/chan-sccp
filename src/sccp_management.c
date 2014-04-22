@@ -235,7 +235,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
  * \called_from_asterisk
  * 
  */
-int sccp_manager_show_devices(struct mansession *s, const struct message *m)
+static int sccp_manager_show_devices(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
 	sccp_device_t *device = NULL;
@@ -290,7 +290,7 @@ int sccp_manager_show_devices(struct mansession *s, const struct message *m)
  * \called_from_asterisk
  * 
  */
-int sccp_manager_show_lines(struct mansession *s, const struct message *m)
+static int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
 	sccp_line_t *line;
@@ -328,7 +328,7 @@ int sccp_manager_show_lines(struct mansession *s, const struct message *m)
  * 
  * \called_from_asterisk
  */
-int sccp_manager_restart_device(struct mansession *s, const struct message *m)
+static int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
 	// sccp_list_t *hintList = NULL;
 	sccp_device_t *d = NULL;
@@ -429,7 +429,7 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  * 
  * \called_from_asterisk
  */
-int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
+static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
 	sccp_line_t *line = NULL;
 	sccp_device_t *d = NULL;

@@ -1019,7 +1019,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 /*!
  * \brief SCCP Meetme Application Config Structure
  */
-struct meetmeAppConfig {
+static struct meetmeAppConfig {
 	char *appName;
 	char *defaultMeetmeOption;
 } meetmeApps[] = {

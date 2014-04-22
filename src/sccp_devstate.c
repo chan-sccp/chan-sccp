@@ -42,7 +42,7 @@ struct sccp_devstate_deviceState {
 	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 };
 
-SCCP_LIST_HEAD (, struct sccp_devstate_deviceState) deviceStates;
+static SCCP_LIST_HEAD (, struct sccp_devstate_deviceState) deviceStates;
 
 void sccp_devstate_deviceRegisterListener(const sccp_event_t * event);
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate);

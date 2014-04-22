@@ -47,9 +47,9 @@ struct sccp_event_subscriptions {
 	sccp_event_subscriber_t *async;
 };
 
-struct sccp_event_subscriptions subscriptions[NUMBER_OF_EVENT_TYPES];
+static struct sccp_event_subscriptions subscriptions[NUMBER_OF_EVENT_TYPES];
 
-boolean_t sccp_event_running = FALSE;
+static boolean_t sccp_event_running = FALSE;
 
 void sccp_event_destroy(sccp_event_t * event)
 {

@@ -42,7 +42,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 static int lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
 
-SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
+static SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
 
 static void *sccp_conference_thread(void *data);
 void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel);
@@ -1251,8 +1251,10 @@ void sccp_conference_kick_participant(sccp_conference_t * conference, sccp_confe
 
 /*!
  * \brief Toggle Conference Lock
+ * \note Not Used at the moment -> Commented out
  */
-void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp_conference_participant_t * participant)
+#if 0
+static void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCPCONF/%04d: Toggle Conference Lock\n", conference->id);
 	conference->isLocked = (!conference->isLocked ? 1 : 0);
@@ -1264,6 +1266,7 @@ void sccp_conference_toggle_lock_conference(sccp_conference_t * conference, sccp
 #endif
 	sccp_conference_update_conflist(conference);
 }
+#endif
 
 /*!
  * \brief Toggle Participant Mute Status

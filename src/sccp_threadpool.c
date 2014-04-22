@@ -177,7 +177,7 @@ static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 	}
 }
 
-void sccp_threadpool_thread_end(void *p)
+static void sccp_threadpool_thread_end(void *p)
 {
 	sccp_threadpool_thread_t *tp_thread = (sccp_threadpool_thread_t *) p;
 	sccp_threadpool_thread_t *res = NULL;

@@ -64,9 +64,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
 #define REF_FILE "/tmp/sccp_refs"
-enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
+static enum sccp_refcount_runstate runState = SCCP_REF_STOPPED;
 
-struct sccp_refcount_obj_info {
+static struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
 	sccp_debug_category_t debugcat;
@@ -103,7 +103,7 @@ struct refcount_object {
 	unsigned char data[0];
 };
 
-ast_rwlock_t objectslock;											// general lock to modify hash table entries
+static ast_rwlock_t objectslock;										// general lock to modify hash table entries
 static struct refcount_objentry {
 	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects;						//!< one rwlock per hash table entry, used to modify list
 } *objects[SCCP_HASH_PRIME];											//!< objects hash table
