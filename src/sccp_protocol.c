@@ -112,7 +112,8 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 	unsigned int i = 0;
 	int dummy_len = 0;
 
-	memset(data, 0, sizeof(data));
+// 	memset(data, 0, sizeof(data));
+ 	memset(data, 0, dataSize);
 
 	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
 	data[1] = (strlen(channel->callInfo.calledPartyNumber) > 0) ? channel->callInfo.calledPartyNumber : NULL;
@@ -153,13 +154,15 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
 
 	if (dummy_len) {
-		int bufferSize = dummy_len + ARRAY_LEN(data);
+//		int bufferSize = dummy_len + ARRAY_LEN(data);
+		int bufferSize = dummy_len + dataSize;
 		char buffer[bufferSize];
 
 		memset(&buffer[0], 0, bufferSize);
 		int pos = 0;
 
-		for (i = 0; i < ARRAY_LEN(data); i++) {
+//		for (i = 0; i < ARRAY_LEN(data); i++) {
+		for (i = 0; i < dataSize; i++) {
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
@@ -190,7 +193,8 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 	unsigned int i = 0;
 	int dummy_len = 0;
 
-	memset(data, 0, sizeof(data));
+//	memset(data, 0, sizeof(data));
+	memset(data, 0, dataSize);
 
 	data[0] = (strlen(channel->callInfo.callingPartyNumber) > 0) ? channel->callInfo.callingPartyNumber : NULL;
 	data[1] = (strlen(channel->callInfo.originalCallingPartyNumber) > 0) ? channel->callInfo.originalCallingPartyNumber : NULL;
@@ -235,13 +239,15 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
 
 	if (dummy_len) {
-		int bufferSize = dummy_len + ARRAY_LEN(data);
+//		int bufferSize = dummy_len + ARRAY_LEN(data);
+		int bufferSize = dummy_len + dataSize;
 		char buffer[bufferSize];
 
 		memset(&buffer[0], 0, bufferSize);
 		int pos = 0;
 
-		for (i = 0; i < ARRAY_LEN(data); i++) {
+//		for (i = 0; i < ARRAY_LEN(data); i++) {
+		for (i = 0; i < dataSize; i++) {
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
 				memcpy(&buffer[pos], data[i], data_len[i]);
