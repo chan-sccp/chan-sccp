@@ -2705,7 +2705,7 @@ CLI_ENTRY(cli_config_generate, sccp_cli_config_generate, "Generate a SCCP config
  */
 static int sccp_show_version(int fd, int argc, char *argv[])
 {
-	pbx_cli(fd, "%s", sccp_versionstr);
+	pbx_cli(fd, "%s", SCCP_VERSIONSTR);
 	return RESULT_SUCCESS;
 }
 

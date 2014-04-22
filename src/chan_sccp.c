@@ -608,20 +608,6 @@ boolean_t sccp_prePBXLoad(void)
 boolean_t sccp_postPBX_load(void)
 {
 	pbx_mutex_lock(&GLOB(lock));
-
-	// initialize sccp_revisionstr and sccp_versionstr
-#ifdef VCS_SHORT_HASH
-#ifdef VCS_WC_MODIFIED
-	sprintf(sccp_revisionstr, "%sM", VCS_SHORT_HASH);
-#else
-	sprintf(sccp_revisionstr, "%s", VCS_SHORT_HASH);
-#endif
-#else
-	sprintf(sccp_revisionstr, "%s", SCCP_REVISION);
-#endif
-	sprintf(sccp_versionstr, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, sccp_revisionstr, BUILD_USER, BUILD_DATE);
-	
-	
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
 	pbx_mutex_unlock(&GLOB(lock));
