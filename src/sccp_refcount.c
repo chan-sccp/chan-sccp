@@ -282,7 +282,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 }
 #endif
 
-static inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const char *filename, int lineno, const char *func)
+static gcc_inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	boolean_t found = FALSE;
@@ -313,7 +313,7 @@ static inline RefCountedObject *sccp_refcount_find_obj(const void *ptr, const ch
 	return found ? obj : NULL;
 }
 
-static inline void sccp_refcount_remove_obj(const void *ptr)
+static gcc_inline void sccp_refcount_remove_obj(const void *ptr)
 {
 	RefCountedObject *obj = NULL;
 
@@ -431,7 +431,7 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 	}
 }
 
-inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, const char *func)
+gcc_inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -458,7 +458,7 @@ inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, c
 	}
 }
 
-inline void *sccp_refcount_release(const void *ptr, const char *filename, int lineno, const char *func)
+gcc_inline void *sccp_refcount_release(const void *ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -492,7 +492,7 @@ inline void *sccp_refcount_release(const void *ptr, const char *filename, int li
 	return NULL;
 }
 
-inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func) {
+gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func) {
 	if (&newptr == replaceptr) {					// nothing changed
 		return;
 	}

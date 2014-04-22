@@ -26,7 +26,7 @@ extern "C" {
 #endif
 
 #if defined(__GNUC__) && !defined(__clang__)
-#define gcc_inline inline
+#define gcc_inline __inline__
 #else
 #define gcc_inline
 #endif
