@@ -129,7 +129,9 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 void sccp_free_ha(struct sccp_ha *ha);
 int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
 int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
+#if 0
 int sccp_sockaddr_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b);
+#endif
 int sccp_sockaddr_split_hostport(char *str, char **host, char **port, int flags);
 int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags);
 struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error);

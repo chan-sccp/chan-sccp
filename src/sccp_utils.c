@@ -43,8 +43,10 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	char *chrptr;
 
 	do {
-		memset(hexout, 0, sizeof(hexout));
-		memset(chrout, 0, sizeof(chrout));
+//		memset(hexout, 0, sizeof(hexout));
+		memset(hexout, 0, (numcolumns * 3) + (numcolumns / 8) + 1);
+//		memset(chrout, 0, sizeof(chrout));
+		memset(chrout, 0, numcolumns + 1);
 		hexptr = hexout;
 		chrptr = chrout;
 		for (col = 0; col < numcolumns && (cur + col) < len; col++) {
@@ -959,7 +961,8 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 	if (dummy_len) {
 		char buffer[dummy_len + padding];
 
-		memset(&buffer[0], 0, sizeof(buffer));
+//		memset(&buffer[0], 0, sizeof(buffer));
+		memset(&buffer[0], 0, dummy_len + padding);
 
 		if (dirNum_len) {
 			memcpy(&buffer[0], dirNum, dirNum_len);
@@ -970,7 +973,8 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, const 
 		if (lineDisplayName_len) {
 			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
 		}
-		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
+//		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
+		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len + padding);
 	}
 
 	return msg;
@@ -1660,8 +1664,11 @@ void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group)
 	return;
 }
 
+#if 0
 /*!
  * \brief Compare two socket addressed with each other
+ *
+ * \note not used
  */
 int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct sockaddr_storage *addr2, socklen_t len2)
 {
@@ -1692,6 +1699,7 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 		return memcmp(addr1, addr2, len1);
 	}
 }
+#endif
 
 int sccp_strversioncmp(const char *s1, const char *s2)
 {
