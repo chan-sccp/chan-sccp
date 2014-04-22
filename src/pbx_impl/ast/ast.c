@@ -435,13 +435,11 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 	boolean_t res = FALSE;
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	ast_channel_lock(pbx_channel);								/* lock is required here so we don't mess up cdr_update */
-	if (!ast_check_hangup(pbx_channel)) {							/* if channel is not already been hungup */
+	if (!ast_check_hangup_locked(pbx_channel)) {							/* if channel is not already been hungup */
 		res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 	} else {
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
 	}
-	ast_channel_unlock(pbx_channel);
 	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 	return res;
 }
@@ -503,10 +501,11 @@ int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
 		if (!pbx_channel_pbx(ast_channel)) {
 			ast_indicate(ast_channel, -1);
 			ast_hangup(ast_channel);
+			ast_channel_unlock(ast_channel);
 		} else {
+			ast_channel_unlock(ast_channel);
 			ast_queue_hangup(ast_channel);
 		}
-		ast_channel_unlock(ast_channel);
 	}
 
 	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
