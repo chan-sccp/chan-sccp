@@ -1965,7 +1965,6 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const char *lineName, boolean_t isRealtime)
 {
 	sccp_configurationchange_t res = sccp_config_applyLineConfiguration(l, v);
-
 #ifdef CS_SCCP_REALTIME
 	l->realtime = isRealtime;
 #endif
@@ -2343,7 +2342,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					rv = pbx_load_realtime(GLOB(realtimedevicetable), "name", device->id, NULL);
 					/* we did not find this line, mark it for deletion */
 					if (!rv) {
-						sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: realtime device not found - set pendingDelete=1\n", line->name);
+						sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: realtime device not found - set pendingDelete=1\n", device->id);
 						device->pendingDelete = 1;
 						break;
 					}

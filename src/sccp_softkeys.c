@@ -52,7 +52,7 @@ void sccp_softkey_post_reload(void)
 {
 }
 
-void sccp_softkey_clear()
+void sccp_softkey_clear(void)
 {
 	sccp_softKeySetConfiguration_t *k;
 	uint8_t i;
@@ -707,8 +707,9 @@ void sccp_sk_cfwdall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (line) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_ALL);
 		line = sccp_line_release(line);
-	} else
+	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
+	}
 }
 
 /*!
@@ -733,8 +734,9 @@ void sccp_sk_cfwdbusy(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIns
 	if (line) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_BUSY);
 		line = sccp_line_release(line);
-	} else
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
+	}
 }
 
 /*!
@@ -759,8 +761,9 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	if (line) {
 		sccp_feat_handle_callforward(line, d, SCCP_CFWD_NOANSWER);
 		line = sccp_line_release(line);
-	} else
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+	} else {
+ 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
+	}
 
 	/*
 	   sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
@@ -912,8 +915,9 @@ void sccp_sk_barge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstan
 	if (line) {
 		sccp_feat_handle_barge(line, lineInstance, d);
 		line = sccp_line_release(line);
-	} else
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
+	}
 }
 
 /*!
@@ -937,8 +941,9 @@ void sccp_sk_cbarge(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	if (line) {
 		sccp_feat_handle_cbarge(line, lineInstance, d);
 		line = sccp_line_release(line);
-	} else
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
+	}
 }
 
 /*!
@@ -964,8 +969,9 @@ void sccp_sk_meetme(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	if (line) {
 		sccp_feat_handle_meetme(line, lineInstance, d);
 		line = sccp_line_release(line);
-	} else
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
+	}
 }
 
 /*!
@@ -996,7 +1002,7 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		}
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
 	}
 #endif
 }
@@ -1029,7 +1035,7 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		}
 	} else {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
 	}
 #endif
 }

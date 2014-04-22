@@ -214,18 +214,13 @@ void sccp_threadpool_thread_do(void *p)
 
 		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
 		while (SCCP_LIST_GETSIZE(&tp_p->jobs) == 0 && !tp_thread->die) {
-			if (tp_thread->die && SCCP_LIST_GETSIZE(&tp_p->jobs) == 0) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %d...\n", threadid);
-				SCCP_LIST_UNLOCK(&(tp_p->jobs));
-				pthread_exit(0);
-			}
 			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %d Waiting for New Work Condition\n", threadid);
 			ast_cond_wait(&(tp_p->work), &(tp_p->jobs.lock));
 		}
 		if (tp_thread->die && SCCP_LIST_GETSIZE(&tp_p->jobs) == 0) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %d...\n", threadid);
 			SCCP_LIST_UNLOCK(&(tp_p->jobs));
-			pthread_exit(0);
+			break;
 		}
 		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Let's work. num_jobs: %d, threadid: %d, num_threads: %d\n", jobs, threadid, threads);
 		{

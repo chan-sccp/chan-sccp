@@ -111,6 +111,9 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 {
 	sccp_line_t *l;
 	sccp_channel_t *active_channel = NULL;
+	if (!c) {
+		return -1;
+	}
 
 	char *cid_name = NULL;
 	char *cid_number = NULL;
@@ -133,14 +136,14 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
 		if (!hasSession) {
-			pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device connected to this line or device has no valid session\n", (c ? c->callid : 0));
+			pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no device connected to this line or device has no valid session\n", (c->callid));
 			if (l) {
 				l = sccp_line_release(l);
 			}
 			return -1;
 		}
 	} else {
-		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line\n", (c ? c->callid : 0));
+		pbx_log(LOG_WARNING, "SCCP: weird error. The channel %d has no line\n", (c->callid));
 		if (l) {
 			l = sccp_line_release(l);
 		}
@@ -619,9 +622,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 		return -1;
 	}
 
-	sccp_line_t *l = sccp_line_retain(c->line);
+	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-
+	
 #ifndef CS_AST_CHANNEL_HAS_CID
 	char cidtmp[256];
 
@@ -631,9 +634,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: try to allocate channel \n");
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Line: %s\n", l->name);
 
-	if (!l) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to allocate asterisk channel %s\n", l->name);
-		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel\n");
+	if (!(l = sccp_line_retain(c->line))) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to find line for channel %s\n", c->designator);
+		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel... returning 0\n");
 		sccp_channel_release(c);
 		return 0;
 	}
