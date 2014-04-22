@@ -24,7 +24,7 @@
     #define ENUM_ELEMENT( element, index, str) element index,
     #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) typedef enum tag_##ENUM_NAME {
     #define END_ENUM( NAMESPACE, ENUM_NAME ) } NAMESPACE##_##ENUM_NAME##_t; 								\
-        gcc_inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index);
+        const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index);
 #else															// class definition (2nd pass)
 #  ifdef DEBUG														// switch/case on index (Debug mode)
     #define ENUM_ELEMENT( element, index, str) case element: return str;
