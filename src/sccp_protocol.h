@@ -3322,7 +3322,7 @@ typedef struct {
 	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t *lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
-gcc_inline boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
+boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);
 
