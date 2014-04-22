@@ -2762,15 +2762,15 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d)
 {
 	uint8_t count = 0;
+	sccp_device_t *device = NULL;
 
-	if (!(d = sccp_device_retain(d))) {
-		return 0;
+	if ((device = sccp_device_retain(d))) {
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(device));
+		SCCP_LIST_LOCK(&device->selectedChannels);
+		count = SCCP_LIST_GETSIZE(&device->selectedChannels);
+		SCCP_LIST_UNLOCK(&device->selectedChannels);
+		sccp_device_release(device);
 	}
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channels count\n", DEV_ID_LOG(d));
-
-	SCCP_LIST_LOCK(&d->selectedChannels);
-	count = SCCP_LIST_GETSIZE(&d->selectedChannels);
-	SCCP_LIST_UNLOCK(&d->selectedChannels);
 
 	return count;
 }
