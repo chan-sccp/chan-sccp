@@ -26,7 +26,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 boolean_t sccp_rtp_getAudioPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer);
 boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_storage **new_peer);
 uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp *rtp, skinny_codec_t codec);
-uint8_t sccp_rtp_get_sampleRate(skinny_codec_t codec);
+int sccp_rtp_get_sampleRate(skinny_codec_t codec);
 
 sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp);
 sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp);

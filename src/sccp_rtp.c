@@ -273,7 +273,7 @@ uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp * rtp, skinny_codec_t cod
 /*!
  * \brief Get Sample Rate
  */
-uint8_t sccp_rtp_get_sampleRate(skinny_codec_t codec)
+int sccp_rtp_get_sampleRate(skinny_codec_t codec)
 {
 	if (PBX(rtp_get_sampleRate)) {
 		return PBX(rtp_get_sampleRate) (codec);
