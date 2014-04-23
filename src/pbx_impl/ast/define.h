@@ -12,20 +12,6 @@
 #ifndef SCCP_AST_DEFINE_H_
 #define SCCP_AST_DEFINE_H_
 
-#ifdef __CHECKER__
-# define __must_hold(_cntx)	__attribute__((context(_cntx,1,1)))
-# define __acquires(_cntx)	__attribute__((context(_cntx,0,1)))
-# define __releases(_cntx)	__attribute__((context(_cntx,1,0)))
-# define __acquire(_cntx)	__context__(sccp_device,1)
-# define __release(_cntx)	__context__(sccp_device,-1)
-#else
-# define __must_hold(_cntx)
-# define __acquires(_cntx)
-# define __releases(_cntx)
-# define __acquire(x) 		(void)0
-# define __release(x) 		(void)0
-#endif
-
 // type redefinitions
 #define pbx_variable ast_variable
 #define pbx_context ast_context
