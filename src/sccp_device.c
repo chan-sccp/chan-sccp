@@ -34,7 +34,7 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 int __sccp_device_destroy(const void *ptr);
-sccp_device_t *sccp_device_removeFromGlobals(sccp_device_t * device);
+void sccp_device_removeFromGlobals(sccp_device_t * device);
 int sccp_device_destroy(const void *ptr);
 
 /* indicate definition */
@@ -307,13 +307,14 @@ void sccp_device_pre_reload(void)
  * \callgraph
  * \callergraph
  */
-boolean_t sccp_device_check_update(sccp_device_t * d)
+boolean_t sccp_device_check_update(sccp_device_t * device)
 {
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
+	sccp_device_t *d = NULL;
 	boolean_t res = FALSE;
 
-	if (d && (d->pendingUpdate || d->pendingDelete)) {
-		if ((d = sccp_device_retain(d))) {
+	if ((d = sccp_device_retain(device))) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
+		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
@@ -348,8 +349,8 @@ boolean_t sccp_device_check_update(sccp_device_t * d)
 				}
 				res = TRUE;
 			} while (0);
-			d = sccp_device_release(d);
 		}
+		d = sccp_device_release(d);
 	}
 	return res;
 }
@@ -575,19 +576,18 @@ void sccp_device_addToGlobals(sccp_device_t * device)
  * \note needs to be called with a retained device
  * \note removes the retained device withing the list (refcount - 1)
  */
-sccp_device_t *sccp_device_removeFromGlobals(sccp_device_t * device)
+void sccp_device_removeFromGlobals(sccp_device_t * device)
 {
 	if (!device) {
 		pbx_log(LOG_ERROR, "Removing null from the global device list is not allowed!\n");
-		return NULL;
+		return;
 	}
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	device = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
 	sccp_device_release(device);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' (%s) from Glob(devices)\n", device->id, device->config_type);
-	return device;
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
 }
 
 /*!
@@ -1737,7 +1737,7 @@ int sccp_device_check_ringback(sccp_device_t * d)
 void sccp_dev_postregistration(void *data)
 {
 	sccp_device_t *d = data;
-	sccp_event_t event;
+	sccp_event_t event = { 0 };
 
 	#ifndef ASTDB_FAMILY_KEY_LEN
 	#define ASTDB_FAMILY_KEY_LEN 100
@@ -1745,7 +1745,7 @@ void sccp_dev_postregistration(void *data)
 	#ifndef ASTDB_RESULT_LEN
 	#define ASTDB_RESULT_LEN 80
 	#endif
-	char family[ASTDB_FAMILY_KEY_LEN];
+	char family[ASTDB_FAMILY_KEY_LEN] = { 0 };
 	char buffer[ASTDB_RESULT_LEN] = { 0 };
 	sccp_linedevices_t *linedevice;
 	int instance;
@@ -1756,16 +1756,12 @@ void sccp_dev_postregistration(void *data)
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device registered; performing post registration tasks...\n", d->id);
 
 	// Post event to interested listeners (hints, mwi) that device was registered.
-	memset(&event, 0, sizeof(sccp_event_t));
-
 	event.type = SCCP_EVENT_DEVICE_REGISTERED;
 	event.event.deviceRegistered.device = sccp_device_retain(d);
 	sccp_event_fire(&event);
 
 	/* read last line/device states from db */
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
-	memset(family, 0, ASTDB_FAMILY_KEY_LEN);
-
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
 		if (d->lineButtons.instance[instance] && (linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]))) {
 			sprintf(family, "SCCP/%s/%s", d->id, linedevice->line->name);
