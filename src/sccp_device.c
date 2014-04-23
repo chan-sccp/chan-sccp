@@ -771,12 +771,17 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
 			break;
+		case SKINNY_DEVICETYPE_VGC:
+			d->hasDisplayPrompt = sccp_device_falseResult;
+			break;
+		case SKINNY_DEVICETYPE_ATA188:
 		case SKINNY_DEVICETYPE_ATA186:
 			//case SKINNY_DEVICETYPE_ATA188:
 			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			for (i = 0; i < 4; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
 			}
+			d->hasDisplayPrompt = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO8941:
 		case SKINNY_DEVICETYPE_CISCO8945:
@@ -821,6 +826,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			break;
 		case SKINNY_DEVICETYPE_CISCO6901:
 		case SKINNY_DEVICETYPE_CISCO6911:
+			d->hasDisplayPrompt = sccp_device_falseResult;
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6921:
@@ -1256,7 +1262,7 @@ void sccp_dev_clearprompt(const sccp_device_t * d, const uint8_t lineInstance, c
 {
 	sccp_msg_t *msg;
 
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;												/* only for telecaster and new phones */
 	}
 	REQ(msg, ClearPromptStatusMessage);
@@ -1289,11 +1295,8 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineIns
 #if DEBUG
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprompt '%s' for line %d (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, lineInstance, timeout);
 #endif
-	if (!d || !d->session || !d->protocol || !d->skinny_type || !d->config_type) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
-	}
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
-		return;												/* only for telecaster and new phones */
 	}
 	d->protocol->displayPrompt(d, lineInstance, callid, timeout, msg);
 }
@@ -1307,11 +1310,8 @@ void sccp_dev_displayprompt_debug(const sccp_device_t * d, const uint8_t lineIns
  */
 void sccp_dev_cleardisplay(const sccp_device_t * d)
 {
-	if (!d) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
-	}
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
-		return;												/* only for telecaster and new phones */
 	}
 	sccp_dev_sendmsg(d, ClearDisplay);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display\n", d->id);
@@ -1336,11 +1336,8 @@ void sccp_dev_display_debug(const sccp_device_t * d, const char *msgstr, const c
 #endif
 	sccp_msg_t *msg;
 
-	if (!d || !d->session) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
-	}
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
-		return;												/* only for telecaster and new phones */
 	}
 	if (!msgstr || sccp_strlen_zero(msgstr)) {
 		return;
@@ -1364,7 +1361,7 @@ void sccp_dev_display_debug(const sccp_device_t * d, const char *msgstr, const c
  */
 void sccp_dev_cleardisplaynotify(const sccp_device_t * d)
 {
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;												/* only for telecaster and new phones */
 	}
 	sccp_dev_sendmsg(d, ClearNotifyMessage);
@@ -1389,11 +1386,8 @@ void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, uint
 	// #if DEBUG
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displaynotify '%s' (%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout);
 	// #endif
-	if (!d || !d->session || !d->protocol || !d->skinny_type || !d->config_type) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
-	}
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
-		return;												/* only for telecaster and new phones */
 	}
 	if (!msg || sccp_strlen_zero(msg)) {
 		return;
@@ -1411,11 +1405,8 @@ void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, uint
  */
 void sccp_dev_cleardisplayprinotify(const sccp_device_t * d)
 {
-	if (!d || !d->session) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
-	}
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
-		return;												/* only for telecaster and new phones */
 	}
 	sccp_dev_sendmsg(d, ClearPriNotifyMessage);
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
@@ -1439,11 +1430,8 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprinotify '%s' (%d/%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout, priority);
 
-	if (!d || !d->session || !d->protocol || !d->skinny_type || !d->config_type) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
-	}
-	if (d->skinny_type < 6 || d->skinny_type == SKINNY_DEVICETYPE_ATA186 || (!strcasecmp(d->config_type, "kirk"))) {
-		return;												/* only for telecaster and new phones */
 	}
 	if (!msg || sccp_strlen_zero(msg)) {
 		return;
@@ -1619,28 +1607,26 @@ void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * channel)
 void sccp_dev_check_displayprompt(sccp_device_t * d)
 {
 	//sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_1 "%s: (sccp_dev_check_displayprompt)\n", DEV_ID_LOG(d));
-	if (!d || !d->session) {
+	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
 	}
 	boolean_t message_set = FALSE;
 	int i;
 
-	if (d->hasDisplayPrompt()) {
-		sccp_dev_clearprompt(d, 0, 0);
+	sccp_dev_clearprompt(d, 0, 0);
 #ifndef SCCP_ATOMIC
-		sccp_mutex_lock(&d->messageStackLock);
+	sccp_mutex_lock(&d->messageStackLock);
 #endif
-		for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
-			if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
-				sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
-				message_set = TRUE;
-				break;
-			}
+	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
+		if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
+			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
+			message_set = TRUE;
+			break;
 		}
-#ifndef SCCP_ATOMIC
-		sccp_mutex_unlock(&d->messageStackLock);
-#endif
 	}
+#ifndef SCCP_ATOMIC
+	sccp_mutex_unlock(&d->messageStackLock);
+#endif
 	if (!message_set) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
 		sccp_dev_set_keyset(d, 0, 0, KEYMODE_ONHOOK);							/* this is for redial softkey */
