@@ -697,6 +697,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 	if (!channel || (!(d = sccp_channel_getDevice_retained(channel)))) {
 		return;
 	}
+	ast_assert(channel->line != NULL);					/* should not be possible, but received a backtrace / report */
 
 	/* Mute mic feature: If previously set, mute the microphone prior receiving media is already open. */
 	/* This must be done in this exact order to work on popular phones like the 7975. It must also be done in other places for other phones. */
