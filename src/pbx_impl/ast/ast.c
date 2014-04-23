@@ -435,7 +435,8 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 	boolean_t res = FALSE;
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (!ast_check_hangup_locked(pbx_channel)) {							/* if channel is not already been hungup */
+//	if (!ast_check_hangup_locked(pbx_channel)) {							/* if channel is not already been hungup */
+	if (!ast_check_hangup(pbx_channel)) {							/* if channel is not already been hungup */
 		res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 	} else {
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
