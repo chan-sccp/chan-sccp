@@ -1853,7 +1853,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 				if (LINE == config->type &&
 				    sccp_strequals(config->label, name) && sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 				    ) {
-					if ((!options && !config->button.line.options) || sccp_strequals(config->button.line.options, options)) {
+					if (!options || sccp_strequals(config->button.line.options, options)) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 						break;
@@ -1878,7 +1878,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		case SPEEDDIAL:
 			/* \todo check if values change */
 			if (SPEEDDIAL == config->type && sccp_strequals(config->label, name) && sccp_strequals(config->button.speeddial.ext, options)) {
-				if ((!args && !config->button.speeddial.hint) || sccp_strequals(config->button.speeddial.hint, args)) {
+				if (!args || sccp_strequals(config->button.speeddial.hint, args)) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 					break;
@@ -1912,7 +1912,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			break;
 		case FEATURE:
 			if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)) {
-				if ((!args && !config->button.feature.options) || sccp_strequals(config->button.feature.options, args)) {
+				if (!args || sccp_strequals(config->button.feature.options, args)) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition remained the same\n");
 					changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 					break;
@@ -1969,7 +1969,7 @@ static void sccp_config_buildLine(sccp_line_t * l, PBX_VARIABLE_TYPE * v, const 
 	l->realtime = isRealtime;
 #endif
 	// if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l && l->pendingDelete) {
-	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET && l) {
+	if (GLOB(reload_in_progress) && res == SCCP_CONFIG_NEEDDEVICERESET) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: major changes for line '%s' detected, device reset required -> pendingUpdate=1\n", l->id, l->name);
 		l->pendingUpdate = 1;
 	} else {
