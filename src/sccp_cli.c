@@ -2470,7 +2470,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				if (device->realtime){
 					v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
 				} else {
-					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
+					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
 				}
@@ -2515,7 +2515,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				if (line->realtime){
 					v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
 				} else {
-					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE))) {
+					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
 				}
@@ -2533,7 +2533,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
 										change =  sccp_config_applyDeviceConfiguration(device, dv);
 									}
-								} else {
+								} else if (GLOB(cfg)) {
 									v = ast_variable_browse(GLOB(cfg), device->id);
 									change =  sccp_config_applyDeviceConfiguration(device, v);
 								}
