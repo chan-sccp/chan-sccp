@@ -809,8 +809,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		//! \todo check overlap feature status -MC
 		extensionStatus = PBX(extension_status) (c);
 		if ((d = sccp_channel_getDevice_retained(c))) {
-			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus)) &&
-                            ((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
+			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches More\n", c->dialedNumber);
 				d = sccp_device_release(d);
 				return SCCP_EXTENSION_MATCHMORE;
