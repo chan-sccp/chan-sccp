@@ -97,8 +97,8 @@ static void *sccp_event_processor(void *data)
 	args = data;
 	subscribers = args->subscribers;
 
-	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, event_type2str(event->type));
 	if ((event = sccp_event_retain(args->event))) {
+		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, event_type2str(event->type));
 		for (n = 0; n < subscribers->aSyncSize && sccp_event_running; n++) {
 			if (subscribers->async[n].callback_function != NULL) {
 				sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, event_type2str(event->type), subscribers->async[n].callback_function, n);
