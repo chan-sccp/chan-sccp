@@ -493,6 +493,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 		bytesToRead -= readlen;										// if bytesToRead then more segments to read
 		memcpy(dataptr, buffer, readlen);
 		dataptr += readlen;
+	}
 	UnreadBytesAccordingToPacket -= bytesReadSoFar;
 	tries = 0;
 	
@@ -509,6 +510,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 			else if (readlen <= 0) {break;}								/* if we read EOF, just break reading (invalid packet information) */
 			bytesToRead -= readlen;
 			sccp_dump_packet((unsigned char *)discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
+		}
 		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
 		sccp_dump_msg(msg);
 	}
