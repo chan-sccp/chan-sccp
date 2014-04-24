@@ -1642,11 +1642,10 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		return 0;
 	}
 
-	if (!channel || !channel->line) {
+	if (!(l = channel->line)) {		// maybe we should retain the line here
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no line on channel %d\n", channel->callid);
 		return 0;
 	}
-	l = channel->line;
 	if (!(d = sccp_device_retain(device))) {
 		pbx_log(LOG_WARNING, "SCCP: weird error. The channel has no device or device could not be retained on channel %d\n", channel->callid);
 		return 0;
@@ -1687,7 +1686,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 
-	l = channel->line;
+	l = channel->line;			// if we retain the channel->line, we should pay attention here (question: why are we resetting line here, has channel changed ?)
 
 //	sccp_device_setActiveChannel(d, channel);
 	sccp_channel_setDevice(channel, d);
