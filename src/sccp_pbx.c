@@ -631,15 +631,14 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 	memset(&cidtmp, 0, sizeof(cidtmp));
 #endif														// CS_AST_CHANNEL_HAS_CID
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: try to allocate channel \n");
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Line: %s\n", l->name);
-
 	if (!(l = sccp_line_retain(c->line))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to find line for channel %s\n", c->designator);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_channel_allocate) Unable to find line for channel %s\n", c->designator);
 		pbx_log(LOG_ERROR, "SCCP: Unable to allocate asterisk channel... returning 0\n");
 		sccp_channel_release(c);
 		return 0;
 	}
+
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: try to allocate channel on line: %s\n", l->name);
 	/* Don't hold a sccp pvt lock while we allocate a channel */
 	if ((d = sccp_channel_getDevice_retained(c))) {
 		sccp_linedevices_t *linedevice;
