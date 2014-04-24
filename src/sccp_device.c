@@ -2033,7 +2033,7 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_mutex_lock(&d->messageStackLock);
 #endif
 	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
-		if (d && d->messageStack && d->messageStack[i] != NULL) {
+		if (d->messageStack && d->messageStack[i] != NULL) {
 			sccp_free(d->messageStack[i]);
 		}
 	}
