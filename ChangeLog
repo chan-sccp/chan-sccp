@@ -1,3 +1,253 @@
+2014-04-24  ddegroot
+
+	* [r5385] src/sccp_pbx.c: Fix segfault in sccp_pbx_channel_allocate
+	  (Reported by Alena Juk)
+
+	* [r5384] src/sccp_cli.c, src/sccp_device.c, src/sccp_socket.c:
+	  When calling sccp_print_ha / sccp_print_group using a ast_str
+	  pointer, we should specify the size of the allocated memory, not
+	  the size of the pointer
+
+	* [r5383] src/sccp_device.c: Remove NULL pointer check where not
+	  necesary
+
+	* [r5382] src/sccp_config.c: Remove of double/unnecessary
+	  semicolons
+
+	* [r5381] src/sccp_socket.c: Remove of double/unnecessary
+	  semicolons
+
+	* [r5380] src/sccp_channel.c: Remove NULL pointer check for
+	  channel. Added comments about taking a reference for
+	  channel->line, which might make things clearer
+
+	* [r5379] src/sccp_pbx.c: Clean up if statement, which checks the
+	  same conditions twice
+
+	* [r5378] src/sccp_socket.c: Remove of double/unnecessary
+	  semicolons
+
+	* [r5377] src/sccp_utils.c: Use NULL instead of unclear 0, where a
+	  pointer is concerned
+
+2014-04-23  ddegroot
+
+	* [r5376] src/sccp_channel.c: Added channel->line != NULL assertion
+	  in sccp_channel_openReceiveChannel, because of a
+	  backtrace\/report, this should not happen / be possible, therefor
+	  assertion is used
+
+	* [r5375] src/sccp_config.c: Remove unneccessary pointer checks
+	  (addButton and buidlLine)
+
+	* [r5374] src/sccp_device.c: Just to make sure d->hasDisplayPrompt
+	  has been set correctly
+
+	* [r5373] src/sccp_device.c: Use d->hasDisplayPrompt
+
+	* [r5372] src/sccp_cli.c: Fix/Prevent Segfault when reading
+	  ast_variable by checking if GLOB(cfg) is valid beforehand
+
+	* [r5371] src/pbx_impl/ast/define.h, src/sccp_device.c: Fix
+	  refcount
+
+	* [r5370] src/pbx_impl/ast/ast.c: Don't use ast_check_hangup_locked
+	  during requestQueueHangup (Alena Juk)
+
+	* [r5369] src/sccp_channel.c: Removed unnecessary retain/release of
+	  device in sccp_device_selectedchannels_count, which only gets
+	  called by sccp_softkey functions, which always have a device
+	  retained
+
+	* [r5368] src/pbx_impl/ast/define.h, src/sccp_event.c: Use
+	  tmp_event to retain/release sccp_event_t
+
+2014-04-22  ddegroot
+
+	* [r5367] src/sccp_device.c: Removed stray backslash
+
+	* [r5366] src/sccp_channel.c: Fix refcount issue in
+	  sccp_device_selectedchannels_count (BTW: should this function not
+	  be moved to in sccp_device.c , or renamed otherwise \?)
+
+	* [r5365] src/sccp_device.c: Fix refcount issue during
+	  sccp_device_check_update
+
+	* [r5364] src/sccp_protocol.c, src/sccp_utils.c, src/sccp_utils.h:
+	  When using Variable sized array's, you cannot use sizeof to get
+	  the length of the array, you should use the length specified
+	  during array creation instead. Remarked out non-used function
+	  sockaddr_cmp_addr in sccp_utils.c
+
+	* [r5363] src/sccp_rtp.c: Return value of sccp_rtp_get_sampleRate,
+	  is larger than uint8_t, changed to returning int
+
+	* [r5362] src/sccp_rtp.c, src/sccp_rtp.h: Return value of
+	  sccp_rtp_get_sampleRate, is larger than uint8_t, changed to
+	  returning int
+
+	* [r5361] src/chan_sccp.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
+	  src/sccp_cli.c, src/sccp_conference.c, src/sccp_devstate.c,
+	  src/sccp_event.c, src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_refcount.c,
+	  src/sccp_threadpool.c: Declare globals functions, structs &
+	  variable with only one definition as static
+
+	* [r5360] src/chan_sccp.c, src/chan_sccp.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/astTrunk.c, src/sccp_cli.c, src/sccp_config.c:
+	  Use define for sccp_versionstr and sccp_revisionstr, instead of
+	  non-static global variable
+
+	* [r5359] src/sccp_protocol.h: Force inline where inline is
+	  requested using '__inline__' instead of 'inline'
+
+	* [r5358] src/chan_sccp.h, src/sccp_enum_macro.h,
+	  src/sccp_refcount.c, src/sccp_refcount.h, src/sccp_utils.h: Force
+	  inline where inline is requested using '__inline__' instead of
+	  'inline'
+
+	* [r5357] src/sccp_channel.c: Fix dubious (\!d | \!c), where (\!d
+	  || \!c) was meant
+
+	* [r5356] src/chan_sccp.c, src/chan_sccp.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/astTrunk.c, src/sccp_actions.c,
+	  src/sccp_config.c, src/sccp_device.c, src/sccp_hint.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_threadpool.c,
+	  src/sccp_utils.c: Fixes / Updates after running static analysis
+	  using smatch (Closes rb: 58)
+
+	* [r5355] src/pbx_impl/ast/ast.c: Make sure queue_hangup gets
+	  called without the pbx_channel being locked (Alena Juk)
+
+2014-04-20  ddegroot
+
+	* [r5354] src/sccp_actions.c: Endcall when receiving mediastatus!=0
+	  while handling openreceive_channel, check if we have a valid
+	  channel before calling close_receive_channel
+
+	* [r5353] src/sccp_features.c: Fix: comparison of constant 1 with
+	  boolean expression is always false
+
+2014-04-19  ddegroot
+
+	* [r5352] src/sccp_actions.c, src/sccp_features.c: comparison of
+	  constant 1 with boolean expression is always false
+
+2014-04-14  marcelloceschia
+
+	* [r5351] src/sccp_indicate.c: fix lampStatus for remote devices
+
+2014-04-13  marcelloceschia
+
+	* [r5350] src/sccp_device.c: fix lampMode when call was not
+	  answered
+
+2014-04-13  ddegroot
+
+	* [r5349] src/sccp_channel.c: Fix sccp_find_channel_on_line_byid
+	  and sccp_find_channel_by_lineInstance_and_callid
+
+2014-04-12  marcelloceschia
+
+	* [r5348] src/sccp_hint.c: set lamp for hint (30VIP)
+
+	* [r5347] src/sccp_device.c: change button type for 30VIP && set
+	  lamp to on on connected
+
+	* [r5346] src/sccp_indicate.c: fix lamp indication for 30VIP
+
+	* [r5345] src/sccp_device.c, src/sccp_device.h: add
+	  sccp_device_setLamp
+
+2014-04-12  ddegroot
+
+	* [r5344] src/sccp_refcount.c: Fix refcount rules documentation
+
+	* [r5343] src/sccp_dllists.h: Removed redundant variable update
+	  (var)=(var) when not using retain in SCCP_LIST_FIND
+
+	* [r5342] src/sccp_channel.c, src/sccp_channel.h: use
+	  SCCP_LIST_FIND function in sccp_channel.c
+
+	* [r5341] src/sccp_line.c: Small cleanup of sccp_line_find_byname
+
+	* [r5340] src/sccp_device.c, src/sccp_device.h, src/sccp_line.c,
+	  src/sccp_line.h: use SCCP_LIST_FIND function in
+	  sccp_device_find_byid
+
+	* [r5339] src/sccp_dllists.h, src/sccp_line.c: introduction
+	  SCCP_LIST_FIND function
+
+2014-04-10  marcelloceschia
+
+	* [r5338] src/sccp_dllists.h, src/sccp_line.c: revert Diederiks
+	  marco for finding objects
+
+	* [r5337] src/sccp_dllists.h, src/sccp_line.c: Diederiks marco for
+	  finding objects
+
+2014-04-09  marcelloceschia
+
+	* [r5336] src/sccp_channel.c: fixes issue with missing cid_name and
+	  cid_number on cel events, reported by Nikola Ciprich
+
+2014-04-09  ddegroot
+
+	* [r5335] src/sccp_cli.c: Updated 'sccp reload' to make sure all
+	  parameters are checked and verified before flushing glob(cfg).
+	  SCCP COMMAND CHANGE: 'sccp reload [filename]' has been replaced
+	  by 'sccp reload file filename'
+
+	* [r5334] src/sccp_cli.c: Prevent segfault when using sccp reload
+	  in the case that no config file is set (Which can happen when
+	  mis-using 'sccp reload filename')
+
+2014-04-02  ddegroot
+
+	* [r5333] src/sccp_channel.c: Removal of sccp_channel_set_line.
+	  Channel->line should be read-only and constant (We might actually
+	  have to change the definition in chan_sccp.h to be const to make
+	  absolutely sure).
+
+	* [r5332] src/sccp_channel.c: Disallow setting channel->line to
+	  NULL
+
+2014-03-28  marcelloceschia
+
+	* [r5331] conf/tftp/SEP0000000000.cnf.xml_7937_template[ADD]: 7937
+	  cnf.xml template
+
+2014-03-23  ddegroot
+
+	* [r5330] src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c:
+	  Switch to ast_channel_language_set in ast111.c
+
+	* [r5329] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c: Fix
+	  compile issue against asterisk-10 and lower (bug report 222)
+
+2014-03-22  ddegroot
+
+	* [r5326] src/chan_sccp.c, src/chan_sccp.h, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/astTrunk.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_conference.c, src/sccp_pbx.c: Added new requestHangup
+	  method inside CS_EXPERIMENTAL block for testing purposes (created
+	  by Marcello)
+
+	* [r5325] ChangeLog, autoconf/extra.m4, configure, src/Makefile.in:
+	  Generate Shorter ChangeLog starting at 5000
+
 2014-03-19  ddegroot
 
 	* [r5324] src/sccp_conference.c, src/sccp_config.c: Prevent null
