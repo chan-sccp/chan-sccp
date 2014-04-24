@@ -903,7 +903,7 @@ static void sccp_accept_connection(void)
 	if (GLOB(ha) && sccp_apply_ha(GLOB(ha), &s->sin) != AST_SENSE_ALLOW) {
 		struct ast_str *buf = pbx_str_alloca(512);
 
-		sccp_print_ha(buf, sizeof(buf), GLOB(ha));
+		sccp_print_ha(buf, sizeof(*buf), GLOB(ha));
 		sccp_log(0) ("SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", addrStr, pbx_str_buffer(buf));
 		pbx_log(LOG_WARNING, "SCCP: Rejecting Connection: Ip-address '%s' denied. Check general deny/permit settings (%s).\n", addrStr, pbx_str_buffer(buf));
 		sccp_session_reject(s, "Device ip not authorized");
