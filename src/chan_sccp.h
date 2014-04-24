@@ -93,16 +93,8 @@ static inline unsigned long long bswap_64(unsigned long long x)
 #ifndef SCCP_BRANCH
 #define SCCP_BRANCH "trunk"
 #endif
-#ifdef VCS_SHORT_HASH
-#ifdef VCS_WC_MODIFIED
-#define SCCP_REVISIONSTR VCS_SHORT_HASH "M"
-#else
-#define SCCP_REVISIONSTR VCS_SHORT_HASH
-#endif
-#else
-#define SCCP_REVISIONSTR SCCP_REVISION
-#endif
-#define SCCP_VERSIONSTR "Skinny Client Control Protocol (SCCP). Release: " SCCP_VERSION " "SCCP_BRANCH " - " SCCP_REVISIONSTR " (built by '" BUILD_USER "' on '" BUILD_DATE "')\n"
+char SCCP_VERSIONSTR[300];
+char SCCP_REVISIONSTR[30];
 
 #define SCCP_FILENAME_MAX 80
 #if defined(PATH_MAX)
