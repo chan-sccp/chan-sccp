@@ -689,7 +689,7 @@ struct composedId sccp_parseComposedId(const char *labelString, unsigned int max
 	int state = 0;
 	struct composedId id;
 
-	assert(0 != labelString);
+	assert(NULL != labelString);
 
 	memset(&id, 0, sizeof(id));
 
