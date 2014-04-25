@@ -1490,40 +1490,37 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
 /*!
  * \brief Send Get Activeline to Device
  * \param d SCCP Device
- * \return SCCP Line
+ * \return Retained SCCP Line
  * 
  * \warning
- *   - device->buttonconfig is not always locked
+ *   - device->buttonconfig is not locked
+ * \return_ref d->currentLine
  */
 sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
 {
 	sccp_buttonconfig_t *buttonconfig;
-	sccp_device_t * nonConstDevice = (sccp_device_t *)d;
 
 	if (!d || !d->session) {
 		return NULL;
 	}
-	if (!d->currentLine) {
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-			if (buttonconfig->type == LINE) {
-				if ((nonConstDevice->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
-					sccp_line_retain(d->currentLine);
-					break;
-				}
-			}
-		}
-
-		if (d->currentLine) {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
-			return d->currentLine;
-		} else {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
-			return NULL;
-		}
-	} else {
+	if (d->currentLine) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
 		return sccp_line_retain(d->currentLine);
 	}
+
+	// else try to set an new currentLine	
+	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+		if (buttonconfig->type == LINE) {
+			sccp_device_t *device = (sccp_device_t *) d;							// need non-const device
+			if ((device->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {	// update d->currentLine, returns retained line
+				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
+				return device->currentLine;								// returning retained currentLine
+			}
+		}
+	}
+
+	// failed to find or set a currentLine
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No lines\n", d->id);
 	return NULL;												// never reached
 }
 
