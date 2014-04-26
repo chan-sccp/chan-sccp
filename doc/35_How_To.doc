@@ -208,6 +208,7 @@
  *
  * Using the Redial Button you can Redial the last Called Number on this Line or Device
  *
+ * The last number called is stored in Asterisks local database (AstDB) before a module unload, so the state can be restored to previous setting on a module reload or restart of Asterisk.
  *
  * \subsubsection sk_newcall 		How to use the NewCall Softkey
  *
@@ -241,6 +242,7 @@
  * Using the Do Not Disturb (DND) Button you set your device/line to the Do Not Disturb Status. 
  * When receiving a call your phone will not ring and the People Call You Will get a Busy Signal
  *
+ * The status of DND is stored in Asterisks local database (AstDB), so the state of DND can be restored to previous setting on a module reload or restart of Asterisk.
  *
  * \subsubsection sk_backspace 	How to use the BackSpace (<<) Softkey
  *
@@ -272,18 +274,21 @@
  * Using this Button you can set the current line / device to forward all incoming call to another number
  * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
  *
+ * The status of CallForward is stored in Asterisks local database (AstDB), so the state can be restored to previous setting on a module reload or restart of Asterisk.
  *
  * \subsubsection sk_cfwdbusy	 	How to use the Call Forward if Busy Button
  *
  * Using this Button you can set the current line / device to forward incoming calls when busy to another number
  * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
  *
+ * The status of CallForward is stored in Asterisks local database (AstDB), so the state can be restored to previous setting on a module reload or restart of Asterisk.
  *
  * \subsubsection sk_cfwdnoanswer 	How to use the Call Forward if No-Answer Button
  *
  * Using this Button you can set the current line / device to forward incoming calls when you don't/can't answer to another number
  * This number can be another SCCP/SIP/IAX Device or even an external number (if permitted to call externally)
  *
+ * The status of CallForward is stored in Asterisks local database (AstDB), so the state can be restored to previous setting on a module reload or restart of Asterisk.
  *
  * \subsubsection sk_park	 	How to use the Park Button
  *
