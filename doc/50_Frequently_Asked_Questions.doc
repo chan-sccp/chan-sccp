@@ -54,7 +54,7 @@
  * using "\code./reconf\endcode", it will try and build a new configure application for your machine 
  * (autoconf, automake and m4 are required).
  * 
- * If nothing helps, send a message to our bug page via http://sourceforge.net/tracker/?group_id=186378&atid=917045.
+ * If nothing helps, send a message to our bug page via http://sourceforge.net/tracker/?group_id=186378&amp;atid=917045.
  * Please include config.log when sending a bug about configure/make
  *
  * Q: How to solve compilations errors
