@@ -15,12 +15,12 @@
 #ifndef __SCCP_LINE_H
 #define __SCCP_LINE_H
 
-#define sccp_linedevice_retain(x) 	sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_linedevice_release(x) 	sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_linedevice_refreplace(x, y) sccp_refcount_replace((void **)&x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_line_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_line_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_line_refreplace(x, y)	sccp_refcount_replace((void **)&x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_linedevice_retain(_x) 	({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_linedevice_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_linedevice_refreplace(_x, _y) sccp_refcount_replace((void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_line_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_line_release(_x) 		({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_line_refreplace(_x, _y)	sccp_refcount_replace((void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 void sccp_line_pre_reload(void);
 void sccp_line_post_reload(void);

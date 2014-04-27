@@ -15,9 +15,9 @@
 #ifndef __SCCP_DEVICE_H
 #define __SCCP_DEVICE_H
 
-#define sccp_device_release(x) 		sccp_refcount_release(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_device_retain(x) 		sccp_refcount_retain(x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_device_refreplace(x, y) 	sccp_refcount_replace((void **)&x, y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_device_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_device_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_device_refreplace(_x, _y) 	sccp_refcount_replace((void **)&_x, _y, __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
 /*!
  * \brief SCCP Device Indication Callback Structure
