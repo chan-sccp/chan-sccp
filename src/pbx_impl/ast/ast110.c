@@ -45,8 +45,9 @@ extern "C" {
 #endif
 static struct ast_sched_context *sched = 0;
 static struct io_context *io = 0;
+#ifdef CS_SCCP_CONFERENCE
 static struct ast_format slinFormat = { AST_FORMAT_SLINEAR, {{0}, 0} };
-
+#endif
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk110_request(const char *type, struct ast_format_cap *format, const PBX_CHANNEL_TYPE * requestor, void *data, int *cause);
 static int sccp_wrapper_asterisk110_call(PBX_CHANNEL_TYPE * chan, char *addr, int timeout);
 static int sccp_wrapper_asterisk110_answer(PBX_CHANNEL_TYPE * chan);
