@@ -1514,7 +1514,7 @@ sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
 			sccp_device_t *device = (sccp_device_t *) d;							// need non-const device
 			if ((device->currentLine = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {	// update d->currentLine, returns retained line
 				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Forcing the active line to %s from NULL\n", d->id, d->currentLine->name);
-				return device->currentLine;								// returning retained currentLine
+				return sccp_line_retain(device->currentLine);						// returning retained
 			}
 		}
 	}
