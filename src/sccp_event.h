@@ -22,8 +22,8 @@
 
 #define NUMBER_OF_EVENT_TYPES 10
 
-#define sccp_event_retain(_x) 		sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
-#define sccp_event_release(_x) 		sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__)
+#define sccp_event_retain(_x) 		({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_event_release(_x) 		({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
 /*!
  * \brief SCCP Event Structure
