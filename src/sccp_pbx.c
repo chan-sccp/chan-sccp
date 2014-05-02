@@ -476,6 +476,7 @@ void sccp_pbx_needcheckringback(sccp_device_t * d)
 int sccp_pbx_answer(sccp_channel_t * channel)
 {
 	sccp_channel_t *c = NULL;
+	sccp_device_t *d = NULL;
 
 	int res = 0;
 
@@ -490,15 +491,15 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		/* we are a forwarded call, bridge me with my parent */
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: bridge me with my parent's channel %s\n", c->currentDeviceId, PBX(getChannelName) (c));
 
-		PBX_CHANNEL_TYPE *br = NULL, *astForwardedChannel = c->parentChannel->owner;
+		PBX_CHANNEL_TYPE *astForwardedChannel = c->parentChannel->owner;
+		PBX_CHANNEL_TYPE *br = NULL;
 
 		if (PBX(getChannelAppl) (c)) {
 			sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) %s bridging to dialplan application %s\n", c->currentDeviceId, PBX(getChannelName) (c), PBX(getChannelAppl) (c));
 		}
 
 		/* at this point we do not have a pointer to our bridge channel so we search for it -MC */
-		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, "BRIDGEPEER");
-
+		const char *bridgePeerChannelName = pbx_builtin_getvar_helper(c->owner, CS_BRIDGEPEERNAME);
 		if (!sccp_strlen_zero(bridgePeerChannelName)) {
 			sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) searching for bridgepeer by name: %s\n", bridgePeerChannelName);
 			PBX(getChannelByName) (bridgePeerChannelName, &br);
@@ -517,7 +518,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 //                        c->parentChannel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 #endif
 
-			if (!pbx_channel_masquerade(astForwardedChannel, br)) {
+			if (PBX(masqueradeHelper) (br, astForwardedChannel)) {
 #ifdef CS_EXPERIMENTAL
 //				c->parentChannel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 #endif
@@ -572,7 +573,6 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		}
 		// FINISH
 	} else {
-		sccp_device_t *d = NULL;
 
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_answer) Outgoing call %s has been answered on %s@%s\n", c->currentDeviceId, PBX(getChannelName) (c), c->line->name, c->currentDeviceId);
 		sccp_channel_updateChannelCapability(c);
@@ -615,7 +615,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
  * \lock
  *  - usecnt_lock
  */
-uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
+uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const void *ids, const PBX_CHANNEL_TYPE *parentChannel)
 {
 	PBX_CHANNEL_TYPE *tmp;
 	if (!(c = sccp_channel_retain(c))) {
@@ -707,7 +707,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId)
 
 	/* This should definitely fix CDR */
 	//tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
-	PBX(alloc_pbxChannel) (c, &tmp, linkedId);
+	PBX(alloc_pbxChannel) (c, ids, parentChannel, &tmp);
 	if (!tmp) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
 		c = sccp_channel_release(c);

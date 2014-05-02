@@ -1079,7 +1079,9 @@ struct sccp_device {
 #endif
 	uint16_t defaultLineInstance;										/*!< Default Line Instance */
 	char softkeyDefinition[50];										/*!< requested softKey configuration */
-
+	
+//	PBX_ENDPOINT_TYPE *endpoint;
+	
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
 };
@@ -1140,6 +1142,9 @@ struct sccp_rtp {
  */
 struct sccp_channel {
 	uint32_t callid;											/*!< Call ID */
+#if ASTERISK_VERSION_GROUP >= 111
+	int pbx_callid_created;
+#endif
 	uint32_t passthrupartyid;										/*!< Pass Through ID */
 	uint16_t state;												/*!< Internal channel state SCCP_CHANNELSTATE_* */
 	uint16_t previousChannelState;										/*!< Previous channel state SCCP_CHANNELSTATE_* */

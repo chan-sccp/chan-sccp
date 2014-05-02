@@ -20,6 +20,8 @@ typedef int ast_format_t;
 #define NEWCONST												// old functions used without const
 #define OLDCONST const												// new function used with const
 
+#define PBX_ENDPOINT_TYPE void
+
 struct ast_hashtab {
 };
 

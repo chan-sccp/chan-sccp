@@ -25,6 +25,7 @@
 #define sccp_asprintf ast_asprintf
 #define sccp_vasprintf ast_vasprintf
 #define sccp_calloc_cache ast_calloc_cache
+#define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
 // codec / format redefinitions
 #define pbx_codec_pref_index ast_codec_pref_index
@@ -48,7 +49,6 @@
 #define pbx_io_wait ast_io_wait
 #define pbx_gethostbyname ast_gethostbyname
 #define pbx_apply_ha ast_apply_ha
-#define pbx_pickup_ext ast_pickup_ext
 #define pbx_moh_stop ast_moh_stop
 #define pbx_channel_alloc ast_channel_alloc
 #define pbx_null_frame ast_null_frame
@@ -74,9 +74,9 @@
 #endif
 
 #ifndef CS_BRIDGE_BASE_NEW
-#define pbx_bridge_new ast_bridge_new
+#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_new(_a, _b)
 #else
-#define pbx_bridge_new ast_bridge_base_new
+#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new(_a, _b)
 #endif
 #define pbx_bridge_remove ast_bridge_remove
 #define pbx_bridge_result ast_bridge_result
@@ -92,8 +92,10 @@
 #define pbx_bridge_depart(_x, _y) ast_bridge_depart(_y)
 #endif
 
-#define pbx_bridge_destroy ast_bridge_destroy
+#define pbx_bridge_destroy(_x, _y) ast_bridge_destroy(_x)
 #define pbx_bridge_features_cleanup ast_bridge_features_cleanup
+#define pbx_bridge_change_state ast_bridge_change_state
+
 #define pbx_request ast_request
 #define pbx_build_string ast_build_string
 #define pbx_callerid_parse ast_callerid_parse
@@ -103,6 +105,7 @@
 #define pbx_cause ast_cause
 #define pbx_cdr_amaflags2int ast_cdr_amaflags2int
 #define pbx_cdr_flags2str ast_cdr_flags2str
+#define pbx_channel_amaflags2string ast_cdr_flags2str
 #define pbx_cdr_start ast_cdr_start
 #define pbx_cdr_update ast_cdr_update
 #define pbx_channel_defer_dtmf ast_channel_defer_dtmf
@@ -117,6 +120,7 @@
 #define pbx_channel_trylock ast_channel_trylock
 #define pbx_channel_undefer_dtmf ast_channel_undefer_dtmf
 #define pbx_channel_unregister ast_channel_unregister
+#define pbx_channel_string2amaflag ast_cdr_amaflags2int
 #define pbx_cli ast_cli
 #define pbx_cli_entry ast_cli_entry
 #define pbx_cli_register ast_cli_register
@@ -207,7 +211,6 @@ typedef struct ast_event pbx_event_t;
 #define pbx_party_number_free ast_party_number_free
 #define pbx_pbx_run ast_pbx_run
 // #define pbx_pbx_start ast_pbx_start
-#define pbx_pickup_ext ast_pickup_ext
 #define pbx_poll ast_poll
 #define pbx_print_group ast_print_group
 #define pbx_pthread_create ast_pthread_create

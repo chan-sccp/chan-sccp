@@ -19,14 +19,6 @@ extern "C" {
 /* *INDENT-OFF* */
 #endif
 
-#if ASTERISK_VERSION_GROUP < 112
-#include "asterisk/bridging.h"
-#include "asterisk/bridging_features.h"
-#else
-#include "asterisk/bridge.h"
-#include "asterisk/bridge_technology.h"
-#include "asterisk/bridge_features.h"
-#endif
 typedef struct sccp_conference_participant sccp_conference_participant_t;					/*!< SCCP Conference Participant Structure */
 
 /* structures */
@@ -75,7 +67,7 @@ struct sccp_conference_participant {
 void sccp_conference_module_start(void);
 void sccp_conference_module_stop(void);
 sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t * channel);
-void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel);
+void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * conferenceSCCPChannel, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel);
 void sccp_conference_resume(sccp_conference_t * conference);
 void sccp_conference_start(sccp_conference_t * conference);
 void sccp_conference_update(sccp_conference_t * conference);

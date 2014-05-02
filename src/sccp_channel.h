@@ -22,7 +22,7 @@
 
 /* live cycle */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, const char *linkedid);
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE *parentChannel);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);

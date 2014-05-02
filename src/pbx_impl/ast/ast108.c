@@ -68,7 +68,6 @@ static int sccp_wrapper_recvdigit_begin(PBX_CHANNEL_TYPE * ast, char digit);
 static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsigned int duration);
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen);
 int sccp_wrapper_asterisk18_hangup(PBX_CHANNEL_TYPE * ast_channel);
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId);
 static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * channel, skinny_codec_t codec);
 
 //static int sccp_wrapper_asterisk18_setOption(PBX_CHANNEL_TYPE *ast, int option, void *data, int datalen);
@@ -910,13 +909,25 @@ static int sccp_wrapper_asterisk18_setNativeVideoFormats(const sccp_channel_t * 
 	return 1;
 }
 
-boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId)
+static void sccp_wrapper_asterisk108_setOwner(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel) {
+	PBX_CHANNEL_TYPE *prev_owner = channel->owner;
+	if (pbx_channel) {
+		channel->owner = ast_channel_ref(pbx_channel);
+	}
+	if (channel->owner) {
+		ast_channel_unref(prev_owner);
+	}
+}
+
+static boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
-	sccp_line_t *line = NULL;
+	const char *linkedId = ids ? strdupa(ids) : NULL;
+	sccp_line_t *line = channel->line;
+	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
 
-	(*pbx_channel) = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, linkedId, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
+	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, channel->line->cid_num, channel->line->cid_name, channel->line->accountcode, channel->dialedNumber, channel->line->context, linkedId, channel->line->amaflags, "SCCP/%s-%08X", channel->line->name, channel->callid);
 
-	if ((*pbx_channel) == NULL) {
+	if (pbxDstChannel == NULL) {
 		return FALSE;
 	}
 
@@ -925,42 +936,54 @@ boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, PBX_
 	}
 	line = channel->line;
 
-	(*pbx_channel)->tech = &sccp_tech;
-	(*pbx_channel)->tech_pvt = sccp_channel_retain(channel);
+	pbxDstChannel->tech = &sccp_tech;
+	pbxDstChannel->tech_pvt = sccp_channel_retain(channel);
 
-	memset((*pbx_channel)->exten, 0, sizeof((*pbx_channel)->exten));
+	/* Copy Codec from SrcChannel */
+	if (pbxSrcChannel) {
+		pbxDstChannel->nativeformats = pbxSrcChannel->nativeformats;
+		pbxDstChannel->rawwriteformat = pbxSrcChannel->rawwriteformat;
+		pbxDstChannel->writeformat = pbxSrcChannel->writeformat;
+		pbxDstChannel->readformat = pbxSrcChannel->readformat;
+		pbxDstChannel->writetrans = pbxSrcChannel->writetrans;
+		ast_set_write_format(pbxDstChannel, pbxSrcChannel->rawwriteformat);
+	}
+	/* EndCodec */
 
-	sccp_copy_string((*pbx_channel)->context, line->context, sizeof((*pbx_channel)->context));
+	memset(pbxDstChannel->exten, 0, sizeof(pbxDstChannel->exten));
+
+	sccp_copy_string(pbxDstChannel->context, line->context, sizeof(pbxDstChannel->context));
 
 	if (!sccp_strlen_zero(line->language)) {
-		ast_string_field_set((*pbx_channel), language, line->language);
+		ast_string_field_set(pbxDstChannel, language, line->language);
 	}
 	if (!sccp_strlen_zero(line->accountcode)) {
-		ast_string_field_set((*pbx_channel), accountcode, line->accountcode);
+		ast_string_field_set(pbxDstChannel, accountcode, line->accountcode);
 	}
 	if (!sccp_strlen_zero(line->musicclass)) {
-		ast_string_field_set((*pbx_channel), musicclass, line->musicclass);
+		ast_string_field_set(pbxDstChannel, musicclass, line->musicclass);
 	} 
 	if (line->amaflags) {
-		(*pbx_channel)->amaflags = line->amaflags;
+		pbxDstChannel->amaflags = line->amaflags;
 	}
 	if (line->callgroup) {
-		(*pbx_channel)->callgroup = line->callgroup;
+		pbxDstChannel->callgroup = line->callgroup;
 	}
 #if CS_SCCP_PICKUP
 	if (line->pickupgroup) {
-		(*pbx_channel)->pickupgroup = line->pickupgroup;
+		pbxDstChannel->pickupgroup = line->pickupgroup;
 	}
 #endif
-	(*pbx_channel)->priority = 1;
-	(*pbx_channel)->adsicpe = AST_ADSI_UNAVAILABLE;
-
+	pbxDstChannel->priority = 1;
+	pbxDstChannel->adsicpe = AST_ADSI_UNAVAILABLE;
 	/** the the tonezone using language information */
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
-		(*pbx_channel)->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
+		pbxDstChannel->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */
 	}
 	ast_module_ref(ast_module_info->self);
-	channel->owner = ast_channel_ref((*pbx_channel));
+	sccp_wrapper_asterisk108_setOwner(channel, pbxDstChannel);
+
+	(*_pbxDstChannel) = pbxDstChannel;
 
 	return TRUE;
 }
@@ -995,29 +1018,32 @@ static boolean_t sccp_wrapper_asterisk18_masqueradeHelper(PBX_CHANNEL_TYPE * pbx
 	return TRUE;
 }
 
-static boolean_t sccp_wrapper_asterisk18_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel)
+static boolean_t sccp_wrapper_asterisk18_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
+	PBX_CHANNEL_TYPE *pbxDstChannel=NULL;
 	if (!pbxSrcChannel) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_TempPBXChannel) no pbx channel provided\n");
 		return FALSE;
 	}
-	(*pbxDstChannel) = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->linkedid, pbxSrcChannel->amaflags, "TMP/%s", pbxSrcChannel->name);
-	if ((*pbxDstChannel) == NULL) {
+	pbxDstChannel = ast_channel_alloc(0, pbxSrcChannel->_state, 0, 0, pbxSrcChannel->accountcode, pbxSrcChannel->exten, pbxSrcChannel->context, pbxSrcChannel->linkedid, pbxSrcChannel->amaflags, "TMP/%s", pbxSrcChannel->name);
+	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_TempPBXChannel) create pbx channel failed\n");
 		return FALSE;
 	}
 
-	(*pbxDstChannel)->writeformat = pbxSrcChannel->writeformat;
-	(*pbxDstChannel)->readformat = pbxSrcChannel->readformat;
+	pbxDstChannel->writeformat = pbxSrcChannel->writeformat;
+	pbxDstChannel->readformat = pbxSrcChannel->readformat;
+
+	(*_pbxDstChannel) = pbxDstChannel;
 	return TRUE;
 }
 
-static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_requestForeignChannel(const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data)
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_requestAnnouncementChannel(pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data)
 {
 	PBX_CHANNEL_TYPE *chan;
 	int cause;
 
-	if (!(chan = ast_request(type, format, requestor, data, &cause))) {
+	if (!(chan = ast_request("Bridge", format, requestor, data, &cause))) {
 		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d", cause);
 		return NULL;
 	}
@@ -1199,6 +1225,17 @@ static boolean_t sccp_wrapper_asterisk18_getFeatureExtension(const sccp_channel_
 	ast_unlock_call_features();
 
 	return feat ? TRUE : FALSE;
+}
+
+
+static boolean_t sccp_wrapper_asterisk18_getPickupExtension(const sccp_channel_t * channel, char **extension)
+{
+	boolean_t res = FALSE;
+	if (!sccp_strlen_zero(ast_pickup_ext())) {
+		*extension = (char *)ast_pickup_ext();
+		res = TRUE;
+	}
+	return res;
 }
 
 #if !CS_AST_DO_PICKUP
@@ -1557,7 +1594,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk18_request(const char *type, forma
 			goto EXITFUNC;
 	}
 
-	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL)) {
+	if (!sccp_pbx_channel_allocate(channel, requestor ? requestor->linkedid : NULL, requestor)) {
 		//! \todo handle error in more detail, cleanup sccp channel
 		pbx_log(LOG_WARNING, "SCCP: Unable to allocate channel\n");
 		*cause = AST_CAUSE_REQUESTED_CHAN_UNAVAIL;
@@ -1672,8 +1709,7 @@ static int sccp_wrapper_asterisk18_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 				ast_string_field_set(newchan, language, c->line->language);
 			}
 #endif
-			c->owner = ast_channel_ref(newchan);
-			ast_channel_unref(oldchan);
+			sccp_wrapper_asterisk108_setOwner(c, newchan);
 			//! \todo force update of rtp peer for directrtp
 			// sccp_wrapper_asterisk111_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
 
@@ -2972,6 +3008,45 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk108_getExtensionState(c
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (getExtensionState) extension: %s@%s, extension_state: '%s (%d)' -> blf state '%d'\n", extension, context, ast_extension_state2str(state), state, result);
 	return result;
 }
+static boolean_t sccp_wrapper_asterisk108_channelIsBridged(sccp_channel_t *channel) 
+{
+	boolean_t res = FALSE;
+	if (!channel || !channel->owner) {
+		return res;
+	}
+	ast_channel_lock(channel->owner);
+	if (ast_bridged_channel(channel->owner)) {
+		res = TRUE;
+	}
+	ast_channel_unlock(channel->owner);
+	return res;
+}
+
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk108_getBridgeChannel(PBX_CHANNEL_TYPE *pbx_channel)
+{
+	PBX_CHANNEL_TYPE *bridged_channel = NULL;
+	if (pbx_channel && pbx_channel_tech(pbx_channel)) {
+		bridged_channel = pbx_channel_tech(pbx_channel)->bridged_channel(pbx_channel, NULL);
+		return ast_channel_ref(bridged_channel);
+	}
+	return NULL;
+}
+
+static boolean_t sccp_wrapper_asterisk108_attended_transfer(sccp_channel_t *destination_channel, sccp_channel_t *source_channel)
+{
+	// possibly move transfer related callinfo updates here
+	if (!destination_channel || !source_channel || !destination_channel->owner || !source_channel->owner) {
+		return FALSE;
+	}
+	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
+	PBX_CHANNEL_TYPE *pbx_source_remote_channel = CS_AST_BRIDGED_CHANNEL(source_channel->owner);
+
+	if (!pbx_destination_local_channel || !pbx_source_remote_channel) {
+		return FALSE;
+	}
+	return pbx_channel_masquerade(pbx_destination_local_channel, pbx_source_remote_channel);
+}
+
 
 #if defined(__cplusplus) || defined(c_plusplus)
 static struct ast_rtp_glue sccp_rtp = {
@@ -3159,6 +3234,7 @@ sccp_pbx_cb sccp_pbx = {
 	feature_removeTreeFromDatabase:	sccp_asterisk_removeTreeFromDatabase,
 	feature_monitor:		sccp_wrapper_asterisk_featureMonitor,
 	getFeatureExtension:		sccp_wrapper_asterisk18_getFeatureExtension,
+	getPickupExtension:		sccp_wrapper_asterisk18_getPickupExtension,
 	feature_pickup:			sccp_wrapper_asterisk18_pickupChannel,
 
 	eventSubscribe:			NULL,
@@ -3171,12 +3247,18 @@ sccp_pbx_cb sccp_pbx = {
 
 	allocTempPBXChannel:		sccp_wrapper_asterisk18_allocTempPBXChannel,
 	masqueradeHelper:		sccp_wrapper_asterisk18_masqueradeHelper,
-	requestForeignChannel:		sccp_wrapper_asterisk18_requestForeignChannel,
+	requestAnnouncementChannel:	sccp_wrapper_asterisk18_requestAnnouncementChannel,
 	
 	set_language:			sccp_wrapper_asterisk_setLanguage,
 
 	getExtensionState:		sccp_wrapper_asterisk108_getExtensionState,
 	findPickupChannelByExtenLocked:	sccp_wrapper_asterisk18_findPickupChannelByExtenLocked,
+
+	set_owner:			sccp_wrapper_asterisk108_setOwner,
+	dumpchan:			NULL,
+	channel_is_bridged:		sccp_wrapper_asterisk108_channelIsBridged,
+	get_bridged_channel:		sccp_wrapper_asterisk108_getBridgeChannel,
+	attended_transfer:		sccp_wrapper_asterisk108_attended_transfer,
 	/* *INDENT-ON* */
 };
 #else
@@ -3278,6 +3360,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.feature_park			= sccp_wrapper_asterisk18_park,
 	.feature_monitor		= sccp_wrapper_asterisk_featureMonitor,
 	.getFeatureExtension		= sccp_wrapper_asterisk18_getFeatureExtension,
+	.getPickupExtension		= sccp_wrapper_asterisk18_getPickupExtension,
 	.feature_pickup			= sccp_wrapper_asterisk18_pickupChannel,
 	
 	.findChannelByCallback		= sccp_wrapper_asterisk18_findChannelWithCallback,
@@ -3289,12 +3372,18 @@ struct sccp_pbx_cb sccp_pbx = {
 	
 	.allocTempPBXChannel		= sccp_wrapper_asterisk18_allocTempPBXChannel,
 	.masqueradeHelper		= sccp_wrapper_asterisk18_masqueradeHelper,
-	.requestForeignChannel		= sccp_wrapper_asterisk18_requestForeignChannel,
+	.requestAnnouncementChannel	= sccp_wrapper_asterisk18_requestAnnouncementChannel,
 	
 	.set_language			= sccp_wrapper_asterisk_setLanguage,
 
 	.getExtensionState		= sccp_wrapper_asterisk108_getExtensionState,
 	.findPickupChannelByExtenLocked = sccp_wrapper_asterisk18_findPickupChannelByExtenLocked,
+
+	.set_owner			= sccp_wrapper_asterisk108_setOwner,
+	.dumpchan			= NULL,
+	.channel_is_bridged		= sccp_wrapper_asterisk108_channelIsBridged,
+	.get_bridged_channel		= sccp_wrapper_asterisk108_getBridgeChannel,
+	.attended_transfer		= sccp_wrapper_asterisk108_attended_transfer,
 	/* *INDENT-ON* */
 };
 #endif

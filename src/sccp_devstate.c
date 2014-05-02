@@ -34,7 +34,7 @@ typedef struct sccp_devstate_deviceState sccp_devstate_deviceState_t;
 struct sccp_devstate_deviceState {
   
 	char devicestate[StationMaxNameSize];
-	struct ast_event_sub *sub;
+	PBX_EVENT_SUBSCRIPTION *sub;
 	uint32_t featureState;
 	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
 	
@@ -47,7 +47,12 @@ static SCCP_LIST_HEAD (, struct sccp_devstate_deviceState) deviceStates;
 void sccp_devstate_deviceRegisterListener(const sccp_event_t * event);
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate);
 sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *devstate);
+//void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data);
+#if ASTERISK_VERSION_GROUP >= 112
+void sccp_devstate_changed_cb(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg);
+#else
 void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data);
+#endif
 void sccp_devstate_removeSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device);
 void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_devstate_SubscribingDevice_t *subscriber);
 void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t *deviceState, const sccp_device_t *device, sccp_buttonconfig_t *buttonConfig);
@@ -191,7 +196,12 @@ sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *
 	
 	SCCP_LIST_HEAD_INIT(&deviceState->subscribers);
 	sccp_copy_string(deviceState->devicestate, devstate, sizeof(deviceState->devicestate));
+#if ASTERISK_VERSION_GROUP >= 112
+	struct stasis_topic *devstate_specific_topic = ast_device_state_topic(strdup(buf));
+	deviceState->sub = stasis_subscribe(devstate_specific_topic, sccp_devstate_changed_cb, deviceState);
+#else
 	deviceState->sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_devstate_changed_cb, "sccp_devstate_changed_cb", deviceState, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, strdup(buf), AST_EVENT_IE_END);
+#endif
 	deviceState->featureState = (ast_device_state(buf) == AST_DEVICE_NOT_INUSE) ? 0 : 1;
 	
 	SCCP_LIST_INSERT_HEAD(&deviceStates, deviceState, list);
@@ -211,10 +221,7 @@ void sccp_devstate_addSubscriber(sccp_devstate_deviceState_t *deviceState, const
 	subscriber->buttonConfig->button.feature.status = deviceState->featureState;
 	sccp_copy_string(subscriber->label, buttonConfig->label, sizeof(subscriber->label));
 	
-	
 	SCCP_LIST_INSERT_HEAD(&deviceState->subscribers, subscriber, list);
-	
-	
 	sccp_devstate_notifySubscriber(deviceState, subscriber);	/* set initial state */
 }
 
@@ -245,18 +252,32 @@ void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t *deviceState, co
 	sccp_dev_send(subscriber->device, msg);
 }
 
+//void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
+#if ASTERISK_VERSION_GROUP >= 112
+void sccp_devstate_changed_cb(void *data, struct stasis_subscription *sub, struct stasis_message *msg)
+#else
 void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
+#endif
 {
 	sccp_devstate_deviceState_t *deviceState = NULL;
 	sccp_devstate_SubscribingDevice_t *subscriber = NULL;
-	
 	enum ast_device_state state;
 	
-	deviceState = (sccp_devstate_deviceState_t *)data;
-	
+#if ASTERISK_VERSION_GROUP >= 112
+	struct ast_device_state_message *dev_state = stasis_message_data(msg);
+        if (ast_device_state_message_type() != stasis_message_type(msg)) {
+        	return;
+	}
+	if (dev_state->eid) {							/* ignore non-aggregate states */
+		return;
+	}
+	state = dev_state->state;
+#else
 	state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
+#endif
+	deviceState = (sccp_devstate_deviceState_t *)data;
 	deviceState->featureState = (state == AST_DEVICE_NOT_INUSE) ? 0 : 1;
-	
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_changed_cb) got new device state for %s, state: %d, deviceState->subscribers.count %d\n", "SCCP", deviceState->devicestate, state, deviceState->subscribers.size);
 	SCCP_LIST_TRAVERSE(&deviceState->subscribers, subscriber, list) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_devstate_changed_cb) notify subscriber for state %d\n", DEV_ID_LOG(subscriber->device), deviceState->featureState);

@@ -14,7 +14,7 @@
 #ifndef __SCCP_PBX_H
 #define __SCCP_PBX_H
 
-uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const char *linkedId);
+uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const void *ids, const PBX_CHANNEL_TYPE *parentChannel);
 int sccp_pbx_sched_dial(const void *data);
 sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c);
 void *sccp_pbx_softswitch(sccp_channel_t * c);

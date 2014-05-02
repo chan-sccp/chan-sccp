@@ -1513,7 +1513,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 				/*! \todo use feature map or sccp_feat_handle_directed_pickup */
 				if ((l = sccp_line_find_byid(d, d->defaultLineInstance))) {
 					//sccp_feat_handle_directed_pickup(l, d->defaultLineInstance, d);
-					channel = sccp_channel_newcall(l, d, (char *) pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
+					channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
 					channel = channel ? sccp_channel_release(channel) : NULL;
 				}
 				goto func_exit;
@@ -1526,7 +1526,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 			if (al) {
 				/*! \todo use feature map or sccp_feat_handle_directed_pickup */
 				//sccp_feat_handle_directed_pickup(l, 1, d);
-				channel = sccp_channel_newcall(al, d, (char *) pbx_pickup_ext(), SKINNY_CALLTYPE_OUTBOUND, NULL);
+				channel = sccp_channel_newcall(al, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
 				channel = channel ? sccp_channel_release(channel) : NULL;
 			}
 #endif

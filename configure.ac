@@ -6,7 +6,7 @@ dnl          See the LICENSE file at the top of the source tree.
 dnl DATE: $Date$
 dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.65])
+AC_PREREQ([2.63])
 AC_INIT([Chan_SCCP],[4.2_TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
 
 MIN_ASTERISK_VERSION=106
@@ -46,7 +46,7 @@ CONFIGURE_PART([Checking AutoMake:])
 AM_MAINTAINER_MODE([disable])								dnl Switches off auto-regeneration on configure.ac / Makefile.am changes
 											dnl make sure to run tool/bootstrap.sh before checking in configure changes to svn
 
-AM_INIT_AUTOMAKE([1.11 -Wno-portability check-news dist-bzip2 nostdinc])
+AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_DISABLE_STATIC([])
 

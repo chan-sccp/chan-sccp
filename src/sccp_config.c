@@ -1125,7 +1125,7 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
 	char *value = strdupa(v->value);
 	int amaflags;
 
-	amaflags = pbx_cdr_amaflags2int(value);
+	amaflags = pbx_channel_string2amaflag(value);
 
 	if (amaflags < 0) {
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;

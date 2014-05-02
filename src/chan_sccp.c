@@ -597,7 +597,7 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(privacy) = TRUE;											/* permit private function */
 	GLOB(mwilamp) = SKINNY_LAMP_ON;
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
-	GLOB(amaflags) = pbx_cdr_amaflags2int("documentation");
+	GLOB(amaflags) = pbx_channel_string2amaflag("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
 	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
