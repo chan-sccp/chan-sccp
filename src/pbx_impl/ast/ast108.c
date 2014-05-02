@@ -1695,7 +1695,7 @@ static int sccp_wrapper_asterisk18_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set c->hangupRequest = requestQueueHangup\n", c->designator);
 				
 				// set channel requestHangup to use ast_queue_hangup (as it is now part of a __ast_pbx_run, after masquerade completes) 
-				c->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
+				c->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 				if (!sccp_strlen_zero(c->line->language)) {
 					ast_string_field_set(newchan, language, c->line->language);
 				}
