@@ -860,7 +860,7 @@ static void sccp_wrapper_asterisk110_setOwner(sccp_channel_t *channel, PBX_CHANN
 	if (pbx_channel) {
 		channel->owner = ast_channel_ref(pbx_channel);
 	}
-	if (channel->owner) {
+	if (prev_owner) {
 		ast_channel_unref(prev_owner);
 	}
 }
