@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_features.c
  * \brief	SCCP Features Class
@@ -100,7 +99,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 						sccp_channel_endcall(c);
 						goto EXIT;
 					}
-				} else if (c->owner && ast_bridged_channel(c->owner)) {				// check if we have an ast channel to get callerid from
+				} else if (PBX(channel_is_bridged)(c)) {					// check if we have an ast channel to get callerid from
 					// if we have an incoming or forwarded call, let's get number from callerid :) -FS
 					char *number = NULL;
 
@@ -154,7 +153,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 		}
 //		sccp_device_setActiveChannel(device, c);
 
-		if (!sccp_pbx_channel_allocate(c, NULL)) {
+		if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
 			pbx_log(LOG_WARNING, "%s: (handle_callforward) Unable to allocate a new channel for line %s\n", DEV_ID_LOG(device), l->name);
 			sccp_indicate(device, c, SCCP_CHANNELSTATE_CONGESTION);					// implicitly retained device by sccp_action
 			goto EXIT;
@@ -255,7 +254,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL)) {
+	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_directed_pickup) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -484,11 +483,13 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	}
 	
 	SCCP_SCHED_DEL(c->scheduler.digittimeout);
-        const char *pickupexten = pbx_pickup_ext();
-	sccp_copy_string(c->dialedNumber, pickupexten, sizeof(pickupexten));
-	sccp_pbx_softswitch(c);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished\n", DEV_ID_LOG(d));
-	res = 0;
+	char *pickupexten;
+	if (PBX(getPickupExtension)(channel, &pickupexten)) {
+		sccp_copy_string(c->dialedNumber, pickupexten, sizeof(pickupexten));
+		sccp_pbx_softswitch(c);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished\n", DEV_ID_LOG(d));
+		res = 0;
+	}
 #else
 	PBX_CHANNEL_TYPE *dest = NULL;
 
@@ -558,7 +559,7 @@ void sccp_feat_updatecid(sccp_channel_t * c)
 	if (!c || !c->owner) {
 		return;
         }
-	if ((c->calltype != SKINNY_CALLTYPE_OUTBOUND) && (!ast_bridged_channel(c->owner))) {
+	if ((c->calltype != SKINNY_CALLTYPE_OUTBOUND) && (!PBX(channel_is_bridged)(c))) {
 		return;
 	}
 
@@ -728,7 +729,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 		/* ok the number exist. allocate the asterisk channel */
-		if (!sccp_pbx_channel_allocate(c, NULL)) {
+		if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
 			pbx_log(LOG_WARNING, "%s: (sccp_feat_handle_conference) Unable to allocate a new channel for line %s\n", d->id, l->name);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 			c = sccp_channel_release(c);
@@ -787,7 +788,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
 				if (selectedChannel->channel != d->active_channel) {
 					if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(selectedChannel->channel->owner))) {
-						sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
+						sccp_conference_addParticipatingChannel(d->conference, c, selectedChannel->channel, bridged_channel);
 					} else {
 						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(selectedChannel->channel->owner));
 					}
@@ -810,7 +811,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 							if (channel != d->active_channel) {
 								if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
 									sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
-									sccp_conference_addParticipatingChannel(d->conference, c, bridged_channel);
+									sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel);
 								} else {
 									pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
 								}
@@ -887,7 +888,7 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 					pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
 					if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(newparticipant_channel->owner))) {
 						sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(newparticipant_channel->state));
-						sccp_conference_addParticipatingChannel(d->conference, newparticipant_channel, bridged_channel);
+						sccp_conference_addParticipatingChannel(d->conference, moderator_channel, newparticipant_channel, bridged_channel);
 					} else {
 						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(newparticipant_channel->owner));
 					}
@@ -993,7 +994,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL)) {
+	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_meetme) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -1204,7 +1205,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL)) {
+	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_barge) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);
@@ -1298,7 +1299,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(c, NULL)) {
+	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "%s: (handle_cbarge) Unable to allocate a new channel for line %s\n", d->id, l->name);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
 		c = sccp_channel_release(c);

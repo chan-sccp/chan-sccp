@@ -36,7 +36,7 @@
 struct sccp_pbx_cb {
 	/* *INDENT-OFF* */
 	/* channels */
-	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, PBX_CHANNEL_TYPE ** pbx_channel, const char *linkedId);
+	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, const void * ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);
 	int (*const set_callstate) (const sccp_channel_t * pbx_channel, int state);
 	boolean_t(*const checkhangup) (const sccp_channel_t * channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
@@ -127,6 +127,7 @@ struct sccp_pbx_cb {
 	boolean_t(*const feature_removeTreeFromDatabase) (const char *family, const char *key);
 	boolean_t(*const feature_monitor) (const sccp_channel_t *channel);
 	boolean_t(*const getFeatureExtension) (const sccp_channel_t * channel, char **featureExtension);
+	boolean_t(*const getPickupExtension) (const sccp_channel_t * channel, char **pickupExtension);
 	boolean_t(*const feature_pickup) (const sccp_channel_t *chan, PBX_CHANNEL_TYPE *target);
 
 	void *(*const eventSubscribe)(const sccp_channel_t * channel, char **featureExtension);
@@ -140,7 +141,7 @@ struct sccp_pbx_cb {
 	/* conference */
 	boolean_t(*const allocTempPBXChannel) (PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);
 	boolean_t(*const masqueradeHelper) (PBX_CHANNEL_TYPE *pbxChannel, PBX_CHANNEL_TYPE *pbxTmpchannel);
-	PBX_CHANNEL_TYPE *(*const requestForeignChannel) (const char *type, pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
+	PBX_CHANNEL_TYPE *(*const requestAnnouncementChannel) (pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
 	
 	boolean_t(*const set_language)(PBX_CHANNEL_TYPE *pbxChannel, const char *language);
 	
@@ -149,6 +150,16 @@ struct sccp_pbx_cb {
 	
 	PBX_CHANNEL_TYPE *(*const findPickupChannelByExtenLocked)(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
 	
+// 	PBX_ENDPOINT_TYPE *(*const endpoint_create)(const char *tech, const char *resource);
+//	void (*const endpoint_online)(PBX_ENDPOINT_TYPE *endpoint);
+//	void (*const endpoint_offline)(PBX_ENDPOINT_TYPE *endpoint);
+//	void (*const endpoint_shutdown)(PBX_ENDPOINT_TYPE *endpoint);
+	
+        void (*const set_owner)(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel); 	
+	int (*const dumpchan) (PBX_CHANNEL_TYPE *pbx_channel, char *buf, size_t size);
+	boolean_t (*const channel_is_bridged) (sccp_channel_t *channel);
+	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);
+	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);
 	/* *INDENT-ON* */
 };
 

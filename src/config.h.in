@@ -35,6 +35,9 @@
 /* Defined ASTERISK_CONF_1_12 */
 #undef ASTERISK_CONF_1_12
 
+/* Defined ASTERISK_CONF_1_13 */
+#undef ASTERISK_CONF_1_13
+
 /* Defined ASTERISK_CONF_1_2 */
 #undef ASTERISK_CONF_1_2
 
@@ -103,6 +106,9 @@
 
 /* 'AST_CONTROL_INCOMPLETE' available */
 #undef CS_AST_CONTROL_INCOMPLETE
+
+/* 'AST_CONTROL_REDIRECTING' available */
+#undef CS_AST_CONTROL_REDIRECTING
 
 /* 'AST_CONTROL_SRCCHANGE' available */
 #undef CS_AST_CONTROL_SRCCHANGE
@@ -514,7 +520,7 @@
 /* Found 'asterisk/astobj2.h' */
 #undef HAVE_PBX_ASTOBJ2_H
 
-/* Found 'asterisk/bridging_features.h' */
+/* Found 'asterisk/bridge_features.h' */
 #undef HAVE_PBX_BRIDGING_FEATURES_H
 
 /* Found 'asterisk/bridging_roles.h' */
@@ -796,16 +802,22 @@
 #undef PACKAGE
 
 /* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
 
 /* Define to the full name of this package. */
+#undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
 
 /* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
 
 /* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
+#undef PACKAGE_VERSION
 
 /* Define PBX_CHANNEL_TYPE as 'struct ast_channel' */
 #undef PBX_CHANNEL_TYPE

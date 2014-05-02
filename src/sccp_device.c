@@ -406,6 +406,9 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
 #endif
+//	if (PBX(endpoint_create)) {
+//		d->endpoint = PBX(endpoint_create)("sccp", id);
+//	}
 	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
 
 	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
@@ -2043,6 +2046,10 @@ int __sccp_device_destroy(const void *ptr)
 		pbx_variables_destroy(d->variables);
 		d->variables = NULL;
 	}
+
+//	if (PBX(endpoint_shutdown)) {
+//		PBX(endpoint_shutdown)(d->endpoint);
+//	}
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 	return 0;

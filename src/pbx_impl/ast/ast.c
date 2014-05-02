@@ -448,7 +448,8 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
 {
 	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
-	return ast_hangup(channel->owner) ? FALSE : TRUE;
+	ast_hangup(channel->owner);
+	return TRUE;
 }
 
 boolean_t sccp_wrapper_asterisk_dummyHangup(sccp_channel_t *channel)
@@ -751,8 +752,21 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 {
+#if ASTERISK_VERSION_GROUP >= 112
+	char *featexten;
+	if (PBX(getFeatureExtension)(channel, &featexten)) {
+		struct ast_frame f = { AST_FRAME_DTMF, };
+		int j;
+		f.len = 100;
+		for (j = 0; j < strlen(featexten); j++) {
+			f.subclass.integer = featexten[j];
+			ast_queue_frame(channel->owner, &f);
+		}
+		sccp_free(featexten);
+		return TRUE;
+        }
+#else
 	struct ast_call_feature *feature = ast_find_call_feature("automon");
-
 	if (feature) {
 		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
 /*
@@ -764,6 +778,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 */
 		return TRUE;
 	}
+#endif
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Automon not available in features.conf/n", channel->designator);
 	return FALSE;
 
@@ -810,19 +825,23 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 	
 	if((channel = get_sccp_channel_from_pbx_channel(pbx_channel))){
 		ast_channel_lock(pbx_channel);
-		
+#if ASTERISK_VERSION_GROUP >= 111
+		struct ast_callid *callid = NULL;
+		channel->pbx_callid_created = ast_callid_threadstorage_auto(&callid);
+		ast_channel_callid_set(pbx_channel, callid);
+#endif		
 		// check if the pickup extension was entered
 		const char *dialedNumber = PBX(getChannelExten)(channel);
-		const char *pickupexten = ast_pickup_ext();
-		if (sccp_strequals(dialedNumber, pickupexten)) {
+		char *pickupexten = "";
+		if (PBX(getPickupExtension)(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
 			}
 			ast_channel_unlock(pbx_channel);
 			channel = sccp_channel_release(channel);
+			sccp_free(pickupexten);
 			goto EXIT;
 		}
-		
 		channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 		res = ast_pbx_start(pbx_channel);			// starting ast_pbx_start with a locked ast_channel so we know exactly where we end up when/if the __ast_pbx_run get started
 		if (res == 0) {						// thread started successfully
@@ -836,6 +855,7 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 			} else {
 				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, dummyHangup should remain. Will already be hungup/being hungup\n", channel->designator);
+				ast_hangup(pbx_channel);
 			}
 		}
 		ast_channel_unlock(pbx_channel);
@@ -857,13 +877,14 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 	if((channel = get_sccp_channel_from_pbx_channel(pbx_channel))){
 		ast_channel_lock(pbx_channel);
 		const char *dialedNumber = PBX(getChannelExten)(channel);
-		const char *pickupexten = ast_pickup_ext();
-		if (sccp_strequals(dialedNumber, pickupexten)) {
+		char *pickupexten = "";
+		if (PBX(getPickupExtension)(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
 			}
 			ast_channel_unlock(pbx_channel);
 			channel = sccp_channel_release(channel);
+			sccp_free(pickupexten);
 			goto EXIT;
 		}
 		ast_channel_unlock(pbx_channel);

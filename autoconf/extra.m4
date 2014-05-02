@@ -474,11 +474,11 @@ AC_DEFUN([AST_SET_PBX_AMCONDITIONALS],[
 	dnl Now using Conditional-Libtool-Sources
 	if test "$PBX_TYPE" == "Asterisk"; then
 		PBX_GENERAL="chan_sccp_la-ast.lo"
-		if [ test "${ASTERISK_REPOS_LOCATION}" == "TRUNK" ];then
-                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
-                else  
+dnl		if [ test "${ASTERISK_REPOS_LOCATION}" == "TRUNK" ];then
+dnl                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
+dnl                else  
 	  	  PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
-	  	fi
+dnl	  	fi
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
                   PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
                 else
@@ -565,7 +565,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
  	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
-	if test "${SCCP_BRANCH}" == "TRUNK" || test "$enable_optimization" == "no" || test "${enable_debug}" = "yes"; then 
+	if test "$enable_optimization" == "no"; then 
 		strip_binaries="no"
 		CFLAGS_saved="${CFLAGS_saved} -O0 "
 	else

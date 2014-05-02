@@ -26,14 +26,14 @@ chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		
                                 sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
                                 sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_devstate.h		\
                                 revision.h
-                                
+                                                                
 chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
                                 sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
                                 sccp_line.c		sccp_utils.c		sccp_actions.c		sccp_cli.c		\
                                 sccp_features.c 	sccp_config.c		sccp_hint.c 					\
                                 sccp_refcount.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
                                 sccp_mwi.c		sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	\
-                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c	sccp_devstate.c		
+                                sccp_protocol.c		sccp_socket.c		sccp_threadpool.c	sccp_devstate.c
 
 #if CS_EXPERIMENTAL_XML
 #chan_sccp_la_SOURCES	+=      sccp_webservice.h       sccp_xml.h 		sccp_xml_embedded.h	sccp_webservice.c	\
@@ -48,7 +48,8 @@ if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast108.h   pbx_impl/ast/ast108.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h   pbx_impl/ast/ast110.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast111.h   pbx_impl/ast/ast111.c
-  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/astTrunk.h pbx_impl/ast/astTrunk.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast112.h   pbx_impl/ast/ast112.c pbx_impl/ast/ast112_announce.h pbx_impl/ast/ast112_announce.c
+#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast112.h   pbx_impl/ast/ast113.c
 endif
 
 chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS)

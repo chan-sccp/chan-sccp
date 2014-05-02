@@ -91,15 +91,23 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 
 	if (conference->playback_channel) {
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference playback channel\n", conference->id);
-		PBX_CHANNEL_TYPE *underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
-
+#if ASTERISK_VERSION_GROUP < 112
+		PBX_CHANNEL_TYPE *underlying_channel = NULL;
+		underlying_channel = PBX(get_bridged_channel)(conference->playback_channel);
 		pbx_hangup(underlying_channel);
 		pbx_hangup(conference->playback_channel);
+		pbx_channel_unref(underlying_channel);
+#else
+		sccpconf_announce_channel_depart(conference->playback_channel);
+		pbx_hangup(conference->playback_channel);
+#endif
 		conference->playback_channel = NULL;
 	}
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference\n", conference->id);
 	sccp_free(conference->linkedid);
-	pbx_bridge_destroy(conference->bridge);
+	if (conference->bridge) {
+		pbx_bridge_destroy(conference->bridge, AST_CAUSE_NORMAL_CLEARING);
+	}
 	SCCP_LIST_HEAD_DESTROY(&conference->participants);
 	pbx_mutex_destroy(&conference->playback_lock);
 
@@ -183,11 +191,16 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 #ifdef CS_BRIDGE_CAPABILITY_MULTITHREADED
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_MULTITHREADED;						/* bridge_softmix */
 #endif
-#ifdef CS_SCCP_VIDEO
+#if defined(CS_SCCP_VIDEO)
+#if ASTERISK_VERSION_GROUP < 112
 	bridgeCapabilities |= AST_BRIDGE_CAPABILITY_VIDEO;
 #endif
+#endif
 	/* using the SMART flag results in issues when removing forgeign participant, because it try to create a new conference and merge into it. Which seems to be more complex then necessary */
-	conference->bridge = pbx_bridge_new(bridgeCapabilities, 0);
+	conference->bridge = pbx_bridge_new(bridgeCapabilities, 0, channel->designator, conferenceIdentifier, NULL);
+#if defined(CS_SCCP_VIDEO)
+	ast_bridge_set_talker_src_video_mode(conference->bridge);
+#endif
 
 	/*
 	   pbx_bridge_set_internal_sample_rate(conference_bridge->bridge, auto);
@@ -435,7 +448,7 @@ void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_n
 #if HAVE_PBX_CEL_H
 #include <asterisk/cel.h>
 #endif
-void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel)
+void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * conferenceSCCPChannel, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel)
 {
 	sccp_channel_t *channel = NULL;
 
@@ -732,14 +745,14 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
 	if (participant->bridge_channel) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback %s %d for participant %d\n", participant->conference->id, filename, say_number, participant->id);
 		participant->bridge_channel->suspended = 1;
-		ast_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
+		pbx_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
 		if (stream_and_wait(participant->bridge_channel->chan, filename, say_number)) {
 			res = 1;
 		} else {
 			pbx_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
 		}
 		participant->bridge_channel->suspended = 0;
-		ast_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
+		pbx_bridge_change_state(participant->bridge_channel, AST_BRIDGE_CHANNEL_STATE_WAIT);
 	} else {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: No bridge channel for playback\n", participant->conference->id);
 	}
@@ -750,12 +763,59 @@ int playback_to_channel(sccp_conference_participant_t * participant, const char 
  * \brief This function is used to playback either a file or number sequence to all conference participants. Used for announcing
  * The playback channel is created once, and imparted on the conference when necessary on follow-up calls
  */
+#if ASTERISK_VERSION_GROUP >= 112
+int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number)
+{
+	if (!conference || !conference->playback_announcements) {
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback on conference suppressed\n", conference->id);
+		return 1;
+	}
+
+	pbx_mutex_lock(&conference->playback_lock);
+
+	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
+		pbx_log(LOG_WARNING, "File %s does not exists in any format\n", !sccp_strlen_zero(filename) ? filename : "<unknown>");
+		return 1;
+	}
+
+	if (!(conference->playback_channel)) {
+		char data[14];
+		snprintf(data, sizeof(data), "SCCPCONF/%04d", conference->id);
+		if (!(conference->playback_channel = PBX(requestAnnouncementChannel) (AST_FORMAT_ALAW, NULL, data))) {
+			pbx_mutex_unlock(&conference->playback_lock);
+			return 1;
+		}
+		if (!sccp_strlen_zero(conference->playback_language)) {
+			PBX(set_language) (conference->playback_channel, conference->playback_language);
+		}
+	}
+	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching Announcer from Conference\n", conference->id);
+	if (sccpconf_announce_channel_push(conference->playback_channel, conference->bridge)) {
+		pbx_mutex_unlock(&conference->playback_lock);
+		return 1;
+	}
+
+	/* The channel is all under our control, in goes the prompt */
+	if (!ast_strlen_zero(filename)) {
+		ast_stream_and_wait(conference->playback_channel, filename, "");
+	} else if (say_number >= 0) {
+
+	}
+
+	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Detaching Announcer from Conference\n", conference->id);
+	sccpconf_announce_channel_depart(conference->playback_channel);
+
+	pbx_mutex_unlock(&conference->playback_lock);
+
+	return 0;
+}
+#else
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number)
 {
 	PBX_CHANNEL_TYPE *underlying_channel;
 	int res = 0;
 
-	if (!conference->playback_announcements) {
+	if (!conference || !conference->playback_announcements) {
 		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback on conference suppressed\n", conference->id);
 		return 1;
 	}
@@ -768,7 +828,9 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	}
 
 	if (!(conference->playback_channel)) {
-		if (!(conference->playback_channel = PBX(requestForeignChannel) ("Bridge", AST_FORMAT_SLINEAR, NULL, ""))) {
+		char data[14];
+		snprintf(data, sizeof(data), "SCCPCONF/%04d", conference->id);
+		if (!(conference->playback_channel = PBX(requestAnnouncementChannel) (AST_FORMAT_SLINEAR, NULL, data))) {
 			pbx_mutex_unlock(&conference->playback_lock);
 			return 0;
 		}
@@ -785,8 +847,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		}
 
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Created Playback Channel\n", conference->id);
-
-		underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
+		underlying_channel = PBX(get_bridged_channel)(conference->playback_channel);
 
 		// Update CDR to prevent nasty ast warning when hanging up this channel (confbridge does not set the cdr correctly)
 		pbx_cdr_start(pbx_channel_cdr(conference->playback_channel));
@@ -795,12 +856,15 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		underlying_channel->cdr->answer = ast_tvnow();
 #endif
 		pbx_cdr_update(conference->playback_channel);
-
+		pbx_channel_unref(underlying_channel);
 	} else {
 		/* Channel was already available so we just need to add it back into the bridge */
-		underlying_channel = pbx_channel_tech(conference->playback_channel)->bridged_channel(conference->playback_channel, NULL);
+		underlying_channel = PBX(get_bridged_channel)(conference->playback_channel);
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
-		pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0);
+		if (pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0)) {
+			sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Impart playback channel failed\n", conference->id);
+		}
+		pbx_channel_unref(underlying_channel);
 	}
 
 	if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
@@ -813,6 +877,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	pbx_mutex_unlock(&conference->playback_lock);
 	return res;
 }
+#endif
 
 /* ============================================================================================================================= List Find Functions === */
 /*!
@@ -1389,6 +1454,9 @@ void sccp_conference_promote_demote_participant(sccp_conference_t * conference, 
  * UserDataSoftKey:STRING:INTEGER:STRING
  * UserCallDataSoftKey:STRING:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
  * UserCallData:INTEGER0:INTEGER1:INTEGER2:INTEGER3:STRING
+ *
+ * \note use ast_pbx_outgoing_app to make the call 
+ * ast_pbx_outgoing_app: Synchronously or asynchronously make an outbound call and execute an application on the channel
  */
 void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_conference_participant_t * moderator)
 {

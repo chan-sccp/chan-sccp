@@ -97,6 +97,8 @@ AC_DEFUN([AST_GET_VERSION], [
                                                         110) AC_DEFINE([ASTERISK_CONF_1_10], [1], [Defined ASTERISK_CONF_1_10]);;
                                                         111) AC_DEFINE([ASTERISK_CONF_1_11], [1], [Defined ASTERISK_CONF_1_11]);;
                                                         112) AC_DEFINE([ASTERISK_CONF_1_12], [1], [Defined ASTERISK_CONF_1_12]);;
+                                                        113) AC_DEFINE([ASTERISK_CONF_1_13], [1], [Defined ASTERISK_CONF_1_13])
+	                                                        ASTERISK_INCOMPATIBLE=yes;;
                                                         *) AC_DEFINE([ASTERISK_CONF], [0], [NOT Defined ASTERISK_CONF !!]);;
                                                 esac 
 
@@ -157,7 +159,7 @@ AC_DEFUN([AST_GET_VERSION], [
                                                 
                                                 version_found=1
                                                 AC_MSG_RESULT([done])
-                                                AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'. Experimental at the moment. Anything might break.])
+dnl                                                AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'. Experimental at the moment. Anything might break.])
                                         ],[
                                                 ASTERISK_VER_GROUP=111
                                                 ASTERISK_VERSION_NUMBER=11100
@@ -364,8 +366,6 @@ dnl			fi
 			AC_EGREP_HEADER([ast_channel_bridge_peer], [asterisk/channel.h],
 			[
                                 AC_DEFINE([CS_AST_HAS_CHANNEL_BRIDGE_PEER],1,['ast_channel_bridge_peer' available])
-                                AC_MSG_RESULT([WARNING: Expect trouble with the asterisk-trunk above revision 389378 !!!!. We are working on this])
-                                ASTERISK_INCOMPATIBLE=yes
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
@@ -430,68 +430,116 @@ dnl			CS_CHECK_AST_TYPEDEF([ast_group_t],[asterisk/channel.h],AC_DEFINE([CS_AST_
 		],,[
 			$HEADER_INCLUDE
     ])
-    AC_CHECK_HEADER([asterisk/bridging.h],
+    AC_CHECK_HEADER([asterisk/bridge.h],
     		[
-    		        AC_CHECK_HEADER([asterisk/bridging_features.h], [
-    		                AC_DEFINE(HAVE_PBX_BRIDGING_FEATURES_H,1,[Found 'asterisk/bridging_features.h'])
-    		                ],,[
-                                $HEADER_INCLUDE
-                                #include <asterisk/channel.h>
-                                #include <asterisk/linkedlists.h>
-                                #include <asterisk/astobj2.h>
-                                #include <asterisk/bridging.h>
-                        ])
-    		        AC_CHECK_HEADER([asterisk/bridging_roles.h], [
-    		                AC_DEFINE(HAVE_PBX_BRIDGING_ROLES_H,1,[Found 'asterisk/bridging_roles.h'])
-    		                ],,[
-                                $HEADER_INCLUDE
-                                #include <asterisk/channel.h>
-                                #include <asterisk/linkedlists.h>
-                                #include <asterisk/astobj2.h>
-                                #include <asterisk/bridging.h>
-                        ])
-			AC_MSG_CHECKING([ - availability 'ast_bridge_base_new' in asterisk/bridging.h...])
-			AC_EGREP_HEADER([ast_bridge_base_new], [asterisk/bridging.h],
+			AC_MSG_CHECKING([ - availability 'ast_bridge_base_new' in asterisk/bridge.h...])
+			AC_EGREP_HEADER([ast_bridge_base_new], [asterisk/bridge.h],
 			[
-				AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridging.h])
+				AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridge.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
 			])
-			AC_MSG_CHECKING([ - availability 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h...])
-			AC_EGREP_HEADER([AST_BRIDGE_CAPABILITY_MULTITHREADED], [asterisk/bridging.h],
+			AC_MSG_CHECKING([ - availability 'AST_BRIDGE_JOIN_PASS_REFERENCE' in ast_bridge_join...])
+			AC_EGREP_HEADER([AST_BRIDGE_JOIN_PASS_REFERENCE], [asterisk/bridge.h],
 			[
-				AC_DEFINE(CS_BRIDGE_CAPABILITY_MULTITHREADED,1,[Found 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h])
+				AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'AST_BRIDGE_JOIN_PASS_REFERENCE' in definition of ast_bridge_join' in asterisk/bridge.h])
 				AC_MSG_RESULT(yes)
 			],[
 				AC_MSG_RESULT(no)
 			])
-			AC_MSG_CHECKING([ - availability 'pass_reference' in ast_bridge_join...])
-			AC_EGREP_HEADER([int pass_reference], [asterisk/bridging.h],
-			[
-				AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'pass_reference' in definition of ast_bridge_join' in asterisk/bridging.h])
-				AC_MSG_RESULT(yes)
-			],[
-				AC_MSG_RESULT(no)
-			])
-
 			CS_CV_TRY_COMPILE_IFELSE([ - ast_bridge_depart with only one parameter...], [ac_cv_ast_bridge_depart], [
 		               	$HEADER_INCLUDE
                                 #include <asterisk/channel.h>
                                 #include <asterisk/linkedlists.h>
                                 #include <asterisk/astobj2.h>
-				#include <asterisk/bridging.h>
+				#include <asterisk/bridge.h>
 				], [
 				        struct ast_channel *chan = {0};
 					struct ast_bridge *test_bridge = ast_bridge_depart(chan);
 				], 
-				[AC_DEFINE([CS_BRIDGE_DEPART_ONLY_CHANNEL],1,['ast_bridge_depart' only needs channel reference in asterisk/bridging.h])],
+				[AC_DEFINE([CS_BRIDGE_DEPART_ONLY_CHANNEL],1,['ast_bridge_depart' only needs channel reference in asterisk/bridge.h])],
 			)
-		],,[ 
-	               	$HEADER_INCLUDE
-	               	#include <asterisk/channel.h>
-	               	#include <asterisk/linkedlists.h>
-	               	#include <asterisk/astobj2.h>
+		],[
+		    AC_CHECK_HEADER([asterisk/bridging.h],
+				[
+					AC_CHECK_HEADER([asterisk/bridging_features.h], [
+						AC_DEFINE(HAVE_PBX_BRIDGING_FEATURES_H,1,[Found 'asterisk/bridging_features.h'])
+						],,[
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
+					])
+					AC_CHECK_HEADER([asterisk/bridging_roles.h], [
+						AC_DEFINE(HAVE_PBX_BRIDGING_ROLES_H,1,[Found 'asterisk/bridging_roles.h'])
+						],,[
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
+					])
+					AC_MSG_CHECKING([ - availability 'ast_bridge_base_new' in asterisk/bridging.h...])
+					AC_EGREP_HEADER([ast_bridge_base_new], [asterisk/bridging.h],
+					[
+						AC_DEFINE(CS_BRIDGE_BASE_NEW,1,[Found 'ast_bridge_base_new' in asterisk/bridging.h])
+						AC_MSG_RESULT(yes)
+					],[
+						AC_MSG_RESULT(no)
+					])
+					AC_MSG_CHECKING([ - availability 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h...])
+					AC_EGREP_HEADER([AST_BRIDGE_CAPABILITY_MULTITHREADED], [asterisk/bridging.h],
+					[
+						AC_DEFINE(CS_BRIDGE_CAPABILITY_MULTITHREADED,1,[Found 'AST_BRIDGE_CAPABILITY_MULTITHREADED' in asterisk/bridging.h])
+						AC_MSG_RESULT(yes)
+					],[
+						AC_MSG_RESULT(no)
+					])
+					AC_MSG_CHECKING([ - availability 'pass_reference' in ast_bridge_join...])
+					AC_EGREP_HEADER([int pass_reference], [asterisk/bridging.h],
+					[
+						AC_DEFINE(CS_BRIDGE_JOIN_PASSREFERENCE,1,[Found 'pass_reference' in definition of ast_bridge_join' in asterisk/bridging.h])
+						AC_MSG_RESULT(yes)
+					],[
+						AC_MSG_RESULT(no)
+					])
+
+					CS_CV_TRY_COMPILE_IFELSE([ - ast_bridge_depart with only one parameter...], [ac_cv_ast_bridge_depart], [
+						$HEADER_INCLUDE
+						#include <asterisk/channel.h>
+						#include <asterisk/linkedlists.h>
+						#include <asterisk/astobj2.h>
+						#include <asterisk/bridging.h>
+						], [
+							struct ast_channel *chan = {0};
+							struct ast_bridge *test_bridge = ast_bridge_depart(chan);
+						], 
+						[AC_DEFINE([CS_BRIDGE_DEPART_ONLY_CHANNEL],1,['ast_bridge_depart' only needs channel reference in asterisk/bridging.h])],
+					)
+				],,[ 
+					$HEADER_INCLUDE
+					#include <asterisk/channel.h>
+					#include <asterisk/linkedlists.h>
+					#include <asterisk/astobj2.h>
+		    ])
+		],[
+			$HEADER_INCLUDE
+    ])
+    AC_CHECK_HEADER([asterisk/bridge_features.h],
+    		[
+    		        AC_CHECK_HEADER([asterisk/bridge_features.h], [
+    		                AC_DEFINE(HAVE_PBX_BRIDGING_FEATURES_H,1,[Found 'asterisk/bridge_features.h'])
+    		                ],,[
+                                $HEADER_INCLUDE
+                                #include <asterisk/channel.h>
+                                #include <asterisk/linkedlists.h>
+                                #include <asterisk/astobj2.h>
+                                #include <asterisk/bridging.h>
+                        ])
+		],,[
+			$HEADER_INCLUDE
     ])
     AC_CHECK_HEADER([asterisk/channel_pvt.h],
     		[
@@ -756,13 +804,13 @@ dnl		        fi
 				], [CS_AST_CONTROL_SRCCHANGE], ['AST_CONTROL_SRCCHANGE' available]
 			)
 
-dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_redirecting'...], [ac_cv_ast_control_redirecting], [
-dnl			               	$HEADER_INCLUDE
-dnl					#include <asterisk/frame.h>p
-dnl				], [
-dnl					int test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
-dnl				], [CS_AST_CONTROL_REDIRECTING], ['AST_CONTROL_REDIRECTING' available]
-dnl			)
+			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_redirecting'...], [ac_cv_ast_control_redirecting], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/frame.h>p
+				], [
+					int test_control_redirecting = (int)AST_CONTROL_REDIRECTING;
+				], [CS_AST_CONTROL_REDIRECTING], ['AST_CONTROL_REDIRECTING' available]
+			)
 
 dnl			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_control_transfer'...], [ac_cv_ast_control_transfer], [
 dnl		               	$HEADER_INCLUDE

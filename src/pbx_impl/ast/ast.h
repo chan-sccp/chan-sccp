@@ -97,6 +97,9 @@
 #	include "ast111.h"
 #endif
 #ifdef ASTERISK_CONF_1_12
+#	include "ast112.h"
+#endif
+#ifdef ASTERISK_CONF_1_13
 #	include "astTrunk.h"
 #endif
 #include <asterisk/file.h>

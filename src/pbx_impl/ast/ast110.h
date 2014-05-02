@@ -14,6 +14,13 @@
 #define SCCP_AST_MAJOR_H_
 
 #include <config.h>
+#ifdef CS_SCCP_CONFERENCE
+#include "asterisk/bridging.h"
+#include "asterisk/bridging_features.h"
+#ifdef HAVE_PBX_BRIDGING_ROLES_H
+#include "asterisk/bridging_roles.h"
+#endif
+#endif
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
@@ -21,6 +28,9 @@
 #define pbx_channel_unref ast_channel_unref
 #define sccp_sched_context_destroy sched_context_destroy
 #define pbx_manager_register ast_manager_register2
+
+#define PBX_ENDPOINT_TYPE void
+#define PBX_EVENT_SUBSCRIPTION struct ast_event_sub
 
 typedef struct ast_format_cap ast_format_t;
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
