@@ -435,20 +435,24 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 	boolean_t res = FALSE;
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-//	if (!ast_check_hangup_locked(pbx_channel)) {							/* if channel is not already been hungup */
+	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 	if (!ast_check_hangup(pbx_channel)) {							/* if channel is not already been hungup */
 		res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 	} else {
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_requestQueueHangup) Already Hungup\n", channel->designator);
 	}
-	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 	return res;
 }
 
 boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
 {
+	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
-	ast_hangup(channel->owner);
+	if (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && !pbx_channel_pbx(pbx_channel) && !pbx_check_hangup(pbx_channel)) {
+		ast_hangup(channel->owner);
+	} else {
+		sccp_wrapper_asterisk_requestQueueHangup(channel);
+	}
 	return TRUE;
 }
 
@@ -842,7 +846,7 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 			sccp_free(pickupexten);
 			goto EXIT;
 		}
-		channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+//		channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
 		res = ast_pbx_start(pbx_channel);			// starting ast_pbx_start with a locked ast_channel so we know exactly where we end up when/if the __ast_pbx_run get started
 		if (res == 0) {						// thread started successfully
 			do {						// wait for thread to become ready
@@ -855,7 +859,9 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 			} else {
 				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, dummyHangup should remain. Will already be hungup/being hungup\n", channel->designator);
-				ast_hangup(pbx_channel);
+				if (!pbx_check_hangup(pbx_channel)) {
+					ast_hangup(pbx_channel);
+				}
 			}
 		}
 		ast_channel_unlock(pbx_channel);
