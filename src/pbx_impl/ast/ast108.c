@@ -910,13 +910,18 @@ static int sccp_wrapper_asterisk18_setNativeVideoFormats(const sccp_channel_t * 
 }
 
 static void sccp_wrapper_asterisk108_setOwner(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel) {
-	PBX_CHANNEL_TYPE *prev_owner = channel->owner;
+	pbx_log(LOG_NOTICE, "setOWNER: %s, %s\n", channel->designator, pbx_channel ? pbx_channel_name(pbx_channel) : "NULL");
+
+	// removed previous channel->owner unref which causes locking issues (for example: conference hangup outbound participant). No idea why though
+//	PBX_CHANNEL_TYPE *prev_owner = channel->owner;
 	if (pbx_channel) {
 		channel->owner = ast_channel_ref(pbx_channel);
+	} else {
+		channel->owner = NULL;
 	}
-	if (prev_owner) {
-		ast_channel_unref(prev_owner);
-	}
+//	if (prev_owner) {
+//		ast_channel_unref(prev_owner);
+//	}
 }
 
 static boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
