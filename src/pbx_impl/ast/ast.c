@@ -430,6 +430,12 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 }
 
 #ifdef CS_EXPERIMENTAL
+boolean_t sccp_wrapper_asterisk_dummyHangup(sccp_channel_t *channel)
+{
+	pbx_log(LOG_NOTICE, "%s: hangup request, replaced by dummy. Hangup not performed\n", channel->designator);
+	return FALSE;
+}
+
 boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 {
 	boolean_t res = FALSE;
@@ -444,7 +450,8 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 	return res;
 }
 
-boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
+// carefull version of sccp_wrapper_asterisk_requestHangup, when ast_pbx_start has been requested.
+boolean_t sccp_wrapper_asterisk_requestHangup_PBXStarting(sccp_channel_t *channel)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
@@ -456,10 +463,11 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
 	return TRUE;
 }
 
-boolean_t sccp_wrapper_asterisk_dummyHangup(sccp_channel_t *channel)
+boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
 {
-	pbx_log(LOG_NOTICE, "%s: hangup request, replaced by dummy. Hangup not performed\n", channel->designator);
-	return FALSE;
+	channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+	ast_hangup(channel->owner);
+	return TRUE;
 }
 #else
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
@@ -847,6 +855,7 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 			goto EXIT;
 		}
 //		channel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
+		channel->hangupRequest = sccp_wrapper_asterisk_requestHangup_PBXStarting;
 		res = ast_pbx_start(pbx_channel);			// starting ast_pbx_start with a locked ast_channel so we know exactly where we end up when/if the __ast_pbx_run get started
 		if (res == 0) {						// thread started successfully
 			do {						// wait for thread to become ready

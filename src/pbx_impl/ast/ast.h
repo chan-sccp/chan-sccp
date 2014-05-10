@@ -358,7 +358,6 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 #ifdef CS_EXPERIMENTAL
 boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel);
 boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel);
-boolean_t sccp_wrapper_asterisk_dummyHangup(sccp_channel_t *channel);
 #else
 int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * pbx_channel);
 #endif
