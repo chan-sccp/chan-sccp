@@ -169,7 +169,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	if (callCount == 0xFFFFFFFF) {
 		callCount = 1;
 	}
-	sccp_mutex_unlock(&callCountLock);
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
 	sccp_mutex_unlock(&callCountLock);
 
