@@ -83,8 +83,7 @@ void sccp_conference_module_stop(void)
 /*
  * \brief Cleanup after conference refcount goes to zero (refcount destroy)
  */
-static void __sccp_conference_destroy(sccp_conference_t * conference)
-{
+static void __sccp_conference_destroy(sccp_conference_t * conference) {
 	if (!conference) {
 		return;
 	}
@@ -232,6 +231,9 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 #endif			
 			return NULL;
 		}
+#ifdef CS_EXPERIMENTAL
+		channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;				// moderator channel not running in a ast_pbx_start thread, but in a local thread => use hard hangup
+#endif		
 		sccp_conference_addParticipant_toList(conference, participant);
 		participant->channel->conference = sccp_conference_retain(conference);
 		participant->channel->conference_id = conference->id;
@@ -532,7 +534,12 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
+#ifdef CS_EXPERIMENTAL
+//	participant->channel->hangupRequest(participant->channel);
 	pbx_hangup(participant->conferenceBridgePeer);
+#else
+	PBX(requestHangup) (participant->conferenceBridgePeer);
+#endif
 	participant = sccp_participant_release(participant);
 
 	/* Conference end if the number of participants == 1 */
