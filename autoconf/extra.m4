@@ -479,6 +479,9 @@ dnl                  PBX_MAJOR="chan_sccp_la-astTrunk.lo"
 dnl                else  
 	  	  PBX_MAJOR="chan_sccp_la-ast${ASTERISK_VER_GROUP}.lo"
 dnl	  	fi
+		if test ${ASTERISK_VER_GROUP} -gt 111;then
+			PBX_MAJOR="${PBX_MAJOR} chan_sccp_la-ast${ASTERISK_VER_GROUP}_announce.lo"
+		fi
                 if test -f src/pbx_impl/ast/ast${ASTERISK_VERSION_NUMBER}.c; then
                   PBX_MINOR="chan_sccp_la-ast${ASTERISK_VERSION_NUMBER}.lo"
                 else
