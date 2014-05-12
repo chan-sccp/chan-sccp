@@ -877,9 +877,9 @@ sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const
 	char *value = strdupa(v->value);
 	boolean_t blindtransferindication = *(boolean_t *) dest;
 
-	if (!strcasecmp(value, "moh")) {
+	if (sccp_strcaseequals(value, "moh")) {
 		blindtransferindication = SCCP_BLINDTRANSFER_MOH;
-	} else if (!strcasecmp(value, "ring")) {
+	} else if (sccp_strcaseequals(value, "ring")) {
 		blindtransferindication = SCCP_BLINDTRANSFER_RING;
 	} else {
 		pbx_log(LOG_WARNING, "Invalid blindtransferindication value, should be 'moh' or 'ring'\n");
@@ -905,9 +905,9 @@ sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t 
 	call_answer_order_t callanswerorder = *(call_answer_order_t *) dest;
 	call_answer_order_t new_value;
 
-	if (!strcasecmp(value, "oldestfirst")) {
+	if (sccp_strcaseequals(value, "oldestfirst")) {
 		new_value = ANSWER_OLDEST_FIRST;
-	} else if (!strcasecmp(value, "lastfirst")) {
+	} else if (sccp_strcaseequals(value, "lastfirst")) {
 		new_value = ANSWER_LAST_FIRST;
 	} else {
 		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
@@ -933,7 +933,7 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 	char *value = strdupa(v->value);
 	sccp_featureConfiguration_t privacyFeature;								// = malloc(sizeof(sccp_featureConfiguration_t));
 
-	if (!strcasecmp(value, "full")) {
+	if (sccp_strcaseequals(value, "full")) {
 		privacyFeature.status = ~0;
 		privacyFeature.enabled = TRUE;
 	} else if (sccp_true(value) || !sccp_true(value)) {
@@ -962,15 +962,15 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, P
 	char *value = strdupa(v->value);
 	sccp_channelstate_t earlyrtp = 0;
 
-	if (!strcasecmp(value, "none")) {
+	if (sccp_strcaseequals(value, "none")) {
 		earlyrtp = 0;
-	} else if (!strcasecmp(value, "offhook")) {
+	} else if (sccp_strcaseequals(value, "offhook")) {
 		earlyrtp = SCCP_CHANNELSTATE_OFFHOOK;
-	} else if (!strcasecmp(value, "dial")) {
+	} else if (sccp_strcaseequals(value, "dial")) {
 		earlyrtp = SCCP_CHANNELSTATE_DIALING;
-	} else if (!strcasecmp(value, "ringout")) {
+	} else if (sccp_strcaseequals(value, "ringout")) {
 		earlyrtp = SCCP_CHANNELSTATE_RINGOUT;
-	} else if (!strcasecmp(value, "progress")) {
+	} else if (sccp_strcaseequals(value, "progress")) {
 		earlyrtp = SCCP_CHANNELSTATE_PROGRESS;
 	} else {
 		pbx_log(LOG_WARNING, "Invalid earlyrtp state value, should be 'none', 'offhook', 'dial', 'ringout', 'progress'\n");
@@ -995,9 +995,9 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, P
 	char *value = strdupa(v->value);
 	sccp_dtmfmode_t dtmfmode = 0;
 
-	if (!strcasecmp(value, "outofband")) {
+	if (sccp_strcaseequals(value, "outofband")) {
 		dtmfmode = SCCP_DTMFMODE_OUTOFBAND;
-	} else if (!strcasecmp(value, "inband")) {
+	} else if (sccp_strcaseequals(value, "inband")) {
 		dtmfmode = SCCP_DTMFMODE_INBAND;
 	} else {
 		pbx_log(LOG_WARNING, "Invalid dtmfmode value, should be either 'inband' or 'outofband'\n");
@@ -1022,11 +1022,11 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PB
 	char *value = strdupa(v->value);
 	skinny_lampmode_t mwilamp = SKINNY_LAMP_OFF;
 
-	if (!strcasecmp(value, "wink")) {
+	if (sccp_strcaseequals(value, "wink")) {
 		mwilamp = SKINNY_LAMP_WINK;
-	} else if (!strcasecmp(value, "flash")) {
+	} else if (sccp_strcaseequals(value, "flash")) {
 		mwilamp = SKINNY_LAMP_FLASH;
-	} else if (!strcasecmp(value, "blink")) {
+	} else if (sccp_strcaseequals(value, "blink")) {
 		mwilamp = SKINNY_LAMP_BLINK;
 	} else if (!sccp_true(value)) {
 		mwilamp = SKINNY_LAMP_OFF;
@@ -1059,18 +1059,18 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 		/* value is tos */
 	} else if (sscanf(value, "%i", &tos) == 1) {
 		tos = tos & 0xff;
-	} else if (!strcasecmp(value, "lowdelay")) {
+	} else if (sccp_strcaseequals(value, "lowdelay")) {
 		tos = IPTOS_LOWDELAY;
-	} else if (!strcasecmp(value, "throughput")) {
+	} else if (sccp_strcaseequals(value, "throughput")) {
 		tos = IPTOS_THROUGHPUT;
-	} else if (!strcasecmp(value, "reliability")) {
+	} else if (sccp_strcaseequals(value, "reliability")) {
 		tos = IPTOS_RELIABILITY;
 
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
-	} else if (!strcasecmp(value, "mincost")) {
+	} else if (sccp_strcaseequals(value, "mincost")) {
 		tos = IPTOS_MINCOST;
 #endif
-	} else if (!strcasecmp(value, "none")) {
+	} else if (sccp_strcaseequals(value, "none")) {
 		tos = 0;
 	} else {
 #if !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(SOLARIS)
@@ -1150,7 +1150,7 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
 	char *str = (char *) dest;
 
 	if (strlen(value) <= 9) {
-		if (strcasecmp(str, value)) {
+		if (!sccp_strcaseequals(str, value)) {
 			sccp_copy_string(str, value, 9);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
@@ -1228,7 +1228,7 @@ sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PB
 	char *value = strdupa(v->value);
 	char *str = (char *) dest;
 
-	if (strcasecmp(str, value)) {
+	if (!sccp_strcaseequals(str, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(dest, value, size);
 		if (!sccp_strlen_zero(value) && !pbx_context_find((const char *) dest)) {
@@ -1251,7 +1251,7 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
 	char *value = strdupa(v->value);
 	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
 
-	if (strcasecmp(hotline->line->context, value)) {
+	if (!sccp_strcaseequals(hotline->line->context, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(hotline->line->context, value, size);
 	} else {
@@ -1271,7 +1271,7 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 	char *value = strdupa(v->value);
 	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
 
-	if (strcasecmp(hotline->exten, value)) {
+	if (!sccp_strcaseequals(hotline->exten, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(hotline->exten, value, size);
 		if (hotline->line) {
@@ -1294,13 +1294,13 @@ sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const 
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	uint8_t dndmode;
 
-	if (!strcasecmp(value, "reject")) {
+	if (sccp_strcaseequals(value, "reject")) {
 		dndmode = SCCP_DNDMODE_REJECT;
-	} else if (!strcasecmp(value, "silent")) {
+	} else if (sccp_strcaseequals(value, "silent")) {
 		dndmode = SCCP_DNDMODE_SILENT;
-	} else if (!strcasecmp(value, "user")) {
+	} else if (sccp_strcaseequals(value, "user")) {
 		dndmode = SCCP_DNDMODE_USERDEFINED;
-	} else if (!strcasecmp(value, "")) {
+	} else if (sccp_strcaseequals(value, "")) {
 		dndmode = SCCP_DNDMODE_OFF;
 	} else {
 		dndmode = sccp_true(value);
@@ -1446,7 +1446,7 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 			ha = sccp_append_ha("deny", v->value, ha, &error);
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Deny: %s\n", v->value);
 		} else if (sccp_strcaseequals(v->name, "permit") || sccp_strcaseequals(v->name, "localnet")) {
-			if (!strcasecmp(v->value, "internal")) {
+			if (sccp_strcaseequals(v->value, "internal")) {
 				ha = sccp_append_ha("permit", "127.0.0.0/255.0.0.0", ha, &error);
 				errors |= error;
 				ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
@@ -1543,11 +1543,11 @@ sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size
 
 static int addonstr2enum(const char *addonstr)
 {
-	if (!strcasecmp(addonstr, "7914")) {
+	if (sccp_strcaseequals(addonstr, "7914")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7914;
-	} else if (!strcasecmp(addonstr, "7915")) {
+	} else if (sccp_strcaseequals(addonstr, "7915")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
-	} else if (!strcasecmp(addonstr, "7916")) {
+	} else if (sccp_strcaseequals(addonstr, "7916")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", addonstr);
@@ -2555,7 +2555,7 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softKeySetConfiguration, list) {
-		if (!strcasecmp(softKeySetConfiguration->name, name)) {
+		if (sccp_strcaseequals(softKeySetConfiguration->name, name)) {
 			break;
                 }
 	}
@@ -2577,29 +2577,29 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 	while (variable) {
 		keyMode = -1;
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeyset: %s \n", variable->name);
-		if (!strcasecmp(variable->name, "type")) {
+		if (sccp_strcaseequals(variable->name, "type")) {
 
-		} else if (!strcasecmp(variable->name, "onhook")) {
+		} else if (sccp_strcaseequals(variable->name, "onhook")) {
 			keyMode = KEYMODE_ONHOOK;
-		} else if (!strcasecmp(variable->name, "connected")) {
+		} else if (sccp_strcaseequals(variable->name, "connected")) {
 			keyMode = KEYMODE_CONNECTED;
-		} else if (!strcasecmp(variable->name, "onhold")) {
+		} else if (sccp_strcaseequals(variable->name, "onhold")) {
 			keyMode = KEYMODE_ONHOLD;
-		} else if (!strcasecmp(variable->name, "ringin")) {
+		} else if (sccp_strcaseequals(variable->name, "ringin")) {
 			keyMode = KEYMODE_RINGIN;
-		} else if (!strcasecmp(variable->name, "offhook")) {
+		} else if (sccp_strcaseequals(variable->name, "offhook")) {
 			keyMode = KEYMODE_OFFHOOK;
-		} else if (!strcasecmp(variable->name, "conntrans")) {
+		} else if (sccp_strcaseequals(variable->name, "conntrans")) {
 			keyMode = KEYMODE_CONNTRANS;
-		} else if (!strcasecmp(variable->name, "digitsfoll")) {
+		} else if (sccp_strcaseequals(variable->name, "digitsfoll")) {
 			keyMode = KEYMODE_DIGITSFOLL;
-		} else if (!strcasecmp(variable->name, "connconf")) {
+		} else if (sccp_strcaseequals(variable->name, "connconf")) {
 			keyMode = KEYMODE_CONNCONF;
-		} else if (!strcasecmp(variable->name, "ringout")) {
+		} else if (sccp_strcaseequals(variable->name, "ringout")) {
 			keyMode = KEYMODE_RINGOUT;
-		} else if (!strcasecmp(variable->name, "offhookfeat")) {
+		} else if (sccp_strcaseequals(variable->name, "offhookfeat")) {
 			keyMode = KEYMODE_OFFHOOKFEAT;
-		} else if (!strcasecmp(variable->name, "onhint")) {
+		} else if (sccp_strcaseequals(variable->name, "onhint")) {
 			keyMode = KEYMODE_INUSEHINT;
 		} else {
 			// do nothing
@@ -2682,7 +2682,7 @@ int sccp_config_getSoftkeyLbl(char *key)
 	int size = sizeof(softKeyTemplate) / sizeof(softkeyConfigurationTemplate);
 
 	for (i = 0; i < size; i++) {
-		if (!strcasecmp(softKeyTemplate[i].configVar, key)) {
+		if (sccp_strcaseequals(softKeyTemplate[i].configVar, key)) {
 			return softKeyTemplate[i].softkey;
 		}
 	}
@@ -2832,7 +2832,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	} else if (strlen(req_option) == 0) {									// return all options for segment
 		astman_send_listack(s, m, "List of SegmentOptions will follow", "start");
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
-			if (!strcasecmp(sccpConfigSegments[i].name, req_segment)) {
+			if (sccp_strcaseequals(sccpConfigSegments[i].name, req_segment)) {
 				sccpConfigSegment = &sccpConfigSegments[i];
 				config = sccpConfigSegment->config;
 				for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
@@ -2852,7 +2852,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	} else {												// return metadata for option in segmnet
 		astman_send_listack(s, m, "List of Option Attributes will follow", "start");
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
-			if (!strcasecmp(sccpConfigSegments[i].name, req_segment)) {
+			if (sccp_strcaseequals(sccpConfigSegments[i].name, req_segment)) {
 				sccpConfigSegment = &sccpConfigSegments[i];
 				config = sccp_find_config(sccpConfigSegments[i].segment, req_option);
 				if (config) {
