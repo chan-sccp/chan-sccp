@@ -2536,10 +2536,14 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
  */
 static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone)
 {
-	char xmlData[512];
-
-	sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\"URL=\"%s\"/></CiscoIPPhoneExecute>", url);
-
+	const char *xmlFormat = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"%s\"/></CiscoIPPhoneExecute>";
+	size_t msg_length = strlen(xmlFormat) + sccp_strlen(url) - 2 /* for %s */ + 1 /* for terminator */;
+	if (sccp_strlen(url) > 256) {
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: (pushURL) url is to long (max 256 char).\n", DEV_ID_LOG(device));
+		return SCCP_PUSH_RESULT_FAIL;
+	}
+	char xmlData[msg_length];
+	snprintf(xmlData, msg_length, xmlFormat, url);
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 1, 1, xmlData, priority);
 	if (SKINNY_TONE_SILENCE != tone) {
 		sccp_dev_starttone(device, tone, 0, 0, 0);
@@ -2549,13 +2553,37 @@ static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, cons
 
 /*!
  * \brief Push a Text Message to an SCCP device
- */
+ *
+ * \note
+ * title field can be max 32 characters long
+ * protocolversion < 17 allows for maximum of 1024 characters in the text block / maximum 2000 characted in overall message 
+ * protocolversion > 17 allows variable sized messages up to 4000 char in the text block (using multiple messages if necessary) 
+ */ 
 static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
 {
-	char xmlData[1024];
+	const char *xmlFormat = "<CiscoIPPhoneText>%s<Text>%s</Text></CiscoIPPhoneText>";
+	size_t msg_length = strlen(xmlFormat) + sccp_strlen(messageText) - 4 /* for the %s' */ + 1 /* for terminator */;
 
-	sprintf(xmlData, "<CiscoIPPhoneText><Title>%s</Title><Text>%s</Text></CiscoIPPhoneText>", from ? from : "", messageText);
+	if (sccp_strlen(from) > 32) {
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: (pushTextMessage) from is to long (max 32 char).\n", DEV_ID_LOG(device));
+		return SCCP_PUSH_RESULT_FAIL;
+	}
 
+	if ((device->protocolversion < 17 && 1024 > msg_length) || sccp_strlen(messageText) > 4000) {
+		sccp_log((DEBUGCAT_DEVICE))(VERBOSE_PREFIX_3 "%s: (pushTextMessage) messageText is to long.\n", DEV_ID_LOG(device));
+		return SCCP_PUSH_RESULT_FAIL;
+	}
+
+	const char *xmlTitleFormat = "<Title>%s</Title>";
+	size_t title_length = strlen(xmlTitleFormat) +sccp_strlen(from)- 2 /* for the %s */ + 1 /* for terminator */;
+	char title[title_length];
+	if (!sccp_strlen_zero(from)) {
+		msg_length += title_length;
+		snprintf(title, title_length, xmlTitleFormat, from);
+	}
+	
+	char xmlData[msg_length];
+	snprintf(xmlData, msg_length, xmlFormat, title,  messageText);
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 1, 1, xmlData, priority);
 
 	if (SKINNY_TONE_SILENCE != tone) {
