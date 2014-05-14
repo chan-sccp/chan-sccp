@@ -131,11 +131,17 @@ static void __sccp_conference_participant_destroy(sccp_conference_participant_t 
 	pbx_bridge_features_cleanup(&participant->features);
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
+/*
 		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", "ConfId: %d\r\n" "PartId: %d\r\n" "Channel: %s\r\n" "Uniqueid: %s\r\n", 
 			participant->conference ? participant->conference->id : -1, 
 			participant->id, 
 			participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL", 
 			participant->conferenceBridgePeer ? pbx_channel_uniqueid(participant->conferenceBridgePeer) : "NULL"
+		);
+*/
+		manager_event(EVENT_FLAG_CALL, "SCCPConfLeave", "ConfId: %d\r\n" "PartId: %d\r\n", 
+			participant->conference ? participant->conference->id : -1, 
+			participant->id
 		);
 	}
 #endif
