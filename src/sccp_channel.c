@@ -1185,7 +1185,14 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel)
 		if (c->parentChannel == orig_channel) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel\n", c->designator);
 			c->parentChannel = sccp_channel_release(c->parentChannel);
+#ifdef CS_EXPERIMENTAL
+			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
+			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
+			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
+			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
+#else
 			sccp_channel_endcall(c);
+#endif		
 			orig_channel->answered_elsewhere = TRUE;
 		}
 	}
