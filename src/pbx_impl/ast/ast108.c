@@ -1004,22 +1004,23 @@ static boolean_t sccp_wrapper_asterisk18_masqueradeHelper(PBX_CHANNEL_TYPE * pbx
 	context = ast_strdupa(pbxChannel->context);
 	exten = ast_strdupa(pbxChannel->exten);
 	priority = pbxChannel->priority;
+	ast_channel_ref(pbxChannel);
 	pbx_channel_unlock(pbxChannel);
-	pbx_channel_unlock(pbxTmpChannel);
 
-	/* in older versions we need explicit locking, around the masqueration */
-	pbx_channel_lock(pbxChannel);
 	if (pbx_channel_masquerade(pbxTmpChannel, pbxChannel)) {
+		pbx_channel_unlock(pbxChannel);
+		pbx_channel_unlock(pbxTmpChannel);
+		ast_channel_unref(pbxChannel);
 		return FALSE;
 	}
-	pbx_channel_lock(pbxTmpChannel);
-	pbx_do_masquerade(pbxTmpChannel);
 	pbx_channel_unlock(pbxTmpChannel);
+
+	pbx_do_masquerade(pbxTmpChannel);
 	pbx_channel_set_hangupcause(pbxChannel, AST_CAUSE_NORMAL_UNSPECIFIED);
-	pbx_channel_unlock(pbxChannel);
 
 	/* when returning from bridge, the channel will continue at the next priority */
 	ast_explicit_goto(pbxTmpChannel, context, exten, priority + 1);
+	ast_channel_unref(pbxChannel);
 	return TRUE;
 }
 

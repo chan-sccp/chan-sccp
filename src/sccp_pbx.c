@@ -514,32 +514,20 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Going to Masquerade %s into %s\n", pbx_channel_name(br), pbx_channel_name(astForwardedChannel));
 
-#ifdef CS_EXPERIMENTAL
-//                        c->parentChannel->hangupRequest = sccp_wrapper_asterisk_dummyHangup;
-#endif
-
 			if (PBX(masqueradeHelper) (br, astForwardedChannel)) {
-#ifdef CS_EXPERIMENTAL
-//				c->parentChannel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
-#endif
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer) Masqueraded into %s\n", pbx_channel_name(astForwardedChannel));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: astForwardedChannel %s\n", pbx_state2str(pbx_channel_state(astForwardedChannel)));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) bridged. channel state: br %s\n", pbx_state2str(pbx_channel_state(br)));
 				sccp_log_and((DEBUGCAT_PBX + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) ============================================== \n");
 #if ASTERISK_VERSION_GROUP > 106
-				//pbx_indicate(c->owner, AST_CONTROL_REDIRECTING);		// handling should be implemented in pbx_impl like connectedline
 				pbx_indicate(br, AST_CONTROL_CONNECTED_LINE);
-#endif
-#ifdef CS_EXPERIMENTAL
-//                                ast_softhangup(c->parentChannel->owner, AST_CAUSE_NORMAL_CLEARING);
 #endif
 			} else {
 				pbx_log(LOG_ERROR, "(sccp_pbx_answer) Failed to masquerade bridge into forwarded channel\n");
                                 
 				res = -1;
 			}
-			c->parentChannel = sccp_channel_release(c->parentChannel);
 		} else {
 			/* we have no bridge and can not make a masquerade -> end call */
 			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "(sccp_pbx_answer: call forward) no bridge. channel state: ast %s\n", pbx_state2str(pbx_channel_state(c->owner)));
