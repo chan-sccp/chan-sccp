@@ -512,3 +512,13 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
 		}
 	}
 }
+
+/*
+ * \brief refence autorelease helper
+ * Used together with the cleanup attribute, to handle the automatic reference release of an object when we leave the scope in which the 
+ * reference was defined. 
+ */
+void sccp_refcount_autorelease(void *ptr) 
+{
+	sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+}
