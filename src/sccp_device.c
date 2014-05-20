@@ -309,10 +309,10 @@ void sccp_device_pre_reload(void)
  */
 boolean_t sccp_device_check_update(sccp_device_t * device)
 {
-	sccp_device_t *d = NULL;
+	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	boolean_t res = FALSE;
 
-	if ((d = sccp_device_retain(device))) {
+	if (d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
 		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
@@ -350,7 +350,6 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 				res = TRUE;
 			} while (0);
 		}
-		d = sccp_device_release(d);
 	}
 	return res;
 }
@@ -927,6 +926,8 @@ void sccp_dev_sendmsg(const sccp_device_t * d, sccp_mid_t t)
  * \brief Register a Device
  * \param d SCCP Device
  * \param opt Option/Registration State as int
+ *
+ * \note adds a retained device to the event.deviceRegistered.device
  */
 void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 {
@@ -1576,9 +1577,9 @@ sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d)
  */
 void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * channel)
 {
-	sccp_device_t *device = NULL;
+	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 
-	if ((device = sccp_device_retain(d))) {
+	if (device) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set the active channel %d on device\n", DEV_ID_LOG(d), (channel) ? channel->callid : 0);
 		if (device->active_channel && device->active_channel->line) {
 			device->active_channel->line->statistic.numberOfActiveChannels--;
@@ -1594,7 +1595,6 @@ void sccp_device_setActiveChannel(sccp_device_t * d, sccp_channel_t * channel)
 				device->active_channel->line->statistic.numberOfActiveChannels++;
 			}
 		}
-		device = sccp_device_release(device);
 	}
 }
 
@@ -1689,16 +1689,16 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
  * \param d SCCP Device
  * \return Result as int
  */
-int sccp_device_check_ringback(sccp_device_t * d)
+int sccp_device_check_ringback(sccp_device_t * device)
 {
-	sccp_channel_t *c;
+	AUTO_RELEASE sccp_channel_t *c;
+	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 
-	if (!(d = sccp_device_retain(d))) {
+	if (!d) {
 		return 0;
 	}
 	d->needcheckringback = 0;
 	if (d->state == SCCP_DEVICESTATE_OFFHOOK) {
-		sccp_device_release(d);
 		return 0;
 	}
 	c = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_CALLTRANSFER);
@@ -1710,10 +1710,8 @@ int sccp_device_check_ringback(sccp_device_t * d)
 	}
 	if (c) {
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
-		c = sccp_channel_release(c);
 		return 1;
 	}
-	sccp_device_release(d);
 	return 0;
 }
 
@@ -1724,6 +1722,7 @@ int sccp_device_check_ringback(sccp_device_t * d)
  * \callgraph
  * \callergraph
  * 
+ * \note adds a retained device to the event.deviceRegistered.device
  */
 void sccp_dev_postregistration(void *data)
 {
@@ -1738,7 +1737,6 @@ void sccp_dev_postregistration(void *data)
 	#endif
 	char family[ASTDB_FAMILY_KEY_LEN] = { 0 };
 	char buffer[ASTDB_RESULT_LEN] = { 0 };
-	sccp_linedevices_t *linedevice;
 	int instance;
 
 	if (!d) {
@@ -1754,7 +1752,8 @@ void sccp_dev_postregistration(void *data)
 	/* read last line/device states from db */
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting Database Settings...\n", d->id);
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++) {
-		if (d->lineButtons.instance[instance] && (linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]))) {
+		if (d->lineButtons.instance[instance]) {
+			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]);
 			sprintf(family, "SCCP/%s/%s", d->id, linedevice->line->name);
 			if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 				linedevice->cfwdAll.enabled = TRUE;
@@ -1766,7 +1765,6 @@ void sccp_dev_postregistration(void *data)
 				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
 				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
 			}
-			sccp_linedevice_release(linedevice);
 		}
 	}
 	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
@@ -1812,22 +1810,23 @@ void sccp_dev_postregistration(void *data)
  * \callgraph
  * \callergraph
  * 
+ * \note adds a retained device to the event.deviceRegistered.device
  */
-void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cleanupTime)
+void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_t cleanupTime)
 {
+	AUTO_RELEASE sccp_device_t *d =  sccp_device_retain(device);
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
-	sccp_line_t *line = NULL;
-	sccp_channel_t *channel = NULL;
-	sccp_event_t event;
-	int i;
+	sccp_channel_t *c = NULL;
+	sccp_event_t event = { 0 };
+	int i = 0;
 
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
 	sccp_devstate_specifier_t *devstateSpecifier;
 #endif
 	char family[25];
 
-	if ((d = sccp_device_retain(d))) {
+	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "SCCP: Clean Device %s\n", d->id);
 		sccp_dev_set_registered(d, SKINNY_DEVICE_RS_NONE);						/* set correct register state */
 		if (remove_from_global) {
@@ -1859,25 +1858,23 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
 
 		/* hang up open channels and remove device from line */
-		sccp_device_t *tmpDevice = NULL;
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
-				line = sccp_line_find_byname(config->button.line.name, FALSE);
+				AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
 				if (!line) {
 					continue;
 				}
 				SCCP_LIST_LOCK(&line->channels);
-				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, channel, list) {
-					if (sccp_channel_retain(channel)) {
-						tmpDevice = sccp_channel_getDevice_retained(channel);
+				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&line->channels, c, list) {
+					AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+					if (c) {
+						AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(channel);
 						if (tmpDevice == d) {
 							sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Hangup open channel on line %s device %s\n", line->name, d->id);
 							sccp_channel_endcall(channel);
 						}
-						tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
-						sccp_channel_release(channel);
 					}
 				}
 				SCCP_LIST_TRAVERSE_SAFE_END;
@@ -1886,7 +1883,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 				/* remove devices from line */
 				sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "SCCP: Remove Line %s from device %s\n", line->name, d->id);
 				sccp_line_removeDevice(line, d);
-				line = sccp_line_release(line);
 			}
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 		}
@@ -1956,8 +1952,6 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t remove_from_global, uint8_t cle
 		}
 		SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 #endif
-
-		d = sccp_device_release(d);
 	}
 }
 
@@ -2211,7 +2205,6 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 {
 	sccp_buttonconfig_t *config;
 	sccp_channel_t *c;
-	sccp_line_t *l;
 	uint8_t numberOfChannels = 0;
 
 	if (!device) {
@@ -2219,24 +2212,20 @@ uint8_t sccp_device_numberOfChannels(const sccp_device_t * device)
 		return 0;
 	}
 
-	sccp_device_t *tmpDevice = NULL;
-
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
-			l = sccp_line_find_byname(config->button.line.name, FALSE);
+			AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(config->button.line.name, FALSE);
 			if (!l) {
 				continue;
 			}
 			SCCP_LIST_LOCK(&l->channels);
 			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				tmpDevice = sccp_channel_getDevice_retained(c);
+				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
 				if (tmpDevice == device) {
 					numberOfChannels++;
 				}
-				tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
-			l = sccp_line_release(l);
 		}
 	}
 
