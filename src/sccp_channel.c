@@ -2794,7 +2794,6 @@ uint8_t sccp_device_selectedchannels_count(sccp_device_t * device)
 	SCCP_LIST_LOCK(&device->selectedChannels);
 	count = SCCP_LIST_GETSIZE(&device->selectedChannels);
 	SCCP_LIST_UNLOCK(&device->selectedChannels);
-	sccp_device_release(device);
 
 	return count;
 }
