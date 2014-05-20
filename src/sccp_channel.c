@@ -74,7 +74,7 @@ static boolean_t sccp_always_true(void)
 static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t enabled)
 {
 #if !CS_EXPERIMENTAL
-	AUTO_RELASE sccp_channel_t *c = sccp_channel_retain(channel);
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
 	
 	if (!c) {
 		return;
