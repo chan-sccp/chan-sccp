@@ -1127,6 +1127,7 @@ void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t
 			sccp_dev_send(d, msg);
 			channel->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		}
+		d = sccp_device_release(d);
 	}
 }
 
