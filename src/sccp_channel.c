@@ -81,7 +81,7 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 	}
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 
-	if (!(d) {
+	if (!d) {
 		return;
 	}
 
