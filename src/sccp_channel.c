@@ -714,7 +714,6 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 
 		instance = sccp_device_find_index_for_line(d, channel->line->name);
 		sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, channel->callid, 0);
-		d = sccp_device_release(d);
 		return;
 	} else {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
@@ -814,7 +813,6 @@ void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
 
 	if (skinnyFormat == 0) {
 		pbx_log(LOG_NOTICE, "SCCP: Unable to find skinny format for %d\n", channel->rtp.video.writeFormat);
-		d = sccp_device_release(d);
 		return;
 	}
 
@@ -1607,7 +1605,6 @@ int sccp_channel_hold(sccp_channel_t * channel)
  */
 int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolean_t swap_channels)
 {
-	sccp_channel_t *sccp_channel_on_hold;
 	uint16_t instance;
 
 	if (!channel || !channel->owner || !channel->line) {
@@ -1629,14 +1626,13 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	}
 
 	/* look if we have a call to put on hold */
-	if (swap_channels && (sccp_channel_on_hold = sccp_device_getActiveChannel(d))) {
+	if (swap_channels) {
+		AUTO_RELEASE sccp_channel_t *sccp_channel_on_hold = sccp_device_getActiveChannel(d);
 		/* there is an active call, let's put it on hold first */
-		if (!(sccp_channel_hold(sccp_channel_on_hold))) {
+		if (sccp_channel_on_hold && !(sccp_channel_hold(sccp_channel_on_hold))) {
 			pbx_log(LOG_WARNING, "SCCP: swap_channels failed to put channel %d on hold. exiting\n", sccp_channel_on_hold->callid);
-			sccp_channel_on_hold = sccp_channel_release(sccp_channel_on_hold);
 			return FALSE;
 		}
-		sccp_channel_on_hold = sccp_channel_release(sccp_channel_on_hold);
 	}
 
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
