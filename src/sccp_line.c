@@ -76,14 +76,15 @@ void sccp_line_pre_reload(void)
  */
 void sccp_line_post_reload(void)
 {
-	sccp_line_t *l;
+	sccp_line_t *line;
 	sccp_linedevices_t *linedevice;
 
-	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), l, list) {
-		if (!l->pendingDelete && !l->pendingUpdate) {
+	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list) {
+		if (!line->pendingDelete && !line->pendingUpdate) {
 			continue;
 		}
-		if ((l = sccp_line_retain(l))) {
+		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+		if (l) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				linedevice->device->pendingUpdate = 1;
@@ -97,7 +98,6 @@ void sccp_line_post_reload(void)
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cleaning Line (post_reload)\n", l->name);
 				sccp_line_clean(l, FALSE);
 			}
-			l = sccp_line_release(l);
 		}
 	}
 	SCCP_RWLIST_TRAVERSE_SAFE_END;
@@ -148,10 +148,10 @@ sccp_line_t *sccp_line_create(const char *name)
  */
 void sccp_line_addToGlobals(sccp_line_t * line)
 {
-	sccp_line_t *l = NULL;
+	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	if ((l = sccp_line_retain(line))) {
+	if (l) {
 		/* add to list */
 		l = sccp_line_retain(l);									/* add retained line to the list */
 		SCCP_RWLIST_INSERT_SORTALPHA(&GLOB(lines), l, list, cid_num);
@@ -164,8 +164,6 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 		event.type = SCCP_EVENT_LINE_CREATED;
 		event.event.lineCreated.line = sccp_line_retain(l);
 		sccp_event_fire(&event);
-
-		l = sccp_line_release(l);
 	} else {
 		pbx_log(LOG_ERROR, "Adding null to global line list is not allowed!\n");
 	}
@@ -190,7 +188,6 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	removed_line = SCCP_RWLIST_REMOVE(&GLOB(lines), line, list);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 
 	/* not sure if we should fire an event like this ? */
 	/*
@@ -201,6 +198,7 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
 	   sccp_event_fire(&event);
 	 */
 	if (removed_line) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Removed line '%s' from Glob(lines)\n", removed_line->name);
 		sccp_line_release(removed_line);
 	}
 
@@ -213,7 +211,6 @@ sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line)
  */
 void *sccp_create_hotline(void)
 {
-	sccp_line_t *hotline;
 
 	GLOB(hotline) = (sccp_hotline_t *) sccp_malloc(sizeof(sccp_hotline_t));
 	if (!GLOB(hotline)) {
@@ -223,7 +220,7 @@ void *sccp_create_hotline(void)
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
 //	SCCP_RWLIST_WRLOCK(&GLOB(lines));
-	hotline = sccp_line_create("Hotline");
+	AUTO_RELEASE sccp_line_t *hotline = sccp_line_create("Hotline");
 	if (hotline) {
 #ifdef CS_SCCP_REALTIME
 		hotline->realtime = TRUE;
@@ -237,10 +234,8 @@ void *sccp_create_hotline(void)
 		//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
 		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
 
-		GLOB(hotline)->line = sccp_line_retain(hotline);
-		sccp_line_addToGlobals(hotline);								// can return previous line on doubles
-		
-		sccp_line_release(hotline);
+		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
+		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
 	}
 //	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
@@ -264,10 +259,8 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	}
 	// SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
-		if ((sccp_channel_retain(c))) {
-			sccp_channel_endcall(c);
-			sccp_channel_release(c);
-		}
+		AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+		sccp_channel_endcall(channel);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 	// SCCP_LIST_UNLOCK(&l->channels);
@@ -485,32 +478,23 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
  */
-void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, struct subscriptionId *subscriptionId)
+void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, struct subscriptionId *subscriptionId)
 {
-	sccp_linedevices_t *linedevice = NULL;
+	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 
 	if (!device || !l) {
 		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: No line or device provided\n");
 		return;
 	}
 
+	sccp_linedevices_t *linedevice = NULL;
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
 		sccp_linedevice_release(linedevice);
-		// early exit
 		return;
 	}
 
-	if (!(device = sccp_device_retain(device))) {
-		pbx_log(LOG_ERROR, "SCCP: sccp_line_addDevice: Device could not be retained for line : %s\n", l ? l->name : "UNDEF");
-		return;
-	}
-
-	if (!(l = sccp_line_retain(l))) {
-		pbx_log(LOG_ERROR, "%s: sccp_line_addDevice: Line could not be retained\n", DEV_ID_LOG(device));
-		device = sccp_device_release(device);
-		return;
-	}
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
@@ -546,9 +530,6 @@ void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineIn
 
 	regcontext_exten(l, &(linedevice->subscriptionId), 1);
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: added linedevice: %p with device: %s\n", l->name, linedevice, DEV_ID_LOG(device));
-
-	l = sccp_line_release(l);
-	device = sccp_device_release(device);
 }
 
 /*!
@@ -608,23 +589,22 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 	if (!line || !channel) {
 		return;
 	}
-	sccp_line_t *l = NULL;
 	sccp_channel_t *c = NULL;
 
-	if ((l = sccp_line_retain(line))) {
+	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+	if (l) {
 		l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 			sccp_channel_updateChannelDesignator(c);
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == ANSWER_OLDEST_FIRST) {
-				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);
+				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
 			} else {
-				SCCP_LIST_INSERT_HEAD(&l->channels, c, list);
+				SCCP_LIST_INSERT_HEAD(&l->channels, c, list);					// add to list
 			}	
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
-		l = sccp_line_release(l);
 	}
 }
 
@@ -644,9 +624,9 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 		return;
 	}
 	sccp_channel_t *c;
-	sccp_line_t *l;
+	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 
-	if ((l = sccp_line_retain(line))) {
+	if (l) {
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", c->callid, l->name);
@@ -654,7 +634,6 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 			channel = sccp_channel_release(c);						// Remove retain from list
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
-		l = sccp_line_release(l);
 	}
 }
 
