@@ -520,5 +520,7 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
  */
 void sccp_refcount_autorelease(void *ptr) 
 {
-	sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	if (*(void **) ptr) {
+		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	}
 }
