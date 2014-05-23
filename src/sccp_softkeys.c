@@ -539,12 +539,16 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		return;
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
+
+	/* Changed Lock into a Barrier, Lock should actually be moved to sccp_channel_answer if necessary. 
+	   In sccp_channel_answer, we should unlock while lock before changing/updating codecs to prevent a deadlock against setWriteFormat 
+	*/
 	if (c->owner) {
+		/* memmory barrier */
 		pbx_channel_lock(c->owner);
-	}
-	sccp_channel_answer(d, c);
-	if (c->owner) {
 		pbx_channel_unlock(c->owner);
+		
+		sccp_channel_answer(d, c);
 	}
 }
 
