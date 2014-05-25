@@ -3325,7 +3325,7 @@ typedef struct {
 boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
 uint8_t sccp_protocol_getMaxSupportedVersionNumber(int type);
 const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t * device, int type);
-
+const char *skinny_keymode2longstr(skinny_keymode_t keymode);
 #endif														/* __SCCP_PROTOCOL_H */
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -1314,4 +1314,24 @@ const sccp_deviceProtocol_t *sccp_protocol_getDeviceProtocol(const sccp_device_t
 
 	return protocolDef[returnProtocol];
 }
+
+const char *skinny_keymode2longstr(skinny_keymode_t keymode) 
+{
+	switch(keymode) {
+		case KEYMODE_ONHOOK: return "On Hook";
+		case KEYMODE_CONNECTED: return "Connected";
+		case KEYMODE_ONHOLD: return "On Hold";
+		case KEYMODE_RINGIN: return "Incoming Call Ringing";
+		case KEYMODE_OFFHOOK: return "Off Hook";
+		case KEYMODE_CONNTRANS: return "Connect with Transferable Call";
+		case KEYMODE_DIGITSFOLL: return "More Digits Following";
+		case KEYMODE_CONNCONF: return "Connected to Conference";
+		case KEYMODE_RINGOUT: return "Outgoing Call Ringing";
+		case KEYMODE_OFFHOOKFEAT: return "Off Hook with Features";
+		case KEYMODE_INUSEHINT: return "Hint is in use";
+		case KEYMODE_ONHOOKSTEALABLE: return "On Hook with Stealable Call Present";
+		default: return "Unknown KeyMode";
+	}
+}
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
