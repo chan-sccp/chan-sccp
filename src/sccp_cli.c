@@ -1944,6 +1944,7 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 #define CLI_AMI_TABLE_BEFORE_ITERATION												\
 		v_count = sizeof(softkeyset->modes) / sizeof(softkey_modes);							\
 		for (i = 0; i < v_count; i++) {											\
+			const uint8_t *b = softkeyset->modes[i].ptr;								\
 			for (c = 0; c < softkeyset->modes[i].count; c++) {
 
 #define CLI_AMI_TABLE_AFTER_ITERATION												\
@@ -1952,8 +1953,9 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 #define CLI_AMI_TABLE_FIELDS													\
 				CLI_AMI_TABLE_FIELD(Set,		"-15.15s",	15,	softkeyset->name)		\
 				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	keymode2str(i))			\
-				CLI_AMI_TABLE_FIELD(Description,	"-40.40s",	40,	keymode2str(i))			\
+				CLI_AMI_TABLE_FIELD(Description,	"-40.40s",	40,	skinny_keymode2longstr(i))	\
 				CLI_AMI_TABLE_FIELD(LblID,		"-5d",		5,	c)				\
+				CLI_AMI_TABLE_FIELD(Label,              "-15.15s",	15,     label2str(b[c]))		
 
 
 #include "sccp_cli_table.h"
