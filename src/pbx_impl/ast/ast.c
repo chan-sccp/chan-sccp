@@ -429,7 +429,6 @@ sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_c
 	}
 }
 
-#ifdef CS_EXPERIMENTAL
 boolean_t sccp_wrapper_asterisk_dummyHangup(sccp_channel_t *channel)
 {
 	pbx_log(LOG_NOTICE, "%s: hangup request, replaced by dummy. Hangup not performed\n", channel->designator);
@@ -469,62 +468,6 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
 	ast_hangup(channel->owner);
 	return TRUE;
 }
-#else
-int sccp_wrapper_asterisk_requestHangup(PBX_CHANNEL_TYPE * ast_channel)
-{
-	if (!ast_channel) {
-		pbx_log(LOG_NOTICE, "channel to hangup is NULL\n");
-		return FALSE;
-	}
-
-	if ((pbx_channel_softhangup(ast_channel) & AST_SOFTHANGUP_APPUNLOAD) != 0) {
-		pbx_channel_set_hangupcause(ast_channel, AST_CAUSE_CHANNEL_UNACCEPTABLE);
-		ast_softhangup(ast_channel, AST_SOFTHANGUP_APPUNLOAD);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: send softhangup appunload\n", pbx_channel_name(ast_channel));
-		return TRUE;
-	}
-
-	sccp_channel_t *sccp_channel = get_sccp_channel_from_pbx_channel(ast_channel);
-
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "hangup %s: hasPbx %s; ast state: %s, sccp state: %s, blocking: %s, already being hungup: %s, hangupcause: %d\n",
-				      pbx_channel_name(ast_channel), pbx_channel_pbx(ast_channel) ? "yes" : "no", pbx_state2str(pbx_channel_state(ast_channel)), sccp_channel ? sccp_indicate2str(sccp_channel->state) : "--", pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING) ? "yes" : "no", pbx_channel_softhangup(ast_channel) ? "yes" : "no", pbx_channel_hangupcause(ast_channel)
-	    );
-
-	if (pbx_test_flag(pbx_channel_flags(ast_channel), AST_FLAG_BLOCKING)) {
-		// wait for blocker before issuing softhangup
-		int tries = 0;
-
-		while (!pbx_channel_blocker(ast_channel) && tries < 50) {
-			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: (requestHangup) Blocker set but no blocker found yet, waiting...!\n");
-			usleep(50);
-			tries++;
-		}
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send ast_softhangup_nolock (blocker: %s)\n", pbx_channel_name(ast_channel), pbx_channel_blockproc(ast_channel));
-		ast_softhangup_nolock(ast_channel, AST_SOFTHANGUP_DEV);
-	} else if (AST_STATE_UP == pbx_channel_state(ast_channel) || pbx_channel_pbx(ast_channel)) {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send ast_queue_hangup\n", pbx_channel_name(ast_channel));
-#if ASTERISK_VERSION_NUMBER < 10601
-		pbx_channel_setwhentohangup_tv(ast_channel, 0);
-#else
-		pbx_channel_setwhentohangup_tv(ast_channel, ast_tvnow());
-#endif
-		ast_queue_hangup(ast_channel);
-	} else {
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: send hard ast_hangup\n", pbx_channel_name(ast_channel));
-		if (!pbx_channel_pbx(ast_channel)) {
-			ast_channel_lock(ast_channel);
-			ast_indicate(ast_channel, -1);
-			ast_hangup(ast_channel);
-			ast_channel_unlock(ast_channel);
-		} else {
-			ast_queue_hangup(ast_channel);
-		}
-	}
-
-	sccp_channel = sccp_channel ? sccp_channel_release(sccp_channel) : NULL;
-	return TRUE;
-}
-#endif
 
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value)
 {
@@ -825,7 +768,6 @@ static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE *pbx_channel) {
 	return TRUE;
 }
 
-#ifdef CS_EXPERIMENTAL
 enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 	enum ast_pbx_result res = AST_PBX_FAILED;
 	sccp_channel_t *channel = NULL;
@@ -879,36 +821,5 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 EXIT:
 	return res;
 }
-#else
-enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
-	enum ast_pbx_result res = AST_PBX_FAILED;
-	sccp_channel_t *channel = NULL;
-
-	if (!pbx_channel) {
-		pbx_log(LOG_ERROR, "SCCP: (pbx_pbx_start) called without pbx channel\n");
-		return res;
-	}
-	
-	if((channel = get_sccp_channel_from_pbx_channel(pbx_channel))){
-		ast_channel_lock(pbx_channel);
-		const char *dialedNumber = PBX(getChannelExten)(channel);
-		char *pickupexten = "";
-		if (PBX(getPickupExtension)(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
-			if (sccp_asterisk_doPickup(pbx_channel)) {
-				res = AST_PBX_SUCCESS;
-			}
-			ast_channel_unlock(pbx_channel);
-			channel = sccp_channel_release(channel);
-			sccp_free(pickupexten);
-			goto EXIT;
-		}
-		ast_channel_unlock(pbx_channel);
-		channel = sccp_channel_release(channel);
-	}
-	res = ast_pbx_start(pbx_channel);
-EXIT:
-	return res;
-}
-#endif
  
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;

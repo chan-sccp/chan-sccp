@@ -226,9 +226,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
-#ifdef CS_EXPERIMENTAL
 	channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;
-#endif
 //	sccp_rtp_createAudioServer(channel);
 	return channel;
 }
@@ -1156,14 +1154,10 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel)
 		if (c->parentChannel == orig_channel) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel\n", c->designator);
 			c->parentChannel = sccp_channel_release(c->parentChannel);				/* release refcounted parentChannel */
-#ifdef CS_EXPERIMENTAL
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
 			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
 			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
-#else
-			sccp_channel_endcall(c);
-#endif		
 			orig_channel->answered_elsewhere = TRUE;
 		}
 	}
@@ -1225,11 +1219,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	}
 	if (channel->owner) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending hangupRequest to Call %s (state: %s)\n", DEV_ID_LOG(d), channel->designator, sccp_indicate2str(channel->state));
-#ifdef CS_EXPERIMENTAL
 		channel->hangupRequest(channel);
-#else
-		PBX(requestHangup) (channel->owner);
-#endif		
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %s\n", DEV_ID_LOG(d), channel->designator);
 	}

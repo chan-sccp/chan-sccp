@@ -173,9 +173,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	my_sccp_channel->autoanswer_type = autoanswer_type;
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
 	my_sccp_channel->ringermode = ringermode;
-#ifdef CS_EXPERIMENTAL
 	my_sccp_channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
-#endif	
 	l = sccp_line_release(l);
 
 	return SCCP_REQUEST_STATUS_SUCCESS;
