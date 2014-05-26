@@ -538,26 +538,16 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 			if (pbx_channel_state(c->owner) == AST_STATE_RING && pbx_channel_state(astForwardedChannel) == AST_STATE_DOWN && PBX(getChannelPbx) (c)) {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_4 "SCCP: Receiver Hungup: (hasPBX: %s)\n", PBX(getChannelPbx) (c) ? "yes" : "no");
 				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_CALL_REJECTED);
-#ifdef CS_EXPERIMENTAL
 				c->parentChannel->hangupRequest(c->parentChannel); 
-#else
-				pbx_queue_hangup(astForwardedChannel);
-#endif
 			} else {
 				pbx_log(LOG_ERROR, "%s: We did not find bridge channel for call forwarding call. Hangup\n", c->currentDeviceId);
 				pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
-#ifdef CS_EXPERIMENTAL
 				c->parentChannel->hangupRequest(c->parentChannel); 
-#else
-				pbx_queue_hangup(astForwardedChannel);
-#endif
 				sccp_channel_endcall(c);
 				res = -1;
 			}
-#ifdef CS_EXPERIMENTAL
                         pbx_channel_set_hangupcause(astForwardedChannel, AST_CAUSE_REQUESTED_CHAN_UNAVAIL);
                         res = -1;
-#endif
 		}
 		// FINISH
 	} else {

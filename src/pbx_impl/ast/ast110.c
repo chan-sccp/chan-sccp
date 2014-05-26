@@ -692,14 +692,12 @@ static int sccp_wrapper_asterisk110_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			 *  - adding time to channel->scheduler.digittimeout
 			 *  - rescheduling sccp_pbx_sched_dial 
 			 */
-#ifdef CS_EXPERIMENTAL
 			if (c->scheduler.digittimeout) {
 				SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			}
 
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
 			c->scheduler.digittimeout = PBX(sched_add) (c->enbloc.digittimeout, sccp_pbx_sched_dial, c);
-#endif
 			res = 0;
 			break;
 #endif
@@ -1485,7 +1483,6 @@ static int sccp_wrapper_asterisk110_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 			ast_log(LOG_WARNING, "old channel wasn't %p but was %p\n", oldchan, c->owner);
 			res = -1;
 		} else {
-#ifdef CS_EXPERIMENTAL
 			/* during a masquerade, fixup gets called twice, The Zombie channel name will have been changed to include '<ZOMBI>' */
 			/* using test_flag for ZOMBIE cannot be used, as it is only set after the fixup call */
 			if (!strstr(pbx_channel_name(newchan),"<ZOMBIE>")) {
@@ -1501,11 +1498,6 @@ static int sccp_wrapper_asterisk110_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNE
 				// set channel requestHangup to use ast_hangup (as it will not be part of __ast_pbx_run anymore, upon returning from masquerade) 
 				c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 			}			
-#else
-			if (!sccp_strlen_zero(c->line->language)) {
-				ast_string_field_set(newchan, language, c->line->language);
-			}
-#endif
 			sccp_wrapper_asterisk110_setOwner(c, newchan);
 			//! \todo force update of rtp peer for directrtp
 			// sccp_wrapper_asterisk111_update_rtp_peer(newchan, NULL, NULL, 0, 0, 0);
@@ -2800,9 +2792,6 @@ sccp_pbx_cb sccp_pbx = {
 	set_callstate:			sccp_wrapper_asterisk110_setCallState,
 	checkhangup:			sccp_wrapper_asterisk110_checkHangup,
 	hangup:				NULL,
-#ifndef CS_EXPERIMENTAL
-	requestHangup:			sccp_wrapper_asterisk_requestHangup,
-#endif
 	extension_status:		sccp_wrapper_asterisk110_extensionStatus,
 
 	setPBXChannelLinkedId:		sccp_wrapper_asterisk_set_pbxchannel_linkedid,
@@ -2925,9 +2914,6 @@ struct sccp_pbx_cb sccp_pbx = {
   
         /* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk110_allocPBXChannel,
-#ifndef CS_EXPERIMENTAL
-	.requestHangup 			= sccp_wrapper_asterisk_requestHangup,
-#endif
 	.extension_status 		= sccp_wrapper_asterisk110_extensionStatus,
 	.setPBXChannelLinkedId		= sccp_wrapper_asterisk_set_pbxchannel_linkedid,
 	.getChannelByName 		= sccp_wrapper_asterisk110_getChannelByName,

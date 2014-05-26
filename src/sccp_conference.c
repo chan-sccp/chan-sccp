@@ -237,14 +237,10 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->device = sccp_device_retain(device);
 		participant->conferenceBridgePeer = channel->owner;
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
-#ifdef CS_EXPERIMENTAL
 			channel->hangupRequest(channel);
-#endif			
 			return NULL;
 		}
-#ifdef CS_EXPERIMENTAL
 		channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;				// moderator channel not running in a ast_pbx_start thread, but in a local thread => use hard hangup
-#endif		
 		sccp_conference_addParticipant_toList(conference, participant);
 		participant->channel->conference = sccp_conference_retain(conference);
 		participant->channel->conference_id = conference->id;
@@ -350,20 +346,12 @@ static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participan
 		}
 		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
-#ifdef CS_EXPERIMENTAL
 			pbx_hangup(participant->conferenceBridgePeer);
-#else
-			PBX(requestHangup) (participant->conferenceBridgePeer);
-#endif
 			//participant_ast_channel = pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
-#ifdef CS_EXPERIMENTAL
 			pbx_hangup(participant->conferenceBridgePeer);
-#else
-			PBX(requestHangup) (participant->conferenceBridgePeer);
-#endif
 			return FALSE;
 		}
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Added Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
@@ -545,12 +533,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hanging up Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
 	pbx_clear_flag(pbx_channel_flags(participant->conferenceBridgePeer), AST_FLAG_BLOCKING);
-#ifdef CS_EXPERIMENTAL
-//	participant->channel->hangupRequest(participant->channel);
 	pbx_hangup(participant->conferenceBridgePeer);
-#else
-	PBX(requestHangup) (participant->conferenceBridgePeer);
-#endif
 	participant = sccp_participant_release(participant);
 
 	/* Conference end if the number of participants == 1 */
