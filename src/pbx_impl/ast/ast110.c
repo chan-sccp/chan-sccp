@@ -3181,7 +3181,7 @@ AST_MODULE_INFO(ASTERISK_GPL_KEY, AST_MODFLAG_LOAD_ORDER, SCCP_VERSIONSTR,
         .unload = unload_module,
         .reload = module_reload,
         .load_pri = AST_MODPRI_DEFAULT,
-        .description = "Skinny Client Control Protocol (SCCP)",
+//        .description = "Skinny Client Control Protocol (SCCP)",
         .nonoptreq = "chan_local"
 );
 #endif
