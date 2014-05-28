@@ -786,12 +786,14 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 			selectedFound = TRUE;
 
 			if (NULL != selectedChannel->channel && selectedChannel->channel != c) {
-				if (selectedChannel->channel != d->active_channel) {
+				if (selectedChannel->channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 					if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(selectedChannel->channel->owner))) {
 						sccp_conference_addParticipatingChannel(d->conference, c, selectedChannel->channel, bridged_channel);
 					} else {
 						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(selectedChannel->channel->owner));
 					}
+				} else {
+					sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "%s: sccp conference: Channel %s is Active on Shared Line on Other Device... Skipping.\n", DEV_ID_LOG(d), channel->designator);
 				}
 			}
 		}
@@ -808,13 +810,15 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 					if ((line = sccp_line_retain(d->buttonTemplate[i].ptr))) {
 						SCCP_LIST_LOCK(&line->channels);
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
-							if (channel != d->active_channel) {
+							if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 								if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
 									sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
 									sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel);
 								} else {
 									pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
 								}
+							} else {
+								sccp_log(DEBUGCAT_CONFERENCE)(VERBOSE_PREFIX_3 "%s: sccp conference: Channel %s is Active on Shared Line on Other Device...Skipping.\n", DEV_ID_LOG(d), channel->designator);
 							}
 						}
 						SCCP_LIST_UNLOCK(&line->channels);
