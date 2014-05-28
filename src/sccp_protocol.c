@@ -1001,7 +1001,6 @@ static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, s
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 	memcpy(&sin->sin_addr, &msg->data.OpenReceiveChannelAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
 	sin->sin_port = htons(htolel(msg->data.OpenReceiveChannelAck.v3.lel_portNumber));
-	pbx_log(LOG_WARNING, "SCCP: (parseOpenReceiveChannelAckV3) IPv4\n");
 }
 
 static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
@@ -1015,16 +1014,14 @@ static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, 
 		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
 		memcpy(&sin->sin_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
 		sin->sin_port = htons(htolel(msg->data.OpenReceiveChannelAck.v17.lel_portNumber));
- 		pbx_log(LOG_WARNING, "SCCP: (parseOpenReceiveChannelAckV17) IPv4\n");
 	} else {											// read ipv6 address
 		/* what to do with IPv4-mapped IPv6 addresses */
 		ss->ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
 		memcpy(&sin6->sin6_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
 		sin6->sin6_port = htons(htolel(msg->data.OpenReceiveChannelAck.v17.lel_portNumber));
- 		pbx_log(LOG_WARNING, "SCCP: (parseOpenReceiveChannelAckV17) IPv6\n");
 	}
-	sccp_dump_msg((sccp_msg_t *)msg);
+	//sccp_dump_msg((sccp_msg_t *)msg);
 }
 
 static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference)
