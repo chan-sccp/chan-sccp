@@ -1514,7 +1514,7 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_LASTNUMBERREDIAL] =		{sccp_handle_stimulus_lastnumberredial, TRUE},
 	[SKINNY_STIMULUS_LINE] =  			{sccp_handle_stimulus_line, FALSE},
 	[SKINNY_STIMULUS_SPEEDDIAL] =  			{sccp_handle_stimulus_speeddial, FALSE},
-	[SKINNY_STIMULUS_BLFSPEEDDIAL] =  		{sccp_handle_stimulus_speeddial, TRUE},
+	[SKINNY_STIMULUS_BLFSPEEDDIAL] =  		{sccp_handle_stimulus_speeddial, FALSE},
 	[SKINNY_STIMULUS_HOLD] =  			{sccp_handle_stimulus_hold, TRUE},
 	[SKINNY_STIMULUS_TRANSFER] =  			{sccp_handle_stimulus_transfer, TRUE},
 	[SKINNY_STIMULUS_VOICEMAIL] =  			{sccp_handle_stimulus_voicemail, TRUE},
