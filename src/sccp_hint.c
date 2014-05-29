@@ -462,6 +462,14 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 		hint_context = GLOB(context);
 	}
 
+	/* skip subscribtions to already owned line */
+	sccp_buttonconfig_t *config;
+	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		if (config->type == LINE && sccp_strcaseequals(config->button.line.name, hint_exten)) {
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Skipping Hint Registration for Line we already have this connected (%s, %s).\n", DEV_ID_LOG(device), config->button.line.name, hint_exten);
+			return;
+		}
+	}
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Dialplan %s for exten: %s and context: %s\n", DEV_ID_LOG(device), hintStr, hint_exten, hint_context);
 
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -988,7 +996,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
 		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState), hint->currentState);
-
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
