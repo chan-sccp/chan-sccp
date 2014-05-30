@@ -1606,13 +1606,8 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
 		if ((l = sccp_dev_get_activeline(d))) {
 			instance = sccp_device_find_index_for_line(d, l->name);
-		} else if (d->defaultLineInstance > 0) {
-			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
-			l = sccp_line_find_byid(d, d->defaultLineInstance);
-			instance = d->defaultLineInstance;
 		} else {
-			// falling back to first line
-			instance = SCCP_FIRST_LINEINSTANCE;
+			instance = (d->defaultLineInstance > 0) ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
 		}
 	}
 	if (!l) {
@@ -2985,19 +2980,15 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_indicate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
-//			sccp_device_setActiveChannel(d, channel);			// replaced by setDevice
-
-//			if (d->active_channel != channel) {				// (RB: answer should have already done this)
-//				sccp_channel_setDevice(channel, d);
-//			}
-            
 			uint16_t port = sccp_socket_getPort(&sas);
+			
+#ifndef CS_EXPERIMENTAL			/*look's like it is using the wrong port, it should be using sccp_rtp_getServerPort(&channel->rtp.audio) to get the servers rtp instance port */
 			if (d->nat){
 			    memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
 			    sccp_socket_ipv4_mapped(&sas, &sas);
 			    sccp_socket_setPort(&sas, port);
 			}
-                
+#endif
 			//ast_rtp_set_peer(channel->rtp.audio.rtp, &sin);
 			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
