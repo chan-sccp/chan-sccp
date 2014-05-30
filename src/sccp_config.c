@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_config.c
  * \brief	SCCP Config Class
@@ -11,8 +10,8 @@
  * \note	To find out more about the reload function see \ref sccp_config_reload
  * \remarks	Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
- * $Date: 2010-11-17 18:10:34 +0100 (Wed, 17 Nov 2010) $
- * $Revision: 2154 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -96,7 +95,7 @@
 #include "sccp_socket.h"
 #include <asterisk/paths.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2154 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #ifndef offsetof
 #if defined(__GNUC__) && __GNUC__ > 3
 #define offsetof(type, member)  __builtin_offsetof (type, member)
@@ -2783,11 +2782,11 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 
 	if (strlen(req_segment) == 0) {										// return all segments
 		int sccp_config_revision = 0;
-		sscanf(SCCP_CONFIG_REVISION, "$Revision: %i $", &sccp_config_revision);
+		sscanf(SCCP_CONFIG_REVISION, "$Revision$", &sccp_config_revision);
 		astman_append(s, "Chan-sccp-b: \r\n");
 		astman_append(s, "Branch: %s\r\n", SCCP_BRANCH);
 		astman_append(s, "Version: %s\r\n", SCCP_VERSION);
-		astman_append(s, "Revision: %s\r\n\r\n",  SCCP_REVISIONSTR);
+		astman_append(s, "Revision: %s\r\n",  SCCP_REVISIONSTR);
 		astman_append(s, "ConfigRevision: %d\r\n\r\n", sccp_config_revision);
 		astman_send_listack(s, m, "List of segments will follow", "start");
 		
