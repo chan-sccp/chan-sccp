@@ -2782,10 +2782,13 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	char *description_part = "";
 
 	if (strlen(req_segment) == 0) {										// return all segments
+		int sccp_config_revision = 0;
+		sscanf(SCCP_CONFIG_REVISION, "$Revision: %i $", &sccp_config_revision);
 		astman_append(s, "Chan-sccp-b: \r\n");
 		astman_append(s, "Branch: %s\r\n", SCCP_BRANCH);
 		astman_append(s, "Version: %s\r\n", SCCP_VERSION);
 		astman_append(s, "Revision: %s\r\n\r\n",  SCCP_REVISIONSTR);
+		astman_append(s, "ConfigRevision: %d\r\n\r\n", sccp_config_revision);
 		astman_send_listack(s, m, "List of segments will follow", "start");
 		
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
