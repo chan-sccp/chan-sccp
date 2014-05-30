@@ -816,9 +816,10 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param c SCCP Channel
  *
  */
-void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * channel)
+void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c;	
+	AUTO_RELEASE sccp_line_t *l;
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
 		return;
@@ -837,7 +838,9 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
 		uint8_t instance;
-		if (!l) {
+		if (line) {
+			l = sccp_line_retain(line);
+		} else {
 			instance = (d->defaultLineInstance > 0) ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
 			l = sccp_line_find_byid(d, instance);
 		}
