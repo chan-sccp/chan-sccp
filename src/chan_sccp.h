@@ -872,6 +872,7 @@ struct sccp_line {
 	char language[SCCP_MAX_LANGUAGE];									/*!< language we use for calls */
 	char accountcode[SCCP_MAX_ACCOUNT_CODE];								/*!< accountcode used in cdr */
 	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< musicclass assigned when getting moh */
+	char parkinglot[SCCP_MAX_CONTEXT];									/*!< parkinglot to use */
 };														/*!< SCCP Line Structure */
 
 /*!

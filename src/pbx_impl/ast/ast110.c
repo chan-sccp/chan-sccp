@@ -924,6 +924,9 @@ static boolean_t sccp_wrapper_asterisk110_allocPBXChannel(sccp_channel_t * chann
 		pbxDstChannel->pickupgroup = line->pickupgroup;
         }
 #endif
+	if (!sccp_strlen_zero(line->parkinglot)) {
+		ast_string_field_set(pbxDstChannel, parkinglot, line->parkinglot);
+	}
 	/** the the tonezone using language information */
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {
 		pbxDstChannel->zone = ast_get_indication_zone(line->language);					/* this will core asterisk on hangup */

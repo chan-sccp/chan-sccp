@@ -255,6 +255,7 @@ accountcode = ""                                                                
 amaflags = ""                                                                     ; sets the AMA flags stored in the CDR record for this line
 callgroup = ""                                                                    ; sets the caller groups this line is a member of
 pickupgroup = ""                                                                  ; sets the pickup groups this line is a member of (this phone can pickup calls from remote phones which are in this caller group
+parkinglot = ""									  ; parkinglot assigned to this line. Empty means 'default'
 trnsfvm = ""                                                                      ; extension to redirect the caller to for voice mail
 secondary_dialtone_digits = ""                                                    ; digits to indicate an external line to user (secondary dialtone) (max 9 digits)
 secondary_dialtone_tone = 0x22                                                    ; outside dialtone frequency
