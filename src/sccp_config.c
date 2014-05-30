@@ -2782,7 +2782,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 
 	if (strlen(req_segment) == 0) {										// return all segments
 		int sccp_config_revision = 0;
-		sscanf(SCCP_CONFIG_REVISION, "$Revision$", &sccp_config_revision);
+		sscanf(SCCP_CONFIG_REVISION, "$" "Revision: %i" "$", &sccp_config_revision);
 		astman_append(s, "Chan-sccp-b: \r\n");
 		astman_append(s, "Branch: %s\r\n", SCCP_BRANCH);
 		astman_append(s, "Version: %s\r\n", SCCP_VERSION);
