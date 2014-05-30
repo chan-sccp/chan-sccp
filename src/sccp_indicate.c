@@ -480,12 +480,19 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	
 	memset(&tmpChannel, 0, sizeof(sccp_channel_t));
 	tmpChannel.callid = c->callid;
-	// \todo set only the necessary once, in regard to c->privacy
-	sccp_copy_string(tmpChannel.callInfo.callingPartyName, c->callInfo.callingPartyName, sizeof(tmpChannel.callInfo.callingPartyName));
-	sccp_copy_string(tmpChannel.callInfo.calledPartyName, c->callInfo.calledPartyName, sizeof(tmpChannel.callInfo.calledPartyName));
-	sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, c->callInfo.callingPartyNumber, sizeof(tmpChannel.callInfo.callingPartyNumber));
-	sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, c->callInfo.calledPartyNumber, sizeof(tmpChannel.callInfo.calledPartyNumber));
+	if (c->privacy || !c->callInfo.presentation) {
+		sccp_copy_string(tmpChannel.callInfo.callingPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.callingPartyName));
+		sccp_copy_string(tmpChannel.callInfo.calledPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.calledPartyName));
+		sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.callingPartyNumber));
+		sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.calledPartyNumber));
+	} else {
+		sccp_copy_string(tmpChannel.callInfo.callingPartyName, c->callInfo.callingPartyName, sizeof(tmpChannel.callInfo.callingPartyName));
+		sccp_copy_string(tmpChannel.callInfo.calledPartyName, c->callInfo.calledPartyName, sizeof(tmpChannel.callInfo.calledPartyName));
+		sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, c->callInfo.callingPartyNumber, sizeof(tmpChannel.callInfo.callingPartyNumber));
+		sccp_copy_string(tmpChannel.callInfo.calledPartyNumber, c->callInfo.calledPartyNumber, sizeof(tmpChannel.callInfo.calledPartyNumber));
+	}
 	tmpChannel.calltype = c->calltype;
+	tmpChannel.callInfo.presentation = c->callInfo.presentation;
 	tmpChannel.line = sccp_line_retain(c->line);
 
 	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_indicate2str(state), state, c->designator, c->callid);
@@ -503,8 +510,10 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		/* check if we have one part of the remote channel */
 		AUTO_RELEASE sccp_device_t *remoteDevice = sccp_device_retain(linedevice->device);
 		if (remoteDevice) {
-			/* SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing)*/
-			uint8_t stateVisibility = (c->privacy || remoteDevice->protocolversion < 17) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
+			uint8_t stateVisibility = (c->privacy || !c->callInfo.presentation) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
+
+ 			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
+			stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
 
 			{
 				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(linedevice->device);
