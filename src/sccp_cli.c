@@ -1200,6 +1200,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_PARAM("Named Call Group", CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE" );
 	CLI_AMI_OUTPUT_PARAM("Named Pickup Group", CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
 #endif
+	CLI_AMI_OUTPUT_PARAM("ParkingLot", CLI_AMI_LIST_WIDTH, "%s", !sccp_strlen_zero(l->parkinglot) ? l->parkinglot : "default");
 	CLI_AMI_OUTPUT_PARAM("Caller ID name", CLI_AMI_LIST_WIDTH, "%s", l->cid_name ? l->cid_name : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Caller ID number", CLI_AMI_LIST_WIDTH, "%s", l->cid_num ? l->cid_num : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Incoming Calls limit", CLI_AMI_LIST_WIDTH, "%d", l->incominglimit);

@@ -934,6 +934,9 @@ static boolean_t sccp_wrapper_asterisk111_allocPBXChannel(sccp_channel_t * chann
 		ast_channel_named_pickupgroups_set(pbxDstChannel, ast_get_namedgroups(line->namedpickupgroup));
 	}
 #endif
+	if (!sccp_strlen_zero(line->parkinglot)) {
+		ast_channel_parkinglot_set(pbxDstChannel, line->parkinglot);
+	}
 
 	/** the the tonezone using language information */
 	if (!sccp_strlen_zero(line->language) && ast_get_indication_zone(line->language)) {

@@ -977,6 +977,9 @@ static boolean_t sccp_wrapper_asterisk18_allocPBXChannel(sccp_channel_t * channe
 		pbxDstChannel->pickupgroup = line->pickupgroup;
 	}
 #endif
+	if (!sccp_strlen_zero(line->parkinglot)) {
+		ast_string_field_set(pbxDstChannel, parkinglot, line->parkinglot);
+	}
 	pbxDstChannel->priority = 1;
 	pbxDstChannel->adsicpe = AST_ADSI_UNAVAILABLE;
 	/** the the tonezone using language information */
