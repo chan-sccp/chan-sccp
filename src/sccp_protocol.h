@@ -3130,6 +3130,7 @@ static uint8_t skSet_Onhook[] = {
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
 #endif
+	SKINNY_LBL_PRIVATE,
 	//      SKINNY_LBL_CONFLIST,
 
 };														/*!< SKINNY SoftKeys Set "Onhook" as INT */

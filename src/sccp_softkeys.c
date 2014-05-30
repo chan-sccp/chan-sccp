@@ -94,7 +94,7 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_DND, sccp_sk_dnd, FALSE},
 	{SKINNY_LBL_DIRTRFR, sccp_sk_dirtrfr, TRUE},
 	{SKINNY_LBL_SELECT, sccp_sk_select, TRUE},
-	{SKINNY_LBL_PRIVATE, sccp_sk_private, TRUE},
+	{SKINNY_LBL_PRIVATE, sccp_sk_private, FALSE},
 	{SKINNY_LBL_MONITOR, sccp_feat_monitor, TRUE},
 	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE},
 	{SKINNY_LBL_DIAL, sccp_sk_dial, TRUE},
@@ -816,8 +816,9 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \param c SCCP Channel
  *
  */
-void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
+void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * channel)
 {
+	AUTO_RELEASE sccp_channel_t *c;	
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
 		return;
@@ -831,6 +832,26 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 
+	if (channel) {
+		c = sccp_channel_retain(channel);
+	} else {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
+		uint8_t instance;
+		if (!l) {
+			instance = (d->defaultLineInstance > 0) ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
+			l = sccp_line_find_byid(d, instance);
+		}
+		if (l) {
+			instance = sccp_device_find_index_for_line(d, l->name);
+			sccp_dev_set_activeline(d, l);
+			sccp_dev_set_cplane(d, instance, 1);
+			c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		} else {
+			sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no line active", 5);
+			return;
+		}
+	}
+	
 	if (!c) {
 		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no channel active", 5);
 		return;
