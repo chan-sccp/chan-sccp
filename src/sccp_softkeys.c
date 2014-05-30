@@ -819,7 +819,7 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)
 {
 	AUTO_RELEASE sccp_channel_t *c;	
-	AUTO_RELEASE sccp_line_t *l;
+	uint8_t instance;
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
 		return;
@@ -835,24 +835,24 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 
 	if (channel) {
 		c = sccp_channel_retain(channel);
+		instance = lineInstance;
 	} else {
+		AUTO_RELEASE sccp_line_t *l;
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Creating new PRIVATE channel\n", d->id);
-		uint8_t instance;
 		if (line) {
 			l = sccp_line_retain(line);
 		} else {
 			instance = (d->defaultLineInstance > 0) ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
 			l = sccp_line_find_byid(d, instance);
 		}
-		if (l) {
-			instance = sccp_device_find_index_for_line(d, l->name);
-			sccp_dev_set_activeline(d, l);
-			sccp_dev_set_cplane(d, instance, 1);
-			c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
-		} else {
+		if (!l) {
 			sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no line active", 5);
 			return;
 		}
+		instance = sccp_device_find_index_for_line(d, l->name);
+		sccp_dev_set_activeline(d, l);
+		sccp_dev_set_cplane(d, instance, 1);
+		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	}
 	
 	if (!c) {
@@ -860,14 +860,19 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 		return;
 	}
 
+	// check device->privacyFeature.status before toggeling
+
+	// toggle
 	c->privacy = (c->privacy) ? FALSE : TRUE;
-	//d->privacyFeature.status = c->privacy;			// should not be activeted on softkey
+	
+	// update device->privacyFeature.status  using sccp_feat_changed
 	//sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
+	
 	if (c->privacy) {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_PRIVATE, 0);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 0);
 		c->callInfo.presentation = 0;
 	} else {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->privacy ? "enabled" : "disabled", c->callid);
 }
