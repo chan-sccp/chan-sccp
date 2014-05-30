@@ -2720,34 +2720,6 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	char buffer[ASTDB_RESULT_LEN];
 	char timebuffer[ASTDB_RESULT_LEN];
 	int timeout = 0;
-	char family[ASTDB_FAMILY_KEY_LEN];
-
-	sprintf(family, "SCCP/%s", device->id);
-
-	/* dndFeature */
-	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer))) {
-		if (!strcasecmp(buffer, "silent")) {
-			device->dndFeature.status = SCCP_DNDMODE_SILENT;
-		} else {
-			device->dndFeature.status = SCCP_DNDMODE_REJECT;
-                }
-	} else {
-		device->dndFeature.status = SCCP_DNDMODE_OFF;
-	}
-
-	///* monitorFeature */
-	//if (PBX(feature_getFromDatabase)(family, "monitor", buffer, sizeof(buffer))) {
-	//	device->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_REQUESTED;
-	//} else {
-	//	device->monitorFeature.status = 0;
-	//}
-
-	/* privacyFeature */
-	if (PBX(feature_getFromDatabase) (family, "privacy", buffer, sizeof(buffer))) {
-		sscanf(buffer, "%u", (unsigned int *) &device->privacyFeature.status);
-	} else {
-		device->privacyFeature.status = 0;
-	}
 
 	/* Message */
 	if (PBX(feature_getFromDatabase) ("SCCP/message", "text", buffer, sizeof(buffer))) {
@@ -2763,16 +2735,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 		}
 	}
 
-	/* lastDialedNumber */
-	char lastNumber[SCCP_MAX_EXTENSION] = "";
-	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", lastNumber, sizeof(lastNumber))) {
-		sccp_copy_string(device->lastNumber, lastNumber, sizeof(device->lastNumber));
-	}
-
 	/* initialize so called priority feature */
 	device->priFeature.status = 0x010101;
 	device->priFeature.initialized = 0;
-
 #ifdef CS_DEVSTATE_FEATURE
 	/* Read and initialize custom devicestate entries */
 	SCCP_LIST_LOCK(&device->devstateSpecifiers);

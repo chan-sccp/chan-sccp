@@ -1398,6 +1398,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, 
 		event.event.featureChanged.optional_linedevice = linedevice ? sccp_linedevice_retain(linedevice) : NULL;
 		event.event.featureChanged.featureType = featureType;
 		sccp_event_fire(&event);
+		sccp_log(DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: Feature %s Change Event Scheduled\n", device->id, featureType2str(featureType));
 	}
 }
 
