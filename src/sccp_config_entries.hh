@@ -23,6 +23,8 @@
 /* custom parser */
 #define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
 
+#define SCCP_CONFIG_REVISION "$Revision: 2154 $"
+
 /*!
  * \brief List of SCCP Config Options for SCCP Globals
  */
