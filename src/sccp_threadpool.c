@@ -9,15 +9,15 @@
  * 		Library providing a threading pool where you can add work. 
  * \since	2009-01-16
  *
- * $Date: 2011-01-04 17:29:12 +0100 (Tue, 04 Jan 2011) $
- * $Revision: 2215 $
+ * $Date$
+ * $Revision$
  */
 
 #include <config.h>
 #include "common.h"
 #include "sccp_threadpool.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include "sccp_threadpool.h"
 #include <signal.h>
 #undef pthread_create

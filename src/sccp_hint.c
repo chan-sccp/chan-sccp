@@ -10,8 +10,8 @@
  * \remarks	Purpose:	SCCP Hint
  * 		When to use:	Does the business of hint status
  *
- * $Date: 2011-01-04 17:29:12 +0100 (Tue, 04 Jan 2011) $
- * $Revision: 2215 $
+ * $Date$
+ * $Revision$
  */
 
 /*!
@@ -34,7 +34,7 @@
 #include "sccp_line.h"
 #include "sccp_utils.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 2215 $")
+SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
 /* ========================================================================================================================= Struct Definitions */
 /*!

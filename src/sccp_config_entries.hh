@@ -5,8 +5,8 @@
  *              See the LICENSE file at the top of the source tree.
  * \remarks     Only paramaters directly related to chan-sccp configuration should be stored in this source file.
  *
- * $Date: 2010-11-17 18:10:34 +0100 (Wed, 17 Nov 2010) $
- * $Revision: 2154 $
+ * $Date$
+ * $Revision$
  */
 
 /* dyn config */
@@ -23,7 +23,7 @@
 /* custom parser */
 #define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
 
-#define SCCP_CONFIG_REVISION "$Revision: 2154 $"
+#define SCCP_CONFIG_REVISION "$Revision$"
 
 /*!
  * \brief List of SCCP Config Options for SCCP Globals
