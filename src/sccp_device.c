@@ -480,6 +480,7 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
 
 void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNumberDialed)
 {
+	boolean_t ResetNoneLineInstance = FALSE;
 #ifdef CS_ADV_FEATURES
     	if (device->useRedialMenu) {
     		return;
@@ -489,6 +490,9 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 	
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);
 	if (lastNumberDialed && !sccp_strlen_zero(lastNumberDialed)) {
+		if (sccp_strlen_zero(device->lastNumber)) {
+			ResetNoneLineInstance = TRUE;
+		}
 		sccp_copy_string(device->lastNumber, lastNumberDialed, sizeof(device->lastNumber));
 		redial_active = TRUE;
 	} else {
@@ -499,6 +503,9 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOK, SKINNY_LBL_REDIAL, redial_active);
 	sccp_softkey_setSoftkeyState(device, KEYMODE_OFFHOOKFEAT, SKINNY_LBL_REDIAL, redial_active);
 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOKSTEALABLE, SKINNY_LBL_REDIAL, redial_active);
+	if (ResetNoneLineInstance) {
+		sccp_dev_set_keyset(device, 0, 0, KEYMODE_ONHOOK);
+	}
 }
 
 /*!
