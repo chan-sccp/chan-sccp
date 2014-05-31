@@ -2952,7 +2952,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 	}
 	if (mediastatus) {
 		// rtp error from the phone
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned error: '%s' (%d) ! No RTP stream available. Possibly all the rtp streams the phone supports have been used up. Giving up.\n", d->id, mediastatus2str(mediastatus), mediastatus);
+ 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, mediastatus ? "Error" : "Ok", mediastatus);
 		if (channel) {
 			sccp_channel_endcall(channel);
 		}
@@ -3042,6 +3042,9 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 	if (mediastatus) {
 		/* rtp error from the phone */
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission, '%s' (%d).\n", DEV_ID_LOG(d), mediastatus2str(mediastatus), mediastatus);
+ 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
+	 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
+ 		}
 		sccp_dump_msg(msg_in);
 		return;
 	}
@@ -3863,6 +3866,9 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 	}
 	if (mediastatus) {
 		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: '%s' (%d))\n", DEV_ID_LOG(d), mediastatus2str(mediastatus), mediastatus);
+ 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
+	 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
+ 		}
 		sccp_dump_msg(msg_in);
 		sccp_channel_closeAllMediaTransmitAndReceive(d, channel);
 		sccp_channel_endcall(channel);
