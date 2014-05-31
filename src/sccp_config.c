@@ -1462,33 +1462,30 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 	}
 	if (!error) {
 		// compare ha elements
-		struct sccp_ha *hal = ha;
-		struct sccp_ha *prev_hal = prev_ha;
-		do {
-			if (
-				(prev_hal && hal) &&
-				((prev_hal->next && hal->next) || (!prev_hal->next && !hal->next)) &&
-				!sccp_socket_cmp_addr(&hal->netaddr, &prev_hal->netaddr) &&
-				!sccp_socket_cmp_addr(&hal->netmask, &prev_hal->netmask) &&
-				(hal->sense == prev_hal->sense) 
-			) {
-				prev_hal = prev_hal->next;
-				hal = hal->next;
-			} else {
-				sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Changed\n");
-				changed = SCCP_CONFIG_CHANGE_CHANGED;
-				if (prev_ha) {
-					sccp_free_ha(prev_ha);
-				}
-				*(struct sccp_ha **) dest = ha;
-				break;
+		struct ast_str *ha_buf = pbx_str_alloca(512);
+		sccp_print_ha(ha_buf, sizeof(*ha_buf), ha);
+		struct ast_str *prev_ha_buf = pbx_str_alloca(512);
+		sccp_print_ha(prev_ha_buf, sizeof(*prev_ha_buf), prev_ha);
+		
+		if (!sccp_strequals(pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf))) {
+			sccp_log_and(DEBUGCAT_CONFIG + DEBUGCAT_HIGH) ("hal: %s\nprev_ha: %s\n", pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf));
+			if (prev_ha) {
+				sccp_free_ha(prev_ha);
 			}
-		} while (prev_hal && hal);
+			*(struct sccp_ha **) dest = ha;
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+		} else {
+			if (ha) {
+				sccp_free_ha(ha);
+			}
+		}
 	} else {
 		sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Invalid\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		if (ha) {
+			sccp_free_ha(ha);
+		}
 	}
-
 	sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: (sccp_config_parse_deny_permit) Return: %d\n", changed);
 	return changed;
 }
@@ -2077,15 +2074,6 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	PBX_VARIABLE_TYPE *v;
 
 	/* Cleanup for reload */
-	if (GLOB(ha)) {
-		sccp_free_ha(GLOB(ha));
-		GLOB(ha) = NULL;
-	}
-	if (GLOB(localaddr)) {
-		sccp_free_ha(GLOB(localaddr));
-		GLOB(localaddr) = NULL;
-	}
-
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_WARNING, "Unable to load config file sccp.conf, SCCP disabled\n");
 		return FALSE;
