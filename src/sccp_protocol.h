@@ -499,17 +499,17 @@ typedef struct {
 } StationButtonDefinition;											/*!< SKINNY Station Button Definition Structure */
 
 typedef struct {
-  uint8_t key[16];
-  uint8_t salt[16];
+	uint8_t key[16];
+	uint8_t salt[16];
 } EncryptionKey;
 
 typedef struct {
-  skinny_encryptiontype_t algorithm;
-  uint16_t keylen;
-  uint16_t saltlen;
-  EncryptionKey keyData;
-  uint32_t isMKIPresent;
-  uint32_t keyDerivationRate;
+	skinny_encryptiontype_t algorithm;
+	uint16_t keylen;
+	uint16_t saltlen;
+	EncryptionKey keyData;
+	uint32_t isMKIPresent;
+	uint32_t keyDerivationRate;
 } EncryptionInfo;
 
 /*!
@@ -994,6 +994,8 @@ typedef union {
 		 char calledPartyName[StationMaxNameSize];
 		 char originalCalledPartyName[StationMaxNameSize];
 		 char lastRedirectingPartyName[StationMaxNameSize];
+		 char HuntPilotNumber[25];
+		 char HuntPilotName[121];
 		 */
 	} CallInfoDynamicMessage;										/*!< Call Information Dynamic Message Structure */
 
@@ -1888,26 +1890,15 @@ typedef union {
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< only used with G.723 payload */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
-				uint32_t unknown1;								/*!< Unknown */
-				uint32_t unknown2;								/*!< Unknown */
-				uint32_t unknown3;								/*!< Unknown */
-				uint32_t unknown4;								/*!< Unknown */
-				uint32_t unknown5;								/*!< Unknown */
-				uint32_t unknown6;								/*!< Unknown */
-				uint32_t unknown7;								/*!< Unknown */
-				uint32_t unknown8;								/*!< Unknown */
-				uint32_t unknown9;								/*!< Unknown */
-				uint32_t unknown10;								/*!< Unknown */
+				EncryptionInfo encryptioninfo;
 				/* protocol v11 mods */
-				uint32_t unknown11;								/*!< Unknown */
-				uint32_t unknown12;								/*!< Unknown */
-				uint32_t unknown13;								/*!< Unknown */
-				uint32_t unknown14;								/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Unknown */
+				uint32_t lel_assocStreamID;							/*!< Unknown */
 				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_rtptimeout;							/*!< RTP TimeOut */
 				/* protocol v11 fields */
-				uint32_t unknown15;
-				uint32_t unknown16;
+				uint32_t lel_mixingMode;
+				uint32_t lel_direction;
 			} v3;
 
 			/* StartMediaTransmission v17
@@ -1936,24 +1927,13 @@ typedef union {
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
-				uint32_t lel_unknown2;								/*!< Unknown */
-				uint32_t lel_unknown3;								/*!< Unknown */
-				uint32_t lel_unknown4;								/*!< Unknown */
-				uint32_t lel_unknown5;								/*!< Unknown */
-				uint32_t lel_unknown6;								/*!< Unknown */
-				uint32_t lel_unknown7;								/*!< Unknown */
-				uint32_t lel_unknown8;								/*!< Unknown */
-				uint32_t lel_unknown9;								/*!< Unknown */
-				uint32_t lel_unknown10;								/*!< Unknown */
-				uint32_t lel_unknown11;								/*!< Unknown */
-				uint32_t lel_unknown12;								/*!< Unknown */
-				uint32_t lel_unknown13;								/*!< Unknown */
-				uint32_t lel_unknown14;								/*!< Unknown */
-				uint32_t lel_unknown15;								/*!< Unknown */
+				EncryptionInfo encryptioninfo;
+				uint32_t lel_streamPassThroughID;						/*!< Unknown */
+				uint32_t lel_assocStreamID;							/*!< Unknown */
 				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is set to 0x0A) */
-				uint32_t lel_unknown18;								/*!< Unknown */
-				uint32_t lel_unknown19;								/*!< Unknown */
+				uint32_t lel_mixingMode;
+				uint32_t lel_direction;
 			} v17;
 			
 			struct {
@@ -1971,22 +1951,13 @@ typedef union {
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
-				uint32_t lel_unknown2;								/*!< Unknown */
-				uint32_t lel_unknown3;								/*!< Unknown */
-				uint32_t lel_unknown4;								/*!< Unknown */
-				uint32_t lel_unknown5;								/*!< Unknown */
-				uint32_t lel_unknown6;								/*!< Unknown */
-				uint32_t lel_unknown7;								/*!< Unknown */
-				uint32_t lel_unknown8;								/*!< Unknown */
-				uint32_t lel_unknown9;								/*!< Unknown */
-				uint32_t lel_unknown10;								/*!< Unknown */
-				uint32_t lel_unknown11;								/*!< Unknown */
-				uint32_t lel_unknown12;								/*!< Unknown */
-				uint32_t lel_unknown13;								/*!< Unknown */
-				uint32_t lel_unknown14;								/*!< Unknown */
-				uint32_t lel_unknown15;								/*!< Unknown */
+				EncryptionInfo encryptioninfo;
+				uint32_t lel_streamPassThroughID;						/*!< Unknown */
+				uint32_t lel_assocStreamID;							/*!< Unknown */
 				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is set to 0x0A) */
+				uint32_t lel_mixingMode;
+				uint32_t lel_direction;
 				uint32_t lel_unknown18;								/*!< Unknown */
 				uint32_t lel_unknown19;								/*!< Unknown */
 				uint32_t lel_unknown20;								/*!< Unknown */
@@ -2283,26 +2254,14 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
-				uint32_t unknown1;								/*!< Unknown */
-				uint32_t unknown2;								/*!< Unknown */
-				uint32_t unknown3;								/*!< Unknown */
-				uint32_t unknown4;								/*!< Unknown */
-				uint32_t unknown5;								/*!< Unknown */
-				uint32_t unknown6;								/*!< Unknown */
-				uint32_t unknown7;								/*!< Unknown */
-				uint32_t unknown8;								/*!< Unknown */
-				uint32_t unknown9;								/*!< Unknown */
-				uint32_t unknown10;								/*!< Unknown */
-				/* protocol version 11 fields */
-				uint32_t unknown11;								/*!< Unknown */
-				uint32_t unknown12;								/*!< Unknown */
-				uint32_t unknown13;								/*!< Unknown */
-				uint32_t unknown14;								/*!< Unknown */
+				EncryptionInfo encryptioninfo;
+				uint32_t lel_streamPassThroughID;						/*!< Unknown */
+				uint32_t lel_assocStreamID;							/*!< Unknown */
 				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
-				uint32_t unknown15;
-				uint32_t unknown16;
+				uint32_t lel_mixingMode;
+				uint32_t lel_direction;
 				char bel_remoteIpAddr[16];
 				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
 			} v3;
@@ -2327,26 +2286,16 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
-				uint32_t unknown1;								/*!< Unknown */
-				uint32_t unknown2;								/*!< Unknown */
-				uint32_t unknown3;								/*!< Unknown */
-				uint32_t unknown4;								/*!< Unknown */
-				uint32_t unknown5;								/*!< Unknown */
-				uint32_t unknown6;								/*!< Unknown */
-				uint32_t unknown7;								/*!< Unknown */
-				uint32_t unknown8;								/*!< Unknown */
-				uint32_t unknown9;								/*!< Unknown */
-				uint32_t unknown10;								/*!< Unknown */
-				uint32_t unknown11;								/*!< Unknown */
-				uint32_t unknown12;								/*!< Unknown */
-				uint32_t unknown13;								/*!< Unknown */
-				uint32_t unknown14;								/*!< Unknown */
+				EncryptionInfo encryptioninfo;
+				uint32_t lel_streamPassThroughID;						/*!< Unknown */
+				uint32_t lel_assocStreamID;							/*!< Unknown */
 				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
-				uint32_t unknown15;								/*!< Unknown */
-				uint32_t unknown16;								/*!< Unknown */
+				/* protocol version 15 fields */
+				uint32_t lel_mixingMode;
+				uint32_t lel_direction;
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
-				char bel_remoteIpAddr[16];							/*!< Remote IP Address */
+				char bel_remoteIpAddr[16];
 				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
 				uint32_t lel_requestedIpAddrType;						/*!< Unknown */
 			} v17;
@@ -2360,28 +2309,18 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
-				uint32_t unknown1;								/*!< Unknown */
-				uint32_t unknown2;								/*!< Unknown */
-				uint32_t unknown3;								/*!< Unknown */
-				uint32_t unknown4;								/*!< Unknown */
-				uint32_t unknown5;								/*!< Unknown */
-				uint32_t unknown6;								/*!< Unknown */
-				uint32_t unknown7;								/*!< Unknown */
-				uint32_t unknown8;								/*!< Unknown */
-				uint32_t unknown9;								/*!< Unknown */
-				uint32_t unknown10;								/*!< Unknown */
-				uint32_t unknown11;								/*!< Unknown */
-				uint32_t unknown12;								/*!< Unknown */
-				uint32_t unknown13;								/*!< Unknown */
-				uint32_t unknown14;								/*!< Unknown */
+				EncryptionInfo encryptioninfo;
+				uint32_t lel_streamPassThroughID;						/*!< Unknown */
+				uint32_t lel_assocStreamID;							/*!< Unknown */
 				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
-				uint32_t unknown15;								/*!< Unknown */
-				uint32_t unknown16;								/*!< Unknown */
+				/* protocol version 15 fields */
+				uint32_t lel_mixingMode;
+				uint32_t lel_direction;
 				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
-				char bel_remoteIpAddr[16];							/*!< Remote IP Address */
+				char bel_remoteIpAddr[16];
 				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
-				uint32_t lel_requestedIpAddrType;						/*!< Unknown (1 with ipv6) */
+				uint32_t lel_requestedIpAddrType;						/*!< Unknown */
 				uint32_t unknown19;								/*!< Unknown */
 				uint32_t unknown20;								/*!< Unknown */
 				uint32_t unknown21;								/*!< Unknown */
@@ -2731,7 +2670,7 @@ typedef union {
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7962 -- 6 buttons
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00	// 7970 -- 8 buttons
 	struct {
-		uint32_t unknown;		
+		uint32_t maxAvailLines;		
 	} RegisterAvailableLinesMessage;
 
 	struct {
