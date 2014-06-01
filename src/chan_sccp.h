@@ -1227,6 +1227,7 @@ struct sccp_channel {
 	/* next should be converted to pointers, to reduce size */
 	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
 	sccp_callinfo_t callInfo;
+	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
 };														/*!< SCCP Channel Structure */
 
 /*!

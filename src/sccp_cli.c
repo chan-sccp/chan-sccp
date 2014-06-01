@@ -1618,7 +1618,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				msg1->data.OpenReceiveChannel.v17.lel_payloadType = htolel(8);
 				msg1->data.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
 				msg1->data.OpenReceiveChannel.v17.lel_callReference = htolel(channel->callid);
-				msg1->data.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
+				msg1->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
 				sccp_dev_send(d, msg1);
 				//  sleep(1);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
@@ -1629,7 +1629,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				msg2->data.OpenReceiveChannel.v17.lel_payloadType = htolel(4);
 				msg2->data.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
 				msg2->data.OpenReceiveChannel.v17.lel_callReference = htolel(channel->callid);
-				msg2->data.OpenReceiveChannel.v17.lel_rtptimeout = htolel(10);
+				msg2->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
 				sccp_dev_send(d, msg2);
 
 				sccp_channel_release(channel);

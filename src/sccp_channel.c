@@ -289,12 +289,14 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
+		channel->dtmfmode = channel->privateData->device->dtmfmode;
 		return;
 	}
 
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
+	channel->dtmfmode = 0;
 }
 
 // remarked out, channel->line should be read-only and constant. It should always be the same, and not changed.
