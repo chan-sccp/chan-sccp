@@ -1126,7 +1126,7 @@ EXIT_FUNC:
  */
 void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
 {
-	if (PBX(send_digit)) {
+	if (SCCP_DTMFMODE_OUTOFBAND == c->dtmfmode && PBX(send_digit)) {
 		PBX(send_digit) (c, digit);
         }
 }
@@ -1138,7 +1138,7 @@ void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
  */
 void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits)
 {
-	if (PBX(send_digits)) {
+	if (SCCP_DTMFMODE_OUTOFBAND == c->dtmfmode && PBX(send_digits)) {
 		PBX(send_digits) (c, digits);
         }
 }

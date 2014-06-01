@@ -1894,8 +1894,8 @@ typedef union {
 				/* protocol v11 mods */
 				uint32_t lel_streamPassThroughID;						/*!< Unknown */
 				uint32_t lel_assocStreamID;							/*!< Unknown */
-				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
-				uint32_t lel_rtptimeout;							/*!< RTP TimeOut */
+				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_dtmfType;								/*!< RTP Type */
 				/* protocol v11 fields */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
@@ -1930,8 +1930,8 @@ typedef union {
 				EncryptionInfo encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Unknown */
 				uint32_t lel_assocStreamID;							/*!< Unknown */
-				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
-				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is set to 0x0A) */
+				uint32_t lel_RFC2833Type;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is set to 0x0A) */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
 			} v17;
@@ -1954,8 +1954,8 @@ typedef union {
 				EncryptionInfo encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Unknown */
 				uint32_t lel_assocStreamID;							/*!< Unknown */
-				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
-				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is set to 0x0A) */
+				uint32_t lel_RFC2833Type;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is set to 0x0A) */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
 				uint32_t lel_unknown18;								/*!< Unknown */
@@ -2257,8 +2257,8 @@ typedef union {
 				EncryptionInfo encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Unknown */
 				uint32_t lel_assocStreamID;							/*!< Unknown */
-				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
-				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
+				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
@@ -2289,8 +2289,8 @@ typedef union {
 				EncryptionInfo encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Unknown */
 				uint32_t lel_assocStreamID;							/*!< Unknown */
-				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
-				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
+				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
@@ -2312,8 +2312,8 @@ typedef union {
 				EncryptionInfo encryptioninfo;
 				uint32_t lel_streamPassThroughID;						/*!< Unknown */
 				uint32_t lel_assocStreamID;							/*!< Unknown */
-				uint32_t lel_rtpDTMFPayload;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
-				uint32_t lel_rtptimeout;							/*!< RTP Timeout (this is always 0x0A) */
+				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
+				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
