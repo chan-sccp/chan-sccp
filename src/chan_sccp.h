@@ -131,7 +131,8 @@ char SCCP_REVISIONSTR[30];
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
 
 // When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
-#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
+//#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
+#define sccp_log1(...) { ast_log(AST_LOG_DEBUG, __VA_ARGS__); ast_verbose(__VA_ARGS__); }
 #define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
@@ -1200,6 +1201,8 @@ struct sccp_channel {
 	struct {
 		struct sccp_rtp audio;										/*!< Asterisk RTP */
 		struct sccp_rtp video;										/*!< Video RTP session */
+		//struct sccp_rtp text;										/*!< Video RTP session */
+		uint8_t peer_dtmfmode;
 	} rtp;
 
 	uint16_t ringermode;											/*!< Ringer Mode */
