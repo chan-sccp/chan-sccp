@@ -2648,7 +2648,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		goto EXIT_FUNC;
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d (Using: %s)\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state, channel->dtmfmode ? "OutOfBand" : "Inband");
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d (Using: %s)\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state, dtmfmode2str(channel->dtmfmode));
 
 	if (digit == 14) {
 		resp = '*';
@@ -2664,10 +2664,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_PROGRESS || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
-			sccp_pbx_senddigit(channel, resp);
-		}
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
+		sccp_pbx_senddigit(channel, resp);
 		goto EXIT_FUNC;
 	}
 
@@ -2984,12 +2982,13 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		if (channel->rtp.audio.rtp) {
 			uint16_t port = sccp_socket_getPort(&sas);
 			
-#ifndef CS_EXPERIMENTAL			/*look's like it is using the wrong port, it should be using sccp_rtp_getServerPort(&channel->rtp.audio) to get the servers rtp instance port */
+#ifndef CS_EXPERIMENTAL	
+                        /*look's like it is using the wrong port, it should be using sccp_rtp_getServerPort(&channel->rtp.audio) to get the servers rtp instance port */
 			if (d->nat){
-			    memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
-			    sccp_socket_ipv4_mapped(&sas, &sas);
-			    sccp_socket_setPort(&sas, port);
-			}
+			        memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
+			        sccp_socket_ipv4_mapped(&sas, &sas);
+			        sccp_socket_setPort(&sas, port);
+        		}
 #endif
 			//ast_rtp_set_peer(channel->rtp.audio.rtp, &sin);
 			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
