@@ -994,12 +994,16 @@ sccp_value_changed_t sccp_config_parse_dtmfmode(void *dest, const size_t size, P
 	char *value = strdupa(v->value);
 	sccp_dtmfmode_t dtmfmode = 0;
 
-	if (sccp_strcaseequals(value, "outofband")) {
+	if (sccp_strcaseequals(value, "none")) {
+		dtmfmode = SCCP_DTMFMODE_NONE;
+	} else if (sccp_strcaseequals(value, "outofband")) {
 		dtmfmode = SCCP_DTMFMODE_OUTOFBAND;
 	} else if (sccp_strcaseequals(value, "inband")) {
 		dtmfmode = SCCP_DTMFMODE_INBAND;
+	} else if (sccp_strcaseequals(value, "auto")) {
+		dtmfmode = SCCP_DTMFMODE_AUTO;
 	} else {
-		pbx_log(LOG_WARNING, "Invalid dtmfmode value, should be either 'inband' or 'outofband'\n");
+		pbx_log(LOG_WARNING, "Invalid dtmfmode value, should be one of 'none', 'inband', 'outofband' or 'auto'\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 

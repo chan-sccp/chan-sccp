@@ -223,6 +223,11 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->getDevice_retained = sccp_channel_getDevice_retained;
 #endif
 	channel->setDevice = sccp_channel_setDevice;
+	if (device) {
+		channel->dtmfmode = device->dtmfmode;
+	} else {
+		channel->dtmfmode = SCCP_DTMFMODE_AUTO;
+	}
 
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
@@ -289,14 +294,16 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
-		channel->dtmfmode = channel->privateData->device->dtmfmode;
+		if (SCCP_DTMFMODE_AUTO != channel->privateData->device->dtmfmode || (SCCP_DTMFMODE_AUTO == channel->privateData->device->dtmfmode && SKINNY_CALLTYPE_OUTBOUND == channel->calltype)) {
+			channel->dtmfmode = channel->privateData->device->dtmfmode;
+		}
 		return;
 	}
 
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
-	channel->dtmfmode = 0;
+	channel->dtmfmode = SCCP_DTMFMODE_AUTO;
 }
 
 // remarked out, channel->line should be read-only and constant. It should always be the same, and not changed.
@@ -726,6 +733,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel, channel->passthrupartyid, channel->callid);
 	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGRESS;
+	
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d)) {
