@@ -778,7 +778,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("Can CFWNOANSWER",		CLI_AMI_LIST_WIDTH, d->cfwdnoanswer);
 	CLI_AMI_OUTPUT_YES_NO("Allow ringin notification (e)", CLI_AMI_LIST_WIDTH, d->allowRinginNotification);
 	CLI_AMI_OUTPUT_BOOL("Private softkey",		CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
-	CLI_AMI_OUTPUT_PARAM("Dtmf mode",		CLI_AMI_LIST_WIDTH, "%s", (d->dtmfmode) ? "Out-of-Band" : "In-Band");
+	CLI_AMI_OUTPUT_PARAM("Dtmf mode",		CLI_AMI_LIST_WIDTH, "%s", dtmfmode2str(d->dtmfmode));
 //	CLI_AMI_OUTPUT_PARAM("digit timeout",		CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
 	CLI_AMI_OUTPUT_BOOL("Nat",			CLI_AMI_LIST_WIDTH, d->nat);
 	CLI_AMI_OUTPUT_YES_NO("Videosupport?",		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
@@ -1350,7 +1350,8 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10s",	10,	codec2name(channel->rtp.audio.readFormat))		\
 		CLI_AMI_TABLE_FIELD(WriteCodec,		"-10.10s",	10,	codec2name(channel->rtp.audio.writeFormat))		\
 		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22s",	22,	addrStr)						\
-		CLI_AMI_TABLE_FIELD(Direct,		"-6.6s",	6,	channel->rtp.audio.directMedia ? "yes" : "no")		
+		CLI_AMI_TABLE_FIELD(Direct,		"-6.6s",	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
+		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8s",	8,	dtmfmode2str(channel->dtmfmode))
 #include "sccp_cli_table.h"
 
 	if (s) {
