@@ -575,12 +575,12 @@ static void sccp_protocol_sendOpenReceiveChannelV3(const sccp_device_t * device,
 	msg->data.OpenReceiveChannel.v3.lel_vadValue = htolel(channel->line->echocancel);
 	msg->data.OpenReceiveChannel.v3.lel_callReference = htolel(channel->callid);
 	msg->data.OpenReceiveChannel.v3.lel_remotePortNumber = htolel(4000);
-	if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(0);
-		msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(0);
-	} else {
+	if (SCCP_DTMFMODE_INBAND == channel->dtmfmode) {
 		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(101);
 		msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(10);
+	} else {
+		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(0);
+		msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(0);
 	}
 
 	sccp_dev_send(device, msg);
@@ -601,12 +601,12 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device
 	msg->data.OpenReceiveChannel.v17.lel_vadValue = htolel(channel->line->echocancel);
 	msg->data.OpenReceiveChannel.v17.lel_callReference = htolel(channel->callid);
 //	msg->data.OpenReceiveChannel.v17.lel_remotePortNumber = htolel(4000);
-	if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(0);
-		msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(0);
-	} else {
+	if (SCCP_DTMFMODE_INBAND == channel->dtmfmode) {
 		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(101);
 		msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
+	} else {
+		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(0);
+		msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(0);
 	}
 
 	struct sockaddr_storage sas;
@@ -642,12 +642,12 @@ static void sccp_protocol_sendOpenReceiveChannelv22(const sccp_device_t * device
 	msg->data.OpenReceiveChannel.v22.lel_vadValue = htolel(channel->line->echocancel);
 	msg->data.OpenReceiveChannel.v22.lel_callReference = htolel(channel->callid);
 //	msg->data.OpenReceiveChannel.v22.lel_remotePortNumber = htolel(4000);
-	if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(0);
-		msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(0);
-	} else {
+	if (SCCP_DTMFMODE_INBAND == channel->dtmfmode) {
 		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(101);
 		msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(10);
+	} else {
+		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(0);
+		msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(0);
 	}
 
 	struct sockaddr_storage sas;
@@ -749,12 +749,12 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * dev
 	msg->data.StartMediaTransmission.v3.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v3.lel_maxFramesPerPacket = htolel(0);
 	msg->data.StartMediaTransmission.v3.lel_remotePortNumber = htolel(sccp_socket_getPort(&channel->rtp.audio.phone_remote) );
-	if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(0);
-		msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(0);
-	} else {
+	if (SCCP_DTMFMODE_INBAND == channel->dtmfmode) {
 		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(101);
 		msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(10);
+	} else {
+		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(0);
+		msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(0);
 	}
 
 	if(channel->rtp.audio.phone_remote.ss_family == AF_INET){
@@ -783,12 +783,12 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 	msg->data.StartMediaTransmission.v17.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v17.lel_maxFramesPerPacket = htolel(0);
 	msg->data.StartMediaTransmission.v17.lel_remotePortNumber = htolel( sccp_socket_getPort(&channel->rtp.audio.phone_remote) );
-	if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(0);
-		msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(0);
-	} else {
+	if (SCCP_DTMFMODE_INBAND == channel->dtmfmode) {
 		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(101);
 		msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(10);
+	} else {
+		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(0);
+		msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(0);
 	}
 	        
 	if (channel->rtp.audio.phone_remote.ss_family == AF_INET6) {
@@ -818,12 +818,12 @@ static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * de
 	msg->data.StartMediaTransmission.v22.lel_precedenceValue = htolel(device->audio_tos);
 	msg->data.StartMediaTransmission.v22.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v22.lel_maxFramesPerPacket = htolel(0);
-	if (SCCP_DTMFMODE_OUTOFBAND == channel->dtmfmode) {
-		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(0);
-		msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(0);
-	} else {
+	if (SCCP_DTMFMODE_INBAND == channel->dtmfmode) {
 		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(101);
 		msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(10);
+	} else {
+		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(0);
+		msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(0);
 	}
 	msg->data.StartMediaTransmission.v22.lel_remotePortNumber = htolel( sccp_socket_getPort(&channel->rtp.audio.phone_remote) );
 	        
