@@ -100,8 +100,10 @@ END_ENUM(sccp,callforward)
  * \brief SCCP Dtmf Mode (ENUM)
  */
 BEGIN_ENUM(sccp,dtmfmode)
-        ENUM_ELEMENT(SCCP_DTMFMODE_INBAND				,,	"Dtmf Inband")
-        ENUM_ELEMENT(SCCP_DTMFMODE_OUTOFBAND 				,,	"Dtmf OutOfBand")
+	ENUM_ELEMENT(SCCP_DTMFMODE_NONE					,,	"No DTMF")
+	ENUM_ELEMENT(SCCP_DTMFMODE_INBAND				,,	"Inband")
+	ENUM_ELEMENT(SCCP_DTMFMODE_OUTOFBAND				,,	"OutOfBand")
+	ENUM_ELEMENT(SCCP_DTMFMODE_AUTO					,,	"Auto")
 END_ENUM(sccp,dtmfmode)
 
 /*!
