@@ -232,9 +232,14 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	char *data;
 	if (d->useRedialMenu) {
 		if (d->session->protocolType == SCCP_PROTOCOL) {
-			data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
+			if (d->protocolversion < 15) {
+				data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Key:Directories\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad3\"/></CiscoIPPhoneExecute>";
+			} else {
+				data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Application:Cisco/PlacedCalls\"/></CiscoIPPhoneExecute>";
+			}
 		} else {
-			data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Key:Setup\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad3\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad1\"/></CiscoIPPhoneExecute>";
+//			data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Key:Setup\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad3\"/><ExecuteItem Priority=\"0\" URL=\"Key:KeyPad1\"/></CiscoIPPhoneExecute>";
+//			data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Application:Cisco/PlacedCalls\"/></CiscoIPPhoneExecute>";
 		}
 
 		d->protocol->sendUserToDeviceDataVersionMessage(d, 0, lineInstance, 0, 0, data, 0);
