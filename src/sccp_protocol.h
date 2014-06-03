@@ -476,6 +476,12 @@ typedef enum {
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
+	
+/*
+	SPCPPlatformInfoGetReq				= 0xFF02,
+	SPCPPlatformInfoGetRsp				= 0xFF03,
+	SPCPPlatformInfoGetRej				= 0xFF04,
+*/
 	/* *INDENT-ON* */
 } sccp_mid_t;													/*!< SKINNY Message ID Enum */
 
