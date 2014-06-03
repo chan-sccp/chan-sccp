@@ -1801,6 +1801,12 @@ void sccp_dev_postregistration(void *data)
 	if (d->ringtone) {
 		d->setRingTone(d, d->ringtone);
 	}
+	
+//	if (d->useRedialMenu && (!d->hasDisplayPrompt)) {
+	if (d->useRedialMenu && (!d->hasDisplayPrompt || d->session->protocolType == SPCP_PROTOCOL)) {             /* temp until we know the key sequence on SPCP phones */
+		pbx_log(LOG_NOTICE, "%s: useRedialMenu is currently not supported on this devicetype. Reverting to old style redial\n", d->id);
+		d->useRedialMenu = FALSE;
+	}
 
 	sccp_dev_check_displayprompt(d);
 
