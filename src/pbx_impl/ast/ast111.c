@@ -270,6 +270,8 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			res = AST_DEVICE_INUSE;
 			break;
+		case sccp_channelstate_LOOKUPERROR:
+			break;
 	}
 
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_asterisk_devicestate) PBX requests state for '%s' - state %s\n", (char *) lineName, ast_devstate2str(res));

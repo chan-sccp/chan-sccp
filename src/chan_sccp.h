@@ -34,8 +34,11 @@ extern "C" {
 #include <config.h>
 //#include "common.h"
 
+#define ENUMMACRO_FILE "chan_sccp_enums.hh"
+#define ENUMMACRO_GENERATE 1
 #include "sccp_enum_macro.h"
-#include "chan_sccp_enums.hh"
+#undef  ENUMMACRO_GENERATE
+#undef  ENUMMACRO_FILE
 
 #define sccp_mutex_t ast_mutex_t
 

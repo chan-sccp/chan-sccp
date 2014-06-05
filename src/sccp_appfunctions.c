@@ -91,27 +91,27 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		} else if (!strcasecmp(colname, "id")) {
 			sccp_copy_string(buf, d->id, len);
 		} else if (!strcasecmp(colname, "status")) {
-			sccp_copy_string(buf, devicestate2str(d->state), len);
+			sccp_copy_string(buf, sccp_devicestate2str(d->state), len);
 		} else if (!strcasecmp(colname, "description")) {
 			sccp_copy_string(buf, d->description, len);
 		} else if (!strcasecmp(colname, "config_type")) {
 			sccp_copy_string(buf, d->config_type, len);
 		} else if (!strcasecmp(colname, "skinny_type")) {
-			sccp_copy_string(buf, devicetype2str(d->skinny_type), len);
+			sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), len);
 		} else if (!strcasecmp(colname, "tz_offset")) {
 			snprintf(buf, len, "%d", d->tz_offset);
 		} else if (!strcasecmp(colname, "image_version")) {
 			sccp_copy_string(buf, d->imageversion, len);
 		} else if (!strcasecmp(colname, "accessory_status")) {
-			sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
+			sccp_copy_string(buf, sccp_accessorystate2str(d->accessorystatus), len);
 		} else if (!strcasecmp(colname, "registration_state")) {
-			sccp_copy_string(buf, registrationstate2str(d->registrationState), len);
+			sccp_copy_string(buf, skinny_registrationstate2str(d->registrationState), len);
 		} else if (!strcasecmp(colname, "codecs")) {
 			sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 		} else if (!strcasecmp(colname, "capability")) {
 			sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 		} else if (!strcasecmp(colname, "state")) {
-			sccp_copy_string(buf, accessorystate2str(d->accessorystatus), len);
+			sccp_copy_string(buf, sccp_accessorystate2str(d->accessorystatus), len);
 		} else if (!strcasecmp(colname, "lines_registered")) {
 			sccp_copy_string(buf, d->linesRegistered ? "yes" : "no", len);
 		} else if (!strcasecmp(colname, "lines_count")) {
@@ -129,7 +129,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		} else if (!strcasecmp(colname, "dnd_feature")) {
 			sccp_copy_string(buf, (d->dndFeature.enabled) ? "ON" : "OFF", len);
 		} else if (!strcasecmp(colname, "dnd_state")) {
-			sccp_copy_string(buf, dndmode2str(d->dndFeature.status), len);
+			sccp_copy_string(buf, sccp_dndmode2str(d->dndFeature.status), len);
 		} else if (!strcasecmp(colname, "dynamic") || !strcasecmp(colname, "realtime")) {
 	#ifdef CS_SCCP_REALTIME
 			sccp_copy_string(buf, d->realtime ? "yes" : "no", len);
@@ -169,19 +169,21 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 				switch (config->type) {
 					case LINE:
-						snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, config_buttontype2str(config->type), config->button.line.name);
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->button.line.name);
 						break;
 					case SPEEDDIAL:
-						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.speeddial.ext);
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.speeddial.ext);
 						break;
 					case SERVICE:
-						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.service.url);
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.service.url);
 						break;
 					case FEATURE:
-						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, config_buttontype2str(config->type), config->label, config->button.feature.options);
+						snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options);
 						break;
 					case EMPTY:
-						snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, config_buttontype2str(config->type));
+						snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_config_buttontype2str(config->type));
+						break;
+					case sccp_config_buttontype_LOOKUPERROR:
 						break;
 				}
 				if (first == 0) {
@@ -548,11 +550,11 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		} else if (!strcasecmp(colname, "passthrupartyid")) {
 			snprintf(buf, len, "%d", c->passthrupartyid);
 		} else if (!strcasecmp(colname, "state")) {
-			sccp_copy_string(buf, channelstate2str(c->state), len);
+			sccp_copy_string(buf, sccp_channelstate2str(c->state), len);
 		} else if (!strcasecmp(colname, "previous_state")) {
-			sccp_copy_string(buf, channelstate2str(c->previousChannelState), len);
+			sccp_copy_string(buf, sccp_channelstate2str(c->previousChannelState), len);
 		} else if (!strcasecmp(colname, "calltype")) {
-			sccp_copy_string(buf, calltype2str(c->calltype), len);
+			sccp_copy_string(buf, skinny_calltype2str(c->calltype), len);
 		} else if (!strcasecmp(colname, "dialed_number")) {
 			sccp_copy_string(buf, c->dialedNumber, len);
 		} else if (!strcasecmp(colname, "device")) {

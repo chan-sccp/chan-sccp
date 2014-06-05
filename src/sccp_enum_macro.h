@@ -1,45 +1,122 @@
-/*!
- * \file	sccp_enum_macro.h
- * \brief       SCCP Enum Macro
- * \author	Diederik de Groot <ddegroot [at] users.sf.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- *
- * $Date: 2013-04-15 01:04:06 +0200 (Mon, 15 Apr 2013) $
- * $Revision: 4568 $
- */
-
-#if ( !defined(__SCCP_ENUM_MACRO_H) || defined(GENERATE_ENUM_STRINGS) )
-
-#if (!defined(GENERATE_ENUM_STRINGS))
-    #define __SCCP_ENUM_MACRO_H
-#endif
-
-/* enum macro definitions */
-#undef ENUM_ELEMENT
 #undef BEGIN_ENUM
+#undef ENUM_ELEMENT
 #undef END_ENUM
+/*
+ * GENERATE HEADER DECLARATIONS AND FUNCTION PROTOTYPES
+ */
+#if ENUMMACRO_GENERATE == 1
+/*
+ * FASE 1: Generate Enum + Function Prototypes
+ */
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME) typedef enum {
+#define ENUM_ELEMENT(element, index, str) 	element index,
+#define END_ENUM(NAMESPACE, ENUM_NAME) NAMESPACE##_##ENUM_NAME##_LOOKUPERROR =-1									\
+} NAMESPACE##_##ENUM_NAME##_t;																\
+const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value);										\
+NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char *lookup_str);
 
-#ifndef GENERATE_ENUM_STRINGS												// header definition (1st pass)
-    #define ENUM_ELEMENT( element, index, str) element index,
-    #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) typedef enum tag_##ENUM_NAME {
-    #define END_ENUM( NAMESPACE, ENUM_NAME ) } NAMESPACE##_##ENUM_NAME##_t; 								\
-        const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index);
-#else															// class definition (2nd pass)
-#  ifdef DEBUG														// switch/case on index (Debug mode)
-    #define ENUM_ELEMENT( element, index, str) case element: return str;
-    #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) 											\
-        gcc_inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { 						\
-                switch(index) {												
-    #define END_ENUM( NAMESPACE, ENUM_NAME ) 	};										\
-     		return "SCCP: ERROR lookup in " #NAMESPACE "_" #ENUM_NAME "_t";								\
-        };
-#  else 														// return array[index] directly (Non-Debug Mode)
-    #define ENUM_ELEMENT( element, index, str ) [element] = str,
-    #define BEGIN_ENUM( NAMESPACE, ENUM_NAME ) char* NAMESPACE ##_##ENUM_NAME##_map_enum2str[] = {
-    #define END_ENUM( NAMESPACE, ENUM_NAME ) }; 											\
-        gcc_inline const char* ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t index) { return NAMESPACE##_##ENUM_NAME##_map_enum2str[index]; }
-#  endif
+#define BEGIN_LONGENUM BEGIN_ENUM
+#define LONGENUM_ELEMENT(element, index, str, longstr) ENUM_ELEMENT(element, index, str)
+#define END_LONGENUM(NAMESPACE, ENUM_NAME) END_ENUM(NAMESPACE, ENUM_NAME)										\
+const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value);									\
+NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lookup_longstr);
+
+#include ENUMMACRO_FILE
+#endif
+#undef BEGIN_ENUM
+#undef ENUM_ELEMENT
+#undef END_ENUM
+//#undef BEGIN_LONGENUM
+//#undef LONGENUM_ELEMENT
+//#undef END_LONGENUM
+/*
+ * GENERATE FUNCTION IMPLEMENTATIONS
+ */
+#if ENUMMACRO_GENERATE == 2
+
+/*
+ * FASE 1: Generate Map
+ */
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME) static const struct {												\
+	const char *str;																\
+} NAMESPACE##_##ENUM_NAME##_map[] = {
+#define ENUM_ELEMENT(element, index, str) [element] = {str},
+#define END_ENUM(NAMESPACE, ENUM_NAME) };
+
+#define BEGIN_LONGENUM(NAMESPACE, ENUM_NAME) static const struct {											\
+	const char *str;																\
+	const char *longstr;																\
+} NAMESPACE##_##ENUM_NAME##_map[] = {
+#define LONGENUM_ELEMENT(element, index, str, longstr) [element] = {str, longstr},
+#define END_LONGENUM(NAMESPACE, ENUM_NAME) };
+
+#include ENUMMACRO_FILE
+#undef BEGIN_ENUM
+#undef ENUM_ELEMENT
+#undef END_ENUM
+#undef BEGIN_LONGENUM
+#undef LONGENUM_ELEMENT
+#undef END_LONGENUM
+
+/*
+ * FASE 2: Generate Exists Array (To lookup index position for sparse enums)
+ *         Generate Lookup Functions
+ */
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME) static const int NAMESPACE##_##ENUM_NAME##_exists[] = {
+#define ENUM_ELEMENT(element, index, str) element,
+#define END_ENUM(NAMESPACE, ENUM_NAME) };														\
+const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value) {										\
+	if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
+		return NAMESPACE##_##ENUM_NAME##_map[value].str;											\
+	} else {																	\
+		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "_val2str\n", value);				\
+		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";											\
+	}																		\
+}																			\
+NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * lookup_str) {								\
+	int idx;																	\
+	for(idx=0; idx<=ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists) - 1; idx++) {										\
+		if (!strcasecmp(NAMESPACE##_##ENUM_NAME##_map[NAMESPACE##_##ENUM_NAME##_exists[idx]].str, lookup_str)) {				\
+			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
+		}																	\
+	}																		\
+	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_str2val\n", lookup_str);				\
+	return NAMESPACE##_##ENUM_NAME##_LOOKUPERROR;													\
+}
+
+#define BEGIN_LONGENUM BEGIN_ENUM
+#define LONGENUM_ELEMENT(element, index, str, longstr) ENUM_ELEMENT(element, index, str)
+#define END_LONGENUM(NAMESPACE, ENUM_NAME) END_ENUM(NAMESPACE, ENUM_NAME)										\
+const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value) {									\
+	if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
+		return NAMESPACE##_##ENUM_NAME##_map[value].longstr;											\
+	} else {																	\
+		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "_val2longstr\n", value);				\
+		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";											\
+	}																		\
+}																			\
+NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char * lookup_longstr) {							\
+	int idx;																	\
+	for(idx=0; idx<=ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists) - 1; idx++) {										\
+		if (!strcasecmp(NAMESPACE##_##ENUM_NAME##_map[NAMESPACE##_##ENUM_NAME##_exists[idx]].longstr, lookup_longstr)) {			\
+			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
+		}																	\
+	}																		\
+	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_longstr2val\n", lookup_longstr);			\
+	return NAMESPACE##_##ENUM_NAME##_LOOKUPERROR;													\
+}
+#include ENUMMACRO_FILE
 #endif
 
-#endif // (!defined(__SCCP_ENUM_MACRO_H) || defined(GENERATE_ENUM_STRINGS))
+// exit
+#undef BEGIN_ENUM
+#undef ENUM_ELEMENT
+#undef END_ENUM
+#undef BEGIN_LONGENUM
+#undef LONGENUM_ELEMENT
+#undef END_LONGENUM
+
+#undef ENUMMACRO_GENERATE
+#undef ENUMMACRO_FILE
+#undef ENUMMACRO_STAGE
+

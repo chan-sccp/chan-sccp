@@ -812,7 +812,7 @@ void sccp_feat_conference_start(sccp_device_t * d, sccp_line_t * l, const uint32
 						SCCP_LIST_TRAVERSE(&line->channels, channel, list) {
 							if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 								if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner))) {
-									sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(channel->state));
+									sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(channel->state));
 									sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel);
 								} else {
 									pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
@@ -891,7 +891,7 @@ void sccp_feat_join(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sc
 
 					pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
 					if ((bridged_channel = CS_AST_BRIDGED_CHANNEL(newparticipant_channel->owner))) {
-						sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), channelstate2str(newparticipant_channel->state));
+						sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(newparticipant_channel->state));
 						sccp_conference_addParticipatingChannel(d->conference, moderator_channel, newparticipant_channel, bridged_channel);
 					} else {
 						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(newparticipant_channel->owner));

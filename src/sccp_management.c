@@ -201,7 +201,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
 
 			switch (featureType) {
 				case SCCP_FEATURE_DND:
-					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", featureType2str(SCCP_FEATURE_DND), dndmode2str(device->dndFeature.status), DEV_ID_LOG(device));
+					manager_event(EVENT_FLAG_CALL, "DND", "ChannelType: SCCP\r\nChannelObjectType: Device\r\nFeature: %s\r\nStatus: %s\r\nSCCPDevice: %s\r\n", featureType2str(SCCP_FEATURE_DND), sccp_dndmode2str(device->dndFeature.status), DEV_ID_LOG(device));
 					break;
 				case SCCP_FEATURE_CFWDALL:
 				case SCCP_FEATURE_CFWDBUSY:
@@ -266,7 +266,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		astman_append(s, "ObjectType: device\r\n");
 		astman_append(s, "Description: %s\r\n", device->description);
 		astman_append(s, "IPaddress: %s\r\n", clientAddress);
-		astman_append(s, "Reg_Status: %s\r\n", registrationstate2str(device->registrationState));
+		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(device->registrationState));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
 		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");
 		astman_append(s, "NumLines: %d\r\n", device->configurationStatistic.numberOfLines);
@@ -618,7 +618,7 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 			}
 
 			if (d->dndFeature.status != prevStatus) {
-				snprintf(retValStr, sizeof(retValStr), "Device %s DND has been set to %s", d->id, dndmode2str(d->dndFeature.status));
+				snprintf(retValStr, sizeof(retValStr), "Device %s DND has been set to %s", d->id, sccp_dndmode2str(d->dndFeature.status));
 				sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 				sccp_dev_check_displayprompt(d);
 			} else {

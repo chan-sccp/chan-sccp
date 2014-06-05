@@ -529,7 +529,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #else
 	CLI_AMI_OUTPUT_BOOL("Call Events", CLI_AMI_LIST_WIDTH, FALSE);
 #endif
-	CLI_AMI_OUTPUT_PARAM("DND", CLI_AMI_LIST_WIDTH, "%s", GLOB(dndmode) ? dndmode2str(GLOB(dndmode)) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("DND", CLI_AMI_LIST_WIDTH, "%s", GLOB(dndmode) ? sccp_dndmode2str(GLOB(dndmode)) : "Disabled");
 #ifdef CS_SCCP_PARK
 	CLI_AMI_OUTPUT_BOOL("Park", CLI_AMI_LIST_WIDTH, FALSE);
 #else
@@ -640,7 +640,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	d->description)										\
 		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
 		CLI_AMI_TABLE_FIELD(Mac,		"-16.16s",	16,	d->id)											\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	registrationstate2str(d->registrationState))						\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	skinny_registrationstate2str(d->registrationState))						\
 		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Ack" : "Rej") : "None") \
 		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
@@ -750,13 +750,13 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
-	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", registrationstate2str(d->registrationState), d->registrationState);
-	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", devicestate2str(d->state), d->state);
-	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", lampmode2str(d->mwilamp), d->mwilamp);
+	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_registrationstate2str(d->registrationState), d->registrationState);
+	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", sccp_devicestate2str(d->state), d->state);
+	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_BOOL("MWI handset light", 	CLI_AMI_LIST_WIDTH, d->mwilight);
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description);
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
-	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", devicetype2str(d->skinny_type), d->skinny_type);
+	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_devicetype2str(d->skinny_type), d->skinny_type);
 	CLI_AMI_OUTPUT_YES_NO("Softkey support",	CLI_AMI_LIST_WIDTH, d->softkeysupport);
 	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s", d->softkeyDefinition);
 	CLI_AMI_OUTPUT_YES_NO("BTemplate support",	CLI_AMI_LIST_WIDTH, d->buttonTemplate);
@@ -770,7 +770,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Video TOS",		CLI_AMI_LIST_WIDTH, "%d", d->video_tos);
 	CLI_AMI_OUTPUT_PARAM("Video COS",		CLI_AMI_LIST_WIDTH, "%d", d->video_cos);
 	CLI_AMI_OUTPUT_YES_NO("DND Feature enabled",	CLI_AMI_LIST_WIDTH, d->dndFeature.enabled);
-	CLI_AMI_OUTPUT_PARAM("DND Status",		CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? dndmode2str(d->dndFeature.status) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("DND Status",		CLI_AMI_LIST_WIDTH, "%s", (d->dndFeature.status) ? sccp_dndmode2str(d->dndFeature.status) : "Disabled");
 	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, d->transfer);
 	CLI_AMI_OUTPUT_BOOL("Can Park",			CLI_AMI_LIST_WIDTH, d->park);
 	CLI_AMI_OUTPUT_BOOL("Can CFWDALL",		CLI_AMI_LIST_WIDTH, d->cfwdall);
@@ -778,7 +778,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("Can CFWNOANSWER",		CLI_AMI_LIST_WIDTH, d->cfwdnoanswer);
 	CLI_AMI_OUTPUT_YES_NO("Allow ringin notification (e)", CLI_AMI_LIST_WIDTH, d->allowRinginNotification);
 	CLI_AMI_OUTPUT_BOOL("Private softkey",		CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
-	CLI_AMI_OUTPUT_PARAM("Dtmf mode",		CLI_AMI_LIST_WIDTH, "%s", dtmfmode2str(d->dtmfmode));
+	CLI_AMI_OUTPUT_PARAM("Dtmf mode",		CLI_AMI_LIST_WIDTH, "%s", sccp_dtmfmode2str(d->dtmfmode));
 //	CLI_AMI_OUTPUT_PARAM("digit timeout",		CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
 	CLI_AMI_OUTPUT_BOOL("Nat",			CLI_AMI_LIST_WIDTH, d->nat);
 	CLI_AMI_OUTPUT_YES_NO("Videosupport?",		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
@@ -789,8 +789,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_PARAM("PermitHosts",		CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(permithost_buf));
 	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s (%s)", d->earlyrtp ? "Yes" : "No", d->earlyrtp ? sccp_indicate2str(d->earlyrtp) : "none");
-	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)",	CLI_AMI_LIST_WIDTH, "%s", accessorystate2str(d->accessorystatus));
-	CLI_AMI_OUTPUT_PARAM("Last Used Accessory",	CLI_AMI_LIST_WIDTH, "%s", accessory2str(d->accessoryused));
+	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)",	CLI_AMI_LIST_WIDTH, "%s", sccp_accessorystate2str(d->accessorystatus));
+	CLI_AMI_OUTPUT_PARAM("Last Used Accessory",	CLI_AMI_LIST_WIDTH, "%s", sccp_accessory2str(d->accessoryused));
 	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s", d->lastNumber);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
@@ -828,7 +828,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 														\
 			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(TypeStr,		"-30s",		30,	config_buttontype2str(buttonconfig->type))		\
+			CLI_AMI_TABLE_FIELD(TypeStr,		"-30s",		30,	sccp_config_buttontype2str(buttonconfig->type))		\
 			CLI_AMI_TABLE_FIELD(Type,		"-24d",		24,	buttonconfig->type)					\
 			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8s",		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(pendDel,		"-8s",		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
@@ -1044,7 +1044,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 			if ((d = sccp_device_retain(linedevice->device))) {
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
-						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 				} else {
 					astman_append(s, "Event: LineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
@@ -1055,7 +1055,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_RWLIST_GETSIZE(&l->channels));
 					astman_append(s, "ChannelState: %s\r\n", (channel) ? sccp_indicate2str(channel->state) : "--");
-					astman_append(s, "CallType: %s\r\n", (channel) ? calltype2str(channel->calltype) : "");
+					astman_append(s, "CallType: %s\r\n", (channel) ? skinny_calltype2str(channel->calltype) : "");
 					astman_append(s, "PartyName: %s\r\n", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "");
 					astman_append(s, "Capabilities: %s\r\n", cap_buf);
 					astman_append(s, "\r\n");
@@ -1068,7 +1068,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 
 		if (found_linedevice == 0) {
 			if (!s) {
-				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_indicate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 			} else {
 				astman_append(s, "Event: LineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
@@ -1210,7 +1210,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_BOOL("Echo Cancellation", CLI_AMI_LIST_WIDTH, l->echocancel);
 	CLI_AMI_OUTPUT_BOOL("Silence Suppression", CLI_AMI_LIST_WIDTH, l->silencesuppression);
 	CLI_AMI_OUTPUT_BOOL("Can Transfer", CLI_AMI_LIST_WIDTH, l->transfer);
-	CLI_AMI_OUTPUT_PARAM("Can DND", CLI_AMI_LIST_WIDTH, "%s", (l->dndmode) ? dndmode2str(l->dndmode) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("Can DND", CLI_AMI_LIST_WIDTH, "%s", (l->dndmode) ? sccp_dndmode2str(l->dndmode) : "Disabled");
 #ifdef CS_SCCP_REALTIME
 	CLI_AMI_OUTPUT_BOOL("Is Realtime Line", CLI_AMI_LIST_WIDTH, l->realtime);
 #endif
@@ -1351,7 +1351,7 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(WriteCodec,		"-10.10s",	10,	codec2name(channel->rtp.audio.writeFormat))		\
 		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22s",	22,	addrStr)						\
 		CLI_AMI_TABLE_FIELD(Direct,		"-6.6s",	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
-		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8s",	8,	dtmfmode2str(channel->dtmfmode))
+		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8s",	8,	sccp_dtmfmode2str(channel->dtmfmode))
 #include "sccp_cli_table.h"
 
 	if (s) {
@@ -1421,9 +1421,9 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(KA,			"-4d",		4,	(uint32_t) (time(0) - session->lastKeepAlive))			\
 		CLI_AMI_TABLE_FIELD(KAI,		"-4d",		4,	(d) ? d->keepaliveinterval : 0)					\
 		CLI_AMI_TABLE_FIELD(Device,		"15s",		15,	(d) ? d->id : "--")						\
-		CLI_AMI_TABLE_FIELD(State,		"-14.14s",	14,	(d) ? devicestate2str(d->state) : "--")				\
-		CLI_AMI_TABLE_FIELD(Type,		"-15.15s",	15,	(d) ? devicetype2str(d->skinny_type) : "--")			\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10,	(d) ? registrationstate2str(d->registrationState) : "--")	\
+		CLI_AMI_TABLE_FIELD(State,		"-14.14s",	14,	(d) ? sccp_devicestate2str(d->state) : "--")				\
+		CLI_AMI_TABLE_FIELD(Type,		"-15.15s",	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")			\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
 		CLI_AMI_TABLE_FIELD(Token,		"-10.10s",	10,	(d && d->status.token ) ?  (SCCP_TOKEN_STATE_ACK == d->status.token ? "Ack" : (SCCP_TOKEN_STATE_REJ == d->status.token ? "Reject" : "--")) : "--")
 #include "sccp_cli_table.h"
 
@@ -1954,7 +1954,7 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 		}
 #define CLI_AMI_TABLE_FIELDS													\
 				CLI_AMI_TABLE_FIELD(Set,		"-15.15s",	15,	softkeyset->name)		\
-				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	keymode2str(i))			\
+				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	skinny_keymode2str(i))			\
 				CLI_AMI_TABLE_FIELD(Description,	"-40.40s",	40,	skinny_keymode2longstr(i))	\
 				CLI_AMI_TABLE_FIELD(LblID,		"-5d",		5,	c)				\
 				CLI_AMI_TABLE_FIELD(Label,              "-15.15s",	15,     label2str(b[c]))		

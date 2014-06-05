@@ -50,10 +50,11 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-#define GENERATE_ENUM_STRINGS
+#define ENUMMACRO_FILE "chan_sccp_enums.hh"
+#define ENUMMACRO_GENERATE 2
 #include "sccp_enum_macro.h"
-#include "chan_sccp_enums.hh"
-#undef GENERATE_ENUM_STRINGS
+#undef  ENUMMACRO_GENERATE
+#undef  ENUMMACRO_FILE
 
 /*!
  * \brief       Buffer for Jitterbuffer use

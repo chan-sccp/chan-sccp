@@ -659,6 +659,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const void *ids, const PBX
 					sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
 				}
 				break;
+			case skinny_calltype_LOOKUPERROR:
+				break;
 		}
 	} else {
 
@@ -671,6 +673,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const void *ids, const PBX
 			case SKINNY_CALLTYPE_OUTBOUND:
 				sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
 				sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
+				break;
+			case skinny_calltype_LOOKUPERROR:
 				break;
 		}
 	}
@@ -727,7 +731,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * c, const void *ids, const PBX
 	if (d) {
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_MAC", d->id);
 		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_IP", sccp_socket_stringify_addr(&d->session->sin));
-		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", devicetype2str(d->skinny_type));
+		pbx_builtin_setvar_helper(tmp, "SCCP_DEVICE_TYPE", skinny_devicetype2str(d->skinny_type));
 	}
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Allocated asterisk channel %s-%d\n", (l) ? l->id : "(null)", (l) ? l->name : "(null)", c->callid);
 

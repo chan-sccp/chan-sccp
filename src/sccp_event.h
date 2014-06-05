@@ -17,8 +17,11 @@
 //#include "common.h"
 #include "chan_sccp.h"
 
+#define ENUMMACRO_FILE "sccp_event_enums.hh"
+#define ENUMMACRO_GENERATE 1
 #include "sccp_enum_macro.h"
-#include "sccp_event_enums.hh"
+#undef  ENUMMACRO_GENERATE
+#undef  ENUMMACRO_FILE
 
 #define NUMBER_OF_EVENT_TYPES 10
 

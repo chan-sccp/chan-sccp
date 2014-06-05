@@ -47,10 +47,10 @@
 ///////////////////////////////
 // The skinny enum declarations
 ///////////////////////////////
-BEGIN_ENUM(skinny,devfeature)
-	ENUM_ELEMENT(SKINNY_DEVFEATURE_DYNAMIC_MESSAGE 			,=1<<24,	"Dynamic Messages")
-	ENUM_ELEMENT(SKINNY_DEVFEATURE_ABBREVIATED_DIAL 		,=1<<31,	"Abbreviated Dial")
-END_ENUM(skinny,devfeature)
+//BEGIN_ENUM(skinny,devfeature)
+//	ENUM_ELEMENT(SKINNY_DEVFEATURE_DYNAMIC_MESSAGE 			,=1<<24,	"Dynamic Messages")
+//	ENUM_ELEMENT(SKINNY_DEVFEATURE_ABBREVIATED_DIAL 		,=1<<31,	"Abbreviated Dial")
+//END_ENUM(skinny,devfeature)
 
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
