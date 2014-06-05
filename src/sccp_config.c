@@ -608,7 +608,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			}
 			break;
 
-		default:
+		case sccp_config_buttontype_LOOKUPERROR:
 			pbx_log(LOG_WARNING, "SCCP: Unknown param at %s='%s'\n", name, value);
 			return SCCP_CONFIG_NOUPDATENEEDED;
 	}
@@ -1826,7 +1826,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		}
 		config->index = index;
 		config->type = type;
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", config_buttontype2str(type), name, index, config->index);
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", sccp_config_buttontype2str(type), name, index, config->index);
 		SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
 	} else {
 		config->pendingDelete = 0;
@@ -1835,7 +1835,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s. Substituted with  EMPTY button\n", config->index, config_buttontype2str(type), name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s. Substituted with  EMPTY button\n", config->index, sccp_config_buttontype2str(type), name);
 		type = EMPTY;
 	}
 
@@ -1942,10 +1942,13 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 				changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 				break;
 			}
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Empty Button Definition changed\n");
+ 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Empty Button Definition changed\n");
 			/* \todo check if values change */
 			config->type = EMPTY;
 			config->index = index;
+			break;
+		default:
+ 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Unknown ButtonType\n");
 			break;
 	}
 	return changed;

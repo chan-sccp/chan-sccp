@@ -696,7 +696,7 @@ const char *sccp_indicate2str(uint8_t state)
  * \param state SKINNY_CALLSTATE_*
  * \return Call State String
  */
-const char *sccp_callstate2str(uint8_t state)
+const char *sccp_skinny_callstate2str(uint8_t state)
 {
 	switch (state) {
 		case SKINNY_CALLSTATE_OFFHOOK:

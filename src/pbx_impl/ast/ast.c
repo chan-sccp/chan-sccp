@@ -688,7 +688,7 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 			} else if (!strcasecmp(args, "recvip")) {
 				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
 			} else if (!strcasecmp(args, "useragent")) {
-				sccp_copy_string(buf, devicetype2str(d->skinny_type), buflen);
+				sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
 			} else if (!strcasecmp(args, "from")) {
 				sccp_copy_string(buf, (char *) d->id, buflen);
 			} else {

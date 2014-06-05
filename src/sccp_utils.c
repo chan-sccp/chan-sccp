@@ -198,7 +198,7 @@ gcc_inline size_t msgtype2size(sccp_mid_t type)
 	return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
 }
 
-gcc_inline const char *pbxdevicestate2str(uint32_t value)
+gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
 	_ARR2STR(pbx_devicestates, devicestate, value, text);
 }

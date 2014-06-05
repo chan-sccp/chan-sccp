@@ -25,10 +25,13 @@
 #include "sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-#define GENERATE_ENUM_STRINGS
+
+#define ENUMMACRO_FILE "sccp_event_enums.hh"
+#define ENUMMACRO_GENERATE 2
 #include "sccp_enum_macro.h"
-#include "sccp_event_enums.hh"
-#undef GENERATE_ENUM_STRINGS
+#undef  ENUMMACRO_GENERATE
+#undef  ENUMMACRO_FILE
+
 void sccp_event_destroy(sccp_event_t * event);
 
 /*!
@@ -83,6 +86,8 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+		case sccp_event_type_LOOKUPERROR:
+			break;
 	}
 //	pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
 }
@@ -95,10 +100,10 @@ static void *sccp_event_processor(void *data)
 	int n;
 
 	if (subscribers && event) {
-		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, event_type2str(event->type));
+		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Asynchronous Event %p of Type %s\n", event, sccp_event_type2str(event->type));
 		for (n = 0; n < subscribers->aSyncSize && sccp_event_running; n++) {
 			if (subscribers->async[n].callback_function != NULL) {
-				sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, event_type2str(event->type), subscribers->async[n].callback_function, n);
+				sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Processing Event %p of Type %s: %p (%d)\n", event, sccp_event_type2str(event->type), subscribers->async[n].callback_function, n);
 				subscribers->async[n].callback_function((const sccp_event_t *) event);
 			}
 		}
@@ -221,7 +226,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		return;
 	}
 
-	AUTO_RELEASE sccp_event_t *e = (sccp_event_t *) sccp_refcount_object_alloc(sizeof(sccp_event_t), SCCP_REF_EVENT, event_type2str(event->type), sccp_event_destroy);
+	AUTO_RELEASE sccp_event_t *e = (sccp_event_t *) sccp_refcount_object_alloc(sizeof(sccp_event_t), SCCP_REF_EVENT, sccp_event_type2str(event->type), sccp_event_destroy);
 	
 	if (!e) {
 		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
@@ -231,7 +236,7 @@ void sccp_event_fire(const sccp_event_t * event)
 	// memcpy(e, event, sizeof(sccp_event_t));
 	e->type = event->type;
 
-	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, event_type2str(e->type));
+	sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s\n", event, sccp_event_type2str(e->type));
 	/* update refcount */
 	switch (e->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
@@ -264,6 +269,8 @@ void sccp_event_fire(const sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
+		case sccp_event_type_LOOKUPERROR:
+			break;
 	}
 
 	/* search for position in array */
@@ -293,14 +300,14 @@ void sccp_event_fire(const sccp_event_t * event)
 
 				/* initialized with default attributes */
 				if (arg->event != NULL) {
-					sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, event_type2str(event->type));
+					sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Adding work to threadpool for event: %p, type: %s\n", event, sccp_event_type2str(event->type));
 					if (!sccp_threadpool_add_work(GLOB(general_threadpool), (void *) sccp_event_processor, (void *) arg)) {
-						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, event_type2str(event->type));
+						pbx_log(LOG_ERROR, "Could not add work to threadpool for event: %p, type: %s for processing\n", event, sccp_event_type2str(event->type));
 						arg->event = sccp_event_release(arg->event);
 						sccp_free(arg);
 					}
 				} else {
-					pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, event_type2str(event->type));
+					pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 					sccp_free(arg);
 				}
 			}
@@ -315,11 +322,11 @@ void sccp_event_fire(const sccp_event_t * event)
 				}
 			}
 		} else {
-			pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, event_type2str(event->type));
+			pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 		}
 	} else {
 		// we are unloading. switching to synchonous mode for everything
-		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, event_type2str(e->type));
+		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, sccp_event_type2str(e->type));
 		AUTO_RELEASE sccp_event_t *tmp_e = NULL;
 		if ((tmp_e = sccp_event_retain(e))) {
 			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
@@ -333,7 +340,7 @@ void sccp_event_fire(const sccp_event_t * event)
 				}
 			}
 		} else {
-			pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, event_type2str(event->type));
+			pbx_log(LOG_ERROR, "Could not retain e: %p, type: %s for processing\n", e, sccp_event_type2str(event->type));
 		}
 	}
 }

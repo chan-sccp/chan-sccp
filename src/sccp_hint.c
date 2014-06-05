@@ -627,7 +627,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 	sccp_line_t *line = NULL;
 
 	if ((line = sccp_line_retain(lineState->line))) {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 
 		/* no line, or line without devices */
 		if (0 == SCCP_LIST_GETSIZE(&line->devices)) {
@@ -716,7 +716,7 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) Set sharedLineState to %s(%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) Set sharedLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 }
 
 /*!
@@ -818,6 +818,8 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 						sccp_copy_string(lineState->callInfo.partyNumber, "cfwd", sizeof(lineState->callInfo.partyNumber));
 						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
 						break;
+					case skinny_calltype_LOOKUPERROR:
+						break;
 				}
 				break;
 		}
@@ -832,7 +834,7 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 		sccp_hint_checkForDND(lineState);
 	}													// if(channel)
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) Set singleLineState to %s(%d)\n", line->name, channelstate2str(lineState->state), lineState->state);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) Set singleLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 }
 
 /* ========================================================================================================================= Event Handlers : Feature Change */
@@ -917,6 +919,8 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
+		case sccp_channelstate_LOOKUPERROR:
+			break;
 	}
 	return newDeviceState;
 }
@@ -949,7 +953,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	}
 #endif
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
 	// if (hint && lineState->state == hint->currentState) {
@@ -962,7 +966,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		event = pbx_event_new(AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber, AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: \n");
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", channelstate2str(lineState->state), lineState->state, pbxdevicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
 #else
 		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
@@ -1001,7 +1005,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState));
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) notify %u subscriber(s) of %s's state %s\n", hint->exten, SCCP_LIST_GETSIZE(&hint->subscribers), (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState));
 
 	/* use a temporary channel as fallback for non dynamic speeddial devices */
 	memset(&tmpChannel, 0, sizeof(sccp_channel_t));
@@ -1015,7 +1019,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
 		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", channelstate2str(hint->currentState), hint->currentState);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
 				sccp_dev_speed_find_byindex((sccp_device_t *) d, subscriber->instance, TRUE, &k);
@@ -1090,7 +1094,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				   we have dynamic speeddial enabled, but subscriber can not handle this.
 				   We have to switch back to old hint style and send old state.
 				 */
-				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) can not handle dynamic speeddial, fall back to old behavior using state %s (%d)\n", DEV_ID_LOG(d), channelstate2str(hint->currentState), hint->currentState);
+				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) can not handle dynamic speeddial, fall back to old behavior using state %s (%d)\n", DEV_ID_LOG(d), sccp_channelstate2str(hint->currentState), hint->currentState);
 
 				/*
 				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
@@ -1133,8 +1137,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_DND:
 						iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 						break;
+					case sccp_channelstate_LOOKUPERROR:
+						break;
 				}
-				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), channelstate2str(iconstate), iconstate);
+				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), sccp_channelstate2str(iconstate), iconstate);
 
 				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
 					/* we send a congestion to the phone, so call will not be marked as missed call */

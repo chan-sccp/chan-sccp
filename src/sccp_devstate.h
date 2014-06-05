@@ -16,13 +16,6 @@
 #include <config.h>
 #include "common.h"
 
-
-BEGIN_ENUM(sccp,devstate_state)
-        ENUM_ELEMENT(IDLE				,=0 << 0,	"IDLE")
-        ENUM_ELEMENT(INUSE				,=1 << 1,	"INUSE")
-END_ENUM(sccp,devstate_state)
-
-
 void sccp_devstate_module_start(void);
 void sccp_devstate_module_stop(void);
 

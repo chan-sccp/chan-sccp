@@ -140,7 +140,7 @@ const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent(uint32_t event)
 void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, uint8_t softKey, boolean_t enable)
 {
 	uint8_t i;
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), keymode2str(softKeySet), enable ? "on" : "off");
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
 
 	if (!device) {
 		return;
@@ -440,7 +440,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 		return;
 	}
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (Current Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (Current Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), sccp_dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
 
 	if (!d->dndFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Feature disabled\n", DEV_ID_LOG(d));
@@ -482,7 +482,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 
 	sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);								/* notify the modules the the DND-feature changed state */
 	sccp_dev_check_displayprompt(d);									/*! \todo we should use the feature changed event to check displayprompt */
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), sccp_dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
 }
 
 /*!

@@ -606,7 +606,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 {
 	uint8_t i;
 
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
+	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Building button template %s(%d), user config %s\n", d->id, skinny_devicetype2str(d->skinny_type), d->skinny_type, d->config_type);
 
 	switch (d->skinny_type) {
 		case SKINNY_DEVICETYPE_30SPPLUS:
@@ -939,7 +939,7 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 	sccp_event_t event;
 	sccp_msg_t *msg;
 
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), registrationstate2str(d->registrationState), registrationstate2str(opt));
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: (sccp_dev_set_registered) Setting Registered Status for Device from %s to %s\n", DEV_ID_LOG(d), skinny_registrationstate2str(d->registrationState), skinny_registrationstate2str(opt));
 
 	if (d->registrationState == opt) {
 		return;
@@ -1038,7 +1038,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 
-	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
+	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
 	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: validKeyMask %u\n", d->id, msg->data.SelectSoftKeysMessage.les_validKeyMask);
 	sccp_dev_send(d, msg);
 }
@@ -1066,7 +1066,7 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	msg->data.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), ringtype2str(opt), opt);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send ringer mode %s(%d) on device\n", DEV_ID_LOG(d), skinny_ringtype2str(opt), opt);
 }
 
 /*!
@@ -1186,7 +1186,7 @@ void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uin
 	msg->data.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, tone2str(tone), tone);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, skinny_tone2str(tone), tone);
 }
 
 /*!
@@ -2208,7 +2208,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	msg->data.CallStateMessage.lel_priority = htolel(priority);
 	/*r->data.CallStateMessage.lel_unknown3 = htolel(2); */
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, sccp_callstate2str(state), state, callid);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, skinny_callstate2str(state), state, callid);
 }
 
 /*!
