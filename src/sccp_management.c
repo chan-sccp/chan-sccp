@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_management.c
  * \brief	SCCP Management Class
@@ -27,8 +26,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 /*
  * Descriptions
  */
-static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
-static char management_show_lines_desc[] = "Description: Lists SCCP lines in text format with details on current status.\n" "\n" "LinelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
+static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status. (DEPRECATED in favor of SCCPShowDevices)\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
+static char management_show_lines_desc[] = "Description: Lists SCCP lines in text format with details on current status. (DEPRECATED in favor of SCCPShowLines)\n" "\n" "LinelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n";
 static char management_show_device_add_line_desc[] = "Description: Lists SCCP devices in text format with details on current status.\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  Devicename: Name of device to restart.\n" "  Linename: Name of line";
 static char management_device_update_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device\n";
@@ -68,6 +67,7 @@ static struct manager_custom_hook sccp_manager_hook = {
 
 /*!
  * \brief Register management commands
+ * \note deprecated
  */
 int sccp_register_management(void)
 {
@@ -233,6 +233,7 @@ void sccp_manager_eventListener(const sccp_event_t * event)
  * \return Success as int
  * 
  * \called_from_asterisk
+ * \note deprecated
  * 
  */
 static int sccp_manager_show_devices(struct mansession *s, const struct message *m)
@@ -269,7 +270,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(device->registrationState));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
 		astman_append(s, "Active: %s\r\n", (device->active_channel) ? "Yes" : "No");
-		astman_append(s, "NumLines: %d\r\n", device->configurationStatistic.numberOfLines);
+		astman_append(s, "NumLines: %d\r\n\r\n", device->configurationStatistic.numberOfLines);
 		total++;
 	}
 
@@ -288,6 +289,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
  * \return Success as int
  * 
  * \called_from_asterisk
+ * \note deprecated
  * 
  */
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m)
@@ -309,7 +311,7 @@ static int sccp_manager_show_lines(struct mansession *s, const struct message *m
 		astman_append(s, "ObjectType: line\r\n");
 		astman_append(s, "Name: %s\r\n", line->name);
 		astman_append(s, "Description: %s\r\n", line->description);
-		astman_append(s, "Num_Channels: %d\r\n", SCCP_RWLIST_GETSIZE(&line->channels));
+		astman_append(s, "Num_Channels: %d\r\n\r\n", SCCP_RWLIST_GETSIZE(&line->channels));
 		total++;
 	}
 
