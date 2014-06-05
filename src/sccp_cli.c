@@ -1051,6 +1051,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 					astman_append(s, "ChannelObjectType: Line\r\n");
 					astman_append(s, "Exten: %s\r\n", l->name);
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
+					astman_append(s, "Label: %s\r\n", l->label);
 					astman_append(s, "Device: %s\r\n", (d) ? d->id : "--");
 					astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 					astman_append(s, "ActiveChannels: %d\r\n", SCCP_RWLIST_GETSIZE(&l->channels));
