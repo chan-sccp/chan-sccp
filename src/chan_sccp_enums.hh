@@ -147,6 +147,6 @@ BEGIN_ENUM(sccp,config_buttontype)
 END_ENUM(sccp,config_buttontype)
 
 BEGIN_ENUM(sccp,devstate_state)
-        ENUM_ELEMENT(IDLE				,=0 << 0,	"IDLE")
-        ENUM_ELEMENT(INUSE				,=1 << 1,	"INUSE")
+        ENUM_ELEMENT(SCCP_DEVSTATE_IDLE					,=0 << 0,	"IDLE")
+        ENUM_ELEMENT(SCCP_DEVSTATE_INUSE				,=1 << 1,	"INUSE")
 END_ENUM(sccp,devstate_state)
