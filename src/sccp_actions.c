@@ -215,8 +215,13 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	deviceType = letohl(msg_in->data.RegisterTokenRequest.lel_deviceType);
 
 	// sccp_dump_msg(msg_in);
-
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
+	if (!skinny_does_devicetype_exist(deviceType)) {
+		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n"
+			"Please send this device type number plus the information about the phone model you are using to one of our developers.\n" 
+			"Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", 
+			deviceName, deviceType);
+	}
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType); 
 
 	/* if s already has a device assigned to it, something is wrong. clean it up first, and have the device try again */
 	if (s->device && s->device->session && s->device->session != s) {
@@ -349,12 +354,20 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg_t * msg_in)
 {
 	AUTO_RELEASE sccp_device_t *device = NULL;
+	char *deviceName = "";
 	uint32_t deviceInstance = 0;
 	uint32_t deviceType = 0;
 
 	deviceInstance = letohl(msg_in->data.SPCPRegisterTokenRequest.sId.lel_instance);
+	deviceName = sccp_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceType = letohl(msg_in->data.SPCPRegisterTokenRequest.lel_deviceType);
 
+	if (!skinny_does_devicetype_exist(deviceType)) {
+		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n"
+			"Please send this device type number plus the information about the phone model you are using to one of our developers.\n" 
+			"Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", 
+			deviceName, deviceType);
+	}
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a token, Instance: %d, Type: %s (%d)\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
 
 	/* ip address range check */
@@ -458,7 +471,13 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	uint32_t ipV6AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV6AddressScope);
 
 	
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", deviceName, deviceInstance, userid, skinny_devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
+	if (!skinny_does_devicetype_exist(deviceType)) {
+		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n"
+			"Please send this device type number plus the information about the phone model you are using to one of our developers.\n" 
+			"Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", 
+			deviceName, deviceType);
+	}
+	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", deviceName, deviceInstance, userid, skinny_devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
 
 	// search for all devices including realtime
 	if (!maybe_d) {
