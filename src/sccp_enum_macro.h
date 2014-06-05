@@ -12,6 +12,7 @@
 #define ENUM_ELEMENT(element, index, str) 	element index,
 #define END_ENUM(NAMESPACE, ENUM_NAME) NAMESPACE##_##ENUM_NAME##_LOOKUPERROR =-1									\
 } NAMESPACE##_##ENUM_NAME##_t;																\
+int NAMESPACE##_does_##ENUM_NAME##_exist(int intvalue);													\
 const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value);										\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char *lookup_str);
 
@@ -65,17 +66,26 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lo
 #define BEGIN_ENUM(NAMESPACE, ENUM_NAME) static const int NAMESPACE##_##ENUM_NAME##_exists[] = {
 #define ENUM_ELEMENT(element, index, str) element,
 #define END_ENUM(NAMESPACE, ENUM_NAME) };														\
+int NAMESPACE##_does_##ENUM_NAME##_exist(int intvalue) {												\
+	int idx;																	\
+	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
+		if (NAMESPACE##_##ENUM_NAME##_exists[idx]==intvalue) {															\
+			return 1;															\
+		}																	\
+	}																		\
+	return 0;																	\
+}																			\
 const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value) {										\
 	if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
 		return NAMESPACE##_##ENUM_NAME##_map[value].str;											\
 	} else {																	\
-		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "_val2str\n", value);				\
+		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2str\n", value);				\
 		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";											\
 	}																		\
 }																			\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * lookup_str) {								\
 	int idx;																	\
-	for(idx=0; idx<=ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists) - 1; idx++) {										\
+	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
 		if (!strcasecmp(NAMESPACE##_##ENUM_NAME##_map[NAMESPACE##_##ENUM_NAME##_exists[idx]].str, lookup_str)) {				\
 			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
 		}																	\
@@ -91,13 +101,13 @@ const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value
 	if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
 		return NAMESPACE##_##ENUM_NAME##_map[value].longstr;											\
 	} else {																	\
-		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "_val2longstr\n", value);				\
-		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";											\
+		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2longstr\n", value);				\
+		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";							\
 	}																		\
 }																			\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char * lookup_longstr) {							\
 	int idx;																	\
-	for(idx=0; idx<=ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists) - 1; idx++) {										\
+	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
 		if (!strcasecmp(NAMESPACE##_##ENUM_NAME##_map[NAMESPACE##_##ENUM_NAME##_exists[idx]].longstr, lookup_longstr)) {			\
 			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
 		}																	\
