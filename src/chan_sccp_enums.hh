@@ -11,38 +11,10 @@
 ///////////////////////////////
 // The enum examples
 ///////////////////////////////
-
-//
-// BEGIN_ENUM(sccp,Months)		/* enum2str with index value (starting at 2) */
-//        ENUM_ELEMENT(january,=2,"jan")
-//        ENUM_ELEMENT(february,,"feb")
-//        ENUM_ELEMENT(march,,"mrch")
-// END_ENUM(sccp,Months)
-//
-// /* will generate this in sccp_enum.h */
-// typedef enum tag_Months {
-//        january =2,
-//        february ,
-//        march ,
-// } sccp_Months_t; 
-//
-// inline const char* Months2str(sccp_Months_t index);
-//
-// /* and this in sccp_enum.c */
-// inline const char* Months2str(sccp_Months_t index) { 
-// 	switch(index) { 
-//         	case january: return "jan";
-//         	case february: return "feb";
-//         	case march: return "mrch";
-// 	};
-//	return "SCCP: ERROR lookup in " "skinny" "_" "Months" "_t"; };
-// };
-
-//
 // Simple verification method
 //
-// cpp -I. chan_sccp.h > chan_sccp.h
-// cpp -I. chan_sccp.c > chan_sccp.c
+// gcc -E -I. chan_sccp.h |indent > chan_sccp.h
+// gcc -E -I. chan_sccp.c |indent > chan_sccp.c
 
 ///////////////////////////////
 // The sccp enum declarations
@@ -51,7 +23,7 @@
 /*! 
  * \brief internal chan_sccp call state (c->callstate) (Enum)
  */
-BEGIN_ENUM(sccp,channelstate)
+BEGIN_ENUM(sccp,channelstate,ENUMMACRO_SPARSE)
         ENUM_ELEMENT(SCCP_CHANNELSTATE_DOWN 				,=0, 	"DOWN")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_OFFHOOK 				,=1, 	"OFFHOOK")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_ONHOOK 				,=2, 	"ONHOOK")
@@ -78,75 +50,75 @@ BEGIN_ENUM(sccp,channelstate)
         ENUM_ELEMENT(SCCP_CHANNELSTATE_BLINDTRANSFER 			,=0xA6,	"BLINDTRANSFER")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_ZOMBIE 				,=0xFE,	"ZOMBIE")
         ENUM_ELEMENT(SCCP_CHANNELSTATE_DND 				,=0xFF,	"DND")
-END_ENUM(sccp,channelstate)												/*!< internal Chan_SCCP Call State c->callstate */
+END_ENUM(sccp,channelstate,ENUMMACRO_SPARSE)												/*!< internal Chan_SCCP Call State c->callstate */
 
 
-BEGIN_ENUM(sccp,devicestate)
+BEGIN_ENUM(sccp,devicestate,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_DEVICESTATE_ONHOOK				,,	"On Hook"	)
         ENUM_ELEMENT(SCCP_DEVICESTATE_OFFHOOK				,,	"Off Hook"	)
         ENUM_ELEMENT(SCCP_DEVICESTATE_UNAVAILABLE			,,	"Unavailable"	)
         ENUM_ELEMENT(SCCP_DEVICESTATE_DND				,,	"Do Not Disturb")
         ENUM_ELEMENT(SCCP_DEVICESTATE_FWDALL				,,	"Forward All"	)
-END_ENUM(sccp,devicestate)
+END_ENUM(sccp,devicestate,ENUMMACRO_INCREMENTAL)
 
-BEGIN_ENUM(sccp,callforward)
+BEGIN_ENUM(sccp,callforward,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_CFWD_NONE		 			,,	"None")
         ENUM_ELEMENT(SCCP_CFWD_ALL 					,,	"All")
         ENUM_ELEMENT(SCCP_CFWD_BUSY 					,,	"Busy")
         ENUM_ELEMENT(SCCP_CFWD_NOANSWER 				,,	"NoAnswer")
-END_ENUM(sccp,callforward)
+END_ENUM(sccp,callforward,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief SCCP Dtmf Mode (ENUM)
  */
-BEGIN_ENUM(sccp,dtmfmode)
+BEGIN_ENUM(sccp,dtmfmode,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SCCP_DTMFMODE_NONE					,,	"No DTMF")
 	ENUM_ELEMENT(SCCP_DTMFMODE_INBAND				,,	"Inband")
 	ENUM_ELEMENT(SCCP_DTMFMODE_OUTOFBAND				,,	"OutOfBand")
 	ENUM_ELEMENT(SCCP_DTMFMODE_AUTO					,,	"Auto")
-END_ENUM(sccp,dtmfmode)
+END_ENUM(sccp,dtmfmode,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief SCCP Autoanswer (ENUM)
  */
-BEGIN_ENUM(sccp,autoanswer)
+BEGIN_ENUM(sccp,autoanswer,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_AUTOANSWER_NONE				,,	"AutoAnswer None")
         ENUM_ELEMENT(SCCP_AUTOANSWER_1W 				,,	"AutoAnswer 1-Way")
         ENUM_ELEMENT(SCCP_AUTOANSWER_2W 				,,	"AutoAnswer Both Ways")
-END_ENUM(sccp,autoanswer)
+END_ENUM(sccp,autoanswer,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief SCCP DNDMode (ENUM)
  */
-BEGIN_ENUM(sccp,dndmode)
+BEGIN_ENUM(sccp,dndmode,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_DNDMODE_OFF					,,	"Off")
         ENUM_ELEMENT(SCCP_DNDMODE_REJECT				,,	"Reject")
         ENUM_ELEMENT(SCCP_DNDMODE_SILENT				,,	"Silent")
         ENUM_ELEMENT(SCCP_DNDMODE_USERDEFINED				,,	"UserDefined")
-END_ENUM(sccp,dndmode)
+END_ENUM(sccp,dndmode,ENUMMACRO_INCREMENTAL)
 
-BEGIN_ENUM(sccp,accessory)
+BEGIN_ENUM(sccp,accessory,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_ACCESSORY_NONE	 			,,	"None")
         ENUM_ELEMENT(SCCP_ACCESSORY_HEADSET	 			,,	"Headset")
         ENUM_ELEMENT(SCCP_ACCESSORY_HANDSET	 			,,	"Handset") 
         ENUM_ELEMENT(SCCP_ACCESSORY_SPEAKER	 			,,	"Speaker")
-END_ENUM(sccp,accessory)
+END_ENUM(sccp,accessory,ENUMMACRO_INCREMENTAL)
 
-BEGIN_ENUM(sccp,accessorystate)
+BEGIN_ENUM(sccp,accessorystate,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_ACCESSORYSTATE_NONE	 			,,	"None")
         ENUM_ELEMENT(SCCP_ACCESSORYSTATE_ONHOOK	 			,,	"On Hook") 
         ENUM_ELEMENT(SCCP_ACCESSORYSTATE_OFFHOOK	 		,,	"Off Hook")
-END_ENUM(sccp,accessorystate)
+END_ENUM(sccp,accessorystate,ENUMMACRO_INCREMENTAL)
 
-BEGIN_ENUM(sccp,config_buttontype)
+BEGIN_ENUM(sccp,config_buttontype,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(LINE			 			,,	"Line")
         ENUM_ELEMENT(SPEEDDIAL	 					,,	"Speeddial") 
         ENUM_ELEMENT(SERVICE				 		,,	"Service")
         ENUM_ELEMENT(FEATURE	 					,,	"Feature")
         ENUM_ELEMENT(EMPTY	 					,,	"Empty")
-END_ENUM(sccp,config_buttontype)
+END_ENUM(sccp,config_buttontype,ENUMMACRO_INCREMENTAL)
 
-BEGIN_ENUM(sccp,devstate_state)
+BEGIN_ENUM(sccp,devstate_state,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_DEVSTATE_IDLE					,=0 << 0,	"IDLE")
         ENUM_ELEMENT(SCCP_DEVSTATE_INUSE				,=1 << 1,	"INUSE")
-END_ENUM(sccp,devstate_state)
+END_ENUM(sccp,devstate_state,ENUMMACRO_INCREMENTAL)

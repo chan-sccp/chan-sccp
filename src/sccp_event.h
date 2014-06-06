@@ -18,7 +18,7 @@
 #include "chan_sccp.h"
 
 #define ENUMMACRO_FILE "sccp_event_enums.hh"
-#define ENUMMACRO_GENERATE 1
+#define ENUMMACRO_GENERATE ENUMMACRO_GENHEADER
 #include "sccp_enum_macro.h"
 #undef  ENUMMACRO_GENERATE
 #undef  ENUMMACRO_FILE

@@ -11,60 +11,32 @@
 ///////////////////////////////
 // The enum examples
 ///////////////////////////////
-
-//
-// BEGIN_ENUM(skinny,Months)		/* enum2str with index value (starting at 2) */
-//	ENUM_ELEMENT(january,=2,"jan")
-//	ENUM_ELEMENT(february,,"feb")
-//	ENUM_ELEMENT(march,,"mrch")
-// END_ENUM(skinny,Months)
-//
-// /* will generate this in sccp_enum.h */
-// typedef enum tag_Months {
-//	january =2,
-//	february ,
-//	march ,
-// } skinny_Months_t; 
-//
-// inline const char* Months2str(skinny_Months_t index);
-//
-// /* and this in sccp_enum.c */
-// inline const char* Months2str(skinny_Months_t index) { 
-// 	switch(index) { 
-//	 	case january: return "jan";
-//	 	case february: return "feb";
-//	 	case march: return "mrch";
-// 	};
-//	return "SCCP: ERROR lookup in " "skinny" "_" "Months" "_t"; };
-// };
-
-//
 // Simple verification method
 //
-// cpp -I. sccp_protocol.h > sccp_protocol.hpp
-// cpp -I. sccp_protocol.c > sccp_protocol.cpp
+// gcc -E -I. sccp_protocol.h |indent > sccp_protocol.hpp
+// gcc _E -I. sccp_protocol.c |indent > sccp_protocol.cpp
 
 ///////////////////////////////
 // The skinny enum declarations
 ///////////////////////////////
-//BEGIN_ENUM(skinny,devfeature)
+//BEGIN_ENUM(skinny,devfeature,ENUMMACRO_SPARSE)
 //	ENUM_ELEMENT(SKINNY_DEVFEATURE_DYNAMIC_MESSAGE 			,=1<<24,	"Dynamic Messages")
 //	ENUM_ELEMENT(SKINNY_DEVFEATURE_ABBREVIATED_DIAL 		,=1<<31,	"Abbreviated Dial")
-//END_ENUM(skinny,devfeature)
+//END_ENUM(skinny,devfeature,ENUMMACRO_SPARSE)
 
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
-BEGIN_ENUM(skinny,calltype)
+BEGIN_ENUM(skinny,calltype,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_CALLTYPE_INBOUND				,=1,	"Inbound")
 	ENUM_ELEMENT(SKINNY_CALLTYPE_OUTBOUND				,,	"Outbound") 
 	ENUM_ELEMENT(SKINNY_CALLTYPE_FORWARD				,,	"Forward")
-END_ENUM(skinny,calltype)
+END_ENUM(skinny,calltype,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Protocol Call Type (ENUM)
  */
-BEGIN_ENUM(skinny,callstate)
+BEGIN_ENUM(skinny,callstate,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_CALLSTATE_OFFHOOK 				,=1,	"offhook")
 	ENUM_ELEMENT(SKINNY_CALLSTATE_ONHOOK 				,,	"onhook")
 	ENUM_ELEMENT(SKINNY_CALLSTATE_RINGOUT 				,,	"ring-out")
@@ -82,12 +54,12 @@ BEGIN_ENUM(skinny,callstate)
 	ENUM_ELEMENT(SKINNY_CALLSTATE_HOLDYELLOW			,,	"hold yellow")
 	ENUM_ELEMENT(SKINNY_CALLSTATE_INTERCOMONEWAY			,,	"intercom one-way") 
 	ENUM_ELEMENT(SKINNY_CALLSTATE_HOLDRED				,,	"hold red")
-END_ENUM(skinny,callstate)
+END_ENUM(skinny,callstate,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Tone (ENUM)
  */
-BEGIN_ENUM(skinny,tone)
+BEGIN_ENUM(skinny,tone,ENUMMACRO_SPARSE)
 	ENUM_ELEMENT(SKINNY_TONE_SILENCE				,=0x00,	"Silence")
 	ENUM_ELEMENT(SKINNY_TONE_DTMF1					,=0x01,	"DTMF 1")
 	ENUM_ELEMENT(SKINNY_TONE_DTMF2					,=0x02,	"DTMF 2")
@@ -171,63 +143,63 @@ BEGIN_ENUM(skinny,tone)
 	ENUM_ELEMENT(SKINNY_TONE_MLPP_BNEA				,=0x7B,	"MLPP Bnea")
 	ENUM_ELEMENT(SKINNY_TONE_MLPP_UPA				,=0x7C,	"MLPP Upa") 
 	ENUM_ELEMENT(SKINNY_TONE_NOTONE					,=0x7F,	"No Tone")
-END_ENUM(skinny,tone)
+END_ENUM(skinny,tone,ENUMMACRO_SPARSE)
 
 /*!
  * \brief Skinny Protocol Call Priority (ENUM)
  */
-BEGIN_ENUM(skinny,callpriority)
+BEGIN_ENUM(skinny,callpriority,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_HIGHEST			,,	"highest priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_HIGH				,,	"high priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_MEDIUM				,,	"medium priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_LOW				,,	"low priority")
 	ENUM_ELEMENT(SKINNY_CALLPRIORITY_NORMAL				,,	"normal priority")
-END_ENUM(skinny,callpriority)
+END_ENUM(skinny,callpriority,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Protocol CallInfo Visibility (ENUM)
  */
-BEGIN_ENUM(skinny,callinfo_visibility)
+BEGIN_ENUM(skinny,callinfo_visibility,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_CALLINFO_VISIBILITY_DEFAULT 		,,	"default")
 	ENUM_ELEMENT(SKINNY_CALLINFO_VISIBILITY_COLLAPSED 		,,	"collapsed")
 	ENUM_ELEMENT(SKINNY_CALLINFO_VISIBILITY_HIDDEN 			,,	"hidden")
-END_ENUM(skinny,callinfo_visibility)
+END_ENUM(skinny,callinfo_visibility,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Protocol Call Security State (ENUM)
  */
-BEGIN_ENUM(skinny,callsecuritystate)
+BEGIN_ENUM(skinny,callsecuritystate,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_CALLSECURITYSTATE_UNKNOWN 			,,	"unknown")
 	ENUM_ELEMENT(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED 		,,	"not authenticated")
 	ENUM_ELEMENT(SKINNY_CALLSECURITYSTATE_AUTHENTICATED 		,,	"authenticated")
-END_ENUM(skinny,callsecuritystate)
+END_ENUM(skinny,callsecuritystate,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Lamp Mode (ENUM)
  */
-BEGIN_ENUM(skinny,lampmode)
+BEGIN_ENUM(skinny,lampmode,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_LAMP_OFF					,=1,	"Lamp Off")
 	ENUM_ELEMENT(SKINNY_LAMP_ON					,,	"Lamp On")
 	ENUM_ELEMENT(SKINNY_LAMP_WINK					,,	"Lamp Wink")
 	ENUM_ELEMENT(SKINNY_LAMP_FLASH					,,	"Lamp Flash")
 	ENUM_ELEMENT(SKINNY_LAMP_BLINK					,,	"Lamp Blink")
-END_ENUM(skinny,lampmode)
+END_ENUM(skinny,lampmode,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-BEGIN_ENUM(skinny,busylampfield_state)
+BEGIN_ENUM(skinny,busylampfield_state,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_BLF_STATUS_UNKNOWN 				,,	"Unknown")
 	ENUM_ELEMENT(SKINNY_BLF_STATUS_IDLE 				,,	"Not-in-use")
 	ENUM_ELEMENT(SKINNY_BLF_STATUS_INUSE 				,,	"In-use")
 	ENUM_ELEMENT(SKINNY_BLF_STATUS_DND 				,,	"DND")
 	ENUM_ELEMENT(SKINNY_BLF_STATUS_ALERTING				,,	"Alerting")
-END_ENUM(skinny,busylampfield_state)
+END_ENUM(skinny,busylampfield_state,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-BEGIN_ENUM(skinny,alarm)
+BEGIN_ENUM(skinny,alarm,ENUMMACRO_SPARSE)
 	ENUM_ELEMENT(SKINNY_ALARM_CRITICAL				,=0,	"Critical")
 	ENUM_ELEMENT(SKINNY_ALARM_WARNING				,=1,	"Warning")
 	ENUM_ELEMENT(SKINNY_ALARM_INFORMATIONAL				,=2,	"Informational")
@@ -236,12 +208,12 @@ BEGIN_ENUM(skinny,alarm)
 	ENUM_ELEMENT(SKINNY_ALARM_MINOR					,=8,	"Minor")
 	ENUM_ELEMENT(SKINNY_ALARM_MARGINAL				,=10,	"Marginal") 
 	ENUM_ELEMENT(SKINNY_ALARM_TRACEINFO				,=20,	"TraceInfo")
-END_ENUM(skinny,alarm)
+END_ENUM(skinny,alarm,ENUMMACRO_SPARSE)
 
 /*!
  * \brief Skinny DeviceType (ENUM)
  */
-BEGIN_ENUM(skinny,devicetype)
+BEGIN_ENUM(skinny,devicetype,ENUMMACRO_SPARSE)
 	/* SCCP Devices */
 	ENUM_ELEMENT(SKINNY_DEVICETYPE_UNDEFINED 			,=00,	"Undefined: Maybe you forgot the devicetype in your config")
 //      ENUM_ELEMENT(SKINNY_DEVICETYPE_TELECASTER 			,=06,	"Telecaster")
@@ -362,13 +334,13 @@ BEGIN_ENUM(skinny,devicetype)
 //	ENUM_ELEMENT(SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS 		,=???,	"Cisco SPA500DS (32 Buttons)")	// monochrome
 //	ENUM_ELEMENT(SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS 		,=???,	"Cisco SPA932DS (32 Buttons)")	// color / SPA525
 	ENUM_ELEMENT(SKINNY_DEVICETYPE_NOTDEFINED 			,=99999, "Not Defined")
-END_ENUM(skinny,devicetype)
+END_ENUM(skinny,devicetype,ENUMMACRO_SPARSE)
 
 /*!
  * \brief Skinny Stimulus (ENUM)
  * Almost the same as Skinny buttontype !!
  */
-BEGIN_ENUM(skinny,stimulus)
+BEGIN_ENUM(skinny,stimulus,ENUMMACRO_SPARSE)
 	ENUM_ELEMENT(SKINNY_STIMULUS_UNUSED 				,=0x00,	"Unused")
 	ENUM_ELEMENT(SKINNY_STIMULUS_LASTNUMBERREDIAL 			,=0x01,	"Last Number Redial")
 	ENUM_ELEMENT(SKINNY_STIMULUS_SPEEDDIAL 				,=0x02,	"SpeedDial")
@@ -425,13 +397,13 @@ BEGIN_ENUM(skinny,stimulus)
 	ENUM_ELEMENT(SKINNY_STIMULUS_KEYPAD				,=0xF0,	"Keypad")
 	ENUM_ELEMENT(SKINNY_STIMULUS_AEC				,=0xFD,	"Aec")
 	ENUM_ELEMENT(SKINNY_STIMULUS_UNDEFINED 				,=0xFF,	"Undefined")
-END_ENUM(skinny,stimulus)
+END_ENUM(skinny,stimulus,ENUMMACRO_SPARSE)
 
 /*!
  * \brief Skinny ButtonType (ENUM)
  * Almost the same as Skinny Stimulus !!
  */
-BEGIN_ENUM(skinny,buttontype)
+BEGIN_ENUM(skinny,buttontype,ENUMMACRO_SPARSE)
 	ENUM_ELEMENT(SKINNY_BUTTONTYPE_UNUSED 				,=0x00,	"Unused")
 	ENUM_ELEMENT(SKINNY_BUTTONTYPE_LASTNUMBERREDIAL 		,=0x01,	"Last Number Redial")
 	ENUM_ELEMENT(SKINNY_BUTTONTYPE_SPEEDDIAL 			,=0x02,	"SpeedDial")
@@ -488,13 +460,13 @@ BEGIN_ENUM(skinny,buttontype)
 	ENUM_ELEMENT(SKINNY_BUTTONTYPE_KEYPAD				,=0xF0,	"Keypad")
 	ENUM_ELEMENT(SKINNY_BUTTONTYPE_AEC				,=0xFD,	"Aec")
 	ENUM_ELEMENT(SKINNY_BUTTONTYPE_UNDEFINED 			,=0xFF,	"Undefined")
-END_ENUM(skinny,buttontype)
+END_ENUM(skinny,buttontype,ENUMMACRO_SPARSE)
 
 
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-BEGIN_ENUM(skinny,videoformat)
+BEGIN_ENUM(skinny,videoformat,ENUMMACRO_SPARSE)
 	ENUM_ELEMENT(SKINNY_VIDEOFORMAT_UNDEFINED			,=0, 	"undefined") 
 	ENUM_ELEMENT(SKINNY_VIDEOFORMAT_SQCIF				,=1, 	"sqcif (128x96)") 
 	ENUM_ELEMENT(SKINNY_VIDEOFORMAT_QCIF				,=2, 	"qcif (176x144)") 
@@ -503,12 +475,12 @@ BEGIN_ENUM(skinny,videoformat)
 	ENUM_ELEMENT(SKINNY_VIDEOFORMAT_16CIF				,=5, 	"16cif (1408x1152)") 
 	ENUM_ELEMENT(SKINNY_VIDEOFORMAT_CUSTOM				,=6, 	"custom_base") 
 	ENUM_ELEMENT(SKINNY_VIDEOFORMAT_UNKNOWN				,=232,	"unknown")			// Cisco 7985 under protocol version 5 (Robert: SEP00506003273B)
-END_ENUM(skinny,videoformat)
+END_ENUM(skinny,videoformat,ENUMMACRO_SPARSE)
 
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-BEGIN_ENUM(skinny,ringtype)
+BEGIN_ENUM(skinny,ringtype,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_RINGTYPE_OFF				,=1,	"Ring Off")
 	ENUM_ELEMENT(SKINNY_RINGTYPE_INSIDE 				,,	"Inside")
 	ENUM_ELEMENT(SKINNY_RINGTYPE_OUTSIDE 				,,	"Outside")
@@ -520,22 +492,22 @@ BEGIN_ENUM(skinny,ringtype)
 	ENUM_ELEMENT(SKINNY_RINGTYPE_BELLCORE_3 			,,	"Bellcore 3")
 	ENUM_ELEMENT(SKINNY_RINGTYPE_BELLCORE_4 			,,	"Bellcore 4")
 	ENUM_ELEMENT(SKINNY_RINGTYPE_BELLCORE_5 			,,	"Bellcore 5")
-END_ENUM(skinny,ringtype)
+END_ENUM(skinny,ringtype,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Station Receive/Transmit (ENUM)
  */
-BEGIN_ENUM(skinny,receivetransmit)
+BEGIN_ENUM(skinny,receivetransmit,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_TRANSMITRECEIVE_NONE 			,=0,	"None")
 	ENUM_ELEMENT(SKINNY_TRANSMITRECEIVE_RECEIVE 			,=1,	"Receive")
 	ENUM_ELEMENT(SKINNY_TRANSMITRECEIVE_TRANSMIT 			,=2,	"Transmit")
 	ENUM_ELEMENT(SKINNY_TRANSMITRECEIVE_BOTH			,=3,	"Transmit & Receive")
-END_ENUM(skinny,receivetransmit)
+END_ENUM(skinny,receivetransmit,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny KeyMode (ENUM)
  */
-BEGIN_ENUM(skinny,keymode)
+BEGIN_ENUM(skinny,keymode,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(KEYMODE_ONHOOK	 				,,	"ONHOOK")
 	ENUM_ELEMENT(KEYMODE_CONNECTED	 				,,	"CONNECTED")
 	ENUM_ELEMENT(KEYMODE_ONHOLD	 				,,	"ONHOLD")
@@ -549,35 +521,35 @@ BEGIN_ENUM(skinny,keymode)
 	ENUM_ELEMENT(KEYMODE_INUSEHINT	 				,,	"INUSEHINT")
 	ENUM_ELEMENT(KEYMODE_ONHOOKSTEALABLE	 			,,	"ONHOOKSTEALABLE")
 	ENUM_ELEMENT(KEYMODE_LAST		 			,,	"")
-END_ENUM(skinny,keymode)
+END_ENUM(skinny,keymode,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-BEGIN_ENUM(skinny,registrationstate)
+BEGIN_ENUM(skinny,registrationstate,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(SKINNY_DEVICE_RS_FAILED				,,	"Failed")
 	ENUM_ELEMENT(SKINNY_DEVICE_RS_TIMEOUT				,,	"Time Out")
 	ENUM_ELEMENT(SKINNY_DEVICE_RS_NONE				,,	"None")
 	ENUM_ELEMENT(SKINNY_DEVICE_RS_TOKEN				,,	"Token")
 	ENUM_ELEMENT(SKINNY_DEVICE_RS_PROGRESS				,,	"Progress")
 	ENUM_ELEMENT(SKINNY_DEVICE_RS_OK				,,	"OK") 
-END_ENUM(skinny,registrationstate)
+END_ENUM(skinny,registrationstate,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Device Registration (ENUM)
  */
-BEGIN_ENUM(skinny,encryptiontype)
+BEGIN_ENUM(skinny,encryptiontype,ENUMMACRO_INCREMENTAL)
 	ENUM_ELEMENT(NO_ENCRYPTION					,=0x0,	"No Encryption")
 	ENUM_ELEMENT(AES_128_HMAC_SHA1_32       			,=0x1,	"AES128 SHA1 32")
 	ENUM_ELEMENT(AES_128_HMAC_SHA1_80				,=0x2,	"AES128 SHA1 80")
 	ENUM_ELEMENT(CCM_F8_128_HMAC_SHA1_32				,=0x3,	"HMAC_SHA1_32")
 	ENUM_ELEMENT(CCM_F8_128_HMAC_SHA1_80				,=0x4,	"HMAC_SHA1_80")
-END_ENUM(skinny,encryptiontype)
+END_ENUM(skinny,encryptiontype,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Miscellaneous Command Type (Enum)
  */
-BEGIN_ENUM(sccp,miscCommandType)
+BEGIN_ENUM(sccp,miscCommandType,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE		,=0x0,	"videoFreezePicture") 
         ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE	,=0x1,	"videoFastUpdatePicture") 
         ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB		,=0x2,	"videoFastUpdateGOB") 
@@ -586,12 +558,12 @@ BEGIN_ENUM(sccp,miscCommandType)
         ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE		,=0x5,	"lostPartialPicture") 
         ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE	,=0x6,	"recoveryReferencePicture") 
         ENUM_ELEMENT(SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF	,=0x7,	"temporalSpatialTradeOff") 
-END_ENUM(sccp,miscCommandType)
+END_ENUM(sccp,miscCommandType,ENUMMACRO_INCREMENTAL)
 
 /*!
  * \brief Skinny Media Status (Enum)
  */
-BEGIN_ENUM(skinny,mediastatus)
+BEGIN_ENUM(skinny,mediastatus,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_Ok				,,	"Media Status: OK") 
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_Unknown				,,	"Media Error: Unknown") 
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_OutOfChannels			,,	"Media Error: Out of Channels") 
@@ -605,4 +577,4 @@ BEGIN_ENUM(skinny,mediastatus)
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_InvalidDynPayloadType 		,,	"Media Error: Invalid Dynamic Payload Type") 
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_RequestedIpAddrTypeUnavailable	,,	"Media Error: Requested IP Address Type if not available") 
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_DeviceOnHook 			,,	"Media Error: Device is on hook") 
-END_ENUM(skinny,mediastatus)
+END_ENUM(skinny,mediastatus,ENUMMACRO_INCREMENTAL)

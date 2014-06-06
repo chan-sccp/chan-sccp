@@ -11,7 +11,7 @@
 /*!
  * \brief SCCP Event Type ENUM
  */
-BEGIN_ENUM(sccp,event_type)
+BEGIN_ENUM(sccp,event_type,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_EVENT_LINE_CREATED				,=1<<0,	"Line Created")
         ENUM_ELEMENT(SCCP_EVENT_LINE_CHANGED				,=1<<1,	"Line Changed")
         ENUM_ELEMENT(SCCP_EVENT_LINE_DELETED				,=1<<2,	"Line Deleted")
@@ -22,4 +22,4 @@ BEGIN_ENUM(sccp,event_type)
         ENUM_ELEMENT(SCCP_EVENT_DEVICE_UNREGISTERED			,=1<<7,	"Device Unregistered")
         ENUM_ELEMENT(SCCP_EVENT_FEATURE_CHANGED				,=1<<8,	"Feature Changed")
         ENUM_ELEMENT(SCCP_EVENT_LINESTATUS_CHANGED			,=1<<9,	"LineStatus Changed")
-END_ENUM(sccp,event_type)
+END_ENUM(sccp,event_type,ENUMMACRO_INCREMENTAL)

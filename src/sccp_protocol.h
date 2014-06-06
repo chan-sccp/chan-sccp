@@ -28,10 +28,9 @@
 #endif
 
 #include "sccp_labels.h"
-//#include "sccp_enum_macro.h"
-//#include "sccp_protocol_enums.hh"
+
 #define ENUMMACRO_FILE "sccp_protocol_enums.hh"
-#define ENUMMACRO_GENERATE 1
+#define ENUMMACRO_GENERATE ENUMMACRO_GENHEADER
 #include "sccp_enum_macro.h"
 #undef  ENUMMACRO_GENERATE
 #undef  ENUMMACRO_FILE
