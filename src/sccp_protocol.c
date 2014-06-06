@@ -20,13 +20,8 @@
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
 
-//#define GENERATE_ENUM_STRINGS
-//#include "sccp_enum_macro.h"
-//#include "sccp_protocol_enums.hh"
-//#undef GENERATE_ENUM_STRINGS
-
 #define ENUMMACRO_FILE "sccp_protocol_enums.hh"
-#define ENUMMACRO_GENERATE 2
+#define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
 #include "sccp_enum_macro.h"
 #undef  ENUMMACRO_GENERATE
 #undef  ENUMMACRO_FILE

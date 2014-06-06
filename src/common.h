@@ -9,6 +9,11 @@
 #ifndef CHAN_SCCP_COMMON_H
 #define CHAN_SCCP_COMMON_H
 
+#define ENUMMACRO_GENHEADER	1
+#define ENUMMACRO_GENFUNCTION	2
+#define ENUMMACRO_SPARSE 	1
+#define ENUMMACRO_INCREMENTAL 	0
+
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 /* *INDENT-OFF* */

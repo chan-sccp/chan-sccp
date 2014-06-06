@@ -8,9 +8,9 @@
 /*
  * FASE 1: Generate Enum + Function Prototypes
  */
-#define BEGIN_ENUM(NAMESPACE, ENUM_NAME) typedef enum {
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME, SPARSE) typedef enum {
 #define ENUM_ELEMENT(element, index, str) 	element index,
-#define END_ENUM(NAMESPACE, ENUM_NAME) NAMESPACE##_##ENUM_NAME##_LOOKUPERROR =-1									\
+#define END_ENUM(NAMESPACE, ENUM_NAME, SPARSE) NAMESPACE##_##ENUM_NAME##_LOOKUPERROR =-1								\
 } NAMESPACE##_##ENUM_NAME##_t;																\
 int NAMESPACE##_does_##ENUM_NAME##_exist(int intvalue);													\
 const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value);										\
@@ -18,12 +18,15 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char *lookup
 
 #define BEGIN_LONGENUM BEGIN_ENUM
 #define LONGENUM_ELEMENT(element, index, str, longstr) ENUM_ELEMENT(element, index, str)
-#define END_LONGENUM(NAMESPACE, ENUM_NAME) END_ENUM(NAMESPACE, ENUM_NAME)										\
+#define END_LONGENUM(NAMESPACE, ENUM_NAME, SPARSE) END_ENUM(NAMESPACE, ENUM_NAME, SPARSE)								\
 const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value);									\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lookup_longstr);
 
 #include ENUMMACRO_FILE
 #endif
+
+#undef NEW_ENUM_NAMESPACE
+#undef NEW_ENUM_NAME
 #undef BEGIN_ENUM
 #undef ENUM_ELEMENT
 #undef END_ENUM
@@ -38,18 +41,18 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lo
 /*
  * FASE 1: Generate Map
  */
-#define BEGIN_ENUM(NAMESPACE, ENUM_NAME) static const struct {												\
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME, SPARSE) static const struct {												\
 	const char *str;																\
 } NAMESPACE##_##ENUM_NAME##_map[] = {
 #define ENUM_ELEMENT(element, index, str) [element] = {str},
-#define END_ENUM(NAMESPACE, ENUM_NAME) };
+#define END_ENUM(NAMESPACE, ENUM_NAME, SPARSE) };
 
-#define BEGIN_LONGENUM(NAMESPACE, ENUM_NAME) static const struct {											\
+#define BEGIN_LONGENUM(NAMESPACE, ENUM_NAME, SPARSE) static const struct {											\
 	const char *str;																\
 	const char *longstr;																\
 } NAMESPACE##_##ENUM_NAME##_map[] = {
 #define LONGENUM_ELEMENT(element, index, str, longstr) [element] = {str, longstr},
-#define END_LONGENUM(NAMESPACE, ENUM_NAME) };
+#define END_LONGENUM(NAMESPACE, ENUM_NAME, SPARSE) };
 
 #include ENUMMACRO_FILE
 #undef BEGIN_ENUM
@@ -63,25 +66,30 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lo
  * FASE 2: Generate Exists Array (To lookup index position for sparse enums)
  *         Generate Lookup Functions
  */
-#define BEGIN_ENUM(NAMESPACE, ENUM_NAME) static const int NAMESPACE##_##ENUM_NAME##_exists[] = {
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME, SPARSE) static const int NAMESPACE##_##ENUM_NAME##_exists[] = {
 #define ENUM_ELEMENT(element, index, str) element,
-#define END_ENUM(NAMESPACE, ENUM_NAME) };														\
+#define END_ENUM(NAMESPACE, ENUM_NAME, SPARSE) };													\
 int NAMESPACE##_does_##ENUM_NAME##_exist(int intvalue) {												\
 	int idx;																	\
 	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
-		if (NAMESPACE##_##ENUM_NAME##_exists[idx]==intvalue) {															\
-			return 1;															\
+		if (NAMESPACE##_##ENUM_NAME##_exists[idx]==intvalue) {											\
+			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
 		}																	\
 	}																		\
 	return 0;																	\
 }																			\
 const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value) {										\
-	if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
-		return NAMESPACE##_##ENUM_NAME##_map[value].str;											\
+	if (SPARSE == ENUMMACRO_SPARSE) {																	\
+		if (NAMESPACE##_does_##ENUM_NAME##_exist(value)) {											\
+			return NAMESPACE##_##ENUM_NAME##_map[value].str;										\
+		}																	\
 	} else {																	\
-		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2str\n", value);				\
-		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";											\
+		if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
+			return NAMESPACE##_##ENUM_NAME##_map[value].str;										\
+		}																	\
 	}																		\
+	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2str\n", value);						\
+	return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "2str\n";								\
 }																			\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * lookup_str) {								\
 	int idx;																	\
@@ -96,14 +104,19 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * looku
 
 #define BEGIN_LONGENUM BEGIN_ENUM
 #define LONGENUM_ELEMENT(element, index, str, longstr) ENUM_ELEMENT(element, index, str)
-#define END_LONGENUM(NAMESPACE, ENUM_NAME) END_ENUM(NAMESPACE, ENUM_NAME)										\
+#define END_LONGENUM(NAMESPACE, ENUM_NAME, SPARSE) END_ENUM(NAMESPACE, ENUM_NAME, SPARSE)								\
 const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value) {									\
-	if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
-		return NAMESPACE##_##ENUM_NAME##_map[value].longstr;											\
+	if (SPARSE == ENUMMACRO_SPARSE) {																	\
+		if (NAMESPACE##_does_##ENUM_NAME##_exist(value)) {											\
+			return NAMESPACE##_##ENUM_NAME##_map[value].longstr;										\
+		}																	\
 	} else {																	\
-		pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2longstr\n", value);				\
-		return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "\n";							\
+		if (value >= NAMESPACE##_##ENUM_NAME##_exists[0] && value <= NAMESPACE##_##ENUM_NAME##_exists[ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists)-1]) {	\
+			return NAMESPACE##_##ENUM_NAME##_map[value].longstr;										\
+		}																	\
 	}																		\
+	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2longstr\n", value);					\
+	return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "2longstr\n";								\
 }																			\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char * lookup_longstr) {							\
 	int idx;																	\
