@@ -1090,7 +1090,8 @@ static void *sccp_feat_meetme_thread(void *data)
 		c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
-		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+//		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+                sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 		sccp_channel_send_callinfo(d, c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDCONFERENCE);
 		c = sccp_channel_release(c);
@@ -1129,7 +1130,8 @@ static void *sccp_feat_meetme_thread(void *data)
 		c = sccp_channel_retain(c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 		sccp_channel_set_calledparty(c, SKINNY_DISP_CONFERENCE, c->dialedNumber);
-		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+//		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+                sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 		sccp_channel_send_callinfo(d, c);
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 

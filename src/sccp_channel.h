@@ -28,7 +28,7 @@ void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
 void sccp_channel_send_callinfo2(sccp_channel_t * c);
-void sccp_channel_setSkinnyCallstate(sccp_channel_t * c, skinny_callstate_t state);
+void sccp_channel_setChannelstate(sccp_channel_t * channel, sccp_channelstate_t state);
 void sccp_channel_display_callInfo(sccp_channel_t * channel);
 void sccp_channel_set_callingparty(sccp_channel_t * c, char *name, char *number);
 void sccp_channel_set_calledparty(sccp_channel_t * c, char *name, char *number);

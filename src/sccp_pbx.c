@@ -285,7 +285,8 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (isRinging) {
-		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
+//		sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
+                sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
 		PBX(queue_control) (c->owner, AST_CONTROL_RINGING);
 	} else if (hasDNDParticipant) {
 		pbx_setstate(c->owner, AST_STATE_BUSY);
@@ -368,7 +369,7 @@ int sccp_pbx_hangup(sccp_channel_t * c)
 	// removing scheduled dialing
 	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
-	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_indicate2str(c->state), c->state);
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_channelstate2str(c->state), c->state);
 
 	/* end callforwards */
 	sccp_channel_end_forwarding_channel(c);
@@ -940,7 +941,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			if (c->owner && !pbx_check_hangup(c->owner)) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_PROCEED);
+				sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 				PBX(set_callstate) (channel, AST_STATE_UP);
 				if (!d->conference) {
 					d->conference = sccp_conference_create(d, c);
