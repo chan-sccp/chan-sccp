@@ -73,13 +73,13 @@ int NAMESPACE##_does_##ENUM_NAME##_exist(int intvalue) {												\
 	int idx;																	\
 	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
 		if (NAMESPACE##_##ENUM_NAME##_exists[idx]==intvalue) {											\
-			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
+			return 1;															\
 		}																	\
 	}																		\
 	return 0;																	\
 }																			\
 const char * NAMESPACE##_##ENUM_NAME##2str(NAMESPACE##_##ENUM_NAME##_t value) {										\
-	if (SPARSE == ENUMMACRO_SPARSE) {																	\
+	if (SPARSE == ENUMMACRO_SPARSE) {														\
 		if (NAMESPACE##_does_##ENUM_NAME##_exist(value)) {											\
 			return NAMESPACE##_##ENUM_NAME##_map[value].str;										\
 		}																	\
@@ -106,7 +106,7 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * looku
 #define LONGENUM_ELEMENT(element, index, str, longstr) ENUM_ELEMENT(element, index, str)
 #define END_LONGENUM(NAMESPACE, ENUM_NAME, SPARSE) END_ENUM(NAMESPACE, ENUM_NAME, SPARSE)								\
 const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value) {									\
-	if (SPARSE == ENUMMACRO_SPARSE) {																	\
+	if (SPARSE == ENUMMACRO_SPARSE) {														\
 		if (NAMESPACE##_does_##ENUM_NAME##_exist(value)) {											\
 			return NAMESPACE##_##ENUM_NAME##_map[value].longstr;										\
 		}																	\
@@ -116,7 +116,7 @@ const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value
 		}																	\
 	}																		\
 	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%d' in " #NAMESPACE "_" #ENUM_NAME "2longstr\n", value);					\
-	return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "2longstr\n";								\
+	return "SCCP: OutOfBounds Error during lookup of " #NAMESPACE "_" #ENUM_NAME "2longstr\n";							\
 }																			\
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char * lookup_longstr) {							\
 	int idx;																	\
