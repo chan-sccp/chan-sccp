@@ -502,7 +502,7 @@ void sccp_channel_send_callinfo2(sccp_channel_t * channel)
  * \callgraph
  * \callergraph
  */
-void sccp_channel_setSkinnyCallstate(sccp_channel_t * channel, skinny_callstate_t state)
+void sccp_channel_setChannelstate(sccp_channel_t * channel, sccp_channelstate_t state)
 {
 	channel->previousChannelState = channel->state;
 	channel->state = state;
@@ -1210,7 +1210,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	/* this is a station active endcall or onhook */
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
 	if (d) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_indicate2str(channel->state));
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 		if (channel->privateData->device) {
 			if (GLOB(transfer_on_hangup)) {								/* Complete transfer when one is in progress */
 				sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
@@ -1228,7 +1228,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		}
 	}
 	if (channel->owner) {
-		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending hangupRequest to Call %s (state: %s)\n", DEV_ID_LOG(d), channel->designator, sccp_indicate2str(channel->state));
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending hangupRequest to Call %s (state: %s)\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 		channel->hangupRequest(channel);
 	} else {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No Asterisk channel to hangup for sccp channel %s\n", DEV_ID_LOG(d), channel->designator);
@@ -1553,7 +1553,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	/* put on hold an active call */
 	if (channel->state != SCCP_CHANNELSTATE_CONNECTED && channel->state != SCCP_CHANNELSTATE_CONNECTEDCONFERENCE && channel->state != SCCP_CHANNELSTATE_PROCEED) {	// TOLL FREE NUMBERS STAYS ALWAYS IN CALL PROGRESS STATE
 		/* something wrong on the code let's notify it for a fix */
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s can't put on hold an inactive channel %s-%08X with state %s (%d)... cancelling hold action.\n", d->id, l->name, channel->callid, sccp_indicate2str(channel->state), channel->state);
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s can't put on hold an inactive channel %s-%08X with state %s (%d)... cancelling hold action.\n", d->id, l->name, channel->callid, sccp_channelstate2str(channel->state), channel->state);
 		/* hard button phones need it */
 		sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		return FALSE;

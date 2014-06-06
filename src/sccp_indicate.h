@@ -17,10 +17,8 @@
 #define SCCP_INDICATE_NOLOCK 	0
 #define SCCP_INDICATE_LOCK		1
 
-void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function);
-
-const char *sccp_indicate2str(uint8_t state);
-const char *sccp_skinny_skinny_callstate2str(uint8_t state);
+//void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function);
+void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelstate_t state, uint8_t debug, char *file, int line, const char *pretty_function);
 
 #ifdef CS_DEBUG_INDICATIONS
 #define sccp_indicate(x, y, z)	__sccp_indicate(x, y, z, 1, __FILE__, __LINE__, __PRETTY_FUNCTION__)
