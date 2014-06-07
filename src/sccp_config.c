@@ -128,6 +128,7 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_PARSER			= 1 << 4,
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,		/* string pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
+	SCCP_CONFIG_DATATYPE_ENUM			= 1 << 7,
 /* *INDENT-ON* */
 };
 
@@ -158,7 +159,7 @@ typedef struct SCCPConfigOption {
 	const size_t size;							/*!< Structure size */
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);	/*!< Conversion function */
-	uint32_t(*str2enumval) (const char *str);				/*!< generic convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
+	int (*str2enumval) (const char *str);					/*!< generic convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
 	const char *(*enumkeys) (void);						/*!< reverse convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM, to retrieve all possible values allowed */
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
@@ -604,6 +605,24 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 						changed = sccpConfigOption->converter_f(dst, sccpConfigOption->size, new_var, segment);
 						pbx_variables_destroy(new_var);
 					}
+				}
+			}
+			break;
+		case SCCP_CONFIG_DATATYPE_ENUM:
+			{
+				int enumValue = 0;
+				if (!sccp_strlen_zero(value)) {
+					enumValue = sccpConfigOption->str2enumval(value);
+					if (enumValue != -1) {
+						if (*(int *) dst != enumValue) {
+							*(int *) dst = enumValue;
+							changed = SCCP_CONFIG_CHANGE_CHANGED;
+						}
+					} else {
+						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s\n", value, sccpConfigSegment->name, name);
+					}
+				} else {
+					pbx_log(LOG_WARNING, "SCCP: [%s]=>%s cannot be ''\n", sccpConfigSegment->name, name);
 				}
 			}
 			break;
@@ -2858,6 +2877,8 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							case SCCP_CONFIG_DATATYPE_CHAR:
 								astman_append(s, "Type: CHAR\r\n");
 								astman_append(s, "Size: 1\r\n");
+								break;
+							case SCCP_CONFIG_DATATYPE_ENUM:
 								break;
 						}
 						if (config->defaultValue && !strlen(config->defaultValue) == 0) {
