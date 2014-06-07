@@ -1,6 +1,3 @@
-#undef BEGIN_ENUM
-#undef ENUM_ELEMENT
-#undef END_ENUM
 /*
  * GENERATE HEADER DECLARATIONS AND FUNCTION PROTOTYPES
  */
@@ -23,16 +20,32 @@ const char * NAMESPACE##_##ENUM_NAME##2longstr(NAMESPACE##_##ENUM_NAME##_t value
 NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lookup_longstr);
 
 #include ENUMMACRO_FILE
-#endif
 
-#undef NEW_ENUM_NAMESPACE
-#undef NEW_ENUM_NAME
 #undef BEGIN_ENUM
 #undef ENUM_ELEMENT
 #undef END_ENUM
-//#undef BEGIN_LONGENUM
-//#undef LONGENUM_ELEMENT
-//#undef END_LONGENUM
+#undef BEGIN_LONGENUM
+#undef LONGENUM_ELEMENT
+#undef END_LONGENUM
+/*
+ * FASE 2: Generate All Entries char[] (Used for error messages)
+ */
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME, SPARSE) static const char NAMESPACE##_##ENUM_NAME##_all_entries[] = 
+#define ENUM_ELEMENT(element, index, str) str
+#define END_ENUM(NAMESPACE, ENUM_NAME, SPARSE) ;
+#define BEGIN_LONGENUM BEGIN_ENUM
+#define LONGENUM_ELEMENT ENUM_ELEMENT
+#define END_LONGENUM END_ENUM
+
+#include ENUMMACRO_FILE
+#endif
+
+#undef BEGIN_ENUM
+#undef ENUM_ELEMENT
+#undef END_ENUM
+#undef BEGIN_LONGENUM
+#undef LONGENUM_ELEMENT
+#undef END_LONGENUM
 /*
  * GENERATE FUNCTION IMPLEMENTATIONS
  */
@@ -98,14 +111,8 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * looku
 			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
 		}																	\
 	}																		\
-	char *possible_values = alloca(1000);														\
-	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
-		possible_values = strcat(possible_values, NAMESPACE##_##ENUM_NAME##_map[NAMESPACE##_##ENUM_NAME##_exists[idx]].str);			\
-		if (idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists) - 1) {										\
-			possible_values = strcat(possible_values, " | ");										\
-		}																	\
-	}																		\
-	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_str2val. Allowed values for " #ENUM_NAME " are [%s]\n", lookup_str, possible_values);	\
+/*	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_str2val. Allowed values for " #ENUM_NAME " are [%s]\n", lookup_str, NAMESPACE##_##ENUM_NAME##_all_entries);*/	\
+	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_str2val.\n", lookup_str);				\
 	return NAMESPACE##_##ENUM_NAME##_LOOKUPERROR;													\
 }
 

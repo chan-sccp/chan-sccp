@@ -160,7 +160,7 @@ typedef struct SCCPConfigOption {
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);	/*!< Conversion function */
 	int (*str2enumval) (const char *str);					/*!< generic convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
-	const char *(*enumkeys) (void);						/*!< reverse convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM, to retrieve all possible values allowed */
+	const char *enumentries;						/*!< Used by OptionType: SCCP_CONFIG_DATATYPE_ENUM, to get all possible values */
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
@@ -619,11 +619,13 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
 						}
 					} else {
-						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s\n", value, sccpConfigSegment->name, name);
+						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s. Allowed: [%s]\n", value, sccpConfigSegment->name, name, sccpConfigOption->enumentries);
+						changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 					}
-				} else {
-					pbx_log(LOG_WARNING, "SCCP: [%s]=>%s cannot be ''\n", sccpConfigSegment->name, name);
+					break;
 				}
+				pbx_log(LOG_WARNING, "SCCP: [%s]=>%s cannot be ''. Allowed: [%s]\n", sccpConfigSegment->name, name, sccpConfigOption->enumentries);
+				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
 			break;
 

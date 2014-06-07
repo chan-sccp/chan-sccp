@@ -22,7 +22,7 @@
 
 /* custom parser */
 #define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
-#define TYPE_ENUM(_x,_y) DATA_TYPE(ENUM, NULL, _x##_##_y##_str2val , NULL)
+#define TYPE_ENUM(_x,_y) DATA_TYPE(ENUM, NULL, _x##_##_y##_str2val , _x##_##_y##_all_entries)
 
 #define SCCP_CONFIG_REVISION "$Revision$"
 
