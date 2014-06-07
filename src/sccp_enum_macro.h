@@ -98,7 +98,14 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_str2val(const char * looku
 			return NAMESPACE##_##ENUM_NAME##_exists[idx];											\
 		}																	\
 	}																		\
-	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_str2val\n", lookup_str);				\
+	char *possible_values = alloca(1000);														\
+	for(idx=0; idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists); idx++) {										\
+		possible_values = strcat(possible_values, NAMESPACE##_##ENUM_NAME##_map[NAMESPACE##_##ENUM_NAME##_exists[idx]].str);			\
+		if (idx < ARRAY_LEN(NAMESPACE##_##ENUM_NAME##_exists) - 1) {										\
+			possible_values = strcat(possible_values, " | ");										\
+		}																	\
+	}																		\
+	pbx_log(LOG_NOTICE, "SCCP: Error during lookup of '%s' in " #NAMESPACE "_" #ENUM_NAME "_str2val. Allowed values for " #ENUM_NAME " are [%s]\n", lookup_str, possible_values);	\
 	return NAMESPACE##_##ENUM_NAME##_LOOKUPERROR;													\
 }
 
