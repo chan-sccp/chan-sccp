@@ -42,7 +42,6 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
  */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
-	sccp_device_t *d = NULL;
 	char *colname;
 	char tmp[1024] = "";
 	char lbuf[1024] = "";
@@ -61,20 +60,18 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		colname = "ip";
 	}
 
+	AUTO_RELEASE sccp_device_t *d = NULL;
 	if (!strncasecmp(data, "current", 7)) {
-		sccp_channel_t *c;
-
-		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-			/*pbx_log(LOG_WARNING, "SCCPDEVICE(): Not an SCCP channel\n"); */
+		AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(chan);
+		if (c) {
+			if (!(d = sccp_channel_getDevice_retained(c))) {
+				pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
+				return -1;
+			}
+		} else {
+			/* pbx_log(LOG_WARNING, "SCCPDEVICE(): No current SCCP channel found\n"); */
 			return -1;
 		}
-
-		if (!(d = sccp_channel_getDevice_retained(c))) {
-			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
-			c = sccp_channel_release(c);
-			return -1;
-		}
-		c = sccp_channel_release(c);
 	} else {
 		if (!(d = sccp_device_find_byid(data, FALSE))) {
 			pbx_log(LOG_WARNING, "SCCPDEVICE(): SCCP Device not available\n");
@@ -229,7 +226,6 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			pbx_log(LOG_WARNING, "SCCPDEVICE(%s): unknown colname: %s\n", data, colname);
 			buf[0] = '\0';
 		}
-		sccp_device_release(d);
 	}
 	return 0;
 }
@@ -266,8 +262,6 @@ static struct pbx_custom_function sccpdevice_function = {
  */
 static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
-	sccp_line_t *l = NULL;
-	sccp_channel_t *c = NULL;
 	char *colname;
 	char tmp[1024] = "";
 	char lbuf[1024] = "";
@@ -285,20 +279,19 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 	} else {
 		colname = "id";
 	}
+	AUTO_RELEASE sccp_line_t *l = NULL;
+	AUTO_RELEASE sccp_channel_t *c = NULL;
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
-
 			/* pbx_log(LOG_WARNING, "SCCPLINE(): Not an SCCP Channel\n"); */
 			return -1;
 		}
 
 		if (!c->line) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
-			c = sccp_channel_release(c);
 			return -1;
 		}
 		l = sccp_line_retain(c->line);
-		c = sccp_channel_release(c);
 	} else if (!strncasecmp(data, "parent", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 
@@ -308,11 +301,9 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 
 		if (!c->parentChannel || !c->parentChannel->line) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
-			c = sccp_channel_release(c);
 			return -1;
 		}
 		l = sccp_line_retain(c->parentChannel->line);
-		c = sccp_channel_release(c);
 	} else {
 		if (!(l = sccp_line_find_byname(data, TRUE))) {
 			pbx_log(LOG_WARNING, "SCCPLINE(): SCCP Line not available\n");
@@ -442,7 +433,6 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			pbx_log(LOG_WARNING, "SCCPLINE(%s): unknown colname: %s\n", data, colname);
 			buf[0] = '\0';
 		}
-		sccp_line_release(l);
 	}
 	return 0;
 }
@@ -475,8 +465,6 @@ static struct pbx_custom_function sccpline_function = {
  */
 static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *buf, size_t len)
 {
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
 	PBX_CHANNEL_TYPE *ast;
 	char *colname;
 	
@@ -493,7 +481,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		colname = "callid";
 	}
 	
-	
+	AUTO_RELEASE sccp_channel_t *c = NULL;
 	if (!strncasecmp(data, "current", 7)) {
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 			return -1;										/* Not a SCCP channel. */
@@ -511,6 +499,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 	}
 	
 	if (c) {
+		AUTO_RELEASE sccp_device_t *d = NULL;
 		if (!strcasecmp(colname, "callid") || !strcasecmp(colname, "id")) {
 			snprintf(buf, len, "%d", c->callid);
 		} else if (!strcasecmp(colname, "format")) {
@@ -582,13 +571,10 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		} else if (!strcasecmp(colname, "peerip")) {								// NO-NAT (Ip-Address Associated with the Session->sin)
 			if ((d = sccp_channel_getDevice_retained(c))) {
 				sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
-				
-				d = sccp_device_release(d);
 			}
 		} else if (!strcasecmp(colname, "recvip")) {								// NAT (Actual Source IP-Address Reported by the phone upon registration)
 			if ((d = sccp_channel_getDevice_retained(c))) {
 				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
-				d = sccp_device_release(d);
 			}
 		} else if (!strncasecmp(colname, "codec[", 6)) {
 			char *codecnum;
@@ -608,7 +594,6 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			pbx_log(LOG_WARNING, "SCCPCHANNEL(%s): unknown colname: %s\n", data, colname);
 			buf[0] = '\0';
 		}
-		sccp_channel_release(c);
 	}
 	return 0;
 }
@@ -644,7 +629,7 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, const char *data)
 static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	sccp_channel_t *c = NULL;
+	AUTO_RELEASE sccp_channel_t *c = NULL;
 	int res;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
@@ -653,7 +638,6 @@ static int sccp_app_prefcodec(PBX_CHANNEL_TYPE * chan, void *data)
 	}
 
 	res = sccp_channel_setPreferredCodec(c, data);
-	c = sccp_channel_release(c);
 	pbx_log(LOG_WARNING, "SCCPSetCodec: Is now deprecated. Please use 'Set(CHANNEL(codec)=%s)' insteadl.\n", (char *) data);
 	return res ? 0 : -1;
 }
@@ -680,7 +664,7 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 {
 	char *text = (char *) data;
 	char *num, *name;
-	sccp_channel_t *c = NULL;
+	AUTO_RELEASE sccp_channel_t *c = NULL;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 		pbx_log(LOG_WARNING, "SCCPSetCalledParty: Not an SCCP channel\n");
@@ -689,14 +673,11 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 
 	if (!text) {
 		pbx_log(LOG_WARNING, "SCCPSetCalledParty: No CalledParty Information Provided\n");
-		c = sccp_channel_release(c);
 		return 0;
 	}
 
 	pbx_callerid_parse(text, &name, &num);
 	sccp_channel_set_calledparty(c, name, num);
-	c = sccp_channel_release(c);
-
 	return 0;
 }
 
@@ -721,8 +702,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, const char *data)
 static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 #endif
 {
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d;
+	AUTO_RELEASE sccp_channel_t *c = NULL;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP channel\n");
@@ -738,9 +718,9 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 		timeout = atoi(splitter);
 	}
 
+	AUTO_RELEASE sccp_device_t *d = NULL;
 	if (!text || !(d = sccp_channel_getDevice_retained(c))) {
 		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device or not text provided\n");
-		c = sccp_channel_release(c);
 		return 0;
 	}
 	if (text[0] != '\0') {
@@ -748,9 +728,6 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 	} else {
 		sccp_dev_clear_message(d, TRUE);
 	}
-
-	d = sccp_device_release(d);
-	c = sccp_channel_release(c);
 	return 0;
 }
 
