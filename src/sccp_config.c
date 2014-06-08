@@ -2881,6 +2881,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								astman_append(s, "Size: 1\r\n");
 								break;
 							case SCCP_CONFIG_DATATYPE_ENUM:
+								astman_append(s, "Type: ENUM\r\n");
+								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
+								astman_append(s, "Possible Values: [ %s]\r\n", config->enumentries);
 								break;
 						}
 						if (config->defaultValue && !strlen(config->defaultValue) == 0) {
