@@ -50,8 +50,6 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 {
 	sccp_msg_t *msg = NULL;
 	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
-	sccp_linedevices_t *linedevice = NULL;
-	sccp_line_t *line;
 	uint8_t instance = 0;
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;								// Default feature type.
 	boolean_t lineFound = FALSE;
@@ -95,11 +93,11 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 					/* get current state */
 					SCCP_LIST_TRAVERSE(&device->buttonconfig, buttonconfig, list) {
 						if (buttonconfig->type == LINE) {
-
 							// Check if line and line device exists and thus forward status on that device can be checked
-							if ((line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE))) {
-								if ((linedevice = sccp_linedevice_find(device, line))) {
-
+							AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
+							if (line) {
+								AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(device, line);
+								if (linedevice) {
 									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
 									/* set this button active, only if all lines are fwd -requesting issue #3081549 */
@@ -111,9 +109,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 									}
 									// Set status of feature by logical and to comply with requirement above.
 									config->button.feature.status &= ((linedevice->cfwdAll.enabled) ? 1 : 0);	// Logical and &= intended here.
-									linedevice = sccp_linedevice_release(linedevice);
 								}
-								line = sccp_line_release(line);
 							}
 						}
 					}
@@ -314,7 +310,6 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 {
 	/* parse the devstate string */
 	/* If it is the custom family, isolate the specifier. */
-	sccp_device_t *device;
 	size_t len = strlen("Custom:");
 
 	// char *sspecifier = 0;
@@ -327,8 +322,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 
 	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");
 
-	device = (sccp_device_t *) data;
-
+	AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) data);
 	if (!device) {
 		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "NULL device in devstate event callback.\n");
 		return;

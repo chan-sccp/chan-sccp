@@ -95,9 +95,9 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 {
 	sccp_buttonconfig_t *config;
 	sccp_devstate_deviceState_t *deviceState;
-	sccp_device_t *d = NULL;
 
-	if ((d = sccp_device_retain((sccp_device_t *) device))) {
+	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
+	if (d) {
 		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
@@ -112,7 +112,6 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 				sccp_devstate_addSubscriber(deviceState, device, config);
 			}
 		}
-		sccp_device_release(d);
 	}
 }
 
@@ -120,9 +119,9 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 {
 	sccp_buttonconfig_t *config;
 	sccp_devstate_deviceState_t *deviceState;
-	sccp_device_t *d = NULL;
 
-	if ((d = sccp_device_retain((sccp_device_t *) device))) {
+	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
+	if (d) {
 		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
@@ -137,7 +136,6 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 				
 			}
 		}
-		sccp_device_release(d);
 	}
 }
 
