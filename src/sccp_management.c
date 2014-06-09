@@ -333,7 +333,6 @@ static int sccp_manager_show_lines(struct mansession *s, const struct message *m
 static int sccp_manager_restart_device(struct mansession *s, const struct message *m)
 {
 	// sccp_list_t *hintList = NULL;
-	sccp_device_t *d = NULL;
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *type = astman_get_header(m, "Type");
 
@@ -349,7 +348,7 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 		type = "quick";
 	}
 
-	d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
 		return 0;
@@ -357,7 +356,6 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 
 	if (!d->session) {
 		astman_send_error(s, m, "Device not registered");
-		d = sccp_device_release(d);
 		return 0;
 	}
 
@@ -370,7 +368,6 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
 	astman_send_ack(s, m, "Device restarted");
 	//astman_append(s, "Send %s restart to device %s\r\n", type, deviceName);
 	//astman_append(s, "\r\n");
-	d = sccp_device_release(d);
 
 	return 0;
 }
@@ -385,8 +382,6 @@ static int sccp_manager_restart_device(struct mansession *s, const struct messag
  */
 static int sccp_manager_device_add_line(struct mansession *s, const struct message *m)
 {
-	sccp_device_t *d = NULL;
-	sccp_line_t *line = NULL;
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
 
@@ -402,24 +397,20 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
 		return 0;
 	}
 
-	d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
 
-	line = sccp_line_find_byname(lineName, TRUE);
+	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(lineName, TRUE);
 	if (!line) {
 		astman_send_error(s, m, "Line not found");
-		d = sccp_device_release(d);
 		return 0;
 	}
 	sccp_config_addButton(d, -1, LINE, line->name, NULL, NULL);
 	astman_append(s, "Done\r\n");
 	astman_append(s, "\r\n");
-	line = sccp_line_release(line);
-	d = sccp_device_release(d);
-
 	return 0;
 }
 
@@ -433,9 +424,6 @@ static int sccp_manager_device_add_line(struct mansession *s, const struct messa
  */
 static int sccp_manager_line_fwd_update(struct mansession *s, const struct message *m)
 {
-	sccp_line_t *line = NULL;
-	sccp_device_t *d = NULL;
-	sccp_linedevices_t *linedevice = NULL;
 
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
@@ -445,34 +433,29 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	sccp_callforward_t cfwd_type = SCCP_CFWD_NONE;
 	char cbuf[64] = "";
 
-	d = sccp_device_find_byid(deviceName, TRUE);
+	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 	if (!d) {
 		pbx_log(LOG_WARNING, "%s: Device not found\n", deviceName);
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
 
-	line = sccp_line_find_byname(lineName, TRUE);
+	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(lineName, TRUE);
 	if (!line) {
 		pbx_log(LOG_WARNING, "%s: Line %s not found\n", deviceName, lineName);
 		astman_send_error(s, m, "Line not found");
-		d = sccp_device_release(d);
 		return 0;
 	}
 
 	if (SCCP_LIST_GETSIZE(&line->devices) > 1) {
 		pbx_log(LOG_WARNING, "%s: Callforwarding on shared lines is not supported at the moment\n", deviceName);
 		astman_send_error(s, m, "Callforwarding on shared lines is not supported at the moment");
-		line = sccp_line_release(line);
-		d = sccp_device_release(d);
 		return 0;
 	}
 
 	if (!forwardType) {
 		pbx_log(LOG_WARNING, "%s: Forwardtype is not optional [all | busy]\n", deviceName);
 		astman_send_error(s, m, "Forwardtype is not optional [all | busy]");				/* NoAnswer to be added later on */
-		line = sccp_line_release(line);
-		d = sccp_device_release(d);
 		return 0;
 	}
 
@@ -481,7 +464,8 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 	}
 
 	if (line) {
-		if ((linedevice = sccp_linedevice_find(d, line))) {
+		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, line);
+		if (linedevice) {
 			if (sccp_strcaseequals("all", forwardType)) {
 				if (sccp_strcaseequals("yes", Disable)) {
 					linedevice->cfwdAll.enabled = 0;
@@ -523,19 +507,13 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
 					break;
 			}
 			sccp_dev_forward_status(line, linedevice->lineInstance, linedevice->device);
-			sccp_linedevice_release(linedevice);
 		} else {
 			pbx_log(LOG_WARNING, "%s: LineDevice not found for line %s (Device not registeed ?)\n", deviceName, lineName);
 			astman_send_error(s, m, "LineDevice not found (Device not registered ?)");
-			line = sccp_line_release(line);
-			d = sccp_device_release(d);
 			return 0;
 		}
 	}
 	astman_send_ack(s, m, cbuf);
-
-	line = sccp_line_release(line);
-	d = sccp_device_release(d);
 	return 0;
 }
 
@@ -549,7 +527,6 @@ static int sccp_manager_line_fwd_update(struct mansession *s, const struct messa
  */
 static int sccp_manager_device_update(struct mansession *s, const struct message *m)
 {
-	sccp_device_t *d = NULL;
 	const char *deviceName = astman_get_header(m, "Devicename");
 
 	if (sccp_strlen_zero(deviceName)) {
@@ -557,8 +534,7 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 		return 0;
 	}
 
-	d = sccp_device_find_byid(deviceName, FALSE);
-
+	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
 		return 0;
@@ -566,7 +542,6 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 
 	if (!d->session) {
 		astman_send_error(s, m, "Device not active");
-		d = sccp_device_release(d);
 		return 0;
 	}
 
@@ -575,8 +550,6 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
 	sccp_handle_button_template_req(d->session, d, NULL);
 
 	astman_send_ack(s, m, "Done");
-
-	d = sccp_device_release(d);
 	return 0;
 }
 
@@ -590,7 +563,6 @@ static int sccp_manager_device_update(struct mansession *s, const struct message
  */
 static int sccp_manager_device_set_dnd(struct mansession *s, const struct message *m)
 {
-	sccp_device_t *d = NULL;
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *DNDState = astman_get_header(m, "DNDState");
 	int prevStatus = 0;
@@ -606,7 +578,8 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 		return 0;
 	}
 	//astman_append(s, "remove channel '%s' from hold\n", channelId);
-	if ((d = sccp_device_find_byid(deviceName, FALSE))) {
+	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+	if (d) {
 		if (d->dndFeature.enabled) {
 			prevStatus = d->dndFeature.status;
 			if (sccp_strcaseequals("on", DNDState) || sccp_strcaseequals("reject", DNDState)) {
@@ -629,7 +602,6 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
 		} else {
 			astman_send_error(s, m, "DND Feature not enabled on this device.");
 		}
-		d = d ? sccp_device_release(d) : NULL;
 	} else {
 		astman_send_error(s, m, "Device could not be found.");
 		return 0;
@@ -649,20 +621,17 @@ static int sccp_manager_device_set_dnd(struct mansession *s, const struct messag
  */
 static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 {
-	sccp_device_t *d = NULL;
-	sccp_line_t *line = NULL;
-	sccp_channel_t *channel = NULL;
-
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *lineName = astman_get_header(m, "Linename");
 	const char *number = astman_get_header(m, "number");
 
-	d = sccp_device_find_byid(deviceName, FALSE);
+	AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
 	if (!d) {
 		astman_send_error(s, m, "Device not found");
 		return 0;
 	}
 
+	AUTO_RELEASE sccp_line_t *line = NULL;
 	if (!lineName) {
 		if (d && d->defaultLineInstance > 0) {
 			line = sccp_line_find_byid(d, d->defaultLineInstance);
@@ -675,15 +644,11 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 
 	if (!line) {
 		astman_send_error(s, m, "Line not found");
-		d = sccp_device_release(d);
 		return 0;
 	}
 
-	channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL);
+	sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	astman_send_ack(s, m, "Call Started");
-	line = sccp_line_release(line);
-	d = sccp_device_release(d);
-	channel = channel ? sccp_channel_release(channel) : NULL;
 	return 0;
 }
 
@@ -697,10 +662,8 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
  */
 static int sccp_manager_answerCall(struct mansession *s, const struct message *m)
 {
-	sccp_device_t *d = NULL;
-	sccp_channel_t *c = NULL;
 	char retValStr[64] = "";
-
+ 
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *channelId = astman_get_header(m, "channelId");
 
@@ -709,9 +672,16 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 		astman_send_error(s, m, retValStr);
 		return 0;		
 	}
-	
-	if ((c = sccp_channel_find_byid(atoi(channelId)))) {
-		if ((sccp_strlen_zero(deviceName) && (d = sccp_channel_getDevice_retained(c))) || (!sccp_strlen_zero(deviceName) && (d = sccp_device_find_byid(deviceName, FALSE)))) {
+  	 	  	 		 	
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(channelId));
+	if (c) {
+		AUTO_RELEASE sccp_device_t *d = NULL;
+		if (sccp_strlen_zero(deviceName)) {
+			d = sccp_channel_getDevice_retained(c);
+		} else {
+			d = sccp_device_find_byid(deviceName, FALSE);
+		}
+		if (d) {
 			if (c->state == SCCP_CHANNELSTATE_RINGING) {
 				sccp_channel_answer(d, c);
 				if (c->owner) {
@@ -722,11 +692,9 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
 			} else {
 				astman_send_error(s, m, "Call is not ringing\r\n");
 			}
-			d = sccp_device_release(d);
 		} else {
 			astman_send_error(s, m, "Device not found");
 		}
-		c = sccp_channel_release(c);
 	} else {
 		astman_send_error(s, m, "Call not found\r\n");
 	}
@@ -743,11 +711,13 @@ static int sccp_manager_answerCall(struct mansession *s, const struct message *m
  */
 static int sccp_manager_hangupCall(struct mansession *s, const struct message *m)
 {
-	sccp_channel_t *c = NULL;
-
 	const char *channelId = astman_get_header(m, "channelId");
+	if (atoi(channelId)==0) {
+		astman_send_error(s, m, "Channel Id has to be a number.");
+		return 0;		
+	}
 
-	c = sccp_channel_find_byid(atoi(channelId));
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(channelId));
 	if (!c) {
 		astman_send_error(s, m, "Call not found.");
 		return 0;
@@ -755,7 +725,6 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
 	//astman_append(s, "Hangup call '%s'\r\n", channelId);
 	sccp_channel_endcall(c);
 	astman_send_ack(s, m, "Call was hungup");
-	c = sccp_channel_release(c);
 	return 0;
 }
 
@@ -769,8 +738,6 @@ static int sccp_manager_hangupCall(struct mansession *s, const struct message *m
  */
 static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 {
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
 	const char *channelId = astman_get_header(m, "channelId");
 	const char *hold = astman_get_header(m, "hold");
 	const char *deviceName = astman_get_header(m, "Devicename");
@@ -778,7 +745,13 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	char *retValStr = "Channel was resumed";
 	boolean_t errorMessage = TRUE;
 
-	c = sccp_channel_find_byid(atoi(channelId));
+	if (atoi(channelId)==0) {
+		snprintf(retValStr, sizeof(retValStr), "Channel Id has to be a number. You have provided: '%s'\r\n", channelId);
+		astman_send_error(s, m, retValStr);
+		return 0;		
+	}
+
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_byid(atoi(channelId));
 	if (!c) {
 		astman_send_error(s, m, "Call not found\r\n");
 		return 0;
@@ -795,8 +768,8 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 			retValStr = "To resume a channel, you need to specify the device that resumes call using Devicename variable.";
 			goto SEND_RESPONSE;
 		}
-
-		if ((d = sccp_device_find_byid(deviceName, FALSE))) {
+		AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(deviceName, FALSE);
+		if (d) {
 			if (sccp_strcaseequals("yes", swap)) {
 				sccp_channel_resume(d, c, TRUE);
 			} else {
@@ -817,9 +790,6 @@ SEND_RESPONSE:
 	} else {
 		astman_send_ack(s, m, retValStr);
 	}
-
-	d = d ? sccp_device_release(d) : NULL;
-	c = c ? sccp_channel_release(c) : NULL;
 	return 0;
 }
 
@@ -869,8 +839,6 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	PBX_CHANNEL_TYPE *pbxchannel = NULL;
 	PBX_CHANNEL_TYPE *pbxBridge = NULL;
 
-	sccp_channel_t *channel = NULL;
-	sccp_device_t *d = NULL;
 	char *str, *dupStr;
 
 	if (EVENT_FLAG_CALL == category) {
@@ -886,6 +854,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 			pbx_channel_unlock(pbxchannel);
 #endif
 
+			AUTO_RELEASE sccp_channel_t *channel = NULL;
 			if (pbxchannel && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxchannel))) {
 				channel = get_sccp_channel_from_pbx_channel(pbxchannel);
 			} else if (pbxchannel && ((pbxBridge = pbx_channel_get_by_name(pbx_builtin_getvar_helper(pbxchannel, "BRIDGEPEER"))) != NULL) && (CS_AST_CHANNEL_PVT_IS_SCCP(pbxBridge))) {
@@ -896,7 +865,8 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 			}
 
 			if (channel) {
-				if ((d = sccp_channel_getDevice_retained(channel))) {
+				AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
+				if (d) {
 					if (!strcasecmp("MonitorStart", event)) {
 						d->monitorFeature.status |= SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 					} else {
@@ -910,9 +880,7 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 					sccp_dev_send(d, msg_out);
 					
 					sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
-					d = sccp_device_release(d);
 				}
-				channel = sccp_channel_release(channel);
 			}
 		}
 	}
