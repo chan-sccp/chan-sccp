@@ -189,7 +189,6 @@ void sccp_hint_module_stop(void)
 
 	{
 		sccp_hint_list_t *hint;
-		sccp_device_t *device;
 		sccp_hint_SubscribingDevice_t *subscriber;
 
 		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
@@ -202,9 +201,9 @@ void sccp_hint_module_stop(void)
 			// All subscriptions that have this device should be removed, force cleanup 
 			SCCP_LIST_LOCK(&hint->subscribers);
 			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&hint->subscribers, list))) {
-				if ((device = sccp_device_retain((sccp_device_t *) subscriber->device))) {
+				AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) subscriber->device);
+				if (device) {
 					subscriber->device = sccp_device_release(subscriber->device);
-					device = sccp_device_release(device);
 					sccp_free(subscriber);
 				}
 			}
@@ -380,9 +379,9 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 {
 	sccp_buttonconfig_t *config;
 	uint8_t positionOnDevice = 0;
-	sccp_device_t *d = NULL;
-
-	if ((d = sccp_device_retain((sccp_device_t *) device))) {
+	
+	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
+	if (d) {
 		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 			positionOnDevice++;
 
@@ -393,7 +392,6 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 				sccp_hint_addSubscription4Device(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 			}
 		}
-		sccp_device_release(d);
 	}
 }
 
@@ -624,9 +622,8 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
  */
 static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 {
-	sccp_line_t *line = NULL;
-
-	if ((line = sccp_line_retain(lineState->line))) {
+	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(lineState->line);
+	if (line) {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 
 		/* no line, or line without devices */
@@ -647,8 +644,6 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 
 		/* push chagnes to pbx */
 		sccp_hint_notifyPBX(lineState);
-
-		line = sccp_line_release(line);
 	}
 }
 
@@ -659,7 +654,6 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
-	sccp_channel_t *channel = NULL;
 
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
@@ -671,9 +665,10 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) number of active channels %d\n", line->name, SCCP_LIST_GETSIZE(&line->channels));
 		if (SCCP_LIST_GETSIZE(&line->channels) == 1) {
 			SCCP_LIST_LOCK(&line->channels);
-			channel = SCCP_LIST_FIRST(&line->channels);
+			AUTO_RELEASE sccp_channel_t *channel = SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL;
 			SCCP_LIST_UNLOCK(&line->channels);
-			if (channel && (channel = sccp_channel_retain(channel))) {
+
+			if (channel) {
 				lineState->callInfo.calltype = channel->calltype;
 
 				if (channel->state != SCCP_CHANNELSTATE_ONHOOK && channel->state != SCCP_CHANNELSTATE_DOWN) {
@@ -700,7 +695,6 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
 				} else {
 					lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 				}
-				channel = sccp_channel_release(channel);
 			} else {
 				lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 			}
@@ -727,9 +721,6 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
 static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
-	sccp_channel_t *channel = NULL;
-	sccp_device_t *device = NULL;
-	sccp_linedevices_t *lineDevice = NULL;
 	uint8_t state;
 
 	//boolean_t dev_privacy = FALSE;
@@ -739,27 +730,25 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
 
 	SCCP_LIST_LOCK(&line->channels);
-	channel = SCCP_LIST_FIRST(&line->channels);
+	AUTO_RELEASE sccp_channel_t *channel = SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL;
 	SCCP_LIST_UNLOCK(&line->channels);
-	if (channel && (channel = sccp_channel_retain(channel))) {
+
+	if (channel) {
 		lineState->callInfo.calltype = channel->calltype;
 		state = channel->state;
 
 		SCCP_LIST_LOCK(&line->devices);
-		lineDevice = SCCP_LIST_FIRST(&line->devices);
+		AUTO_RELEASE sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices)) : NULL;
 		SCCP_LIST_UNLOCK(&line->devices);
-
-		if ((lineDevice = sccp_linedevice_retain(lineDevice))) {
-			if ((device = sccp_device_retain(lineDevice->device))) {
+		if (lineDevice) {
+			AUTO_RELEASE sccp_device_t *device = sccp_device_retain(lineDevice->device);
+			if (device) {
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;
 				}
 				//dev_privacy = device->privacyFeature.enabled;
-				device = device ? sccp_device_release(device) : NULL;
 			}
-			lineDevice = lineDevice ? sccp_linedevice_release(lineDevice) : NULL;
 		}
-
 		switch (state) {
 			case SCCP_CHANNELSTATE_DOWN:
 				state = SCCP_CHANNELSTATE_ONHOOK;
@@ -827,7 +816,6 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) partyName: %s, partyNumber: %s\n", line->name, lineState->callInfo.partyName, lineState->callInfo.partyNumber);
 
 		lineState->state = state;
-		channel = sccp_channel_release(channel);
 	} else {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) NO CHANNEL\n", line->name);
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
@@ -848,27 +836,26 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 {
 	sccp_buttonconfig_t *buttonconfig = NULL;
-	sccp_device_t *d = NULL;
-	sccp_line_t *line = NULL;
 
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_DND:
-			if ((d = sccp_device_retain(event->event.featureChanged.device))) {
+		{
+			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(event->event.featureChanged.device);
+			if (d) {
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 					if (buttonconfig->type == LINE) {
-						line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
+						AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
 						if (line) {
 							sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
 							sccp_hint_lineStatusChanged(line, d);
-							line = sccp_line_release(line);
 						}
 					}
 				}
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
-				sccp_device_release(d);
 			}
 			break;
+		}
 		default:
 			break;
 	}
@@ -984,7 +971,6 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
  */
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
-	sccp_device_t *d;
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
 	sccp_msg_t *msg;
 
@@ -1018,7 +1004,8 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
-		if ((d = sccp_device_retain((sccp_device_t *) subscriber->device))) {
+		AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) subscriber->device);
+		if (d) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
 			if (d->inuseprotocolversion >= 15) {
@@ -1163,7 +1150,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
 			}
-			d = sccp_device_release(d);
 		} else {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifySubscribers) device not found/retained\n");
 		}
