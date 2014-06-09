@@ -1535,7 +1535,7 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
 static void sccp_handle_stimulus_feature(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Feature Button Stimulus\n", d->id);
 	//sccp_handle_feature_action(d, instance, TRUE);
-	sccp_handle_feature_action(d, instance, stimulusstatus);
+	sccp_handle_feature_action(d, instance, TRUE);
 } 
 
 static const struct _skinny_stimulusMap_cb {
@@ -1556,23 +1556,23 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_FORWARDNOANSWER] =  		{sccp_handle_stimulus_forwardNoAnswer, TRUE},
 	[SKINNY_STIMULUS_CALLPARK] =  			{sccp_handle_stimulus_callpark, TRUE},
 	[SKINNY_STIMULUS_GROUPCALLPICKUP] =  		{sccp_handle_stimulus_groupcallpickup, TRUE},
-	[SKINNY_STIMULUS_FEATURE] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_MOBILITY] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_MULTIBLINKFEATURE] =		{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_DO_NOT_DISTURB] = 		{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_QRT] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_CALLBACK] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_OTHER_PICKUP] = 		{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_VIDEO_MODE] = 			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_NEW_CALL] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_END_CALL] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_HLOG] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_TESTE] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_TESTF] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_TESTI] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_MESSAGES] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_DIRECTORY] =  			{sccp_handle_stimulus_feature, TRUE},
-	[SKINNY_STIMULUS_APPLICATION] =  		{sccp_handle_stimulus_feature, TRUE},
+	[SKINNY_STIMULUS_FEATURE] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_MOBILITY] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_MULTIBLINKFEATURE] =		{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_DO_NOT_DISTURB] = 		{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_QRT] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_CALLBACK] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_OTHER_PICKUP] = 		{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_VIDEO_MODE] = 			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_NEW_CALL] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_END_CALL] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_HLOG] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_TESTE] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_TESTF] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_TESTI] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_MESSAGES] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_DIRECTORY] =  			{sccp_handle_stimulus_feature, FALSE},
+	[SKINNY_STIMULUS_APPLICATION] =  		{sccp_handle_stimulus_feature, FALSE},
 	[SKINNY_STIMULUS_DISPLAY] = 			{NULL, FALSE},
 	[SKINNY_STIMULUS_T120CHAT] = 			{NULL, FALSE},
 	[SKINNY_STIMULUS_T120WHITEBOARD] = 		{NULL, FALSE},
