@@ -47,28 +47,26 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 //void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, uint8_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelstate_t state, uint8_t debug, char *file, int line, const char *pretty_function)
 {
-	sccp_device_t *d;
-	sccp_line_t *l;
 	int instance = 0;
-	sccp_linedevices_t *linedevice;
 
 	if (debug) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: [INDICATE] state '%d' in file '%s', on line %d (%s)\n", state, file, line, pretty_function);
 	}
 
-	d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = (device) ? sccp_device_retain(device) : sccp_channel_getDevice_retained(c);
 	if (!d) {
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_1 "SCCP: The channel %d does not have a device\n", c->callid);
 		return;
 	}
 
-	if (!(l = sccp_line_retain(c->line))) {
+	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
+	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: The channel %d does not have a line\n", c->callid);
-		d = sccp_device_release(d);
 		return;
 	}
 
-	if ((linedevice = sccp_linedevice_find(d, l))) {
+	AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
+	if (linedevice) {
 		instance = linedevice->lineInstance;
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: The linedevice/instance for device %s and line %s belonging to channel %d could not be found\n", DEV_ID_LOG(d), l->name, c->callid);
@@ -435,10 +433,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 	}
 
 	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n", d->id, sccp_channelstate2str(state), l->name, c->callid);
-
-	d = sccp_device_release(d);
-	l = sccp_line_release(l);
-	linedevice = linedevice ? sccp_linedevice_release(linedevice) : NULL;
 }
 
 /*!
