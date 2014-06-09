@@ -89,11 +89,11 @@ void sccp_mwi_module_stop(void)
 static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 {
 	sccp_mailboxLine_t *mailboxLine = NULL;
-	sccp_line_t *line = NULL;
 
 	SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
 	SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {
-		if ((line = sccp_line_retain(mailboxLine->line))) {
+		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(mailboxLine->line);
+		if (line) {
 			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "line: %s\n", line->name);
 			sccp_linedevices_t *lineDevice = NULL;
 
@@ -115,7 +115,6 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 				}
 			}
 			SCCP_LIST_UNLOCK(&line->devices);
-			sccp_line_release(line);
 		}
 	}
 	SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
@@ -465,12 +464,9 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
  * \param device SCCP Device
  * \note called by lineStatusChange
  */
-void sccp_mwi_check(sccp_device_t * device)
+void sccp_mwi_check(sccp_device_t * d)
 {
 	sccp_buttonconfig_t *config = NULL;
-
-	sccp_line_t *line = NULL;
-	sccp_channel_t *c = NULL;
 
 	sccp_msg_t *msg = NULL;
 
@@ -481,27 +477,27 @@ void sccp_mwi_check(sccp_device_t * device)
 
 	/* check if we have an active channel */
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
-
-	if (!(device = sccp_device_retain(device))) {
+	
+	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+	if (!device) {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_check) called with NULL device!\n");
 		return;
 	}
 
 	/* for each line, check if there is an active call */
-	sccp_device_t *tmpDevice = NULL;
-
 	SCCP_LIST_LOCK(&device->buttonconfig);
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
-			line = sccp_line_find_byname(config->button.line.name, FALSE);
+			AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
 			if (!line) {
 				sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: NULL line retrieved from buttonconfig!\n", DEV_ID_LOG(device));
 				continue;
 			}
+			sccp_channel_t *c = NULL;
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
-				tmpDevice = sccp_channel_getDevice_retained(c);
-				if (tmpDevice == device) {							// We have a channel belonging to our device (no remote shared line channel)
+				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
+				if (tmpDevice && tmpDevice == device) {						// We have a channel belonging to our device (no remote shared line channel)
 					if (c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) {
 						hasActiveChannel = TRUE;
 					}
@@ -509,14 +505,12 @@ void sccp_mwi_check(sccp_device_t * device)
 						hasRinginChannel = TRUE;
 					}
 				}
-				tmpDevice = tmpDevice ? sccp_device_release(tmpDevice) : NULL;
 			}
 			/* pre-collect number of voicemails on device to be set later */
 			oldmsgs += line->voicemailStatistic.oldmsgs;
 			newmsgs += line->voicemailStatistic.newmsgs;
 			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_check) line %s voicemail count %d new/%d old\n", DEV_ID_LOG(device), line->name, line->voicemailStatistic.newmsgs, line->voicemailStatistic.oldmsgs);
 			SCCP_LIST_UNLOCK(&line->channels);
-			line = sccp_line_release(line);
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
@@ -537,7 +531,6 @@ void sccp_mwi_check(sccp_device_t * device)
 		} else {
 			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: MWI already %s on line (%s) %d\n", DEV_ID_LOG(device), "OFF", "unknown", 0);
 		}
-		device = sccp_device_release(device);
 		return;												// <---- This return must be outside the inner if
 	}
 
@@ -574,8 +567,6 @@ void sccp_mwi_check(sccp_device_t * device)
 	} else {
 		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL);
 	}
-
-	device = sccp_device_release(device);
 }
 
 /*!
