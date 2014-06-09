@@ -1533,8 +1533,7 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
  * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_feature(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
-	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Feature Button Stimulus\n", d->id);
-	//sccp_handle_feature_action(d, instance, TRUE);
+	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Feature Button Stimulus (status: %d)\n", d->id, stimulusstatus);
 	sccp_handle_feature_action(d, instance, TRUE);
 } 
 
