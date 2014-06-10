@@ -616,10 +616,7 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 	if (session && device && session->device != device) {
 		sccp_session_lock(session);
 		if (session->device) {
-			sccp_device_t *remdevice = sccp_device_retain(session->device);
-
 			sccp_session_removeDevice(session);
-			remdevice = sccp_device_release(remdevice);
 		}
 		if ((session->device = sccp_device_retain(device))) {
 			session->device->session = session;
@@ -687,7 +684,6 @@ void sccp_session_close(sccp_session_t * s)
  */
 void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 {
-	sccp_device_t *d = NULL;
 	boolean_t found_in_list = FALSE;
 	char addrStr[INET6_ADDRSTRLEN];
 
@@ -704,12 +700,14 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	}
 
 	/* cleanup device if this session is not a crossover session */
-	if (s->device && (d = sccp_device_retain(s->device))) {
-		sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
-		d->registrationState = SKINNY_DEVICE_RS_NONE;
-		d->needcheckringback = 0;
-		sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
-		sccp_device_release(d);
+	if (s->device) {
+		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(s->device);
+		if (d) {
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
+			d->registrationState = SKINNY_DEVICE_RS_NONE;
+			d->needcheckringback = 0;
+			sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, cleanupTime);
+		}
 	}
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Destroy Session %s\n", addrStr);
