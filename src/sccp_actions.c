@@ -2616,19 +2616,23 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	if (lineInstance) {
 		if (callid) {
-			channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
-			l = sccp_line_retain(channel->line);
+			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid)) && channel->line) {
+				l = sccp_line_retain(channel->line);
+			}
 		} else {
-			l = sccp_line_find_byid(d, lineInstance);
-			channel =  sccp_channel_find_bystate_on_line(l, (SCCP_CHANNELSTATE_OFFHOOK | SCCP_CHANNELSTATE_GETDIGITS | SCCP_CHANNELSTATE_DIGITSFOLL));
+			if ((l = sccp_line_find_byid(d, lineInstance))) {
+				channel =  sccp_channel_find_bystate_on_line(l, (SCCP_CHANNELSTATE_OFFHOOK | SCCP_CHANNELSTATE_GETDIGITS | SCCP_CHANNELSTATE_DIGITSFOLL));
+			}
 		}
 	} else {
 		if (callid) {
-			channel = sccp_channel_find_byid(callid);
-			l = sccp_line_retain(channel->line);
+			if ((channel = sccp_channel_find_byid(callid)) && channel->line) {
+				l = sccp_line_retain(channel->line);
+			}
 		} else {
-			channel = sccp_device_getActiveChannel(d);
-			l = sccp_line_retain(channel->line);
+			if ((channel = sccp_device_getActiveChannel(d)) && channel->line) {
+				l = sccp_line_retain(channel->line);
+			}
 		}
 	}
 	
