@@ -2620,7 +2620,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			}
 		} else {
 			if ((l = sccp_line_find_byid(d, lineInstance))) {
-				if (d->active_channel && d->active_channel->line = l) {
+				if (d->active_channel && d->active_channel->line == l) {
 					channel = sccp_device_getActiveChannel(d);
 				} else {
 					sccp_channel_t *c = NULL;
