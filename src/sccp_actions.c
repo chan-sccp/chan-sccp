@@ -1518,7 +1518,8 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
 #ifdef CS_SCCP_PICKUP
 	/*! \todo use feature map or sccp_feat_handle_directed_pickup */
 	//sccp_feat_handle_directed_pickup(l, 1, d);
-	sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
+	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+	new_channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
 #else
 	sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #endif
@@ -2032,7 +2033,8 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			sccp_channel_hold(channel);
 			AUTO_RELEASE sccp_line_t *l = sccp_dev_get_activeline(d);
 			if (l) {
-				sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+				new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
 			}
 			return;
 		}
@@ -2052,7 +2054,8 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			l = sccp_line_find_byid(d, SCCP_FIRST_LINEINSTANCE);
 		}
 		if (l) {
-			sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+			new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		}
 	}
 }
@@ -2111,13 +2114,8 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 
 		if (l) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
-		    
-			if (!sccp_strlen_zero(l->adhocNumber)) {
-				sccp_channel_newcall(l, d, l->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
-			} else {
-				/* make a new call with no number */
-				sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
-			}
+			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+			new_channel = sccp_channel_newcall(l, d, !sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		}
 	}
 }
@@ -3682,7 +3680,8 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 
 			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, lineInstance);
 			if (linedevice) {
-				sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+				new_channel = sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
 			}
 
 		}
