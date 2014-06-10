@@ -2609,8 +2609,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	}
 
 	/* Old phones like 7912 never uses callid
-	 * so here we don't have a channel, this way we
-	 * should get the active channel on device
+	 * so we would have trouble finding the right channel
 	 */
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
@@ -2621,7 +2620,14 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			}
 		} else {
 			if ((l = sccp_line_find_byid(d, lineInstance))) {
-				channel =  sccp_channel_find_bystate_on_line(l, (SCCP_CHANNELSTATE_OFFHOOK | SCCP_CHANNELSTATE_GETDIGITS | SCCP_CHANNELSTATE_DIGITSFOLL));
+				if (d->active_channel && d->active_channel->line = l) {
+					channel = sccp_device_getActiveChannel(d);
+				} else {
+					sccp_channel_t *c = NULL;
+					SCCP_LIST_LOCK(&l->channels);
+					channel = SCCP_LIST_FIND(&l->channels, c, list, (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_GETDIGITS || c->state == SCCP_CHANNELSTATE_DIGITSFOLL ), TRUE);
+					SCCP_LIST_UNLOCK(&l->channels);
+				}
 			}
 		}
 	} else {
@@ -2820,7 +2826,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	}
 
 	/* Old phones like 7912 never uses callid
-	 * so here we don't have a channel, this way we
+	 * so here we don't have a 
 	 * should get the active channel on device
 	 */
 	if (!channel) {
