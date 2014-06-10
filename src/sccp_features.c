@@ -810,7 +810,7 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
 		pbx_log(LOG_NOTICE, "%s: conference could not be created\n", DEV_ID_LOG(d));
 	}
 #else
-	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: conference not enabled\n", DEV_ID_LOG(d));
+	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: conference not enabled\n", DEV_ID_LOG(device));
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
 }
@@ -887,7 +887,7 @@ void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstanc
 		}
 	}
 #else
-	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
+]	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(device));
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 #endif
 }
