@@ -615,7 +615,8 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 	if (l) {
 		if (!sccp_strlen_zero(l->vmnum)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
-			sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+			new_channel = sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 		}
@@ -1327,7 +1328,8 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 	} else {
 		// Pull up a channel
 		if (GLOB(hotline)->line) {
-			sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+			new_channel = sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
 		}
 	}
 }

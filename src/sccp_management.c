@@ -647,7 +647,8 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		return 0;
 	}
 
-	sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL);
+	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	astman_send_ack(s, m, "Call Started");
 	return 0;
 }
