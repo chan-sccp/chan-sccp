@@ -461,13 +461,13 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	}
 
 	/* skip subscribtions to already owned line */
-	sccp_buttonconfig_t *config;
+/*	sccp_buttonconfig_t *config;
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE && sccp_strcaseequals(config->button.line.name, hint_exten)) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Skipping Hint Registration for Line we already have this connected (%s, %s).\n", DEV_ID_LOG(device), config->button.line.name, hint_exten);
 			return;
 		}
-	}
+	}*/
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Dialplan %s for exten: %s and context: %s\n", DEV_ID_LOG(device), hintStr, hint_exten, hint_context);
 
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
