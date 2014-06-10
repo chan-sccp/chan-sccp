@@ -281,8 +281,8 @@ AST_THREADSTORAGE(sccp_socket_stringify_buf);
 char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, int format)
 {
 	const struct sockaddr_storage *sockAddrStorage_tmp;
-	char host[NI_MAXHOST];
-	char port[NI_MAXSERV];
+	char host[NI_MAXHOST] = "";
+	char port[NI_MAXSERV] = "";
 	struct ast_str *str;
 	int e;
 	static const size_t size = sizeof(host) - 1 + sizeof(port) - 1 + 4;
