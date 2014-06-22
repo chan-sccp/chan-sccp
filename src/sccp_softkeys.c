@@ -173,7 +173,7 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
-	if (c) {												// Handle termination of dialling if in appropriate state.
+	if (c && !PBX(getChannelPbx)(c)) {								// Prevent dialling if in an inappropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
 		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
@@ -497,7 +497,11 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Backspace Pressed\n", DEV_ID_LOG(d));
 	int len;
 
-	if ((c->state != SCCP_CHANNELSTATE_DIALING) && (c->state != SCCP_CHANNELSTATE_DIGITSFOLL) && (c->state != SCCP_CHANNELSTATE_OFFHOOK)) {
+	if (	((c->state != SCCP_CHANNELSTATE_DIALING) && 
+		(c->state != SCCP_CHANNELSTATE_DIGITSFOLL) && 
+		(c->state != SCCP_CHANNELSTATE_OFFHOOK) &&
+		(c->state != SCCP_CHANNELSTATE_GETDIGITS)) ||
+		PBX(getChannelPbx)(c)) {
 		return;
 	}
 

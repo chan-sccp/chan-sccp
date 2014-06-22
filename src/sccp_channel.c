@@ -600,14 +600,14 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 		return;
 	}
 
-	if (!sccp_strlen_zero(name)) {
+	if (!sccp_strlen_zero(name) && strcmp(name,"s")) {
 		sccp_copy_string(channel->callInfo.calledPartyName, name, sizeof(channel->callInfo.calledPartyNumber));
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
 	} else {
 		channel->callInfo.calledPartyName[0] = '\0';
 	}
 
-	if (!sccp_strlen_zero(number)) {
+	if (!sccp_strlen_zero(number) && strcmp(name,"s")) {
 		sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
 		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
 	} else {
@@ -1318,8 +1318,15 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 
 	PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
 
-	if (device->earlyrtp == SCCP_CHANNELSTATE_OFFHOOK && !channel->rtp.audio.rtp) {
+	if (device->earlyrtp <= SCCP_EARLYRTP_OFFHOOK && !channel->rtp.audio.rtp) {
 		sccp_channel_openReceiveChannel(channel);
+	}
+	
+	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
+		sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
+		sccp_pbx_softswitch(channel);
+		channel->dialedNumber[0]=0;
+		return channel;
 	}
 
 	if (dial) {

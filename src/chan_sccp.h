@@ -904,7 +904,7 @@ struct sccp_device {
 	uint32_t skinny_type;											/*!< Model of this Phone sent by the station, devicetype */
 	uint32_t device_features;										/*!< device features (contains protocolversion in 8bit first segement */
 	sccp_devicestate_t state;										/*!< Device State (SCCP_DEVICE_ONHOOK or SCCP_DEVICE_OFFHOOK) */
-	sccp_channelstate_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
+	sccp_earlyrtp_t earlyrtp;										/*!< RTP Channel State where to open the RTP Media Stream */
 	sccp_session_t *session;										/*!< Current Session */
 	SCCP_RWLIST_ENTRY (sccp_device_t) list;									/*!< Global Device Linked List */
 	uint16_t keepalive;												/*!< Station Specific Keepalive Timeout */
@@ -1304,7 +1304,7 @@ struct sccp_global_vars {
 	boolean_t echocancel;											/*!< Echo Canel Support (Boolean, default=on) */
 	boolean_t silencesuppression;										/*!< Silence Suppression Support (Boolean, default=on)  */
 	boolean_t trustphoneip;											/*!< Trust Phone IP Support (Boolean, default=on) */
-	sccp_channelstate_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
+	sccp_earlyrtp_t earlyrtp;										/*!< Channel State where to open the rtp media stream */
 	boolean_t privacy;											/*!< Privacy Support (Length=2) */
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */

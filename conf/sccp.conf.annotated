@@ -66,7 +66,7 @@ echocancel = yes                                                                
 silencesuppression = no                                                           ; sets the silence suppression for all devices
                                                                                   ; we don't have to trust the phone ip address, but the ip address of the connection
 trustphoneip = no                                                                 ; The phone has a ip address. It could be private, so if the phone is behind NAT 
-earlyrtp = progress                                                               ; valid options: none, offhook, dial, ringout and progress. default is progress.
+earlyrtp = progress                                                               ; valid options: none, offhook, immediate, dial, ringout and progress. default is progress. N.b.immediate will cause forced overlap dialing.
                                                                                   ; The audio stream will be open in the progress and connected state by default.
 dnd = reject                                                                      ; turn on the dnd softkey for all devices. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent)
 private = yes                                                                     ; permit the private function softkey

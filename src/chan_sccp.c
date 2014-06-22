@@ -599,7 +599,7 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(amaflags) = pbx_channel_string2amaflag("documentation");
 	GLOB(callanswerorder) = ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;
-	GLOB(earlyrtp) = SCCP_CHANNELSTATE_PROGRESS;
+	GLOB(earlyrtp) = SCCP_EARLYRTP_PROGRESS;
 	sccp_create_hotline();
 	return TRUE;
 }

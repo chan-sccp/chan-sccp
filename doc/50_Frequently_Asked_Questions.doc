@@ -85,11 +85,11 @@
  *
  * A. Set directrtp=off in your sccp.conf or realtime tables and give it another try. You can also specify the type of
  *    DTMF used per device with dtmfmode=inband/outofband (inband can be heard, out-of-band is rfc2833 and can not be heard). 
- *    to use inband you will also need earlyrtp=on to be able to use DTMF in IVR's for example.
+ *    to use inband you will also need earlyrtp=on / progress to be able to use DTMF in IVR's for example (During progress state, before the call is actually connected to the endpoint).
  *
  * Q. No DMTF during calls
  *
- * A. Set earlyrtp=on or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
+ * A. Set earlyrtp=on, progress or ringout in your sccp.conf or realtime tables and try again, this will make it possible for inband
  *    DTMF tones to be received and heard starting at call progress
  *
  * Q. How do i report an Issue or Problem i have

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS `sccpdevice` (
   `permit` varchar(45) default NULL,
   `dndFeature` varchar(5) default 'on',
   `directrtp` varchar(3) default 'off',
-  `earlyrtp` varchar(8) default 'off',
+  `earlyrtp` varchar(10) default 'progress',
   `mwilamp` varchar(5) default 'on',
   `mwioncall` varchar(5) default 'off',
   `pickupexten` varchar(5) default 'on',

@@ -1,5 +1,6 @@
+DROP sccpdeviceconfig;
 ALTER TABLE `sccpdevice` ADD `softkeyset` VARCHAR( 50 ) NULL DEFAULT NULL AFTER `addon`;
-ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(8);
+ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(10);
 ALTER TABLE `sccpdevice` ADD `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8" AFTER `softkeyset`;
 ALTER TABLE `sccpdevice` ADD `audio_cos` VARCHAR( 1 ) NULL DEFAULT "6" AFTER `audio_tos`;
 ALTER TABLE `sccpdevice` ADD `video_tos` VARCHAR( 11 ) NULL DEFAULT "0x88" AFTER `audio_cos`;
