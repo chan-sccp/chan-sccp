@@ -185,7 +185,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		char idtext[256] = "";										\
 		int total = 0;											\
 		if (!pbx_strlen_zero(id)) {									\
-			snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);				\
+			snprintf(idtext, sizeof(idtext), "ActionID: %s", id);				\
 		}												\
 		if (RESULT_SUCCESS==_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(arguments), arguments)) {	\
 		        astman_send_ack(s, m, AMI_COMMAND);							\

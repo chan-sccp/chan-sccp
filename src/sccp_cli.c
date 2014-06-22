@@ -477,8 +477,10 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
+		} else {
+			astman_append(s, "\r\n");
 		}
-		astman_append(s, "\r\n");
+		local_total++;
 	}
 	CLI_AMI_OUTPUT_PARAM("Config File", CLI_AMI_LIST_WIDTH, "%s", GLOB(config_file_name));
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
@@ -741,8 +743,10 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
+		} else {
+			astman_append(s, "\r\n");
 		}
-		astman_append(s, "\r\n");
+		local_total++;
 	}
 	/* *INDENT-OFF* */
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
@@ -1018,8 +1022,10 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
+		} else {
+			astman_append(s, "\r\n");
 		}
-		astman_append(s, "\r\n");
+		local_total++;
 	}
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -1099,11 +1105,10 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		local_total++;
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
-			local_total++;
+		} else {
+			astman_append(s, "\r\n");
 		}
-		astman_append(s, "\r\n");
 		local_total++;
-
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	if (s) {
