@@ -2740,9 +2740,11 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			/* removing scheduled dial */
 			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
 
-			// Overlap Dialing should set display too -FS
-			if (channel->state == SCCP_CHANNELSTATE_DIALING && PBX(getChannelPbx) (channel)) {
+			// Overlap Dialing
+			if ((channel->state == SCCP_CHANNELSTATE_DIALING || channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) && PBX(getChannelPbx) (channel)) {
 				/* we shouldn't start pbx another time */
+				sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
 				sccp_pbx_senddigit(channel, resp);
 				return;
 			}
@@ -2934,9 +2936,11 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			/* removing scheduled dial */
 			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
 
-			// Overlap Dialing should set display too -FS
-			if (channel->state == SCCP_CHANNELSTATE_DIALING && PBX(getChannelPbx) (channel)) {
+			// Overlap Dialing
+			if ((channel->state == SCCP_CHANNELSTATE_DIALING || channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) && PBX(getChannelPbx) (channel)) {
 				/* we shouldn't start pbx another time */
+				sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
+				sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
 				sccp_pbx_senddigit(channel, resp);
 				goto EXIT_FUNC;
 			}
@@ -3793,7 +3797,7 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
 			int dummy_len = URL_len + label_len;
 
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;
-			int padding = ((dummy_len + hdr_len) % 4);
+ 			int padding = ((dummy_len + hdr_len) % 4);
 
 			padding = (padding > 0) ? 4 - padding : 0;
 

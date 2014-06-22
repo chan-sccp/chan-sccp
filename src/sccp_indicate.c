@@ -168,7 +168,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, 0);
 			d->protocol->sendCallInfo(d, c, instance);
 			if (!c->rtp.audio.rtp) {
-				if (d->earlyrtp) {
+				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
 					sccp_channel_openReceiveChannel(c);
 				} else {
 					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
@@ -250,7 +250,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) after (Connected). Ignoring\n");
 			} else {
 				sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk requests to change state to (Progress) from (%s)\n", sccp_channelstate2str(c->previousChannelState));
-				if (!c->rtp.audio.rtp && d->earlyrtp) {
+				if (!c->rtp.audio.rtp && d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
 					sccp_channel_openReceiveChannel(c);
 				}
 				sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", 0);
@@ -265,7 +265,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
 			d->protocol->sendCallInfo(d, c, instance);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
-			if (!c->rtp.audio.rtp && d->earlyrtp) {
+			if (!c->rtp.audio.rtp && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
 				sccp_channel_openReceiveChannel(c);
 			}
 			break;
@@ -377,7 +377,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 // 			d->protocol->sendCallInfo(d, c, instance);
 // 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
 			d->indicate->dialing(d, instance, c);
-			if (d->earlyrtp == SCCP_CHANNELSTATE_DIALING && !c->rtp.audio.rtp) {
+			if (d->earlyrtp <= SCCP_EARLYRTP_DIALING && !c->rtp.audio.rtp) {
 				sccp_channel_openReceiveChannel(c);
 			}
 			break;

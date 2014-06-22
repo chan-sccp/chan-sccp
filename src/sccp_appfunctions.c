@@ -116,7 +116,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		} else if (!strcasecmp(colname, "last_number")) {
 			sccp_copy_string(buf, d->lastNumber, len);
 		} else if (!strcasecmp(colname, "early_rtp")) {
-			snprintf(buf, len, "%d", d->earlyrtp);
+			snprintf(buf, len, "%s", sccp_earlyrtp2str(d->earlyrtp));
 		} else if (!strcasecmp(colname, "supported_protocol_version")) {
 			snprintf(buf, len, "%d", d->protocolversion);
 		} else if (!strcasecmp(colname, "used_protocol_version")) {

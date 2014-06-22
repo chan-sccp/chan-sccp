@@ -12,7 +12,7 @@ CREATE TABLE sccpdevice (
   permit 			varchar(45) 	DEFAULT NULL,
   dndFeature 			varchar(5) 	DEFAULT 'on',
   directrtp 			varchar(3) 	DEFAULT 'off',
-  earlyrtp 			varchar(8) 	DEFAULT 'off',
+  earlyrtp 			varchar(10) 	DEFAULT 'progress',
   mwilamp 			varchar(5) 	DEFAULT 'on',
   mwioncall 			varchar(5) 	DEFAULT 'off',
   pickupexten			varchar(5) 	DEFAULT 'on',

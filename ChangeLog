@@ -1,4 +1,535 @@
+2014-06-10  ddegroot
+
+	* [r5501] src/sccp_actions.c, src/sccp_features.c,
+	  src/sccp_management.c, src/sccp_softkeys.c: Fix refcount issue
+	  releated to sccp_channel_newcall and AUTO_RELEASE implementation.
+	  (Reported by Pavel)
+
+	* [r5500] src/sccp_actions.c: Fix sccp_handle_keypad_button
+	  (Reported by Pavel)
+
+	* [r5499] src/sccp_actions.c: Fix sccp_handle_keypad_button
+	  (Reported by Pavel)
+
+	* [r5498] src/sccp_hint.c: Removing hint skip on already registered
+	  line
+
+	* [r5497] src/sccp_socket.c: Initialize variables, to show cleaner
+	  gdb output
+
+	* [r5496] src/sccp_pbx.c: Check for existing device->session wenn
+	  setting SCCP_DEVICE_IP
+
+	* [r5495] src/sccp_actions.c: Get line and channel with a little
+	  more care during keybutton handling
+
+	* [r5494] src/sccp_socket.c: Used AUTO_RELEASE in sccp_socket.
+
+	* [r5493] src/sccp_rtp.c: Used AUTO_RELEASE in sccp_rtp.
+
+	* [r5492] src/sccp_pbx.c: Used AUTO_RELEASE in sccp_pbx.
+
+	* [r5491] src/sccp_features.c: Fix compile error
+
+2014-06-09  ddegroot
+
+	* [r5490] src/sccp_mwi.c: Used AUTO_RELEASE in sccp_mwi.
+
+	* [r5489] src/sccp_management.c: Used AUTO_RELEASE in
+	  sccp_management.
+
+	* [r5488] src/sccp_indicate.c: Used AUTO_RELEASE in sccp_hint.
+
+	* [r5487] src/sccp_hint.c: Used AUTO_RELEASE in sccp_hint.
+
+	* [r5486] src/sccp_actions.c: Show stimulusstatus in debug entry
+	  when handling stimulus feature buttons
+
+	* [r5485] src/sccp_devstate.c, src/sccp_featureButton.c,
+	  src/sccp_features.c: Used AUTO_RELEASE in most sccp_devstate,
+	  sccp_featureButton, sccp_features functions. Finding three (less
+	  frequent) refcount issues along the way
+
+	* [r5484] src/sccp_actions.c: Fix stimulus action (feature button
+	  toggleState)
+
+2014-06-08  ddegroot
+
+	* [r5483] src/sccp_config.c, src/sccp_enum_macro.h: Output possible
+	  enum values in sccp_manager_config_metadata
+
+	* [r5482] src/sccp_conference.c: Use AUTO_RELEASE in
+	  sccp_conference.c
+
+2014-06-07  ddegroot
+
+	* [r5481] src/sccp_appfunctions.c: Use AUTO_RELEASE in
+	  sccp_appfunctions.c
+
+	* [r5480] src/sccp_config.c, src/sccp_config_entries.hh,
+	  src/sccp_enum_macro.h: Added 'char enummacro_all_entries[]' used
+	  to display error message with possible values
+
+	* [r5479] src/sccp_config.c, src/sccp_config_entries.hh: Used the
+	  new TYPE_ENUM sccp_config_parser to parse dtmfmode using a
+	  generic parsing instead of a dedicated one (reducing the
+	  possibility of outdated parsers when sccp_config_entries or
+	  _enum.hh files change).
+
+	* [r5478] src/chan_sccp_enums.hh: Change str output from dtmfmode
+	  enum
+
+	* [r5477] src/sccp_enum_macro.h: Update error output to include all
+	  possible values
+
+	* [r5476] src/sccp_actions.c: Used AUTO_RELEASE in most sccp_action
+	  functions. Finding two (less frequent) refcount issues along the
+	  way
+
+2014-06-06  ddegroot
+
+	* [r5475] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_cli.c, src/sccp_features.c,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_pbx.c: Removed
+	  sccp_indicate2str and skinny_callstate2str. Replaced
+	  sccp_channel_setSkinnyCallState with
+	  sccp_channel_setChannelState, which was actually meant/implied.
+	  replaced the sccp_indicate use of uint8_t state with
+	  sccp_channelstate_t state, which generated warnings of converted
+	  enum values showing the errornous mapping to skinny_callstate,
+	  where sccp_channelstate should have been used.
+
+	* [r5474] src/sccp_enum_macro.h: Fix does_exist return value.
+
+	* [r5473] src/chan_sccp.c, src/chan_sccp.h, src/chan_sccp_enums.hh,
+	  src/common.h, src/sccp_enum_macro.h, src/sccp_event.c,
+	  src/sccp_event.h, src/sccp_event_enums.hh, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_protocol_enums.hh: Refined
+	  sccp_enum_macro to deal better with sparsely populated enums and
+	  in a cheaper way (direct access) with incremental ones
+
+2014-06-05  ddegroot
+
+	* [r5472] src/pbx_impl/ast/ast.c: Reverted accidental commit of
+	  pbx_impl/ast/ast.c
+
+	* [r5471] src/pbx_impl/ast/ast.c, src/sccp_cli.c: Added Line Label
+	  to SCCPShowLines (Reported by Jim Dossey)
+
+	* [r5470] src/sccp_actions.c, src/sccp_enum_macro.h,
+	  src/sccp_protocol_enums.hh: Added warning during registration of
+	  a yet unknown skinny devicetype. Extended the sccp_enum_macro to
+	  allow check existence of a enum entry. Added
+	  SKINNY_DEVICETYPE_NOTDEFINED as last entry to prevent having to
+	  sort these enum entries
+
+	* [r5469] src/sccp_management.c: Fixed
+	  sccp_manager_show_devices/sccp_mananger_show_lines by adding
+	  extra new line between records. Set both these functions to
+	  deprecated status in favor of SCCPShowDevices/SCCPShowLines.
+	  (Reported by Jim Dossey)
+
+	* [r5468] src/chan_sccp_enums.hh: Rename IDLE/INUSE devstate enum
+	  entries to SCCP_DEVSTATE_IDLE and SCCP_DEVSTATE_INUSE
+
+	* [r5467] src/sccp_actions.c: sccp_handle_stimulus has been replace
+	  by a new implementation
+
+	* [r5466] src/chan_sccp.c, src/chan_sccp.h, src/chan_sccp_enums.hh,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_actions.c,
+	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_conference.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_devstate.h, src/sccp_enum_macro.h, src/sccp_event.c,
+	  src/sccp_event.h, src/sccp_features.c, src/sccp_hint.c,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_management.c,
+	  src/sccp_pbx.c, src/sccp_protocol.c, src/sccp_protocol.h,
+	  src/sccp_protocol_enums.hh, src/sccp_softkeys.c,
+	  src/sccp_utils.c, src/sccp_utils.h: Replacement of
+	  sccp_enum_macro.h. Cleaner implementation of the generated code
+	  (Requiring / Returning an enum type instead of an int. When
+	  misused the compiler will return a explicit warning about
+	  implicit conversion between enums). It also includes a method to
+	  lookup an string back to the enum value (even if the enum is
+	  sparse in nature). The str2enum lookup will be used to replace
+	  some of the config_parsers to base the on generated source code
+	  instead (in the near future).
+
+2014-06-04  ddegroot
+
+	* [r5465] src/sccp_device.c, src/sccp_softkeys.c: Reactivate
+	  useRedialMenu for SPCP/SPA Phones with a new key sequence to send
+
+2014-06-03  ddegroot
+
+	* [r5464] src/sccp_softkeys.c: Use Application:Cisco/PlacedCalls
+	  shortcut for useRedialMenu when talking to higher protocol level
+	  phones
+
+	* [r5463] src/sccp_device.c, src/sccp_softkeys.c: Prevent
+	  useRedialMenu on phones without a display or SPCP phone(for now)
+
+	* [r5462] src/sccp_protocol.h, src/sccp_protocol_enums.hh: Added
+	  some SPA models that we need registration ID's for
+
+2014-06-02  ddegroot
+
+	* [r5461] src/chan_sccp.h: Update sccp_log handling to fix logging
+	  to file without FileLineFunc being active. Added peer_dtmfmode to
+	  channel->rtp so we can safe the dtmfmode of the peer during
+	  get_rtp_info
+
+	* [r5460] src/sccp_pbx.c: Revert previous change to sccp_pbx send
+	  digit function, defer/undefer of dtmf should be handled inside
+	  pbx_impl
+
+	* [r5459] src/sccp_protocol.c: Added new dtmfmodes (PROTOCOL): AUTO
+	  and NONE. Current default is still inband, but will become auto
+	  in the future
+
+	* [r5458] src/sccp_cli.c: Added new dtmfmodes (CLI): AUTO and NONE.
+	  Current default is still inband, but will become auto in the
+	  future
+
+	* [r5457] src/chan_sccp_enums.hh: Added new dtmfmodes: AUTO and
+	  NONE. Current default is still inband, but will become auto in
+	  the future
+
+	* [r5456] src/sccp_channel.c, src/sccp_config.c,
+	  src/sccp_config_entries.hh: Added new dtmfmodes: AUTO and NONE.
+	  Current default is still inband, but will become auto in the
+	  future
+
+	* [r5455] src/sccp_actions.c: Use dtmfmode2str in digit handling
+
+2014-06-01  ddegroot
+
+	* [r5454] src/chan_sccp.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_pbx.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Obey device->dtmmode setting when creating a
+	  new channel, Use dtmfmode when sending digits, inband or
+	  outofband. Updated sccp_protocol.c to set the correct dtmfmode.
+
+2014-05-31  ddegroot
+
+	* [r5453] src/sccp_actions.c: Update handling of orcStatus
+
+	* [r5452] src/sccp_protocol.h, src/sccp_protocol_enums.hh: Revise
+	  OpenReceive/StartMediaTransmission
+
+	* [r5451] src/sccp_config.c, src/sccp_device.c: Fix
+	  sccp_config_parse_deny_permit CHANGE Detection, remove calls
+	  free_ha before running reload
+
+2014-05-30  ddegroot
+
+	* [r5450] src/sccp_config.c: Added SCCP_CONFIG_REVISION output to
+	  sccp_manager_config_metadata, so that you can focus on change in
+	  metadata, on when/if changes have occured
+
+	* [r5449] src/chan_sccp_enums.hh, src/common.h,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast112_announce.c,
+	  src/pbx_impl/ast/ast112_announce.h, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_appfunctions.c, src/sccp_conference.c,
+	  src/sccp_config.c, src/sccp_config_entries.hh,
+	  src/sccp_devstate.c, src/sccp_event_enums.hh, src/sccp_hint.c,
+	  src/sccp_management.c, src/sccp_protocol.c,
+	  src/sccp_protocol_enums.hh, src/sccp_refcount.c, src/sccp_rtp.c,
+	  src/sccp_threadpool.c: Re-activate svn:keyword on some of the
+	  files
+
+	* [r5448] src/sccp_config.c, src/sccp_config_entries.hh: Added
+	  SCCP_CONFIG_REVISION output to sccp_manager_config_metadata, so
+	  that you can focus on change in metadata, on when/if changes have
+	  occured
+
+	* [r5447] src/sccp_indicate.c: Suppress Callwaiting (on the Dialing
+	  Device) via SharedLine, when Calling the same Sharedline
+
+	* [r5446] src/sccp_actions.c: Simplify sccp_handle_stimulus. Do not
+	  update destination ip/port during open_receive_channel_ack when
+	  using EXPERIMENTAL_MODE
+
+	* [r5445] src/sccp_indicate.c: Suppress CallInfo on Remote Devices
+	  of a shared line when c->privacy is active
+
+	* [r5444] src/sccp_hint.c: Suppress callerInfo on hinted speeddials
+	  when c->privacy=1 || callInfo.presentation=0
+
+	* [r5443] src/sccp_softkeys.c: Fix refcount when using
+	  sccp_sk_private to initiate a new call
+
+	* [r5442] src/sccp_device.c: Fix redial button activation if no
+	  database entry, for lineInstance=0 / callid=0 (ie. Base Screen
+	  with no activate line key mode). On De-mask the button once, when
+	  it switches from no lastDialedNumer to the First Setting.
+
+	* [r5441] src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_features.c: Moved some of the getDatabase calls to
+	  device_postRegistration which is a more logical location. Handle
+	  DND better, by call sccp_feature_change when loading from the
+	  database, this also updates the displayed DND on the device
+	  itself. Use sccp_device_setLastNumberDialed to update the
+	  d\-\>lastnumberDialed and also activate the redial button if
+	  necessary.
+
+	* [r5440] src/sccp_softkeys.c: Fix retain/release issue in
+	  sccp_sk_private.
+
+	* [r5439] conf/sccp.conf: Added support for multiple parkinglots.
+	  Added new line paramater to config, called 'parkinglot', which
+	  can be used to set the parkinglot to use for this particular line
+	  (left empty means 'default')
+
+	* [r5438] conf/sccp.conf.annotated, src/chan_sccp.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_cli.c, src/sccp_config_entries.hh: Added support for
+	  multiple parkinglots. Added new line paramater to config, called
+	  'parkinglot', which can be used to set the parkinglot to use for
+	  this particular line (left empty means 'default')
+
+	* [r5437] src/sccp_protocol.h, src/sccp_softkeys.c: Make it
+	  possible to start a PRIVATE call from the onhook state, a new
+	  channel will be started at this moment. (Private needs more work:
+	  hints / ast_channel / remoteIndicate)
+
+2014-05-29  ddegroot
+
+	* [r5436] src/sccp_indicate.c: - Fix showing CallWaiting for an
+	  Outgoing call on a sharedline we already have registered as one
+	  of our own lines. Fix remote shared line status indication on
+	  protocolversion<17 phone, being indicated with two callplanes.
+	  Fix statusVisibility being set for multiple remoteDevice by
+	  accident, it should have been reset for every device. Conplety
+	  skip remote indication if we already own part of the call.
+
+	* [r5435] src/sccp_hint.c: Prevent subscribing to a hint for an
+	  extension that we already have connected as a line
+
+	* [r5434] src/sccp_protocol.c: Added debug logging to
+	  protocol->sendCallInfo Messages
+
+	* [r5433] src/sccp_actions.c: Fix handle stimulus code when using
+	  BLF-speeddial
+
+2014-05-28  ddegroot
+
+	* [r5432] src/sccp_features.c: Fix conference pulling in channels
+	  from remote devices via shared line (Reported by Martin Sofaru)
+
+	* [r5431] src/sccp_protocol.c, src/sccp_rtp.c: Reduced
+	  NOTICE/WARNING debug logging to standard sccp-log for RTP notices
+
+2014-05-26  ddegroot
+
+	* [r5430] src/pbx_impl/ast/ast.h: Fix Issue #229 (Reported by
+	  hhornung)
+
+	* [r5429] src/pbx_impl/ast/ast110.c: Fix compile warning about
+	  overwriting description in AST_MODULE_INFO
+
+	* [r5428] src/sccp_actions.c: Fix warning about unused variable:
+	  'channel'
+
+	* [r5427] src/chan_sccp.c, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_channel.c,
+	  src/sccp_conference.c, src/sccp_pbx.c: Removed Experimental
+	  Status from the New Hangup Code, making it the standard method to
+	  handle hanging up calls for everyone
+
+	* [r5426] src/sccp_actions.c: Made a start to use AUTO_RELEASE in
+	  sccp_actions.c
+
+2014-05-25  ddegroot
+
+	* [r5425] src/sccp_cli.c, src/sccp_protocol.c, src/sccp_protocol.h:
+	  Correct sccp_cli show softkeysets
+
+2014-05-23  ddegroot
+
+	* [r5424] src/sccp_softkeys.c: Changed ast_channel lock into a
+	  memory barrier to prevent deadlock with lock in
+	  asterisk_setWriteFormat (Reported by Alena Juk)
+
+2014-05-21  ddegroot
+
+	* [r5423] src/sccp_refcount.c: Fix autorelease of NULL Pointer
+	  (Reported by hhornung, #227)
+
+2014-05-20  ddegroot
+
+	* [r5422] src/sccp_channel.c: Fix setMicrophoneState (Reported by
+	  Niklas Larsson)
+
+	* [r5421] src/sccp_channel.c: Remove two unnecessary device
+	  releases. Update sccp_channel_resume to use AUTO_RELEASE to put a
+	  previous channel on hold, before resuming.
+
+	* [r5420] src/sccp_channel.c: Fix AUTO_RELASE (Reported by Niklas
+	  Larsson)
+
+	* [r5419] src/sccp_channel.c: Use of AUTO_RELEASE in sccp_channel
+
+	* [r5418] src/sccp_softkeys.c: Check
+	  sccp_device_selectedchannels_count calling functions
+
+	* [r5417] src/sccp_channel.c: Found another refcount off by one
+
+	* [r5416] src/sccp_channel.c: Fix refcount over release in
+	  stopMultiMediaTransmission
+
+	* [r5415] src/sccp_device.c, src/sccp_line.c: Use of AUTO_RELEASE
+	  in sccp_line and sccp_device
+
+2014-05-15  ddegroot
+
+	* [r5414] src/sccp_event.c: Use AUTO_RELEASE for sccp_event objects
+
+	* [r5413] src/sccp_refcount.c, src/sccp_refcount.h: Introduction of
+	  AUTO_RELEASE for refcounted objects
+
+	* [r5412] src/pbx_impl/ast/ast108.c, src/sccp_channel.c,
+	  src/sccp_pbx.c: Fix callforward locking issue (Reported by Alena
+	  Juk)
+
+2014-05-14  ddegroot
+
+	* [r5411] src/sccp_conference.c: Fix conference_participant_destroy
+	  segfault (reported by Alena Juk)
+
+2014-05-13  ddegroot
+
+	* [r5410] src/sccp_device.c: Fixed buffer-overflow in pushURL /
+	  pushTextMessage (Issue Reported by Niklas Larsson / Based on
+	  Patch provided by Niklas Larsson)
+
+	* [r5409] src/sccp_conference.c, src/sccp_conference.h: Use
+	  participant->conferenceBridgePeer to return CallEvent information
+
+2014-05-12  ddegroot
+
+	* [r5408] src/sccp_config.c: Use sccp_strcaseequals in most cases
+	  where \!strcasecmp was used. sccp_strcaseeuals has buildin guards
+	  for NULL pointers / 0-lenght strings (Segfault found in
+	  sccp_config_parse)
+
+	* [r5407] Makefile.in, autoconf/extra.m4, configure,
+	  doc/Makefile.in, src/Makefile.in: Update configure.ac so that
+	  ast112_announce gets compiled when compiling against asterisk-12
+	  or higher
+
+2014-05-10  ddegroot
+
+	* [r5406] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h: Added a
+	  carefull sccp_wrapper_asterisk_requestHangup_PBXStarting
+	  implementation which is only used for a very short time, when
+	  ast_pbx_start has been requested, it will make sure to check
+	  autoloop and ast_channel_pbx before sending the hangup request.
+	  Replacement for setting hangup_dummy.
+
+	* [r5405] src/pbx_impl/ast/ast.c: Fix hangup during progress, not
+	  setting dummyHangup before going to ast_pbx_start. during
+	  requestHangup we need to re-check if pbx was not started in the
+	  meantime, to make sure we are using the right hangup method. Have
+	  not added locking during this check, so a race condition might
+	  still exist.
+
+	* [r5404] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: Fix setOwner when setting to NULL
+	  (With exception for asterisk-1.8) (Fixes locking issue reported
+	  by Alena Juk)
+
+	* [r5403] src/sccp_conference.c: Set requestHangup for
+	  conference->moderator to requestHangup (not running in a
+	  ast_pbx_start thread
+
+	* [r5402] src/sccp_channel.c: Fix callCountLock lock
+
+2014-05-02  ddegroot
+
+	* [r5401] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c: Fix sccp_wrapper_asterisk_setOwner,
+	  Preventing astobj2 Warning about user_data is NULL. (Fix #225)
+
+	* [r5400] src/pbx_impl/ast/ast108.c: Revert accidental checkin of
+	  test patch made for Alena
+
+	* [r5399] src/config.h.in, src/pbx_impl/ast/ast108.c,
+	  src/sccp_conference.c, src/sccp_utils.h: Fix conference compiled
+	  against asterisk-11
+
+	* [r5398] Makefile.in, autoconf/asterisk.m4, autoconf/extra.m4,
+	  configure, configure.ac, doc/Makefile.in, src/Makefile.am,
+	  src/Makefile.in, src/chan_sccp.c, src/chan_sccp.h,
+	  src/config.h.in, src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/ast112.c[ADD],
+	  src/pbx_impl/ast/ast112.h[ADD],
+	  src/pbx_impl/ast/ast112_announce.c[ADD],
+	  src/pbx_impl/ast/ast112_announce.h[ADD],
+	  src/pbx_impl/ast/ast113.c[ADD], src/pbx_impl/ast/ast113.h[ADD],
+	  src/pbx_impl/ast/astTrunk.c[DEL],
+	  src/pbx_impl/ast/astTrunk.h[DEL], src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_cli.c, src/sccp_conference.c,
+	  src/sccp_conference.h, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_devstate.c, src/sccp_features.c, src/sccp_pbx.c,
+	  src/sccp_pbx.h: Added support for asterisk-12 and asterisk-trunk
+
+2014-04-27  ddegroot
+
+	* [r5397] src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/astTrunk.c: Fix compile warning about slinFormat
+
+	* [r5396] src/sccp_device.c: Revert change get_activeline, should
+	  return retained
+
+	* [r5395] src/sccp_channel.h, src/sccp_conference.c,
+	  src/sccp_device.h, src/sccp_event.h, src/sccp_line.h: Added
+	  assert to retain/release function calls
+
+2014-04-26  ddegroot
+
+	* [r5394] doc/50_Frequently_Asked_Questions.doc: Fix doxygen error
+
+	* [r5391] doc/35_How_To.doc: Added documentation about softkey
+	  status being saved to the AstDB
+
+2014-04-25  ddegroot
+
+	* [r5390] src/sccp_device.c: Fix refcount in
+	  sccp_dev_get_activeline
+
+	* [r5389] src/pbx_impl/ast/ast.c: Run ast_queue_hangup without
+	  ast_channel_lock (Reported by Alena Juk)
+
 2014-04-24  ddegroot
+
+	* [r5388] src/chan_sccp.c, src/chan_sccp.h: Partially revert
+	  revision 5360 to fix revisionstr/versionstr setting.
+
+	* [r5387] src/sccp_event.c: Prevent segfault
+
+	* [r5386] ChangeLog: Update ChangeLog
 
 	* [r5385] src/sccp_pbx.c: Fix segfault in sccp_pbx_channel_allocate
 	  (Reported by Alena Juk)

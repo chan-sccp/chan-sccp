@@ -52,6 +52,14 @@ BEGIN_ENUM(sccp,channelstate,ENUMMACRO_SPARSE)
         ENUM_ELEMENT(SCCP_CHANNELSTATE_DND 				,=0xFF,	"DND")
 END_ENUM(sccp,channelstate,ENUMMACRO_SPARSE)												/*!< internal Chan_SCCP Call State c->callstate */
 
+BEGIN_ENUM(sccp,earlyrtp,ENUMMACRO_INCREMENTAL)
+        ENUM_ELEMENT(SCCP_EARLYRTP_IMMEDIATE 				,, 	"Immediate")
+        ENUM_ELEMENT(SCCP_EARLYRTP_OFFHOOK 				,, 	"OffHook")
+        ENUM_ELEMENT(SCCP_EARLYRTP_DIALING 				,, 	"Dialing")
+        ENUM_ELEMENT(SCCP_EARLYRTP_RINGOUT 				,,	"Ringout")
+        ENUM_ELEMENT(SCCP_EARLYRTP_PROGRESS 				,,	"Progress")
+        ENUM_ELEMENT(SCCP_EARLYRTP_NONE 				,,	"None")
+END_ENUM(sccp,earlyrtp,ENUMMACRO_INCREMENTAL)												/*!< internal Chan_SCCP Call State c->callstate */
 
 BEGIN_ENUM(sccp,devicestate,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_DEVICESTATE_ONHOOK				,,	"On Hook"	)

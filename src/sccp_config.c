@@ -980,25 +980,27 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, P
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	sccp_channelstate_t earlyrtp = 0;
+	sccp_earlyrtp_t earlyrtp = 0;
 
 	if (sccp_strcaseequals(value, "none")) {
 		earlyrtp = 0;
 	} else if (sccp_strcaseequals(value, "offhook")) {
-		earlyrtp = SCCP_CHANNELSTATE_OFFHOOK;
+		earlyrtp = SCCP_EARLYRTP_OFFHOOK;
+	} else if (sccp_strcaseequals(value, "immediate")) {
+		earlyrtp = SCCP_EARLYRTP_IMMEDIATE;
 	} else if (sccp_strcaseequals(value, "dial")) {
-		earlyrtp = SCCP_CHANNELSTATE_DIALING;
+		earlyrtp = SCCP_EARLYRTP_DIALING;
 	} else if (sccp_strcaseequals(value, "ringout")) {
-		earlyrtp = SCCP_CHANNELSTATE_RINGOUT;
+		earlyrtp = SCCP_EARLYRTP_RINGOUT;
 	} else if (sccp_strcaseequals(value, "progress")) {
-		earlyrtp = SCCP_CHANNELSTATE_PROGRESS;
+		earlyrtp = SCCP_EARLYRTP_PROGRESS;
 	} else {
 		pbx_log(LOG_WARNING, "Invalid earlyrtp state value, should be 'none', 'offhook', 'dial', 'ringout', 'progress'\n");
 		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 	}
 
-	if (*(sccp_channelstate_t *) dest != earlyrtp) {
-		*(sccp_channelstate_t *) dest = earlyrtp;
+	if (*(sccp_earlyrtp_t *) dest != earlyrtp) {
+		*(sccp_earlyrtp_t *) dest = earlyrtp;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
