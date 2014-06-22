@@ -186,7 +186,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 /* keeping default at inband for now, should become auto */
 //	{"dtmfmode", 			D_OBJ_REF(dtmfmode), 			TYPE_PARSER(sccp_config_parse_dtmfmode),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"inband",			"none, inband, outofband or auto. outofband is the native cisco dtmf tone play.\n"
 //																																					"Some phone model do not play dtmf tones while using directrtp. The default is auto, which tries to adapt to whatever channel it is connected to.\n"},
-	{"dtmfmode", 			D_OBJ_REF(dtmfmode), 			TYPE_ENUM(sccp,dtmfmode),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"inband",			"inband or outofband. outofband is the native cisco dtmf tone play.\n"
+	{"dtmfmode", 			D_OBJ_REF(dtmfmode), 			TYPE_ENUM(sccp,dtmfmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"inband",			"inband or outofband. outofband is the native cisco dtmf tone play.\n"
  																																					"Some phone model does not play dtmf tones while connected (bug?), so the default is inband\n"},
 	{"imageversion", 		D_OBJ_REF(imageversion), 		TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)\n"},
 	{"deny|permit", 		D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"
