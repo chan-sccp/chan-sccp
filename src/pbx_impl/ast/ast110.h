@@ -110,7 +110,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 		char idtext[256] = "";										\
 		int total = 0;											\
 		if (!pbx_strlen_zero(id)) {									\
-			snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);				\
+			snprintf(idtext, sizeof(idtext), "ActionID: %s", id);				\
 		}												\
 		if (RESULT_SUCCESS==_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(arguments), arguments)) {	\
 		        astman_send_ack(s, m, AMI_COMMAND);							\
