@@ -980,10 +980,10 @@ sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, P
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	sccp_earlyrtp_t earlyrtp = 0;
+	sccp_earlyrtp_t earlyrtp = *(sccp_earlyrtp_t *) dest;
 
 	if (sccp_strcaseequals(value, "none")) {
-		earlyrtp = 0;
+		earlyrtp = SCCP_EARLYRTP_NONE;
 	} else if (sccp_strcaseequals(value, "offhook")) {
 		earlyrtp = SCCP_EARLYRTP_OFFHOOK;
 	} else if (sccp_strcaseequals(value, "immediate")) {

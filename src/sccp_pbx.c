@@ -1005,13 +1005,16 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 		sccp_channel_set_calledparty(c, "", shortenedNumber);
 
-		/* proceed call state is needed to display the called number.
-		   The phone will not display callinfo in offhook state */
+#if 0		/* Remarked out by Pavel Troller for the earlyrtp immediate implementation. Checking if there will be negative fall out. 
+		It might have to check the device->earlyrtp state, to do the correct thing (Let's see). */
+
+		/* proceed call state is needed to display the called number. The phone will not display callinfo in offhook state */
 		sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 		sccp_channel_send_callinfo(d, c);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+#endif
 
 		/*! \todo DdG: Extra wait time is incurred when checking pbx_exists_extension, when a wrong number is dialed. storing extension_exists status for sccp_log use */
 		int extension_exists = SCCP_EXTENSION_NOTEXISTS;
