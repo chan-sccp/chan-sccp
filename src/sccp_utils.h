@@ -138,4 +138,5 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
 void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
 int sccp_strversioncmp(const char *s1, const char *s2);
+char *sccp_bin2str(char *buf, size_t size, long int value);
 #endif
