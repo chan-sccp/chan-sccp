@@ -1786,3 +1786,19 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 
 	return strcmp(s1, s2);
 }
+
+char *sccp_bin2str(char *buf, size_t size, long int value) 
+{
+	char s[size + 1];
+	int i = size;
+	s[i--]=0x00;
+	do {
+		s[i--] = (value & 1) ? '1':'0';
+		value >>= 1;	//shift right 1 bit
+	} while (value > 0);
+	while (i >= 0) {
+		s[i--] = '0';
+	}
+	snprintf(buf, size, "%s", s);
+	return buf;
+}
