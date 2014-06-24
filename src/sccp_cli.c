@@ -753,7 +753,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Protocol Version",	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
 	char binstr[33] = "";
-	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x, 0b%s", d->device_features, sccp_dec2binstr(binstr, 33, d->device_features));
+	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x,%s", d->device_features, sccp_dec2binstr(binstr, 40, d->device_features));
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_registrationstate2str(d->registrationState), d->registrationState);
