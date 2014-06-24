@@ -967,7 +967,6 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_device_release(d);
 	if (s) {
 		*total = local_total;
-		astman_append(s, "\r\n");
 	}
 	return RESULT_SUCCESS;
 }
@@ -2007,7 +2006,7 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 static int sccp_message_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
-	int timeout = 0;
+	int timeout = 10;
 	boolean_t beep = FALSE;
 	int local_total = 0;
 
@@ -2024,16 +2023,18 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 	if (argc > 4) {
 		if (!strcmp(argv[4], "beep")) {
 			beep = TRUE;
-			sscanf(argv[5], "%d", &timeout);
+			if (argc > 5) {
+				sscanf(argv[5], "%d", &timeout);
+			}
+		} else {
+			sscanf(argv[4], "%d", &timeout);
 		}
-		sscanf(argv[4], "%d", &timeout);
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to all devices (beep: %d, timeout: %d)\n", argv[3], beep, timeout);
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 		sccp_dev_set_message(d, argv[3], timeout, FALSE, beep);
-		// sccp_dev_set_message(d, messagetext, timeout, FALSE, beep);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
@@ -2091,13 +2092,13 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 	if (argc > 5) {
 		if (!strcmp(argv[5], "beep")) {
 			beep = TRUE;
+			if (argc > 6) {
+				sscanf(argv[6], "%d", &timeout);
+			}
 		} else {
 			sscanf(argv[5], "%d", &timeout);
 		}
 	}
-	if (argc > 6) { 
-		sscanf(argv[6], "%d", &timeout);
-	} 
 	if ((d = sccp_device_find_byid(argv[3], FALSE))) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending message '%s' to %s (beep: %d, timeout: %d)\n", argv[3], d->id, beep, timeout);
 		sccp_dev_set_message(d, argv[4], timeout, FALSE, beep);
