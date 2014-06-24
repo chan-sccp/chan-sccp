@@ -1789,15 +1789,13 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 
 char *sccp_dec2binstr(char *buf, size_t size, int value) 
 {
-	char b[32] = {0};
+	char b[33] = {0};
 	int pos;
 	long long z;
 	for ( z = 1LL<<31, pos=0; z>0; z>>=1, pos++)
 	{
 		b[pos] = ( ((value & z) == z) ? '1' : '0');
 	}
-
-	b[pos] = 0;
 	snprintf(buf, size, "%s", b);
 	return buf;
 }
