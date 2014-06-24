@@ -119,7 +119,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
                         astman_send_error(s, m, "Execution Failed\n");						\
                 }												\
 		astman_append(s,										\
-		"Event: " _DESCR " Complete\r\n"								\
+		"Event: " AMI_COMMAND " Complete\r\n"								\
 		"EventList: Complete\r\n"									\
 		"ListItems: %d\r\n"										\
 		"%s"												\
