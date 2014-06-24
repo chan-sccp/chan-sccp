@@ -35,7 +35,7 @@ static char management_device_set_dnd_desc[] = "Description: set dnd on device\n
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n" "  option: OptionName (if empty returns all options in sement).";
 static char management_startcall_desc[] = "Description: start a new call on a device/line\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  Linename: Name of the line\n" "  number: Number to call";
-static char management_answercall_desc[] = "Description: answer a ringing channel\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  channelId: Id of the channel to pickup\n";
+static char management_answercall_desc[] = "Description: answer a ringing channel (DEPRECATED in favor of SCCPAnswerCall1)\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  channelId: Id of the channel to pickup\n";
 static char management_hangupcall_desc[] = "Description: hangup a channel/call\n" "\n" "Variables:\n" "  channelId: Id of the Channel to hangup\n";
 static char management_hold_desc[] = "Description: hold/resume a call\n" "\n" "Variables:\n" "  channelId: Id of the channel to hold/unhold\n" "  hold: hold=true / resume=false\n" "  Devicename: Name of the Device\n" "  SwapChannels: Swap channels when resuming and an active channel is present (true/false)\n";
 
