@@ -1787,18 +1787,35 @@ int sccp_strversioncmp(const char *s1, const char *s2)
 	return strcmp(s1, s2);
 }
 
-char *sccp_bin2str(char *buf, size_t size, long int value) 
+/*
+char *sccp_dec2binstr(char *buf, size_t size, long int value) 
 {
 	char s[size + 1];
-	int i = size;
-	s[i--]=0x00;
+	int i = size - 1;
+	s[size]='\0';
 	do {
 		s[i--] = (value & 1) ? '1':'0';
 		value >>= 1;	//shift right 1 bit
+		sccp_log(DEBUGCAT_CORE)("Dec2BinSTR Output: %s", s);
 	} while (value > 0);
-	while (i >= 0) {
-		s[i--] = '0';
-	}
+//	while (i >= 0) {
+//		s[i--] = '0';
+//	}
 	snprintf(buf, size, "%s", s);
+	return buf;
+}
+*/
+char *sccp_dec2binstr(char *buf, size_t size, int value) 
+{
+	char b[sizeof(int)*8+1] = {0};
+	int pos;
+	long long z;
+	for ( z = 1LL<<sizeof(int)*(8-1), pos=0; z>0; z>>=1, pos++)
+	{
+		b[pos] = ( ((value & z) == z) ? '1' : '0');
+	}
+
+	b[pos] = 0;
+	snprintf(buf, size, "%s", b);
 	return buf;
 }
