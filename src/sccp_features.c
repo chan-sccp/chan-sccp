@@ -839,18 +839,17 @@ void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstanc
 	PBX_CHANNEL_TYPE *bridged_channel = NULL;
 
 	if (!d->allow_conference) {
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
 		pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, lineInstance, c->callid, "conference not allowed", 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 5);
 	} else if (!d->conference) {
 		pbx_log(LOG_NOTICE, "%s: There is currently no active conference on this device. Start Conference First.\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, lineInstance, c->callid, "No Conference to Join", 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NO_CONFERENCE_BRIDGE, 5);
 	} else if (!d->active_channel) {
 		pbx_log(LOG_NOTICE, "%s: No active channel on device to join to the conference.\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, lineInstance, c->callid, "No Active Channel", 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE, 5);
 	} else if (d->active_channel->conference) {
 		pbx_log(LOG_NOTICE, "%s: Channel is already part of a conference.\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, lineInstance, c->callid, "Already in Conference", 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_IN_CONFERENCE_ALREADY, 5);
 	} else {
 		sccp_conference_hold(d->conference);							// make sure conference is on hold
 		newparticipant_channel = d->active_channel;
@@ -879,7 +878,7 @@ void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstanc
 				sccp_conference_update(d->conference);
 			} else {
 				pbx_log(LOG_NOTICE, "%s: conference moderator could not be found on this phone\n", DEV_ID_LOG(d));
-				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+				sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_INVALID_CONFERENCE_PARTICIPANT, 5);
 			}
 		} else {
 			pbx_log(LOG_NOTICE, "%s: Cannot use the JOIN button within a conference itself\n", DEV_ID_LOG(d));
@@ -889,7 +888,7 @@ void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstanc
 	}
 #else
 	pbx_log(LOG_NOTICE, "%s: conference not enabled\n", DEV_ID_LOG(d));
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 5);
 #endif
 }
 
