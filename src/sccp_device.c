@@ -1186,7 +1186,7 @@ void sccp_dev_starttone(const sccp_device_t * d, uint8_t tone, uint8_t line, uin
 	msg->data.StartToneMessage.lel_callReference = htolel(callid);
 
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d)\n", d->id, skinny_tone2str(tone), tone);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Sending tone %s (%d) on line %d with callid %d\n", d->id, skinny_tone2str(tone), tone, line, callid);
 }
 
 /*!
@@ -1209,7 +1209,7 @@ void sccp_dev_stoptone(const sccp_device_t * d, uint8_t line, uint32_t callid)
 	msg->data.StopToneMessage.lel_lineInstance = htolel(line);
 	msg->data.StopToneMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on device\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Stop tone on line %d with callid %d\n", d->id, line, callid);
 }
 
 /*!
