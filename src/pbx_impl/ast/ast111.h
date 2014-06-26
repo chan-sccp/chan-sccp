@@ -193,7 +193,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
                         astman_send_error(s, m, "Execution Failed\n");						\
                 }												\
 		astman_append(s,										\
-		"Event: " AMI_COMMAND " Complete\r\n"								\
+		"Event: " AMI_COMMAND "Complete\r\n"								\
 		"EventList: Complete\r\n"									\
 		"ListItems: %d\r\n"										\
 		"%s"												\
