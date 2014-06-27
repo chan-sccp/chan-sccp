@@ -383,7 +383,8 @@
  * We do not have to insert a [sccpregistration] in the extensions.conf because it will
  * be created automatically as soon as the first line/extension registration occurs.
  * 
- *  * \subsection dundi_dyn DUNDI Configuration
+ *
+ * \subsection dundi_dyn1 DUNDI Configuration
  * 
  * In this example we will use IAX2 to make DUNDi Switch connections. There are a lot of 
  * ways to set this up, so please check the DUNDi documentation. We use a simple context in iax.conf

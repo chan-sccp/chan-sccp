@@ -201,10 +201,10 @@ EXIT:
  * \brief
  * Splits a string into its host and port components
  *
- * \param str[in]   The string to parse. May be modified by writing a NUL at the end of
+ * \param str	    [in] The string to parse. May be modified by writing a NUL at the end of
  *                  the host part.
- * \param host[out] Pointer to the host component within \a str.
- * \param port[out] Pointer to the port component within \a str.
+ * \param host      [out] Pointer to the host component within \a str.
+ * \param port      [out] Pointer to the port component within \a str.
  * \param flags     If set to zero, a port MAY be present. If set to PARSE_PORT_IGNORE, a
  *                  port MAY be present but will be ignored. If set to PARSE_PORT_REQUIRE,
  *                  a port MUST be present. If set to PARSE_PORT_FORBID, a port MUST NOT  
@@ -446,6 +446,7 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
 /*!
  * \brief Read Data From Socket
  * \param s SCCP Session
+ * \param msg Message Data Structure (sccp_msg_t)
  *
  * \lock
  *      - session
@@ -1030,7 +1031,7 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 /*!
  * \brief Socket Send
  * \param device SCCP Device
- * \param r Message Data Structure (sccp_msg_t)
+ * \param msg Message Data Structure (sccp_msg_t)
  * \return SCCP Session Send
  */
 int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
@@ -1047,7 +1048,7 @@ int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg)
 /*!
  * \brief Socket Send Message
  * \param s Session SCCP Session (can't be null)
- * \param r Message SCCP Moo Message (will be freed)
+ * \param msg Message Data Structure (sccp_msg_t) (Will be freed automatically at the end)
  * \return Result as Int
  *
  * \lock

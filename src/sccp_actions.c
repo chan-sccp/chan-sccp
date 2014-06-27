@@ -1226,7 +1226,6 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle LastNumber Redial Stimulus\n", d->id);
@@ -1256,7 +1255,6 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle (BLF) Speeddial Stimulus\n", d->id);
@@ -1277,7 +1275,6 @@ static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, ui
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Line Button Stimulus\n", d->id);
@@ -1355,7 +1352,6 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	/* this is the hard hold button. When we are here we are putting on hold the active_channel */
@@ -1387,7 +1383,6 @@ static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Transfer Stimulus\n", d->id);
@@ -1409,7 +1404,6 @@ static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uin
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Voicemail Stimulus\n", d->id);
@@ -1422,7 +1416,6 @@ static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, ui
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Conference Stimulus\n", d->id);
@@ -1440,7 +1433,6 @@ static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, u
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward All Stimulus\n", d->id);
@@ -1458,7 +1450,6 @@ static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, u
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward Busy Stimulus\n", d->id);
@@ -1476,7 +1467,6 @@ static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, 
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward NoAnswer Stimulus\n", d->id);
@@ -1493,7 +1483,6 @@ static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t 
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Call Park Stimulus\n", d->id);
@@ -1516,7 +1505,6 @@ static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uin
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Group Call Pickup Stimulus\n", d->id);
@@ -1536,7 +1524,6 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
  * \param l SCCP Line
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
- * \param callrefefence uint32_t
  */
 static void sccp_handle_stimulus_feature(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Feature Button Stimulus (status: %d)\n", d->id, stimulusstatus);
@@ -3430,7 +3417,7 @@ void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 /*!
  * \brief Handle Connection Statistics for Session
  * \param s SCCP Session
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param msg_in SCCP Message
  *
  * \section sccp_statistics Phone Audio Statistics

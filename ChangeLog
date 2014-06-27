@@ -1,5 +1,12 @@
 2014-06-27  ddegroot
 
+	* [r5529] ChangeLog, conf/mysql-v4.sql, conf/mysql-v5.sql,
+	  conf/postgres.sql, conf/sccp.conf, conf/sccp.conf.annotated,
+	  conf/sccp_hardware.conf.freepbx, conf/sccp_templated.conf,
+	  conf/sqlite.sql, conf/sqlite3.sql, doc/30_Setup_Guide.doc,
+	  doc/50_Frequently_Asked_Questions.doc: Removed dtmfmode from
+	  conf/doc examples
+
 	* [r5528] .version, ChangeLog, Makefile.am, Makefile.in, NEWS,
 	  debian/changelog: Preparing to release V4.2. Switching this
 	  version to Release Candidate 1 status

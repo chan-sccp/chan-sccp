@@ -567,7 +567,7 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 /*!
  * \brief Bridge two selected channels
  * \n Usage: \ref sk_dirtrfr
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
@@ -823,9 +823,9 @@ void sccp_sk_trnsfvm(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
  * \brief Initiate Private Call on Current Line
  * \n Usage: \ref sk_private
  * \param d SCCP Device
- * \param l SCCP Line
+ * \param line SCCP Line
  * \param lineInstance lineInstance as uint8_t
- * \param c SCCP Channel
+ * \param channel SCCP Channel
  *
  */
 void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineInstance, sccp_channel_t * channel)

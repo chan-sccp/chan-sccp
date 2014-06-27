@@ -668,7 +668,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
  * \param d SCCP Device
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
- * \param c SCCP Channel
+ * \param channel SCCP Channel
  * \return SCCP Channel
  * \todo Conferencing option needs to be build and implemented
  *       Using and External Conference Application Instead of Meetme makes it possible to use app_Conference, app_MeetMe, app_Konference and/or others
@@ -729,7 +729,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 
 /*!
  * \brief Handle Conference
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel
@@ -819,7 +819,7 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
 
 /*!
  * \brief Handle Join a Conference
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param l SCCP Line
  * \param lineInstance lineInstance as uint8_t
  * \param c SCCP Channel

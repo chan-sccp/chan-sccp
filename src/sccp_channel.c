@@ -304,28 +304,6 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 }
 
-// remarked out, channel->line should be read-only and constant. It should always be the same, and not changed.
-/*!
- * \brief Connect an SCCP Line to an SCCP Channel
- * \param channel SCCP Channel
- * \param line SCCP Line
- */
-#if 0
-void sccp_channel_set_line(sccp_channel_t * channel, sccp_line_t *line)
-{
-	if (!channel->line || !line) {
-		pbx_log(LOG_NOTICE, "SCCP: Major Issue, channel->line is null or would be set to null, not allowed\n");
-		return;
-	}
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-
-	if (c) {
-		sccp_line_refreplace(c->line, line);
-		sccp_channel_updateChannelDesignator(channel);
-	}
-}
-#endif
-
 /*!
  * \brief recalculating read format for channel 
  * \param channel a *retained* SCCP Channel
@@ -749,6 +727,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 /*!
  * \brief Tell Device to Close an RTP Receive Channel and Stop Media Transmission
  * \param channel SCCP Channel
+ * \param KeepPortOpen Boolean
  * \note sccp_channel_stopMediaTransmission is explicit call within this function!
  * 
  */
@@ -832,6 +811,7 @@ void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
 /*!
  * \brief Open Multi Media Channel (Video) on Channel
  * \param channel SCCP Channel
+ * \param KeepPortOpen Boolean
  */
 void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
@@ -950,6 +930,7 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
  *
  * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
  * \param channel SCCP Channel
+ * \param KeepPortOpen Boolean
  * 
  */
 void sccp_channel_stopMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
@@ -1087,6 +1068,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 /*!
  * \brief Stop Multi Media Transmission (Video) on Channel
  * \param channel SCCP Channel
+ * \param KeepPortOpen Boolean
  */
 void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
@@ -1240,7 +1222,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \param device SCCP Device that owns this channel
  * \param dial Dialed Number as char
  * \param calltype Calltype as int
- * \param linkedId PBX LinkedId which unites related calls under one specific Id.
+ * \param parentChannel SCCP Channel for which the channel was created
  * \return a *retained* SCCP Channel or NULL if something is wrong
  *
  * \callgraph
@@ -2614,7 +2596,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * \callgraph
  * \callergraph
  * 
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param state State as int
  * \return *refcounted* SCCP Channel
  */
@@ -2672,7 +2654,7 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 
 /*!
  * \brief Count Selected Channel on Device
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return count Number of Selected Channels
  * 
  */

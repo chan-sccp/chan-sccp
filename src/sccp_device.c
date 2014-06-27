@@ -299,7 +299,7 @@ void sccp_device_pre_reload(void)
 /*!
  * \brief Check Device Update Status
  * \note See \ref sccp_config_reload
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return Result as Boolean
  *
  * \callgraph
@@ -1691,7 +1691,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 /*!
  * \brief Check Ringback on Device
- * \param d SCCP Device
+ * \param device SCCP Device
  * \return Result as int
  */
 int sccp_device_check_ringback(sccp_device_t * device)
@@ -1821,7 +1821,7 @@ void sccp_dev_postregistration(void *data)
  *  clean up memory allocated by the device.
  *  if destroy is true, device will be removed from global device list
  *
- * \param d SCCP Device
+ * \param device SCCP Device
  * \param remove_from_global as boolean_t
  * \param cleanupTime Clean-up Time as uint8
  *
@@ -2617,7 +2617,7 @@ static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * devi
  * \callgraph
  * \callergraph
  *
- * \param name Device ID (hostname)
+ * \param id Device ID (SEP.....)
  * \param useRealtime Use RealTime as Boolean
  * \return SCCP Device - can bee null if device is not found
  */

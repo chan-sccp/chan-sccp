@@ -297,7 +297,7 @@
  * Configured in features.conf under pickupexten
  *
  *
- * \subsubsection sk_transfer	 	How to use the Transfer Button
+ * \subsubsection sk_transfer_button	 	How to use the Transfer Button
  *
  * Using the Transfer Button gives you the possibily to Transfer the Current Line to a New Number
  * After pressing the Transfer button you are asked to Enter a New Number to which the Line will have to be transfered
@@ -469,7 +469,7 @@
  * \endcode
  * to put the information of the/a channel in a dialplan variable.
  *
- * \subsection nf_sccp_dialplan_sccpchannel Generic CHANNEL
+ * \subsection nf_sccp_dialplan_sccpchannel1 Generic CHANNEL
  *
  * Generic Dialplan Cmd CHANNEL information provided when used with an SCCP channel.
  * 
