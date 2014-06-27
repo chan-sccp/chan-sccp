@@ -6,7 +6,6 @@ CREATE TABLE sccpdevice (
   transfer 			varchar(5) 	DEFAULT 'on',
   cfwdall 			varchar(5) 	DEFAULT 'on',
   cfwdbusy 			varchar(5) 	DEFAULT 'on',
-  dtmfmode 			varchar(10) 	DEFAULT NULL,
   imageversion			varchar(45) 	DEFAULT NULL,
   deny 				varchar(45) 	DEFAULT NULL,
   permit 			varchar(45) 	DEFAULT NULL,

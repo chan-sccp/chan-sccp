@@ -159,8 +159,6 @@ cfwdbusy = no                                                                   
 cfwdnoanswer = no                                                                 ; allow call forward when line if not being answered
 dnd = ""                                                                          ; parameter 'dnd' is obsolete. This setting has moved to the line definition. To allow/disallow dnd you should use dndFeature in device and setup dnd per line.
 dndFeature = yes                                                                  ; allow usage do not disturb button
-dtmfmode = inband                                                                 ; inband or outofband. outofband is the native cisco dtmf tone play.
-                                                                                  ; Some phone model does not play dtmf tones while connected (bug?), so the default is inband
 imageversion = ""                                                                 ; useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)
 deny = ""                                                                         ; (MULTI-ENTRY) Same as general
 permit = ""                                                                       ; (MULTI-ENTRY) This device can register only using this ip address

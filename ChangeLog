@@ -1,5 +1,9 @@
 2014-06-27  ddegroot
 
+	* [r5528] .version, ChangeLog, Makefile.am, Makefile.in, NEWS,
+	  debian/changelog: Preparing to release V4.2. Switching this
+	  version to Release Candidate 1 status
+
 	* [r5527] src/chan_sccp_enums.hh, src/pbx_impl/ast/ast106.c,
 	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
 	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
