@@ -1,3 +1,113 @@
+2014-06-27  ddegroot
+
+	* [r5527] src/chan_sccp_enums.hh, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_config.c,
+	  src/sccp_config_entries.hh, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Replacement for dtmf handling (ALways using
+	  rfc2833, old devices don't support rfc2833 so we simulate it by
+	  inserting dtmf frames into the stream).
+
+2014-06-26  ddegroot
+
+	* [r5526] src/sccp_actions.c, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_indicate.c, src/sccp_softkeys.c: Added digittimout to
+	  all displayprompt calls when used for indications
+
+	* [r5525] src/sccp_protocol.h: Added DTMF Codecs
+
+	* [r5524] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast113.h: Fix AMI
+	  Event Completion (AMI_COMMAND ' Complete') (Patch provided by Jim
+	  Dosey)
+
+	* [r5523] src/sccp_features.c: Use prefined skinny labels for some
+	  of the conference display messages
+
+	* [r5519] src/sccp_device.c: Extend debug to include line and
+	  callid when starting and stoping tone
+
+2014-06-24  ddegroot
+
+	* [r5518] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast113.h: Replace
+	  _DESCR with AMI_COMMAND to signal AMI event completion (Patch by
+	  Jim Dossey)
+
+	* [r5517] src/sccp_utils.c: Prevent compile warning about array
+	  subscript (Reported by Jim Dossey)
+
+	* [r5516] src/sccp_cli.c: Fix cli:'sccp message device(s)' command
+	  (Reported/Patched by Jim Dossey)
+
+	* [r5515] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c: Fix
+	  parsing of ALERT_INFO (reported in #232)
+
+	* [r5514] src/sccp_cli.c, src/sccp_utils.c: Fix dec2binstr (Used by
+	  cli:device_feature)
+
+	* [r5513] src/pbx_impl/ast/ast.c: Replaced dummyHangup with
+	  carefull implementation (Tested by Alena Juk)
+
+	* [r5512] src/sccp_management.c: Deprecated SCCPAnswerCall in favor
+	  of the sccp_cli version
+
+	* [r5511] src/sccp_protocol.c: Revert dtmfmode changes, back to
+	  forcing rfc2833 by default
+
+	* [r5510] src/sccp_protocol_enums.hh: Fix 7910 presentation
+
+	* [r5509] src/sccp_cli.c, src/sccp_utils.c, src/sccp_utils.h: Fix
+	  dec2binstr (Used by cli:device_feature)
+
+2014-06-23  ddegroot
+
+	* [r5508] src/sccp_cli.c, src/sccp_utils.c, src/sccp_utils.h: Added
+	  device feature binary display to 'sccp show device ...'
+
+	* [r5507] src/sccp_pbx.c: Fix AMI ChannelEvent callid output (Bug
+	  Report: 230)
+
+	* [r5506] src/sccp_config.c, src/sccp_pbx.c: Fix EarlyRTP config
+	  parser. Suppress changing callstate to proceed during softswitch
+	  (Testying negative fallout). (Patch send in by Pavel Troller).
+
+2014-06-22  ddegroot
+
+	* [r5505] src/sccp_config_entries.hh: Fix dtmfmode default value
+	  (Reported by Steven Haigh)
+
+	* [r5504] src/sccp_features.c: Fix for compile issue, when running
+	  without conference
+
+	* [r5503] src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.h,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast113.h,
+	  src/sccp_cli.c: Fixing AMI output by sccp_cli (Reported by Jim
+	  Dossey)
+
+	* [r5502] ChangeLog, conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql,
+	  conf/database_updates/update_postgresql.sql[ADD],
+	  conf/mysql-v4.sql, conf/mysql-v5.sql, conf/postgres.sql,
+	  conf/sccp.conf.annotated, conf/sqlite.sql,
+	  doc/50_Frequently_Asked_Questions.doc, src/chan_sccp.c,
+	  src/chan_sccp.h, src/chan_sccp_enums.hh, src/sccp_actions.c,
+	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config.c, src/sccp_config_entries.hh,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_softkeys.c:
+	  Replaced sccp_channelstate_t with sccp_earlyrtp_t for use by
+	  earlyrtp. Introduced new earlyrtp state, called 'immediate',
+	  which will force overlap dialing immediately when picking up the
+	  receiver. For use by experienced asterisk users only (requires
+	  special dialplan precautions) (Patch created in coorporation with
+	  Pavel Troller).
+
 2014-06-10  ddegroot
 
 	* [r5501] src/sccp_actions.c, src/sccp_features.c,

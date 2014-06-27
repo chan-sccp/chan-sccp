@@ -34,7 +34,7 @@ if ENABLE_SVN2CL
             echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
             $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
             	--include-rev \
-             	--revision-link='http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b/trunk/?pathrev=' \
+             	--revision-link='https://svn.code.sf.net/p/chan-sccp-b/code/trunk/' \
               	--ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid=' \
               	--ignore-message-starting='#' \
               	--revision HEAD:$(CHANGELOG_OLDEST); \

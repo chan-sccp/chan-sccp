@@ -1,3 +1,18 @@
+chan-sccp-b (4.2.0-1) rc1; urgency=high
+
+  [ Diederik de Groot ]
+  * New features with V4.2:
+    - Added Support for Asterisk-12
+    - Support for IPv4 and IPv6
+    - Changed DTMF Handling to always take rfc2833
+    - Multi channel Direct RTP (Partial)
+    - Enums processed using meta programming (Renewed macro implementation)
+    - Support for named callgroup / pickupgroups when using >asterisk-11
+  * Bug Fixes 
+    - Numerous smaller / bifgger fixes (Check ChangeLog for details)
+
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Fri, 27 Jun 2014 04:29:00 +0100
+
 chan-sccp-b (4.1.0-3) stable; urgency=high
 
   [ Diederik de Groot ]
