@@ -2077,7 +2077,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 	/* checking for registered lines */
 	if (!d->configurationStatistic.numberOfLines) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s for take OffHook\n", DEV_ID_LOG(s->device));
-		sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);
+		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 		return;
 	}
@@ -2154,7 +2154,7 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 
 	if (!(d->lineButtons.size > SCCP_FIRST_LINEINSTANCE)) {
 		pbx_log(LOG_NOTICE, "No lines registered on %s to put OnHook\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, 0, 0, "No lines registered!", 0);
+		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINES_REGISTERED, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
 		return;
 	}
@@ -2673,7 +2673,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) ) {
 		len = strlen(channel->dialedNumber);
 		if (len >= (SCCP_MAX_EXTENSION - 1)) {
-			sccp_dev_displayprompt(d, lineInstance, channel->callid, "No more digits", 5);
+			sccp_dev_displayprompt(d, lineInstance, channel->callid, SKINNY_DISP_NO_MORE_DIGITS, SCCP_DISPLAYSTATUS_TIMEOUT);
 		} else {
 			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: else state\n");
 			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: GLOB(digittimeoutchar) = '%c'\n",GLOB(digittimeoutchar));
@@ -2869,7 +2869,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) ) {
 		len = strlen(channel->dialedNumber);
 		if (len >= (SCCP_MAX_EXTENSION - 1)) {
-			sccp_dev_displayprompt(d, lineInstance, channel->callid, "No more digits", 5);
+			sccp_dev_displayprompt(d, lineInstance, channel->callid, SKINNY_DISP_NO_MORE_DIGITS, SCCP_DISPLAYSTATUS_TIMEOUT);
 		} else {
 			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: else state\n");
 			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: GLOB(digittimeoutchar) = '%c'\n",GLOB(digittimeoutchar));

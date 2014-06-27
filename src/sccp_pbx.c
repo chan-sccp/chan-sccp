@@ -867,7 +867,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_channel_send_callinfo(d, c);
 				sccp_dev_clearprompt(d, instance, c->callid);
-				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 
 				if (!sccp_strlen_zero(shortenedNumber)) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
@@ -930,7 +930,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_channel_send_callinfo(d, c);
 
 				sccp_dev_clearprompt(d, instance, c->callid);
-				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 				if (!sccp_strlen_zero(shortenedNumber)) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge exten '%s'\n", d->id, shortenedNumber);
 					if (sccp_feat_barge(c, shortenedNumber)) {
@@ -948,7 +948,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_channel_send_callinfo(d, c);
 				sccp_dev_clearprompt(d, instance, c->callid);
-				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 				if (!sccp_strlen_zero(shortenedNumber)) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Device request to barge conference '%s'\n", d->id, shortenedNumber);
 					if (sccp_feat_cbarge(c, shortenedNumber)) {
@@ -1014,7 +1014,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		sccp_channel_send_callinfo(d, c);
 
 		sccp_dev_clearprompt(d, instance, c->callid);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, 0);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 #endif
 
 		/*! \todo DdG: Extra wait time is incurred when checking pbx_exists_extension, when a wrong number is dialed. storing extension_exists status for sccp_log use */

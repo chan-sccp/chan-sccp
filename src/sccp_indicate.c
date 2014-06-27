@@ -221,7 +221,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				if (!c->rtp.audio.rtp && d->earlyrtp <= SCCP_EARLYRTP_PROGRESS) {
 					sccp_channel_openReceiveChannel(c);
 				}
-				sccp_dev_displayprompt(d, instance, c->callid, "Call Progress", GLOB(digittimeout));
+				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROGRESS, GLOB(digittimeout));
 			}
 			break;
 		case SCCP_CHANNELSTATE_PROCEED:

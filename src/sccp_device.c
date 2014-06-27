@@ -2343,6 +2343,7 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp
 	if (channel && channel == device->active_channel) {
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}
+	sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);						/* see if we need to display anything from the messageStack */
 }
 
