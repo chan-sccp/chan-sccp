@@ -1,5 +1,18 @@
 2014-06-27  ddegroot
 
+	* [r5531] src/chan_sccp.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_device.c, src/sccp_features.c, src/sccp_indicate.c,
+	  src/sccp_labels.h, src/sccp_pbx.c, src/sccp_softkeys.c: Moved all
+	  the text based displayprompt messages to sccp_labels.h, making
+	  localization a little easier
+
+	* [r5530] ChangeLog, Makefile.in, doc/30_Setup_Guide.doc,
+	  doc/35_How_To.doc, doc/doxygen.cfg, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_device.c, src/sccp_features.c,
+	  src/sccp_line.c, src/sccp_mwi.c, src/sccp_pbx.c,
+	  src/sccp_socket.c, src/sccp_softkeys.c, src/sccp_utils.c: Fix
+	  doxygen documentation
+
 	* [r5529] ChangeLog, conf/mysql-v4.sql, conf/mysql-v5.sql,
 	  conf/postgres.sql, conf/sccp.conf, conf/sccp.conf.annotated,
 	  conf/sccp_hardware.conf.freepbx, conf/sccp_templated.conf,
