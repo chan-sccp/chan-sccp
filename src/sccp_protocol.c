@@ -579,7 +579,7 @@ static void sccp_protocol_sendOpenReceiveChannelV3(const sccp_device_t * device,
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
 		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(0);
 	} else {
-		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(SKINNY_CODEC_RFC2833_DYNPAYLOAD);
+		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(101);
 	}
 	msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(0x0a);
 
@@ -604,7 +604,7 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
 		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(0);
 	} else {
-		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(SKINNY_CODEC_RFC2833_DYNPAYLOAD);
+		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(101);
 	}
 	msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(0x0a);
 
@@ -644,7 +644,7 @@ static void sccp_protocol_sendOpenReceiveChannelv22(const sccp_device_t * device
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
 		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(0);
 	} else {
-		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(SKINNY_CODEC_RFC2833_DYNPAYLOAD);
+		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(101);
 	}
 	msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(0x0a);
 
@@ -750,7 +750,7 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * dev
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
 		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(0);
 	} else {
-		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(SKINNY_CODEC_RFC2833_DYNPAYLOAD);
+		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(101);
 	}
 	msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(0x0a);
 
@@ -783,7 +783,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
 		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(0);
 	} else {
-		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(SKINNY_CODEC_RFC2833_DYNPAYLOAD);
+		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(101);
 	}
 	msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(0x0a);
 
@@ -817,7 +817,7 @@ static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * de
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
 		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(0);
 	} else {
-		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(SKINNY_CODEC_RFC2833_DYNPAYLOAD);
+		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(101);
 	}
 	msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(0x0a);
 	msg->data.StartMediaTransmission.v22.lel_remotePortNumber = htolel( sccp_socket_getPort(&channel->rtp.audio.phone_remote) );
