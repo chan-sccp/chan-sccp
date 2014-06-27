@@ -226,7 +226,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	if (device) {
 		channel->dtmfmode = device->dtmfmode;
 	} else {
-		channel->dtmfmode = SCCP_DTMFMODE_AUTO;
+		channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 	}
 
 	channel->isMicrophoneEnabled = sccp_always_true;
@@ -294,16 +294,14 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
-		if (SCCP_DTMFMODE_AUTO != channel->privateData->device->dtmfmode || (SCCP_DTMFMODE_AUTO == channel->privateData->device->dtmfmode && SKINNY_CALLTYPE_OUTBOUND == channel->calltype)) {
-			channel->dtmfmode = channel->privateData->device->dtmfmode;
-		}
+		channel->dtmfmode = channel->privateData->device->dtmfmode;
 		return;
 	}
 
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
-	channel->dtmfmode = SCCP_DTMFMODE_AUTO;
+	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 }
 
 // remarked out, channel->line should be read-only and constant. It should always be the same, and not changed.
