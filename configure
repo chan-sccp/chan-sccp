@@ -1662,7 +1662,7 @@ Optional Features:
   --disable-park          disable park functionality
   --disable-dirtrfr       disable direct transfer
   --disable-monitor       disable feature monitor)
-  --enable-conference     enable conference (>ast 1.6.2)(experimental)
+  --enable-conference     enable conference (>ast 1.6.2)
   --disable-manager       disabled ast manager events
   --disable-functions     disabled Dialplan functions
   --enable-indications    enable debug indications
@@ -1680,8 +1680,7 @@ Optional Features:
   --enable-video          enable streaming video (experimental)
   --enable-videolayer     enable video layer (experimental)
   --enable-distributed-devicestate
-                          enable distributed devicestate (>ast
-                          1.6.2)(experimental)
+                          enable distributed devicestate (>ast 1.6.2)
   --enable-experimental-mode
                           enable experimental mode (only for developers)
   --enable-experimental-xml

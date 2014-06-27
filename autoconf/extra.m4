@@ -684,7 +684,7 @@ AC_DEFUN([CS_DISABLE_MONITOR], [
 
 AC_DEFUN([CS_ENABLE_CONFERENCE], [
 	AC_ARG_ENABLE(conference, 
-	  AC_HELP_STRING([--enable-conference], [enable conference (>ast 1.6.2)(experimental)]), 
+	  AC_HELP_STRING([--enable-conference], [enable conference (>ast 1.6.2)]), 
 	  ac_cv_use_conference=$enableval, ac_cv_use_conference=no)
 	AS_IF([test "_${ac_cv_use_conference}" == "_yes"], [AC_DEFINE(CS_SCCP_CONFERENCE, 1, [conference enabled])])
 	AC_MSG_NOTICE([--enable-conference: ${ac_cv_use_conference}])
@@ -838,7 +838,7 @@ AC_DEFUN([CS_ENABLE_VIDEOLAYER], [
 
 AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
-	  AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)(experimental)]), 
+	  AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)]), 
 	  ac_cv_use_distributed_devicestate=$enableval, ac_cv_use_distributed_devicestate=no)
 	AS_IF([test "_${ac_cv_use_distributed_devicestate}" == "_yes"], [AC_DEFINE(distributed_devicestate, 1, [conference distributed devicestate])])
 	AC_MSG_NOTICE([--enable-distributed-devicestate: ${ac_cv_use_distributed_devicestate}])
