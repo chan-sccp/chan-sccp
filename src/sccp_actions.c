@@ -536,6 +536,11 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	}
 
 	device->device_features = letohl(msg_in->data.RegisterMessage.phone_features);
+	if ((device->device_features & SKINNY_PHONE_FEATURES_RFC2833) == SKINNY_PHONE_FEATURES_RFC2833) {
+		device->dtmfmode = SCCP_DTMFMODE_RFC2833;	
+	} else {
+		device->dtmfmode = SCCP_DTMFMODE_SKINNY;
+	}
 	device->linesRegistered = FALSE;
 
 	struct sockaddr_storage register_sas;
@@ -2869,8 +2874,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_PROGRESS || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
-		sccp_pbx_senddigit(channel, resp);
+                sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
+                sccp_pbx_senddigit(channel, resp);
 		goto EXIT_FUNC;
 	}
 

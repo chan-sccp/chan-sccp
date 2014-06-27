@@ -797,12 +797,20 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	return res;
 }
 
+#define AST_DEFAULT_EMULATE_DTMF_DURATION 100
 static int sccp_wrapper_asterisk113_sendDigits(const sccp_channel_t * channel, const char *digits)
 {
 	if (!channel || !channel->owner) {
 		pbx_log(LOG_WARNING, "No channel to send digits to\n");
 		return 0;
 	}
+//	ast_channel_undefer_dtmf(channel->owner);
+
+	if (channel->dtmfmode == SCCP_DTMFMODE_RFC2833) {
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DTMFMode is RFC2833... Skipping\n", (char *) channel->currentDeviceId);
+		return 1;
+	}
+
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 	int i;
 	PBX_FRAME_TYPE f;
@@ -826,11 +834,16 @@ static int sccp_wrapper_asterisk113_sendDigits(const sccp_channel_t * channel, c
 		f.src = "SEND DIGIT";
 		ast_queue_frame(pbx_channel, &f);
 	}
+	
 	return 1;
 }
 
 static int sccp_wrapper_asterisk113_sendDigit(const sccp_channel_t * channel, const char digit)
 {
+	if (channel->dtmfmode == SCCP_DTMFMODE_RFC2833) {
+		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DTMFMode is RFC2833... Skipping\n", (char *) channel->currentDeviceId);
+		return 1;
+	}
 	char digits[3] = "\0\0";
 
 	digits[0] = digit;
@@ -1929,6 +1942,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 		        //ast_sockaddr_to_sin(&sin_tmp, &sin);
 		        if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {				// check remote sin against local device acl (to match netmask)
 				directmedia=TRUE;
+//				ast_channel_defer_dtmf(ast);
 			}
 		}
 		if (!directmedia) {									// fallback to indirectrtp
@@ -2178,11 +2192,12 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 	if (c->owner) {
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
-		if (SCCP_DTMFMODE_INBAND == d->dtmfmode) {
-			ast_rtp_instance_dtmf_mode_set(c->rtp.audio.rtp, AST_RTP_DTMF_MODE_INBAND);
-		} else {
+		if (SCCP_DTMFMODE_SKINNY == d->dtmfmode) {
 			ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
 			ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+		} else {
+			ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
+//			ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
 		}
 
 		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(c->rtp.audio.rtp, 0));
@@ -2202,6 +2217,11 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 			ast_rtp_codecs_payloads_set_rtpmap_type_rate(codecs, NULL, skinny_codecs[i].codec, "audio", (char *) skinny_codecs[i].mimesubtype, (enum ast_rtp_options) 0, skinny_codecs[i].sample_rate);
 		}
 	}
+/*	if (SCCP_DTMFMODE_SKINNY == d->dtmfmode) {
+		// Add CISCO DTMF SKINNY payload type
+		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 121);
+		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 121, "audio", "cisco-telephone-event", 0);
+	}*/
 	d = sccp_device_release(d);
 
 	return TRUE;
@@ -2637,18 +2657,21 @@ static int sccp_wrapper_recvdigit_end(PBX_CHANNEL_TYPE * ast, char digit, unsign
 		return -1;
 	}
 	do {
+		if (c->dtmfmode == SCCP_DTMFMODE_RFC2833) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Channel(%s) DTMF Mode is RFC2833. Skipping...\n", d->id, pbx_channel_name(ast));
+			break;
+		}
+		
 		if (!(d = sccp_channel_getDevice_retained(c))) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: No SCCP DEVICE to send digit to (%s)\n", pbx_channel_name(ast));
 			break;
 		}
 
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk asked to send dtmf '%d' to channel %s. Trying to send it %s\n", digit, pbx_channel_name(ast), (d->dtmfmode) ? "outofband" : "inband");
-
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Asterisk asked to send dtmf '%d' to channel %s. Trying to send it %s\n", d->id, digit, pbx_channel_name(ast), sccp_dtmfmode2str(d->dtmfmode));
 		if (c->state != SCCP_CHANNELSTATE_CONNECTED) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Can't send the dtmf '%d' %c to a not connected channel %s\n", d->id, digit, digit, pbx_channel_name(ast));
 			break;
 		}
-
 		sccp_dev_keypadbutton(d, digit, sccp_device_find_index_for_line(d, c->line->name), c->callid);
 	} while (0);
 

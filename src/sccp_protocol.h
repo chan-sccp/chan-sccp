@@ -53,6 +53,7 @@
 #define SKINNY_PHONE_FEATURES_UNKNOWN1 			1<<20
 #define SKINNY_PHONE_FEATURES_UTF8 			1<<21
 #define SKINNY_PHONE_FEATURES_UNKNOWN2	 		1<<22
+#define SKINNY_PHONE_FEATURES_RFC2833			1<<26
 
 #define SKINNY_MaxAnnouncementList			32
 #define SKINNY_StationMaxMonitorParties			16
