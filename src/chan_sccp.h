@@ -115,6 +115,7 @@ char SCCP_REVISIONSTR[30];
 #define SCCP_FIRST_SPEEDDIALINSTANCE 1										/* whats the instance of the first speeddial button */
 
 #define SCCP_SOCKET_ACCEPT_TIMEOUT 2000
+#define SCCP_DISPLAYSTATUS_TIMEOUT 5
 
 /* Simulated Enbloc Dialing */
 #define SCCP_SIM_ENBLOC_DEVIATION 3.5

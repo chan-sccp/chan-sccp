@@ -319,7 +319,7 @@ void sccp_sk_newcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	}
 	if (!line) {
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
-		sccp_dev_displayprompt(d, 0, 0, "No line available", 5);
+		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINE_AVAILABLE, GLOB(digittimeout));
 	} else {
 		if (!adhocNumber && (strlen(line->adhocNumber) > 0)) {
 			adhocNumber = line->adhocNumber;
@@ -356,7 +356,7 @@ void sccp_sk_hold(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Hold Pressed\n", DEV_ID_LOG(d));
 	if (!c) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: No call to put on hold, check your softkeyset, hold should not be available in this situation.\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, 0, 0, "No call to put on hold.", 5);
+		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_ACTIVE_CALL_TO_PUT_ON_HOLD, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return;
 	}
 	sccp_channel_hold(c);
@@ -442,7 +442,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 
 	if (!d->dndFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Feature disabled\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
 		return;
 	}
 
@@ -600,11 +600,11 @@ void sccp_sk_dirtrfr(sccp_device_t * device, sccp_line_t * l, const uint32_t lin
 			SCCP_LIST_UNLOCK(&l->channels);
 		} else if (SCCP_RWLIST_GETSIZE(&l->channels) < 2) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Not enough channels to transfer\n", d->id);
-			sccp_dev_displayprompt(d, lineInstance, c->callid, "Not enough calls to trnsf", 5);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_NOT_ENOUGH_CALLS_TO_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 			return;
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: More than 2 channels to transfer, please use softkey select\n", d->id);
-			sccp_dev_displayprompt(d, lineInstance, c->callid, "More than 2 calls, use " SKINNY_DISP_SELECT, 5);
+			sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_MORE_THAN_TWO_CALLS ", " SKINNY_DISP_USE " " SKINNY_DISP_SELECT, SCCP_DISPLAYSTATUS_TIMEOUT);
 			return;
 		}
 	}
@@ -619,7 +619,7 @@ void sccp_sk_dirtrfr(sccp_device_t * device, sccp_line_t * l, const uint32_t lin
 	if (chan1 && chan2) {
 		//for using the sccp_channel_transfer_complete function
 		//chan2 must be in RINGOUT or CONNECTED state
-		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CALL_TRANSFER, 5);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_CALL_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_sk_dirtrfr) First Channel Status (%d), Second Channel Status (%d)\n", DEV_ID_LOG(d), chan1->state, chan2->state);
 		if (chan2->state != SCCP_CHANNELSTATE_CONNECTED && chan1->state == SCCP_CHANNELSTATE_CONNECTED) {
 			tmp = chan1;
@@ -841,7 +841,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 
 	if (!d->privacyFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: private function is not active on this device\n", d->id);
-		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE function is not active", 5);
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_PRIVATE_FEATURE_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return;
 	}
 
@@ -858,7 +858,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 			l = sccp_line_find_byid(d, instance);
 		}
 		if (!l) {
-			sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no line active", 5);
+			sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL, SCCP_DISPLAYSTATUS_TIMEOUT);
 			return;
 		}
 		instance = sccp_device_find_index_for_line(d, l->name);
@@ -868,7 +868,7 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 	}
 	
 	if (!c) {
-		sccp_dev_displayprompt(d, lineInstance, 0, "PRIVATE with no channel active", 5);
+		sccp_dev_displayprompt(d, lineInstance, 0, SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return;
 	}
 
@@ -880,11 +880,15 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 	// update device->privacyFeature.status  using sccp_feat_changed
 	//sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 	
+	// Should actually use the messageStack instead of using displayprompt directly
 	if (c->privacy) {
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 0);
+//		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 0);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 300);			// replaced with 5 min instead of always, just to make sure we return
+//		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
 		c->callInfo.presentation = 0;
 	} else {
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
+//		sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	}
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Private %s on call %d\n", d->id, c->privacy ? "enabled" : "disabled", c->callid);
 }
@@ -905,7 +909,7 @@ void sccp_sk_conference(sccp_device_t * d, sccp_line_t * l, const uint32_t lineI
 #ifdef CS_SCCP_CONFERENCE
 	sccp_feat_handle_conference(d, l, lineInstance, c);
 #else
-	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, 5);
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Conference was not compiled in\n");
 #endif
 }

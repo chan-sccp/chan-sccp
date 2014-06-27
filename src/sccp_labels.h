@@ -356,7 +356,25 @@ static const struct skinny_label {
 #define SKINNY_DISP_MESSAGES_URL					"\200\176"
 #define SKINNY_DISP_SERVICES_URL					"\200\177"
 
+// Need to be translated
 #define SKINNY_DISP_MONITOR						"Record"
 #define SKINNY_DISP_DIAL						"Dial"
+#define SKINNY_DISP_CALL_PROGRESS					"Call Progress" 
+#define SKINNY_DISP_SILENT						"Silent"
+#define SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO				"Enter number to forward to"
+
+// Errors needing to be translated
+#define SKINNY_DISP_NO_LINES_REGISTERED					"No lines registered!"
+#define SKINNY_DISP_NO_LINE_TO_TRANSFER					"No line found to transfer"
+#define SKINNY_DISP_NO_LINE_AVAILABLE					"No Line Available"
+#define SKINNY_DISP_NO_MORE_DIGITS					"No more digits"
+#define SKINNY_DISP_NO_ACTIVE_CALL_TO_PUT_ON_HOLD			"No Active call to put on hold"
+#define SKINNY_DISP_TRANSVM_WITH_NO_CHANNEL				"TRANSVM with no channel active"
+#define SKINNY_DISP_TRANSVM_WITH_NO_LINE				"TRANSVM with no line active"
+#define SKINNY_DISP_NOT_ENOUGH_CALLS_TO_TRANSFER			"Not enough calls to transfer"
+#define SKINNY_DISP_MORE_THAN_TWO_CALLS					"More that two calls"
+#define SKINNY_DISP_USE							"use"
+#define SKINNY_DISP_PRIVATE_FEATURE_NOT_ACTIVE				"Private Feature is not active"
+#define SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL			"Private without line or channel"
 
 #endif
