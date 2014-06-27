@@ -2523,7 +2523,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_DND);
 			} else {
 				if (device->dndFeature.status == SCCP_DNDMODE_SILENT) {
-					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (Silent) <<<");
+					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_SILENT ") <<<");
 				} else {
 					sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_DND, ">>> " SKINNY_DISP_DND " (" SKINNY_DISP_BUSY ") <<<");
 				}

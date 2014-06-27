@@ -184,7 +184,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			char prompt[100];
 
 			if (c->ringermode == SKINNY_RINGTYPE_URGENT) {
-				snprintf(prompt, sizeof(prompt), "<Urgent>" SKINNY_DISP_FROM ": %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
+				snprintf(prompt, sizeof(prompt), SKINNY_DISP_URGENT " " SKINNY_DISP_FROM ": %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
 			} else {
 				snprintf(prompt, sizeof(prompt), SKINNY_DISP_FROM ": %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
 			}
