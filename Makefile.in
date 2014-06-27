@@ -1042,7 +1042,7 @@ ChangeLog:	FORCE
 @ENABLE_SVN2CL_TRUE@            echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
 @ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
 @ENABLE_SVN2CL_TRUE@            	--include-rev \
-@ENABLE_SVN2CL_TRUE@             	--revision-link='http://chan-sccp-b.svn.sourceforge.net/viewvc/chan-sccp-b/trunk/?pathrev=' \
+@ENABLE_SVN2CL_TRUE@             	--revision-link='https://svn.code.sf.net/p/chan-sccp-b/code/trunk/' \
 @ENABLE_SVN2CL_TRUE@              	--ticket-link='http://sourceforge.net/tracker/?func=detail&group_id=186378&atid=917045&aid=' \
 @ENABLE_SVN2CL_TRUE@              	--ignore-message-starting='#' \
 @ENABLE_SVN2CL_TRUE@              	--revision HEAD:$(CHANGELOG_OLDEST); \

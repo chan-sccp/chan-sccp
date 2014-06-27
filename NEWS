@@ -1,10 +1,22 @@
+Version: 4.2.0_RC1
+==================
+New Features in V4.2
+ - Added Support for Asterisk-12
+ - Support for IPv4 and IPv6
+ - Changed DTMF Handling to always take rfc2833
+ - Multi channel Direct RTP (Partial)
+ - Enums processed using meta programming (Renewed macro implementation)
+ - Support for named callgroup / pickupgroups when using >asterisk-11
+
+Bug Fixes
+ - Numerous smaller / bifgger fixes (Check ChangeLog for details)
 
 Version: 4.2.0_DEV
 ==================
 New Features in V4.2
  - Direct RTP
  - Enums processed using meta programming
- - support for named callgroup / pickupgroups when using asterisk-11
+ - Support for named callgroup / pickupgroups when using >asterisk-11
 
 Bug Fixes
  - 
@@ -106,5 +118,4 @@ Fixed/Improved:
  - Direct transfer
  - Group pickup
  - Call parking
-
 
