@@ -303,7 +303,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 /*!
  * \brief Handle Hangup Request by Asterisk
- * \param c SCCP Channel
+ * \param channel SCCP Channel
  * \return Success as int
  *
  * \callgraph
@@ -545,8 +545,9 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 
 /*!
  * \brief Allocate an Asterisk Channel
- * \param c SCCP Channel
- * \param linkedId PBX LinkedId which unites related calls under one particular id
+ * \param channel SCCP Channel
+ * \param ids Void Character Pointer (either Empty / LinkedId / Channel ID, depending on the asterisk version)
+ * \param parentChannel SCCP Channel for which the channel was created
  * \return 1 on Success as uint8_t
  *
  * \callgraph

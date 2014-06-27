@@ -472,8 +472,8 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 
 /*!
  * \brief Attach a Device to a line
- * \param l SCCP Line
- * \param device SCCP Device
+ * \param line SCCP Line
+ * \param d SCCP Device
  * \param lineInstance lineInstance as uint8_t
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
@@ -577,7 +577,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 /*!
  * \brief Add a Channel to a Line
  *
- * \param l SCCP Line
+ * \param line SCCP Line
  * \param channel SCCP Channel
  * 
  * \warning
@@ -611,8 +611,8 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 /*!
  * \brief Remove a Channel from a Line
  *
- * \param l SCCP Line
- * \param c SCCP Channel
+ * \param line SCCP Line
+ * \param channel SCCP Channel
  * 
  * \warning
  *  - line->channels is not always locked

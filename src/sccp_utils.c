@@ -523,7 +523,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 
 /*!
  * \brief This is used on device reconnect attempt
- * \param sin   Socket Address In
+ * \param sas   Socket Address In
  * \return SCCP Device
  * 
  */
@@ -1218,11 +1218,12 @@ void sccp_free_ha(struct sccp_ha *ha)
  * logical and operation. Furthermore, the incoming address may be an IPv4 address
  * and need to be mapped properly before attempting to apply a rule.
  *
- * \param addr The IP address to apply the mask to.
+ * \param netaddr The IP address to apply the mask to.
  * \param netmask The netmask configured in the host access rule.
- * \param result The resultant address after applying the netmask to the given address
+ * \param result [out] The resultant address after applying the netmask to the given address
+ *
  * \retval 0 Successfully applied netmask
- * \reval -1 Failed to apply netmask
+ * \retval -1 Failed to apply netmask
  */
 static int apply_netmask(const struct sockaddr_storage *netaddr, const struct sockaddr_storage *netmask, struct sockaddr_storage *result)
 {
@@ -1263,7 +1264,7 @@ static int apply_netmask(const struct sockaddr_storage *netaddr, const struct so
  * \brief Apply a set of rules to a given IP address
  *
  * \param ha The head of the list of host access rules to follow
- * \param sin A sockaddr_in whose address is considered when matching rules
+ * \param addr A sockaddr_in whose address is considered when matching rules
  * \retval AST_SENSE_ALLOW The IP address passes our ACL
  * \retval AST_SENSE_DENY The IP address fails our ACL  
  */
@@ -1284,6 +1285,7 @@ int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr)
  *
  * \param ha The head of the list of host access rules to follow
  * \param addr An sockaddr_storage whose address is considered when matching rules
+ * \param defaultValue int value
  * \retval AST_SENSE_ALLOW The IP address passes our ACL
  * \retval AST_SENSE_DENY The IP address fails our ACL
  */

@@ -409,8 +409,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
 
 /*!
  * \brief Set MWI Line Status
- * \param d SCCP Device
- * \param l SCCP Line
+ * \param lineDevice SCCP LineDevice
  */
 void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
 {
@@ -461,7 +460,7 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
 
 /*!
  * \brief Check MWI Status for Device
- * \param device SCCP Device
+ * \param d SCCP Device
  * \note called by lineStatusChange
  */
 void sccp_mwi_check(sccp_device_t * d)
