@@ -183,11 +183,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 
 			char prompt[100];
 
-			if (c->ringermode == SKINNY_RINGTYPE_URGENT) {
-				snprintf(prompt, sizeof(prompt), SKINNY_DISP_URGENT " " SKINNY_DISP_FROM ": %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
-			} else {
-				snprintf(prompt, sizeof(prompt), SKINNY_DISP_FROM ": %s", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
-			}
+			snprintf(prompt, sizeof(prompt), "%s" SKINNY_DISP_FROM ": %s", (c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
 			sccp_dev_displayprompt(d, instance, c->callid, prompt, GLOB(digittimeout));
 
 			PBX(set_callstate) (c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
