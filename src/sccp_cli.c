@@ -1878,6 +1878,21 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 	}
 #endif	 
+	if (!strcasecmp(argv[2], "labels")) {
+		sccp_device_t *d = NULL;
+		d = sccp_device_find_byid(argv[3], FALSE);
+		if (d) {
+//			char *message = "\200\3";
+//			char *message = "\36\3";
+//			sccp_dev_displayprompt(d, 0, 0, message, GLOB(digittimeout));
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_ENTER_CLIENT_MATTER_CODE, 2);
+			sleep(2);
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CM_FALLBACK_SERVICE_OPERATING, 2);
+			sleep(2);
+			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_MAX_PHONES_EXCEEDED, 2);
+			d = sccp_device_release(d);
+		}
+	}
 #endif
 	return RESULT_FAILURE;
 }
