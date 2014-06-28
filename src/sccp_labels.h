@@ -443,7 +443,6 @@ static const struct skinny_label {
 #define SKINNY_DISP_DIAL						"Dial"
 #define SKINNY_DISP_CALL_PROGRESS					"Call Progress" 
 #define SKINNY_DISP_SILENT						"Silent"
-#define SKINNY_DISP_URGENT						"<Urgent>"
 #define SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO				"Enter number to forward to"
 
 // Errors needing to be translated
