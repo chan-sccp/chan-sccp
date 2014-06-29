@@ -1,5 +1,19 @@
 2014-06-27  ddegroot
 
+	* [r5535] src/sccp_protocol.h: Fix _ARR2STR Lookup issue reported
+	  by Pavel
+
+	* [r5534] src/sccp_device.c, src/sccp_indicate.c,
+	  src/sccp_labels.h: Replaced 2 more SKINNY_DISP labels
+
+	* [r5533] src/sccp_protocol.c, src/sccp_protocol.h: Returned back
+	  to using the value 101 instead of 0x101 for rfc2833 for now
+
+	* [r5532] ChangeLog, autoconf/extra.m4, configure: Removed
+	  '(experimental)' tag from conference and devstate configuration
+	  flags. Next step enabling them by default (;-) (Reported by Jim
+	  Dossey)
+
 	* [r5531] src/chan_sccp.h, src/sccp_actions.c, src/sccp_channel.c,
 	  src/sccp_device.c, src/sccp_features.c, src/sccp_indicate.c,
 	  src/sccp_labels.h, src/sccp_pbx.c, src/sccp_softkeys.c: Moved all
