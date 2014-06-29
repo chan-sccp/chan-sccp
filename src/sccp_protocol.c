@@ -581,7 +581,7 @@ static void sccp_protocol_sendOpenReceiveChannelV3(const sccp_device_t * device,
 	} else {
 		msg->data.OpenReceiveChannel.v3.lel_RFC2833Type = htolel(101);
 	}
-	msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(0x0a);
+	msg->data.OpenReceiveChannel.v3.lel_dtmfType = htolel(10);
 
 	sccp_dev_send(device, msg);
 }
@@ -606,7 +606,7 @@ static void sccp_protocol_sendOpenReceiveChannelV17(const sccp_device_t * device
 	} else {
 		msg->data.OpenReceiveChannel.v17.lel_RFC2833Type = htolel(101);
 	}
-	msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(0x0a);
+	msg->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
 
 	struct sockaddr_storage sas;
 //	memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
@@ -646,7 +646,7 @@ static void sccp_protocol_sendOpenReceiveChannelv22(const sccp_device_t * device
 	} else {
 		msg->data.OpenReceiveChannel.v22.lel_RFC2833Type = htolel(101);
 	}
-	msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(0x0a);
+	msg->data.OpenReceiveChannel.v22.lel_dtmfType = htolel(10);
 
 	struct sockaddr_storage sas;
 //	memcpy(&sas, &device->session->sin, sizeof(struct sockaddr_storage));
@@ -752,7 +752,7 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * dev
 	} else {
 		msg->data.StartMediaTransmission.v3.lel_RFC2833Type = htolel(101);
 	}
-	msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(0x0a);
+	msg->data.StartMediaTransmission.v3.lel_dtmfType = htolel(10);
 
 	if(channel->rtp.audio.phone_remote.ss_family == AF_INET){
 		struct sockaddr_in *in = (struct sockaddr_in *)&channel->rtp.audio.phone_remote;
@@ -785,7 +785,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 	} else {
 		msg->data.StartMediaTransmission.v17.lel_RFC2833Type = htolel(101);
 	}
-	msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(0x0a);
+	msg->data.StartMediaTransmission.v17.lel_dtmfType = htolel(10);
 
 	if (channel->rtp.audio.phone_remote.ss_family == AF_INET6) {
 		struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
@@ -819,7 +819,7 @@ static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * de
 	} else {
 		msg->data.StartMediaTransmission.v22.lel_RFC2833Type = htolel(101);
 	}
-	msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(0x0a);
+	msg->data.StartMediaTransmission.v22.lel_dtmfType = htolel(10);
 	msg->data.StartMediaTransmission.v22.lel_remotePortNumber = htolel( sccp_socket_getPort(&channel->rtp.audio.phone_remote) );
 	        
 	if (channel->rtp.audio.phone_remote.ss_family == AF_INET6) {
