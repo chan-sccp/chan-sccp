@@ -834,9 +834,7 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 			} else {
 				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, dummyHangup should remain. Will already be hungup/being hungup\n", channel->designator);
-				if (!pbx_check_hangup(pbx_channel)) {
-					ast_hangup(pbx_channel);
-				}
+				res = AST_PBX_FAILED;
 			}
 		}
 		ast_channel_unlock(pbx_channel);
