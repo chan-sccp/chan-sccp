@@ -1297,6 +1297,8 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
 	}
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
+	
+	// Handle Local Line
 	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
 	if (channel) {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, channel->callid, (l) ? l->name : "(nil)");
@@ -1315,6 +1317,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
 		}
 	}
 	
+	// Handle Shared Line
 	AUTO_RELEASE sccp_channel_t *tmpChannel = NULL;
 	if (!SCCP_RWLIST_GETSIZE(&l->channels)) {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
@@ -1337,6 +1340,11 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(d, instance, 1);
 		}
+	} else {
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
+		sccp_dev_set_activeline(d, l);
+		sccp_dev_set_cplane(d, instance, 1);
+		tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	}
 }
 
