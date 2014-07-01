@@ -224,7 +224,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 #endif
 	channel->setDevice = sccp_channel_setDevice;
 	if (device) {
-		channel->dtmfmode = device->dtmfmode;
+		channel->dtmfmode = device->getDtmfMode(device);
 	} else {
 		channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 	}
@@ -294,7 +294,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
-		channel->dtmfmode = channel->privateData->device->dtmfmode;
+		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
 		return;
 	}
 
