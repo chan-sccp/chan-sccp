@@ -130,6 +130,20 @@ static void sccp_device_setBackgroundImage(const sccp_device_t * device, const c
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
+static sccp_dtmfmode_t sccp_device_getDtfmMode(const sccp_device_t *device) 
+{
+	sccp_dtmfmode_t res = device->dtmfmode;
+	
+	if (device->dtmfmode == SCCP_DTMFMODE_AUTO) {
+		if ((device->device_features & SKINNY_PHONE_FEATURES_RFC2833) == SKINNY_PHONE_FEATURES_RFC2833) {
+			res = SCCP_DTMFMODE_RFC2833;	
+		} else {
+			res = SCCP_DTMFMODE_SKINNY;
+		}
+	}
+	return res;
+}
+
 static void sccp_device_setBackgroundImageNotSupported(const sccp_device_t * device, const char *url)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support Background Image\n", device->id);
@@ -183,6 +197,8 @@ static void sccp_device_setRingtoneNotSupported(const sccp_device_t * device, co
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
 }
+
+
 
 /*
 static void sccp_device_startStream(const sccp_device_t *device, const char *address, uint32_t port){
@@ -448,6 +464,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreviewNotSupported;
 	d->retrieveDeviceCapabilities = sccp_device_retrieveDeviceCapabilities;
 	d->setRingTone = sccp_device_setRingtoneNotSupported;
+	d->getDtmfMode = sccp_device_getDtfmMode;
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
 	return d;
@@ -2177,6 +2194,8 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
 	d->pendingUpdate = 0;
 	return 1;
 }
+
+
 
 /*!
  * \brief Send Call State to Device

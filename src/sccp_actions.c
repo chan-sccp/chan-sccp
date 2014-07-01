@@ -536,11 +536,6 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	}
 
 	device->device_features = letohl(msg_in->data.RegisterMessage.phone_features);
-	if ((device->device_features & SKINNY_PHONE_FEATURES_RFC2833) == SKINNY_PHONE_FEATURES_RFC2833) {
-		device->dtmfmode = SCCP_DTMFMODE_RFC2833;	
-	} else {
-		device->dtmfmode = SCCP_DTMFMODE_SKINNY;
-	}
 	device->linesRegistered = FALSE;
 
 	struct sockaddr_storage register_sas;

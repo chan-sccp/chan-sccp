@@ -1066,6 +1066,7 @@ struct sccp_device {
 	void (*setBackgroundImage) (const sccp_device_t * device, const char *url);				/*!< set device background image */
 	void (*displayBackgroundImagePreview) (const sccp_device_t * device, const char *url);			/*!< display background image as preview */
 	void (*setRingTone) (const sccp_device_t * device, const char *url);					/*!< set the default Ringtone */
+	sccp_dtmfmode_t (*getDtmfMode) (const sccp_device_t *device);
 
 	char *(messageStack[SCCP_MAX_MESSAGESTACK]);								/*!< Message Stack Array */
 #ifndef SCCP_ATOMIC

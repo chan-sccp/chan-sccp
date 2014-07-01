@@ -11,7 +11,8 @@ ALTER TABLE `sccpdevice` ADD `conf_play_part_announce` varchar(3) default 'on' A
 ALTER TABLE `sccpdevice` ADD `conf_mute_on_entry` varchar(3) default 'off' AFTER `conf_mute_on_entry`;
 ALTER TABLE `sccpdevice` ADD `conf_music_on_hold_class` varchar(80) default 'default' AFTER `conf_mute_on_entry`;
 ALTER TABLE `sccpdevice` ADD `conf_show_conflist` varchar(3) default 'on' AFTER `conf_music_on_hold_class`;
-ALTER TABLE `sccpdevice` REMOVE COLUMN `trustphoneip`;
+ALTER TABLE `sccpdevice` DROP COLUMN `trustphoneip`;
+ALTER TABLE `sccpdevice` DROP COLUMN `dtmfmode`;
 
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
 ALTER TABLE `sccpline` ADD `dnd` VARCHAR( 5 ) DEFAULT "on" AFTER `amaflags`;
