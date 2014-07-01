@@ -1171,12 +1171,12 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_requestAnnouncementChannel(pbx
 int sccp_wrapper_asterisk112_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
 //	ast_channel_stage_snapshot(ast_channel);
-	sccp_channel_t *c;
+	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast_channel); 
 	int res = -1;
 	struct ast_callid *callid = ast_channel_callid(ast_channel);
 	int callid_created = 0;
 
-	if ((c = get_sccp_channel_from_pbx_channel(ast_channel))) {
+	if (c) {
 		callid_created = c->pbx_callid_created;
 		c->pbx_callid_created = 0;
 		if (pbx_channel_hangupcause(ast_channel) == AST_CAUSE_ANSWERED_ELSEWHERE) {
@@ -1194,7 +1194,6 @@ int sccp_wrapper_asterisk112_hangup(PBX_CHANNEL_TYPE * ast_channel)
 	        pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
 	ast_channel_tech_pvt_set(ast_channel, NULL);
-	c = c ? sccp_channel_release(c) : NULL;
 	/* postponing ast_channel_unref to sccp_channel destructor */
 	ast_callid_threadstorage_auto_clean(callid, callid_created);
 	
