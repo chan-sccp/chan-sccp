@@ -2362,7 +2362,7 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp
 	if (channel && channel == device->active_channel) {
 		sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 	}
-	sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_PRIVACY);
+	sccp_device_clearMessageFromStack((sccp_device_t *)device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);						/* see if we need to display anything from the messageStack */
 }
 
@@ -2424,7 +2424,7 @@ static void sccp_device_indicate_proceed(const sccp_device_t * device, const uin
 /*!
  * \brief Add message to the MessageStack to be shown on the Status Line of the SCCP Device
  */
-void sccp_device_addMessageToStack(const sccp_device_t * device, const uint8_t priority, const char *message)
+void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message)
 {
 	// sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_1 "%s: (sccp_device_addMessageToStack), '%s' at priority %d \n", DEV_ID_LOG(device), message, priority);
 	if (ARRAY_LEN(device->messageStack) <= priority) {
@@ -2448,7 +2448,7 @@ void sccp_device_addMessageToStack(const sccp_device_t * device, const uint8_t p
 /*!
  * \brief Remove a message from the MessageStack to be shown on the Status Line of the SCCP Device
  */
-void sccp_device_clearMessageFromStack(const sccp_device_t * device, const uint8_t priority)
+void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
 	if (ARRAY_LEN(device->messageStack) <= priority) {
 		return;
