@@ -85,8 +85,8 @@ void sccp_dev_clean(sccp_device_t * d, boolean_t destroy, uint8_t cleanupTime);
 void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t callid);
 void sccp_dev_set_message(sccp_device_t * d, const char *msg, const int timeout, const boolean_t storedb, const boolean_t beep);
 void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb);
-void sccp_device_addMessageToStack(const sccp_device_t * device, const uint8_t priority, const char *message);
-void sccp_device_clearMessageFromStack(const sccp_device_t * device, const uint8_t priority);
+void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message);
+void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority);
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
 void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility);
 
