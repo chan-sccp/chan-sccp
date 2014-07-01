@@ -1496,9 +1496,21 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Set Connected\n", d->id);
 			sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONNECTED);
+#ifdef CS_MANAGER_EVENTS
+			if (GLOB(callevents)) {
+				manager_event(EVENT_FLAG_CALL, "CallAnswered", 	"Channel: %s\r\n" "SCCPLine: %s\r\n" "SCCPDevice: %s\r\n" 
+										"Uniqueid: %s\r\n" 
+										"CallingPartyNumber: %s\r\n" "CallingPartyName: %s\r\n" "originalCallingParty: %s\r\n" "lastRedirectingParty: %s\r\n", 
+										channel->designator, l->name, d->id, 
+										PBX(getChannelUniqueID) (channel), 
+										channel->callInfo.callingPartyNumber, channel->callInfo.callingPartyName, channel->callInfo.originalCallingPartyName, channel->callInfo.lastRedirectingPartyName
+				);
+			}
+#endif
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answered channel %s on line %s\n", d->id, channel->designator, l->name);
 		}
 	}
-	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answered channel %s-%08X\n", DEV_ID_LOG(device), l->name, channel->callid);
+	
 }
 
 /*!
