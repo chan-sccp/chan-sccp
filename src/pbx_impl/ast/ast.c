@@ -54,7 +54,7 @@ PBX_CHANNEL_TYPE *pbx_channel_walk_locked(PBX_CHANNEL_TYPE * target)
 
 	if (tmp) {
 		res = tmp;
-		tmp = ast_channel_unref(tmp);
+		tmp = pbx_channel_unref(tmp);
 		ast_channel_lock(res);
 	}
 	ast_channel_iterator_destroy(iter);
@@ -88,7 +88,7 @@ PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *,
 		return NULL;
 	}
 
-	for (; iter && (tmp = ast_channel_iterator_next(iter)); tmp = ast_channel_unref(tmp)) {
+	for (; iter && (tmp = ast_channel_iterator_next(iter)); tmp = pbx_channel_unref(tmp)) {
 		pbx_channel_lock(tmp);
 		if (is_match(tmp, data)) {
 			matched = TRUE;
@@ -103,7 +103,7 @@ PBX_CHANNEL_TYPE *pbx_channel_search_locked(int (*is_match) (PBX_CHANNEL_TYPE *,
 
 	if (matched) {
 		pbx_channel = tmp;
-		tmp = ast_channel_unref(tmp);
+		tmp = pbx_channel_unref(tmp);
 		return pbx_channel;
 	} else {
 		return NULL;
@@ -441,7 +441,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t *channel)
 	if (!channel || !channel->owner) {
 		return FALSE;
 	}
-	PBX_CHANNEL_TYPE *pbx_channel = ast_channel_ref(channel->owner);
+	PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
 	/* let's wait for a bit, for the dust to settle */
 	sched_yield();
@@ -465,7 +465,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t *channel)
 		sccp_pbx_hangup(channel);
 		res = TRUE; 
 	}
-	ast_channel_unref(pbx_channel);
+	pbx_channel_unref(pbx_channel);
 	return res;
 }
 

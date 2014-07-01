@@ -1,5 +1,8 @@
 2014-07-01  ddegroot
 
+	* [r5551] ChangeLog, Makefile.am, Makefile.in: Update make release
+	  to include revision in distributed tar.gz file
+
 	* [r5550] src/sccp_device.c, src/sccp_device.h: Fix compile
 	  warnings
 
