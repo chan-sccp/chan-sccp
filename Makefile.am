@@ -17,7 +17,7 @@ ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)
 MOSTLYCLEANFILES		= coverage
 
-distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
+distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
 	
 # Update libtool if necessary	
 libtool: @LIBTOOL_DEPS@
@@ -29,8 +29,8 @@ FORCE:
 # Update ChangeLog file from SVN Log
 ChangeLog:	FORCE
 if ENABLE_SVN2CL
-	@if svnrev=`svn info |grep Revision`; then \
-	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
+	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
+	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[${svnrev}\]"`" ];then \
             echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
             $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
             	--include-rev \
@@ -47,8 +47,8 @@ endif
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
 if ENABLE_SVN2CL
-	@if svnrev=`svn info |grep Revision`; then \
-	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
+	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
+	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r${svnrev}\]"`" ];then \
             echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
             if [ ! -d doc/html ]; then mkdir doc/html;fi; \
             $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html \
