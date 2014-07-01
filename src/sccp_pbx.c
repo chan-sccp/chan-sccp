@@ -1039,10 +1039,12 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 					/* \todo change indicate to something more suitable */
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+					c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
 					break;
 				case AST_PBX_CALL_LIMIT:
 					pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
+					c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
 					break;
 				case AST_PBX_SUCCESS:
 					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
@@ -1059,6 +1061,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			pbx_log(LOG_NOTICE, "%s: Call from '%s' to extension '%s', rejected because the extension could not be found in context '%s'\n", DEV_ID_LOG(d), l->name, shortenedNumber, pbx_channel ? pbx_channel_context(pbx_channel) : "pbx_channel==NULL");
 			/* timeout and no extension match */
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
 		}
 
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) quit\n", DEV_ID_LOG(d));
