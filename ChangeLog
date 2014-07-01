@@ -1,3 +1,62 @@
+2014-07-01  ddegroot
+
+	* [r5550] src/sccp_device.c, src/sccp_device.h: Fix compile
+	  warnings
+
+	* [r5549] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Use
+	  AUTO_RELEASE for sccp_wrapper_asterisk???_hangup
+
+	* [r5548] src/sccp_pbx.c: Make sure the channel is being hangup
+	  when softswitch has failed
+
+	* [r5547] src/sccp_actions.c: Fixed new call on a shared line which
+	  is already used by somebody else (Reported by Ian Pattison)
+
+	* [r5546] src/sccp_protocol.c: Revert dtmftype to setting 10
+
+	* [r5545] src/sccp_channel.c: Added AMI manager event during Call
+	  Answer (Requested by Jim Dossey)
+
+	* [r5544] conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql,
+	  conf/database_updates/update_postgresql.sql, src/chan_sccp.h,
+	  src/chan_sccp_enums.hh, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config_entries.hh, src/sccp_device.c,
+	  src/sccp_protocol.c: Added force_dtmfmode for people running
+	  earlyrtp=immediate and being faced with misbehaving phones (some
+	  7960) during redial and/or onhook dialing, whereby DTMF frames
+	  come in in the wrong order (Reported by Pavel). Default setting
+	  for force_dtmfmode remains AUTO and should only be changed when
+	  absolutely necessary (i.e. Experienced users)..
+
+	* [r5543] src/pbx_impl/ast/ast.c: Early fix to requestHangup issue
+	  reported by Pavel / Niklas, actual fix is still being worked on.
+
+2014-06-29  ddegroot
+
+	* [r5542] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_protocol.c: Possible fix for
+	  7960 DTMF issue (Reported by Pavel)
+
+	* [r5538] ChangeLog, tools/autorevision: Fix autorevision for git
+	  repositories
+
+2014-06-28  ddegroot
+
+	* [r5537] src/sccp_indicate.c, src/sccp_labels.h: Replaced string
+	  based SKINNY_DISP_URGENT by embedded SKINNY_DISP_FLASH for urgent
+	  calls
+
+	* [r5536] src/sccp_cli.c, src/sccp_device.c, src/sccp_labels.h:
+	  Added new labels for use in displayprompt
+
 2014-06-27  ddegroot
 
 	* [r5535] src/sccp_protocol.h: Fix _ARR2STR Lookup issue reported

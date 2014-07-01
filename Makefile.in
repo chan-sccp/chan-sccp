@@ -514,7 +514,7 @@ SUBDIRS = src doc
 ACLOCAL_AMFLAGS = -I autoconf
 AM_CPPFLAGS = $(LTDLINCL)
 MOSTLYCLEANFILES = coverage
-distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)
+distdir = $(PACKAGE)-$(SCCP_VERSION)_$(SCCP_BRANCH)_r$(SCCP_REVISION)
 all: all-recursive
 
 .SUFFIXES:
@@ -1037,8 +1037,8 @@ FORCE:
 
 # Update ChangeLog file from SVN Log
 ChangeLog:	FORCE
-@ENABLE_SVN2CL_TRUE@	@if svnrev=`svn info |grep Revision`; then \
-@ENABLE_SVN2CL_TRUE@	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
+@ENABLE_SVN2CL_TRUE@	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
+@ENABLE_SVN2CL_TRUE@	  if [ -z "`cat ChangeLog 2>/dev/null| grep "\[${svnrev}\]"`" ];then \
 @ENABLE_SVN2CL_TRUE@            echo "Generating ChangeLog from SVN $(CHANGELOG_OLDEST)->HEAD"; \
 @ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --separate-daylogs \
 @ENABLE_SVN2CL_TRUE@            	--include-rev \
@@ -1052,8 +1052,8 @@ ChangeLog:	FORCE
 
 # Update doc/html/ChangeLog.html from SVN Log
 ChangeLog-HTML:	FORCE
-@ENABLE_SVN2CL_TRUE@	@if svnrev=`svn info |grep Revision`; then \
-@ENABLE_SVN2CL_TRUE@	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r$${svnrev:10}\]"`" ];then \
+@ENABLE_SVN2CL_TRUE@	@if svnrev=`cat .revision |grep VCS_SHORT_HASH|awk -F= '{print "r" $2}'|tr -d '"'`; then \
+@ENABLE_SVN2CL_TRUE@	  if [ -z "`cat doc/html/ChangeLog_SVN2CL.html 2>/dev/null| grep "\[r${svnrev}\]"`" ];then \
 @ENABLE_SVN2CL_TRUE@            echo "Generating doc/html/ChangeLog_SVN2CL.html from SVN $(CHANGELOG_OLDEST)->HEAD"; \
 @ENABLE_SVN2CL_TRUE@            if [ ! -d doc/html ]; then mkdir doc/html;fi; \
 @ENABLE_SVN2CL_TRUE@            $(SVN2CL) --include-actions -i -a --group-by-day --title "Chan_SCCP-b ChangeLog" --separate-daylogs --include-rev --ignore-message-starting='#' --revision HEAD:$(CHANGELOG_OLDEST) --html -o doc/html/ChangeLog_SVN2CL.html \
