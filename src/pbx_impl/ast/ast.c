@@ -799,6 +799,44 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 
 }
 
+#if !defined(AST_DEFAULT_EMULATE_DTMF_DURATION)
+#define AST_DEFAULT_EMULATE_DTMF_DURATION 100
+#endif
+#if ASTERISK_VERSION_GROUP > 106
+int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
+{
+	if (!channel || !channel->owner) {
+		pbx_log(LOG_WARNING, "No channel to send digits to\n");
+		return 0;
+	}
+	//ast_channel_undefer_dtmf(channel->owner);
+	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+	int i;
+	PBX_FRAME_TYPE f = ast_null_frame;
+	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digits '%s'\n", (char *) channel->currentDeviceId, digits);
+	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
+	f.src = "SCCP";
+	for (i = 0; digits[i] != '\0'; i++) {
+		sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, digits[i]);
+
+		f.frametype = AST_FRAME_DTMF_END;								// Sending only the dmtf will force asterisk to start with DTMF_BEGIN and schedule the DTMF_END
+		f.subclass.integer = digits[i];
+//		f.len = SCCP_MIN_DTMF_DURATION;
+		f.len = AST_DEFAULT_EMULATE_DTMF_DURATION;
+		f.src = "SEND DIGIT";
+		ast_queue_frame(pbx_channel, &f);
+	}
+	return 1;
+}
+
+int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit)
+{
+	char digits[3] = "\0\0";
+	digits[0] = digit;
+	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: got a single digit '%c' -> '%s'\n", channel->currentDeviceId, digit, digits);
+	return sccp_wrapper_sendDigits(channel, digits);
+}
+#endif
 
 static void *sccp_asterisk_doPickupThread(void *data) {
 	PBX_CHANNEL_TYPE *pbx_channel = data;

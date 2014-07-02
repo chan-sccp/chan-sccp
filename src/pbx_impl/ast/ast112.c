@@ -801,61 +801,6 @@ static int sccp_wrapper_asterisk112_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	return res;
 }
 
-#define AST_DEFAULT_EMULATE_DTMF_DURATION 100
-static int sccp_wrapper_asterisk112_sendDigits(const sccp_channel_t * channel, const char *digits)
-{
-	if (!channel || !channel->owner) {
-		pbx_log(LOG_WARNING, "No channel to send digits to\n");
-		return 0;
-	}
-//	ast_channel_undefer_dtmf(channel->owner);
-
-	if (channel->dtmfmode == SCCP_DTMFMODE_RFC2833) {
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DTMFMode is RFC2833... Skipping\n", (char *) channel->currentDeviceId);
-		return 1;
-	}
-
-	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
-	int i;
-	PBX_FRAME_TYPE f;
-
-	f = ast_null_frame;
-
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digits '%s'\n", (char *) channel->currentDeviceId, digits);
-	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
-	f.src = "SCCP";
-	// CS_AST_NEW_FRAME_STRUCT
-
-	//      f.frametype = AST_FRAME_DTMF_BEGIN;
-	//      ast_queue_frame(pbx_channel, &f);
-	for (i = 0; digits[i] != '\0'; i++) {
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, digits[i]);
-
-		f.frametype = AST_FRAME_DTMF_END;								// Sending only the dmtf will force asterisk to start with DTMF_BEGIN and schedule the DTMF_END
-		f.subclass.integer = digits[i];
-		//              f.samples = SCCP_MIN_DTMF_DURATION * 8;
-		f.len = SCCP_MIN_DTMF_DURATION;
-		f.src = "SEND DIGIT";
-		ast_queue_frame(pbx_channel, &f);
-	}
-	
-	return 1;
-}
-
-static int sccp_wrapper_asterisk112_sendDigit(const sccp_channel_t * channel, const char digit)
-{
-	if (channel->dtmfmode == SCCP_DTMFMODE_RFC2833) {
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DTMFMode is RFC2833... Skipping\n", (char *) channel->currentDeviceId);
-		return 1;
-	}
-	char digits[3] = "\0\0";
-
-	digits[0] = digit;
-
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: got a single digit '%c' -> '%s'\n", channel->currentDeviceId, digit, digits);
-	return sccp_wrapper_asterisk112_sendDigits(channel, digits);
-}
-
 static void sccp_wrapper_asterisk112_setCalleridPresence(const sccp_channel_t * channel)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
@@ -2196,7 +2141,7 @@ static boolean_t sccp_wrapper_asterisk112_create_audio_rtp(sccp_channel_t * c)
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_RTCP, 1);
 
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
-		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF_COMPEN SATE, 1);
+		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
 
 		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(c->rtp.audio.rtp, 0));
 		ast_channel_set_fd(c->owner, 1, ast_rtp_instance_fd(c->rtp.audio.rtp, 1));
@@ -3247,8 +3192,8 @@ sccp_pbx_cb sccp_pbx = {
 	set_nativeVideoFormats:		sccp_wrapper_asterisk112_setNativeVideoFormats,
 
 	getPeerCodecCapabilities:	NULL,
-	send_digit:			sccp_wrapper_asterisk112_sendDigit,
-	send_digits:			sccp_wrapper_asterisk112_sendDigits,
+	send_digit:			sccp_wrapper_sendDigit,
+	send_digits:			sccp_wrapper_sendDigits,
 
 	sched_add:			sccp_wrapper_asterisk112_sched_add,
 	sched_del:			sccp_wrapper_asterisk112_sched_del,
@@ -3372,8 +3317,8 @@ struct sccp_pbx_cb sccp_pbx = {
 	.checkhangup			= sccp_wrapper_asterisk112_checkHangup,
 	
 	/* digits */
-	.send_digits 			= sccp_wrapper_asterisk112_sendDigits,
-	.send_digit 			= sccp_wrapper_asterisk112_sendDigit,
+	.send_digits 			= sccp_wrapper_sendDigits,
+	.send_digit 			= sccp_wrapper_sendDigit,
 
 	/* schedulers */
 	.sched_add 			= sccp_wrapper_asterisk112_sched_add,
