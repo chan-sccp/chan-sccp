@@ -800,12 +800,18 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) This function is for outbound calls only. Exiting\n");
 			goto EXIT_FUNC;
 		}
-
+		
 		/* assume d is the channel's device */
 		/* does it exists ? */
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 		if (!d) {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> available. Returning from dial thread. Exiting\n");
+			goto EXIT_FUNC;
+		}
+
+		if (pbx_check_hangup(pbx_channel)) {
+			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) Channel already hungup, no need to go any further. Exiting\n");
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 			goto EXIT_FUNC;
 		}
 
