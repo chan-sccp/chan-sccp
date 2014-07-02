@@ -463,7 +463,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t *c)
 //				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
 //				res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 //			}
-			if (pbx_channel_pbx(pbx_channel) || (ast_test_flag(ast_channel_flags(pbx_channel), AST_FLAG_BLOCKING) == 0) || ast_channel_state(pbx_channel) == AST_STATE_UP) {
+			if (pbx_channel_pbx(pbx_channel) || (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) == 0) || pbx_channel_state(pbx_channel) == AST_STATE_UP) {
 				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
 				res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 			} else {
