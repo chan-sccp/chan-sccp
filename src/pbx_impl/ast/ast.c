@@ -443,9 +443,11 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t *channel)
 	}
 	PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(channel->owner);
 
+	sccp_channel_stop_and_deny_scheduled_tasks(channel);
+
 	/* let's wait for a bit, for the dust to settle */
 	sched_yield();
-	pbx_safe_sleep(pbx_channel, 10000);
+	pbx_safe_sleep(pbx_channel, 1000);
 
 	/* recheck everything before going forward */
 	pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
@@ -474,6 +476,8 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 	boolean_t res = FALSE;
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
+	sccp_channel_stop_and_deny_scheduled_tasks(channel);
+
 	channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 	if (!ast_check_hangup(pbx_channel)) {							/* if channel is not already been hungup */
 		res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
@@ -486,6 +490,8 @@ boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel)
 boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel)
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
+	sccp_channel_stop_and_deny_scheduled_tasks(channel);
+
 	channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 	if (!ast_check_hangup(pbx_channel)) {
 		ast_hangup(pbx_channel);
