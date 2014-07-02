@@ -60,6 +60,7 @@ int sccp_channel_sched_endcall_by_callid(const void *data);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
+void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel);
 void sccp_channel_clean(sccp_channel_t * c);
 void sccp_channel_transfer(sccp_channel_t * c, sccp_device_t * device);
 void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c);

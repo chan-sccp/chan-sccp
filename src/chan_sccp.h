@@ -1197,6 +1197,7 @@ struct sccp_channel {
 	} enbloc;
 
 	struct {
+		boolean_t deny;
 		int digittimeout;										/*!< Schedule for Timeout on Dialing State */
 		int hangup;											/*!< Automatic hangup after invalid/congested indication */
 	} scheduler;
