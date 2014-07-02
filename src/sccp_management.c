@@ -743,11 +743,11 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	const char *hold = astman_get_header(m, "hold");
 	const char *deviceName = astman_get_header(m, "Devicename");
 	const char *swap = astman_get_header(m, "SwapChannels");
-	char *retValStr = "Channel was resumed";
+	static char *retValStr = "Channel was resumed";
 	boolean_t errorMessage = TRUE;
 
 	if (atoi(channelId)==0) {
-		snprintf(retValStr, sizeof(retValStr), "Channel Id has to be a number. You have provided: '%s'\r\n", channelId);
+		sprintf(retValStr, "Channel Id has to be a number. You have provided: '%s'\r\n", channelId);
 		astman_send_error(s, m, retValStr);
 		return 0;		
 	}
