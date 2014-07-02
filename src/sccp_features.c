@@ -1323,7 +1323,10 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 			sccp_pbx_softswitch(c);
 			return;
 		}
-		sccp_pbx_senddigits(c, line->adhocNumber);
+		//sccp_pbx_senddigits(c, line->adhocNumber);
+                if (PBX(send_digits)) {
+                        PBX(send_digits) (c, line->adhocNumber);
+                }
 	} else {
 		// Pull up a channel
 		if (GLOB(hotline)->line) {

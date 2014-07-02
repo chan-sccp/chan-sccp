@@ -678,12 +678,6 @@ static int sccp_wrapper_asterisk16_sendDigits(const sccp_channel_t * channel, co
 		return 0;
 	}
 //	ast_channel_undefer_dtmf(channel->owner);
-
-	if (channel->dtmfmode == SCCP_DTMFMODE_RFC2833) {
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DTMFMode is RFC2833... Skipping\n", (char *) channel->currentDeviceId);
-		return 1;
-	}
-
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 	int i;
 	PBX_FRAME_TYPE f;
@@ -693,16 +687,11 @@ static int sccp_wrapper_asterisk16_sendDigits(const sccp_channel_t * channel, co
 	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digits '%s'\n", (char *) channel->currentDeviceId, digits);
 	// We don't just call sccp_pbx_senddigit due to potential overhead, and issues with locking
 	f.src = "SCCP";
-	// CS_AST_NEW_FRAME_STRUCT
-
-	//      f.frametype = AST_FRAME_DTMF_BEGIN;
-	//      ast_queue_frame(pbx_channel, &f);
 	for (i = 0; digits[i] != '\0'; i++) {
 		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Sending digit %c\n", (char *) channel->currentDeviceId, digits[i]);
 
 		f.frametype = AST_FRAME_DTMF_END;								// Sending only the dmtf will force asterisk to start with DTMF_BEGIN and schedule the DTMF_END
 		f.subclass = digits[i];
-		//              f.samples = SCCP_MIN_DTMF_DURATION * 8;
 		f.len = SCCP_MIN_DTMF_DURATION;
 		f.src = "SEND DIGIT";
 		ast_queue_frame(pbx_channel, &f);
@@ -712,10 +701,6 @@ static int sccp_wrapper_asterisk16_sendDigits(const sccp_channel_t * channel, co
 
 static int sccp_wrapper_asterisk16_sendDigit(const sccp_channel_t * channel, const char digit)
 {
-	if (channel->dtmfmode == SCCP_DTMFMODE_RFC2833) {
-		sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DTMFMode is RFC2833... Skipping\n", (char *) channel->currentDeviceId);
-		return 1;
-	}
 	char digits[3] = "\0\0";
 
 	digits[0] = digit;

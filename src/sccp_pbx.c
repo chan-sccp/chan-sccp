@@ -780,7 +780,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) PBX structure already exists. Dialing instead of starting.\n");
 			/* If there are any digits, send them instead of starting the PBX */
 			if (!sccp_strlen_zero(c->dialedNumber)) {
-				sccp_pbx_senddigits(c, c->dialedNumber);
+//				sccp_pbx_senddigits(c, c->dialedNumber);
+                                if (PBX(send_digits)) {
+                                        PBX(send_digits) (channel, c->dialedNumber);
+                                }
 				sccp_channel_set_calledparty(c, "", c->dialedNumber);
 			}
 			goto EXIT_FUNC;
@@ -1077,30 +1080,6 @@ EXIT_FUNC:
 		pbx_channel_unref(pbx_channel);
 	}
 	return NULL;
-}
-
-/*!
- * \brief Send Digit to Asterisk
- * \param c SCCP Channel
- * \param digit Digit as char
- */
-void sccp_pbx_senddigit(sccp_channel_t * c, char digit)
-{
-        if (PBX(send_digit)) {
-                PBX(send_digit) (c, digit);
-        }
-}
-
-/*!
- * \brief Send Multiple Digits to Asterisk
- * \param c SCCP Channel
- * \param digits Multiple Digits as char
- */
-void sccp_pbx_senddigits(sccp_channel_t * c, const char *digits)
-{
-        if (PBX(send_digits)) {
-		PBX(send_digits) (c, digits);
-        }
 }
 
 #if 0

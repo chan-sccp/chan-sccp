@@ -2034,7 +2034,10 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			return;
 		}
 		// Channel not in use
-		sccp_pbx_senddigits(channel, k->ext);
+		//sccp_pbx_senddigits(channel, k->ext);
+		if (PBX(send_digits)) {
+		        PBX(send_digits) (channel, k->ext);
+                }
 	} else {
 		/* check Remote RINGING + gpickup */
 		AUTO_RELEASE sccp_line_t *l = NULL;
@@ -2668,8 +2671,13 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_PROGRESS || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
-		sccp_pbx_senddigit(channel, resp);
+		//sccp_pbx_senddigit(channel, resp);
+		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
+		        PBX(send_digit) (channel, resp);
+                } else {
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Phone has sent DTMF Digit %c to %s (RFC2833)\n", DEV_ID_LOG(d), resp, l->name);
+                }
 		return;
 	}
 
@@ -2740,7 +2748,11 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 				/* we shouldn't start pbx another time */
 				sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
-				sccp_pbx_senddigit(channel, resp);
+//				sccp_pbx_senddigit(channel, resp);
+				if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
+					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Force Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
+                                        PBX(send_digit) (channel, resp);
+                                }
 				return;
 			}
 
@@ -2775,206 +2787,6 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	}
 	sccp_handle_dialtone(channel);
 }
-#if 0
-void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
-{
-	int digit;
-	uint8_t lineInstance;
-	uint32_t callid;
-	char resp = '\0';
-	int len = 0;
-
-	sccp_channel_t *channel = NULL;
-	sccp_line_t *l = NULL;
-
-	digit = letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
-	lineInstance = letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
-	callid = letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
-
-	if (!d) {												// should never be possible, d should have been retained in calling function
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(s->device));
-		return;
-	}
-
-	if (lineInstance) {
-		// use channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid); instead
-		l = sccp_line_find_byid(d, lineInstance);
-	}
-	if (callid) {
-		// \todo cleanup this mess
-		if (d->active_channel && d->active_channel->callid == callid) {
-			channel = sccp_device_getActiveChannel(d);
-			if (l && channel && channel->line != l) {
-				l = sccp_line_release(l);
-			}
-			if (!l) {
-				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
-			}
-		} else {
-			if (l) {
-				channel = sccp_find_channel_on_line_byid(l, callid);
-			} else {
-				channel = sccp_channel_find_byid(callid);
-				l = (channel && channel->line) ? sccp_line_retain(channel->line) : NULL;
-			}
-		}
-	}
-
-	/* Old phones like 7912 never uses callid
-	 * so here we don't have a 
-	 * should get the active channel on device
-	 */
-	if (!channel) {
-		channel = sccp_device_getActiveChannel(d);
-		pbx_log(LOG_NOTICE, "%s: Could not find channel by callid %d on line %s with instance %d! Using active channel %d instead.\n", DEV_ID_LOG(d), callid, (l ? l->name : (channel ? channel->line->name : "Undef")), lineInstance, (channel ? channel->callid : 0));
-		if (channel && !l) {
-			l = sccp_line_retain(channel->line);
-		}
-	}
-
-	if (!channel) {
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) channel! Exiting\n", DEV_ID_LOG(d));
-		goto EXIT_FUNC;
-	}
-
-	if (!channel->owner) {
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no (active) pbx channel! Exiting\n", DEV_ID_LOG(d));
-		sccp_channel_endcall(channel);
-		goto EXIT_FUNC;
-	}
-
-	if (!l) {
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but there is no line specified! Exiting\n", DEV_ID_LOG(d));
-		goto EXIT_FUNC;
-	}
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d (Using: %s)\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state, sccp_dtmfmode2str(channel->dtmfmode));
-
-	if (digit == 14) {
-		resp = '*';
-	} else if (digit == 15) {
-		resp = '#';
-	} else if (digit >= 0 && digit <= 9) {
-		resp = '0' + digit;
-	} else {
-		resp = '0' + digit;
-		pbx_log(LOG_WARNING, "Unsupported digit %d\n", digit);
-	}
-
-	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
-	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_PROGRESS || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
-		/* we have to unlock 'cause the senddigit lock the channel */
-                sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending DTMF Digit %c(%d) to %s\n", DEV_ID_LOG(d), digit, resp, l->name);
-                sccp_pbx_senddigit(channel, resp);
-		goto EXIT_FUNC;
-	}
-
-	if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) ) {
-		len = strlen(channel->dialedNumber);
-		if (len >= (SCCP_MAX_EXTENSION - 1)) {
-			sccp_dev_displayprompt(d, lineInstance, channel->callid, SKINNY_DISP_NO_MORE_DIGITS, SCCP_DISPLAYSTATUS_TIMEOUT);
-		} else {
-			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: else state\n");
-			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: GLOB(digittimeoutchar) = '%c'\n",GLOB(digittimeoutchar));
-			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: resp = '%c'\n", resp);
-			// sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: GLOB(digittimeoutchar) %s resp\n", (GLOB(digittimeoutchar) == resp)?"==":"!=");
-
-			/* enbloc emulation */
-			double max_deviation = SCCP_SIM_ENBLOC_DEVIATION;
-			int max_time_per_digit = SCCP_SIM_ENBLOC_MAX_PER_DIGIT;
-			double variance = 0;
-			double std_deviation = 0;
-			int minimum_digit_before_check = SCCP_SIM_ENBLOC_MIN_DIGIT;
-			int lpbx_digit_usecs = 0;
-			int number_of_digits = len;
-			int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;					// new timeout if we have established we should enbloc dialing
-
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, PBX(sched_wait) (channel->scheduler.digittimeout));
-			if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {	// skip the first digit (first digit had longer delay than the rest)
-				if ((channel->enbloc.digittimeout) < (PBX(sched_wait) (channel->scheduler.digittimeout) * 1000)) {
-					lpbx_digit_usecs = (channel->enbloc.digittimeout) - (PBX(sched_wait) (channel->scheduler.digittimeout));
-				} else {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (past digittimeout)\n");
-					channel->enbloc.deactivate = 1;
-				}
-				channel->enbloc.totaldigittime += lpbx_digit_usecs;
-				channel->enbloc.totaldigittimesquared += pow(lpbx_digit_usecs, 2);
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digit entry time '%d' ms, total dial time '%d' ms, number of digits: %d\n", lpbx_digit_usecs, channel->enbloc.totaldigittime, number_of_digits);
-				if (number_of_digits >= 2) {							// prevent div/0
-					if (number_of_digits >= minimum_digit_before_check) {			// minimal number of digits before checking
-						if (lpbx_digit_usecs < max_time_per_digit) {
-							variance = ((double) channel->enbloc.totaldigittimesquared - (pow((double) channel->enbloc.totaldigittime, 2) / (double) number_of_digits)) / ((double) number_of_digits - 1);
-							std_deviation = sqrt(variance);
-							sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU sqrt((%d-((pow(%d, 2))/%d))/%d)='%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, number_of_digits - 1, std_deviation);
-							sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU totaldigittimesquared '%d', totaldigittime '%d', number_of_digits '%d', std_deviation '%2.2f', variance '%2.2f'\n", channel->enbloc.totaldigittimesquared, channel->enbloc.totaldigittime, number_of_digits, std_deviation, variance);
-							if (std_deviation < max_deviation) {
-								if (channel->enbloc.digittimeout > timeout_if_enbloc) {	// only display message and change timeout once
-									sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU FAST DIAL (new timeout=2 sec)\n");
-									channel->enbloc.digittimeout = timeout_if_enbloc;	// set new digittimeout
-								}
-							} else {
-								sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (deviation from mean '%2.2f' > maximum '%2.2f')\n", std_deviation, max_deviation);
-								channel->enbloc.deactivate = 1;
-							}
-						} else {
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (time per digit '%d' > maximum '%d')\n", lpbx_digit_usecs, max_time_per_digit);
-							channel->enbloc.deactivate = 1;
-						}
-					}
-				}
-			}
-
-			/* add digit to dialed number */
-			channel->dialedNumber[len++] = resp;
-			channel->dialedNumber[len] = '\0';
-
-			/* removing scheduled dial */
-			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-
-			// Overlap Dialing
-			if ((channel->state == SCCP_CHANNELSTATE_DIALING || channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) && PBX(getChannelPbx) (channel)) {
-				/* we shouldn't start pbx another time */
-				sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
-				sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
-				sccp_pbx_senddigit(channel, resp);
-				goto EXIT_FUNC;
-			}
-
-			/* as we're not in overlapped mode we should add timeout again */
-			if ((channel->scheduler.digittimeout = sccp_sched_add(channel->enbloc.digittimeout, sccp_pbx_sched_dial, channel)) < 0) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
-			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
-			}
-
-			if (GLOB(digittimeoutchar) == resp) {							// we dial on digit timeout char !
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Got digit timeout char '%c', dial immediately\n", GLOB(digittimeoutchar));
-				channel->dialedNumber[len] = '\0';
-				if (channel->scheduler.digittimeout) {
-					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-				}
-				sccp_safe_sleep(100);								// we would hear last keypad stroke before starting all
-				sccp_pbx_softswitch(channel);
-				goto EXIT_FUNC;
-			}
-			if (sccp_pbx_helper(channel) == SCCP_EXTENSION_EXACTMATCH) {				// we dial when helper says we have a match
-				if (channel->scheduler.digittimeout) {
-					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-				}
-				sccp_safe_sleep(100);								// we would hear last keypad stroke before starting all
-				sccp_pbx_softswitch(channel);							// channel will be released by hangup
-				goto EXIT_FUNC;
-			}
-		}
-	} else {
-		pbx_log(LOG_WARNING, "%s: keypad_button could not be handled correctly because of invalid state on line %s, channel: %d, state: %d\n", DEV_ID_LOG(d), l->name, channel->callid, channel->state);
-	}
-	sccp_handle_dialtone(channel);
-EXIT_FUNC:
-	l = l ? sccp_line_release(l) : NULL;
-	channel = channel ? sccp_channel_release(channel) : NULL;
-}
-#endif
 
 /*!
  * \brief Handle DialTone Without Lock
@@ -3673,7 +3485,10 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 					sccp_pbx_softswitch(channel);
 					return;
 				}
-				sccp_pbx_senddigits(channel, calledParty);
+//				sccp_pbx_senddigits(channel, calledParty);
+                                if (PBX(send_digits)) {
+                                        PBX(send_digits) (channel, calledParty);
+                                }
 				return;
 			}
 

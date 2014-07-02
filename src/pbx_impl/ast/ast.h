@@ -372,5 +372,9 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
+#if ASTERISK_VERSION_GROUP > 106
+int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits);
+int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
+#endif
 enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast);
 #endif
