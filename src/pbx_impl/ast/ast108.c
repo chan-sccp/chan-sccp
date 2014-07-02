@@ -728,8 +728,12 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 				SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			}
 
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-			c->scheduler.digittimeout = PBX(sched_add) (c->enbloc.digittimeout, sccp_pbx_sched_dial, c);
+			if (!c->scheduler.deny) {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
+				c->scheduler.digittimeout = PBX(sched_add) (c->enbloc.digittimeout, sccp_pbx_sched_dial, c);
+			} else {
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+			}
 			res = 0;
 			break;
 #endif
