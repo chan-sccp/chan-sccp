@@ -1745,6 +1745,18 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	return TRUE;
 }
 
+void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel) 
+{
+	channel->scheduler.deny = TRUE;
+	if (channel->scheduler.digittimeout) {
+		channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+	}
+	if (channel->scheduler.hangup) {
+		channel->scheduler.hangup = SCCP_SCHED_DEL(channel->scheduler.hangup);
+	}
+}
+
+
 /*!
  * \brief Cleanup Channel before Free.
  * \param channel SCCP Channel
@@ -1766,9 +1778,7 @@ void sccp_channel_clean(sccp_channel_t * channel)
 	// l = channel->line;
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Cleaning channel %08x\n", channel->callid);
 	
-	if (channel->scheduler.hangup) {
-		channel->scheduler.hangup = SCCP_SCHED_DEL(channel->scheduler.hangup);
-	}
+	sccp_channel_stop_and_deny_scheduled_tasks(channel);
 
 	/* mark the channel DOWN so any pending thread will terminate */
 	if (channel->owner) {
