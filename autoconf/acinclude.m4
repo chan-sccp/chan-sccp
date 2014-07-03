@@ -29,10 +29,13 @@ AC_DEFUN([CS_CHECK_PBX], [
 	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
 		 		if test -f "${PBX_ETC}/asterisk.conf"; then
 		 			PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+		 			PBX_VARLIB="$(${GREP} 'astvarlibdir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
 		 		else
 		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
+		 			PBX_VARLIB="$(${PKGCONFIG} --variable=varlibdir asterisk)"
 		 		fi
 				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
+				PBX_LDFLAGS="$LDFLAGS"
 				HAVE_ASTERISK=yes
 				AC_MSG_RESULT(found)				
 			fi 
@@ -81,19 +84,21 @@ AC_DEFUN([CS_CHECK_PBX], [
 		else
 			if test x_$found_asterisk = x_yes; then
 				AC_MSG_RESULT([Asterisk found in ${checkdir}])
+				PBX_ETC=""
 				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
 					PBX_PREFIX="${checkdir}"
 					PBX_ETC="${checkdir}/etc/asterisk"
-					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
 				elif test -f "/etc/asterisk.conf"; then
 					PBX_PREFIX=""
 					PBX_ETC="/etc/asterisk"
+				fi
+				if test -n "${PBX_ETC}"; then
 					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
-				fi 
-			
+					PBX_VARLIB="$(${GREP} 'astvarlibdir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+				fi
 				PBX_LIB="${checkdir}/lib"
 				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
-				case "$build_cpu" in
+				case "${build_cpu}" in
 					x86_64|amd64|ppc64)
 						if test -d "${checkdir}/lib64/asterisk"; then
 							PBX_LIB="${checkdir}/lib64"
@@ -101,9 +106,12 @@ AC_DEFUN([CS_CHECK_PBX], [
 						fi
 						;;
 				esac;
-				if test -z "$PBX_TEMPMODDIR"; then
+				if test -z "${PBX_TEMPMODDIR}"; then
 					PBX_TEMPMODDIR="${PBX_LIB}/asterisk/modules"
 				fi
+				if test -z "${PBX_VARLIB}"; then
+					PBX_VARLIB="${checkdir}/var/lib/asterisk"
+				fi 
 
 				LDFLAGS="$PBX_LDFLAGS"
 				HAVE_ASTERISK=yes
@@ -111,6 +119,10 @@ AC_DEFUN([CS_CHECK_PBX], [
 			fi
 		fi
 	fi
+	AC_DEFINE_UNQUOTED([PBX_ETC],"$PBX_ETC",[Define PBX_ETC])
+	AC_DEFINE_UNQUOTED([PBX_PREFIX],"$PBX_PREFIX",[Define PBX_PREFIX])
+	AC_DEFINE_UNQUOTED([PBX_MODDIR],"$PBX_TEMPMODDIR",[Define PBX_MODDIR])
+	AC_DEFINE_UNQUOTED([PBX_VARLIB],"$PBX_VARLIB",[Define PBX_VARLIB])
 	AC_SUBST([PBX_TYPE])
 	AC_SUBST([PBX_VERSION])
 	AC_SUBST([HAVE_ASTERISK])
@@ -118,6 +130,7 @@ AC_DEFUN([CS_CHECK_PBX], [
 	AC_SUBST([PBX_ETC])
 	AC_SUBST([PBX_PREFIX])
 	AC_SUBST([PBX_LIB])
+	AC_SUBST([PBX_VARLIB])
 	AC_SUBST([PBX_INCLUDE])
 	AC_SUBST([PBX_TEMPMODDIR])
 	AC_SUBST([PBX_CFLAGS])
