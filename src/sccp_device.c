@@ -1791,7 +1791,7 @@ void sccp_dev_postregistration(void *data)
 	}
 	sprintf(family, "SCCP/%s", d->id);
 	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
-		sccp_config_parse_dnd(&d->dndFeature.status, sizeof(d->dndFeature.status), (const char *) buffer, SCCP_CONFIG_DEVICE_SEGMENT);
+		d->dndFeature.status = sccp_dndmode_str2val(buffer);
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 	}
 
