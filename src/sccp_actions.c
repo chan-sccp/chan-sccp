@@ -216,6 +216,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 
 	if (GLOB(reload_in_progress)) {
 	        pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
+		sccp_session_tokenReject(s, 5);
 	        return;
 	}
 
@@ -369,6 +370,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 
 	if (GLOB(reload_in_progress)) {
 	        pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
+		sccp_session_tokenReject(s, 5);
 	        return;
 	}
 
@@ -482,6 +484,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	
 	if (GLOB(reload_in_progress)) {
 	        pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
+		s = sccp_session_reject(s, "Reload in progress");
 	        return;
 	}
 
