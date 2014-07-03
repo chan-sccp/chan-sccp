@@ -11,72 +11,117 @@ dnl REVISION: $Revision: $
 ## CS_Check_PBX	(DdG)##
 ## ------------------##
 AC_DEFUN([CS_CHECK_PBX], [
-    found_pbx="no";
-    found_asterisk="no";
-    echo "Search Path: $PBX_PATH"
-    for dir in $PBX_PATH; do
-        if test "`echo $dir | cut -c1`" == "."; then 
-	        checkdir="`pwd`/$dir"
-	else
-		checkdir="$dir"
+	found_pbx="no";
+	found_asterisk="no";
+	if test ! x"${PKGCONFIG}" = xNo; then
+		AC_MSG_CHECKING([pkg-config asterisk])
+	 	if $(${PKGCONFIG} --exists asterisk); then
+			PBX_TYPE="Asterisk"
+			PBX_ETC="$(${PKGCONFIG} --variable=etcdir asterisk)"
+			PBX_PREFIX="$(${PKGCONFIG} --variable=install_prefix asterisk)"
+			PBX_VERSION="$(${PKGCONFIG} --modversion asterisk)"
+			if test -n "${PBX_ETC}"; then
+				PBX_INCLUDE="${PBX_PREFIX}/usr/include"
+				PBX_CFLAGS="-I${PBX_INCLUDE} $(${PKGCONFIG} --cflags asterisk)"
+				PBX_CPPFLAGS="-I${PBX_CFLAGS}"
+				CFLAGS="${CFLAGS} ${PBX_CFLAGS}"
+				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
+	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
+		 		if test -f "${PBX_ETC}/asterisk.conf"; then
+		 			PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+		 		else
+		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
+		 		fi
+				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
+				HAVE_ASTERISK=yes
+				AC_MSG_RESULT(found)				
+			fi 
+		else
+			AC_MSG_RESULT(not found)
+	 	fi
 	fi
-        echo -n "checking $checkdir for PBX Installation..."
-        if test -f "$checkdir/include/asterisk/asterisk.h"; then
-            echo "yes"
-            found_pbx="yes";
-            found_asterisk="yes";
-            PBX_TYPE="Asterisk"
-            PBX_INCLUDE="$checkdir/include/asterisk"
-            PBX_CFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            break;
-        fi
-        if test -f "$checkdir/include/asterisk.h"; then
-            echo "yes"
-            found_pbx="yes";
-            found_asterisk="yes";
-            PBX_TYPE="Asterisk"
-            PBX_INCLUDE="$checkdir/include/asterisk"
-            PBX_CFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            break
-        fi
-        echo "no"
-    done
-    if test x_$found_pbx != x_yes; then
-	AC_MSG_NOTICE([Please install either the asterisk-devel package.])
-	AC_MSG_NOTICE([Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk])
-        AC_MSG_ERROR([Cannot find pbx libraries - these are required.])
-    else
-       if test x_$found_asterisk = x_yes; then
-         printf "Asterisk found in $checkdir\n";
-         PBX_LIB="$checkdir/lib"
-         LDFLAGS="$LDFLAGS -L$checkdir/lib"
-         PBX_TEMPMODDIR="$checkdir/lib/asterisk/modules"
-         case "$build_cpu" in
-            x86_64|amd64|ppc64)
-              if test -d "$checkdir/lib64/asterisk"; then
-                PBX_LIB="$checkdir/lib64"
-                PBX_TEMPMODDIR="$checkdir/lib64/asterisk/modules"
-                LDFLAGS="$LDFLAGS -L$checkdir/lib64"
-              fi
-              ;;
-         esac;
-         HAVE_ASTERISK=yes
-       fi
-    fi
-    AC_SUBST([PBX_TYPE])
-    AC_SUBST([HAVE_ASTERISK])
-    AC_SUBST([HAVE_CALLWEAVER])
-    AC_SUBST([PBX_LIB])
-    AC_SUBST([PBX_INCLUDE])
-    AC_SUBST([PBX_TEMPMODDIR])
-    AC_SUBST([PBX_CFLAGS])
-    AC_SUBST([PBX_LDFLAGS])
+	if test x_$HAVE_ASTERISK != x_yes; then
+		AC_MSG_CHECKING([Search Path: $PBX_PATH])
+		for dir in $PBX_PATH; do
+			if test "`echo $dir | cut -c1`" == "."; then 
+				checkdir="`pwd`/$dir"
+			else
+				checkdir="$dir"
+			fi
+			if test -f "${checkdir}/include/asterisk/asterisk.h"; then
+				found_pbx="yes";
+				found_asterisk="yes";
+				PBX_TYPE="Asterisk"
+				PBX_INCLUDE="${checkdir}/include/asterisk"
+				PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				AC_MSG_RESULT(found)
+				break;
+			fi
+			if test -f "${checkdir}/include/asterisk.h"; then
+				found_pbx="yes";
+				found_asterisk="yes";
+				PBX_TYPE="Asterisk"
+				PBX_INCLUDE="${checkdir}/include/asterisk"
+				PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				AC_MSG_RESULT(found)
+				break
+			fi
+			AC_MSG_RESULT(not-found)
+		done
+		if test x_$found_pbx != x_yes; then
+			AC_MSG_NOTICE([Please install either the asterisk-devel package.])
+			AC_MSG_NOTICE([Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk])
+			AC_MSG_ERROR([Cannot find pbx libraries - these are required.])
+		else
+			if test x_$found_asterisk = x_yes; then
+				AC_MSG_RESULT([Asterisk found in ${checkdir}])
+				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
+					PBX_PREFIX="${checkdir}"
+					PBX_ETC="${checkdir}/etc/asterisk"
+					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+				elif test -f "/etc/asterisk.conf"; then
+					PBX_PREFIX=""
+					PBX_ETC="/etc/asterisk"
+					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+				fi 
+			
+				PBX_LIB="${checkdir}/lib"
+				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
+				case "$build_cpu" in
+					x86_64|amd64|ppc64)
+						if test -d "${checkdir}/lib64/asterisk"; then
+							PBX_LIB="${checkdir}/lib64"
+							PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib64"
+						fi
+						;;
+				esac;
+				if test -z "$PBX_TEMPMODDIR"; then
+					PBX_TEMPMODDIR="${PBX_LIB}/asterisk/modules"
+				fi
+
+				LDFLAGS="$PBX_LDFLAGS"
+				HAVE_ASTERISK=yes
+				AC_MSG_RESULT(done)
+			fi
+		fi
+	fi
+	AC_SUBST([PBX_TYPE])
+	AC_SUBST([PBX_VERSION])
+	AC_SUBST([HAVE_ASTERISK])
+	AC_SUBST([HAVE_CALLWEAVER])
+	AC_SUBST([PBX_ETC])
+	AC_SUBST([PBX_PREFIX])
+	AC_SUBST([PBX_LIB])
+	AC_SUBST([PBX_INCLUDE])
+	AC_SUBST([PBX_TEMPMODDIR])
+	AC_SUBST([PBX_CFLAGS])
+	AC_SUBST([PBX_LDFLAGS])
 ])
 
 ## -------------------------##

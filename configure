@@ -726,8 +726,11 @@ PBX_CFLAGS
 PBX_TEMPMODDIR
 PBX_INCLUDE
 PBX_LIB
+PBX_PREFIX
+PBX_ETC
 HAVE_CALLWEAVER
 HAVE_ASTERISK
+PBX_VERSION
 PBX_TYPE
 PBX_PATH
 CHANGELOG_OLDEST
@@ -779,7 +782,6 @@ DUMPBIN
 FGREP
 LIBTOOL
 LN_S
-PKGCONFIG
 GDB
 OBJCOPY
 RPMBUILD
@@ -812,6 +814,7 @@ BUILD_HOSTNAME
 BUILD_MACHINE
 BUILD_OS
 BUILD_DATE
+PKGCONFIG
 CUT
 HEAD
 FINGER
@@ -5793,6 +5796,52 @@ fi
   test -n "$AWK" && break
 done
 test -n "$AWK" || AWK="No"
+
+	for ac_prog in pkg-config
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKGCONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $PKGCONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKGCONFIG="$PKGCONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKGCONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKGCONFIG=$ac_cv_path_PKGCONFIG
+if test -n "$PKGCONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKGCONFIG" >&5
+$as_echo "$PKGCONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  test -n "$PKGCONFIG" && break
+done
+test -n "$PKGCONFIG" || PKGCONFIG="No"
 
 
 	if test ! x"${UNAME}" = xNo; then
@@ -23365,66 +23414,120 @@ fi
 	PBX_MANDATORY="yes"
 
 
-    found_pbx="no";
-    found_asterisk="no";
-    echo "Search Path: $PBX_PATH"
-    for dir in $PBX_PATH; do
-        if test "`echo $dir | cut -c1`" == "."; then
-	        checkdir="`pwd`/$dir"
-	else
-		checkdir="$dir"
+	found_pbx="no";
+	found_asterisk="no";
+	if test ! x"${PKGCONFIG}" = xNo; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config asterisk" >&5
+$as_echo_n "checking pkg-config asterisk... " >&6; }
+	 	if $(${PKGCONFIG} --exists asterisk); then
+			PBX_TYPE="Asterisk"
+			PBX_ETC="$(${PKGCONFIG} --variable=etcdir asterisk)"
+			PBX_PREFIX="$(${PKGCONFIG} --variable=install_prefix asterisk)"
+			PBX_VERSION="$(${PKGCONFIG} --modversion asterisk)"
+			if test -n "${PBX_ETC}"; then
+				PBX_INCLUDE="${PBX_PREFIX}/usr/include"
+				PBX_CFLAGS="-I${PBX_INCLUDE} $(${PKGCONFIG} --cflags asterisk)"
+				PBX_CPPFLAGS="-I${PBX_CFLAGS}"
+				CFLAGS="${CFLAGS} ${PBX_CFLAGS}"
+				CPPFLAGS="${CPPFLAGS} ${PBX_CPPFLAGS}"
+	 			PBX_LIB="$(${PKGCONFIG} --variable=libdir asterisk)"
+		 		if test -f "${PBX_ETC}/asterisk.conf"; then
+		 			PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+		 		else
+		 			PBX_TEMPMODDIR="$(${PKGCONFIG} --variable=moddir asterisk)"
+		 		fi
+				LDFLAGS="$LDFLAGS -L${PBX_LIB} $(${PKGCONFIG} --libs asterisk)"
+				HAVE_ASTERISK=yes
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+			fi
+		else
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+	 	fi
 	fi
-        echo -n "checking $checkdir for PBX Installation..."
-        if test -f "$checkdir/include/asterisk/asterisk.h"; then
-            echo "yes"
-            found_pbx="yes";
-            found_asterisk="yes";
-            PBX_TYPE="Asterisk"
-            PBX_INCLUDE="$checkdir/include/asterisk"
-            PBX_CFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            break;
-        fi
-        if test -f "$checkdir/include/asterisk.h"; then
-            echo "yes"
-            found_pbx="yes";
-            found_asterisk="yes";
-            PBX_TYPE="Asterisk"
-            PBX_INCLUDE="$checkdir/include/asterisk"
-            PBX_CFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            PBX_CPPFLAGS="-I$checkdir/include -DHAVE_ASTERISK";
-            CFLAGS="$CFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            CPPFLAGS="$CPPFLAGS -I$checkdir/include -DHAVE_ASTERISK";
-            break
-        fi
-        echo "no"
-    done
-    if test x_$found_pbx != x_yes; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install either the asterisk-devel package." >&5
+	if test x_$HAVE_ASTERISK != x_yes; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Search Path: $PBX_PATH" >&5
+$as_echo_n "checking Search Path: $PBX_PATH... " >&6; }
+		for dir in $PBX_PATH; do
+			if test "`echo $dir | cut -c1`" == "."; then
+				checkdir="`pwd`/$dir"
+			else
+				checkdir="$dir"
+			fi
+			if test -f "${checkdir}/include/asterisk/asterisk.h"; then
+				found_pbx="yes";
+				found_asterisk="yes";
+				PBX_TYPE="Asterisk"
+				PBX_INCLUDE="${checkdir}/include/asterisk"
+				PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+				break;
+			fi
+			if test -f "${checkdir}/include/asterisk.h"; then
+				found_pbx="yes";
+				found_asterisk="yes";
+				PBX_TYPE="Asterisk"
+				PBX_INCLUDE="${checkdir}/include/asterisk"
+				PBX_CFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				PBX_CPPFLAGS="-I${checkdir}/include -DHAVE_ASTERISK";
+				CFLAGS="$CFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				CPPFLAGS="$CPPFLAGS -I${checkdir}/include -DHAVE_ASTERISK";
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
+$as_echo "found" >&6; }
+				break
+			fi
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not-found" >&5
+$as_echo "not-found" >&6; }
+		done
+		if test x_$found_pbx != x_yes; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: Please install either the asterisk-devel package." >&5
 $as_echo "$as_me: Please install either the asterisk-devel package." >&6;}
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&5
 $as_echo "$as_me: Or run ./configure --with-asterisk=PATH with PATH pointing to the directory where you installed asterisk" >&6;}
-        as_fn_error $? "Cannot find pbx libraries - these are required." "$LINENO" 5
-    else
-       if test x_$found_asterisk = x_yes; then
-         printf "Asterisk found in $checkdir\n";
-         PBX_LIB="$checkdir/lib"
-         LDFLAGS="$LDFLAGS -L$checkdir/lib"
-         PBX_TEMPMODDIR="$checkdir/lib/asterisk/modules"
-         case "$build_cpu" in
-            x86_64|amd64|ppc64)
-              if test -d "$checkdir/lib64/asterisk"; then
-                PBX_LIB="$checkdir/lib64"
-                PBX_TEMPMODDIR="$checkdir/lib64/asterisk/modules"
-                LDFLAGS="$LDFLAGS -L$checkdir/lib64"
-              fi
-              ;;
-         esac;
-         HAVE_ASTERISK=yes
-       fi
-    fi
+			as_fn_error $? "Cannot find pbx libraries - these are required." "$LINENO" 5
+		else
+			if test x_$found_asterisk = x_yes; then
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Asterisk found in ${checkdir}" >&5
+$as_echo "Asterisk found in ${checkdir}" >&6; }
+				if test -f "${checkdir}/etc/asterisk/asterisk.conf"; then
+					PBX_PREFIX="${checkdir}"
+					PBX_ETC="${checkdir}/etc/asterisk"
+					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+				elif test -f "/etc/asterisk.conf"; then
+					PBX_PREFIX=""
+					PBX_ETC="/etc/asterisk"
+					PBX_TEMPMODDIR="$(${GREP} 'astmoddir' ${PBX_ETC}/asterisk.conf|cut -d\> -f 2|tr -d ' ')"
+				fi
+
+				PBX_LIB="${checkdir}/lib"
+				PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib"
+				case "$build_cpu" in
+					x86_64|amd64|ppc64)
+						if test -d "${checkdir}/lib64/asterisk"; then
+							PBX_LIB="${checkdir}/lib64"
+							PBX_LDFLAGS="$LDFLAGS -L${checkdir}/lib64"
+						fi
+						;;
+				esac;
+				if test -z "$PBX_TEMPMODDIR"; then
+					PBX_TEMPMODDIR="${PBX_LIB}/asterisk/modules"
+				fi
+
+				LDFLAGS="$PBX_LDFLAGS"
+				HAVE_ASTERISK=yes
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: done" >&5
+$as_echo "done" >&6; }
+			fi
+		fi
+	fi
+
+
+
 
 
 
@@ -29473,11 +29576,12 @@ $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
 	if test "$enable_optimization" == "no"; then
 		strip_binaries="no"
 		CFLAGS_saved="${CFLAGS_saved} -O0 "
+		CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
 	else
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O3 "
 		GDB_FLAGS=""
-                CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
+                CPPFLAGS_saved="${CPPFLAGS_saved} -O3 -D_FORTIFY_SOURCE=2"
 	fi
 
 	if test "${enable_debug}" = "yes"; then
@@ -30201,7 +30305,7 @@ esac
 		fi
 	fi
 	CFLAGS_saved="${CFLAGS_saved} -I."			CFLAGS="${CFLAGS_saved}"
-	CPPFLAGS="${CPPFLAGS_saved}"
+	CPPFLAGS="${CPPFLAGS_saved} -I."
 
 
 
@@ -33885,12 +33989,13 @@ if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
-echo "        CPPFLAGS : ${CPPFLAGS}"
+echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
 echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
+echo "      PBX_PREFIX : ${PBX_PREFIX}"
+echo "         PBX_ETC : ${PBX_ETC}"
 echo "         PBX_LIB : ${PBX_LIB}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"
-echo "          config : /etc"
 echo "Module Directory : ${PBX_MODDIR}"
 
 if test -n "$ASTERISK_INCOMPATIBLE"; then

@@ -151,12 +151,13 @@ if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
-echo "        CPPFLAGS : ${CPPFLAGS}"
+echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
 echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
+echo "      PBX_PREFIX : ${PBX_PREFIX}"
+echo "         PBX_ETC : ${PBX_ETC}"
 echo "         PBX_LIB : ${PBX_LIB}"
 echo "     PBX_INCLUDE : ${PBX_INCLUDE}"
-echo "          config : /etc"
 echo "Module Directory : ${PBX_MODDIR}"
 
 if test -n "$ASTERISK_INCOMPATIBLE"; then
