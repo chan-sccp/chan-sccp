@@ -262,9 +262,6 @@ static const struct skinny_codec {
 	/* *INDENT-ON* */
 };
 
-#define SCCP_BLINDTRANSFER_RING				0							/*!< default */
-#define SCCP_BLINDTRANSFER_MOH				1							/*!< music on hold */
-
 #define MAX_CUSTOM_PICTURES				6
 #define MAX_LAYOUT_WITH_SAME_SERVICE			5
 #define MAX_SERVICE_TYPE				4

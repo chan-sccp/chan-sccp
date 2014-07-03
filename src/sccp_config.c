@@ -182,13 +182,9 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 sccp_value_changed_t sccp_config_parse_permithosts(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_addons(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_debug(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_ipaddress(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
@@ -611,7 +607,28 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			{
 				int enumValue = 0;
 				if (!sccp_strlen_zero(value)) {
-					enumValue = sccpConfigOption->str2enumval(value);
+					if ((enumValue = sccpConfigOption->str2enumval(value)) != -1) {
+						sccp_log(0)("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
+					} else if (sccp_true(value)) {
+						if (strcasestr(sccpConfigOption->enumentries, "On")) {
+							enumValue = sccpConfigOption->str2enumval("On");
+						} else if (strcasestr(sccpConfigOption->enumentries, "Yes")) {
+							enumValue = sccpConfigOption->str2enumval("Yes");
+						} else if (strcasestr(sccpConfigOption->enumentries, "True")) {
+							enumValue = sccpConfigOption->str2enumval("True");
+						}
+						sccp_log(0)("SCCP: Parse TRUE Value: %s -> %d\n", value, enumValue);
+					} else if (!sccp_true(value)) { 
+						if (strcasestr(sccpConfigOption->enumentries, "Off")) {
+							enumValue = sccpConfigOption->str2enumval("Off");
+						} else if (strcasestr(sccpConfigOption->enumentries, "No")) {
+							enumValue = sccpConfigOption->str2enumval("No");
+						} else if (strcasestr(sccpConfigOption->enumentries, "False")) {
+							enumValue = sccpConfigOption->str2enumval("False");
+						}
+						sccp_log(0)("SCCP: Parse FALSE Value: %s -> %d\n", value, enumValue);
+					}
+
 					if (enumValue != -1) {
 						if (*(int *) dst != enumValue) {
 							*(int *) dst = enumValue;
@@ -886,60 +903,6 @@ sccp_value_changed_t sccp_config_parse_port(void *dest, const size_t size, PBX_V
 }
 
 /*!
- * \brief Config Converter/Parser for BlindTransferIndication
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_blindtransferindication(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	boolean_t blindtransferindication = *(boolean_t *) dest;
-
-	if (sccp_strcaseequals(value, "moh")) {
-		blindtransferindication = SCCP_BLINDTRANSFER_MOH;
-	} else if (sccp_strcaseequals(value, "ring")) {
-		blindtransferindication = SCCP_BLINDTRANSFER_RING;
-	} else {
-		pbx_log(LOG_WARNING, "Invalid blindtransferindication value, should be 'moh' or 'ring'\n");
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (*(boolean_t *) dest != blindtransferindication) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		*(boolean_t *) dest = blindtransferindication;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Call Answer Order
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_callanswerorder(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	call_answer_order_t callanswerorder = *(call_answer_order_t *) dest;
-	call_answer_order_t new_value;
-
-	if (sccp_strcaseequals(value, "oldestfirst")) {
-		new_value = ANSWER_OLDEST_FIRST;
-	} else if (sccp_strcaseequals(value, "lastfirst")) {
-		new_value = ANSWER_LAST_FIRST;
-	} else {
-		return SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (callanswerorder != new_value) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		*(call_answer_order_t *) dest = new_value;
-	}
-	return changed;
-}
-
-/*!
  * \brief Config Converter/Parser for privacyFeature
  *
  * \todo malloc/calloc of privacyFeature necessary ?
@@ -971,45 +934,11 @@ sccp_value_changed_t sccp_config_parse_privacyFeature(void *dest, const size_t s
 }
 
 /*!
- * \brief Config Converter/Parser for early RTP
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_earlyrtp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_earlyrtp_t earlyrtp = *(sccp_earlyrtp_t *) dest;
-
-	if (sccp_strcaseequals(value, "none")) {
-		earlyrtp = SCCP_EARLYRTP_NONE;
-	} else if (sccp_strcaseequals(value, "offhook")) {
-		earlyrtp = SCCP_EARLYRTP_OFFHOOK;
-	} else if (sccp_strcaseequals(value, "immediate")) {
-		earlyrtp = SCCP_EARLYRTP_IMMEDIATE;
-	} else if (sccp_strcaseequals(value, "dial")) {
-		earlyrtp = SCCP_EARLYRTP_DIALING;
-	} else if (sccp_strcaseequals(value, "ringout")) {
-		earlyrtp = SCCP_EARLYRTP_RINGOUT;
-	} else if (sccp_strcaseequals(value, "progress")) {
-		earlyrtp = SCCP_EARLYRTP_PROGRESS;
-	} else {
-		pbx_log(LOG_WARNING, "Invalid earlyrtp state value, should be 'none', 'offhook', 'dial', 'ringout', 'progress'\n");
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	}
-
-	if (*(sccp_earlyrtp_t *) dest != earlyrtp) {
-		*(sccp_earlyrtp_t *) dest = earlyrtp;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-	return changed;
-}
-
-/*!
  * \brief Config Converter/Parser for mwilamp
  *
  * \note not multi_entry
  */
+/*
 sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1037,6 +966,7 @@ sccp_value_changed_t sccp_config_parse_mwilamp(void *dest, const size_t size, PB
 	}
 	return changed;
 }
+*/
 
 /*!
  * \brief Config Converter/Parser for Tos Value
@@ -1323,10 +1253,7 @@ static sccp_value_changed_t sccp_config_parse_jbflags(void *dest, const size_t s
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	struct ast_jb_conf jb = *(struct ast_jb_conf *) dest;
 
-	// pbx_log(LOG_WARNING,"Checking JITTERBUFFER: %d to %s\n", flag, value);
 	if (pbx_test_flag(&jb, flag) != (unsigned) ast_true(value)) {
-		// pbx_log(LOG_WARNING,"Setting JITTERBUFFER: %d to %s\n", flag, value);
-		// pbx_set2_flag(&jb, ast_true(value), flag);
 		pbx_set2_flag(&GLOB(global_jbconf), ast_true(value), flag);
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
@@ -2769,7 +2696,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	if (strlen(req_segment) == 0) {										// return all segments
 		int sccp_config_revision = 0;
 		sscanf(SCCP_CONFIG_REVISION, "$" "Revision: %i" "$", &sccp_config_revision);
-		astman_append(s, "Chan-sccp-b: \r\n");
+		astman_append(s, "Name: Chan-sccp-b: \r\n");
 		astman_append(s, "Branch: %s\r\n", SCCP_BRANCH);
 		astman_append(s, "Version: %s\r\n", SCCP_VERSION);
 		astman_append(s, "Revision: %s\r\n",  SCCP_REVISIONSTR);
