@@ -260,7 +260,6 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses T
 #define TRUE B_TRUE
 #endif
 typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
-typedef enum { ANSWER_LAST_FIRST = 1, ANSWER_OLDEST_FIRST = 2 } call_answer_order_t;				/*!< Enum Call Answer Order */
 typedef enum { PARK_RESULT_FAIL = 0, PARK_RESULT_SUCCESS = 1 } sccp_parkresult_t;				/*!< Enum Park Result */
 typedef enum {
 	/* *INDENT-OFF* */
@@ -1311,7 +1310,7 @@ struct sccp_global_vars {
 	boolean_t privacy;											/*!< Privacy Support (Length=2) */
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp (Length:3) */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
-	boolean_t blindtransferindication;									/*!< Blind Transfer Indication Support (Boolean, default=on = SCCP_BLINDTRANSFER_MOH) */
+	sccp_blindtransferindication_t blindtransferindication;							/*!< Blind Transfer Indication Support (Boolean, default=on = SCCP_BLINDTRANSFER_MOH) */
 	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */
 	boolean_t cfwdbusy;											/*!< Call Forward on Busy Support (Boolean, default=on) */
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
@@ -1323,7 +1322,7 @@ struct sccp_global_vars {
 	sccp_group_t pickupgroup;										/*!< PickUp Group */
 	boolean_t directed_pickup_modeanswer;									/*!< Directed PickUp Mode Answer (boolean, default" on) */
 #endif
-	call_answer_order_t callanswerorder;									/*!< Call Answer Order */
+	sccp_call_answer_order_t callanswerorder;								/*!< Call Answer Order */
 	boolean_t meetme;											/*!< Meetme on/off */
 	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
 	boolean_t allowAnonymous;										/*!< Allow Anonymous/Guest Devices */
