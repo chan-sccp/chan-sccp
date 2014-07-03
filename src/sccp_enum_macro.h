@@ -30,8 +30,8 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char *lo
 /*
  * FASE 2: Generate All Entries char[] (Used for error messages)
  */
-#define BEGIN_ENUM(NAMESPACE, ENUM_NAME, SPARSE) static const char NAMESPACE##_##ENUM_NAME##_all_entries[] = 
-#define ENUM_ELEMENT(element, index, str) str " "
+#define BEGIN_ENUM(NAMESPACE, ENUM_NAME, SPARSE) static const char NAMESPACE##_##ENUM_NAME##_all_entries[] = "|"
+#define ENUM_ELEMENT(element, index, str) str "|"
 #define END_ENUM(NAMESPACE, ENUM_NAME, SPARSE) ;
 #define BEGIN_LONGENUM BEGIN_ENUM
 #define LONGENUM_ELEMENT ENUM_ELEMENT
