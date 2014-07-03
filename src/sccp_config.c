@@ -191,7 +191,6 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 
 #include "sccp_config_entries.hh"
 
@@ -1205,42 +1204,6 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}
 	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for DND Values
- * \note 0/off is allow and 1/on is reject
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	uint8_t dndmode;
-
-	if (sccp_strcaseequals(value, "reject")) {
-		dndmode = SCCP_DNDMODE_REJECT;
-	} else if (sccp_strcaseequals(value, "silent")) {
-		dndmode = SCCP_DNDMODE_SILENT;
-	} else if (sccp_strcaseequals(value, "user")) {
-		dndmode = SCCP_DNDMODE_USERDEFINED;
-	} else if (sccp_strcaseequals(value, "")) {
-		dndmode = SCCP_DNDMODE_OFF;
-	} else {
-		dndmode = sccp_true(value);
-	}
-
-	if ((*(uint8_t *) dest) != dndmode) {
-		(*(uint8_t *) dest) = dndmode;
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
-
-	return changed;
-}
-
-sccp_value_changed_t sccp_config_parse_dnd_wrapper(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
-{
-	return sccp_config_parse_dnd(dest, size, strdupa(v->value), segment);
 }
 
 /*!

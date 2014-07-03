@@ -34,7 +34,6 @@ typedef enum {
 } sccp_config_segment_t;
 
 void sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t * device, const sccp_config_segment_t segment);
-sccp_value_changed_t sccp_config_parse_dnd(void *dest, const size_t size, const char *value, const sccp_config_segment_t segment);
 int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
 
 /*!
