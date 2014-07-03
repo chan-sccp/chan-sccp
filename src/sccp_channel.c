@@ -1192,7 +1192,9 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 		if (channel->privateData->device) {
-			if (GLOB(transfer_on_hangup)) {								/* Complete transfer when one is in progress */
+			if (GLOB(transfer_on_hangup) && 								/* Complete transfer when one is in progress */
+			   (channel->state != SCCP_CHANNELSTATE_BUSY || channel->state != SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state != SCCP_CHANNELSTATE_CONGESTION))
+			{
 				sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
 				sccp_channel_t *transferer = channel->privateData->device->transferChannels.transferer;
 				if (	(transferee && transferer) && (channel == transferer) && 
