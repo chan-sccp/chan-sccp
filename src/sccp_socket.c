@@ -997,7 +997,7 @@ void *sccp_socket_thread(void *ignore)
 		} else if (res == 0) {
 			// poll timeout
 		} else {
-			if (GLOB(module_running)) {
+			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 				sccp_accept_connection();
 			}
