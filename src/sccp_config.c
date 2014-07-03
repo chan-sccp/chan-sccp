@@ -609,20 +609,20 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 					if ((enumValue = sccpConfigOption->str2enumval(value)) != -1) {
 						sccp_log(0)("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					} else if (sccp_true(value)) {
-						if (strcasestr(sccpConfigOption->enumentries, "On")) {
+						if (strcasestr(sccpConfigOption->enumentries, "|On|")) {
 							enumValue = sccpConfigOption->str2enumval("On");
-						} else if (strcasestr(sccpConfigOption->enumentries, "Yes")) {
+						} else if (strcasestr(sccpConfigOption->enumentries, "|Yes|")) {
 							enumValue = sccpConfigOption->str2enumval("Yes");
-						} else if (strcasestr(sccpConfigOption->enumentries, "True")) {
+						} else if (strcasestr(sccpConfigOption->enumentries, "|True|")) {
 							enumValue = sccpConfigOption->str2enumval("True");
 						}
 						sccp_log(0)("SCCP: Parse TRUE Value: %s -> %d\n", value, enumValue);
 					} else if (!sccp_true(value)) { 
-						if (strcasestr(sccpConfigOption->enumentries, "Off")) {
+						if (strcasestr(sccpConfigOption->enumentries, "|Off|")) {
 							enumValue = sccpConfigOption->str2enumval("Off");
-						} else if (strcasestr(sccpConfigOption->enumentries, "No")) {
+						} else if (strcasestr(sccpConfigOption->enumentries, "|No|")) {
 							enumValue = sccpConfigOption->str2enumval("No");
-						} else if (strcasestr(sccpConfigOption->enumentries, "False")) {
+						} else if (strcasestr(sccpConfigOption->enumentries, "|False|")) {
 							enumValue = sccpConfigOption->str2enumval("False");
 						}
 						sccp_log(0)("SCCP: Parse FALSE Value: %s -> %d\n", value, enumValue);
@@ -2743,7 +2743,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							case SCCP_CONFIG_DATATYPE_ENUM:
 								astman_append(s, "Type: ENUM\r\n");
 								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
-								astman_append(s, "Possible Values: [ %s]\r\n", config->enumentries);
+								astman_append(s, "Possible Values: %s\r\n", config->enumentries);
 								break;
 						}
 						if (config->defaultValue && !strlen(config->defaultValue) == 0) {
