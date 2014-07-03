@@ -214,6 +214,11 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	deviceInstance = letohl(msg_in->data.RegisterTokenRequest.sId.lel_instance);
 	deviceType = letohl(msg_in->data.RegisterTokenRequest.lel_deviceType);
 
+	if (GLOB(reload_in_progress)) {
+	        pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
+	        return;
+	}
+
 	// sccp_dump_msg(msg_in);
 	if (!skinny_does_devicetype_exist(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n"
@@ -362,6 +367,11 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 	deviceName = sccp_strdupa(msg_in->data.RegisterTokenRequest.sId.deviceName);
 	deviceType = letohl(msg_in->data.SPCPRegisterTokenRequest.lel_deviceType);
 
+	if (GLOB(reload_in_progress)) {
+	        pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
+	        return;
+	}
+
 	if (!skinny_does_devicetype_exist(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n"
 			"Please send this device type number plus the information about the phone model you are using to one of our developers.\n" 
@@ -469,8 +479,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	uint32_t ipV4AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV4AddressScope);
 	uint32_t maxNumberOfLines = letohl(msg_in->data.RegisterMessage.lel_maxNumberOfLines);
 	uint32_t ipV6AddressScope = letohl(msg_in->data.RegisterMessage.lel_ipV6AddressScope);
-
 	
+	if (GLOB(reload_in_progress)) {
+	        pbx_log(LOG_NOTICE, "SCCP: Reload in progress. Come back later.\n");
+	        return;
+	}
+
 	if (!skinny_does_devicetype_exist(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n"
 			"Please send this device type number plus the information about the phone model you are using to one of our developers.\n" 
