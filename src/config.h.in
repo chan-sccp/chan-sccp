@@ -816,8 +816,17 @@
 /* Define PBX_CHANNEL_TYPE as 'struct ast_channel' */
 #undef PBX_CHANNEL_TYPE
 
+/* Define PBX_ETC */
+#undef PBX_ETC
+
 /* Define PBX_FRAME as 'struct ast_frame' */
 #undef PBX_FRAME_TYPE
+
+/* Define PBX_MODDIR */
+#undef PBX_MODDIR
+
+/* Define PBX_PREFIX */
+#undef PBX_PREFIX
 
 /* Defined PBX_RTP_TYPE as 'struct ast_rtp' */
 #undef PBX_RTP_TYPE
@@ -827,6 +836,9 @@
 
 /* Defined PBX_VARIABLE as 'struct ast_variable' */
 #undef PBX_VARIABLE_TYPE
+
+/* Define PBX_VARLIB */
+#undef PBX_VARLIB
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */

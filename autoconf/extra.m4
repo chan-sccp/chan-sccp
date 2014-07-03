@@ -568,7 +568,11 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_MSG_NOTICE([--enable-optimization: ${enable_optimization}])
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
- 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
+	if test -n "${CPPFLAGS_saved}"; then
+	 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
+ 	else 
+ 		CPPFLAGS_saved="-U_FORTIFY_SOURCE"
+ 	fi
 	if test "$enable_optimization" == "no"; then 
 		strip_binaries="no"
 		CFLAGS_saved="${CFLAGS_saved} -O0 "
@@ -618,7 +622,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 	fi
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved}"
-	CPPFLAGS="${CPPFLAGS_saved} -I."
+	CPPFLAGS="${CPPFLAGS_saved} -I. "
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
 ])
