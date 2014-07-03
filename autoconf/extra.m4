@@ -20,6 +20,7 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_PROGS(HEAD,head,No)
 	AC_PATH_PROGS(CUT,cut,No)
 	AC_PATH_PROGS(AWK,awk,No)
+	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
 
 	if test ! x"${UNAME}" = xNo; then
 	    if test -n $BUILD_OS ; then
@@ -571,11 +572,12 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	if test "$enable_optimization" == "no"; then 
 		strip_binaries="no"
 		CFLAGS_saved="${CFLAGS_saved} -O0 "
+		CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
 	else
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O3 "
 		GDB_FLAGS=""
-                CPPFLAGS_saved="${CPPFLAGS_saved} -D_FORTIFY_SOURCE=2"
+                CPPFLAGS_saved="${CPPFLAGS_saved} -O3 -D_FORTIFY_SOURCE=2"
 	fi
 	
 	if test "${enable_debug}" = "yes"; then
@@ -616,7 +618,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 	fi
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved}"
-	CPPFLAGS="${CPPFLAGS_saved}"
+	CPPFLAGS="${CPPFLAGS_saved} -I."
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
 ])
