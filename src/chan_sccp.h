@@ -839,7 +839,6 @@ struct sccp_line {
 	boolean_t silencesuppression;										/*!< Silence Suppression Phone Support */
 	boolean_t meetme;											/*!< Meetme on/off */
 	boolean_t transfer;											/*!< Transfer Phone Support */
-	uint16_t dnd;												/*!< dnd on line */
 	uint16_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 
 	SCCP_LIST_HEAD (, sccp_mailbox_t) mailboxes;								/*!< Mailbox Linked List Entry. To check for messages */
@@ -1287,7 +1286,7 @@ struct sccp_global_vars {
 	uint8_t transfer_tone;											/*!< Transfer Tone */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
-	boolean_t dndmode;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
+	boolean_t dndFeature;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
 	uint16_t protocolversion;										/*!< Skinny Protocol Version */
 	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 
