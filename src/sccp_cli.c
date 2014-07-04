@@ -531,7 +531,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #else
 	CLI_AMI_OUTPUT_BOOL("Call Events", CLI_AMI_LIST_WIDTH, FALSE);
 #endif
-	CLI_AMI_OUTPUT_BOOL("DND", CLI_AMI_LIST_WIDTH, GLOB(dndmode));
+	CLI_AMI_OUTPUT_BOOL("DND Feature enabled", CLI_AMI_LIST_WIDTH, GLOB(dndmode));
 #ifdef CS_SCCP_PARK
 	CLI_AMI_OUTPUT_BOOL("Park", CLI_AMI_LIST_WIDTH, FALSE);
 #else
