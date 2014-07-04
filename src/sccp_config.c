@@ -607,7 +607,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 				int enumValue = 0;
 				if (!sccp_strlen_zero(value)) {
 					if ((enumValue = sccpConfigOption->str2enumval(value)) != -1) {
-						sccp_log(0)("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
+						sccp_log(DEBUGCAT_HIGH)("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
 					} else if (sccp_true(value)) {
 						if (strcasestr(sccpConfigOption->enumentries, "|On|")) {
 							enumValue = sccpConfigOption->str2enumval("On");
@@ -616,7 +616,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 						} else if (strcasestr(sccpConfigOption->enumentries, "|True|")) {
 							enumValue = sccpConfigOption->str2enumval("True");
 						}
-						sccp_log(0)("SCCP: Parse TRUE Value: %s -> %d\n", value, enumValue);
+						sccp_log(DEBUGCAT_HIGH)("SCCP: Parse TRUE Value: %s -> %d\n", value, enumValue);
 					} else if (!sccp_true(value)) { 
 						if (strcasestr(sccpConfigOption->enumentries, "|Off|")) {
 							enumValue = sccpConfigOption->str2enumval("Off");
@@ -625,7 +625,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 						} else if (strcasestr(sccpConfigOption->enumentries, "|False|")) {
 							enumValue = sccpConfigOption->str2enumval("False");
 						}
-						sccp_log(0)("SCCP: Parse FALSE Value: %s -> %d\n", value, enumValue);
+						sccp_log(DEBUGCAT_HIGH)("SCCP: Parse FALSE Value: %s -> %d\n", value, enumValue);
 					}
 
 					if (enumValue != -1) {
@@ -668,6 +668,9 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 				}
 			}
 		}
+	}
+	if (SCCP_CONFIG_CHANGE_INVALIDVALUE == changed) {
+		pbx_log(LOG_NOTICE, "SCCP: Option Description: %s\n", sccpConfigOption->description);
 	}
 	return changes;
 }

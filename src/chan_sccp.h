@@ -1287,7 +1287,7 @@ struct sccp_global_vars {
 	uint8_t transfer_tone;											/*!< Transfer Tone */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
-	uint8_t dndmode;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
+	boolean_t dndmode;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
 	uint16_t protocolversion;										/*!< Skinny Protocol Version */
 	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 

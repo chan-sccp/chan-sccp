@@ -50,7 +50,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"Rules are processed from the first to the last.\n"
 																																					"This General rule is valid for all incoming connections. It's the 1st filter.\n"
 																																					"using 'internal' will allow the 10.0.0.0, 172.16.0.0 and 192.168.0.0 networks\n"},
-	{"localnet", 			G_OBJ_REF(localaddr), 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0/0.0.0.0",				"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'\n"},
+	{"localnet", 			G_OBJ_REF(localaddr), 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0/0.0.0.0",		"All RFC 1918 addresses are local networks, example '192.168.1.0/255.255.255.0'\n"},
 	{"externip", 			G_OBJ_REF(externip), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NEEDDEVICERESET,		"",				"IP Address that we're going to notify in RTP media stream\n"},
 	{"externhost", 			G_OBJ_REF(externhost), 			TYPE_STRING,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NEEDDEVICERESET,		"",				"Hostname (if dynamic) that we're going to notify in RTP media stream\n"},
 	{"externrefresh", 		G_OBJ_REF(externrefresh), 		TYPE_INT,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Expire time in seconds for the hostname (dns resolution)\n"},
@@ -89,7 +89,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"no",				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"},
 	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"progress",			"valid options: none, offhook, immediate, dial, ringout and progress. default is progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.\n"},
-	{"dnd", 			G_OBJ_REF(dndmode), 			TYPE_ENUM(sccp,dndmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"turn on the dnd softkey for all devices. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent). The value 'on' has been made obsolete in favor of 'reject'\n"},
+	{"dnd", 			G_OBJ_REF(dndmode), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'\n"},
 	{"private", 			G_OBJ_REF(privacy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"permit the private function softkey\n"},
 	{"mwilamp", 			G_OBJ_REF(mwilamp), 			TYPE_ENUM(skinny,lampmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"}, 
 	{"mwioncall", 			G_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Set the MWI on call.\n"},
@@ -182,7 +182,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"cfwdbusy", 			D_OBJ_REF(cfwdbusy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow call forward when line is busy\n"},
 	{"cfwdnoanswer", 		D_OBJ_REF(cfwdnoanswer),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow call forward when line if not being answered\n"},
 	{"dnd",	 			0,				0,	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"parameter 'dnd' is obsolete. This setting has moved to the line definition. To allow/disallow dnd you should use dndFeature in device and setup dnd per line.\n"},
-	{"dndFeature",	 		D_OBJ_REF(dndFeature.enabled),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"allow usage do not disturb button\n"},
+	{"dndFeature",	 		D_OBJ_REF(dndFeature.enabled),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"allow usage do not disturb button\n"},
 	{"dtmfmode", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"",				"OBSOLETE (don't use)\n"},
 	{"force_dtmfmode", 		D_OBJ_REF(dtmfmode), 			TYPE_ENUM(sccp,dtmfmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"auto",				"auto, skinny or rfc2833. Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode. (Default: AUTO)\n"},
 	{"deny|permit", 		D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"
@@ -264,7 +264,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"defaultSubscriptionId_name",	L_OBJ_REF(defaultSubscriptionId.name), 	TYPE_STRING,						 			SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Name used on a shared line when no name is specified on the line button for the device\n"},
 	{"defaultSubscriptionId_number",L_OBJ_REF(defaultSubscriptionId.number),TYPE_STRING,						 			SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number used on a shared line when no name is specified on the line button for the device\n"},
 	{"callerid", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE, 					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"obsolete callerid param. Use cid_num and cid_name\n"},
-	{"mailbox", 			L_OBJ_REF(mailboxes), 			TYPE_PARSER(sccp_config_parse_mailbox),						SCCP_CONFIG_FLAG_NONE,	 					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"Mailbox to store messages in\n"},
+	{"mailbox", 			L_OBJ_REF(mailboxes), 			TYPE_PARSER(sccp_config_parse_mailbox),						SCCP_CONFIG_FLAG_NONE,	 					SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"Mailbox to store messages in. Format 'mailbox@context' or 'mailbox' when you use 'defualt' context\n"},
 	{"vmnum", 			L_OBJ_REF(vmnum), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number to dial to get to the users Mailbox\n"},
 	{"adhocNumber", 		L_OBJ_REF(adhocNumber), 		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Adhoc Number or Private-line automatic ring down (PLAR):\n"
 																																					"Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls.\n"

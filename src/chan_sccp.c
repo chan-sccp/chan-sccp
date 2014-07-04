@@ -589,7 +589,7 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(video_cos) = 5;
 	GLOB(echocancel) = TRUE;
 	GLOB(silencesuppression) = TRUE;
-	GLOB(dndmode) = SCCP_DNDMODE_REJECT;
+	GLOB(dndmode) = TRUE;
 	GLOB(autoanswer_tone) = SKINNY_TONE_ZIP;
 	GLOB(remotehangup_tone) = SKINNY_TONE_ZIP;
 	GLOB(callwaiting_tone) = SKINNY_TONE_CALLWAITINGTONE;
