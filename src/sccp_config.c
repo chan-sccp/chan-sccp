@@ -2950,7 +2950,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								astman_append(s, ",\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
 							}
 							if (strlen(config[cur_elem].description) != 0) {
-								char *description = strdupa(config->description);
+								char *description = strdupa(config[cur_elem].description);
 								char *description_part = "";
 								
 								astman_append(s, ",\"Description\":\"");
