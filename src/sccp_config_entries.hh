@@ -89,8 +89,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"no",				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"},
 	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"progress",			"valid options: none, offhook, immediate, dial, ringout and progress. default is progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.\n"},
-	{"dnd", 			G_OBJ_REF(dndmode), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'. (DEPRECATED in favor of 'dndFeature')\n"},
-	{"dndFeature",			G_OBJ_REF(dndmode), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'.\n"},
+	{"dnd", 			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'. (DEPRECATED in favor of 'dndFeature')\n"},
+	{"dndFeature",			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'.\n"},
 	{"private", 			G_OBJ_REF(privacy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"permit the private function softkey\n"},
 	{"mwilamp", 			G_OBJ_REF(mwilamp), 			TYPE_ENUM(skinny,lampmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"}, 
 	{"mwioncall", 			G_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Set the MWI on call.\n"},
@@ -302,7 +302,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"secondary_dialtone_tone",	L_OBJ_REF(secondary_dialtone_tone),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x22",				"outside dialtone frequency\n"},
 	{"setvar",			L_OBJ_REF(variables),			TYPE_PARSER(sccp_config_parse_variables),					SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)\n"
 																																					"format setvar=param=value, for example setvar=sipno=12345678\n"},
-	{"dnd",				L_OBJ_REF(dndmode),			TYPE_ENUM(sccp,dndmode),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"allow setting dnd for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'\n"},
+	{"dnd",				L_OBJ_REF(dndmode),			TYPE_ENUM(sccp,dndmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"reject",			"allow setting dnd for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (not used at the moment). . The value 'on' has been made obsolete in favor of 'reject'\n"},
 	{"regexten",			L_OBJ_REF(regexten),			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"SCCP Lines will we added to the regcontext with this number for Dundi look up purpose\n"
 																																					"If regexten is not filled in the line name (categoryname between []) will be used\n"},
 };
