@@ -2645,6 +2645,7 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 #endif
 }
 
+#if 0
 int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 {
 	const SCCPConfigSegment *sccpConfigSegment = NULL;
@@ -2784,6 +2785,190 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 
 	snprintf(idtext, sizeof(idtext), "ActionID: %s\r\n", id);
 	astman_append(s, "EventList: Complete\r\n" "ListItems: %d\r\n" "%s" "\r\n", total, idtext);
+	return 0;
+}
+#endif
+
+/* generate json output from now on */
+int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
+{
+	const SCCPConfigSegment *sccpConfigSegment = NULL;
+	int total = 0;
+	int i;
+	const char *id = astman_get_header(m, "ActionID");
+	const char *req_segment = astman_get_header(m, "Segment");
+	
+	if (strlen(req_segment) == 0) {										// return all segments
+		int sccp_config_revision = 0;
+		sscanf(SCCP_CONFIG_REVISION, "$" "Revision: %i" "$", &sccp_config_revision);
+
+		astman_append(s, "Response: Success\r\n");
+		if (!ast_strlen_zero(id)) {
+			astman_append(s, "ActionID: %s\r\n", id);
+		}
+		
+		astman_append(s, "JSON: {");
+		astman_append(s, "\"Name\":\"Chan-sccp-b\",");
+		astman_append(s, "\"Branch\":\"%s\",", SCCP_BRANCH);
+		astman_append(s, "\"Version\":\"%s\",", SCCP_VERSION);
+		astman_append(s, "\"Revision\":\"%s\",",  SCCP_REVISIONSTR);
+		astman_append(s, "\"ConfigRevision\":\"%d\",", sccp_config_revision);
+		astman_append(s, "\"Segments\":[");
+		int comma = 0;
+		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
+			astman_append(s, "%s", comma ? "," : "");
+			astman_append(s, "\"%s\"", sccpConfigSegments[i].name);
+			comma = 1;
+		}
+		astman_append(s, "]}\r\n\r\n");
+		total++;
+	} else {												// return metadata for option in segmnet
+/*
+		JSON:
+		{
+			"Segment": "general", 
+			"Options": [
+				{
+					Option: config->name,
+					Type: ....,
+					Flags : [Required, Deprecated, Obsolete, MultiEntry, RestartRequiredOnUpdate],
+					DefaultValue: ...,
+					Description: ....
+				},
+				{
+					...
+				}
+			] 
+			
+		}
+*/
+		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
+			if (sccp_strcaseequals(sccpConfigSegments[i].name, req_segment)) {
+				sccpConfigSegment = &sccpConfigSegments[i];
+				const SCCPConfigOption *config = sccpConfigSegment->config;
+				astman_append(s, "Response: Success\r\n");
+				if (!ast_strlen_zero(id)) {
+					astman_append(s, "ActionID: %s\r\n", id);
+				}
+				
+				astman_append(s, "JSON: {");
+				astman_append(s, "\"Segment\":\"%s\",", sccpConfigSegment->name);
+				astman_append(s, "\"Options\":[");
+				uint8_t cur_elem = 0;
+				int comma = 0;
+				for (cur_elem = 0; cur_elem < sccpConfigSegment->config_size; cur_elem++) {
+					if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_IGNORE) != SCCP_CONFIG_FLAG_IGNORE) {
+						astman_append(s, "%s", comma ? "," : "");
+						astman_append(s, "{");
+						
+						{
+							astman_append(s, "\"Name\":\"%s\",", config[cur_elem].name);
+
+							switch (config[cur_elem].type) {
+								case SCCP_CONFIG_DATATYPE_BOOLEAN:
+									astman_append(s, "\"Type\":\"BOOLEAN\",");
+									astman_append(s, "\"Size\":%d", (int) config[cur_elem].size - 1);
+									break;
+								case SCCP_CONFIG_DATATYPE_INT:
+									astman_append(s, "\"Type\":\"INT\",");
+									astman_append(s, "\"Size\":%d", (int) config[cur_elem].size - 1);
+									break;
+								case SCCP_CONFIG_DATATYPE_UINT:
+									astman_append(s, "\"Type\":\"UNSIGNED INT\",");
+									astman_append(s, "\"Size\":%d", (int) config[cur_elem].size - 1);
+									break;
+								case SCCP_CONFIG_DATATYPE_STRINGPTR:
+									astman_append(s, "\"Type\":\" STRING\",");
+									astman_append(s, "\"Size\":0");
+									break;
+								case SCCP_CONFIG_DATATYPE_STRING:
+									astman_append(s, "\"Type\":\"STRING\",");
+									astman_append(s, "\"Size\":%d", (int) config[cur_elem].size - 1);
+									break;
+								case SCCP_CONFIG_DATATYPE_PARSER:
+									astman_append(s, "\"Type\":\"PARSER\"");
+									break;
+								case SCCP_CONFIG_DATATYPE_CHAR:
+									astman_append(s, "\"Type\":\"CHAR\",");
+									astman_append(s, "\"Size\":1");
+									break;
+								case SCCP_CONFIG_DATATYPE_ENUM:
+									astman_append(s, "\"Type\":\"ENUM\",");
+									astman_append(s, "\"Size\":%d,", (int) config[cur_elem].size - 1);
+									astman_append(s, "\"PossibleValues\": [");
+									{
+										int comma2 = 0;
+										char *token = NULL;
+										char *tokens = strdupa(config[cur_elem].enumentries);
+										token = strtok(tokens, "|");
+										while (token != NULL) {
+											if (!sccp_strlen_zero(token)) {
+												astman_append(s, "%s", comma2 ? "," : "");
+												astman_append(s, "\"%s\"",token);
+												comma2 = 1;
+											}
+											token = strtok(NULL, "|");
+										}
+									}
+									astman_append(s, "]");
+									break;
+							}
+							astman_append(s, ",");
+
+							astman_append(s, "\"Flags\":[");
+							{
+								int comma1 = 0;
+								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
+									astman_append(s, "%s", comma1 ? "," : "");
+									astman_append(s, "\"Required\"");
+									comma1 = 1;
+								}
+								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) {
+									astman_append(s, "%s", comma1 ? "," : "");
+									astman_append(s, "\"Required\"");
+									comma1 = 1;
+								}
+								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) {
+									astman_append(s, "%s", comma1 ? "," : "");
+									astman_append(s, "\"Obsolete\"");
+									comma1 = 1;
+								}
+								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) {
+									astman_append(s, "%s", comma1 ? "," : "");
+									astman_append(s, "\"MultiEntry\"");
+									comma1 = 1;
+								}
+								if ((config[cur_elem].change & SCCP_CONFIG_NEEDDEVICERESET) == SCCP_CONFIG_NEEDDEVICERESET) {
+									astman_append(s, "%s", comma1 ? "," : "");
+									astman_append(s, "\"RestartRequiredOnUpdate\"");
+									comma1 = 1;
+								}
+							}
+							astman_append(s, "]");
+							
+							if (config[cur_elem].defaultValue && !strlen(config[cur_elem].defaultValue) == 0) {
+								astman_append(s, ",\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
+							}
+							if (strlen(config[cur_elem].description) != 0) {
+								char *description = strdupa(config->description);
+								char *description_part = "";
+								
+								astman_append(s, ",\"Description\":\"");
+								while (description && (description_part = strsep(&description, "\n"))) {
+									astman_append(s, "%s ", description_part);
+								}
+								astman_append(s, ",\"");
+							}
+						}						
+						astman_append(s, "}");
+						comma = 1;
+					}
+				}
+				astman_append(s, "]}\r\n\r\n");
+				total++;
+			}
+		}
+	}
 	return 0;
 }
 

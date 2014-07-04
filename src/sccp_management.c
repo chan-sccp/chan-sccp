@@ -91,7 +91,7 @@ int sccp_register_management(void)
 	result |= pbx_manager_register("SCCPAnswerCall", _MAN_FLAGS, sccp_manager_answerCall, "answer a ringin channel", management_answercall_desc);
 	result |= pbx_manager_register("SCCPHangupCall", _MAN_FLAGS, sccp_manager_hangupCall, "hangup a channel", management_hangupcall_desc);
 	result |= pbx_manager_register("SCCPHoldCall", _MAN_FLAGS, sccp_manager_holdCall, "hold/unhold a call", management_hold_desc);
-	result |= pbx_manager_register("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata", management_fetch_config_metadata_desc);
+	result |= pbx_manager_register("SCCPConfigMetaData", _MAN_FLAGS, sccp_manager_config_metadata, "retrieve config metadata in json format", management_fetch_config_metadata_desc);
 #undef _MAN_FLAGS
 
 #if HAVE_PBX_MANAGER_HOOK_H
