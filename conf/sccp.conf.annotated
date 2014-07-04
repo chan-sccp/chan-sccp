@@ -68,7 +68,7 @@ silencesuppression = no                                                         
 trustphoneip = no                                                                 ; The phone has a ip address. It could be private, so if the phone is behind NAT 
 earlyrtp = progress                                                               ; valid options: none, offhook, immediate, dial, ringout and progress. default is progress. N.b.immediate will cause forced overlap dialing.
                                                                                   ; The audio stream will be open in the progress and connected state by default.
-dnd = reject                                                                      ; turn on the dnd softkey for all devices. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent)
+dndFeature = yes                                                                  ; turn on the dnd softkey for all devices. Valid values are 'off', 'on'. Default if 'on'.
 private = yes                                                                     ; permit the private function softkey
 mwilamp = yes                                                                     ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
 mwioncall = no                                                                    ; Set the MWI on call.
@@ -157,7 +157,6 @@ park = yes                                                                      
 cfwdall = no                                                                      ; activate the call forward stuff and soft keys
 cfwdbusy = no                                                                     ; allow call forward when line is busy
 cfwdnoanswer = no                                                                 ; allow call forward when line if not being answered
-dnd = ""                                                                          ; parameter 'dnd' is obsolete. This setting has moved to the line definition. To allow/disallow dnd you should use dndFeature in device and setup dnd per line.
 dndFeature = yes                                                                  ; allow usage do not disturb button
 imageversion = ""                                                                 ; useful to upgrade old firmwares (the ones that do not load *.xml from the tftp server)
 deny = ""                                                                         ; (MULTI-ENTRY) Same as general
@@ -259,7 +258,7 @@ secondary_dialtone_digits = ""                                                  
 secondary_dialtone_tone = 0x22                                                    ; outside dialtone frequency
 setvar = ""                                                                       ; (MULTI-ENTRY) extra variables to be set on line initialization multiple entries possible (for example the sip number to use when dialing outside)
                                                                                   ; (MULTI-ENTRY) format setvar=param=value, for example setvar=sipno=12345678
-dnd = reject                                                                      ; allow setting dnd for this line. Valid values are 'off', 'on' (busy signal), 'reject' (busy signal), 'silent' (ringer = silent) or user to toggle on phone
+dnd = reject                                                                      ; allow setting dnd for this line. Valid values are 'off', 'reject' (busy signal), 'silent' (ringer = silent) or 'user' (user defined: not used). Default='reject'.
 regexten = ""                                                                     ; SCCP Lines will we added to the regcontext with this number for Dundi look up purpose
                                                                                   ; If regexten is not filled in the line name (categoryname between []) will be used
 

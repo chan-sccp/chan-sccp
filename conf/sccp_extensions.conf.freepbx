@@ -30,7 +30,7 @@ video_cos = 5
 echocancel = on
 silencesuppression = off
 setvar=testvar2=my value
-dnd = on
+dnd = reject
 
 [98012]
 id = 1001
