@@ -2955,9 +2955,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								
 								astman_append(s, ",\"Description\":\"");
 								while (description && (description_part = strsep(&description, "\n"))) {
-									astman_append(s, "%s ", description_part);
+									astman_append(s, "%s.", description_part);
 								}
-								astman_append(s, ",\"");
+								astman_append(s, "\"");
 							}
 						}						
 						astman_append(s, "}");
