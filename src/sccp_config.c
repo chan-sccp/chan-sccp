@@ -2886,7 +2886,9 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 									astman_append(s, "\"Size\":%d", (int) config[cur_elem].size - 1);
 									break;
 								case SCCP_CONFIG_DATATYPE_PARSER:
-									astman_append(s, "\"Type\":\"PARSER\"");
+									astman_append(s, "\"Type\":\"PARSER\",");
+									astman_append(s, "\"Size\":0,");
+									astman_append(s, "\"Parser\":\"%s\"", config[cur_elem].enumentries);
 									break;
 								case SCCP_CONFIG_DATATYPE_CHAR:
 									astman_append(s, "\"Type\":\"CHAR\",");
@@ -2946,9 +2948,8 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							}
 							astman_append(s, "]");
 							
-							if (config[cur_elem].defaultValue && !strlen(config[cur_elem].defaultValue) == 0) {
-								astman_append(s, ",\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
-							}
+							astman_append(s, ",\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
+
 							if (strlen(config[cur_elem].description) != 0) {
 								char *description = strdupa(config[cur_elem].description);
 								char *description_part = "";
