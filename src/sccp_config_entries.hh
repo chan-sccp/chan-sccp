@@ -21,7 +21,7 @@
 #define TYPE_CHAR DATA_TYPE(CHAR, NULL, NULL, NULL)
 
 /* custom parser */
-#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL)
+#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, #_x)
 #define TYPE_ENUM(_x,_y) DATA_TYPE(ENUM, NULL, _x##_##_y##_str2val , _x##_##_y##_all_entries)
 
 #define SCCP_CONFIG_REVISION "$Revision$"
@@ -32,7 +32,7 @@
 /* *INDENT-OFF* */
 static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"servername", 			G_OBJ_REF(servername), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		"Asterisk",			"show this name on the device registration\n"},
-	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat). \n"
+	{"keepalive", 			G_OBJ_REF(keepalive), 			TYPE_INT,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"60",				"Phone keep alive message every 60 secs. Used to check the voicemail and keep an open connection between server and phone (nat).\n"
 																										  											"Don't set any lower than 60 seconds.\n"},
 	{"debug", 			G_OBJ_REF(debug), 			TYPE_PARSER(sccp_config_parse_debug),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_MULTI_ENTRY,		SCCP_CONFIG_NOUPDATENEEDED,		"core",				"console debug level or categories\n"
 																														  							"examples: debug = 11 | debug = mwi,event,core | debug = all | debug = none or 0\n"
@@ -59,16 +59,16 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"digittimeoutchar", 		G_OBJ_REF(digittimeoutchar), 		TYPE_CHAR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"#",				"You can force the channel to dial with this char in the dialing state\n"},
 	{"recorddigittimeoutchar", 	G_OBJ_REF(recorddigittimeoutchar), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"You can force the channel to dial with this char in the dialing state\n"},
 	{"simulate_enbloc",	 	G_OBJ_REF(simulate_enbloc), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Use simulated enbloc dialing to speedup connection when dialing while onhook (older phones)\n"},
-	{"autoanswer_ring_time", 	G_OBJ_REF(autoanswer_ring_time),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Ringing time in seconds for the autoanswer, the default is 1\n"},
+	{"autoanswer_ring_time", 	G_OBJ_REF(autoanswer_ring_time),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1",				"Ringing time in seconds for the autoanswer.\n"},
 	{"autoanswer_tone", 		G_OBJ_REF(autoanswer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Autoanswer confirmation tone. For a complete list of tones: grep SKINNY_TONE sccp_protocol.h\n"
 																														  							"not all the tones can be played in a connected state, so you have to try.\n"},
 	{"remotehangup_tone", 		G_OBJ_REF(remotehangup_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x32",				"Passive hangup notification. 0 for none\n"},
 	{"transfer_tone", 		G_OBJ_REF(transfer_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Confirmation tone on transfer. Works only between SCCP devices\n"},
-	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time (default: 'off').\n"
+	{"transfer_on_hangup",		G_OBJ_REF(transfer_on_hangup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Complete transfer on hangup, without pressing transfer a second time.\n"
 																																					"Will complete transfer, when the transferer hangups up, after the destination has been reached.\n"
 																																					"To cancel the transfer, either press resume on the transfered channel or have the receiving party hangup first.\n"},
 	{"callwaiting_tone", 		G_OBJ_REF(callwaiting_tone), 		TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0x2d",				"Sets to 0 to disable the callwaiting tone\n"},
-	{"callwaiting_interval", 	G_OBJ_REF(callwaiting_interval),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval (default: 0)\n"},
+	{"callwaiting_interval", 	G_OBJ_REF(callwaiting_interval),	TYPE_UINT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"0",				"Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval.\n"},
 	{"musicclass", 			G_OBJ_REF(musicclass), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Sets the default music on hold class\n"},
 	{"language", 			G_OBJ_REF(language), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"en",				"Default language setting\n"},
 #ifdef CS_MANAGER_EVENTS
@@ -78,19 +78,19 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"accountcode", 		G_OBJ_REF(accountcode), 		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"skinny",			"Accountcode to ease billing\n"},
 	{"sccp_tos", 			G_OBJ_REF(sccp_tos), 			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0x68",				"Sets the default sccp signaling packets Type of Service (TOS)  (defaults to 0x68 = 01101000 = 104 = DSCP:011010 = AF31)\n"
 																																					"Others possible values : [CS?, AF??, EF], [0x??], [lowdelay, throughput, reliability, mincost(solaris)], none\n"},
-	{"sccp_cos", 			G_OBJ_REF(sccp_cos), 			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"4",				"sets the default sccp signaling packets Class of Service (COS) (defaults to 4)\n"},
-	{"audio_tos", 			G_OBJ_REF(audio_tos), 			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0xB8",				"sets the default audio/rtp packets Type of Service (TOS)       (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"},
-	{"audio_cos", 			G_OBJ_REF(audio_cos), 			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"6",				"sets the default audio/rtp packets Class of Service (COS)      (defaults to 6)\n"},
-	{"video_tos", 			G_OBJ_REF(video_tos), 			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0x88",				"sets the default video/rtp packets Type of Service (TOS)       (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
-	{"video_cos", 			G_OBJ_REF(video_cos), 			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"5",				"sets the default video/rtp packets Class of Service (COS)      (defaults to 5)\n"},
+	{"sccp_cos", 			G_OBJ_REF(sccp_cos), 			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"4",				"sets the default sccp signaling packets Class of Service (COS).\n"},
+	{"audio_tos", 			G_OBJ_REF(audio_tos), 			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0xB8",				"sets the default audio/rtp packets Type of Service (TOS) (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"},
+	{"audio_cos", 			G_OBJ_REF(audio_cos), 			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"6",				"sets the default audio/rtp packets Class of Service (COS).\n"},
+	{"video_tos", 			G_OBJ_REF(video_tos), 			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0x88",				"sets the default video/rtp packets Type of Service (TOS) (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
+	{"video_cos", 			G_OBJ_REF(video_cos), 			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"5",				"sets the default video/rtp packets Class of Service (COS).\n"},
 	{"echocancel", 			G_OBJ_REF(echocancel), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"sets the phone echocancel for all devices\n"},
 	{"silencesuppression", 		G_OBJ_REF(silencesuppression), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"sets the silence suppression for all devices\n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
 	{"trustphoneip", 		G_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"no",				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"},
-	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"progress",			"valid options: none, offhook, immediate, dial, ringout and progress. default is progress.\n"
+	{"earlyrtp", 			G_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"progress",			"valid options: none, offhook, immediate, dial, ringout and progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.\n"},
-	{"dnd", 			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'. (DEPRECATED in favor of 'dndFeature')\n"},
-	{"dndFeature",			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on', Default: 'on'.\n"},
+	{"dnd", 			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED,					SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on' (DEPRECATED in favor of 'dndFeature').\n"},
+	{"dndFeature",			G_OBJ_REF(dndFeature), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"on",				"Turn on the dnd softkey for all devices. Valid values are 'off', 'on'.\n"},
 	{"private", 			G_OBJ_REF(privacy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"permit the private function softkey\n"},
 	{"mwilamp", 			G_OBJ_REF(mwilamp), 			TYPE_ENUM(skinny,lampmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"}, 
 	{"mwioncall", 			G_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Set the MWI on call.\n"},
@@ -98,15 +98,15 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"cfwdall", 			G_OBJ_REF(cfwdall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"activate the callforward ALL stuff and softkeys\n"},
 	{"cfwdbusy", 			G_OBJ_REF(cfwdbusy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"activate the callforward BUSY stuff and softkeys\n"},
 	{"cfwdnoanswer", 		G_OBJ_REF(cfwdnoanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"activate the callforward NOANSWER stuff and softkeys\n"},
-	{"nat", 			G_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"no",				"Global NAT support (default Off)\n"},
-	{"directrtp", 			G_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"This option allow devices to do direct RTP sessions (default Off)\n"},
+	{"nat", 			G_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"no",				"Global NAT support.\n"},
+	{"directrtp", 			G_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"This option allow devices to do direct RTP sessions.\n"},
 	{"allowoverlap", 		G_OBJ_REF(useoverlap), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enable overlap dialing support. If enabled, starts dialing immediately and sends remaing digits as DTMF/inband.\n"
-																																					"Use with extreme caution as it is very dialplan and provider dependent. (Default is off)\n"},
+																																					"Use with extreme caution as it is very dialplan and provider dependent.\n"},
 	{"callgroup", 			G_OBJ_REF(callgroup), 			TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We are in caller groups 1,3,4. Valid for all lines\n"},
 #ifdef CS_SCCP_PICKUP	
 	{"pickupgroup", 		G_OBJ_REF(pickupgroup), 		TYPE_PARSER(sccp_config_parse_group),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"We can do call pick-p for call group 1,3,4,5. Valid for all lines\n"},
-	{"directed_pickup_modeanswer", 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup (Asterisks default is on) (Default: on)"},
-	{"pickupmodeanswer",	 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"Automatically Answer when using Directed Pickup (Deprecated use directed_pickup_modeanswer instead)"},
+	{"directed_pickup_modeanswer", 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup."},
+	{"pickupmodeanswer",	 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"Automatically Answer when using Directed Pickup (Deprecated in favor of directed_pickup_modeanswer)."},
 #endif
 	{"amaflags", 			G_OBJ_REF(amaflags), 			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Sets the default AMA flag code stored in the CDR record\n"},
 	{"protocolversion", 		0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"20",				"skinny version protocol. (OBSOLETE)\n"},
@@ -124,25 +124,20 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					" - {'Konference', 'MTV'}\n"},
 	{"meetmeopts", 			G_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"qxd",				"options to send the meetme application, defaults are dependent on meetme app see the list above\n"
 																																					"Other options (app_meetme: A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see meetme specific documentation\n"},
-	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables the use of a jitterbuffer on the receiving side of a\n"
-																																					"sccp channel. Defaults to 'no'. An enabled jitterbuffer will\n"
-																																					"be used only if the sending side can create and the receiving\n"
-																																					"side can not accept jitter. The sccp channel can accept\n"
-																																					"jitter, thus a jitterbuffer on the receive sccp side will be\n"
-																																					"used only if it is forced and enabled.\n"},
-	{"jbforce", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_force),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Forces the use of a jitterbuffer on the receive side of a sccp\n"
-																																					"channel. Defaults to 'no'.\n"},
-	{"jblog", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_log),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables jitterbuffer frame logging. Defaults to 'no'.\n"},
+	{"jbenable", 			G_OBJ_REF(global_jbconf),	 	TYPE_PARSER(sccp_config_parse_jbflags_enable),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables the use of a jitterbuffer on the receiving side of a sccp channel.\n"
+																																					"An enabled jitterbuffer will be used only if the sending side can create and the receiving side can not accept jitter.\n"
+																																					"The sccp channel can accept jitter, thus a jitterbuffer on the receive sccp side will beused only if it is forced and enabled.\n"},
+	{"jbforce", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_force),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Forces the use of a jitterbuffer on the receive side of a sccp channel.\n"},
+	{"jblog", 			G_OBJ_REF(global_jbconf),		TYPE_PARSER(sccp_config_parse_jbflags_log),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enables jitterbuffer frame logging.\n"},
 	{"jbmaxsize", 			G_OBJ_REF(global_jbconf.max_size),	TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"200",				"Max length of the jitterbuffer in milliseconds.\n"},
 	{"jbresyncthreshold", 		G_OBJ_REF(global_jbconf.resync_threshold),TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"1000",				"Jump in the frame timestamps over which the jitterbuffer is\n"
 																																					"resynchronized. Useful to improve the quality of the voice, with\n"
 																																					"big jumps in/broken timestamps, usually sent from exotic devices\n"
-																																					"and programs. Defaults to 1000.\n"},
+																																					"and programs.\n"},
 	{"jbimpl", 			G_OBJ_REF(global_jbconf.impl),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"fixed",			"Jitterbuffer implementation, used on the receiving side of a\n"
 																																					"sccp channel. Two implementations are currently available\n"
 																																					"- 'fixed' (with size always equals to jbmaxsize)\n"
-																																					"- 'adaptive' (with variable size, actually the new jb of IAX2).\n"
-																																					"Defaults to fixed.\n"},
+																																					"- 'adaptive' (with variable size, actually the new jb of IAX2).\n"},
 	{"hotline_enabled", 		G_OBJ_REF(allowAnonymous), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				" Setting the hotline Feature on a device, will make it connect to a predefined extension as soon as the Receiver\n"
 																																					"is picked up or the 'New Call' Button is pressed. No number has to be given. This works even on devices which \n"
 																																					"have no entry in the config file or realtime database. \n"
@@ -154,7 +149,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"hotline_context",	offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_line,context),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				""},
 	{"hotline_extension", 	offsetof(struct sccp_global_vars,hotline), offsize(sccp_hotline_t,exten),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
 	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
-																																					"Possible values are: true/false/odd/even/script (default false)\n" 
+																																					"Possible values are: true/false/odd/even/script.\n" 
 																																					"active/passive cluster: true on active/false on passive\n" 
 																																					"active/active cluster: even on active1/off on active2\n"
 																																					"more complex cluster: use script. It will be called with three arguments, namely mac-address, ip-address, devicetype.\n"
@@ -178,34 +173,33 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"tzoffset", 			D_OBJ_REF(tz_offset), 			TYPE_INT,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"0",				"time zone offset\n"},
 	{"disallow|allow", 		D_OBJ_REF(preferences), 		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				""},
 	{"transfer", 			D_OBJ_REF(transfer),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable or disable the transfer capability. It does remove the transfer softkey\n"},
-	{"park", 			D_OBJ_REF(park),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"take a look to the compile how-to. Park stuff is not compiled by default\n"},
+	{"park", 			D_OBJ_REF(park),			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"take a look to the compile how-to. Park stuff is not compiled by default.\n"},
 	{"cfwdall", 			D_OBJ_REF(cfwdall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"activate the call forward stuff and soft keys\n"},
 	{"cfwdbusy", 			D_OBJ_REF(cfwdbusy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow call forward when line is busy\n"},
 	{"cfwdnoanswer", 		D_OBJ_REF(cfwdnoanswer),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow call forward when line if not being answered\n"},
 	{"dnd",	 			0,				0,	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"parameter 'dnd' is obsolete. This setting has moved to the line definition. To allow/disallow dnd you should use dndFeature in device and setup dnd per line.\n"},
 	{"dndFeature",	 		D_OBJ_REF(dndFeature.enabled),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"allow usage do not disturb button\n"},
 	{"dtmfmode", 			0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"",				"OBSOLETE (don't use)\n"},
-	{"force_dtmfmode", 		D_OBJ_REF(dtmfmode), 			TYPE_ENUM(sccp,dtmfmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"auto",				"auto, skinny or rfc2833. Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode. (Default: AUTO)\n"},
+	{"force_dtmfmode", 		D_OBJ_REF(dtmfmode), 			TYPE_ENUM(sccp,dtmfmode),							SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"auto",				"auto, skinny or rfc2833. Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode.\n"},
 	{"deny|permit", 		D_OBJ_REF(ha),	 			TYPE_PARSER(sccp_config_parse_deny_permit),					SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,	NULL,				"Same as general\n"
 																																					"This device can register only using this ip address\n"},
-	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Type of Service (TOS)  (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF)\n"
-																																					"Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none\n"},
-	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Class of Service (COS) (defaults to 6)\n"},
-	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the video/rtp packets Type of Service (TOS)  (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41)\n"},
-	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS) (defaults to 5)\n"},
+	{"audio_tos", 			D_OBJ_REF(audio_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Type of Service (TOS) (defaults to 0xb8 = 10111000 = 184 = DSCP:101110 = EF).\n"
+																																					"Others possible values : 0x??, lowdelay, throughput, reliability, mincost(solaris), none.\n"},
+	{"audio_cos", 			D_OBJ_REF(audio_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the audio/rtp packets Class of Service (COS)\n"},
+	{"video_tos", 			D_OBJ_REF(video_tos),			TYPE_PARSER(sccp_config_parse_tos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"sets the video/rtp packets Type of Service (TOS) (defaults to 0x88 = 10001000 = 136 = DSCP:100010 = AF41).\n"},
+	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS).\n"},
 	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
-	{"nat", 			D_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support (default Off)\n"},
-	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions (default Off)								\n"},
-	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: none, offhook, immediate, dial, ringout and progress. default is progress.\n"
+	{"nat", 			D_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support. Currently nat is automatically detected in most cases.\n"},
+	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions.\n"},
+	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: none, offhook, immediate, dial, ringout and progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.\n"},
 	{"private", 			D_OBJ_REF(privacyFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"permit the private function softkey for this device\n"},
 	{"privacy", 			D_OBJ_REF(privacyFeature),	 	TYPE_PARSER(sccp_config_parse_privacyFeature),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"permit the private function softkey for this device\n"},
 	{"mwilamp",			D_OBJ_REF(mwilamp), 			TYPE_ENUM(skinny,lampmode),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI lamp style when MWI active to on, off, wink, flash or blink\n"},
 	{"mwioncall", 			D_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI on call.\n"},
 	{"meetme", 			D_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable conferencing via app_meetme (on/off)\n"},
-	{"meetmeopts", 			D_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the app_meetme application (default 'qd' = quiet,dynamic pin)\n"
-																																					"Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation\n"},
+	{"meetmeopts", 			D_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the app_meetme application (default 'qd' = quiet,dynamic pin)\n"																																					"Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation\n"},
 	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		NULL,				"use specified softkeyset with name softkeyset1\n"},
 #ifdef CS_ADV_FEATURES
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"show the redial phone book list instead of dialing the last number (adv_feature)\n"},
@@ -215,9 +209,9 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"pickupcontext", 		D_OBJ_REF(directed_pickup_context), 	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"context where direct pickup search for extensions. if not set it will be ignored. (Deprecated use direct_pickup_context instead)\n"},
 	{"pickupmodeanswer", 		D_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"on = asterisk way, the call has been answered when picked up (Deprecated use direct_pickup_modeanswer instead)\n"},
 
-	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension (default: on)\n"},
+	{"directed_pickup", 		D_OBJ_REF(directed_pickup), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"enable/disable Pickup button to do directed pickup from a specific extension.\n"},
 	{"directed_pickup_context", 	D_OBJ_REF(directed_pickup_context),	TYPE_PARSER(sccp_config_parse_context),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"context where direct pickup search for extensions. if not set current contect will be use.\n"},
-	{"directed_pickup_modeanswer", 	D_OBJ_REF(directed_pickup_modeanswer),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up (default: on)\n"},
+	{"directed_pickup_modeanswer", 	D_OBJ_REF(directed_pickup_modeanswer),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"on = asterisk way, the call has been answered when picked up.\n"},
 #endif
 	{"monitor", 			D_OBJ_REF(monitorFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				""},
 	{"allowoverlap", 		D_OBJ_REF(overlapFeature.enabled), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Allow for Overlap dialing (Continue dialing after the first part of the number has already been send to the pstn)"},
@@ -235,7 +229,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 																																					" - button = speeddial,Phone 2 Line 1, 98021, 98021@hints\n"
 																																					" - button = feature,cfwdall,1234\n"},
 /*	{"digittimeout", 		D_OBJ_REF(digittimeout), 		TYPE_INT,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		"8",				"More digits\n"},*/
-	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions (Boolean, default=no). experimental configuration param that may be removed in further version \n"},
+	{"allowRinginNotification", 	D_OBJ_REF(allowRinginNotification), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version \n"},
 #ifdef CS_SCCP_CONFERENCE
 	{"conf_allow",			D_OBJ_REF(allow_conference),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Allow the use of conference"},
 	{"conf_play_general_announce",	D_OBJ_REF(conf_play_general_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback General Announcements (like: 'You are Entering/Leaving the conference')"},
