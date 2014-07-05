@@ -111,6 +111,7 @@ int sccp_unregister_management(void)
 	int result = 0;
 
 	result = pbx_manager_unregister("SCCPListDevices");
+	result |= pbx_manager_unregister("SCCPListLines");
 	result |= pbx_manager_unregister("SCCPDeviceRestart");
 	result |= pbx_manager_unregister("SCCPDeviceAddLine");
 	result |= pbx_manager_unregister("SCCPDeviceUpdate");
