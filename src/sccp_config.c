@@ -2927,7 +2927,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								}
 								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) {
 									astman_append(s, "%s", comma1 ? "," : "");
-									astman_append(s, "\"Required\"");
+									astman_append(s, "\"Deprecated\"");
 									comma1 = 1;
 								}
 								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) {
