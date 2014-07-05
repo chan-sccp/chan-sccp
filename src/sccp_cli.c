@@ -3425,8 +3425,8 @@ void sccp_unregister_cli(void)
 		res |= pbx_cli_unregister(cli_entries + i);
 	}
 	pbx_manager_unregister("SCCPShowGlobals");
-	pbx_manager_unregister("SCCPShowDevice");
 	pbx_manager_unregister("SCCPShowDevices");
+	pbx_manager_unregister("SCCPShowDevice");
 	pbx_manager_unregister("SCCPShowLines");
 	pbx_manager_unregister("SCCPShowLine");
 	pbx_manager_unregister("SCCPShowChannels");
@@ -3437,6 +3437,7 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPMessageDevice");
 	pbx_manager_unregister("SCCPSystemMessage");
 	pbx_manager_unregister("SCCPDndDevice");
+	pbx_manager_unregister("SCCPAnswerCall1");
 	pbx_manager_unregister("SCCPTokenAck");
 #ifdef CS_SCCP_CONFERENCE
 	pbx_manager_unregister("SCCPShowConferences");
