@@ -41,7 +41,7 @@ int sccp_device_destroy(const void *ptr);
 static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
 static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid);
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp_channel_t *channel, const uint8_t lineInstance, uint8_t callid);
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid);
 static void sccp_device_indicate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
 static void sccp_device_indicate_proceed(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
@@ -2344,19 +2344,18 @@ static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_line
 	sccp_dev_starttone(device, SKINNY_TONE_INSIDEDIALTONE, linedevice->lineInstance, callid, 0);
 }
 
+#if 0	/* new impl: does not seem to work (Reported by Sharan and Antonio: 01-07-2014), needs more work */
 static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp_channel_t *channel, const uint8_t lineInstance, uint8_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
 
-/*new*/	// sccp_dev_cleardisplayprinotify(device);					/* not sure */
 	sccp_dev_cleardisplaynotify(device);
 	sccp_dev_clearprompt(device, lineInstance, callid);
-/*new*/	// sccp_dev_clearprompt(device, 0, 0);						/* already performed by sccp_dev_check_displayprompt */
-/*new*/	sccp_dev_cleardisplay(device);
+	sccp_dev_cleardisplay(device);
 
 	if (channel && channel->answered_elsewhere) {
-		sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+		sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 	}
 
 	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
@@ -2370,6 +2369,24 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp
 	}
 	sccp_device_clearMessageFromStack((sccp_device_t *)device, SCCP_MESSAGE_PRIORITY_PRIVACY);
 	sccp_dev_check_displayprompt(device);						/* see if we need to display anything from the messageStack */
+}
+#endif
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid)
+{
+	sccp_dev_stoptone(device, lineInstance, callid);
+	sccp_dev_cleardisplaynotify(device);
+	sccp_dev_clearprompt(device, lineInstance, callid);
+	sccp_dev_cleardisplay(device);
+	//sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);	/** if channel was answered somewhere, set state to connected before onhook -> no missedCalls entry */
+
+	sccp_dev_set_ringer(device, SKINNY_RINGTYPE_OFF, lineInstance, callid);
+	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_ONHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	sccp_dev_set_cplane(device, lineInstance, 0);
+	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOOK);
+	sccp_handle_time_date_req(device->session, (sccp_device_t *)device, NULL);	/** we need datetime on hangup for 7936 */
+	sccp_device_clearMessageFromStack((sccp_device_t *)device, SCCP_MESSAGE_PRIORITY_PRIVACY);
+	sccp_dev_check_displayprompt(device);						/* see if we need to display anything from the messageStack */
+	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_OFF);
 }
 
 static void sccp_device_indicate_offhook_remote(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel){
