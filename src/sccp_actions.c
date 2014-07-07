@@ -2918,7 +2918,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 
 		/* disable callplane for this device */
 		if (d && d->indicate && d->indicate->onhook) {
-			d->indicate->onhook(d, c, lineInstance, callid);
+			d->indicate->onhook(d, lineInstance, callid);
 		}
 		return;
 	}

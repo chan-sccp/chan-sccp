@@ -413,21 +413,23 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		return;
 	}
 	
-//	if (c->calltype == SKINNY_CALLTYPE_INBOUND && 1 < c->subscribers--) { // && pbx_channel_state(c->owner) != AST_STATE_UP) {
-//		if (d && d->indicate && d->indicate->onhook) {
-//			d->indicate->onhook(d, c, lineInstance, c->callid);
-//		}
-//	} else {
-//		sccp_channel_endcall(c);
-//	}
+	if (c->calltype == SKINNY_CALLTYPE_INBOUND && 1 < c->subscribers--) { // && pbx_channel_state(c->owner) != AST_STATE_UP) {
+		if (d && d->indicate && d->indicate->onhook) {
+			d->indicate->onhook(d, lineInstance, c->callid);
+		}
+	} else {
+		sccp_channel_endcall(c);
+	}
 
+#if 0 /* new */
 	if (!(c->calltype == SKINNY_CALLTYPE_INBOUND && 1 < c->subscribers--)) {
 		sccp_channel_endcall(c);
 	}
 	if (d && d->indicate && d->indicate->onhook) {
-		sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
-		//d->indicate->onhook(d, c, lineInstance, c->callid);
+		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+		d->indicate->onhook(d, lineInstance, c->callid);
 	}
+#endif
 }
 
 /*!
