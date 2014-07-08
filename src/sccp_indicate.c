@@ -318,6 +318,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			break;
 		case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_CONNECTEDCONFERENCE (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
+/*
 			sccp_dev_set_ringer(d, SKINNY_RINGTYPE_OFF, instance, c->callid);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 			sccp_dev_stoptone(d, instance, c->callid);
@@ -327,6 +328,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_dev_set_cplane(d, instance, 1);
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
+*/
+// replaced by
+			if (linedevice) {
+				d->indicate->connected(d, linedevice, c);
+			}
+			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNCONF);
 
 			if (!c->rtp.audio.rtp) {
 				sccp_channel_openReceiveChannel(c);
