@@ -211,12 +211,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			if (linedevice) {
 				d->indicate->connected(d, linedevice, c);
 			}
-			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNECTED);
 			if (!c->rtp.audio.rtp || c->previousChannelState == SCCP_CHANNELSTATE_HOLD || c->previousChannelState == SCCP_CHANNELSTATE_CALLTRANSFER || c->previousChannelState == SCCP_CHANNELSTATE_CALLCONFERENCE || c->previousChannelState == SCCP_CHANNELSTATE_OFFHOOK) {
 				sccp_channel_openReceiveChannel(c);
 			} else if (c->rtp.audio.rtp) {
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Did not reopen an RTP stream as old SCCP state was (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
 			}
+			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNECTED);
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
 			if (!c->rtp.audio.rtp) {
@@ -262,10 +262,10 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_handle_time_date_req(d->session, d, NULL);
 			sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_WINK);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_HOLD, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
-			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 			d->protocol->sendCallInfo(d, c, instance);
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
+			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_ONHOLD);
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 			/* it will be emulated if the rtp audio stream is open */
