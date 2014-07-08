@@ -1142,7 +1142,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel)
 	
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&orig_channel->line->channels, c, list) {
 		if (c->parentChannel == orig_channel) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Hangup to CallForwarding Channel\n", c->designator);
+			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_end_forwarding_channel) Send Hangup to CallForwarding Channel\n", channel->designator));
 			c->parentChannel = sccp_channel_release(c->parentChannel);				/* release refcounted parentChannel */
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
 			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
@@ -1429,8 +1429,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Update Channel Capability\n", DEV_ID_LOG(device));
 	sccp_channel_updateChannelCapability(channel);
 
-	/* end callforwards */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) End Forwarding Channels\n", DEV_ID_LOG(device));
+	/* end callforwards if any */
 	sccp_channel_end_forwarding_channel(channel);
 
 	/** set called party name */
