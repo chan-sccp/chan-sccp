@@ -729,9 +729,12 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 	memset(lineState->callInfo.partyName, 0, sizeof(lineState->callInfo.partyName));
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
 
-	SCCP_LIST_LOCK(&line->channels);
-	AUTO_RELEASE sccp_channel_t *channel = SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL;
-	SCCP_LIST_UNLOCK(&line->channels);
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if (SCCP_LIST_GETSIZE(&line->channels) > 0) {
+		SCCP_LIST_LOCK(&line->channels);
+		channel = SCCP_LIST_LAST(&line->channels) ? sccp_channel_retain(SCCP_LIST_LAST(&line->channels)) : NULL;
+		SCCP_LIST_UNLOCK(&line->channels);
+	}
 
 	if (channel) {
 		lineState->callInfo.calltype = channel->calltype;
