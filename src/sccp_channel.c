@@ -2659,7 +2659,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, uint
  * \callgraph
  * \callergraph
  * 
- * \todo Currently this returns the selectedchannel unretained !
+ * \todo Currently this returns the selectedchannel unretained (there is no retain/release for selectedchannel at the moment)
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
 {
@@ -2671,7 +2671,7 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Looking for selected channel (%d)\n", DEV_ID_LOG(d), channel->callid);
 
 	SCCP_LIST_LOCK(&d->selectedChannels);
-	sc = SCCP_LIST_FIND(&d->selectedChannels, sc, list, (sc->channel == channel), TRUE);
+	sc = SCCP_LIST_FIND(&d->selectedChannels, sc, list, (sc->channel == channel), FALSE);
 	SCCP_LIST_UNLOCK(&d->selectedChannels);
 	return sc;
 }
