@@ -377,7 +377,7 @@ struct {												\
 	for((var) = (head)->first; (var); (var) = (var)->field.next) {					\
 	        if ((var) && compare) {									\
 	        	if (retain) {									\
-		                (var) = (var) ? sccp_refcount_retain((var), __FILE__, __LINE__, __PRETTY_FUNCTION__) : NULL;	\
+		                sccp_refcount_retain((var), __FILE__, __LINE__, __PRETTY_FUNCTION__);	\
 			}										\
 			break;										\
 	        }											\
