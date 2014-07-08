@@ -1239,7 +1239,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle LastNumber Redial Stimulus\n", d->id);
 
 	if (sccp_strlen_zero(d->lastNumber)) {
@@ -1268,7 +1268,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle (BLF) Speeddial Stimulus\n", d->id);
 
 	sccp_speed_t k;
@@ -1288,7 +1288,7 @@ static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, ui
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Line Button Stimulus\n", d->id);
 
 	/* Mandatory adhoc for Anonymous Phones */
@@ -1300,7 +1300,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
 	/* for 7960's we use line keys to display hinted speeddials (Trick), without a hint it would have been a speeddial */
 	if (!l) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
-		sccp_handle_stimulus_speeddial(d, l, instance, stimulusstatus);
+		sccp_handle_stimulus_speeddial(d, l, instance, callId, stimulusstatus);
 		return;
 	}
 
@@ -1316,22 +1316,30 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
 	
 	// Handle Local Line
-	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if (instance && callId) {
+		channel = sccp_find_channel_by_lineInstance_and_callid(d, instance, callId);			/* newer phones */
+	} else {
+		channel = sccp_device_getActiveChannel(d);							/* older phones don't provide instance or callid */
+	}
 	if (channel) {
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, channel->callid, (l) ? l->name : "(nil)");
-		if (channel->state == SCCP_CHANNELSTATE_CONNECTED) {		/* incoming call on other line */
-			if (sccp_channel_hold(channel)) {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, channel->callid, l->name);
-			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, channel->callid, l->name);
-				return;
-			}
-		} else {							/* ??? No idea when this is supposed to happen */
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
-			sccp_channel_endcall(channel);
-			sccp_dev_deactivate_cplane(d);
-			return;
-		}
+                AUTO_RELEASE sccp_device_t *check_device = sccp_channel_getDevice_retained(channel);
+                if (channel && check_device == d) {		// check to see if we own the channel (otherwise it would be a shared line owned by another device)
+                        sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, channel->callid, (l) ? l->name : "(nil)");
+                        if (channel->state == SCCP_CHANNELSTATE_CONNECTED) {		/* incoming call on other line */
+                                if (sccp_channel_hold(channel)) {
+                                        sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, channel->callid, l->name);
+                                } else {
+                                        sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, channel->callid, l->name);
+                                        return;
+                                }
+                        } else {							/* ??? No idea when this is supposed to happen */
+                                sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
+                                sccp_channel_endcall(channel);
+                                sccp_dev_deactivate_cplane(d);
+                                return;
+                        }
+                }
 	}
 	
 	// Handle Shared Line
@@ -1373,7 +1381,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	/* this is the hard hold button. When we are here we are putting on hold the active_channel */
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Hold/Resume Stimulus on  line %d\n", d->id, instance);
 
@@ -1404,7 +1412,7 @@ static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Transfer Stimulus\n", d->id);
 	if (!d->transfer) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
@@ -1425,7 +1433,7 @@ static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uin
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Voicemail Stimulus\n", d->id);
 	sccp_feat_voicemail(d, instance);
 }
@@ -1437,7 +1445,7 @@ static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, ui
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Conference Stimulus\n", d->id);
 	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
 	if (channel) {
@@ -1454,7 +1462,7 @@ static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, u
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward All Stimulus\n", d->id);
 	if (d->cfwdall) {
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
@@ -1471,7 +1479,7 @@ static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, u
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward Busy Stimulus\n", d->id);
 	if (d->cfwdbusy) {
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_BUSY);
@@ -1488,7 +1496,7 @@ static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, 
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Forward NoAnswer Stimulus\n", d->id);
 	if (d->cfwdnoanswer) {
 		sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER);
@@ -1504,7 +1512,7 @@ static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t 
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Call Park Stimulus\n", d->id);
 #ifdef CS_SCCP_PARK
 	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
@@ -1526,7 +1534,7 @@ static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uin
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Group Call Pickup Stimulus\n", d->id);
 #ifdef CS_SCCP_PICKUP
 	/*! \todo use feature map or sccp_feat_handle_directed_pickup */
@@ -1545,13 +1553,13 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
  * \param instance uint8_t
  * \param stimulusstatus uint32_t
  */
-static void sccp_handle_stimulus_feature(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus) {
+static void sccp_handle_stimulus_feature(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Feature Button Stimulus (status: %d)\n", d->id, stimulusstatus);
 	sccp_handle_feature_action(d, instance, TRUE);
 } 
 
 static const struct _skinny_stimulusMap_cb {
-	void (*const handler_cb)(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus);
+	void (*const handler_cb)(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus);
 	boolean_t lineRequired;
 } skinny_stimulusMap_cb[] = {
 	[SKINNY_STIMULUS_UNUSED] =  			{NULL, TRUE},
@@ -1634,18 +1642,18 @@ static const struct _skinny_stimulusMap_cb {
 void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	AUTO_RELEASE sccp_line_t *l = NULL;
-	uint32_t callReference = 0;
+	uint32_t callId = 0;
 	uint32_t stimulusStatus = 0;
 
 	skinny_stimulus_t stimulus = letohl(msg_in->data.StimulusMessage.lel_stimulus);
 	uint8_t instance = letohl(msg_in->data.StimulusMessage.lel_stimulusInstance);
 	
 	if (msg_in->header.length > 12) {
-		callReference = letohl(msg_in->data.StimulusMessage.lel_callReference);
+		callId = letohl(msg_in->data.StimulusMessage.lel_callReference);
 		stimulusStatus = letohl(msg_in->data.StimulusMessage.lel_stimulusStatus);
 	}
 
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d, callreference=%d, status=%d\n", d->id, skinny_stimulus2str(stimulus), stimulus, instance, callReference, stimulusStatus);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d, callreference=%d, status=%d\n", d->id, skinny_stimulus2str(stimulus), stimulus, instance, callId, stimulusStatus);
 	if (!instance) {											/*! \todo also use the callReference if available */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
 		if ((l = sccp_dev_get_activeline(d))) {
@@ -1661,7 +1669,7 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 
 	if (stimulus > SKINNY_STIMULUS_UNUSED && stimulus < SKINNY_STIMULUS_UNDEFINED && skinny_stimulusMap_cb[stimulus].handler_cb) {
 		if (!skinny_stimulusMap_cb[stimulus].lineRequired || (skinny_stimulusMap_cb[stimulus].lineRequired && l)) {
-			skinny_stimulusMap_cb[stimulus].handler_cb(d, l, instance, stimulusStatus);
+			skinny_stimulusMap_cb[stimulus].handler_cb(d, l, instance, callId, stimulusStatus);
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found to handle stimulus\n", d->id);
 			return;
