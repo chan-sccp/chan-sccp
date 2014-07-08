@@ -3508,7 +3508,9 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
                                 }
 				return;
 			}
-
+			if (!lineInstance) {						// v3 - v16 don't provide lineinstance during enbloc
+				lineInstance = d->defaultLineInstance ? d->defaultLineInstance : SCCP_FIRST_LINEINSTANCE;
+			}
 			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, lineInstance);
 			if (linedevice) {
 				AUTO_RELEASE sccp_channel_t *new_channel = NULL;

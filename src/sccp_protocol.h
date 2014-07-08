@@ -1172,12 +1172,15 @@ typedef union {
 		union {
 			struct {
 				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
+			} v3;
+			struct {
+				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
 				uint32_t lel_lineInstance;
-			} v18;
+			} v17;
 			struct __attribute__((__packed__)) {							/* packing needed because of char[25] */
 				char calledParty[25];								/*!< Called Party */
 				uint32_t lel_lineInstance;
-			} v22;
+			} v18;
 		};
 	} EnblocCallMessage;											/*!< Enbloc Call Message - Client -> Server */
 
