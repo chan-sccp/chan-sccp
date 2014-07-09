@@ -104,8 +104,8 @@ struct sccp_hint_list {
 
 /* ========================================================================================================================= Declarations */
 static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState);
-static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState);
-static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState);
+static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState);
+static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState);
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState);
 static void sccp_hint_notifyPBX(struct sccp_hint_lineState *linestate);
 static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context);
@@ -636,10 +636,10 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 
 		} else if (SCCP_LIST_GETSIZE(&line->channels) > 1) {
 			/* line is currently shared between multiple device and has multiple concurrent calls active */
-			sccp_hint_updateLineStateForSharedLine(lineState);
+			sccp_hint_updateLineStateForMultipleChannels(lineState);
 		} else {
 			/* just one device per line */
-			sccp_hint_updateLineStateForSingleLine(lineState);
+			sccp_hint_updateLineStateForSingleChannel(lineState);
 		}
 
 		/* push chagnes to pbx */
@@ -651,7 +651,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
  * \brief set hint status for a line with more then one channel
  * \param lineState SCCP LineState
  */
-static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
 
@@ -662,7 +662,7 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
 	lineState->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
 
 	if (SCCP_LIST_GETSIZE(&line->channels) > 0) {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) number of active channels %d\n", line->name, SCCP_LIST_GETSIZE(&line->channels));
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForMultipleChannels) number of active channels %d\n", line->name, SCCP_LIST_GETSIZE(&line->channels));
 		if (SCCP_LIST_GETSIZE(&line->channels) == 1) {
 			SCCP_LIST_LOCK(&line->channels);
 			AUTO_RELEASE sccp_channel_t *channel = SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL;
@@ -706,11 +706,11 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
 			lineState->state = SCCP_CHANNELSTATE_CONNECTED;
 		}
 	} else {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) no active channels\n", line->name);
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForMultipleChannels) no active channels\n", line->name);
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 	}
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSharedLine) Set sharedLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForMultipleChannels) Set sharedLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 }
 
 /*!
@@ -718,7 +718,7 @@ static void sccp_hint_updateLineStateForSharedLine(struct sccp_hint_lineState *l
  * \param lineState SCCP LineState
  * 
  */
-static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *lineState)
+static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
 	uint8_t state;
@@ -816,16 +816,16 @@ static void sccp_hint_updateLineStateForSingleLine(struct sccp_hint_lineState *l
 				break;
 		}
 
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) partyName: %s, partyNumber: %s\n", line->name, lineState->callInfo.partyName, lineState->callInfo.partyNumber);
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleChannel) partyName: %s, partyNumber: %s\n", line->name, lineState->callInfo.partyName, lineState->callInfo.partyNumber);
 
 		lineState->state = state;
 	} else {
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) NO CHANNEL\n", line->name);
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleChannel) NO CHANNEL\n", line->name);
 		lineState->state = SCCP_CHANNELSTATE_ONHOOK;
 		sccp_hint_checkForDND(lineState);
 	}													// if(channel)
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleLine) Set singleLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineStateForSingleChannel) Set singleLineState to %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 }
 
 /* ========================================================================================================================= Event Handlers : Feature Change */
