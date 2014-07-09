@@ -847,6 +847,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			for (i = 0; i < 12; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			break;
 		case SKINNY_DEVICETYPE_SPA_525G2:
