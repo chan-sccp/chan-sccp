@@ -458,5 +458,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_USE							"use"
 #define SKINNY_DISP_PRIVATE_FEATURE_NOT_ACTIVE				"Private Feature is not active"
 #define SKINNY_DISP_PRIVATE_WITHOUT_LINE_CHANNEL			"Private without line or channel"
+#define SKINNY_DISP_NO_CHANNEL_TO_PERFORM_XXXXXXX_ON			"No Channel to perform %s on !"
+#define SKINNY_GIVING_UP						"Giving Up"
 
 #endif

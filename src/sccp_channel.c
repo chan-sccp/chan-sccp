@@ -2476,6 +2476,9 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
 		c = SCCP_LIST_FIND(&l->channels, c, list, (c->callid == callid), TRUE);
 		SCCP_LIST_UNLOCK(&l->channels);
 	}
+	if (!c) {
+		pbx_log(LOG_WARNING, "%s: Could not find channel for lineInstance:%u and callid:%d on device\n", DEV_ID_LOG(d), lineInstance, callid);
+	}
 	return c;
 }
 
@@ -2503,7 +2506,9 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t id)
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
-
+	if (!channel) {
+		pbx_log(LOG_WARNING, "SCCP: Could not find channel for callid:%d on device\n", id);
+	}
 	return channel;
 }
 
@@ -2540,7 +2545,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	if (!c) {
-		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
+		pbx_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
 	}
 	return c;
 }
@@ -2584,7 +2589,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 		}
 	}
 	if (!c) {
-		ast_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u on device %s\n", passthrupartyid, DEV_ID_LOG(d));
+		pbx_log(LOG_WARNING, "%s: Could not find active channel with Passthrupartyid %u on device\n", DEV_ID_LOG(d), passthrupartyid);
 	}
 
 	return c;
@@ -2609,6 +2614,10 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
 	SCCP_LIST_LOCK(&l->channels);
 	c = SCCP_LIST_FIND(&l->channels, c, list, (c->state == state), TRUE);
 	SCCP_LIST_UNLOCK(&l->channels);
+
+	if (!c) {
+		pbx_log(LOG_WARNING, "%s: Could not find active channel with state %s(%u) on line\n", l->id, sccp_channelstate2str(state), state);
+	}
 
 	return c;
 }
@@ -2645,6 +2654,9 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, uint
 				break;
 			}
 		}
+	}
+	if (!c) {
+		pbx_log(LOG_WARNING, "%s: Could not find active channel with state %s(%u) on device\n", DEV_ID_LOG(d), sccp_channelstate2str(state), state);
 	}
 	return c;
 }
