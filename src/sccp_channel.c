@@ -148,7 +148,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	struct sccp_private_channel_data *private_data;
 	AUTO_RELEASE sccp_line_t * line = sccp_line_retain(l);
-	int callid;
+	int32_t callid;
 
 	/* If there is no current line, then we can't make a call in, or out. */
 	if (!line) {
@@ -164,6 +164,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	callid = callCount++;
 	/* callcount limit should be reset at his upper limit :) */
 	if (callCount == 0xFFFFFFFF) {
+		pbx_log(LOG_NOTICE, "%s: CallId re-starting at 00000001 again (RollOver)\n", device->id);
 		callCount = 1;
 	}
 	snprintf(designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08X", l->name, callid);
@@ -2491,23 +2492,23 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
  * \param id ID as int
  * \return *refcounted* SCCP Channel (can be null)
  */
-sccp_channel_t *sccp_channel_find_byid(uint32_t id)
+sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
 {
 	sccp_channel_t *channel = NULL;
 	sccp_line_t *l = NULL;
 
-	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", id);
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by id %u\n", callid);
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		channel = sccp_find_channel_on_line_byid(l, id);
+		channel = sccp_find_channel_on_line_byid(l, callid);
 		if (channel) {
 			break;
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	if (!channel) {
-		pbx_log(LOG_WARNING, "SCCP: Could not find channel for callid:%d on device\n", id);
+		pbx_log(LOG_WARNING, "SCCP: Could not find channel for callid:%d on device\n", callid);
 	}
 	return channel;
 }

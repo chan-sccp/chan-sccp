@@ -3021,7 +3021,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		}
 	} else {
 		/* we successfully opened receive channel, but have no channel active -> close receive */
-		int callId = passThruPartyId ^ 0xFFFFFFFF;
+		int32_t callId = passThruPartyId ^ 0xFFFFFFFF;
 
 		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) No channel with this PassThruPartyId %u (callReference: %d, callid: %d)!\n", d->id, passThruPartyId, callReference, callId);
 		if (channel) {
