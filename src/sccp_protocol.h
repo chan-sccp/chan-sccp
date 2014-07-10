@@ -3264,7 +3264,7 @@ typedef struct {
 	void (*const sendCallInfo) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance);
 	void (*const sendDialedNumber) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendRegisterAck) (const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat);
-	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message);
+	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
 	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
 	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t *linedevice);

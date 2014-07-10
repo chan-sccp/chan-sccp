@@ -318,7 +318,7 @@ static void sccp_protocol_sendDialedNumberV19(const sccp_device_t * device, cons
 /*!
  * \brief Send Display Prompt Message (Static)
  */
-static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message)
+static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
 {
 	sccp_msg_t *msg;
 
@@ -335,7 +335,7 @@ static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, 
 /*!
  * \brief Send Display Prompt Message (Dynamic)
  */
-static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t timeout, const char *message)
+static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
 {
 	sccp_msg_t *msg;
 

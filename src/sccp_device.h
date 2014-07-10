@@ -23,11 +23,11 @@
  * \brief SCCP Device Indication Callback Structure
  */
 struct sccp_device_indication_cb {
-	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
+	void (*const remoteHold) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
 	void (*const remoteOffhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 	void (*const remoteOnhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
-	void (*const offhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid);
-	void (*const onhook) (const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid);
+	void (*const offhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid);
+	void (*const onhook) (const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid);
 	void (*const dialing) (const sccp_device_t *device, const uint8_t lineInstance, const sccp_channel_t *channel);
 	void (*const proceed) (const sccp_device_t *device, const uint8_t lineInstance, const sccp_channel_t *channel);
 	void (*const connected) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);

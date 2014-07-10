@@ -38,10 +38,10 @@ void sccp_device_removeFromGlobals(sccp_device_t * device);
 int sccp_device_destroy(const void *ptr);
 
 /* indicate definition */
-static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
-static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy);
-static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid);
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid);
+static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
+static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy);
+static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid);
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid);
 static void sccp_device_indicate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
 static void sccp_device_indicate_proceed(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
 static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
@@ -2317,7 +2317,7 @@ void sccp_dev_keypadbutton(sccp_device_t * d, char digit, uint8_t line, uint32_t
 /*!
  * \brief Indicate to device that remote side has been put on hold (old).
  */
-static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy)
+static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy)
 {
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLD, callpriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
@@ -2327,14 +2327,14 @@ static void sccp_device_old_indicate_remoteHold(const sccp_device_t * device, ui
 /*!
  * \brief Indicate to device that remote side has been put on hold (new).
  */
-static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint8_t callid, uint8_t callpriority, uint8_t callPrivacy)
+static void sccp_device_new_indicate_remoteHold(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t callpriority, uint8_t callPrivacy)
 {
 	sccp_device_sendcallstate(device, lineInstance, callid, SKINNY_CALLSTATE_HOLDRED, callpriority, callPrivacy);
 	sccp_dev_set_keyset(device, lineInstance, callid, KEYMODE_ONHOLD);
 	sccp_dev_displayprompt(device, lineInstance, callid, SKINNY_DISP_HOLD, GLOB(digittimeout));
 }
 
-static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint8_t callid)
+static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid)
 {
 
 	sccp_dev_set_speaker(device, SKINNY_STATIONSPEAKER_ON);
@@ -2346,7 +2346,7 @@ static void sccp_device_indicate_offhook(const sccp_device_t * device, sccp_line
 }
 
 #if 0	/* new impl: does not seem to work (Reported by Sharan and Antonio: 01-07-2014), needs more work */
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp_channel_t *channel, const uint8_t lineInstance, uint8_t callid)
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp_channel_t *channel, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_OFF);
@@ -2372,7 +2372,7 @@ static void sccp_device_indicate_onhook(const sccp_device_t * device, const sccp
 	sccp_dev_check_displayprompt(device);						/* see if we need to display anything from the messageStack */
 }
 #endif
-static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint8_t callid)
+static void sccp_device_indicate_onhook(const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid)
 {
 	sccp_dev_stoptone(device, lineInstance, callid);
 	sccp_dev_cleardisplaynotify(device);
