@@ -1168,7 +1168,7 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_
 static void sccp_protocol_parseEnblocCallV3(const sccp_msg_t * msg, char *calledParty, uint32_t *lineInstance)
 {
 	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v3.calledParty, StationMaxDirnumSize);
-	lineInstance = 0;										// v3 - v16 don't provicde lineInstance during enbloc dialing
+	*lineInstance = 0;										// v3 - v16 don't provicde lineInstance during enbloc dialing
 }
 
 static void sccp_protocol_parseEnblocCallV17(const sccp_msg_t * msg, char *calledParty, uint32_t *lineInstance)

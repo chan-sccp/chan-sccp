@@ -3490,7 +3490,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 	int len = 0;
 	
 	char calledParty[25] = {0};
-	uint32_t lineInstance;
+	uint32_t lineInstance = 0;
 
 	if (d->protocol->parseEnblocCall) {
 		d->protocol->parseEnblocCall((const sccp_msg_t *) msg_in, calledParty, &lineInstance);
