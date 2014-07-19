@@ -2283,7 +2283,7 @@ typedef union {
 				/* protocol version 15 fields */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
-				char bel_remoteIpAddr[16];
+				uint32_t bel_remoteIpAddr;							/*!< Ipv4 Address */
 				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
 			} v3;
 
