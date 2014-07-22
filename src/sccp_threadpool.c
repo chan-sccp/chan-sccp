@@ -144,7 +144,8 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 		for (t = 0; t < amount; t++) {
 			tp_thread = SCCP_LIST_FIRST(&(tp_p->threads));
 			tp_thread->die = 1;
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %d in pool \n", (unsigned int) tp_thread->thread);
+			
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", tp_thread->thread);
 			// wake up all threads
 			ast_cond_broadcast(&(tp_p->work));
 		}
@@ -155,7 +156,7 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 {
 	if (tp_p && !sccp_threadpool_shuttingdown) {
-		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %d\n", (unsigned int) pthread_self());
+		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %p\n", pthread_self());
 		SCCP_LIST_LOCK(&(tp_p->threads));
 		{
 			if (SCCP_LIST_GETSIZE(&tp_p->jobs) > (SCCP_LIST_GETSIZE(&tp_p->threads) * 2) && SCCP_LIST_GETSIZE(&tp_p->threads) < THREADPOOL_MAX_SIZE) {	// increase
@@ -198,7 +199,7 @@ void sccp_threadpool_thread_do(void *p)
 {
 	sccp_threadpool_thread_t *tp_thread = (sccp_threadpool_thread_t *) p;
 	sccp_threadpool_t *tp_p = tp_thread->tp_p;
-	uint threadid = (unsigned int) pthread_self();
+	pthread_t thread = pthread_self();
 
 	pthread_cleanup_push(sccp_threadpool_thread_end, tp_thread);
 
@@ -210,19 +211,19 @@ void sccp_threadpool_thread_do(void *p)
 		jobs = SCCP_LIST_GETSIZE(&tp_p->jobs);
 		threads = SCCP_LIST_GETSIZE(&tp_p->threads);
 
-		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) num_jobs: %d, threadid: %d, num_threads: %d\n", jobs, threadid, threads);
+		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) num_jobs: %d, thread: %p, num_threads: %d\n", jobs, thread, threads);
 
 		SCCP_LIST_LOCK(&(tp_p->jobs));									/* LOCK */
 		while (SCCP_LIST_GETSIZE(&tp_p->jobs) == 0 && !tp_thread->die) {
-			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %d Waiting for New Work Condition\n", threadid);
+			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Thread %p Waiting for New Work Condition\n", thread);
 			ast_cond_wait(&(tp_p->work), &(tp_p->jobs.lock));
 		}
 		if (tp_thread->die && SCCP_LIST_GETSIZE(&tp_p->jobs) == 0) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %d...\n", threadid);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "JobQueue Die. Exiting thread %p...\n", thread);
 			SCCP_LIST_UNLOCK(&(tp_p->jobs));
 			break;
 		}
-		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Let's work. num_jobs: %d, threadid: %d, num_threads: %d\n", jobs, threadid, threads);
+		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) Let's work. num_jobs: %d, thread: %p, num_threads: %d\n", jobs, thread, threads);
 		{
 			/* Read job from queue and execute it */
 			void *(*func_buff) (void *arg) = NULL;
@@ -235,7 +236,7 @@ void sccp_threadpool_thread_do(void *p)
 			}
 			SCCP_LIST_UNLOCK(&(tp_p->jobs));
 
-			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) executing %p in threadid: %d\n", job, threadid);
+			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) executing %p in thread: %p\n", job, thread);
 			if (job) {
 				func_buff(arg_buff);								/* run function */
 				free(job);									/* DEALLOC job */
