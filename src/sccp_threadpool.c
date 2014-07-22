@@ -145,7 +145,7 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 			tp_thread = SCCP_LIST_FIRST(&(tp_p->threads));
 			tp_thread->die = 1;
 			
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", tp_thread->thread);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *)tp_thread->thread);
 			// wake up all threads
 			ast_cond_broadcast(&(tp_p->work));
 		}
@@ -156,7 +156,7 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 static void sccp_threadpool_check_size(sccp_threadpool_t * tp_p)
 {
 	if (tp_p && !sccp_threadpool_shuttingdown) {
-		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %p\n", pthread_self());
+		sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_check_resize) in thread: %p\n", (void *) pthread_self());
 		SCCP_LIST_LOCK(&(tp_p->threads));
 		{
 			if (SCCP_LIST_GETSIZE(&tp_p->jobs) > (SCCP_LIST_GETSIZE(&tp_p->threads) * 2) && SCCP_LIST_GETSIZE(&tp_p->threads) < THREADPOOL_MAX_SIZE) {	// increase
@@ -199,7 +199,7 @@ void sccp_threadpool_thread_do(void *p)
 {
 	sccp_threadpool_thread_t *tp_thread = (sccp_threadpool_thread_t *) p;
 	sccp_threadpool_t *tp_p = tp_thread->tp_p;
-	pthread_t thread = pthread_self();
+	void * thread = (void *)pthread_self();
 
 	pthread_cleanup_push(sccp_threadpool_thread_end, tp_thread);
 
