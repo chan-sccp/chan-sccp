@@ -2486,6 +2486,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 				if (b[c] == softkeysmap[j]) {
                                         ast_str_append(&outputStr, sizeof(outputStr), "%-2d:%-9s|", c, label2str(softkeysmap[j]));
 					msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j + 1);
+					msg_out->data.SoftKeySetResMessage.definition[v->id].les_softKeyInfoIndex[cp] = htoles(j + 1);
 					break;
 				}
 			}
@@ -2990,18 +2991,15 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
-			uint16_t port = sccp_socket_getPort(&sas);
-			
-#ifndef CS_EXPERIMENTAL	
-                        /*look's like it is using the wrong port, it should be using sccp_rtp_getServerPort(&channel->rtp.audio) to get the servers rtp instance port */
-			if (d->nat){
-			        memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
-			        sccp_socket_ipv4_mapped(&sas, &sas);
+                        if (d->nat) {
+                                /* Rewrite ip-addres to the outside source address via which the phone connection (device->sin) */
+         			uint16_t port = sccp_socket_getPort(&sas);
+ 			        memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));
+ 			        sccp_socket_ipv4_mapped(&sas, &sas);
 			        sccp_socket_setPort(&sas, port);
-        		}
-#endif
-			//ast_rtp_set_peer(channel->rtp.audio.rtp, &sin);
-			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
+                                
+                        }
+
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
 
 			sccp_channel_startMediaTransmission(channel);						/*!< Starting Media Transmission Earlier to fix 2 second delay - Copied from v2 - FS */

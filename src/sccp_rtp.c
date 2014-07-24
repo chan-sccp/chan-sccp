@@ -55,7 +55,7 @@ int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 	uint16_t port = sccp_rtp_getServerPort(&c->rtp.audio);
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "RTP Server Port: %d\n", port);
 
-	/* depeding on the client connection, we us ipv4 or ipv6*/
+	/* depending on the client connection, we us ipv4 or ipv6*/
 	AUTO_RELEASE sccp_device_t *device = sccp_channel_getDevice_retained(c);
 	if (device) {  
 		memcpy((void *)&c->rtp.audio.phone_remote, &device->session->ourip, sizeof(struct sockaddr_storage));

@@ -702,6 +702,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 	} else {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Started RTP on channel %s-%08X\n", DEV_ID_LOG(d), channel->line->name, channel->callid);
 	}
+	
 
 	if (channel->owner) {
 		PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.writeFormat, 1);
@@ -710,7 +711,14 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel, channel->passthrupartyid, channel->callid);
 	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGRESS;
-	
+
+	if (d->nat) {													/* device is natted */
+		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);						/* get rtp server port*/
+		sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote);
+		sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);		
+		sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
+	}
+
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
 	if (sccp_device_isVideoSupported(d)) {
@@ -883,28 +891,18 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 	uint16_t remoteFamily	= (channel->rtp.audio.phone_remote.ss_family == AF_INET6  && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote) ) ? AF_INET6 : AF_INET;
 
 	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
-	if (d->nat || ((usFamily == AF_INET) != remoteFamily)) {				/* natted or needs correction for ipv6 address in remote */
-		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);						/* get rtp server port*/
-		memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));
-		sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
-		sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
-		
-	} else if ((usFamily == AF_INET6) != remoteFamily) {				/* the device can do IPv6 but should send it to IPv4 address (directrtp posible) */
-		struct sockaddr_storage sas;
-		memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
-		sccp_socket_ipv4_mapped(&sas, &sas);
-	  
-	} else if (!d->directrtp) {
-		/* I think we do not need this part, because phone_remote will be set on sccp_rtp_createAudioServer -MC */
-// 			sccp_rtp_getUs(&channel->rtp.audio, &channel->rtp.audio.phone_remote);
-
-// 			if(sccp_socket_is_any_addr(&channel->rtp.audio.phone_remote) && channel->rtp.audio.phone_remote.ss_family == AF_INET6){
-// 				struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
-// 				memcpy(&in6->sin6_addr, &((struct sockaddr_in6 *)&d->session->ourip)->sin6_addr, 16);
-// 			}
-
-//			channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-//          		memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(channel->rtp.audio.phone_remote));
+	if (!d->nat) {
+		if ((usFamily == AF_INET) != remoteFamily) {									/* device needs correction for ipv6 address in remote */
+			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);						/* get rtp server port*/
+			memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));		/* Not sure if this should not be the externip in case of nat */
+			sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
+			sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
+			
+		} else if ((usFamily == AF_INET6) != remoteFamily) {								/* the device can do IPv6 but should send it to IPv4 address (directrtp possible) */
+			struct sockaddr_storage sas;
+			memcpy(&sas, &channel->rtp.audio.phone_remote, sizeof(struct sockaddr_storage));
+			sccp_socket_ipv4_mapped(&sas, &sas);
+		}
 	}
 
 	//sccp_channel_recalculateReadformat(channel);
@@ -962,12 +960,12 @@ void sccp_channel_updateMediaTransmission(sccp_channel_t * channel)
 	/* \note this would indicate that it should also be possible to change codecs midflight ! */
 	/* \test should be able to do without this block to stopmediatransmission (Sometimes results in "OpenIngressChan: Potential buffer leak" (phone log)*/
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.audio.readState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMediaTransmission) Stop media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_stopMediaTransmission(channel, TRUE);
 	}
 	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.audio.readState) {
 		/*! \todo we should wait for the acknowledgement to get back. We don't have a function/procedure in place to do this at this moment in time (sccp_dev_send_wait) */
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Start/Update media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMediaTransmission) Start/Update media transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_startMediaTransmission(channel);
 	}
 }
@@ -1097,11 +1095,11 @@ void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t
 void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel)
 {
 	if (SCCP_RTP_STATUS_INACTIVE != channel->rtp.video.readState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop multiemedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMultiMediaTransmission) Stop multiemedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_stopMultiMediaTransmission(channel, TRUE);
 	}
 	if (SCCP_RTP_STATUS_INACTIVE == channel->rtp.video.readState) {
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Start multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (updateMultiMediaTransmission) Start multimedia transmission on channel %d\n", channel->currentDeviceId, channel->callid);
 		sccp_channel_startMultiMediaTransmission(channel);
 	}
 }
@@ -1935,6 +1933,8 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner);
 			if (sccp_channel_new && (pbx_channel_bridgepeer = CS_AST_BRIDGED_CHANNEL(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
+
+				sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_OFFHOOKFEAT);
 			  
 				/* set a var for BLINDTRANSFER. It will be removed if the user manually answer the call Otherwise it is a real BLINDTRANSFER */
 				if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && pbx_channel_owner && pbx_channel_bridgepeer)) {

@@ -85,10 +85,14 @@ int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 	    (sccp_socket_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_UNSPECIFIED(&tmp_addr.sin6.sin6_addr));
 }
 
-boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage, sa_family_t type)
+boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
 {    
-	//! \todo handle type parameter
-	memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
+	//! \todo handle IPv4 / IPV6 family ?
+	if (&GLOB(externip)) {
+		memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
+	} else {
+		pbx_log(LOG_NOTICE, "SCCP: No externip set in sccp.conf. To use NAT you need to provide the externip of the firewall !\n");
+	}
 	return TRUE;
 }
 
