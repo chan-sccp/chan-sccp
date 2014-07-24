@@ -861,6 +861,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			break;
 		case SKINNY_DEVICETYPE_CISCO6921:
+			d->hasDisplayPrompt = sccp_device_falseResult;
 			for (i = 0; i < 2; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
@@ -1032,6 +1033,12 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 					  (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED
 				);
 	}
+	/*! \todo: not sure if we should make an exception for 69XX phones or if all protocolversion 22 phones require KEYMODE_OFFHOOKFEAT. Time will tell. */
+	if (softKeySetIndex == KEYMODE_OFFHOOK && d->protocolversion == 22 && (d->transferChannels.transferee && !d->transferChannels.transferer)) {
+		/* 6921/69XX phones need KEYMODE_OFFHOOKFEAT while transfering, to show the correct messages on their display */
+		softKeySetIndex = KEYMODE_OFFHOOKFEAT;
+	}
+	
 	REQ(msg, SelectSoftKeysMessage);
 	if (!msg) {
 		return;
