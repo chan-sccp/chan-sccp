@@ -3211,6 +3211,7 @@ static uint8_t skSet_RingOut[] = {
 static uint8_t skSet_Offhookfeat[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_ENDCALL,
+	SKINNY_LBL_PRIVATE,
 };														/*!< SKINNY SoftKeys Set "Off Hook with Features" as INT */
 
 // in use hint keyset
