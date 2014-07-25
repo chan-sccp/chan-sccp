@@ -1129,6 +1129,29 @@ void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channe
 }
 
 /*
+ * \brief Check if we are in the middle of a transfer and if transfer on hangup is wanted, function is only called by sccp_handle_onhook for now 
+ */
+boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t *channel) 
+{
+	boolean_t result = FALSE;
+	
+	if (GLOB(transfer_on_hangup) && 								/* Complete transfer when one is in progress */
+	   (channel->state != SCCP_CHANNELSTATE_BUSY || channel->state != SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state != SCCP_CHANNELSTATE_CONGESTION))
+	{
+		sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
+		sccp_channel_t *transferer = channel->privateData->device->transferChannels.transferer;
+		if (	(transferee && transferer) && (channel == transferer) && 
+			(pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
+		    ) {
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", channel->designator, pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
+			sccp_channel_transfer_complete(transferer);
+			result = TRUE;
+		}
+	}
+	return result;
+}
+
+/*
  * \brief End all forwarding parent channels
  */
 void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel) 
@@ -1170,6 +1193,7 @@ int sccp_channel_sched_endcall_by_callid(const void *data)
 	return 0;
 }
 
+
 /*!
  * \brief Hangup this channel.
  * \param channel *retained* SCCP Channel
@@ -1191,19 +1215,6 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 	if (d) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 		if (channel->privateData->device) {
-			if (GLOB(transfer_on_hangup) && 								/* Complete transfer when one is in progress */
-			   (channel->state != SCCP_CHANNELSTATE_BUSY || channel->state != SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state != SCCP_CHANNELSTATE_CONGESTION))
-			{
-				sccp_channel_t *transferee = channel->privateData->device->transferChannels.transferee;
-				sccp_channel_t *transferer = channel->privateData->device->transferChannels.transferer;
-				if (	(transferee && transferer) && (channel == transferer) && 
-					(pbx_channel_state(transferer->owner) == AST_STATE_UP || pbx_channel_state(transferer->owner) == AST_STATE_RING)
-				    ) {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion (channel_name: %s, transferee_name: %s, transferer_name: %s, transferer_state: %d)\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner), pbx_channel_name(transferee->owner), pbx_channel_name(transferer->owner), pbx_channel_state(transferer->owner));
-					sccp_channel_transfer_complete(transferer);
-					return;
-				}
-			}
 			sccp_channel_transfer_cancel(channel->privateData->device, channel);
 			sccp_channel_transfer_release(channel->privateData->device, channel);
 		}
