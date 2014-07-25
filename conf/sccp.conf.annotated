@@ -46,7 +46,9 @@ autoanswer_tone = 0x32                                                          
 remotehangup_tone = 0x32                                                          ; Passive hangup notification. 0 for none
 transfer_tone = 0                                                                 ; Confirmation tone on transfer. Works only between SCCP devices
 transfer_on_hangup = off							  ; Complete transfer on hangup, without pressing transfer a second time
-                                                                                  ; Will complete transfer, when the transferer hangups up, after the destination has been reached.
+                                                                                  ; Will complete transfer, when the transferer puts the receiver on hook, after the destination has been reached.
+										  ; To Escape transfer_on_hangup (when the receipient does not want to accept the transfer. 
+										  ;   You can either resume the original call or press the "endcall" softkey.
                                                                                   ; To cancel the transfer, either press resume on the transfered channel or have the receiving party hangup first.
 callwaiting_tone = 0x2d                                                           ; Sets to 0 to disable the callwaiting tone
 callwaiting_interval = 0                                                          ; Callwaiting ring interval in seconds. Set to 0 to disable the callwaiting ringing interval (default: 0)

@@ -55,6 +55,7 @@ void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel);
 
 void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channel_t *channel);
 
+boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t *channel);
 void sccp_channel_end_forwarding_channel(sccp_channel_t *channel);
 int sccp_channel_sched_endcall_by_callid(const void *data);
 void sccp_channel_endcall(sccp_channel_t * c);

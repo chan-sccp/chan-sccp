@@ -2190,11 +2190,16 @@ void sccp_handle_onhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_
 		return;
 	}
 
-	AUTO_RELEASE sccp_channel_t *channel;
-	if (lineInstance && callid && (channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid))) {
-		sccp_channel_endcall(channel);
-	} else  if ((channel = sccp_device_getActiveChannel(d))) {
-		sccp_channel_endcall(channel);
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if (lineInstance && callid) {
+                channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
+        } else {
+                channel = sccp_device_getActiveChannel(d);
+        }
+        if (channel) {
+                if (!GLOB(transfer_on_hangup) || !sccp_channel_transfer_on_hangup(channel)) {
+        		sccp_channel_endcall(channel);
+                }
 	} else {
 		sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_OFF);
 		sccp_dev_stoptone(d, 0, 0);
