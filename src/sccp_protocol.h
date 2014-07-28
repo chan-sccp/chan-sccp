@@ -3212,6 +3212,14 @@ static uint8_t skSet_Offhookfeat[] = {
 	SKINNY_LBL_REDIAL,
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_PRIVATE,
+	SKINNY_LBL_CFWDALL,
+	SKINNY_LBL_CFWDBUSY,
+#ifdef CS_SCCP_PICKUP
+	SKINNY_LBL_PICKUP,
+	SKINNY_LBL_GPICKUP,
+#endif
+	SKINNY_LBL_MEETME,
+	SKINNY_LBL_BARGE,
 };														/*!< SKINNY SoftKeys Set "Off Hook with Features" as INT */
 
 // in use hint keyset
