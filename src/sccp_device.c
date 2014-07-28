@@ -1023,22 +1023,39 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 	if (!d->softkeysupport) {
 		return;												/* the device does not support softkeys */
 	}
-	/*let's activate the transfer */
-	if (softKeySetIndex == KEYMODE_CONNECTED) {
-		softKeySetIndex = 
-				(
+	/* 69XX Exception SoftKeySet Mapping */
+	if (	d->skinny_type == SKINNY_DEVICETYPE_CISCO6901 || 
+		d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 ||
+		d->skinny_type == SKINNY_DEVICETYPE_CISCO6921 ||
+		d->skinny_type == SKINNY_DEVICETYPE_CISCO6941 ||
+		d->skinny_type == SKINNY_DEVICETYPE_CISCO6945 ||
+		d->skinny_type == SKINNY_DEVICETYPE_CISCO6961) {
+
+		/* 69XX does not like CONNCONF, so let's not set that and keep CONNECTED instead */
+		/* while transfer in progress, they like OFFHOOKFEAT, after when we have connected to the destination we need to set CONNTRANS */
+		/*! \todo Discuss if this behaviour should not be the general case for all devices */
+		if (d->transfer && (d->transferChannels.transferee)
+			/* first stage transfer */
+			if (softKeySetIndex == KEYMODE_OFFHOOK  && !d->transferChannels.transferer)){
+				softKeySetIndex = KEYMODE_OFFHOOKFEAT;
+			}
+			/* second stage transfer (blind or not)*/
+			if ((softKeySetIndex == KEYMODE_RINGOUT || softKeySetIndex == KEYMODE_CONNECTED) && d->transferChannels.transferer)) {
+				softKeySetIndex = KEYMODE_CONNTRANS;
+			}
+		}
+	} else {
+		/*let's replace the CONNECTED with the transfer / conference states when allowed on this device */
+		if (softKeySetIndex == KEYMODE_CONNECTED) {
+			softKeySetIndex = 
+					(
 #if CS_SCCP_CONFERENCE
-					  (d->conference) ? KEYMODE_CONNCONF :
+						  (d->conference) ? KEYMODE_CONNCONF :
 #endif
-					  (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED
-				);
+						  (d->transfer) ? KEYMODE_CONNTRANS : KEYMODE_CONNECTED
+					);
+		}
 	}
-	/*! \todo: not sure if we should make an exception for 69XX phones or if all protocolversion 22 phones require KEYMODE_OFFHOOKFEAT. Time will tell. */
-	if (softKeySetIndex == KEYMODE_OFFHOOK && d->protocolversion == 22 && (d->transferChannels.transferee && !d->transferChannels.transferer)) {
-		/* 6921/69XX phones need KEYMODE_OFFHOOKFEAT while transfering, to show the correct messages on their display */
-		softKeySetIndex = KEYMODE_OFFHOOKFEAT;
-	}
-	
 	REQ(msg, SelectSoftKeysMessage);
 	if (!msg) {
 		return;

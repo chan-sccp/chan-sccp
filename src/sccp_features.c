@@ -130,6 +130,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 				c->ss_action = SCCP_SS_GETFORWARDEXTEN;						/* Simpleswitch will catch a number to be dialed */
 				c->ss_data = type;								/* this should be found in thread */
 				// changing channelstate to GETDIGITS
+				sccp_indicate(device, c, SCCP_CHANNELSTATE_OFFHOOK);
 				sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
 				return;
 			} else {
