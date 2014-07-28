@@ -449,6 +449,81 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk16_rtp_read(PBX_CHANNEL_TYPE * ast)
 	return frame;
 }
 
+static const char * asterisk_indication2str(int ind) {
+	switch (ind) {
+		case AST_CONTROL_HANGUP:
+			return "Other end has hungup";
+			break;
+		case AST_CONTROL_RING:
+			return "Local ring";
+			break;
+		case AST_CONTROL_RINGING:
+			return "Remote end is ringing";
+			break;
+		case AST_CONTROL_ANSWER:
+			return "Remote end has answered";
+			break;
+		case AST_CONTROL_BUSY:
+			return "Remote end is busy";
+			break;
+		case AST_CONTROL_TAKEOFFHOOK:
+			return "Make it go off hook";
+			break;
+		case AST_CONTROL_OFFHOOK:
+			return "Line is off hook";
+			break;
+		case AST_CONTROL_CONGESTION:
+			return "Congestion (circuits busy)";
+			break;
+		case AST_CONTROL_FLASH:
+			return "Flash hook";
+			break;
+		case AST_CONTROL_WINK:
+			return "Wink";
+			break;
+		case AST_CONTROL_OPTION:
+			return "Set a low-level option";
+			break;
+		case AST_CONTROL_RADIO_KEY:
+			return "Key Radio";
+			break;
+		case AST_CONTROL_RADIO_UNKEY:
+			return "Un-Key Radio";
+			break;
+		case AST_CONTROL_PROGRESS:
+			return "Indicate PROGRESS";
+			break;
+		case AST_CONTROL_PROCEEDING:
+			return "Indicate CALL PROCEEDING";
+			break;
+		case AST_CONTROL_HOLD:
+			return "Indicate call is placed on hold";
+			break;
+		case AST_CONTROL_UNHOLD:
+			return "Indicate call is left from hold";
+			break;
+		case AST_CONTROL_VIDUPDATE:
+			return "Indicate video frame update";
+			break;
+		case _XXX_AST_CONTROL_T38:
+			return "T38 state change request/notification. Deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.";
+			break;
+		case AST_CONTROL_SRCUPDATE:
+			return "Indicate source of media has changed";
+			break;
+		case AST_CONTROL_T38_PARAMETERS:
+			return "T38 state change request/notification with parameters";
+			break;
+		case AST_CONTROL_SRCCHANGE:
+			return "Media source has changed and requires a new RTP SSRC";
+			break;
+		case AST_CONTROL_END_OF_Q:
+			return "Indicate that this position was the end of the channel queue for a softhangup.";
+			break;
+	}
+	return "Unknown Indication";
+}
+
 static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
 {
 	sccp_channel_t *c = NULL;
@@ -484,10 +559,10 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 	if (c->state == SCCP_CHANNELSTATE_DOWN) {
 		c = sccp_channel_release(c);
 		d = sccp_device_release(d);
-		return -1;
+		return -1;									/* Tell asterisk to provide inband signalling */
 	}
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%d' condition on channel %s\n", (char *) c->currentDeviceId, ind, ast->name);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_CHANNEL | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Asterisk indicate '%s' (%d) condition on channel %s\n", DEV_ID_LOG(d), asterisk_indication2str(ind), ind, pbx_channel_name(ast));
 
 	/* when the rtp media stream is open we will let asterisk emulate the tones */
 	res = (((c->rtp.audio.readState != SCCP_RTP_STATUS_INACTIVE) || (d && d->earlyrtp)) ? -1 : 0);
@@ -580,14 +655,14 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			res = -1;
 			break;
 		default:
-			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Don't know how to indicate condition %d\n", ind);
+			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Don't know how to indicate condition '%s' (%d)\n",asterisk_indication2str(ind), ind);
 			res = -1;
 	}
 	//ast_cond_signal(&c->astStateCond);
 	d = sccp_device_release(d);
 	c = sccp_channel_release(c);
 
-	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: send asterisk result %d\n", res);
+	sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP (pbx_indicate): send asterisk result '%s' (%d)\n", res ? "inband signaling" : "outofband signaling", res);
 	return res;
 }
 
