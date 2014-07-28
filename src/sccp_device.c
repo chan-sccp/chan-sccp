@@ -1034,13 +1034,13 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 		/* 69XX does not like CONNCONF, so let's not set that and keep CONNECTED instead */
 		/* while transfer in progress, they like OFFHOOKFEAT, after when we have connected to the destination we need to set CONNTRANS */
 		/*! \todo Discuss if this behaviour should not be the general case for all devices */
-		if (d->transfer && (d->transferChannels.transferee)
+		if (d->transfer && d->transferChannels.transferee) {
 			/* first stage transfer */
-			if (softKeySetIndex == KEYMODE_OFFHOOK  && !d->transferChannels.transferer)){
+			if (softKeySetIndex == KEYMODE_OFFHOOK  && !d->transferChannels.transferer){
 				softKeySetIndex = KEYMODE_OFFHOOKFEAT;
 			}
 			/* second stage transfer (blind or not)*/
-			if ((softKeySetIndex == KEYMODE_RINGOUT || softKeySetIndex == KEYMODE_CONNECTED) && d->transferChannels.transferer)) {
+			if ((softKeySetIndex == KEYMODE_RINGOUT || softKeySetIndex == KEYMODE_CONNECTED) && d->transferChannels.transferer) {
 				softKeySetIndex = KEYMODE_CONNTRANS;
 			}
 		}
