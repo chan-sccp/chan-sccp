@@ -494,7 +494,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, GLOB(nat));
 //	CLI_AMI_OUTPUT_PARAM("Extern Hostname", CLI_AMI_LIST_WIDTH, "%s", GLOB(externhost));				// deprecated
 //	CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", CLI_AMI_LIST_WIDTH, "%d", GLOB(externrefresh));			// deprecated
-//	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(externip)) );		// deprecated
+	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_socket_is_any_addr(&GLOB(externip)) ? sccp_socket_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
