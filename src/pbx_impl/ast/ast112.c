@@ -1949,16 +1949,23 @@ static int sccp_wrapper_asterisk112_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 	int result = 0;
-	char codec_buf[512];
-	ast_getformatname_multiple(codec_buf,sizeof(codec_buf)-1,(struct ast_format_cap *)codecs);
 
 	do {
+		char codec_buf[512] = "";
+
 		if (!(c = CS_AST_CHANNEL_PVT(ast))) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk112_update_rtp_peer) NO PVT\n");
 			result = -1;
 			break;
 		}
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk112_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast),"RTP","EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
+		if (!codecs) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk112_update_rtp_peer) NO Codecs\n",c->currentDeviceId);
+			result = -1;
+			break;
+		}
+		ast_getformatname_multiple(codec_buf,sizeof(codec_buf)-1,(struct ast_format_cap *)codecs);
+
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk112_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast),"RTP","EarlyRTP"), codec_buf , (long unsigned int) codecs, nat_active);
 
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk112_update_rtp_peer) NO LINE\n", c->currentDeviceId);
@@ -1977,7 +1984,7 @@ static int sccp_wrapper_asterisk112_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 		}
 
 		if (!rtp  && !vrtp && !trtp) {
-			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk112_update_rtp_peer) RTP not ready\n",c->currentDeviceId);
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk112_update_rtp_peer) RTP not ready yet\n",c->currentDeviceId);
 			result = 0;
 			break;
 		}
