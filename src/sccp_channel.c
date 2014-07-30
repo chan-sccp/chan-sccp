@@ -714,7 +714,9 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 
 	if (d->nat) {													/* device is natted */
 		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);						/* get rtp server port*/
-		sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote);
+		if (!sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote)) {					/* Use externip (PBX behind NAT Firewall */
+			memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* Fallback: use ip-address of incoming interface */
+		}
 		sccp_socket_ipv4_mapped(&channel->rtp.audio.phone_remote, &channel->rtp.audio.phone_remote);		
 		sccp_socket_setPort(&channel->rtp.audio.phone_remote, port);
 	}
