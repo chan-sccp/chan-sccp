@@ -88,12 +88,11 @@ int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
 {    
 	//! \todo handle IPv4 / IPV6 family ?
-	if (&GLOB(externip)) {
-		memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
-	} else {
+	if (sccp_socket_is_any_addr(&GLOB(externip))) {
 		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
 		return FALSE;
 	}
+	memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
 	return TRUE;
 }
 
