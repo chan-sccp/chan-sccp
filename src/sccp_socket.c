@@ -91,7 +91,8 @@ boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
 	if (&GLOB(externip)) {
 		memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
 	} else {
-		pbx_log(LOG_NOTICE, "SCCP: No externip set in sccp.conf. To use NAT you need to provide the externip of the firewall !\n");
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
+		return FALSE;
 	}
 	return TRUE;
 }
