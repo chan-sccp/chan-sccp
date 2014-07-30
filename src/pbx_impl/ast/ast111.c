@@ -803,7 +803,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			{
 				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
 				int hangupcause = ast_channel_hangupcause(ast);
-				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d", c->designator, hangupcause);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
 			}
 			res = -1;
 			break;

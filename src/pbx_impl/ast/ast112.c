@@ -819,7 +819,13 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			res = -1;
 			break;
 		case AST_CONTROL_PVT_CAUSE_CODE:
+			{
+				/*! \todo This would also be a good moment to update the c->requestHangup to requestQueueHangup */
+				int hangupcause = ast_channel_hangupcause(ast);
+				sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: hangup cause set: %d\n", c->designator, hangupcause);
+			}
 			res = -1;										/* Tell asterisk to provide inband signalling */
+			break;
 		default:
 			sccp_log((DEBUGCAT_PBX | DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: Don't know how to indicate condition '%s' (%d)\n", asterisk_indication2str(ind), ind);
 			res = -1;
