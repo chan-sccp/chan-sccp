@@ -750,6 +750,9 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			/* add text message support */
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
+			d->setBackgroundImage = sccp_device_setBackgroundImage;
+			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
+			d->setRingTone = sccp_device_setRingtone;
 
 			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
