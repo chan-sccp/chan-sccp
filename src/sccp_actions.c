@@ -1243,6 +1243,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle LastNumber Redial Stimulus\n", d->id);
 
 	if (sccp_strlen_zero(d->lastNumber)) {
+		pbx_log(LOG_NOTICE, "%s: (lastnumberredial) No last number stored to dial\n", d->id);
 		return;
 	}
 	AUTO_RELEASE sccp_channel_t *channel = sccp_device_getActiveChannel(d);
