@@ -1945,16 +1945,21 @@ static int sccp_wrapper_asterisk18_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 	int result = 0;
-	char codec_buf[512];
-
-	ast_getformatname_multiple(codec_buf, sizeof(codec_buf) - 1, codecs);
 
 	do {
+		char codec_buf[512];
 		if (!(c = CS_AST_CHANNEL_PVT(ast))) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "SCCP: (asterisk18_update_rtp_peer) NO PVT\n");
 			result = -1;
 			break;
 		}
+
+		if (!codecs) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk112_update_rtp_peer) NO Codecs\n",c->currentDeviceId);
+			result = -1;
+			break;
+		}
+		ast_getformatname_multiple(codec_buf, sizeof(codec_buf) - 1, codecs);
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk18_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast), "RTP", "EarlyRTP"), codec_buf, (long unsigned int) codecs, nat_active);
 		if (!c->line) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk18_update_rtp_peer) NO LINE\n", c->currentDeviceId);
