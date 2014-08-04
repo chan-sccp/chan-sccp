@@ -1248,7 +1248,7 @@ static boolean_t sccp_wrapper_asterisk16_getPickupExtension(const sccp_channel_t
 {
 	boolean_t res = FALSE;
 	if (!sccp_strlen_zero(ast_pickup_ext())) {
-		*extension = (char *)ast_pickup_ext();
+		*extension = strdup((char *)ast_pickup_ext());
 		res = TRUE;
 	}
 	return res;
