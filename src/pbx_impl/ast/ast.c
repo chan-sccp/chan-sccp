@@ -884,7 +884,7 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 #endif		
 		// check if the pickup extension was entered
 		const char *dialedNumber = PBX(getChannelExten)(channel);
-		char *pickupexten = "";
+		char *pickupexten;
 		if (PBX(getPickupExtension)(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
@@ -907,7 +907,7 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 				sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: (pbx_pbx_start) autoloop has started, set requestHangup = requestQueueHangup\n", channel->designator);
 				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 			} else {
-				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, dummyHangup should remain. Will already be hungup/being hungup\n", channel->designator);
+				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, carefullHangup should remain. This channel will be hungup/being hungup soon\n", channel->designator);
 				res = AST_PBX_FAILED;
 			}
 		}
