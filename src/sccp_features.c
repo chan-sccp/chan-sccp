@@ -476,6 +476,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_copy_string(c->dialedNumber, pickupexten, sizeof(pickupexten));
 		sccp_pbx_softswitch(c);
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) finished\n", DEV_ID_LOG(d));
+		sccp_free(pickupexten);
 		res = 0;
 	}
 #else
