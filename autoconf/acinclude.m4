@@ -13,7 +13,7 @@ dnl REVISION: $Revision: $
 AC_DEFUN([CS_CHECK_PBX], [
 	found_pbx="no";
 	found_asterisk="no";
-	if test ! x"${PKGCONFIG}" = xNo; then
+	if test -z "$NEW_PBX_PATH" && test ! x"${PKGCONFIG}" = xNo; then
 		AC_MSG_CHECKING([pkg-config asterisk])
 	 	if $(${PKGCONFIG} --exists asterisk); then
 			PBX_TYPE="Asterisk"
