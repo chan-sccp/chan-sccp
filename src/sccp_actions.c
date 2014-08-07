@@ -501,7 +501,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		device = sccp_device_find_byid(deviceName, TRUE);
 	} else {
 		device = sccp_device_retain(maybe_d);
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), skinny_registrationstate2str(device->registrationState));
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: cached device configuration (state: %s)\n", DEV_ID_LOG(device), device ? skinny_registrationstate2str(device->registrationState) : "UNKNOWN");
 	}
 
 	if (device && device->session && device->session != s) {
