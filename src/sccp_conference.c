@@ -508,6 +508,9 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 static void sccp_conference_removeParticipant(sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	sccp_conference_participant_t *tmp_participant = NULL;
+	if (!conference || !participant) {
+		return;
+	}
 
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Removing Participant %d.\n", conference->id, participant->id);
 
@@ -544,7 +547,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 static void *sccp_conference_thread(void *data)
 {
 	AUTO_RELEASE sccp_conference_participant_t *participant = sccp_participant_retain(data);
-	if (participant) {
+	if (participant && participant->conference && participant->conference->bridge) {
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: entering join thread.\n", participant->conference->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
@@ -812,7 +815,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	int res = 0;
 
 	if (!conference || !conference->playback_announcements) {
-		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Playback on conference suppressed\n", conference->id);
+		sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF: Playback on conference suppressed\n");
 		return 1;
 	}
 
@@ -1183,7 +1186,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
  */
 void __sccp_conference_hide_list(sccp_conference_participant_t * participant)
 {
-	if (participant->channel && participant->device) {
+	if (participant->channel && participant->device && participant->conference) {
 		if (participant->device->conferencelist_active) {
 			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hide Conf List for participant: %d\n", participant->conference->id, participant->id);
 			char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"App:Close:0\"/></CiscoIPPhoneExecute>";
