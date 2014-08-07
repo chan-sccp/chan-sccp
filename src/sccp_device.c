@@ -2454,18 +2454,33 @@ static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_li
 	sccp_dev_displayprompt(device, linedevice->lineInstance, channel->callid, SKINNY_DISP_CONNECTED, GLOB(digittimeout));
 }
 
+/*!
+ * \todo sccp_device_indicate_dialing should be split in a early_immediate version and a standard version, to make this function more readable. We can bind the correct indication function during device
+ * registration / sccp_channel_setDevice
+ */
 static void sccp_device_indicate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel){
-	sccp_dev_stoptone(device, lineInstance, channel->callid);
+	if (device->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {/* The dialtone has not been played, not necessary to stop it then */
+		sccp_dev_stoptone(device, lineInstance, channel->callid);
+	}
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
+	if (!(device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
+		sccp_channel_t *c = (sccp_channel_t *) channel;		/* ugly/temp solution to get rid of const */
+		sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
+		sccp_device_sendcallstate(device, lineInstance, channel->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+	}
 	if (device->protocol) {
 		if (device->protocol->sendDialedNumber) {
 			device->protocol->sendDialedNumber(device, channel);
 		}
-		if (device->protocol->sendCallInfo) {
+		if (device->protocol->sendCallInfo && (device->protocol->version < 22 || (device->earlyrtp != SCCP_EARLYRTP_IMMEDIATE))) {
 			device->protocol->sendCallInfo(device, channel, lineInstance);
 		}
 	}
-	sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
+	if (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+		sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
+	} else {     
+		sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_RINGOUT);
+	}
 }
 
 static void sccp_device_indicate_proceed(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel){

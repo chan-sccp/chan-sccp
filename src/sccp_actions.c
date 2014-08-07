@@ -2687,6 +2687,16 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		return;
 	}
 
+	if (channel->scheduler.hangup) {
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel to be hungup shortly, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
+		return;
+	}
+
+	if (channel->state == SCCP_CHANNELSTATE_INVALIDNUMBER || channel->state == SCCP_CHANNELSTATE_CONGESTION || channel->state == SCCP_CHANNELSTATE_BUSY || channel->state == SCCP_CHANNELSTATE_ZOMBIE || channel->state == SCCP_CHANNELSTATE_DND) {
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Channel already ended, giving up on sending more digits %d\n", DEV_ID_LOG(d), digit);
+		return;
+	}
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP Digit: %08x (%d) on line %s, channel %d with state: %d (Using: %s)\n", DEV_ID_LOG(d), digit, digit, l->name, channel->callid, channel->state, sccp_dtmfmode2str(channel->dtmfmode));
 
 	if (digit == 14) {
@@ -2700,10 +2710,10 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		pbx_log(LOG_WARNING, "Unsupported digit %d\n", digit);
 	}
 
+
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_PROGRESS || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		//sccp_pbx_senddigit(channel, resp);
 		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
 		        PBX(send_digit) (channel, resp);
@@ -2806,9 +2816,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		channel->dialedNumber[len++] = resp;
 		channel->dialedNumber[len] = '\0';
 
-		sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
-		if (channel->state != SCCP_CHANNELSTATE_DIALING) {
-			sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIALING);
+		if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+			sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
 		}
 		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Force Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
@@ -2831,6 +2840,10 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 		return;
 	}
 
+	if (channel->ss_action != SCCP_SS_DIAL || channel->scheduler.hangup) {
+		return;
+	}
+
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
 	if (!l) {
 		return;
@@ -2841,6 +2854,10 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 		return;
 	}
 
+//	if (channel->ss_action != SCCP_SS_DIAL) {
+//		return;
+//	}
+	
 	instance = sccp_device_find_index_for_line(d, l->name);
 	
 	/* we check dialtone just in DIALING action
@@ -2848,10 +2865,6 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 	 * when catching call forward number, meetme room,
 	 * etc.
 	 * */
-
-	if (channel->ss_action != SCCP_SS_DIAL) {
-		return;
-	}
 
 	if (strlen(channel->dialedNumber) == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 		sccp_dev_stoptone(d, instance, channel->callid);

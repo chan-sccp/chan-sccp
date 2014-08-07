@@ -89,7 +89,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				sccp_dev_set_cplane(d, instance, 1);
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
-				sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
+				if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE)
+					sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
 			} else {										// call pickup
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
