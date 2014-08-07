@@ -98,7 +98,7 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
 	if (d) {
-		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
 			  
@@ -122,7 +122,7 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
 	if (d) {
-		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 
 			if (config->type == FEATURE && config->button.feature.id == SCCP_FEATURE_DEVSTATE) {
 			  
