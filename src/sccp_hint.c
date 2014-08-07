@@ -382,7 +382,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 	
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
 	if (d) {
-		SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			positionOnDevice++;
 
 			if (config->type == SPEEDDIAL) {
