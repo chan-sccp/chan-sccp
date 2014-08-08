@@ -451,13 +451,13 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 {
 	char pref_buf[256];
         //char addrStr[INET6_ADDRSTRLEN];
-	struct ast_str *callgroup_buf = pbx_str_alloca(512);
+	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #ifdef CS_SCCP_PICKUP
-	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
+	struct ast_str *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 #endif
-	struct ast_str *ha_buf = pbx_str_alloca(512);
-	struct ast_str *ha_localnet_buf = pbx_str_alloca(512);
+	struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	struct ast_str *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	char *debugcategories;
 	int local_total = 0;
 	const char *actionid = "";
@@ -466,8 +466,8 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, GLOB(global_preferences), ARRAY_LEN(GLOB(global_preferences)));
 	debugcategories = sccp_get_debugcategories(GLOB(debug));
-	sccp_print_ha(ha_buf, sizeof(*ha_buf), GLOB(ha));
-	sccp_print_ha(ha_localnet_buf, sizeof(*ha_localnet_buf), GLOB(localaddr));
+	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(ha));
+	sccp_print_ha(ha_localnet_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(localaddr));
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
@@ -515,10 +515,10 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("Accountcode", CLI_AMI_LIST_WIDTH, "%s", GLOB(accountcode));
 	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", GLOB(musicclass));
 	CLI_AMI_OUTPUT_PARAM("AMA flags", CLI_AMI_LIST_WIDTH, "%d (%s)", GLOB(amaflags), pbx_channel_amaflags2string(GLOB(amaflags)));
-	sccp_print_group(callgroup_buf, sizeof(*callgroup_buf), GLOB(callgroup));
+	sccp_print_group(callgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(callgroup));
 	CLI_AMI_OUTPUT_PARAM("Callgroup", CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
 #ifdef CS_SCCP_PICKUP
-	sccp_print_group(pickupgroup_buf, sizeof(*pickupgroup_buf), GLOB(pickupgroup));
+	sccp_print_group(pickupgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(pickupgroup));
 	CLI_AMI_OUTPUT_PARAM("Pickupgroup", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
 	CLI_AMI_OUTPUT_BOOL("Pickup Mode Answer ", CLI_AMI_LIST_WIDTH, GLOB(directed_pickup_modeanswer));
 #endif
@@ -692,8 +692,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_line_t *l;
 	char pref_buf[256];
 	char cap_buf[512];
-	struct ast_str *ha_buf = pbx_str_alloca(512);
-	struct ast_str *permithost_buf = pbx_str_alloca(512);
+	struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	struct ast_str *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	PBX_VARIABLE_TYPE *v = NULL;
 	sccp_linedevices_t *linedevice = NULL;
 	int local_total = 0;
@@ -720,7 +720,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	}
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
-	sccp_print_ha(ha_buf, sizeof(ha_buf), d->ha);
+	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, d->ha);
         
         if (d->session) { 
 		sccp_copy_string(clientAddress, sccp_socket_stringify(&d->session->sin), sizeof(clientAddress));
@@ -732,7 +732,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	
 	sccp_hostname_t *hostname;
 	SCCP_LIST_TRAVERSE(&d->permithosts, hostname, list) {
-		ast_str_append(&permithost_buf, sizeof(permithost_buf), "%s ", hostname->name);
+		ast_str_append(&permithost_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s ", hostname->name);
 	}
 
 	if (!s) {
@@ -1155,10 +1155,10 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	sccp_linedevices_t *linedevice;
 	sccp_mailbox_t *mailbox;
 	PBX_VARIABLE_TYPE *v = NULL;
-	struct ast_str *callgroup_buf = pbx_str_alloca(512);
+	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #ifdef CS_SCCP_PICKUP
-	struct ast_str *pickupgroup_buf = pbx_str_alloca(512);
+	struct ast_str *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 #endif
 	int local_total = 0;
 
@@ -1197,10 +1197,10 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_PARAM("Account Code", CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", l->musicclass ? l->musicclass : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("AmaFlags", CLI_AMI_LIST_WIDTH, "%d", l->amaflags);
-	sccp_print_group(callgroup_buf, sizeof(*callgroup_buf), l->callgroup);
+	sccp_print_group(callgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, l->callgroup);
 	CLI_AMI_OUTPUT_PARAM("Call Group", CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
 #ifdef CS_SCCP_PICKUP
-	sccp_print_group(pickupgroup_buf, sizeof(*pickupgroup_buf), l->pickupgroup);
+	sccp_print_group(pickupgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, l->pickupgroup);
 	CLI_AMI_OUTPUT_PARAM("Pickup Group", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
 #endif
 #ifdef CS_AST_HAS_NAMEDGROUP
@@ -1733,12 +1733,12 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "permit")) {												/*  WIP */
-		struct ast_str *buf = pbx_str_alloca(512);
+		struct ast_str *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 		//struct sccp_ha *path; 
 		//sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error)
 
-		sccp_print_ha(buf, sizeof(buf), GLOB(ha));
+		sccp_print_ha(buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(ha));
 		pbx_log(LOG_NOTICE, "%s: HA Buffer: %s\n", argv[3], pbx_str_buffer(buf));
 		return RESULT_SUCCESS;
 	}
@@ -1753,7 +1753,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "ha")) {
-		struct ast_str *ha_buf = pbx_str_alloca(512);
+		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 		int error;
 		pbx_cli(fd, "running ha path tests\n");
 
@@ -1770,7 +1770,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
 		pbx_cli(fd, "test 1: deny all\n");
 
-		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
 		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   != AST_SENSE_ALLOW) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
@@ -1782,7 +1782,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ha = sccp_append_ha("permit", "10.14.14.0/255.255.255.0", ha, &error);
 		pbx_cli(fd, "test 2: added permit 10.14.14.0/255.255.255.0\n");
 		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
 		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
@@ -1794,7 +1794,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ha = sccp_append_ha("permit", "10.15.15.0/255.255.0.0", ha, &error);
 		pbx_cli(fd, "test 3: added permit 10.15.15.0/255.255.0.0\n");
 		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
 		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
@@ -1806,7 +1806,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
 		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
 		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
 		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
@@ -1818,7 +1818,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
 		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
 		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
 		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
@@ -1833,7 +1833,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
 		pbx_cli(fd, "cleaned path and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
 		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, sizeof(ha_buf), ha);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
 		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY));
