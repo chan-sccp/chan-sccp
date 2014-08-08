@@ -2249,7 +2249,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
  * \callgraph
  * \callergraph
  */
-void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility)
+void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility)
 {
 	sccp_msg_t *msg;
 
