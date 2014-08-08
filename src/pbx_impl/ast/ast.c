@@ -809,6 +809,10 @@ int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 		pbx_log(LOG_WARNING, "No channel to send digits to\n");
 		return 0;
 	}
+	if (!digits || sccp_strlen_zero(digits)) {
+		pbx_log(LOG_WARNING, "No digits to send\n");
+		return 0;
+	}
 	//ast_channel_undefer_dtmf(channel->owner);
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 	int i;
@@ -831,7 +835,7 @@ int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit)
 {
-	char digits[] = "\0\0";
+	char digits[2] = "\0\0";
 	digits[0] = digit;
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: got a single digit '%c' -> '%s'\n", channel->currentDeviceId, digit, digits);
 	return sccp_wrapper_sendDigits(channel, digits);
