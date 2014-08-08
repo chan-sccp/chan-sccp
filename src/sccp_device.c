@@ -247,9 +247,9 @@ static boolean_t sccp_device_checkACL(sccp_device_t *device)
 
 	if (sccp_apply_ha(device->ha, &sas) != AST_SENSE_ALLOW) {
 		// checking permithosts 
-		struct ast_str *ha_buf = pbx_str_alloca(512);
+		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
-		sccp_print_ha(ha_buf, sizeof(*ha_buf), GLOB(ha));
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(ha));
 
 		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: not allowed by deny/permit list (%s). Checking permithost list...\n", device->id, pbx_str_buffer(ha_buf));
 

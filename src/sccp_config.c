@@ -1201,7 +1201,7 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(hotline->exten, value, size);
 		if (hotline->line) {
-			sccp_copy_string(hotline->line->adhocNumber, value, sizeof(hotline));
+			sccp_copy_string(hotline->line->adhocNumber, value, sizeof(hotline->line->adhocNumber));
 		}
 	} else {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1350,10 +1350,10 @@ sccp_value_changed_t sccp_config_parse_deny_permit(void *dest, const size_t size
 	}
 	if (!error) {
 		// compare ha elements
-		struct ast_str *ha_buf = pbx_str_alloca(512);
-		sccp_print_ha(ha_buf, sizeof(*ha_buf), ha);
-		struct ast_str *prev_ha_buf = pbx_str_alloca(512);
-		sccp_print_ha(prev_ha_buf, sizeof(*prev_ha_buf), prev_ha);
+		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
+		struct ast_str *prev_ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+		sccp_print_ha(prev_ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, prev_ha);
 		
 		if (!sccp_strequals(pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf))) {
 			sccp_log_and(DEBUGCAT_CONFIG + DEBUGCAT_HIGH) ("hal: %s\nprev_ha: %s\n", pbx_str_buffer(ha_buf), pbx_str_buffer(prev_ha_buf));
