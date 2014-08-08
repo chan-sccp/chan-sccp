@@ -824,7 +824,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char data;											// dummy char for variable length message
+		char data[StationMaxXMLMessage];								// dummy char for variable length message
 	} UserToDeviceDataVersion1Message;									/*!< User to Device Version1 Message Structure */
 
 	struct {
@@ -976,7 +976,7 @@ typedef union {
 	struct {
 		uint32_t lel_lineNumber;									/*!< Line Number */
 		uint32_t lel_lineType;										/*!< Line Type */
-		uint32_t dummy;											/*!< Dummy */
+		char dummy[310];										/*!< Dummy (25+141+141) + 3 terminators */
 	} LineStatDynamicMessage;										/*!< Line Stat Dynmic Message Structure */
 
 	struct {
