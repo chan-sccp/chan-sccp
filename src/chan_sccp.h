@@ -130,6 +130,8 @@ char SCCP_REVISIONSTR[30];
 #define CHANNEL_DESIGNATOR_SIZE 32
 #define SCCP_TIME_TO_KEEP_REFCOUNTEDOBJECT 2000									// ms
 
+#define DEFAULT_PBX_STR_BUFFERSIZE 512
+
 /*! \todo I don't like the -1 returned value */
 #define sccp_true(x) (pbx_true(x) ? 1 : 0)
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
