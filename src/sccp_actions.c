@@ -2118,7 +2118,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 	/* \todo This should be changed, to handle and atomic version of sccp_channel_answer if it would return Success/Failed
 	 * (think of two phones on a shared line, picking up at the same time) 
 	 */
-	if ((channel = sccp_channel_find_bystate_on_device(d, SKINNY_CALLSTATE_RINGIN))) {
+	if ((channel = sccp_channel_find_bystate_on_device(d, SCCP_CHANNELSTATE_RINGING))) {
 		/* Answer the ringing channel. */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answer channel\n", d->id);
 		sccp_channel_answer(d, channel);

@@ -1142,7 +1142,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
 					/* we send a congestion to the phone, so call will not be marked as missed call */
-					sccp_device_sendcallstate(d, subscriber->instance, 0, SCCP_CHANNELSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+					sccp_device_sendcallstate(d, subscriber->instance, 0, SKINNY_CALLSTATE_CONGESTION, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
 				}
 
 				sccp_device_sendcallstate(d, subscriber->instance, 0, iconstate, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT); /** do not set visibility to COLLAPSED, this will hidde callInfo in state CALLREMOTEMULTILINE */
