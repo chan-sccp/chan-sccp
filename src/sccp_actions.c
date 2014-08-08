@@ -559,12 +559,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	if (msg_in->data.RegisterMessage.ipv6Address) {
 		register_sas.ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&register_sas;
-		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, INET6_ADDRSTRLEN);
+		memcpy(&sin6->sin6_addr, &msg_in->data.RegisterMessage.ipv6Address, sizeof(sin6->sin6_addr));
 		phone_ipv6 = strdupa(sccp_socket_stringify_host(&register_sas));
 	}
 	register_sas.ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)&register_sas;
-	memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, INET_ADDRSTRLEN);
+	memcpy(&sin->sin_addr, &msg_in->data.RegisterMessage.stationIpAddr, sizeof(sin->sin_addr));
 	phone_ipv4 = strdupa(sccp_socket_stringify_host(&register_sas));
 
 	

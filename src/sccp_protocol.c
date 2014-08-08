@@ -1041,7 +1041,7 @@ static void sccp_protocol_parseOpenReceiveChannelAckV3(const sccp_msg_t * msg, s
 
 	ss->ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-	memcpy(&sin->sin_addr, &msg->data.OpenReceiveChannelAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
+	memcpy(&sin->sin_addr, &msg->data.OpenReceiveChannelAck.v3.bel_ipAddr, sizeof(sin->sin_addr));
 	sin->sin_port = htons(htolel(msg->data.OpenReceiveChannelAck.v3.lel_portNumber));
 }
 
@@ -1054,13 +1054,13 @@ static void sccp_protocol_parseOpenReceiveChannelAckV17(const sccp_msg_t * msg, 
 	if (letohl(msg->data.OpenReceiveChannelAck.v17.lel_ipv46) == 0) {					// read ipv4 address
 		ss->ss_family = AF_INET;
 		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-		memcpy(&sin->sin_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
+		memcpy(&sin->sin_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, sizeof(sin->sin_addr));
 		sin->sin_port = htons(htolel(msg->data.OpenReceiveChannelAck.v17.lel_portNumber));
 	} else {											// read ipv6 address
 		/* what to do with IPv4-mapped IPv6 addresses */
 		ss->ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
-		memcpy(&sin6->sin6_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		memcpy(&sin6->sin6_addr, &msg->data.OpenReceiveChannelAck.v17.bel_ipAddr, sizeof(sin6->sin6_addr));
 		sin6->sin6_port = htons(htolel(msg->data.OpenReceiveChannelAck.v17.lel_portNumber));
 	}
 	//sccp_dump_msg((sccp_msg_t *)msg);
@@ -1074,7 +1074,7 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV3(const sccp_msg_
 
 	ss->ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-	memcpy(&sin->sin_addr, &msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.bel_ipAddr, INET_ADDRSTRLEN);
+	memcpy(&sin->sin_addr, &msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.bel_ipAddr, sizeof(sin->sin_addr));
 	sin->sin_port = htons(htolel(msg->data.OpenMultiMediaReceiveChannelAckMessage.v3.lel_portNumber));
 }
 
@@ -1087,13 +1087,13 @@ static void sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17(const sccp_msg
 	if (letohl(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_ipv46) == 0) {			// read ipv4 address
 		ss->ss_family = AF_INET;
 		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-		memcpy(&sin->sin_addr, &msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, INET_ADDRSTRLEN);
+		memcpy(&sin->sin_addr, &msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, sizeof(sin->sin_addr));
 		sin->sin_port = htons(htolel(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_portNumber));
 	} else {											// read ipv6 address
 		/* what to do with IPv4-mapped IPv6 addresses */
 		ss->ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
-		memcpy(&sin6->sin6_addr, &msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		memcpy(&sin6->sin6_addr, &msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.bel_ipAddr, sizeof(sin6->sin6_addr));
 		sin6->sin6_port = htons(htolel(msg->data.OpenMultiMediaReceiveChannelAckMessage.v17.lel_portNumber));
 	}
 }
@@ -1110,7 +1110,7 @@ static void sccp_protocol_parseStartMediaTransmissionAckV3(const sccp_msg_t * ms
 
 	ss->ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-	memcpy(&sin->sin_addr, &msg->data.StartMediaTransmissionAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
+	memcpy(&sin->sin_addr, &msg->data.StartMediaTransmissionAck.v3.bel_ipAddr, sizeof(sin->sin_addr));
 	sin->sin_port = htons(htolel(msg->data.StartMediaTransmissionAck.v3.lel_portNumber));
 }
 
@@ -1124,13 +1124,13 @@ static void sccp_protocol_parseStartMediaTransmissionAckV17(const sccp_msg_t * m
 	if (letohl(msg->data.StartMediaTransmissionAck.v17.lel_ipv46) == 0) {				// read ipv4 address
 		ss->ss_family = AF_INET;
 		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-		memcpy(&sin->sin_addr, &msg->data.StartMediaTransmissionAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
+		memcpy(&sin->sin_addr, &msg->data.StartMediaTransmissionAck.v17.bel_ipAddr, sizeof(sin->sin_addr));
 		sin->sin_port = htons(htolel(msg->data.StartMediaTransmissionAck.v17.lel_portNumber));
 	} else {											// read ipv6 address
 		/* what to do with IPv4-mapped IPv6 addresses */
 		ss->ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
-		memcpy(&sin6->sin6_addr, &msg->data.StartMediaTransmissionAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		memcpy(&sin6->sin6_addr, &msg->data.StartMediaTransmissionAck.v17.bel_ipAddr, sizeof(sin6->sin6_addr));
 		sin6->sin6_port = htons(htolel(msg->data.StartMediaTransmissionAck.v17.lel_portNumber));
 	}
 }
@@ -1147,7 +1147,7 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV3(const sccp_msg_t
 
 	ss->ss_family = AF_INET;
 	struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-	memcpy(&sin->sin_addr, &msg->data.StartMultiMediaTransmissionAck.v3.bel_ipAddr, INET_ADDRSTRLEN);
+	memcpy(&sin->sin_addr, &msg->data.StartMultiMediaTransmissionAck.v3.bel_ipAddr, sizeof(sin->sin_addr));
 	sin->sin_port = htons(htolel(msg->data.StartMultiMediaTransmissionAck.v3.lel_portNumber));
 }
 
@@ -1161,13 +1161,13 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_
 	if (letohl(msg->data.StartMultiMediaTransmissionAck.v17.lel_ipv46) == 0) {			// read ipv4 address
 		ss->ss_family = AF_INET;
 		struct sockaddr_in *sin = (struct sockaddr_in *)ss;
-		memcpy(&sin->sin_addr, &msg->data.StartMultiMediaTransmissionAck.v17.bel_ipAddr, INET_ADDRSTRLEN);
+		memcpy(&sin->sin_addr, &msg->data.StartMultiMediaTransmissionAck.v17.bel_ipAddr, sizeof(sin->sin_addr));
 		sin->sin_port = htons(htolel(msg->data.StartMultiMediaTransmissionAck.v17.lel_portNumber));
 	} else {											// read ipv6 address
 		/* what to do with IPv4-mapped IPv6 addresses */
 		ss->ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)ss;
-		memcpy(&sin6->sin6_addr, &msg->data.StartMultiMediaTransmissionAck.v17.bel_ipAddr, INET6_ADDRSTRLEN);
+		memcpy(&sin6->sin6_addr, &msg->data.StartMultiMediaTransmissionAck.v17.bel_ipAddr, sizeof(sin6->sin6_addr));
 		sin6->sin6_port = htons(htolel(msg->data.StartMultiMediaTransmissionAck.v17.lel_portNumber));
 	}
 }

@@ -1693,9 +1693,9 @@ int sockaddr_cmp_addr(struct sockaddr_storage *addr1, socklen_t len1, struct soc
 	}
 	/* compare ip4 */
 	if (p1_in->sin_family == AF_INET) {
-		return memcmp(&p1_in->sin_addr, &p2_in->sin_addr, INET_ADDRSTRLEN);
+		return memcmp(&p1_in->sin_addr, &p2_in->sin_addr, sizeof(p1_in->sin_addr));
 	} else if (p1_in6->sin6_family == AF_INET6) {
-		return memcmp(&p1_in6->sin6_addr, &p2_in6->sin6_addr, INET6_ADDRSTRLEN);
+		return memcmp(&p1_in6->sin6_addr, &p2_in6->sin6_addr, sizeof(p1_in6->sin6_addr));
 	} else {
 		/* unknown type, compare for sanity. */
 		return memcmp(addr1, addr2, len1);
