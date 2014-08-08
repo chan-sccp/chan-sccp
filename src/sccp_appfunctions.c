@@ -104,7 +104,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		} else if (!strcasecmp(colname, "registration_state")) {
 			sccp_copy_string(buf, skinny_registrationstate2str(d->registrationState), len);
 		} else if (!strcasecmp(colname, "codecs")) {
-			sccp_multiple_codecs2str(buf, sizeof(buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
+			sccp_multiple_codecs2str(buf, len - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 		} else if (!strcasecmp(colname, "capability")) {
 			sccp_multiple_codecs2str(buf, len - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 		} else if (!strcasecmp(colname, "state")) {
@@ -507,7 +507,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		} else if (!strcasecmp(colname, "codecs")) {
 			sccp_copy_string(buf, codec2name(c->rtp.audio.readFormat), len);
 		} else if (!strcasecmp(colname, "capability")) {
-			sccp_multiple_codecs2str(buf, sizeof(buf) - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
+			sccp_multiple_codecs2str(buf, len - 1, c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
 		} else if (!strcasecmp(colname, "calledPartyName")) {
 			sccp_copy_string(buf, c->callInfo.calledPartyName, len);
 		} else if (!strcasecmp(colname, "calledPartyNumber")) {

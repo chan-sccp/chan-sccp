@@ -2421,12 +2421,13 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPGROUP     is  %s\n", d->id, (pickupgroup) ? "enabled" : "disabled");
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: PICKUPEXTEN     is  %s\n", d->id, (d->directed_pickup) ? "enabled" : "disabled");
 #endif
-	struct ast_str *outputStr = ast_str_create(20 + (15*sizeof(softkeysmap)));
+	size_t buffersize = 20 + (15*sizeof(softkeysmap));
+	struct ast_str *outputStr = ast_str_create(buffersize);
 	for (i = 0; i < v_count; i++) {
 		b = v->ptr;
 		uint8_t c, j, cp = 0;
 
-		ast_str_append(&outputStr, sizeof(outputStr), "%-15s => |", skinny_keymode2str(v->id));
+		ast_str_append(&outputStr, buffersize, "%-15s => |", skinny_keymode2str(v->id));
 
 		for (c = 0, cp = 0; c < v->count; c++, cp++) {
 			msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = 0;
@@ -2490,7 +2491,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 			}
 			for (j = 0; j < sizeof(softkeysmap); j++) {
 				if (b[c] == softkeysmap[j]) {
-                                        ast_str_append(&outputStr, sizeof(outputStr), "%-2d:%-9s|", c, label2str(softkeysmap[j]));
+                                        ast_str_append(&outputStr, buffersize, "%-2d:%-9s|", c, label2str(softkeysmap[j]));
 					msg_out->data.SoftKeySetResMessage.definition[v->id].softKeyTemplateIndex[cp] = (j + 1);
 					msg_out->data.SoftKeySetResMessage.definition[v->id].les_softKeyInfoIndex[cp] = htoles(j + 301);
 					break;
@@ -3300,7 +3301,8 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 
 	sccp_call_statistics_t *last_call_stats = NULL;
 	sccp_call_statistics_t *avg_call_stats = NULL;
-	struct ast_str *output_buf = pbx_str_alloca(2048);
+	size_t buffersize = 2048;
+	struct ast_str *output_buf = pbx_str_alloca(buffersize);
 	char QualityStats[600] = "";
 	uint32_t QualityStatsSize = 0;
 
@@ -3351,10 +3353,10 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
 			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v22.QualityStats, QualityStatsSize);
                 }
-		ast_str_append(&output_buf, 0, "%s: Call Statistics:\n", d->id);
-		ast_str_append(&output_buf, 0, "       [\n");
+		pbx_str_append(&output_buf, buffersize, "%s: Call Statistics:\n", d->id);
+		pbx_str_append(&output_buf, buffersize, "       [\n");
 
-		ast_str_append(&output_buf, 0, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
+		pbx_str_append(&output_buf, buffersize, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
 		sccp_log(DEBUGCAT_CORE)("QualityStats: %s\n",QualityStats);
 		if (!sccp_strlen_zero(QualityStats)) {
 			if (letohl(msg_in->header.lel_protocolVer < 20)) {
@@ -3381,7 +3383,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 				       &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
 			}
 		}
-		ast_str_append(&output_buf, 0, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
+		pbx_str_append(&output_buf, buffersize, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
 			       last_call_stats->opinion_score_listening_quality, last_call_stats->avg_opinion_score_listening_quality,
 			       last_call_stats->mean_opinion_score_listening_quality, last_call_stats->max_opinion_score_listening_quality, last_call_stats->variance_opinion_score_listening_quality, last_call_stats->interval_concealement_ratio, last_call_stats->cumulative_concealement_ratio, last_call_stats->max_concealement_ratio, (int) last_call_stats->concealed_seconds, (int) last_call_stats->severely_concealed_seconds);
 
@@ -3409,12 +3411,12 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 		avg_call_stats->variance_opinion_score_listening_quality = CALC_AVG(last_call_stats->variance_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->num);
 
 		avg_call_stats->num++;
-		ast_str_append(&output_buf, 0, "         Mean Statistics  : #Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
+		pbx_str_append(&output_buf, buffersize, "         Mean Statistics  : #Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
 
-		ast_str_append(&output_buf, 0, "         Mean Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
+		pbx_str_append(&output_buf, buffersize, "         Mean Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
 			       avg_call_stats->opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality,
 			       avg_call_stats->mean_opinion_score_listening_quality, avg_call_stats->max_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->interval_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->max_concealement_ratio, (int) avg_call_stats->concealed_seconds, (int) avg_call_stats->severely_concealed_seconds);
-		ast_str_append(&output_buf, 0, "       ]\n");
+		pbx_str_append(&output_buf, buffersize, "       ]\n");
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s", pbx_str_buffer(output_buf));
 	}
 
