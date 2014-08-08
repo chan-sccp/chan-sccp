@@ -721,7 +721,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState *lineState)
 {
 	sccp_line_t *line = lineState->line;
-	uint8_t state;
+	sccp_channelstate_t state;
 
 	//boolean_t dev_privacy = FALSE;
 
@@ -813,6 +813,14 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 					case skinny_calltype_LOOKUPERROR:
 						break;
 				}
+				break;
+			case SCCP_CHANNELSTATE_BLINDTRANSFER:
+			case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
+			case SCCP_CHANNELSTATE_ZOMBIE:
+			case SCCP_CHANNELSTATE_PROGRESS:
+			case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
+			case sccp_channelstate_LOOKUPERROR:
+				/* unused states */
 				break;
 		}
 

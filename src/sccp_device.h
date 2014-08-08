@@ -88,7 +88,7 @@ void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb);
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message);
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority);
 void sccp_device_featureChangedDisplay(const sccp_event_t * event);
-void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, uint8_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility);
+void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility);
 
 int sccp_dev_send(const sccp_device_t * d, sccp_msg_t * msg);
 int sccp_device_check_ringback(sccp_device_t * d);

@@ -2619,7 +2619,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  * \param state State
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 
@@ -2646,7 +2646,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, uint8_t state
  * \param state State as int
  * \return *refcounted* SCCP Channel
  */
-sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, uint8_t state)
+sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp_channelstate_t state)
 {
 	sccp_channel_t *c = NULL;
 

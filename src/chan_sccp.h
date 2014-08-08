@@ -1151,8 +1151,8 @@ struct sccp_channel {
 	int pbx_callid_created;
 #endif
 	uint32_t passthrupartyid;										/*!< Pass Through ID */
-	uint16_t state;												/*!< Internal channel state SCCP_CHANNELSTATE_* */
-	uint16_t previousChannelState;										/*!< Previous channel state SCCP_CHANNELSTATE_* */
+	sccp_channelstate_t state;										/*!< Internal channel state SCCP_CHANNELSTATE_* */
+	sccp_channelstate_t previousChannelState;								/*!< Previous channel state SCCP_CHANNELSTATE_* */
 	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
 	sccp_line_t *line;											/*!< SCCP Line */
