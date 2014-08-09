@@ -2590,15 +2590,17 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Looking for channel by PassThruId %u on device %s\n", passthrupartyid, d->id);
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++){
-		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
-		if (l) {
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", DEV_ID_LOG(d), l->name);
-			SCCP_LIST_LOCK(&l->channels);
-			c = SCCP_LIST_FIND(&l->channels, c, list, (c->passthrupartyid == passthrupartyid), TRUE);
-			SCCP_LIST_UNLOCK(&l->channels);
+		if (d->lineButtons.instance[instance]) {
+			AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
+			if (l) {
+				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_RTP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Found line: '%s'\n", DEV_ID_LOG(d), l->name);
+				SCCP_LIST_LOCK(&l->channels);
+				c = SCCP_LIST_FIND(&l->channels, c, list, (c->passthrupartyid == passthrupartyid), TRUE);
+				SCCP_LIST_UNLOCK(&l->channels);
 
-			if (c) {
-				break;
+				if (c) {
+					break;
+				}
 			}
 		}
 	}
@@ -2658,14 +2660,16 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp
 	}
 	uint8_t instance = 0;
 	for (instance = SCCP_FIRST_LINEINSTANCE; instance < d->lineButtons.size; instance++){
-		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
-		if (l) {
-			sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
-			SCCP_LIST_LOCK(&l->channels);
-			c = SCCP_LIST_FIND(&l->channels, c, list, (c->state == state && sccp_util_matchSubscriptionId(c, d->lineButtons.instance[instance]->subscriptionId.number)), TRUE);
-			SCCP_LIST_UNLOCK(&l->channels);
-			if (c) {
-				break;
+		if (d->lineButtons.instance[instance]) {
+			AUTO_RELEASE sccp_line_t *l = sccp_line_retain(d->lineButtons.instance[instance]->line);
+			if (l) {
+				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CHANNEL + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: line: '%s'\n", DEV_ID_LOG(d), l->name);
+				SCCP_LIST_LOCK(&l->channels);
+				c = SCCP_LIST_FIND(&l->channels, c, list, (c->state == state && sccp_util_matchSubscriptionId(c, d->lineButtons.instance[instance]->subscriptionId.number)), TRUE);
+				SCCP_LIST_UNLOCK(&l->channels);
+				if (c) {
+					break;
+				}
 			}
 		}
 	}
