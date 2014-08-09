@@ -229,12 +229,15 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 	}
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType); 
 
-	/* if s already has a device assigned to it, something is wrong. clean it up first, and have the device try again */
-	if (s->device && s->device->session && s->device->session != s) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration!\n", DEV_ID_LOG(s->device));
-		sccp_socket_stop_sessionthread(s->device->session, SKINNY_DEVICE_RS_FAILED);
-		sccp_session_tokenReject(s, GLOB(token_backoff_time));
-		return;
+	{ 
+		// Search for already known device-sessions
+		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
+		if (tmpdevice) {
+			if (tmpdevice->session && tmpdevice->session != s) {
+                		sccp_session_crossdevice_cleanup(s, tmpdevice->session, TRUE);
+                		return;
+			}
+		}
 	}
 
 	// Search for the device (including realtime), if does not exist and hotline is requested create one.
@@ -390,14 +393,12 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 	}
 
 	{ 
-		// Search for already known devices
-		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, TRUE);
+		// Search for already known device-sessions
+		AUTO_RELEASE sccp_device_t *tmpdevice = sccp_device_find_byid(deviceName, TRUE);
 		if (tmpdevice) {
 			if (tmpdevice->session && tmpdevice->session != s) {
-				tmpdevice->registrationState = SKINNY_DEVICE_RS_TIMEOUT;
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Device is doing a re-registration!\n", tmpdevice->id);
-				tmpdevice->session->session_stop = 1;							/* do not lock session, this will produce a deadlock, just stop the thread-> everything else will be done by thread it self */
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Previous Session for %s Closed!\n", tmpdevice->id);
+                		sccp_session_crossdevice_cleanup(s, tmpdevice->session, TRUE);
+                		return;
 			}
 		}
 	}
@@ -506,9 +507,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 
 	if (device && device->session && device->session != s) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Crossover device registration (state: %s)! Fixing up to new session\n", DEV_ID_LOG(device), skinny_registrationstate2str(device->registrationState));
-		device->registrationState = SKINNY_DEVICE_RS_FAILED;
-		device->session = sccp_session_reject(s, "Crossover session not allowed, come back later");
-		s = sccp_session_reject(s, "Crossover session not allowed, come back later");
+		sccp_session_crossdevice_cleanup(s, device->session, FALSE);
 		return;                                                                                 // come back later
 	}
 
