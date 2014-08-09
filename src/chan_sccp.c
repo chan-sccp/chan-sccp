@@ -218,7 +218,7 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 
 	if (deviceIsNecessary && d && d->session && s != d->session) {
 		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same. Rejecting message handling\n", msgtypestr);
-		s = sccp_session_crossdevice_cleanup(s, d, "No Crossover Allowed -> Reset");
+		sccp_session_crossdevice_cleanup(s, d->session, FALSE);
 		d = d ? sccp_device_release(d) : NULL;
 		goto EXIT;
 	}

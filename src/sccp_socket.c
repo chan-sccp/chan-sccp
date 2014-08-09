@@ -741,6 +741,10 @@ void sccp_socket_device_thread_exit(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
 
+	if (!s->device) {
+		pbx_log(LOG_WARNING, "SCCP: Session without a device attached !\n");
+	}
+
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
 	sccp_session_close(s);
 	s->session_thread = AST_PTHREADT_NULL;
@@ -1184,15 +1188,43 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
  * \param device SCCP Device Pointer
  * \param message Message as char (reason of rejection)
  */
-sccp_session_t *sccp_session_crossdevice_cleanup(sccp_session_t * session, sccp_device_t * device, char *message)
+void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_session_t * previous_session, boolean_t token)
 {
-	sccp_dev_displayprinotify(device, message, 0, 2);
-	sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);
+	if (!current_session) {
+		return;
+	}
 
-	/* if we reject the connection during accept connection, thread is not ready */
-	sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_NONE);
+	/* cleanup previous session */
+	if (current_session != previous_session) {
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", DEV_ID_LOG(current_session->device), previous_session);
+		
+		/* remove session */
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", DEV_ID_LOG(current_session->device), previous_session);
+		sccp_session_removeFromGlobals(previous_session);
 
-	return NULL;
+		/* cleanup device */
+		if (previous_session->device) {		
+			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(current_session->device));
+			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(previous_session->device);
+			previous_session->device = sccp_device_release(previous_session->device);
+			if (d) {
+				d->registrationState = SKINNY_DEVICE_RS_NONE;
+				d->needcheckringback = 0;
+				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
+			}
+		}
+		/* kill threads */
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Kill Previous Session %p Thread\n", DEV_ID_LOG(current_session->device), previous_session);
+		sccp_socket_stop_sessionthread(previous_session, SKINNY_DEVICE_RS_FAILED);
+	}
+
+	/* reject current_session and cleanup */
+	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Reject New Session %p and make device come back again for another try.\n", DEV_ID_LOG(current_session->device), current_session);
+	if (token) {
+		sccp_session_tokenReject(current_session, GLOB(token_backoff_time));
+	}
+	sccp_session_reject(current_session, "Crossover session not allowed, come back later");		/* this gives us a little time to clean everything up */
+	return;
 }
 
 /*!
