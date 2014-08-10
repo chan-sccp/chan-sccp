@@ -82,7 +82,8 @@ int sccp_addons_taps(sccp_device_t * d)
 	int taps = 0;
 
 	if (!strcasecmp(d->config_type, "7914")) {
-		return 28;											// on compatibility mode it returns 28 taps for a double 7914 addon
+		pbx_log(LOG_WARNING, "%s: config_type '%s' forces addon compatibily mode. Possibly faulty config file.\n", DEV_ID_LOG(d), d->config_type);
+		return 28;											// in compatibility mode it returns 28 taps for a double 7914 addon
 	}
 	SCCP_LIST_LOCK(&d->addons);
 	SCCP_LIST_TRAVERSE(&d->addons, cur, list) {
