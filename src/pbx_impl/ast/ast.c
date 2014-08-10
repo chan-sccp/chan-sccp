@@ -835,7 +835,7 @@ int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits)
 
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit)
 {
-	char digits[] = { digit, '\0' };
+	const char digits[] = { digit, '\0' };
 	sccp_log((DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: got a single digit '%c' -> '%s'\n", channel->currentDeviceId, digit, digits);
 	return sccp_wrapper_sendDigits(channel, digits);
 }
