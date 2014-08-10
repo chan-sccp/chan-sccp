@@ -742,7 +742,7 @@ void sccp_socket_device_thread_exit(void *session)
 	sccp_session_t *s = (sccp_session_t *) session;
 
 	if (!s->device) {
-		pbx_log(LOG_WARNING, "SCCP: Session without a device attached !\n");
+		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: Session without a device attached !\n");
 	}
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
