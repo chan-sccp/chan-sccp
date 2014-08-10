@@ -2,6 +2,7 @@
 SCCP_BRANCH="unknown"
 SCCP_VERSION="unknown"
 SCCP_REVISION="unknown"
+REPOS_TYPE="unknown"
 
 if test -d .svn || test -d ../.svn || test -d ../../.svn;then
   if test ! -z "`which svn`"; then
@@ -18,6 +19,7 @@ if test -d .svn || test -d ../.svn || test -d ../../.svn;then
       fi
     fi
     SCCP_REVISION="`svnversion . |cut -d: -f2 | cut -dM -f1`"
+    REPOS_TYPE="SVN"
   fi
 elif test -d .hg || test -d ../.hg | test -d ../../.hg; then
   if test ! -z "`which hg`"; then
@@ -28,6 +30,7 @@ elif test -d .hg || test -d ../.hg | test -d ../../.hg; then
       SCCP_BRANCH="`cat .hg/branch`"
     fi
     SCCP_REVISION="`hg parents|grep changeset|tail -n1|sed 's/\(.*:\)\(.*\)\(:.*\)/\2/g'|sed 's/\ //g'`"
+    REPOS_TYPE="HG"
   fi
 elif test -d .git || test -d ../.git || test -d ../../.git;then
   if test ! -z "`which git`"; then
@@ -38,16 +41,19 @@ elif test -d .git || test -d ../.git || test -d ../../.git;then
       SCCP_BRANCH="`git branch | awk '{print $2}' | sed s/\n//g`"
     fi
     SCCP_REVISION="`git describe --always`"
+    REPOS_TYPE="GIT"
   fi
 fi
 
 if test "$SCCP_VERSION" = "unknown"; then
   SCCP_BRANCH="`cat .version|cut -d_ -f2`"
   SCCP_VERSION="`cat .version|cut -d_ -f1`"
+  REPOS_TYPE="TGZ"
 fi
 
 if test "$1" != "silent"; then
 	echo SCCP_VERSION: $SCCP_VERSION 
 	echo SCCP_BRANCH: $SCCP_BRANCH 
 	echo SCCP_REVISION: $SCCP_REVISION
+	echo REPOS_TYPE: $REPOS_TYPE
 fi

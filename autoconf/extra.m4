@@ -563,9 +563,9 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 
 
 AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
-	AC_ARG_ENABLE(optimization, [AC_HELP_STRING([--disable-optimization],[no detection or tuning flags for cpu version])], enable_optimization=$enableval,enable_optimization=yes)
-	AC_ARG_ENABLE(debug,[AC_HELP_STRING([--enable-debug],[enable debug information])],enable_debug=$enableval,enable_debug=no)
-	AC_MSG_NOTICE([--enable-optimization: ${enable_optimization}])
+	AC_ARG_ENABLE(optimization, [AC_HELP_STRING([--enable-optimization],[no detection or tuning flags for cpu version])], enable_optimization=$enableval,[enable_optimization=no; if test "${REPOS_TYPE}" = "TGZ"; then enable_optimization=yes; fi])
+	AC_ARG_ENABLE(debug,[AC_HELP_STRING([--disable-debug],[disable debug information])],enable_debug=$enableval,[enable_debug=yes;if test "${REPOS_TYPE}" = "TGZ"; then enable_debug=no; fi])
+	AC_MSG_NOTICE([--enable-optimization: ${enable_optimization}]) 
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
 	if test -n "${CPPFLAGS_saved}"; then
@@ -627,12 +627,6 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 	AC_SUBST([GDB_FLAGS])
 ])
 
-AC_DEFUN([CS_ENABLE_DEBUG], [
-	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
-	AM_CONDITIONAL([WANT_DEBUG],[test "${enable_debug}" = "yes"])
-	AC_SUBST([strip_binaries])
-])
-
 AC_DEFUN([CS_ENABLE_GCOV], [
 	COVERAGE_CFLAGS=''
 	COVERAGE_LDFLAGS=''
@@ -643,7 +637,7 @@ AC_DEFUN([CS_ENABLE_GCOV], [
 		COVERAGE_CFLAGS='-fprofile-arcs -ftest-coverage'
 		COVERAGE_LDFLAGS='--coverage --no-inline'
 	],[])
-	AC_MSG_NOTICE([--enable-gcov: ${ac_cv_refcount_debug}])
+	AC_MSG_NOTICE([--enable-gcov: ${ac_cv_enable_debug}])
 	AC_SUBST([COVERAGE_CFLAGS])
 	AC_SUBST([COVERAGE_LDFLAGS])
 ])
@@ -861,7 +855,6 @@ AC_DEFUN([CS_WITH_HASH_SIZE], [
 
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_OPTIMIZATION
-	CS_ENABLE_DEBUG  
 	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
 	CS_WITH_HASH_SIZE
