@@ -1634,7 +1634,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
 	char k_button[256];
 	char *splitter;
-	sccp_config_buttontype_t type;
+	sccp_config_buttontype_t type = EMPTY;	/* default to empty */
 	unsigned int i;
 
 	int buttonindex = 0;
@@ -1652,9 +1652,11 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		if (i >= ARRAY_LEN(sccp_buttontypes)) {
 			pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
 			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+			/* will cause an empty button to be inserted */
+		} else {
+			type = sccp_buttontypes[i].buttontype;
 		}
-		type = sccp_buttontypes[i].buttontype;
-		changed = sccp_config_addButton(dest, buttonindex++, type, buttonName ? pbx_strip(buttonName) : buttonType, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
+		changed = sccp_config_addButton(dest, buttonindex++, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "button: %s -> %s\n", v->value, changed ? "yes" : "no");
 		changes += changed;
 	}
@@ -1701,6 +1703,11 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			break;
 		}
 	}
+	/* replace empty line button with an empty button */
+	if (type == LINE && (sccp_strlen_zero(name) && !options)) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Empty LINE Button Declaration found at index: %d. Substituted with  EMPTY button\n", index);
+		type = EMPTY;
+	}
 
 	if (!config) {
 		config = sccp_calloc(1, sizeof(sccp_buttonconfig_t));
@@ -1710,7 +1717,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		}
 		config->index = index;
 		config->type = type;
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button %s at : %d:%d\n", sccp_config_buttontype2str(type), name, index, config->index);
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "New %s Button '%s' at : %d:%d\n", sccp_config_buttontype2str(type), name, index, config->index);
 		SCCP_LIST_INSERT_TAIL(buttonconfigList, config, list);
 	} else {
 		config->pendingDelete = 0;
@@ -1718,8 +1725,9 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 	}
 	SCCP_LIST_UNLOCK(buttonconfigList);
 
+	/* replace faulty button declarations with an empty button */
 	if (type != EMPTY && (sccp_strlen_zero(name) || (type != LINE && !options))) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty Button Configuration found at index: %d, type: %s, name: %s. Substituted with  EMPTY button\n", config->index, sccp_config_buttontype2str(type), name);
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Faulty %s Button Configuration found at index: %d, name: %s, options: %s, args: %s. Substituted with  EMPTY button\n", sccp_config_buttontype2str(type), config->index, name, options, args);
 		type = EMPTY;
 	}
 
