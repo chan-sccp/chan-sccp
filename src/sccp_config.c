@@ -1704,7 +1704,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		}
 	}
 	/* replace empty line button with an empty button */
-	if (type == LINE && (sccp_strlen_zero(name) && !options)) {
+//	if (type == LINE && (sccp_strlen_zero(name) && !options)) {
+	if (type == LINE && ((sccp_strlen_zero(name) || sccp_strcaseequals(name, "empty")) && !options)) {		/* also deal with the bad config example 'button = line, empty', that was accidentally distributed */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Empty LINE Button Declaration found at index: %d. Substituted with  EMPTY button\n", index);
 		type = EMPTY;
 	}
