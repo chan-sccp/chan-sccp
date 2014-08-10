@@ -2502,7 +2502,7 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
  * \callgraph
  * \callergraph
  * 
- * \param id ID as int
+ * \param callid Call ID as uint32_t
  * \return *refcounted* SCCP Channel (can be null)
  */
 sccp_channel_t *sccp_channel_find_byid(uint32_t callid)

@@ -1236,6 +1236,7 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1266,6 +1267,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1286,6 +1288,7 @@ static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t *l, ui
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1379,6 +1382,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t *l, uint8_t
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1410,6 +1414,7 @@ static void sccp_handle_stimulus_hold(sccp_device_t * d, sccp_line_t *l, uint8_t
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1431,6 +1436,7 @@ static void sccp_handle_stimulus_transfer(sccp_device_t * d, sccp_line_t *l, uin
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId Call ID as uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1443,6 +1449,7 @@ static void sccp_handle_stimulus_voicemail(sccp_device_t * d, sccp_line_t *l, ui
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1460,6 +1467,7 @@ static void sccp_handle_stimulus_conference(sccp_device_t * d, sccp_line_t *l, u
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1477,6 +1485,7 @@ static void sccp_handle_stimulus_forwardAll(sccp_device_t * d, sccp_line_t *l, u
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1494,6 +1503,7 @@ static void sccp_handle_stimulus_forwardBusy(sccp_device_t * d, sccp_line_t *l, 
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1510,6 +1520,7 @@ static void sccp_handle_stimulus_forwardNoAnswer(sccp_device_t * d, sccp_line_t 
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1532,6 +1543,7 @@ static void sccp_handle_stimulus_callpark(sccp_device_t * d, sccp_line_t *l, uin
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1551,6 +1563,7 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
  * \param d SCCP Device
  * \param l SCCP Line
  * \param instance uint8_t
+ * \param callId uint32_t
  * \param stimulusstatus uint32_t
  */
 static void sccp_handle_stimulus_feature(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus) {
@@ -1620,16 +1633,6 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_UNDEFINED] = 			{NULL, FALSE},
 };
 
-/*
-static const struct _skinny_stimulusMap_cb {
-	skinny_buttontype_t stimulus;
-	void (*const handler_cb)(sccp_device_t * d, sccp_line_t *l, uint8_t instance, uint32_t stimulusstatus);
-} skinny_stimulusMap_cb[] = {
-	{ SKINNY_BUTTONTYPE_LASTNUMBERREDIAL, 	sccp_handle_stimulus_lastnumberredial},
-};
-*/
-
-
 /*!
  * \brief Handle Stimulus for Session
  * \param s SCCP Session
@@ -1678,349 +1681,6 @@ void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * ms
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d), which does not have a handling function. Not Handled\n", d->id, skinny_stimulus2str(stimulus), stimulus);
 	}
 }
-
-#if 0		/* has been replaced */
-/*!
- * \brief Handle Stimulus for Session
- * \param s SCCP Session
- * \param d SCCP Device
- * \param msg_in SCCP Message
- *
- * \callgraph
- * \callergraph
- */
-void sccp_handle_stimulus(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
-{
-	sccp_line_t *l = NULL;
-	sccp_line_t *al = NULL;
-	sccp_speed_t k;
-	sccp_channel_t *channel = NULL, *sccp_channel_1 = NULL;
-	uint8_t stimulus;
-	uint8_t instance;
-	uint32_t callReference = 0;
-	uint32_t stimulusStatus = 0;
-	sccp_channel_t *sccp_channel_held;
-	sccp_channel_t *sccp_channel_ringing;
-
-	stimulus = letohl(msg_in->data.StimulusMessage.lel_stimulus);
-	instance = letohl(msg_in->data.StimulusMessage.lel_stimulusInstance);
-	
-	if (msg_in->header.length > 12) {
-		callReference = letohl(msg_in->data.StimulusMessage.lel_callReference);
-		stimulusStatus = letohl(msg_in->data.StimulusMessage.lel_stimulusStatus);
-	}
-
-	if (d->isAnonymous) {
-		sccp_feat_adhocDial(d, GLOB(hotline)->line);							/* use adhoc dial feture with hotline */
-		return;
-	}
-
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Got stimulus=%s (%d) for instance=%d, callreference=%d, status=%d\n", d->id, skinny_stimulus2str(stimulus), stimulus, instance, callReference, stimulusStatus);
-
-	if (!instance) {										/*! \todo also use the callReference if available */
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Instance 0 is not a valid instance. Trying the active line %d\n", d->id, instance);
-		al = sccp_dev_get_activeline(d);
-		if (!al) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", d->id);
-			goto func_exit;
-		}
-		if (strlen(al->adhocNumber) > 0) {
-			sccp_feat_adhocDial(d, l);
-			goto func_exit;
-		}
-		// \todo set index
-		instance = SCCP_FIRST_LINEINSTANCE;
-	}
-
-	switch (stimulus) {
-
-		case SKINNY_BUTTONTYPE_LASTNUMBERREDIAL:							// We got a Redial Request
-			if (sccp_strlen_zero(d->lastNumber)) {
-				goto func_exit;
-			}
-			channel = sccp_device_getActiveChannel(d);
-			if (channel) {
-				if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
-					sccp_copy_string(channel->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
-					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-					sccp_pbx_softswitch(channel);
-
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
-				} else {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
-				}
-			} else {
-				if ((l = sccp_dev_get_activeline(d))) {
-					channel = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
-					channel = channel ? sccp_channel_release(channel) : NULL;
-				}
-			}
-			break;
-
-		case SKINNY_BUTTONTYPE_LINE:									// We got a Line Request
-			l = sccp_line_find_byid(d, instance);
-			if (!l) {
-				sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
-				sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
-				if (k.valid) {
-					sccp_handle_speeddial(d, &k);
-				} else {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-                                }
-                                goto func_exit;
-			}
-
-			if (strlen(l->adhocNumber) > 0) {
-				sccp_feat_adhocDial(d, l);
-				goto func_exit;
-			}
-
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Line Key press on line %s\n", d->id, (l) ? l->name : "(nil)");
-			if ((channel = sccp_device_getActiveChannel(d))) {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, channel->callid, (l) ? l->name : "(nil)");
-				if (channel->state != SCCP_CHANNELSTATE_CONNECTED) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
-					sccp_channel_endcall(channel);
-					sccp_dev_deactivate_cplane(d);
-					goto func_exit;
-				} else {
-					if (sccp_channel_hold(channel)) {
-						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, channel->callid, l->name);
-					} else {
-						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, channel->callid, l->name);
-					}
-				}
-			} else {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %d\n", d->id, instance);
-			}
-			if (!SCCP_RWLIST_GETSIZE(&l->channels)) {
-				sccp_channel_t *tmpChannel = NULL;
-
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
-				sccp_dev_set_activeline(d, l);
-				sccp_dev_set_cplane(d, instance, 1);
-				tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
-				tmpChannel = tmpChannel ? sccp_channel_release(tmpChannel) : NULL;
-
-			} else if ((sccp_channel_ringing = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
-				sccp_channel_answer(d, sccp_channel_ringing);
-			} else if ((sccp_channel_held = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {	/* \test scch_channel_held is never used */ /* \note scch_channel_held is never used */
-				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
-				if (SCCP_RWLIST_GETSIZE(&l->channels) == 1) {
-					/* \todo we should  lock the list here. */
-					channel = SCCP_LIST_FIRST(&l->channels);
-					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, channel->callid, instance);
-					sccp_dev_set_activeline(d, l);
-					sccp_channel_resume(d, channel, TRUE);
-					sccp_dev_set_cplane(d, instance, 1);
-				} else {
-					sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
-					sccp_dev_set_activeline(d, l);
-					sccp_dev_set_cplane(d, instance, 1);
-				}
-			}
-			break;
-
-		case SKINNY_BUTTONTYPE_SPEEDDIAL:
-			sccp_dev_speed_find_byindex(d, instance, FALSE, &k);
-			if (k.valid) {
-				sccp_handle_speeddial(d, &k);
-			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-                        }
-                        break;
-
-		case SKINNY_BUTTONTYPE_HOLD:
-			/* this is the hard hold button. When we are here we are putting on hold the active_channel */
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold/Resume Button pressed on line (%d)\n", d->id, instance);
-			l = sccp_line_find_byid(d, instance);
-			if (!l) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
-				l = sccp_dev_get_activeline(d);
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Trying the current line\n", d->id);
-				if (!l) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
-					goto func_exit;
-				}
-				instance = sccp_device_find_index_for_line(d, l->name);
-			}
-
-			if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_CONNECTED))) {
-				sccp_channel_hold(channel);
-			} else if ((channel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
-				sccp_channel_1 = sccp_device_getActiveChannel(d);
-				if (sccp_channel_1 && sccp_channel_1->state == SCCP_CHANNELSTATE_OFFHOOK) {
-					sccp_channel_endcall(sccp_channel_1);
-				}
-				sccp_channel_resume(d, channel, TRUE);
-			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No call to resume/hold found on line %d\n", d->id, instance);
-			}
-			break;
-
-		case SKINNY_BUTTONTYPE_TRANSFER:
-			if (!d->transfer) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device\n", d->id);
-				break;
-			}
-			channel = sccp_device_getActiveChannel(d);
-			if (channel) {
-				sccp_channel_transfer(channel, d);
-			}
-			break;
-
-		case SKINNY_BUTTONTYPE_VOICEMAIL:								// Get a new Line and Dial the Voicemail.
-			sccp_feat_voicemail(d, instance);
-			break;
-		case SKINNY_BUTTONTYPE_CONFERENCE:
-			pbx_log(LOG_NOTICE, "%s: Conference Button is not yet handled. working on implementation\n", d->id);
-			break;
-
-		case SKINNY_BUTTONTYPE_FEATURE:
-		case SKINNY_BUTTONTYPE_MOBILITY:
-		case SKINNY_BUTTONTYPE_MULTIBLINKFEATURE:
-		case SKINNY_BUTTONTYPE_DO_NOT_DISTURB:
-		case SKINNY_BUTTONTYPE_QRT:
-		case SKINNY_BUTTONTYPE_CALLBACK:
-		case SKINNY_BUTTONTYPE_OTHER_PICKUP:
-		case SKINNY_BUTTONTYPE_VIDEO_MODE:
-		case SKINNY_BUTTONTYPE_NEW_CALL:
-		case SKINNY_BUTTONTYPE_END_CALL:
-		case SKINNY_BUTTONTYPE_HLOG:
-		case SKINNY_BUTTONTYPE_TESTE:
-		case SKINNY_BUTTONTYPE_TESTF:
-		case SKINNY_BUTTONTYPE_TESTI:
-		case SKINNY_BUTTONTYPE_MESSAGES:
-		case SKINNY_BUTTONTYPE_DIRECTORY:
-		case SKINNY_BUTTONTYPE_APPLICATION:
-			sccp_handle_feature_action(d, instance, TRUE);
-			break;
-
-		case SKINNY_BUTTONTYPE_FORWARDALL:								// Call forward all
-			if (!d->cfwdall) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDALL disabled on device\n", d->id);
-				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
-				goto func_exit;
-			}
-			l = sccp_dev_get_activeline(d);
-			if (!l) {
-				if (!instance) {
-					instance = SCCP_FIRST_LINEINSTANCE;
-                                }
-				l = sccp_line_find_byid(d, instance);
-				if (!l) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
-					goto func_exit;
-				}
-			}
-			if (l) {
-				sccp_feat_handle_callforward(l, d, SCCP_CFWD_ALL);
-			}
-			break;
-		case SKINNY_BUTTONTYPE_FORWARDBUSY:
-			if (!d->cfwdbusy) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDBUSY disabled on device\n", d->id);
-				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
-				goto func_exit;
-			}
-			l = sccp_dev_get_activeline(d);
-			if (!l) {
-				if (!instance) {
-					instance = SCCP_FIRST_LINEINSTANCE;
-                                }
-				l = sccp_line_find_byid(d, instance);
-				if (!l) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
-					goto func_exit;
-				}
-			}
-			if (l) {
-				sccp_feat_handle_callforward(l, d, SCCP_CFWD_BUSY);
-			}
-			break;
-		case SKINNY_BUTTONTYPE_FORWARDNOANSWER:
-			if (!d->cfwdnoanswer) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: CFWDNOANSWER disabled on device\n", d->id);
-				sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
-				goto func_exit;
-			}
-			l = sccp_dev_get_activeline(d);
-			if (!l) {
-				if (!instance) {
-					instance = SCCP_FIRST_LINEINSTANCE;
-                                }
-				l = sccp_line_find_byid(d, instance);
-				if (!l) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line (%d) found\n", d->id, instance);
-					goto func_exit;
-				}
-			}
-			if (l) {
-				sccp_feat_handle_callforward(l, d, SCCP_CFWD_NOANSWER);
-			}
-			break;
-		case SKINNY_BUTTONTYPE_CALLPARK:								// Call parking
-#ifdef CS_SCCP_PARK
-			channel = sccp_device_getActiveChannel(d);
-			if (!channel) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Cannot park while no calls in progress\n", d->id);
-				goto func_exit;
-			}
-			sccp_channel_park(channel);
-#else
-			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "### Native park was not compiled in\n");
-#endif
-			break;
-
-		case SKINNY_BUTTONTYPE_BLFSPEEDDIAL:								//busy lamp field type speeddial
-			sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
-			if (k.valid) {
-				sccp_handle_speeddial(d, &k);
-			} else {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
-                        }
-			break;
-
-		case SKINNY_STIMULUS_GROUPCALLPICKUP:								/*!< pickup feature button */
-#ifndef CS_SCCP_PICKUP
-			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
-#else
-			if (d->defaultLineInstance > 0) {
-				sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "using default line with instance: %u\n", d->defaultLineInstance);
-				/*! \todo use feature map or sccp_feat_handle_directed_pickup */
-				if ((l = sccp_line_find_byid(d, d->defaultLineInstance))) {
-					//sccp_feat_handle_directed_pickup(l, d->defaultLineInstance, d);
-					channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
-					channel = channel ? sccp_channel_release(channel) : NULL;
-				}
-				goto func_exit;
-			}
-
-			/* no default line set, use first line */
-			if (!al) {
-				al = sccp_line_find_byid(d, 1);
-			}
-			if (al) {
-				/*! \todo use feature map or sccp_feat_handle_directed_pickup */
-				//sccp_feat_handle_directed_pickup(l, 1, d);
-				channel = sccp_channel_newcall(al, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
-				channel = channel ? sccp_channel_release(channel) : NULL;
-			}
-#endif
-			break;
-
-		default:
-			pbx_log(LOG_NOTICE, "%s: Don't know how to deal with stimulus %d with Phonetype %s(%d) \n", d->id, stimulus, skinny_devicetype2str(d->skinny_type), d->skinny_type);
-			break;
-	}
-
-func_exit:
-	channel = channel ? sccp_channel_release(channel) : NULL;
-	al = al ? sccp_line_release(al) : NULL;
-	l = l ? sccp_line_release(l) : NULL;
-}
-#endif
 
 /*!
  * \brief Handle SpeedDial for Device

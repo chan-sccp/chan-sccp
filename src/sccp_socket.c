@@ -1184,9 +1184,9 @@ sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message)
 
 /*!
  * \brief Send a Reject Message to Device.
- * \param session SCCP Session Pointer
- * \param device SCCP Device Pointer
- * \param message Message as char (reason of rejection)
+ * \param current_session SCCP Session Pointer
+ * \param previous_session SCCP Session Pointer
+ * \param token Do we need to return a token reject or a session reject (as Boolean)
  */
 void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_session_t * previous_session, boolean_t token)
 {
