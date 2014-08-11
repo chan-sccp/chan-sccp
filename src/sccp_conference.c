@@ -547,7 +547,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 static void *sccp_conference_thread(void *data)
 {
 	AUTO_RELEASE sccp_conference_participant_t *participant = sccp_participant_retain(data);
-	if (participant && participant->conference && participant->conference->bridge) {
+	if (participant && participant->conference) {
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: entering join thread.\n", participant->conference->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
