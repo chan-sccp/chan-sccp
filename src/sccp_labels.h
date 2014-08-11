@@ -75,9 +75,9 @@
 #define SKINNY_LBL_PRIVATE                                           	54
 #define SKINNY_LBL_NOT_ENOUGH_BANDWIDTH                              	55
 #define SKINNY_LBL_UNKNOWN_NUMBER                                    	56
-#define SKINNY_LBL_RMLSTC                                            	57
+#define SKINNY_LBL_RMLSTC                                            	57				/* Remove Last Conference Participant from the Conference (Moderator Only) */
 #define SKINNY_LBL_VOICEMAIL                                         	58
-#define SKINNY_LBL_IMMDIV                                            	59
+#define SKINNY_LBL_IMMDIV                                            	59				/* Immediate Divert to Voicemail */
 #define SKINNY_LBL_INTRCPT                                           	60
 #define SKINNY_LBL_SETWTCH                                           	61
 #define SKINNY_LBL_TRNSFVM                                           	62
@@ -215,9 +215,9 @@ static const struct skinny_label {
 
 #define SKINNY_DISP_EMPTY                                		""
 
-#define SKINNY_DISP_ACCT						"\36\02"
-#define SKINNY_DISP_FLASH						"\36\03"
-#define SKINNY_DISP_LOGIN						"\36\04"
+#define SKINNY_DISP_ACCT						"\36\02"				/* Account Code / Access to Configured Accounts */
+#define SKINNY_DISP_FLASH						"\36\03"				/* Hook Flash */
+#define SKINNY_DISP_LOGIN						"\36\04"				/* Provides personal identification number (PIN) access to restricted phone features */
 #define SKINNY_DISP_DEVICE_IN_HOME_LOCATION				"\36\05"
 #define SKINNY_DISP_DEVICE_IN_ROAMING_LOCATION				"\36\06"
 #define SKINNY_DISP_ENTER_AUTHORIZATION_CODE				"\36\07"
@@ -235,7 +235,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_SELECT_A_SERVICE					"\36\21"
 #define SKINNY_DISP_LOCAL_SERVICES					"\36\22"
 #define SKINNY_DISP_ENTER_SEARCH_CRITERIA				"\36\23"
-#define SKINNY_DISP_NIGHT_SERVICE					"\36\24"
+#define SKINNY_DISP_NIGHT_SERVICE					"\36\24"				/* We should provide access to Night Server via a Feature Option */
 #define SKINNY_DISP_NIGHT_SERVICE_ACTIVE				"\36\25"
 #define SKINNY_DISP_NIGHT_SERVICE_DISABLED				"\36\26"
 #define SKINNY_DISP_LOGIN_SUCCESSFUL					"\36\27"
@@ -398,7 +398,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_MAX_CALL_DURATION_TIMEOUT				"\200\131"
 #define SKINNY_DISP_MAX_HOLD_DURATION_TIMEOUT				"\200\132"
 #define SKINNY_DISP_OPICKUP						"\200\133"
-#define SKINNY_DISP_HLOG                                        	"\200\134"				/*<! - FS */
+#define SKINNY_DISP_HLOG                                        	"\200\134"				/*<! Huntgroup/queue Login/Logout*/
 #define SKINNY_DISP_LOGGED_OUT_OF_HUNT_GROUP                    	"\200\135"				/*<! - FS */
 #define SKINNY_DISP_PARK_SLOT_UNAVAILABLE                       	"\200\136"				/*<! - FS */
 #define SKINNY_DISP_NO_CALL_AVAILABLE_FOR_PICKUP                	"\200\137"				/*<! - FS */

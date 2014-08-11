@@ -506,7 +506,7 @@ static const struct sccp_feature_type {
 	{SCCP_FEATURE_DO_NOT_DISTURB,		"do not disturb"},
 	{SCCP_FEATURE_CONF_LIST,		"ConfList"},
 	{SCCP_FEATURE_REMOVE_LAST_PARTICIPANT,	"RemoveLastParticipant"},
-	{SCCP_FEATURE_HLOG, 			"Hlog"},
+	{SCCP_FEATURE_HLOG, 			"Hunt Group Log-in/out"},
 	{SCCP_FEATURE_QRT, 			"QRT"},
 	{SCCP_FEATURE_CALLBACK, 		"CallBack"},
 	{SCCP_FEATURE_OTHER_PICKUP, 		"OtherPickup"},
