@@ -215,7 +215,7 @@ static const struct skinny_label {
 
 #define SKINNY_DISP_EMPTY                                		""
 
-#define SKINNY_DISP_ACCT						"\36\02"				/* Account Code / Access to Configured Accounts */
+#define SKINNY_DISP_ACCT						"\36\02"				/* Set Account Code / During Call Setup or Connected Call / Should be added to CDR */
 #define SKINNY_DISP_FLASH						"\36\03"				/* Hook Flash */
 #define SKINNY_DISP_LOGIN						"\36\04"				/* Provides personal identification number (PIN) access to restricted phone features */
 #define SKINNY_DISP_DEVICE_IN_HOME_LOCATION				"\36\05"
@@ -273,7 +273,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_END_CALL						"\36\63"
 #define SKINNY_DISP_CONFERENCE_LIST					"\36\64"
 #define SKINNY_DISP_QUALITY_REPORTING_TOOL				"\36\65"
-#define SKINNY_DISP_HUNT_GROUP						"\36\66"
+#define SKINNY_DISP_HUNT_GROUP						"\36\66"				/* HLOG Button */
 #define SKINNY_DISP_USE_LINE_OR_JOIN_TO_COMPLETE			"\36\67"
 
 #define SKINNY_DISP_DO_NOT_DISTURB					"\36\70"
@@ -289,7 +289,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_CANNOT_SEND_CALL_TO_MOBILE				"\36\101"
 #define SKINNY_DISP_RECORD						"\36\103"
 #define SKINNY_DISP_CANNOT_MOVE_CONVERSATION				"\36\104"
-#define SKINNY_DISP_CW_OFF						"\36\105"
+#define SKINNY_DISP_CW_OFF						"\36\105"				/* Call Waiting Off */
 #define SKINNY_DISP_COACHING						"\36\106"
 #define SKINNY_DISP_RECORDING						"\36\117"
 
