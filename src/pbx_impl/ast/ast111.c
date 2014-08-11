@@ -1111,14 +1111,12 @@ int sccp_wrapper_asterisk111_hangup(PBX_CHANNEL_TYPE * ast_channel)
 		if (0 == res) {
 			sccp_channel_release(c);								// this only releases the get_sccp_channel_from_pbx_channel
 		}
+		ast_channel_tech_pvt_set(ast_channel, NULL);
+		/* postponing ast_channel_unref to sccp_channel destructor */
 	} else {												// after this moment c might have gone already
+		ast_channel_tech_pvt_set(ast_channel, NULL);
 	        pbx_channel_unref(ast_channel);									// strange unknown channel, why did we get called to hang it up ?
 	}
-	ast_channel_tech_pvt_set(ast_channel, NULL);
-	/* postponing ast_channel_unref to sccp_channel destructor */
-//	if (channel_owner) {
-//		channel_owner = pbx_channel_unref(channel_owner);
-//	}
 	ast_module_unref(ast_module_info->self);
 	return res;
 }
