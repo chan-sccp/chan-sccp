@@ -621,7 +621,7 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 	if (session && device && session->device != device) {
 		sccp_session_lock(session);
 		if (session->device) {
-			sccp_session_removeDevice(session);
+			AUTO_RELEASE sccp_device_t *previous_device = sccp_session_removeDevice(session);
 		}
 		if ((session->device = sccp_device_retain(device))) {
 			session->device->session = session;
@@ -637,6 +637,7 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
  */
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 {
+	sccp_device_t *return_device = NULL;
 	if (session && session->device) {
 		if (session->device->session && session->device->session != session) {
 			// cleanup previous/crossover session
@@ -645,10 +646,11 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 		sccp_session_lock(session);
 		session->device->registrationState = SKINNY_DEVICE_RS_NONE;
 		session->device->session = NULL;
-		session->device = sccp_device_release(session->device);
+		return_device = session->device;			// sign over device reference
+		session->device = NULL;					// clear device reference
 		sccp_session_unlock(session);
 	}
-	return NULL;
+	return return_device;
 }
 
 /*!
@@ -1200,14 +1202,13 @@ void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_ses
 		
 		/* remove session */
 		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", DEV_ID_LOG(current_session->device), previous_session);
-		sccp_session_removeFromGlobals(previous_session);
+//		sccp_session_removeFromGlobals(previous_session);
 
 		/* cleanup device */
 		if (previous_session->device) {		
-			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(current_session->device));
-			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(previous_session->device);
-			previous_session->device = sccp_device_release(previous_session->device);
+			AUTO_RELEASE sccp_device_t *d = sccp_session_removeDevice(previous_session);
 			if (d) {
+	 			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(d));
 				d->registrationState = SKINNY_DEVICE_RS_NONE;
 				d->needcheckringback = 0;
 				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
