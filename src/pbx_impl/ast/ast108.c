@@ -516,7 +516,7 @@ static void sccp_wrapper_asterisk18_connectedline(sccp_channel_t * channel, cons
 			}
 		}
 		channel->callInfo.originalCdpnRedirectReason = channel->callInfo.lastRedirectingReason;
-		channel->callInfo.lastRedirectingReason = 0;							// need to figure out these codes
+		channel->callInfo.lastRedirectingReason = 4;							// need to figure out these codes
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {

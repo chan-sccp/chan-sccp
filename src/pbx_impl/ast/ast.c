@@ -661,6 +661,8 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 	sccp_copy_string(channel->callInfo.lastRedirectingPartyNumber, ast->cid.cid_rdnis ? ast->cid.cid_rdnis : "", sizeof(channel->callInfo.lastRedirectingPartyNumber));
 	channel->callInfo.lastRedirectingParty_valid = 1;
 #endif
+	channel->callInfo.originalCdpnRedirectReason = channel->callInfo.lastRedirectingReason;
+	channel->callInfo.lastRedirectingReason = 4;	// need to figure out these codes
 
 	sccp_channel_send_callinfo2(channel);
 }
@@ -857,9 +859,10 @@ static void *sccp_asterisk_doPickupThread(void *data) {
 
 static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE *pbx_channel) {
 	pthread_t threadid;
-
-
-	pbx_channel_ref(pbx_channel);
+	
+	if (!pbx_channel || !(pbx_channel_ref(pbx_channel) > 0)) {
+		return FALSE;
+	}
 	if (ast_pthread_create_detached_background(&threadid, NULL, sccp_asterisk_doPickupThread, pbx_channel)) {
 		pbx_log(LOG_ERROR, "Unable to start Group pickup thread on channel %s\n", pbx_channel_name(pbx_channel));
 		pbx_channel_unref(pbx_channel);
