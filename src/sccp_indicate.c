@@ -495,7 +495,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			uint8_t stateVisibility = (c->privacy || !c->callInfo.presentation) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
  			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
-			stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
+// 			stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
 
 			{
 				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(linedevice->device);
