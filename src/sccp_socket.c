@@ -621,7 +621,8 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 	if (session && device && session->device != device) {
 		sccp_session_lock(session);
 		if (session->device) {
-			AUTO_RELEASE sccp_device_t *previous_device = sccp_session_removeDevice(session);
+			sccp_device_t *previous_device = sccp_session_removeDevice(session);
+			previous_device = previous_device ? sccp_device_release(previous_device) : NULL;
 		}
 		if ((session->device = sccp_device_retain(device))) {
 			session->device->session = session;
