@@ -1994,7 +1994,8 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			usleep(20);
 			if (d->session) {
-				AUTO_RELEASE sccp_device_t *previous_device = sccp_session_removeDevice(d->session);
+				sccp_device_t *previous_device = sccp_session_removeDevice(d->session);
+				previous_device = previous_device ? sccp_device_release(previous_device) : NULL;
 			}
 			d->session = NULL;
 		}
