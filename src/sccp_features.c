@@ -504,8 +504,8 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	c->calltype = SKINNY_CALLTYPE_INBOUND;
 	sccp_copy_string(c->callInfo.calledPartyNumber, c->callInfo.callingPartyNumber, sizeof(c->callInfo.calledPartyNumber));
 	sccp_copy_string(c->callInfo.calledPartyName, c->callInfo.callingPartyName, sizeof(c->callInfo.calledPartyName));
-	c->calledParty_valid = 1;
-	c->callingParty_valid = 0;
+	c->callInfo.calledParty_valid = 1;
+	c->callInfo.callingParty_valid = 0;
 	c->callInfo.callingPartyName[0] = '\0';
 	c->callInfo.callingPartyNumber[0] = '\0';
 	/* done, change call direction */
