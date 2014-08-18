@@ -17,6 +17,7 @@
 #include <asterisk/features_config.h>
 #include <asterisk/pickup.h>
 #include <asterisk/stasis.h>
+#include <asterisk/format_compatibility.h>
 
 #undef pbx_channel_ref
 #define pbx_channel_ref ast_channel_ref
@@ -25,7 +26,7 @@
 #define sccp_sched_context_destroy sched_context_destroy
 
 typedef struct ast_format_cap ast_format_t;
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
+//int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
 const char *pbx_getformatname(const struct ast_format *format);
 char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *format);

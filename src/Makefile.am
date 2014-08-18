@@ -49,7 +49,7 @@ if BUILD_AST
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast110.h   pbx_impl/ast/ast110.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast111.h   pbx_impl/ast/ast111.c
   EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast112.h   pbx_impl/ast/ast112.c pbx_impl/ast/ast112_announce.h pbx_impl/ast/ast112_announce.c
-#  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast112.h   pbx_impl/ast/ast113.c
+  EXTRA_chan_sccp_la_SOURCES += pbx_impl/ast/ast113.h   pbx_impl/ast/ast113.c pbx_impl/ast/ast112_announce.h pbx_impl/ast/ast112_announce.c
 endif
 
 chan_sccp_la_LIBADD	  = $(PTHREAD_CFLAGS) $(PBX_GENERAL) $(PBX_MAJOR) $(PBX_MINOR) $(CLANG_BLOCKS_LIBS)
