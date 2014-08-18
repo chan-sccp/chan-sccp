@@ -268,7 +268,7 @@ static int sccp_wrapper_asterisk111_devicestate(const char *data)
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
-		case SCCP_CHANNELSTATE_HELP_FOR_TRANSFER:				/* right location needs to be found */
+		case SCCP_CHANNELSTATE_HELD_FOR_TRANSFER:				/* right location needs to be found */
 			res = AST_DEVICE_INUSE;
 			break;
 		case sccp_channelstate_LOOKUPERROR:
