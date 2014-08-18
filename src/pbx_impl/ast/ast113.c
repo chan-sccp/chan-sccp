@@ -40,6 +40,7 @@ extern "C" {
 #include <asterisk/stasis_endpoints.h>
 #include <asterisk/bridge_channel.h>
 #include <asterisk/bridge_after.h>
+#include <asterisk/format_compatibility.h>
 
 #define new avoid_cxx_new_keyword
 #include <asterisk/rtp_engine.h>
@@ -286,6 +287,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
+		case SCCP_CHANNELSTATE_HELP_FOR_TRANSFER:				/* right location needs to be found */
 			res = AST_DEVICE_INUSE;
 			break;
 		case sccp_channelstate_LOOKUPERROR:
@@ -304,14 +306,16 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
  *
  * \return bit array fmt/Format of ast_format_type (int)
  */
-int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
-{
-	struct ast_format dst;
-	uint32_t codec = skinny_codecs2pbx_codecs(skinny_codecs);						// convert to bitfield
 
-	ast_format_from_old_bitfield(&dst, codec);
-	return ast_codec_pref_append(astCodecPref, &dst);							// return ast_codec_pref
-}
+/*! \todo create replacement, 'struct ast_codec_pref' does not exist in asterisk-13 anymore */
+//int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
+//{
+//	struct ast_format dst;
+//	uint32_t codec = skinny_codecs2pbx_codecs(skinny_codecs);						// convert to bitfield
+//
+//	ast_format_from_old_bitfield(&dst, codec);
+//	return ast_codec_pref_append(astCodecPref, &dst);							// return ast_codec_pref
+//}
 
 static boolean_t sccp_wrapper_asterisk113_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
 
@@ -2303,7 +2307,7 @@ static boolean_t sccp_wrapper_asterisk113_create_video_rtp(sccp_channel_t * c)
 {
 	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock = { {0,} };
-	struct ast_codec_pref astCodecPref;
+//	struct ast_codec_pref astCodecPref;
 
 	if (!c) {
 		return FALSE;
@@ -2340,10 +2344,11 @@ static boolean_t sccp_wrapper_asterisk113_create_video_rtp(sccp_channel_t * c)
 		ast_queue_frame(c->owner, &ast_null_frame);
 	}
 
-	memset(&astCodecPref, 0, sizeof(astCodecPref));
-	if (skinny_codecs2pbx_codec_pref(c->preferences.video, &astCodecPref)) {
-		ast_rtp_codecs_packetization_set(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, &astCodecPref);
-	}
+	/*! \todo 'struct ast_codec_pref' does not exist in asterisk-13 */
+//	memset(&astCodecPref, 0, sizeof(astCodecPref));
+//	if (skinny_codecs2pbx_codec_pref(c->preferences.video, &astCodecPref)) {
+//		ast_rtp_codecs_packetization_set(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, &astCodecPref);
+//	}
 	
 	ast_rtp_instance_set_qos(c->rtp.video.rtp, d->video_tos, d->video_cos, "SCCP VRTP");
 

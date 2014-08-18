@@ -760,6 +760,8 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 				break;
 			case SCCP_CHANNELSTATE_ONHOOK:
 				break;
+			case SCCP_CHANNELSTATE_HELD_FOR_TRANSFER:			/* right location needs to be found */
+				break;
 			case SCCP_CHANNELSTATE_DND:
 				sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
 				sccp_copy_string(lineState->callInfo.partyNumber, "DND", sizeof(lineState->callInfo.partyNumber));
@@ -888,8 +890,6 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 			newDeviceState = AST_DEVICE_ONHOLD;
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-			newDeviceState = AST_DEVICE_BUSY;
-			break;
 		case SCCP_CHANNELSTATE_DND:
 			newDeviceState = AST_DEVICE_BUSY;
 			break;
@@ -914,6 +914,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 		case SCCP_CHANNELSTATE_CALLTRANSFER:
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 		case SCCP_CHANNELSTATE_CALLPARK:
+		case SCCP_CHANNELSTATE_HELD_FOR_TRANSFER:			/* right location needs to be found */
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
