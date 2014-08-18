@@ -2183,7 +2183,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		return;
 	}
 
-	sccp_channel_transfer_release(d, d->transferChannels.transferee);
+//	sccp_channel_transfer_release(d, d->transferChannels.transferee);
+	sccp_channel_transfer_release(d, sccp_source_local_channel);
 
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
