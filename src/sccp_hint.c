@@ -1133,6 +1133,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 					case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 					case SCCP_CHANNELSTATE_BLINDTRANSFER:
+					case SCCP_CHANNELSTATE_HELD_FOR_TRANSFER:			/* right location needs to be found */
 					case SCCP_CHANNELSTATE_DND:
 						iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 						break;
