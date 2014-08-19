@@ -491,8 +491,8 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast)
 	//sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "%s: read format: ast->fdno: %d, frametype: %d, %s(%d)\n", DEV_ID_LOG(c->device), ast_channel_fdno(ast), frame->frametype, pbx_getformatname(frame->subclass), frame->subclass);
 	if (frame->frametype == AST_FRAME_VOICE) {
 #ifdef CS_SCCP_CONFERENCE
-		if (c->conference && (!ast_format_is_slinear(ast_channel_readformat(ast)))) {
-			ast_set_read_format(ast, &slinFormat);
+		if (c->conference && (!ast_format_cache_is_slinear(ast_channel_readformat(ast)))) {
+			ast_set_read_format(ast, ast_format_slin96);
 		}
 #endif
 	}
@@ -954,11 +954,12 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 
 			if (c->rtp.video.writeState == SCCP_RTP_STATUS_INACTIVE && c->rtp.video.rtp && device && c->state != SCCP_CHANNELSTATE_HOLD) {
 				//                      int codec = pbx_codec2skinny_codec((frame->subclass.codec & AST_FORMAT_VIDEO_MASK));
-				int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
+				//int codec = pbx_codec2skinny_codec(frame->subclass.format.id);
 
-				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %d\n", c->currentDeviceId, codec);
-				if (0 != codec) {
-					c->rtp.video.writeFormat = codec;
+				
+				if (ast_format_cmp(ast_format_h264, frame->subclass.format) == AST_FORMAT_CMP_EQUAL) {
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: got video frame %s\n", c->currentDeviceId, "H264");
+					c->rtp.video.writeFormat = SKINNY_CODEC_H264;
 					sccp_channel_openMultiMediaReceiveChannel(c);
 				}
 			}
@@ -3672,7 +3673,10 @@ static int register_channel_tech(struct ast_channel_tech *tech)
 	if (!tech->capabilities) {
 		return -1;
 	}
-	ast_format_cap_add_all(tech->capabilities);
+	//ast_format_cap_add_all(tech->capabilities);
+	ast_format_cap_append_by_type(tech->capabilities, AST_MEDIA_TYPE_AUDIO);
+	ast_format_cap_append_by_type(tech->capabilities, AST_MEDIA_TYPE_VIDEO);
+
 	if (ast_channel_register(tech)) {
 		ast_log(LOG_ERROR, "Unable to register channel technology %s(%s).\n",
 			tech->type, tech->description);
@@ -3684,7 +3688,8 @@ static int register_channel_tech(struct ast_channel_tech *tech)
 static void unregister_channel_tech(struct ast_channel_tech *tech)
 {
 	ast_channel_unregister(tech);
-	tech->capabilities = ast_format_cap_destroy(tech->capabilities);
+	ao2_ref(tech->capabilities, -1);
+	tech->capabilities = NULL;
 }
 #endif
 
