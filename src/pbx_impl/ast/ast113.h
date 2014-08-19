@@ -1,5 +1,5 @@
 /*!
- * \file	ast111.h
+ * \file	ast113.h
  * \brief       SCCP PBX Asterisk Header
  * \author	Marcello Ceshia
  * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
@@ -25,6 +25,7 @@
 #define pbx_channel_unref ast_channel_unref
 #define sccp_sched_context_destroy sched_context_destroy
 
+#define PBX_ENDPOINT_TYPE struct ast_endpoint
 #define PBX_EVENT_SUBSCRIPTION struct stasis_subscription
 
 typedef struct ast_format_cap ast_format_t;
@@ -36,6 +37,7 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 /* Redefinitions for asterisk-trunk, need to be sorted  */
 #define pbx_channel_name(x) ast_channel_name(x)
 
+#undef CS_BRIDGEPEERNAME
 #undef pbx_channel_uniqueid
 #undef pbx_channel_flags
 #undef pbx_channel_call_forward
@@ -72,7 +74,11 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 #undef pbx_channel_amaflags2string 
 #undef pbx_event_subscribe
 #undef pbx_event_unsubscribe
+#undef pbx_bridge_destroy
+#undef pbx_bridge_new
+#undef pbx_bridge_change_state
 
+#define CS_BRIDGEPEERNAME "DIALEDPEERNAME"
 #define pbx_channel_uniqueid(_a) ast_channel_uniqueid(_a)
 #define pbx_channel_flags(_a) ast_channel_flags(_a)
 #define pbx_channel_call_forward(_a) ast_channel_call_forward(_a)
@@ -110,6 +116,10 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 #define pbx_channel_amaflags2string(_a) ast_channel_amaflags2string(_a)
 #define pbx_event_subscribe(_a) _a = stasis_subscribe(_a)
 #define pbx_event_unsubscribe(_a) _a = stasis_unsubscribe(_a)
+#define pbx_bridge_destroy(_x, _y) ast_bridge_destroy(_x, _y)
+#define pbx_bridge_new(_a, _b, _c, _d, _e) ast_bridge_base_new(_a, _b, _c, _d, _e)
+#define AST_BRIDGE_CHANNEL_STATE_WAIT BRIDGE_CHANNEL_STATE_WAIT
+#define pbx_bridge_change_state(_a, _b) (_a->state) = _b
 
 int pbx_manager_register(const char *action, int authority, int (*func) (struct mansession * s, const struct message * m), const char *synopsis, const char *description);
 
