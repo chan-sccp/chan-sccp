@@ -2085,7 +2085,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			break;
 		}
 		
-		codec = ast_format_cap_get_names(codecs, &codec_buf);
+		codec = ast_format_cap_get_names((struct ast_format_cap *)codecs, &codec_buf);
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (asterisk113_update_rtp_peer) stage: %s, codecs capabilty: %s (%lu), nat_active: %d\n", c->currentDeviceId, S_COR(AST_STATE_UP == pbx_channel_state(ast),"RTP","EarlyRTP"), codec, (long unsigned int) codecs, nat_active);
 
 		if (!c->line) {

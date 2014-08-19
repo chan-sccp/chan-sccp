@@ -573,25 +573,29 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
  */
 void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *number)
 {
-	if (!channel) {
+	if (!channel || sccp_strequals(name,"s") /* skip update for immediate earlyrtp + s-extension */) {
 		return;
 	}
-
-	if (!sccp_strlen_zero(name) && strcmp(name,"s")) {
-		sccp_copy_string(channel->callInfo.calledPartyName, name, sizeof(channel->callInfo.calledPartyNumber));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
-	} else {
-		channel->callInfo.calledPartyName[0] = '\0';
+	
+	/* in case we want to clear out the current name or number use "" instead of NULL */
+	if (name) {
+		if (!sccp_strlen_zero(name)) {
+			sccp_copy_string(channel->callInfo.calledPartyName, name, sizeof(channel->callInfo.calledPartyName));
+		} else {
+			channel->callInfo.calledPartyName[0] = '\0';
+		}
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Name '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callid);
 	}
 
-	if (!sccp_strlen_zero(number) && strcmp(name,"s")) {
-		sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
-	} else {
-		channel->callInfo.calledPartyNumber[0] = '\0';
-	}
-	if (!sccp_strlen_zero(channel->callInfo.calledPartyName) && !sccp_strlen_zero(channel->callInfo.calledPartyNumber)) {
-		channel->callInfo.calledParty_valid = 1;
+	if (number) {
+		if (!sccp_strlen_zero(number)) {
+			sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
+			channel->callInfo.calledParty_valid = 1;
+		} else {
+			channel->callInfo.calledPartyNumber[0] = '\0';
+			channel->callInfo.calledParty_valid = 0;
+		}
+		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_calledparty) Set calledParty Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyNumber, channel->callid);
 	}
 }
 
