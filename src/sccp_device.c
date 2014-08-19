@@ -2469,7 +2469,7 @@ static void __sccp_device_indicate_normal_dialing(const sccp_device_t * device, 
 	sccp_channel_t *c = (sccp_channel_t *) channel;
 	sccp_dev_stoptone(device, lineInstance, channel->callid);
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	sccp_channel_set_calledparty(c, c->dialedNumber, c->dialedNumber);
+	sccp_channel_set_calledparty(c, NULL, c->dialedNumber);
 	if (device->protocol) {
 		if (device->protocol->sendDialedNumber) {
 			device->protocol->sendDialedNumber(device, channel);
