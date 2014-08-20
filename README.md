@@ -25,3 +25,6 @@ check it out on the internet:
 http://chan-sccp-b.sourceforge.net/doc/index.html.
 
 When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.
+
+Compilation:
+[![Travis](http://img.shields.io/travis/marcello/chan-sccp-b.svg?style=flat)](https://travis-ci.org/marcello/chan-sccp-b)
