@@ -1,4 +1,3 @@
-
 Welcome to Chan_SCCP.
 
 Chan_SCCP is free software. Please see the file COPYING for details.
@@ -27,3 +26,5 @@ http://chan-sccp-b.sourceforge.net/doc/index.html.
 
 When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.
 
+Compilation:
+[![Travis](http://img.shields.io/travis/marcello/chan-sccp-b.svg?style=flat)](https://travis-ci.org/marcello/chan-sccp-b)
