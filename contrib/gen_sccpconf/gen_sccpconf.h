@@ -65,6 +65,7 @@ enum SCCPConfigOptionType {
 	SCCP_CONFIG_DATATYPE_PARSER			= 1 << 4,
 	SCCP_CONFIG_DATATYPE_STRINGPTR			= 1 << 5,	/* pointer */
 	SCCP_CONFIG_DATATYPE_CHAR			= 1 << 6,
+	SCCP_CONFIG_DATATYPE_ENUM			= 1 << 7,
 /* *INDENT-ON* */
 };
 
@@ -90,7 +91,6 @@ enum SCCPConfigOptionFlag {
  * \brief SCCP Config Option Struct
  */
 typedef struct SCCPConfigOption {
-
 /* *INDENT-ON* */
 	const char *name;							/*!< Configuration Parameter Name */
 	const int offset;
@@ -98,7 +98,7 @@ typedef struct SCCPConfigOption {
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	const char *generic_parser;
 	const char *str2enumval;
-	const char *enumkeys;
+	const char *enumentries;
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
@@ -119,15 +119,15 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_permithosts "(permithosts)=[[hostname]]"
 #define sccp_config_parse_addons "(addons)=7914,7915,7916,SPA500S"
 #define sccp_config_parse_privacyFeature "(privacyFeature)=full|on|off"
-#define sccp_config_parse_earlyrtp "(earlyrtp)=none|offhook|dial|ringout|progress"
-#define sccp_config_parse_dtmfmode "(dtmfmode)=outofband|inband"
-#define sccp_config_parse_mwilamp "(mwilamp)=on|off|wink|flash|blink"
+//#define sccp_config_parse_earlyrtp "(earlyrtp)=none|offhook|dial|ringout|progress"
+//#define sccp_config_parse_dtmfmode "(dtmfmode)=outofband|inband"
+//#define sccp_config_parse_mwilamp "(mwilamp)=on|off|wink|flash|blink"
 #define sccp_config_parse_debug "(debug)=all,none,core,sccp,hint,rtp,device,line,action,channel,cli,config,feature,feature_button,softkey,indicate,pbx,socket,mwi,event,adv_feature,conference,buttontemplate,speeddial,codec,realtime,lock,threadlock,message,newcode,high,myi,fixme,fyi"
 #define sccp_config_parse_ipaddress "(ipaddress)=[[ipaddress]]"
 #define sccp_config_parse_port "(port)=[[port]]"
-#define sccp_config_parse_blindtransferindication "(blindtransferindication)=moh|ring"
-#define sccp_config_parse_callanswerorder "(callanswerorder)=oldestfirst|lastfirst"
-#define sccp_config_parse_regcontext "(regcontext)=[[string]]"
+//#define sccp_config_parse_blindtransferindication "(blindtransferindication)=moh|ring"
+//#define sccp_config_parse_callanswerorder "(callanswerorder)=oldestfirst|lastfirst"
+//#define sccp_config_parse_regcontext "(regcontext)=[[string]]"
 #define sccp_config_parse_context "(context)=[[context]]"
 #define sccp_config_parse_hotline_context "(hotline_context)=[[context]]"
 #define sccp_config_parse_hotline_exten "(hotline_exten)=[[value]]"
@@ -136,9 +136,22 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_jbflags_log "(jbflags_log)=on|off"
 #define sccp_config_parse_codec_preferences "(codec)=all|(alaw,ulaw,gsm,ilbc,g722,g723,g729,g726,slin,slin16)"
 #define sccp_config_parse_deny_permit "(permit)=[[ipaddress]],internal | (deny)=[[ipaddress]],internal"
-#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
+//#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
 
+#define sccp_earlyrtp_str2val ""
+#define skinny_lampmode_str2val ""
+#define sccp_blindtransferindication_str2val ""
+#define sccp_call_answer_order_str2val ""
+#define sccp_dtmfmode_str2val ""
+#define sccp_dndmode_str2val ""
 
+#define sccp_earlyrtp_all_entries ""
+#define skinny_lampmode_all_entries ""
+#define sccp_blindtransferindication_all_entries ""
+#define sccp_call_answer_order_all_entries ""
+#define sccp_dtmfmode_all_entries ""
+#define sccp_dndmode_all_entries ""
+   
 #include "../../src/sccp_config_entries.hh"
 
 /*!
