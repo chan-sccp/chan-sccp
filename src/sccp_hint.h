@@ -17,4 +17,6 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
 void sccp_hint_module_start(void);
 void sccp_hint_module_stop(void);
 
+int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
+int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 #endif														/* SCCP_HINT_H_ */
