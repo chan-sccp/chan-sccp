@@ -5,7 +5,7 @@
  * \author	Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
  * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  * 		See the LICENSE file at the top of the source tree.
- * \note	For more information about how does hint update works, see \ref hint_update
+ * \note	For more information about how does hint update works, see \ref hint_update 
  * \since	2009-01-16
  * \remarks	Purpose:	SCCP Hint
  * 		When to use:	Does the business of hint status
@@ -75,7 +75,7 @@ struct sccp_hint_lineState {
  * \brief SCCP Hint List Structure
  */
 struct sccp_hint_list {
-	pbx_mutex_t lock;											/*!< Asterisk Lock */
+//	pbx_mutex_t lock;											/*!< Asterisk Lock */
 
 	char exten[SCCP_MAX_EXTENSION];										/*!< Extension for Hint */
 	char context[SCCP_MAX_CONTEXT];										/*!< Context for Hint */
@@ -551,7 +551,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	memset(hint, 0, sizeof(sccp_hint_list_t));
 
 	SCCP_LIST_HEAD_INIT(&hint->subscribers);
-	sccp_mutex_init(&hint->lock);
+//	sccp_mutex_init(&hint->lock);
 
 	sccp_copy_string(hint->exten, hint_exten, sizeof(hint->exten));
 	sccp_copy_string(hint->context, hint_context, sizeof(hint->context));
@@ -1238,4 +1238,86 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
 	}
 	SCCP_LIST_UNLOCK(&lineStates);
 	return state;
+}
+
+/*!
+ * \brief Show Hint LineStates
+ * \param fd Fd as int   
+ * \param total Total number of lines as int
+ * \param s AMI Session 
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+#include <asterisk/cli.h>
+int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	int local_total = 0;
+#define CLI_AMI_TABLE_NAME Hint_LineStates
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Hint_lineState
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &lineStates
+#define CLI_AMI_TABLE_LIST_ITER_TYPE struct sccp_hint_lineState
+#define CLI_AMI_TABLE_LIST_ITER_VAR lineState
+#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_FIELDS 														\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10s",	10,	lineState->line->name)					\
+ 		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(lineState->state))		\
+ 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	lineState->callInfo.partyNumber)			\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	lineState->callInfo.partyName)				\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	lineState->callInfo.calltype ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
+
+#include "sccp_cli_table.h"
+
+	if (s) {
+		*total = local_total;
+	}
+	return RESULT_SUCCESS;
+}
+
+/*!
+ * \brief Show Hint Subscriptions
+ * \param fd Fd as int   
+ * \param total Total number of lines as int
+ * \param s AMI Session 
+ * \param m Message
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ */
+//#include <asterisk/cli.h>
+int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+{
+	int local_total = 0;
+
+#define CLI_AMI_TABLE_NAME Hint_Subscriptions
+#define CLI_AMI_TABLE_PER_ENTRY_NAME Hint_Subscription
+#define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_hint_subscriptions
+#define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_hint_list_t
+#define CLI_AMI_TABLE_LIST_ITER_VAR subscription
+#define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
+#define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
+#define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
+#define CLI_AMI_TABLE_FIELDS 														\
+ 		CLI_AMI_TABLE_FIELD(Exten,		"-10.10s",	10,	subscription->exten)					\
+ 		CLI_AMI_TABLE_FIELD(Content,		"-10.10s",	10,	subscription->context)					\
+ 		CLI_AMI_TABLE_FIELD(Hint,		"-15.15s",	15,	subscription->hint_dialplan)				\
+ 		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(subscription->currentState))	\
+ 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	subscription->callInfo.partyNumber)			\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	subscription->callInfo.partyName)			\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	subscription->callInfo.calltype ? skinny_calltype2str(subscription->callInfo.calltype) : "INACTIVE")	\
+ 		CLI_AMI_TABLE_FIELD(Subs,		"-4d",		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
+
+#include "sccp_cli_table.h"
+
+	if (s) {
+		*total = local_total;
+	}
+	return RESULT_SUCCESS;
 }
