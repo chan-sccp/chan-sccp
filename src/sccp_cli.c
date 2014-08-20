@@ -59,6 +59,7 @@
 #include "sccp_conference.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sccp_hint.h"
 #include "sys/stat.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
@@ -1524,6 +1525,38 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														/* CS_SCCP_CONFERENCE */
 
+/* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
+static char cli_show_hint_lineStates_usage[] = "Usage: sccp show hint linestates\n" "	Show All SCCP HINT LineStates.\n";
+static char ami_show_hint_lineStates_usage[] = "Usage: SCCPShowHintLineStates\n" "Show All SCCP Hint Line States.\n\n" "PARAMS: None\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define CLI_COMMAND "sccp", "show", "hint", "lineStates"
+#define AMI_COMMAND "SCCPShowHintLineStates"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS ""
+CLI_AMI_ENTRY(show_hint_lineStates, sccp_show_hint_lineStates, "Show all SCCP Hint Line States", cli_show_hint_lineStates_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+/* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
+static char cli_show_hint_subscriptions_usage[] = "Usage: sccp show hint linestates\n" "	Show All SCCP HINT LineStates.\n";
+static char ami_show_hint_subscriptions_usage[] = "Usage: SCCPShowHintLineStates\n" "Show All SCCP Hint Line States.\n\n" "PARAMS: None\n";
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
+#define CLI_COMMAND "sccp", "show", "hint", "subscriptions"
+#define AMI_COMMAND "SCCPShowHintSubscriptions"
+#define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
+#define CLI_AMI_PARAMS ""
+CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all SCCP Hint Subscriptions", cli_show_hint_subscriptions_usage, FALSE)
+#undef CLI_AMI_PARAMS
+#undef CLI_COMPLETE
+#undef AMI_COMMAND
+#undef CLI_COMMAND
+#endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
 /* -------------------------------------------------------------------------------------------------------TEST- */
 #define NUM_LOOPS 20
 #define NUM_OBJECTS 100
@@ -1881,15 +1914,34 @@ static int sccp_test(int fd, int argc, char *argv[])
 	if (!strcasecmp(argv[2], "labels")) {
 		sccp_device_t *d = NULL;
 		d = sccp_device_find_byid(argv[3], FALSE);
+		uint8_t x, y, block;
+		char clientAddress[INET6_ADDRSTRLEN];
+		pbx_log(LOG_NOTICE, "%s: Running Labels\n", d->id);
+		
 		if (d) {
-//			char *message = "\200\3";
-//			char *message = "\36\3";
-//			sccp_dev_displayprompt(d, 0, 0, message, GLOB(digittimeout));
-			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_ENTER_CLIENT_MATTER_CODE, 2);
-			sleep(2);
-			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_CM_FALLBACK_SERVICE_OPERATING, 2);
-			sleep(2);
-			sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_MAX_PHONES_EXCEEDED, 2);
+			if (d->registrationState == SKINNY_DEVICE_RS_OK) {
+				if (argc < 5) {
+					sccp_copy_string(clientAddress, sccp_socket_stringify_addr(&d->session->sin), sizeof(clientAddress));
+				} else {
+					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
+				}
+				for(y=0; y<2; y++) {
+					block=y == 0 ? 36 : 200;;
+					for(x=0; x<255; x++) {
+						char label[]= { y == 0 ? '\36' : '\200',  x, '\0'};
+						sccp_log(DEBUGCAT_CORE)("%s: Sending \\%d\\%d\n", d->id, block, x);
+						sccp_dev_displayprompt(d, 0, 0, label, 2);
+						char command[512];
+						usleep(50);
+						snprintf(command, 512, "wget -q --user %s --password %s http://%s/CGI/Screenshot -O \"./screenshot_%s_%s_%d_%d.bmp\"", argv[4], argv[5], clientAddress, argv[3], skinny_devicetype2str(d->skinny_type), block, x);
+						sccp_log(DEBUGCAT_CORE)("%s: Taking snapshot using '%s'\n", d->id, command);
+						system(command);
+						usleep(100);
+					}
+				}
+			} else {
+				sccp_log(DEBUGCAT_CORE)("%s: Device not registered yet, try again later\n", d->id);
+			}
 			d = sccp_device_release(d);
 		}
 	}
@@ -3367,8 +3419,10 @@ static struct pbx_cli_entry cli_entries[] = {
 #ifdef CS_SCCP_CONFERENCE
 	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
 	AST_CLI_DEFINE(cli_show_conference, "Show SCCP Conference Info."),
-	AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands.")
+	AST_CLI_DEFINE(cli_conference_command, "SCCP Conference Commands."),
 #endif
+	AST_CLI_DEFINE(cli_show_hint_lineStates, "Show all hint lineStates"),
+	AST_CLI_DEFINE(cli_show_hint_subscriptions, "Show all hint subscriptions")
 };
 
 /*!
@@ -3397,7 +3451,7 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPShowLine", _MAN_REP_FLAGS, manager_show_line, "show line", ami_line_usage);
 	pbx_manager_register("SCCPShowChannels", _MAN_REP_FLAGS, manager_show_channels, "show channels", ami_channels_usage);
 	pbx_manager_register("SCCPShowSessions", _MAN_REP_FLAGS, manager_show_sessions, "show sessions", ami_sessions_usage);
-	pbx_manager_register("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show sessions", ami_mwi_subscriptions_usage);
+	pbx_manager_register("SCCPShowMWISubscriptions", _MAN_REP_FLAGS, manager_show_mwi_subscriptions, "show mwi subscriptions", ami_mwi_subscriptions_usage);
 	pbx_manager_register("SCCPShowSoftkeySets", _MAN_REP_FLAGS, manager_show_softkeysets, "show softkey sets", ami_show_softkeysets_usage);
 	pbx_manager_register("SCCPMessageDevices", _MAN_REP_FLAGS, manager_message_devices, "message devices", ami_message_devices_usage);
 	pbx_manager_register("SCCPMessageDevice", _MAN_REP_FLAGS, manager_message_device, "message device", ami_message_device_usage);
@@ -3410,6 +3464,8 @@ void sccp_register_cli(void)
 	pbx_manager_register("SCCPShowConference", _MAN_REP_FLAGS, manager_show_conference, "show conference", ami_conference_usage);
 	pbx_manager_register("SCCPConference", _MAN_REP_FLAGS, manager_conference_command, "conference commands", ami_conference_command_usage);
 #endif
+	pbx_manager_register("SCCPShowHintLineStates", _MAN_REP_FLAGS, manager_show_hint_lineStates, "show hint lineStates", ami_show_hint_lineStates_usage);
+	pbx_manager_register("SCCPShowHintSubscriptions", _MAN_REP_FLAGS, manager_show_hint_subscriptions, "show hint subscriptions", ami_show_hint_subscriptions_usage);
 }
 
 /*!
@@ -3444,4 +3500,6 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowConference");
 	pbx_manager_unregister("SCCPConference");
 #endif
+	pbx_manager_unregister("SCCPShowHintLineStates");
+	pbx_manager_unregister("SCCPShowHintSubscriptions");
 }
