@@ -368,7 +368,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_DND                                   		"\200\77"
 
 #define SKINNY_DISP_DIVALL                                		"\200\100"
-#define SKINNY_DISP_CALLBACK                              		"\200\101"
+#define SKINNY_DISP_CALLBACK                              		"\200\101"				/*!< Call Completion */
 #define SKINNY_DISP_NETWORK_CONGESTION_REROUTING          		"\200\102"
 #define SKINNY_DISP_BARGE                                 		"\200\103"
 #define SKINNY_DISP_FAILED_TO_SETUP_BARGE                 		"\200\104"
@@ -379,7 +379,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_CALLPARK_REVERSION                    		"\200\110"
 #define SKINNY_DISP_SERVICE_IS_NOT_ACTIVE                 		"\200\111"
 #define SKINNY_DISP_HIGH_TRAFFIC_TRY_AGAIN_LATER          		"\200\112"
-#define SKINNY_DISP_QRT                                   		"\200\113"
+#define SKINNY_DISP_QRT                                   		"\200\113"				/*<! Quality Request */
 #define SKINNY_DISP_MCID                                  		"\200\114"
 #define SKINNY_DISP_DIRTRFR                               		"\200\115"
 #define SKINNY_DISP_SELECT                                		"\200\116"
@@ -397,7 +397,7 @@ static const struct skinny_label {
 #define SKINNY_DISP_VIDMODE						"\200\130"
 #define SKINNY_DISP_MAX_CALL_DURATION_TIMEOUT				"\200\131"
 #define SKINNY_DISP_MAX_HOLD_DURATION_TIMEOUT				"\200\132"
-#define SKINNY_DISP_OPICKUP						"\200\133"
+#define SKINNY_DISP_OPICKUP						"\200\133"				/*<! */
 #define SKINNY_DISP_HLOG                                        	"\200\134"				/*<! Huntgroup/queue Login/Logout*/
 #define SKINNY_DISP_LOGGED_OUT_OF_HUNT_GROUP                    	"\200\135"				/*<! - FS */
 #define SKINNY_DISP_PARK_SLOT_UNAVAILABLE                       	"\200\136"				/*<! - FS */
