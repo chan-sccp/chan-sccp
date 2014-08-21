@@ -20,5 +20,5 @@ before_install:
 notifications:
   email:
     recipients:
-      - dkgroot@talon.nl
+      - ddegroot@talon.nl
       - marcelloceschia@users.sourceforge.net
