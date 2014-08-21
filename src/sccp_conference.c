@@ -39,13 +39,13 @@
 #define sccp_participant_release(_x) 	({ast_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-static int lastConferenceID = 99;
+static uint32_t lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
 
 static SCCP_LIST_HEAD (, sccp_conference_t) conferences;								/*!< our list of conferences */
 
 static void *sccp_conference_thread(void *data);
-void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel);
+void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel, uint32_t conferenceID);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
 int playback_to_channel(sccp_conference_participant_t * participant, const char *filename, int say_number);
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
@@ -248,7 +248,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->playback_announcements = device->conf_play_part_announce;
 
 		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
-		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer);
+		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, conference->id);
 		participant->isModerator = TRUE;
 		device->conferencelist_active = device->conf_show_conflist;						// Activate conflist
 //		sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
@@ -376,11 +376,11 @@ static void sccp_conference_addParticipant_toList(sccp_conference_t * conference
 /*!
  * \brief Update the callinfo on the sccp channel
  */
-void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel)
+void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel, uint32_t conferenceID)
 {
 	char confstr[StationMaxNameSize] = "";
 
-	snprintf(confstr, StationMaxNameSize, "Conference %d", channel->conference_id);
+	snprintf(confstr, StationMaxNameSize, "Conference %d", conferenceID);
 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
@@ -457,7 +457,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 		if (participant) {
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Adding participant %d (Channel %s)\n", conference->id, participant->id, pbx_channel_name(pbxChannel));
 
-			sccp_conference_update_callInfo(originalSCCPChannel, pbxChannel);			// Update CallerId on originalChannel before masquerade
+			sccp_conference_update_callInfo(originalSCCPChannel, pbxChannel, conference->id);			// Update CallerId on originalChannel before masquerade
 
 			// if peer is sccp then retain peer_sccp_channel
 			AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(pbxChannel);
@@ -998,6 +998,7 @@ sccp_conference_participant_t *sccp_conference_participant_findByPBXChannel(sccp
 void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * c)
 {
 	int use_icon = 0;
+	
 	if (!conference) {
 		pbx_log(LOG_WARNING, "SCCPCONF: No conference available to display list for\n");
 		return;
