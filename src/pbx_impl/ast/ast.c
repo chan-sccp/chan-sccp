@@ -455,15 +455,7 @@ static boolean_t sccp_wrapper_asterisk_carefullHangup(sccp_channel_t *c)
 		pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) processing hangup request, using carefull version. Standby.\n", pbx_channel_name(pbx_channel));
 		if (!pbx_check_hangup(pbx_channel)) {
 			pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Channel still active.\n", pbx_channel_name(pbx_channel));
-//			if (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && !pbx_channel_pbx(pbx_channel)) {
-//				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has no PBX -> ast_hangup.\n", pbx_channel_name(pbx_channel));
-//				ast_hangup(pbx_channel);
-//				res = TRUE;
-//			} else {
-//				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
-//				res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
-//			}
-			if (pbx_channel_pbx(pbx_channel) || (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) == 0) || pbx_channel_state(pbx_channel) == AST_STATE_UP) {
+			if (pbx_channel_pbx(pbx_channel) || pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING) || pbx_channel_state(pbx_channel) == AST_STATE_UP) {
 				pbx_log(LOG_NOTICE, "%s: (sccp_wrapper_asterisk_carefullHangup) Has PBX -> ast_queue_hangup.\n", pbx_channel_name(pbx_channel));
 				res = ast_queue_hangup(pbx_channel) ? FALSE : TRUE;
 			} else {
@@ -514,9 +506,12 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *c)
 	if (channel) {
 		PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 		sccp_channel_stop_and_deny_scheduled_tasks(channel);
-
+		
 		channel->hangupRequest = sccp_wrapper_asterisk_carefullHangup;
 		if (!pbx_check_hangup(pbx_channel)) {
+			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_BLOCKING)) {
+				return sccp_wrapper_asterisk_requestQueueHangup(channel);
+			}
 			ast_hangup(pbx_channel);
 			res = TRUE;
 		} else {
