@@ -8,23 +8,23 @@ For building and installation instructions please see the INSTALL file.
 
 Prerequisites
 -------------
-autoconf (2.6.0)
-automake (1.10)
-libtool (2.2.2)
-m4 (1.4.5)
+- autoconf (>2.6.0)
+- automake (>1.10)
+- libtool (>2.2.2)
+- m4 (>1.4.5)
 
 Configuring
 -----------
-./configure
+   ./configure
 
 Build and Install
 -----------------
-make
-make install
+   make
+   make install
 
 Build Documentation
 -------------------
-make doxygen
+   make doxygen
 
 For documentation, please visit:
 - https://sourceforge.net/p/chan-sccp-b/wiki/
