@@ -13,7 +13,7 @@ before_install:
  - echo "deb http://archive.canonical.com/ubuntu/ trusty partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list
  - sudo apt-get update -qq
 # - sudo apt-get install -qq asterisk-11.2.1
- - sude apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules
+ - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules
 
 notifications:
   email:
