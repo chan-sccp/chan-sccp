@@ -1,5 +1,9 @@
 2014-08-22  ddegroot
 
+	* [r5703] INSTALL: Test: svn commit hook
+
+	* [r5702] ChangeLog: Test: svn commit hook
+
 	* [r5701] .travis.yml: Fix: .travis.yml replace sude with sudo
 
 2014-08-21  ddegroot
