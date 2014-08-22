@@ -1,4 +1,220 @@
+2014-08-22  ddegroot
+
+	* [r5701] .travis.yml: Fix: .travis.yml replace sude with sudo
+
+2014-08-21  ddegroot
+
+	* [r5700] .travis.yml: Enhancement: Test to see if travis can use
+	  ubuntu trusty sources for asterisk-11 (permission fix)
+
+	* [r5699] .travis.yml: Enhancement: Test to see if travis can use
+	  ubuntu trusty sources for asterisk-11
+
+	* [r5698] .travis.yml: Fix: rather use ddegroot instead.
+
+2014-08-21  marcelloceschia
+
+	* [r5697] .travis.yml: add notifications
+
+2014-08-21  ddegroot
+
+	* [r5696] README.md: Update: README.md
+
+	* [r5695] .travis.yml: Fix: Make travis compile against asterisk-11
+	  (3) :-((
+
+	* [r5694] .travis.yml: Fix: Make travis compile against asterisk-11
+	  (2) :-(
+
+	* [r5693] .travis.yml: Fix: Make travis compile against asterisk-11
+	  (1)
+
+	* [r5692] README.md: Fix: README.md
+
+	* [r5691] .travis.yml: Fix: Make travis compile against asterisk-11
+
+	* [r5690] Makefile.am, Makefile.in: Fix: Add test to Makefile for
+	  travis.yml
+
+	* [r5689] README.md: Fix: README.md
+
+2014-08-21  marcelloceschia
+
+	* [r5688] README.md: test
+
+2014-08-21  ddegroot
+
+	* [r5687] src/sccp_labels.h: Doc: Added some comments to labels
+
+	* [r5686] src/pbx_impl/ast/ast.c: Fix: hangup after conference
+	  should be queue, but no ast_pbx_pbx was ever started, because we
+	  were running our own conference thread.
+
+	* [r5685] src/sccp_conference.c: Fix: conferenceId difference
+	  between moderator and poarticipant
+
+2014-08-20  ddegroot
+
+	* [r5684] README, README.md[ADD]: Added travis compilation status
+	  link
+
+	* [r5683] README: Added travis compilation status link
+
+	* [r5682] .travis.yml[ADD]: Added travis yml file
+
+	* [r5681] src/sccp_cli.c: Enhancement: Added 'sccp show hint
+	  lineStates' cli/ami function. Added 'sccp show hint
+	  subscriptions' cli/ami function. Extension: Added test message to
+	  display screenshot of all supported labels by a particular device
+	  (part of label research).
+
+	* [r5680] src/sccp_hint.c, src/sccp_hint.h: Enhancement: Added
+	  'sccp show hint lineStates' cli/ami function. Added 'sccp show
+	  hint subscriptions' cli/ami function. Extension: Added test
+	  message to display screenshot of all supported labels by a
+	  particular device (part of label research).
+
+	* [r5679] contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix: gen_sccpconf adaptation
+	  to new sccp_config_entries.hh format.
+
+2014-08-19  ddegroot
+
+	* [r5678] src/pbx_impl/ast/ast113.h: Fix: asterisk-13 + conference
+
+2014-08-19  marcelloceschia
+
+	* [r5677] src/pbx_impl/ast/ast113.c: fix asterisk 13 compiling with
+	  video and conference
+
+2014-08-19  ddegroot
+
+	* [r5676] src/sccp_channel.c, src/sccp_device.c: Fix: Prevent
+	  Indicate Ringing from cleaning out the called party name if
+	  already set correctly. Adapt sccp_channel_set_calledparty to make
+	  it possible to distinquish between leaving the name alone or
+	  cleaning it out. (Reported/Tested by Nikolay Vasilev)
+
+	* [r5675] src/sccp_channel.c, src/sccp_device.c: Revert
+	  sccp_channel.c sccp_device.c from previous commit (accidentally
+	  checked in)
+
+	* [r5674] src/pbx_impl/ast/ast113.c, src/pbx_impl/ast/ast113.h,
+	  src/sccp_channel.c, src/sccp_device.c: Fix: ast-13 compilation
+	  with conference. Fix: const/non-const compile warning
+
+	* [r5673] src/pbx_impl/ast/ast112.h: Fix: file header
+
+2014-08-19  marcelloceschia
+
+	* [r5672] src/pbx_impl/ast/ast113.c, src/pbx_impl/ast/ast113.h:
+	  starting with asterisk 13 compatibility
+
+2014-08-19  ddegroot
+
+	* [r5671] src/sccp_device.c: Fix: Rework indicate dialing so that
+	  Placed Calls information is updated correctly. SendCallState has
+	  to happen after sendDialedNumber & sendCallInfo. Split the
+	  function in two helper parts to reduce the number of earlyrtp
+	  checks. sccp_device_indicate_dialing should be removed completely
+	  later on. (Issue reported by Steve Storts)
+
+2014-08-18  ddegroot
+
+	* [r5670] Makefile.in, autoconf/asterisk.m4, autoconf/extra.m4,
+	  configure, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast113.h: Fix: Update configure.ac/makefile.am
+	  to recognise asterisk-trunk (asterisk-13). Compilation against
+	  asterisk-13 currently broken, needs fixing/more work. references
+	  #226.
+
+	* [r5669] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_hint.c, src/sccp_indicate.c: Fix: Spelling mistake
+
+	* [r5668] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_hint.c, src/sccp_indicate.c: Enhancement: Adapt to added
+	  SCCP_CHANNELSTATE_HELP_FOR_TRANSFER
+
+	* [r5667] src/chan_sccp_enums.hh, src/sccp_channel.c: Enhancement:
+	  Added SCCP_CHANNELSTATE_HELD_FOR_TRANSFER (references #211)
+
+2014-08-16  ddegroot
+
+	* [r5666] src/sccp_device.c, src/sccp_socket.c: Fix: compile
+	  warning because of unused variable
+
+	* [r5665] src/sccp_features.c: Fix: Compile Error. References #219
+	  / Bug Report: 237 / HHornung
+
+2014-08-16  marcelloceschia
+
+	* [r5664] src/sccp_features.c: references #219
+
+	* [r5663] src/sccp_indicate.c: closes #217 (Shared Line & Caller ID
+	  )
+
+2014-08-13  ddegroot
+
+	* [r5662] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c:
+	  Enhancement: Set lastRedirectReason = 4 when call is being
+	  transfer -> Will show more detailed information in ReceiveCalls
+	  (Original Caller and Transferer records). (Supported in
+	  Information Gathering and Analyses by Philippe Teissier.).
+	  Callplane does not show the improvement that we hoped for though,
+	  which is a shame.
+
+	* [r5661] src/sccp_device.c, src/sccp_socket.c: Fix: Make
+	  sccp_session_removeDevice return the device that was removed from
+	  the session, so that we can use it for some other action. Use
+	  sccp_session_removeDevice during crossoversession handling (Which
+	  includes locking the session during the procedure.). (Minor Issue
+	  reported by Pavel).
+
+2014-08-11  ddegroot
+
+	* [r5660] src/sccp_labels.h: Doc: Updated some comments to labels,
+	  to clarify their current/future use
+
+	* [r5659] src/chan_sccp.h, src/sccp_labels.h: Doc: Added some
+	  comments to labels, to clarify their current/future use
+
+	* [r5658] src/sccp_conference.c: Fix: conference regression.
+	  (Reported by Alena Juk)
+
+	* [r5657] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Fix: hangup
+	  when called without a non-existing sccp channel would unref the
+	  channel before setting channel tech to NULL, causing a segfault
+	  in ast_channel_destructor while free-ing channel tech. (Reported
+	  by Dave Burgess)
+
 2014-08-10  ddegroot
+
+	* [r5656] aclocal.m4, autoconf/acinclude.m4, autoconf/extra.m4,
+	  configure, tools/versioncheck: Enhancement: Change default
+	  configure values for optization and debug when running inside
+	  versioncontrolled directory. Values remain the same when using a
+	  TGZ file.
+
+	* [r5655] src/pbx_impl/ast/ast.c: Fix: Make digits[] const
+	  (sendDigit)
+
+	* [r5654] src/pbx_impl/ast/ast.c: Fix: Remove undefined behaviour
+	  (sendDigit)
+
+	* [r5653] src/sccp_utils.c: Debug: Add debug output for addons
+	  using fauly d->config_type='7914' config parameter
+
+	* [r5652] ChangeLog, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_socket.c: Doc: Update/Fix Doxygen
 
 	* [r5650] src/sccp_config.c: Fix: also deal with the bad config
 	  example 'button = line, empty', that was accidentally
