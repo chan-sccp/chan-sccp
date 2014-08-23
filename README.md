@@ -23,7 +23,7 @@ For building and installation instructions please see the INSTALL file.
 
 For documentation, please visit:
 - https://sourceforge.net/p/chan-sccp-b/wiki/
-- http://chan-sccp-b.sourceforge.net/doc/index.html.
+- http://chan-sccp-b.sourceforge.net/doc/index.xhtml
 
 - - - 
 Note: When you are making changes to the configure.ac or any of the Makefile.am files you should run ./tools/bootstrap.sh afterwards.
