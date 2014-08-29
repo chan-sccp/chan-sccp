@@ -518,9 +518,8 @@ static const char * asterisk_indication2str(int ind) {
 		case AST_CONTROL_SRCCHANGE:
 			return "Media source has changed and requires a new RTP SSRC";
 			break;
-		case AST_CONTROL_END_OF_Q:
-			return "Indicate that this position was the end of the channel queue for a softhangup.";
-			break;
+		default:
+			return "Unknown Indication";
 	}
 	return "Unknown Indication";
 }
