@@ -1683,7 +1683,8 @@ void sccp_dev_check_displayprompt(const sccp_device_t * d)
 
 	sccp_dev_clearprompt(d, 0, 0);
 #ifndef SCCP_ATOMIC
-	sccp_mutex_lock(&d->messageStackLock);
+	sccp_device_t *device = (sccp_device_t *)d;		/* discard const */
+	sccp_mutex_lock(&device->messageStackLock);
 #endif
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
 		if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
@@ -1693,7 +1694,7 @@ void sccp_dev_check_displayprompt(const sccp_device_t * d)
 		}
 	}
 #ifndef SCCP_ATOMIC
-	sccp_mutex_unlock(&d->messageStackLock);
+	sccp_mutex_unlock(&device->messageStackLock);
 #endif
 	if (!message_set) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
