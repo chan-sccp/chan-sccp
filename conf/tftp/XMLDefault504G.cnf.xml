@@ -1,0 +1,19 @@
+<Default>
+	<callManagerGroup>
+		<members>
+			<member priority="0">
+				<callManager>
+					<ports>
+						<ethernetPhonePort>2000</ethernetPhonePort>
+					</ports>
+					<processNodeName>asterisk.servers.local</processNodeName>
+				</callManager>
+			</member>
+		</members>
+	</callManagerGroup>
+	
+	<directoryURL>http://asterisk.servers.local/cisco-addressbook/</directoryURL>
+	<servicesURL>http://asterisk.servers.local/cisco-addressbook/</servicesURL>
+
+	<loadInformation>spa50x-30x-7-5-5</loadInformation>
+</Default>
