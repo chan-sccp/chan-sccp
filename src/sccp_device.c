@@ -423,6 +423,7 @@ sccp_device_t *sccp_device_create(const char *id)
 //		d->endpoint = PBX(endpoint_create)("sccp", id);
 //	}
 	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
+	memset(d->call_statistics, 0, (sizeof(sccp_call_statistics_t) * 2));
 
 	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
 	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
