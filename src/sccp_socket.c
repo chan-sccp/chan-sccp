@@ -316,7 +316,7 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 			     format & SCCP_SOCKADDR_STR_PORT ? port : 0,
 			     format & SCCP_SOCKADDR_STR_PORT ? sizeof(port): 0,
 			     NI_NUMERICHOST | NI_NUMERICSERV))) {
-		pbx_log(LOG_ERROR, "getnameinfo(): %s \n", gai_strerror(e));
+		sccp_log(DEBUGCAT_SOCKET)( VERBOSE_PREFIX_3 "SCCP: getnameinfo(): %s \n", gai_strerror(e));
 		return "";
 	}
 
@@ -377,7 +377,7 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 	}
 
 	if (connect(sock, &tmp_addr.sa, sizeof(tmp_addr))) {
-		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(&tmp_addr.ss));
+		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Failed to connect to %s\n", sccp_socket_stringify(them));
 		return -1;
 	}
 	if (getsockname(sock, &tmp_addr.sa, &slen)) {
