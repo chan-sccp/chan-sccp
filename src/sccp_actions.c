@@ -2968,8 +2968,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	if (d) {
 		// update last_call_statistics
-		last_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_LAST];
-		strncpy(last_call_stats->type, "LAST", sizeof(last_call_stats->type));
+		last_call_stats = &(d->call_statistics[SCCP_CALLSTATISTIC_LAST]);
 		if (letohl(msg_in->header.lel_protocolVer < 20)) {
 			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_CallIdentifier);
 			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_SentPackets);
@@ -3047,8 +3046,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 			       last_call_stats->mean_opinion_score_listening_quality, last_call_stats->max_opinion_score_listening_quality, last_call_stats->variance_opinion_score_listening_quality, last_call_stats->interval_concealement_ratio, last_call_stats->cumulative_concealement_ratio, last_call_stats->max_concealement_ratio, (int) last_call_stats->concealed_seconds, (int) last_call_stats->severely_concealed_seconds);
 
 		// update avg_call_statistics
-		avg_call_stats = &d->call_statistics[SCCP_CALLSTATISTIC_AVG];
-		strncpy(avg_call_stats->type, "AVG", sizeof(last_call_stats->type));
+		avg_call_stats = &(d->call_statistics[SCCP_CALLSTATISTIC_AVG]);
 		avg_call_stats->packets_sent = CALC_AVG(last_call_stats->packets_sent, avg_call_stats->packets_sent, avg_call_stats->num);
 		avg_call_stats->packets_received = CALC_AVG(last_call_stats->packets_received, avg_call_stats->packets_received, avg_call_stats->num);
 		avg_call_stats->packets_lost = CALC_AVG(last_call_stats->packets_lost, avg_call_stats->packets_lost, avg_call_stats->num);

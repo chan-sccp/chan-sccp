@@ -652,7 +652,6 @@ typedef enum {
 } sccp_call_statistics_type_t;
 
 typedef struct sccp_call_statistic {
-	char type[8];
 	uint32_t num;
 	uint32_t packets_sent;
 	uint32_t packets_received;

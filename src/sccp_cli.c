@@ -949,19 +949,19 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Statistics
 #define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
 #define CLI_AMI_TABLE_BEFORE_ITERATION stats = &d->call_statistics[callstattype];
-#define CLI_AMI_TABLE_FIELDS														\
-			CLI_AMI_TABLE_FIELD(Type,		"-8.8s",	8,	stats->type ? stats->type : "UNDEF")		\
-			CLI_AMI_TABLE_FIELD(Calls,		"-8d",		8,	stats->num)					\
-			CLI_AMI_TABLE_FIELD(PcktSnd,		"-8d",		8,	stats->packets_sent)				\
-			CLI_AMI_TABLE_FIELD(PcktRcvd,		"-8d",		8,	stats->packets_received)			\
-			CLI_AMI_TABLE_FIELD(Lost,		"-8d",		8,	stats->packets_lost)				\
-			CLI_AMI_TABLE_FIELD(Jitter,		"-8d",		8,	stats->jitter)					\
-			CLI_AMI_TABLE_FIELD(Latency,		"-8d",		8,	stats->latency)					\
-			CLI_AMI_TABLE_FIELD(Quality,		"1.6f",		8,	stats->opinion_score_listening_quality)		\
-			CLI_AMI_TABLE_FIELD(avgQual,		"1.6f",		8,	stats->avg_opinion_score_listening_quality)	\
-			CLI_AMI_TABLE_FIELD(meanQual,		"1.6f",		8,	stats->mean_opinion_score_listening_quality)	\
-			CLI_AMI_TABLE_FIELD(maxQual,		"1.6f",		8,	stats->max_opinion_score_listening_quality)	\
-			CLI_AMI_TABLE_FIELD(rConceal,		"1.6f",		8,	stats->cumulative_concealement_ratio)		\
+#define CLI_AMI_TABLE_FIELDS																\
+			CLI_AMI_TABLE_FIELD(Type,		"-8.8s",	8,	(callstattype == SCCP_CALLSTATISTIC_LAST) ? "LAST" : "AVG")	\
+			CLI_AMI_TABLE_FIELD(Calls,		"-8d",		8,	stats->num)							\
+			CLI_AMI_TABLE_FIELD(PcktSnd,		"-8d",		8,	stats->packets_sent)						\
+			CLI_AMI_TABLE_FIELD(PcktRcvd,		"-8d",		8,	stats->packets_received)					\
+			CLI_AMI_TABLE_FIELD(Lost,		"-8d",		8,	stats->packets_lost)						\
+			CLI_AMI_TABLE_FIELD(Jitter,		"-8d",		8,	stats->jitter)							\
+			CLI_AMI_TABLE_FIELD(Latency,		"-8d",		8,	stats->latency)							\
+			CLI_AMI_TABLE_FIELD(Quality,		"1.6f",		8,	stats->opinion_score_listening_quality)				\
+			CLI_AMI_TABLE_FIELD(avgQual,		"1.6f",		8,	stats->avg_opinion_score_listening_quality)			\
+			CLI_AMI_TABLE_FIELD(meanQual,		"1.6f",		8,	stats->mean_opinion_score_listening_quality)			\
+			CLI_AMI_TABLE_FIELD(maxQual,		"1.6f",		8,	stats->max_opinion_score_listening_quality)			\
+			CLI_AMI_TABLE_FIELD(rConceal,		"1.6f",		8,	stats->cumulative_concealement_ratio)				\
 			CLI_AMI_TABLE_FIELD(sConceal,		"-8d",		8,	stats->concealed_seconds)
 #include "sccp_cli_table.h"
 
