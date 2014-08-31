@@ -1250,7 +1250,8 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 	if (channel) {
 		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			sccp_copy_string(channel->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
-			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//			sccp_channel_stop_schedule_digittimout(channel);
 			sccp_pbx_softswitch(channel);
 
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
@@ -1704,7 +1705,8 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 			len = strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
-			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//			channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//			sccp_channel_stop_schedule_digittimout(channel);
 			sccp_pbx_softswitch(channel);
 			return;
 		} else if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_PROCEED) {
@@ -2440,32 +2442,36 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		}
 
 		/* removing scheduled dial */
-		channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+		//channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//		sccp_channel_stop_schedule_digittimout(c);
 
 		/* add digit to dialed number */
 		channel->dialedNumber[len++] = resp;
 		channel->dialedNumber[len] = '\0';
 
 		/* as we're not in overlapped mode we should add timeout again */
-		if ((channel->scheduler.digittimeout = sccp_sched_add(channel->enbloc.digittimeout, sccp_pbx_sched_dial, channel)) < 0) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
-		} else {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
-		}
+//		if ((channel->scheduler.digittimeout = sccp_sched_add(channel->enbloc.digittimeout, sccp_pbx_sched_dial, channel)) < 0) {
+//			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
+//		} else {
+//			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: reschedule dialing in '%d' ms\n", channel->enbloc.digittimeout);
+//		}
+		sccp_channel_schedule_digittimout(channel, channel->enbloc.digittimeout);
 
 		if (GLOB(digittimeoutchar) == resp) {							// we dial on digit timeout char !
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Got digit timeout char '%c', dial immediately\n", GLOB(digittimeoutchar));
 			channel->dialedNumber[len] = '\0';
-			if (channel->scheduler.digittimeout) {
-				channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-			}
+//			if (channel->scheduler.digittimeout) {
+//				channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+				sccp_channel_stop_schedule_digittimout(channel);
+//			}
 			sccp_safe_sleep(100);								// we would hear last keypad stroke before starting all
 			sccp_pbx_softswitch(channel);
 		}
 		if (sccp_pbx_helper(channel) == SCCP_EXTENSION_EXACTMATCH) {				// we dial when helper says we have a match
-			if (channel->scheduler.digittimeout) {
-				channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-			}
+//			if (channel->scheduler.digittimeout) {
+//				channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+				sccp_channel_stop_schedule_digittimout(channel);
+//			}
 			sccp_safe_sleep(100);								// we would hear last keypad stroke before starting all
 			sccp_pbx_softswitch(channel);							// channel will be released by hangup
 		}
@@ -3182,7 +3188,8 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 
 					len = strlen(channel->dialedNumber);
 					sccp_copy_string(channel->dialedNumber + len, calledParty, sizeof(channel->dialedNumber) - len);
-					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//					channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
+//					sccp_channel_stop_schedule_digittimout(channel);
 					sccp_pbx_softswitch(channel);
 					return;
 				}

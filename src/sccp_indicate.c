@@ -276,7 +276,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			d->protocol->sendCallInfo(d, c, instance);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_TEMP_FAIL, GLOB(digittimeout));
 			// wait 15 seconds, then hangup automatically
-			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
+			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 			break;
 		case SCCP_CHANNELSTATE_CALLWAITING:
 			{
@@ -363,7 +363,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 			sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			// wait 15 seconds, then hangup automatically
-			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
+			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 			break;
 		case SCCP_CHANNELSTATE_DIALING:
 			d->indicate->dialing(d, instance, c);

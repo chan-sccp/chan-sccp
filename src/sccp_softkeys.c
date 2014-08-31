@@ -177,11 +177,13 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 	if (c && !PBX(getChannelPbx)(c)) {								// Prevent dialling if in an inappropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
 		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
-			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//			sccp_channel_stop_schedule_digittimout(c);
 			sccp_pbx_softswitch(c);
 
 		} else if (c->state == SCCP_CHANNELSTATE_DIGITSFOLL) {
-			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//			sccp_channel_stop_schedule_digittimout(c);
 			sccp_pbx_softswitch(c);
 		}
 	}
@@ -259,7 +261,8 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 			/* we have a offhook channel */
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
 			// c->digittimeout = time(0)+1;
-			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//			sccp_channel_stop_schedule_digittimout(c);
 			sccp_pbx_softswitch(c);
 		}
 		/* here's a KEYMODE error. nothing to do */
@@ -523,22 +526,9 @@ void sccp_sk_backspace(sccp_device_t * d, sccp_line_t * l, const uint32_t lineIn
 		return;
 	}
 
-	if (len > 1) {
+	if (len >= 1) {
 		c->dialedNumber[len - 1] = '\0';
-		/* removing scheduled dial */
-		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-		/* rescheduling dial timeout (one digit) */
-		if ((c->scheduler.digittimeout = sccp_sched_add(GLOB(digittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(digittimeout));
-		}
-	} else if (len == 1) {
-		c->dialedNumber[len - 1] = '\0';
-		/* removing scheduled dial */
-		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-		/* rescheduling dial timeout (no digits) */
-		if ((c->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c)) < 0) {
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: (sccp_sk_backspace) Unable to reschedule dialing in '%d' s\n", GLOB(firstdigittimeout));
-		}
+		sccp_channel_schedule_digittimout(c, (len >= 1) ? GLOB(digittimeout) : GLOB(digittimeout));
 	}
 	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
 	sccp_handle_dialtone(c);
@@ -1059,8 +1049,10 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	if (line) {
 		sccp_feat_handle_directed_pickup(line, lineInstance, d);
 		line = sccp_line_release(line);
-		if (c && c->scheduler.digittimeout) {
-			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//		if (c && c->scheduler.digittimeout) {
+//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		if (c) {
+			sccp_channel_stop_schedule_digittimout(c);
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
@@ -1092,8 +1084,10 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (line) {
 		sccp_feat_grouppickup(line, d);
 		line = sccp_line_release(line);
-		if (c && c->scheduler.digittimeout) {
-			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//		if (c && c->scheduler.digittimeout) {
+//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		if (c) {
+			sccp_channel_stop_schedule_digittimout(c);
 		}
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));

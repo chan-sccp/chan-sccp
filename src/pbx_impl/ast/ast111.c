@@ -2407,6 +2407,9 @@ static void sccp_wrapper_asterisk111_updateConnectedLine(const sccp_channel_t * 
 static int sccp_wrapper_asterisk111_sched_add(int when, sccp_sched_cb callback, const void *data)
 {
 	if (sched) {
+//		int id = ast_sched_add(sched, when, callback, data);
+//		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: add schedule %p, at %d, ID = %d.\n", (void *)sched, when, id);
+//		return id;
 		return ast_sched_add(sched, when, callback, data);
 	}
 	return FALSE;
@@ -2431,6 +2434,7 @@ static int sccp_wrapper_asterisk111_sched_wait(int id)
 static int sccp_wrapper_asterisk111_sched_del(int id)
 {
 	if (sched) {
+//		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: cancel schedule %p ID %d.\n", (void *)sched, id);
 		return ast_sched_del(sched, id);
 	}
 	return FALSE;
