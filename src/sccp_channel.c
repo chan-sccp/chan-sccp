@@ -211,7 +211,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->passthrupartyid = callid ^ 0xFFFFFFFF;
 
 	channel->peerIsSCCP = 0;
-	channel->enbloc.digittimeout = GLOB(digittimeout) * 1000;
 	channel->maxBitRate = 15000;
 
 	sccp_channel_setDevice(channel, device);
@@ -234,6 +233,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
 	channel->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 //	sccp_rtp_createAudioServer(channel);
+#ifndef SCCP_ATOMIC
+	ast_mutex_init(&channel->scheduler.lock);
+#endif
 	return channel;
 }
 
@@ -1175,7 +1177,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel)
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
 			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
-			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
+			sccp_channel_schedule_hangup(c, SCCP_HANGUP_TIMEOUT);
 			orig_channel->answered_elsewhere = TRUE;
 		}
 	}
@@ -1187,16 +1189,75 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel)
  */
 int sccp_channel_sched_endcall_by_callid(const void *data)
 {
-	uint32_t callid = *(uint32_t *)data;
-
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_find_byid(callid);
+	sccp_channel_t *channel = (sccp_channel_t *)data;
 	if (!channel) {
-		return 0;
+		return -1;
 	}
-	
-	channel->scheduler.hangup = 0;
-	sccp_channel_endcall(channel);
+	sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
+	if (!channel->scheduler.deny) {										/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
+		sccp_channel_stop_and_deny_scheduled_tasks(channel);
+		sccp_channel_endcall(channel);
+	}
+	sccp_channel_release(channel);										/* releasing the ref taken when creating the scheduled hangup */
 	return 0;
+}
+
+
+
+/* 
+ * Remove Schedule digittimeout
+ */
+gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t *channel)
+{
+	sccp_channel_t *c = sccp_channel_retain(channel);
+	if (c->scheduler.digittimeout) {
+		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	}
+	c->scheduler.digittimeout = 0;
+}
+
+/* 
+ * Schedule hangup if allowed and not already scheduled
+ * \note needs to take retain on channel to pass it on the the scheduled hangup
+ */
+gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeout)
+{
+	sccp_channel_t *c = sccp_channel_retain(channel);
+	if (!c->scheduler.deny && !c->scheduler.hangup) {								/* only schedule if allowed and not already scheduled */
+ 		if ((c->scheduler.hangup = PBX(sched_add)(timeout, sccp_channel_sched_endcall_by_callid, c)) < 0) {	/* scheduling retained channel */
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, GLOB(firstdigittimeout));
+		}
+	}
+}
+
+/* 
+ * Schedule digittimeout if allowed
+ * Release any previously scheduled digittimeout
+ */
+gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t *channel, uint timeout)
+{
+	sccp_channel_t *c = sccp_channel_retain(channel);
+	if (!c->scheduler.deny) {												/* only schedule if allowed and not already scheduled */
+		if (c->scheduler.digittimeout) {
+			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		}
+		if ((c->scheduler.digittimeout = PBX(sched_add)(timeout * 1000, sccp_pbx_sched_dial, c)) < 0) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, GLOB(firstdigittimeout));
+		}
+	}
+}
+
+void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel) 
+{
+	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", channel->designator);
+	sccp_channel_t *c = sccp_channel_retain(channel);
+	ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
+	if (c->scheduler.digittimeout) {
+		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	}
+	if (channel->scheduler.hangup) {
+		c->scheduler.hangup = SCCP_SCHED_DEL(c->scheduler.hangup);
+	}
 }
 
 
@@ -1213,6 +1274,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		pbx_log(LOG_WARNING, "No channel or line or device to hangup\n");
 		return;
 	}
+	sccp_channel_stop_and_deny_scheduled_tasks(channel);
 	/* end all call forwarded channels (our children) */
 	sccp_channel_end_forwarding_channel(channel);
 
@@ -1332,9 +1394,10 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		return channel;
 	} 
 
-	if ((channel->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, channel)) < 0) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
-	}
+//	if ((channel->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, channel)) < 0) {
+//		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
+//	}
+	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 
 	return channel;
 }
@@ -1762,16 +1825,6 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 	return TRUE;
 }
 
-void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel) 
-{
-	channel->scheduler.deny = TRUE;
-	if (channel->scheduler.digittimeout) {
-		channel->scheduler.digittimeout = SCCP_SCHED_DEL(channel->scheduler.digittimeout);
-	}
-	if (channel->scheduler.hangup) {
-		channel->scheduler.hangup = SCCP_SCHED_DEL(channel->scheduler.hangup);
-	}
-}
 
 
 /*!
@@ -2464,6 +2517,7 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  * \param l     SCCP Line
  * \param id    channel ID as int
  * \return *refcounted* SCCP Channel (can be null)
+ * \todo rename function to include that it checks the channelstate != DOWN
  */
 sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id)
 {
@@ -2509,6 +2563,8 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
  * 
  * \param callid Call ID as uint32_t
  * \return *refcounted* SCCP Channel (can be null)
+ *
+ * \todo rename function to include that it checks the channelstate != DOWN (sccp_find_channel_on_line_byid)
  */
 sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
 {

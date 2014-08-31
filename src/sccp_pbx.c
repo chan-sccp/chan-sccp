@@ -359,7 +359,8 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 	sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 
 	// removing scheduled dialing
-	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+//	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	sccp_channel_stop_schedule_digittimout(c);
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_channelstate2str(c->state), c->state);
 
@@ -721,7 +722,8 @@ int sccp_pbx_sched_dial(const void *data)
 
 	if (c && c->owner && !PBX(getChannelPbx) (c)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
-		c->scheduler.digittimeout = 0;
+//		c->scheduler.digittimeout = 0;
+		sccp_channel_stop_schedule_digittimout(c);
 		sccp_pbx_softswitch(c);
 	}
 	return 0;
@@ -784,6 +786,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <channel> available. Returning from dial thread.\n");
 			goto EXIT_FUNC;
 		}
+		/* removing scheduled dialing */
+//		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+		sccp_channel_stop_schedule_digittimout(c);
 
 		/* Reset Enbloc Dial Emulation */
 		c->enbloc.deactivate = 0;
@@ -811,8 +816,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		}
 		pbx_channel = pbx_channel_ref(c->owner);
 
-		/* removing scheduled dialing */
-		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 
 		/* we should just process outbound calls, let's check calltype */
 		if (c->calltype != SKINNY_CALLTYPE_OUTBOUND) {
@@ -1047,48 +1050,50 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		/*! \todo DdG: Extra wait time is incurred when checking pbx_exists_extension, when a wrong number is dialed. storing extension_exists status for sccp_log use */
 		int extension_exists = SCCP_EXTENSION_NOTEXISTS;
 
-		if (!sccp_strlen_zero(shortenedNumber) && (pbx_channel && !pbx_check_hangup(pbx_channel)) &&
-		    /*  && (extension_exists = pbx_exists_extension(pbx_channel, pbx_channel_context(pbx_channel), shortenedNumber, 1, l->cid_num)) */
-		    ((extension_exists = PBX(extension_status(c)) != SCCP_EXTENSION_NOTEXISTS))
+		if (!sccp_strlen_zero(shortenedNumber) && ((extension_exists = PBX(extension_status(c)) != SCCP_EXTENSION_NOTEXISTS))
 		    ) {
-			/* found an extension, let's dial it */
-			sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+			if (pbx_channel && !pbx_check_hangup(pbx_channel)) {
+				/* found an extension, let's dial it */
+				sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x is dialing number %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 
-			sccp_copy_string(c->callInfo.calledPartyNumber, shortenedNumber, sizeof(c->callInfo.calledPartyNumber));
-			/* Answer dialplan command works only when in RINGING OR RING ast_state */
-			PBX(set_callstate) (c, AST_STATE_RING);
+				sccp_copy_string(c->callInfo.calledPartyNumber, shortenedNumber, sizeof(c->callInfo.calledPartyNumber));
+				/* Answer dialplan command works only when in RINGING OR RING ast_state */
+				PBX(set_callstate) (c, AST_STATE_RING);
 
-			enum ast_pbx_result pbxStartResult = pbx_pbx_start(pbx_channel);
+				enum ast_pbx_result pbxStartResult = pbx_pbx_start(pbx_channel);
 
-			/* \todo replace AST_PBX enum using pbx_impl wrapper enum */
-			switch (pbxStartResult) {
-				case AST_PBX_FAILED:
-					pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
-					/* \todo change indicate to something more suitable */
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
-					c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
-					break;
-				case AST_PBX_CALL_LIMIT:
-					pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
-					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
-					c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
-					break;
-				case AST_PBX_SUCCESS:
-					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
-#ifdef CS_MANAGER_EVENTS
-					if (GLOB(callevents)) {
-						manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %08x\r\nSCCPCallDesignator: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? c->callid : 0, c ? c->designator : "(null)");
-					}
-#endif														// CS_MANAGER_EVENTS
-					break;
+				/* \todo replace AST_PBX enum using pbx_impl wrapper enum */
+				switch (pbxStartResult) {
+					case AST_PBX_FAILED:
+						pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+						/* \todo change indicate to something more suitable */
+						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);		/* will auto hangup after SCCP_HANGUP_TIMEOUT */
+						break;
+					case AST_PBX_CALL_LIMIT:
+						pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
+						sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);		/* will auto hangup after SCCP_HANGUP_TIMEOUT */
+						break;
+					case AST_PBX_SUCCESS:
+						sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
+	#ifdef CS_MANAGER_EVENTS
+						if (GLOB(callevents)) {
+							manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %08x\r\nSCCPCallDesignator: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? c->callid : 0, c ? c->designator : "(null)");
+						}
+	#endif														// CS_MANAGER_EVENTS
+						break;
+				}
+				sccp_device_setLastNumberDialed(d, shortenedNumber);
+			} else {
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx_check_hangup(chan): %d on line %s\n", DEV_ID_LOG(d), (pbx_channel && pbx_check_hangup(pbx_channel)), l->name);
 			}
-			sccp_device_setLastNumberDialed(d, shortenedNumber);
 		} else {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s, pbx_check_hangup(chan): %d, extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber, (pbx_channel && pbx_check_hangup(pbx_channel)), (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) channel %s-%08x shortenedNumber: %s, extension exists: %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber, (extension_exists != SCCP_EXTENSION_NOTEXISTS) ? "TRUE" : "FALSE");
 			pbx_log(LOG_NOTICE, "%s: Call from '%s' to extension '%s', rejected because the extension could not be found in context '%s'\n", DEV_ID_LOG(d), l->name, shortenedNumber, pbx_channel ? pbx_channel_context(pbx_channel) : "pbx_channel==NULL");
 			/* timeout and no extension match */
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
-			c->scheduler.hangup = sccp_sched_add(15000, sccp_channel_sched_endcall_by_callid, &c->callid);
+			if (pbx_channel && !pbx_check_hangup(pbx_channel)) {
+				pbx_log(LOG_NOTICE, "%s: Scheduling Hangup of Call: %s\n", DEV_ID_LOG(d), c->designator);
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);				/* will auto hangup after SCCP_HANGUP_TIMEOUT */
+			}
 		}
 
 		sccp_log((DEBUGCAT_PBX + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) quit\n", DEV_ID_LOG(d));

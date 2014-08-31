@@ -123,6 +123,8 @@ char SCCP_REVISIONSTR[30];
 #define SCCP_SIM_ENBLOC_MIN_DIGIT 3
 #define SCCP_SIM_ENBLOC_TIMEOUT 2000
 
+#define SCCP_HANGUP_TIMEOUT 15000
+
 #define THREADPOOL_MIN_SIZE 2
 #define THREADPOOL_MAX_SIZE 10
 #define THREADPOOL_RESIZE_INTERVAL 10
@@ -138,7 +140,8 @@ char SCCP_REVISIONSTR[30];
 
 // When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
 //#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
-#define sccp_log1(...) { ast_log(AST_LOG_DEBUG, __VA_ARGS__); ast_verbose(__VA_ARGS__); }
+//#define sccp_log1(...) { ast_log(AST_LOG_DEBUG, __VA_ARGS__); ast_verbose(__VA_ARGS__); }
+#define sccp_log1(...) { ast_verbose(__VA_ARGS__); }
 #define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
@@ -1196,7 +1199,10 @@ struct sccp_channel {
 	} enbloc;
 
 	struct {
-		boolean_t deny;
+#ifndef SCCP_ATOMIC
+		sccp_mutex_t lock;
+#endif
+		volatile CAS32_TYPE deny;
 		int digittimeout;										/*!< Schedule for Timeout on Dialing State */
 		int hangup;											/*!< Automatic hangup after invalid/congested indication */
 	} scheduler;
@@ -1373,7 +1379,7 @@ struct sccp_hotline {
 ({															\
 	int _count = 0; 												\
 	int _sched_res = -1; 												\
-	while (id > -1 && (_sched_res = sccp_sched_del(id)) && ++_count < 10) 						\
+	while (id > -1 && (_sched_res = PBX(sched_del)(id)) && ++_count < 10) 						\
 		usleep(1); 												\
 	if (_count == 10) { 												\
 		sccp_log((DEBUGCAT_CORE))(VERBOSE_PREFIX_3 "SCCP: Unable to cancel schedule ID %d.\n", id); 		\
