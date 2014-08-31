@@ -545,6 +545,26 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 
 		} else if (!strcasecmp(args, "codec")) {
 			res = sccp_channel_setPreferredCodec(c, value);
+		} else if (!strcasecmp(args, "CallingParty")) {
+			char *num, *name;
+			pbx_callerid_parse((char *)value, &name, &num);
+			sccp_channel_set_callingparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "CalledParty")) {
+			char *num, *name;
+			pbx_callerid_parse((char *)value, &name, &num);
+			sccp_channel_set_calledparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "OriginalCallingParty")) {
+			char *num, *name;
+			pbx_callerid_parse((char *)value, &name, &num);
+			sccp_channel_set_originalCallingparty(c, name, num);
+			sccp_channel_display_callInfo(c);
+		} else if (!strcasecmp(args, "OriginalCalledParty")) {
+			char *num, *name;
+			pbx_callerid_parse((char *)value, &name, &num);
+			sccp_channel_set_originalCalledparty(c, name, num);
+			sccp_channel_display_callInfo(c);
 		} else if (!strcasecmp(args, "microphone")) {
 			if (!value || sccp_strlen_zero(value) || !sccp_true(value)) {
 				c->setMicrophone(c, FALSE);

@@ -655,6 +655,7 @@ static char *prefcodec_descr = "Usage: SCCPSetCodec(codec)" "Sets the preferred 
  * \return      Success as int
  * 
  * \called_from_asterisk
+ * \deprecated
  */
 #if ASTERISK_VERSION_NUMBER >= 10800
 static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, const char *data)
@@ -684,7 +685,7 @@ static int sccp_app_calledparty(PBX_CHANNEL_TYPE * chan, void *data)
 /*! \brief Stucture to declare a dialplan function: SETCALLEDPARTY */
 static char *calledparty_name = "SCCPSetCalledParty";
 static char *old_calledparty_name = "SetCalledParty";
-static char *calledparty_synopsis = "Sets the callerid of the called party";
+static char *calledparty_synopsis = "Sets the callerid of the called party (DEPRECATED use generic 'Set(CHANNEL(calledparty)=\"name <exten>\")' instead)";
 static char *calledparty_descr = "Usage: SCCPSetCalledParty(\"Name\" <ext>)" "Sets the name and number of the called party for use with chan_sccp\n";
 
 /*!
