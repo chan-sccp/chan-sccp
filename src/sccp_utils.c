@@ -579,7 +579,8 @@ sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
 void sccp_util_featureStorageBackend(const sccp_event_t * event)
 {
 	char family[25];
-	char cfwdLineStore[60];
+	char cfwdDeviceLineStore[60];		/* backward compatibiliy SCCP/Device/Line */
+	char cfwdLineDeviceStore[60];		/* new format cfwd: SCCP/Line/Device */
 	sccp_linedevices_t *linedevice = NULL;
 	sccp_device_t *device = NULL;
 
@@ -599,29 +600,36 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 				uint8_t instance = linedevice->lineInstance;
 
 				sccp_dev_forward_status(line, instance, device);
-				sprintf(cfwdLineStore, "%s/%s", family, line->name);
+				sprintf(cfwdDeviceLineStore, "SCCP/%s/%s", device->id, line->name);
+				sprintf(cfwdLineDeviceStore, "SCCP/%s/%s", line->name, device->id);
 				switch (event->event.featureChanged.featureType) {
 					case SCCP_FEATURE_CFWDALL:
 						if (linedevice->cfwdAll.enabled) {
-							PBX(feature_addToDatabase) (cfwdLineStore, "cfwdAll", linedevice->cfwdAll.number);
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							PBX(feature_addToDatabase) (cfwdDeviceLineStore, "cfwdAll", linedevice->cfwdAll.number);
+							PBX(feature_addToDatabase) (cfwdLineDeviceStore, "cfwdAll", linedevice->cfwdAll.number);
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
-							PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdAll");
+							PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdAll");
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
 						if (linedevice->cfwdBusy.enabled) {
-							PBX(feature_addToDatabase) (cfwdLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							PBX(feature_addToDatabase) (cfwdDeviceLineStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							PBX(feature_addToDatabase) (cfwdLineDeviceStore, "cfwdBusy", linedevice->cfwdBusy.number);
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db put %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						} else {
-							PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdLineStore);
+							PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdBusy");
+							PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdBusy");
+							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: db clear %s\n", DEV_ID_LOG(device), cfwdDeviceLineStore);
 						}
 						break;
 					case SCCP_FEATURE_CFWDNONE:
-						PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdAll");
-						PBX(feature_removeFromDatabase) (cfwdLineStore, "cfwdBusy");
+						PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdAll");
+						PBX(feature_removeFromDatabase) (cfwdDeviceLineStore, "cfwdBusy");
+						PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdAll");
+						PBX(feature_removeFromDatabase) (cfwdLineDeviceStore, "cfwdBusy");
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: cfwd cleared from db\n", DEV_ID_LOG(device));
 					default:
 						break;
