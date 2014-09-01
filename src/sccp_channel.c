@@ -519,17 +519,26 @@ void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *n
 	if (!channel) {
 		return;
 	}
-
-	if (name && strncmp(name, channel->callInfo.callingPartyName, StationMaxNameSize - 1)) {
-		sccp_copy_string(channel->callInfo.callingPartyName, name, sizeof(channel->callInfo.callingPartyName));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set callingParty Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.callingPartyName, channel->callid);
+	
+	/* in case we want to clear out the current name or number use "" instead of NULL */
+	if (name) {
+		if (!sccp_strlen_zero(name)) {
+			sccp_copy_string(channel->callInfo.callingPartyName, name, sizeof(channel->callInfo.callingPartyName));
+		} else {
+			channel->callInfo.callingPartyName[0] = '\0';
+		}
 	}
 
-	if (number && strncmp(number, channel->callInfo.callingPartyNumber, StationMaxDirnumSize - 1)) {
-		sccp_copy_string(channel->callInfo.callingPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set callingParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.callingPartyNumber, channel->callid);
-		channel->callInfo.callingParty_valid = 1;
+	if (number) {
+		if (!sccp_strlen_zero(number)) {
+			sccp_copy_string(channel->callInfo.callingPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
+			channel->callInfo.callingParty_valid = 1;
+		} else {
+			channel->callInfo.callingPartyNumber[0] = '\0';
+			channel->callInfo.callingParty_valid = 0;
+		}
 	}
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_callingparty) Set callingParty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.calledPartyName, channel->callInfo.calledPartyNumber, channel->callid);
 }
 
 /*!
@@ -544,23 +553,35 @@ void sccp_channel_set_callingparty(sccp_channel_t * channel, char *name, char *n
 boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *name, char *number)
 {
 	boolean_t changed = FALSE;
-
+	
 	if (!channel) {
 		return FALSE;
 	}
-
-	if (name && strncmp(name, channel->callInfo.originalCallingPartyName, StationMaxNameSize - 1)) {
-		sccp_copy_string(channel->callInfo.originalCallingPartyName, name, sizeof(channel->callInfo.originalCallingPartyName));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set original Calling Party Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCallingPartyName, channel->callid);
-		changed = TRUE;
+	/* in case we want to clear out the current name or number use "" instead of NULL */
+	if (name) {
+		if (strncmp(name, channel->callInfo.originalCallingPartyName, StationMaxNameSize - 1)) {
+			changed = TRUE;
+		}
+		if (!sccp_strlen_zero(name)) {
+			sccp_copy_string(channel->callInfo.originalCallingPartyName, name, sizeof(channel->callInfo.originalCallingPartyName));
+		} else {
+			channel->callInfo.originalCallingPartyName[0] = '\0';
+		}
 	}
 
-	if (number && strncmp(number, channel->callInfo.originalCallingPartyNumber, StationMaxDirnumSize - 1)) {
-		sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set original Calling Party Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCallingPartyNumber, channel->callid);
-		changed = TRUE;
-		channel->callInfo.originalCallingParty_valid = 1;
+	if (number) {
+		if (strncmp(name, channel->callInfo.originalCallingPartyNumber, StationMaxNameSize - 1)) {
+			changed = TRUE;
+		}
+		if (!sccp_strlen_zero(number)) {
+			sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
+			channel->callInfo.originalCallingParty_valid = 1;
+		} else {
+			channel->callInfo.originalCallingPartyNumber[0] = '\0';
+			channel->callInfo.originalCallingParty_valid = 0;
+		}
 	}
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCallingparty) Set originalCallingparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCallingPartyName, channel->callInfo.originalCallingPartyNumber, channel->callid);
 	return changed;
 }
 
@@ -591,7 +612,7 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 
 	if (number) {
 		if (!sccp_strlen_zero(number)) {
-			sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.callingPartyNumber));
+			sccp_copy_string(channel->callInfo.calledPartyNumber, number, sizeof(channel->callInfo.calledPartyNumber));
 			channel->callInfo.calledParty_valid = 1;
 		} else {
 			channel->callInfo.calledPartyNumber[0] = '\0';
@@ -613,24 +634,36 @@ void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *nu
 boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *name, char *number)
 {
 	boolean_t changed = FALSE;
-
 	if (!channel) {
 		return FALSE;
 	}
-
-	if (name && strncmp(name, channel->callInfo.originalCalledPartyName, StationMaxNameSize - 1)) {
-		sccp_copy_string(channel->callInfo.originalCalledPartyName, name, sizeof(channel->callInfo.originalCalledPartyName));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set originalCalledParty Name %s on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCalledPartyName, channel->callid);
-		changed = TRUE;
+	/* in case we want to clear out the current name or number use "" instead of NULL */
+	if (name) {
+		if (strncmp(name, channel->callInfo.originalCalledPartyName, StationMaxNameSize - 1)) {
+			changed = TRUE;
+		}
+		if (!sccp_strlen_zero(name)) {
+			sccp_copy_string(channel->callInfo.originalCalledPartyName, name, sizeof(channel->callInfo.originalCalledPartyName));
+		} else {
+			channel->callInfo.originalCalledPartyName[0] = '\0';
+		}
 	}
 
-	if (number && strncmp(number, channel->callInfo.originalCalledPartyNumber, StationMaxDirnumSize - 1)) {
-		sccp_copy_string(channel->callInfo.originalCalledPartyNumber, number, sizeof(channel->callInfo.originalCalledPartyNumber));
-		sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Set originalCalledParty Number %s on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCalledPartyNumber, channel->callid);
-		changed = TRUE;
-		channel->callInfo.originalCalledParty_valid = 1;
+	if (number) {
+		if (strncmp(name, channel->callInfo.originalCalledPartyNumber, StationMaxNameSize - 1)) {
+			changed = TRUE;
+		}
+		if (!sccp_strlen_zero(number)) {
+			sccp_copy_string(channel->callInfo.originalCalledPartyNumber, number, sizeof(channel->callInfo.originalCalledPartyNumber));
+			channel->callInfo.originalCalledParty_valid = 1;
+		} else {
+			channel->callInfo.originalCalledPartyNumber[0] = '\0';
+			channel->callInfo.originalCalledParty_valid = 0;
+		}
 	}
+	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_set_originalCalledparty) Set originalCalledparty Name '%s', Number '%s' on channel %d\n", channel->currentDeviceId, channel->callInfo.originalCalledPartyName, channel->callInfo.originalCalledPartyNumber, channel->callid);
 	return changed;
+
 }
 
 /*!
