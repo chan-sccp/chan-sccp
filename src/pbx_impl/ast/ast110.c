@@ -496,21 +496,10 @@ static void sccp_wrapper_asterisk110_connectedline(sccp_channel_t * channel, con
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-		if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str)) {
-			sccp_copy_string(channel->callInfo.callingPartyNumber, ast->connected.id.number.str, sizeof(channel->callInfo.callingPartyNumber));
-                }
-		if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str)) {
-			sccp_copy_string(channel->callInfo.callingPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.callingPartyName));
-                }
+		sccp_channel_set_callingparty(channel, ast_channel_connected(ast)->id.name.str, ast_channel_connected(ast)->id.number.str);
 	} else {
-		if (ast->connected.id.number.str && !sccp_strlen_zero(ast->connected.id.number.str)) {
-			sccp_copy_string(channel->callInfo.calledPartyNumber, ast->connected.id.number.str, sizeof(channel->callInfo.calledPartyNumber));
-                }
-		if (ast->connected.id.name.str && !sccp_strlen_zero(ast->connected.id.name.str)) {
-			sccp_copy_string(channel->callInfo.calledPartyName, ast->connected.id.name.str, sizeof(channel->callInfo.calledPartyName));
-                }
+		sccp_channel_set_calledparty(channel, ast_channel_connected(ast)->id.name.str, ast_channel_connected(ast)->id.number.str);
 	}
-
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
 }
