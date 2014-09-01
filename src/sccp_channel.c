@@ -1212,7 +1212,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t *orig_channel)
 /*!
  * \brief Scheduled Hangup for a channel channel (Used by invalid number)
  */
-int sccp_channel_sched_endcall_by_callid(const void *data)
+static int _sccp_channel_sched_endcall(const void *data)
 {
 	sccp_channel_t *channel = (sccp_channel_t *)data;
 	if (!channel) {
@@ -1249,7 +1249,7 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeo
 {
 	sccp_channel_t *c = sccp_channel_retain(channel);
 	if (!c->scheduler.deny && !c->scheduler.hangup) {								/* only schedule if allowed and not already scheduled */
- 		if ((c->scheduler.hangup = PBX(sched_add)(timeout, sccp_channel_sched_endcall_by_callid, c)) < 0) {	/* scheduling retained channel */
+ 		if ((c->scheduler.hangup = PBX(sched_add)(timeout, _sccp_channel_sched_endcall, c)) < 0) {		/* scheduling retained channel */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, GLOB(firstdigittimeout));
 		}
 	}
