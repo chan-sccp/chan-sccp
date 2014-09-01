@@ -521,9 +521,9 @@ static void sccp_wrapper_asterisk18_connectedline(sccp_channel_t * channel, cons
 	}
 
 	if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-		sccp_channel_set_callingparty(channel, ast->connected.id.name.str, ast_channel_connected(ast)->id.number.str);
+		sccp_channel_set_callingparty(channel, ast->connected.id.name.str, ast->connected.id.number.str);
 	} else {
-		sccp_channel_set_calledparty(channel, ast->connected.id.name.str, ast_channel_connected(ast)->id.number.str);
+		sccp_channel_set_calledparty(channel, ast->connected.id.name.str, ast->connected.id.number.str);
 	}
 	sccp_channel_display_callInfo(channel);
 	sccp_channel_send_callinfo2(channel);
