@@ -310,9 +310,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CALLTRANSFER, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			d->protocol->sendCallInfo(d, c, instance);
 			break;
-		case SCCP_CHANNELSTATE_HELD_FOR_TRANSFER:								/* \todo SCCP_CHANNELSTATE_BLINDTRANSFER To be implemented */
-			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: SCCP_CHANNELSTATE_HELD_FOR_TRANSFER (%s)\n", d->id, sccp_channelstate2str(c->previousChannelState));
-			break;
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
 //			sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			break;
