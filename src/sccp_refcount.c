@@ -493,7 +493,7 @@ gcc_inline void *sccp_refcount_release(const void *ptr, const char *filename, in
 }
 
 gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func) {
-	if (&newptr == replaceptr) {					// nothing changed
+	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {		// nothing changed
 		return;
 	}
 

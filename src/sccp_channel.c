@@ -283,8 +283,12 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	}
 	
 	/** for previous device,set active channel to null */
-	if (!device && channel->privateData->device){
- 		sccp_device_setActiveChannel(channel->privateData->device, NULL);  
+	if (!device) {
+		if (!channel->privateData->device) {
+ 			/* channel->privateData->device was already set to NULL */
+ 			return;
+		}
+ 		sccp_device_setActiveChannel(channel->privateData->device, NULL);
 	}
 
 	sccp_device_refreplace(channel->privateData->device, (sccp_device_t *) device);
@@ -293,7 +297,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		sccp_device_setActiveChannel((sccp_device_t *) device, channel);
 	}
 
-	if (channel->privateData->device) {
+	if (channel->privateData && channel->privateData->device) {
 		memcpy(&channel->preferences.audio, &channel->privateData->device->preferences.audio, sizeof(channel->preferences.audio));
 		memcpy(&channel->capabilities.audio, &channel->privateData->device->capabilities.audio, sizeof(channel->capabilities.audio));
 		sccp_copy_string(channel->currentDeviceId, channel->privateData->device->id, sizeof(char[StationMaxDeviceNameSize]));
@@ -1234,11 +1238,10 @@ static int _sccp_channel_sched_endcall(const void *data)
  */
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t *channel)
 {
-	sccp_channel_t *c = sccp_channel_retain(channel);
-	if (c->scheduler.digittimeout) {
-		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	if (c->scheduler.digittimeout > -1 && (c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout)) == -1) {
+		sccp_channel_release(c);
 	}
-	c->scheduler.digittimeout = 0;
 }
 
 /* 
@@ -1247,10 +1250,11 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t *channel)
  */
 gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeout)
 {
-	sccp_channel_t *c = sccp_channel_retain(channel);
-	if (!c->scheduler.deny && !c->scheduler.hangup) {								/* only schedule if allowed and not already scheduled */
- 		if ((c->scheduler.hangup = PBX(sched_add)(timeout, _sccp_channel_sched_endcall, c)) < 0) {		/* scheduling retained channel */
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	if (c && !c->scheduler.deny && !c->scheduler.hangup) {											/* only schedule if allowed and not already scheduled */
+ 		if ((c->scheduler.hangup = PBX(sched_add)(timeout, _sccp_channel_sched_endcall, sccp_channel_retain(c))) < 0) {			/* scheduling retained channel */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, GLOB(firstdigittimeout));
+			sccp_channel_release(c);
 		}
 	}
 }
@@ -1261,13 +1265,17 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeo
  */
 gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t *channel, uint timeout)
 {
-	sccp_channel_t *c = sccp_channel_retain(channel);
-	if (!c->scheduler.deny) {												/* only schedule if allowed and not already scheduled */
-		if (c->scheduler.digittimeout) {
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	if (c && !c->scheduler.deny) {														/* only schedule if allowed and not already scheduled */
+		if (c->scheduler.digittimeout > -1) {												/* replace */
 			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-		}
-		if ((c->scheduler.digittimeout = PBX(sched_add)(timeout * 1000, sccp_pbx_sched_dial, c)) < 0) {
+			if ((c->scheduler.digittimeout = PBX(sched_add)(timeout * 1000, sccp_pbx_sched_dial, c)) < 0) {				/* reuse retained channel */
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, GLOB(firstdigittimeout));
+				sccp_channel_release(c);
+			}
+		} else if ((c->scheduler.digittimeout = PBX(sched_add)(timeout * 1000, sccp_pbx_sched_dial, sccp_channel_retain(c))) < 0) {	/* new */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, GLOB(firstdigittimeout));
+			sccp_channel_release(c);
 		}
 	}
 }
@@ -1275,13 +1283,15 @@ gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t *channel, uint 
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel) 
 {
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", channel->designator);
-	sccp_channel_t *c = sccp_channel_retain(channel);
-	ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
-	if (c->scheduler.digittimeout) {
-		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-	}
-	if (channel->scheduler.hangup) {
-		c->scheduler.hangup = SCCP_SCHED_DEL(c->scheduler.hangup);
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	if (c) {
+		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
+		if (c->scheduler.digittimeout > -1 && (c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout)) == -1) {
+			sccp_channel_release(c);
+		}
+		if (channel->scheduler.hangup > -1 && (c->scheduler.hangup = SCCP_SCHED_DEL(c->scheduler.hangup)) == -1) {
+			sccp_channel_release(c);
+		}
 	}
 }
 
