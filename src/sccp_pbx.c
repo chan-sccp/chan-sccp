@@ -794,7 +794,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		c->enbloc.deactivate = 0;
 		c->enbloc.totaldigittime = 0;
 		c->enbloc.totaldigittimesquared = 0;
-		c->enbloc.digittimeout = GLOB(digittimeout) * 1000;
+		c->enbloc.digittimeout = GLOB(digittimeout);
 
 		/* prevent softswitch from being executed twice (Pavel Troller / 15-Oct-2010) */
 		if (PBX(getChannelPbx) (c)) {
