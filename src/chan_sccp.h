@@ -139,9 +139,9 @@ char SCCP_REVISIONSTR[30];
 #define sccp_false(x) (pbx_false(x) ? 1 : 0)
 
 // When DEBUGCAT_HIGH is set, we use ast_log instead of ast_verbose
-//#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
+#define sccp_log1(...) { if ((sccp_globals->debug & (DEBUGCAT_FILELINEFUNC)) == DEBUGCAT_FILELINEFUNC) { ast_log(AST_LOG_NOTICE, __VA_ARGS__); } else { ast_verbose(__VA_ARGS__); } }
 //#define sccp_log1(...) { ast_log(AST_LOG_DEBUG, __VA_ARGS__); ast_verbose(__VA_ARGS__); }
-#define sccp_log1(...) { ast_verbose(__VA_ARGS__); }
+//#define sccp_log1(...) { ast_verbose(__VA_ARGS__); }
 #define sccp_log(_x) if ((sccp_globals->debug & (_x))) sccp_log1
 #define sccp_log_and(_x) if ((sccp_globals->debug & (_x)) == (_x)) sccp_log1
 
@@ -1157,6 +1157,7 @@ struct sccp_channel {
 	uint32_t passthrupartyid;										/*!< Pass Through ID */
 	sccp_channelstate_t state;										/*!< Internal channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstate_t previousChannelState;								/*!< Previous channel state SCCP_CHANNELSTATE_* */
+	sccp_channelstatereason_t channelStateReason;								/*!< Reason the new/current state was set (for example to handle HOLD differently for transfer then normal) */
 	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
 	sccp_line_t *line;											/*!< SCCP Line */
