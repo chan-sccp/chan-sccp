@@ -1981,7 +1981,6 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 	PBX_CHANNEL_TYPE *pbx_channel_owner = NULL;
 	PBX_CHANNEL_TYPE *pbx_channel_bridgepeer = NULL;
 
-
 	if (!channel){
 		return;
 	}
@@ -2026,9 +2025,19 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 
 		prev_channel_state = channel->state;
-		if ((channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) && !sccp_channel_hold(channel)) {
-			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
-			return;
+		
+		if (channel->state == SCCP_CHANNELSTATE_HOLD) {	/* already put on hold manually */
+			channel->channelStateReason = SCCP_CHANNELSTATEREASON_TRANSFER;
+//			sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);			/* do we need to reindicate ? */
+		}
+		if ((channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER)) {
+			channel->channelStateReason = SCCP_CHANNELSTATEREASON_TRANSFER;
+		
+			if (!sccp_channel_hold(channel)) {	/* hold failed, restore */
+				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				return;
+			}
 		} 
 
 		if ((pbx_channel_owner = pbx_channel_ref(channel->owner))) {
@@ -2053,6 +2062,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				// giving up
 				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
+				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
 				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 			} else {
@@ -2063,6 +2073,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 				}
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
+				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
 				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 			}
@@ -2071,6 +2082,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			// giving up
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No pbx channel owner to transfer %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
 			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
+			channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 			sccp_indicate(d, channel, prev_channel_state);
 			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
 		}
@@ -2091,6 +2103,7 @@ void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
 		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
 		sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X released\n", d->id, c->line->name, c->callid);
 	}
+	c->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 }
 
 /*!
@@ -2114,6 +2127,7 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_transfer_cancel) Denied Receipt of Transferee %d %s by the Transfering Party. Cancelling Transfer and Putting transferee channel on Hold.\n", DEV_ID_LOG(d), d->transferChannels.transferee->callid, d->transferChannels.transferee->line->name);
 		}
 		
+		d->transferChannels.transferee->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 		sccp_rtp_stop(d->transferChannels.transferee);
 		sccp_dev_set_activeline(d, NULL);
 		sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
@@ -2183,6 +2197,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: pbx_destination_local_channel  %s\n", d->id, pbx_destination_local_channel ? pbx_channel_name(pbx_destination_local_channel) : "NULL");
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: pbx_destination_remote_channel %s\n\n", d->id, pbx_destination_remote_channel ? pbx_channel_name(pbx_destination_remote_channel) : "NULL");
+
+	sccp_source_local_channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 
 	if (!(pbx_source_remote_channel && pbx_destination_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
@@ -2263,6 +2279,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 			PBX(moh_start) (pbx_source_remote_channel, NULL, NULL);					//! \todo use pbx impl
 		}
 	}
+	
 	if (PBX(attended_transfer)(sccp_destination_local_channel, sccp_source_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", pbx_channel_name(pbx_destination_local_channel), pbx_channel_name(pbx_source_remote_channel));
 
@@ -2274,9 +2291,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
 		return;
 	}
-
-//	sccp_channel_transfer_release(d, d->transferChannels.transferee);
-	sccp_channel_transfer_release(d, sccp_source_local_channel);
+	
+	sccp_channel_transfer_release(d, d->transferChannels.transferee);
+	//sccp_channel_transfer_release(d, sccp_source_local_channel);
 
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */

@@ -477,7 +477,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 	tmpChannel.callInfo.presentation = c->callInfo.presentation;
 	tmpChannel.line = sccp_line_retain(c->line);
 
-	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, c->designator, c->callid);
+	sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Indicate state %s (%d) with reason: %s (%d) on remote devices for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(tmpChannel.channelStateReason), tmpChannel.channelStateReason, c->designator, c->callid);
 	SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
 		if (!linedevice->device) {
 			pbx_log(LOG_NOTICE, "Strange to find a linedevice (%p) here without a valid device connected to it !", linedevice);
@@ -497,14 +497,13 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
  			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
 // 			stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
 
-			{
-				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(linedevice->device);
-				if (activeChannel) {
-					if (sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
-						sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: (indicate_remote_device) Already Own Part of the Call: Hidden\n", DEV_ID_LOG(device));
-						sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), PBX(getChannelLinkedId)(c), DEV_ID_LOG(remoteDevice), PBX(getChannelLinkedId)(activeChannel));
-						continue;
-					}
+			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
+			if (state != SCCP_CHANNELSTATE_ONHOOK) {
+				AUTO_RELEASE sccp_channel_t *activeChannel = sccp_device_getActiveChannel(remoteDevice);
+				if (activeChannel && sccp_strequals(PBX(getChannelLinkedId) (activeChannel), PBX(getChannelLinkedId) (c))) {
+					sccp_log(DEBUGCAT_INDICATE)(VERBOSE_PREFIX_3 "%s: (indicate_remote_device) Already Own Part of the Call: Hidden\n", DEV_ID_LOG(device));
+					sccp_log_and(DEBUGCAT_INDICATE + DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s: LinkedId: %s / %s: LinkedId Remote: %s\n", DEV_ID_LOG(device), PBX(getChannelLinkedId)(c), DEV_ID_LOG(remoteDevice), PBX(getChannelLinkedId)(activeChannel));
+					continue;
 				}
 			}
 
@@ -593,19 +592,24 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 					sccp_device_sendcallstate(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					remoteDevice->protocol->sendCallInfo(remoteDevice, &tmpChannel, instance);
-					sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
+//					sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
+					sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_EMPTY);		/* set NULL keymode -> No SoftKeys */
 					break;
 
 				case SCCP_CHANNELSTATE_HOLD:
-					remoteDevice->indicate->remoteHold(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
-					remoteDevice->protocol->sendCallInfo(remoteDevice, &tmpChannel, instance);
+					if (c->channelStateReason == SCCP_CHANNELSTATEREASON_NORMAL) {
+						remoteDevice->indicate->remoteHold(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
+						remoteDevice->protocol->sendCallInfo(remoteDevice, &tmpChannel, instance);
+					} else {
+						sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Skipped Remote Hold Indication for reason: %s\n", DEV_ID_LOG(device), sccp_channelstatereason2str(tmpChannel.channelStateReason));
+					}
 					break;
 
 				default:
 					break;
 
 			}
-			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
+			sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "%s: Finish Indicating state %s (%d) with reason: %s (%d) on remote device %s for channel %s (call %08x)\n", DEV_ID_LOG(device), sccp_channelstate2str(state), state, sccp_channelstatereason2str(tmpChannel.channelStateReason), tmpChannel.channelStateReason, DEV_ID_LOG(remoteDevice), c->designator, c->callid);
 		}
 	}
 	

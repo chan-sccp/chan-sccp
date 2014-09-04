@@ -33,6 +33,7 @@
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
+#include "sccp_indicate.h"		// only for SCCP_CHANNELSTATE_Idling
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
@@ -776,11 +777,11 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_HOLD:
 			case SCCP_CHANNELSTATE_CONGESTION:
 			case SCCP_CHANNELSTATE_CALLWAITING:
-			case SCCP_CHANNELSTATE_CALLTRANSFER:
-			case SCCP_CHANNELSTATE_CALLCONFERENCE:
 			case SCCP_CHANNELSTATE_CALLPARK:
 			case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			case SCCP_CHANNELSTATE_INVALIDNUMBER:
+			case SCCP_CHANNELSTATE_CALLCONFERENCE:
+			case SCCP_CHANNELSTATE_CALLTRANSFER:
 				//if (dev_privacy == 0 || (dev_privacy == 1 && channel->privacy == FALSE)) {
 
 				/** set cid name/number information according to the call direction */
@@ -1105,7 +1106,6 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_BUSY:
 					case SCCP_CHANNELSTATE_HOLD:
 					case SCCP_CHANNELSTATE_CALLWAITING:
-					case SCCP_CHANNELSTATE_CALLTRANSFER:
 					case SCCP_CHANNELSTATE_CALLPARK:
 					case SCCP_CHANNELSTATE_PROCEED:
 					case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
@@ -1113,13 +1113,14 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_DIALING:
 					case SCCP_CHANNELSTATE_PROGRESS:
 					case SCCP_CHANNELSTATE_GETDIGITS:
-					case SCCP_CHANNELSTATE_CALLCONFERENCE:
 					case SCCP_CHANNELSTATE_SPEEDDIAL:
 					case SCCP_CHANNELSTATE_DIGITSFOLL:
 					case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 					case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
 					case SCCP_CHANNELSTATE_BLINDTRANSFER:
 					case SCCP_CHANNELSTATE_DND:
+					case SCCP_CHANNELSTATE_CALLTRANSFER:
+					case SCCP_CHANNELSTATE_CALLCONFERENCE:
 						iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 						break;
 					case sccp_channelstate_LOOKUPERROR:
@@ -1263,7 +1264,7 @@ int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const st
  		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(lineState->state))		\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	lineState->callInfo.partyNumber)			\
  		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	lineState->callInfo.partyName)				\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	lineState->callInfo.calltype ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(!SCCP_CHANNELSTATE_Idling(lineState->state) && lineState->callInfo.calltype) ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
 
 #include "sccp_cli_table.h"
 
@@ -1305,7 +1306,7 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
  		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(subscription->currentState))	\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	subscription->callInfo.partyNumber)			\
  		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	subscription->callInfo.partyName)			\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	subscription->callInfo.calltype ? skinny_calltype2str(subscription->callInfo.calltype) : "INACTIVE")	\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(!SCCP_CHANNELSTATE_Idling(subscription->currentState) && subscription->callInfo.calltype) ? skinny_calltype2str(subscription->callInfo.calltype) : "INACTIVE")	\
  		CLI_AMI_TABLE_FIELD(Subs,		"-4d",		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
 
 #include "sccp_cli_table.h"
