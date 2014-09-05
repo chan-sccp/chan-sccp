@@ -172,47 +172,43 @@
     <dtmfCnfCode>*85</dtmfCnfCode>
   </mobility>
   <userId/>
-  <!--
-	<phoneServices>
-	
-		<provisioning>0</provisioning>
-		<phoneService  type="1" category="0">
-			<name>Missed Calls</name>
-			<url>Application:Cisco/MissedCalls</url>
-			<vendor></vendor>
-			<version></version>
-		</phoneService>
-		<phoneService  type="1" category="0">
-			<name>Voicemail</name>
-			<url>Application:Cisco/Voicemail</url>
-			<vendor></vendor>
-			<version></version>
-		</phoneService>
-		<phoneService  type="1" category="0">
-			<name>Received Calls</name>
-			<url>Application:Cisco/ReceivedCalls</url>
-			<vendor></vendor>
-			<version></version>
-		</phoneService>
-		<phoneService  type="1" category="0">
-			<name>Placed Calls</name>
-			<url>Application:Cisco/PlacedCalls</url>
-			<vendor></vendor>
-			<version></version>
-		</phoneService>
-		<phoneService  type="1" category="0">
-			<name>Personal Directory</name>
-			<url>Application:Cisco/PersonalDirectory</url>
-			<vendor></vendor>
-			<version></version>
-		</phoneService>
-		<phoneService  type="0" category="0">
-			<name>Corporate Directory</name>
-			<url>Application:Cisco/CorporateDirectory</url>
-			<vendor></vendor>
-			<version></version>
-		</phoneService>
-		
-	</phoneServices>
--->
+  <phoneServices>
+	<provisioning>0</provisioning>
+	<phoneService  type="1" category="0">
+		<name>Missed Calls</name>
+		<url>Application:Cisco/MissedCalls</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Voicemail</name>
+		<url>Application:Cisco/Voicemail</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Received Calls</name>
+		<url>Application:Cisco/ReceivedCalls</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Placed Calls</name>
+		<url>Application:Cisco/PlacedCalls</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="1" category="0">
+		<name>Personal Directory</name>
+		<url>Application:Cisco/PersonalDirectory</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+	<phoneService  type="0" category="0">
+		<name>Corporate Directory</name>
+		<url>Application:Cisco/CorporateDirectory</url>
+		<vendor></vendor>
+		<version></version>
+	</phoneService>
+  </phoneServices>
 </device>
