@@ -181,7 +181,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	}
 
 	/* reschedule my self */
-	if ((subscription->schedUpdate = sccp_sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+	if ((subscription->schedUpdate = PBX(sched_add)(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 		pbx_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 	}
 	return 0;
@@ -347,7 +347,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 			pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
 #else
-		if ((subscription->schedUpdate = sccp_sched_add(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+		if ((subscription->schedUpdate = PBX(sched_add)(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
 #endif

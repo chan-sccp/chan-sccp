@@ -483,35 +483,6 @@ int load_config(void)
 }
 
 /*!
- * \brief Add Callback Functon to PBX Scheduler
- * \param when number of seconds from this point in time as int
- * \param callback CallBack Function to be called when the time has passed
- * \param data  Extraneous Data 
- * \return sceduled id as int
- */
-int sccp_sched_add(int when, sccp_sched_cb callback, const void *data)
-{
-
-	if (!PBX(sched_add)) {
-		return 1;
-        }
-	return PBX(sched_add) (when, callback, data);
-}
-
-/*!
- * \brief Remove Callback Functon from PBX Scheduler
- * \param id ID of scheduled callback as int
- * \return success as int
- */
-int sccp_sched_del(int id)
-{
-	if (!PBX(sched_del)) {
-		return 1;
-        }
-	return PBX(sched_del) (id);
-}
-
-/*!
  * \brief       Load the actual chan_sccp module
  * \return      Success as int
  */
