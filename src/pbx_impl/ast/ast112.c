@@ -795,7 +795,8 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 			if (!c->scheduler.deny) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-				c->scheduler.digittimeout = PBX(sched_add) (c->enbloc.digittimeout, sccp_pbx_sched_dial, c);
+//				c->scheduler.digittimeout = PBX(sched_add) (c->enbloc.digittimeout, sccp_pbx_sched_dial, c);
+				sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
 			} else {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 			}
@@ -2580,7 +2581,47 @@ static int sccp_wrapper_asterisk112_sched_add(int when, sccp_sched_cb callback, 
 	if (sched) {
 		return ast_sched_add(sched, when, callback, data);
 	}
-	return FALSE;
+	return -1;
+}
+
+static int sccp_wrapper_asterisk112_sched_del(int id)
+{
+	if (sched) {
+		return AST_SCHED_DEL(sched, id);
+	}
+	return -1;
+}
+
+static int sccp_wrapper_asterisk112_sched_add_ref(int *id, int when, sccp_sched_cb callback, sccp_channel_t *channel)
+{
+	if (sched && channel) {
+		sccp_channel_t *c = sccp_channel_retain(channel);
+		if (c) {
+			*id = ast_sched_add(sched, when, callback, c);
+			if (*id == -1) {
+				sccp_channel_release(channel);
+			}
+			return *id;
+		}
+	}
+	return -1;
+}
+static int sccp_wrapper_asterisk112_sched_del_ref(int *id, const sccp_channel_t *channel)
+{
+	if (sched) {
+		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(channel))
+		return *id;
+	}
+	return -1;
+}
+
+static int sccp_wrapper_asterisk112_sched_replace_ref(int *id, int when, ast_sched_cb callback, sccp_channel_t *channel) 
+{
+	if (sched) {
+		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release(_data), sccp_channel_release(channel), sccp_channel_retain(channel))
+		return *id;
+	}
+	return -1;
 }
 
 static long sccp_wrapper_asterisk112_sched_when(int id)
@@ -2595,14 +2636,6 @@ static int sccp_wrapper_asterisk112_sched_wait(int id)
 {
 	if (sched) {
 		return ast_sched_wait(sched);
-	}
-	return FALSE;
-}
-
-static int sccp_wrapper_asterisk112_sched_del(int id)
-{
-	if (sched) {
-		return ast_sched_del(sched, id);
 	}
 	return FALSE;
 }
@@ -3308,6 +3341,9 @@ sccp_pbx_cb sccp_pbx = {
 
 	sched_add:			sccp_wrapper_asterisk112_sched_add,
 	sched_del:			sccp_wrapper_asterisk112_sched_del,
+	sched_add_ref:			sccp_wrapper_asterisk112_sched_add_ref,
+	sched_del_ref:			sccp_wrapper_asterisk112_sched_del_ref,
+	sched_replace_ref:		sccp_wrapper_asterisk112_sched_replace_ref,
 	sched_when:			sccp_wrapper_asterisk112_sched_when,
 	sched_wait:			sccp_wrapper_asterisk112_sched_wait,
 
@@ -3432,8 +3468,11 @@ struct sccp_pbx_cb sccp_pbx = {
 	.send_digit 			= sccp_wrapper_sendDigit,
 
 	/* schedulers */
-	.sched_add 			= sccp_wrapper_asterisk112_sched_add,
-	.sched_del 			= sccp_wrapper_asterisk112_sched_del,
+	.sched_add			= sccp_wrapper_asterisk112_sched_add,
+	.sched_del			= sccp_wrapper_asterisk112_sched_del,
+	.sched_add_ref			= sccp_wrapper_asterisk112_sched_add_ref,
+	.sched_del_ref			= sccp_wrapper_asterisk112_sched_del_ref,
+	.sched_replace_ref		= sccp_wrapper_asterisk112_sched_replace_ref,
 	.sched_when 			= sccp_wrapper_asterisk112_sched_when,
 	.sched_wait 			= sccp_wrapper_asterisk112_sched_wait,
 	
