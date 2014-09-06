@@ -718,13 +718,16 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  */
 int sccp_pbx_sched_dial(const void *data)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain((sccp_channel_t *) data);
-
-	if (c && c->owner && !PBX(getChannelPbx) (c)) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
-//		c->scheduler.digittimeout = 0;
-		sccp_channel_stop_schedule_digittimout(c);
-		sccp_pbx_softswitch(c);
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain((sccp_channel_t *) data);	// channel already retained in data
+	if (c) {
+		c->scheduler.digittimeout = -1;
+		if (c->owner && !PBX(getChannelPbx) (c)) {
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
+			sccp_pbx_softswitch(c);
+//		} else {
+//			sccp_channel_stop_schedule_digittimout(c);			// in case of immediate
+		}
+		sccp_channel_release(c);						// release scheduled dial channel retension (scheduled digit timed out)
 	}
 	return 0;
 }

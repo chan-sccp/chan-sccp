@@ -774,9 +774,8 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 			if (!c->scheduler.deny) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-				sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
+				sccp_channel_schedule_digittimout(c, GLOB(digittimeout));
 			} else {
-				sccp_channel_stop_schedule_digittimout(c);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 			}
 			res = 0;
@@ -2412,18 +2411,35 @@ static int sccp_wrapper_asterisk111_sched_add_ref(int *id, int when, sccp_sched_
 		if (c) {
 			*id = ast_sched_add(sched, when, callback, c);
 			if (*id == -1) {
+//				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d, failed\n", c->designator, *id, when);
 				sccp_channel_release(channel);
+			} else {
+//				sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: sched add id:%d, when:%d\n", c->designator, *id, when);
 			}
 			return *id;
 		}
 	}
 	return -1;
 }
-static int sccp_wrapper_asterisk111_sched_del_ref(int *id, const sccp_channel_t *channel)
+static int sccp_wrapper_asterisk111_sched_del_ref(int *oldid, const sccp_channel_t *channel)
 {
 	if (sched) {
-		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(channel))
-		return *id;
+//		AST_SCHED_DEL_UNREF(sched, *id, sccp_channel_release(channel))
+                int _count = 0, id = *oldid, res = 1;
+                *oldid = -1;
+                while (id > -1 && (res = ast_sched_del(sched, id)) && ++_count < 10) {
+//			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_del_ref) sched del id:%d\n", channel->designator, id);
+                        usleep(1);
+                }
+                if (_count == 10) {
+                        pbx_log(LOG_WARNING, "Unable to cancel schedule ID %d.  This is probably a bug (%s: %s, line %d).\n", id, __FILE__, __PRETTY_FUNCTION__, __LINE__);
+		}
+		if (!res && channel) {
+//			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_del_ref) channel release (id: %d)\n", channel->designator, id);
+	                sccp_channel_release(channel);
+		}
+//		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_del_ref) returning id: %d\n", channel->designator, *oldid);
+		return *oldid;
 	}
 	return -1;
 }
@@ -2431,7 +2447,9 @@ static int sccp_wrapper_asterisk111_sched_del_ref(int *id, const sccp_channel_t 
 static int sccp_wrapper_asterisk111_sched_replace_ref(int *id, int when, ast_sched_cb callback, sccp_channel_t *channel) 
 {
 	if (sched) {
+//		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) replacing id: %d\n", channel->designator, *id);
 		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release(_data), sccp_channel_release(channel), sccp_channel_retain(channel))
+//		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) returning id: %d\n", channel->designator, *id);
 		return *id;
 	}
 	return -1;
