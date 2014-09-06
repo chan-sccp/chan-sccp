@@ -3396,13 +3396,13 @@ struct sccp_pbx_cb sccp_pbx = {
 	.send_digit 			= sccp_wrapper_sendDigit,
 
 	/* schedulers */
-	sched_add:			sccp_wrapper_asterisk18_sched_add,
-	sched_del:			sccp_wrapper_asterisk18_sched_del,
-	sched_add_ref:			sccp_wrapper_asterisk18_sched_add_ref,
-	sched_del_ref:			sccp_wrapper_asterisk18_sched_del_ref,
-	sched_replace_ref:		sccp_wrapper_asterisk18_sched_replace_ref,
-	sched_when:			sccp_wrapper_asterisk18_sched_when,
-	sched_wait:			sccp_wrapper_asterisk18_sched_wait,
+	.sched_add			= sccp_wrapper_asterisk18_sched_add,
+	.sched_del			= sccp_wrapper_asterisk18_sched_del,
+	.sched_add_ref			= sccp_wrapper_asterisk18_sched_add_ref,
+	.sched_del_ref			= sccp_wrapper_asterisk18_sched_del_ref,
+	.sched_replace_ref		= sccp_wrapper_asterisk18_sched_replace_ref,
+	.sched_when			= sccp_wrapper_asterisk18_sched_when,
+	.sched_wait			= sccp_wrapper_asterisk18_sched_wait,
 	
 	/* callstate / indicate */
 	.set_callstate 			= sccp_wrapper_asterisk18_setCallState,

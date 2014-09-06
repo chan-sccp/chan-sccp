@@ -3475,7 +3475,8 @@ sccp_pbx_cb sccp_pbx = {
 	sched_del_ref:			sccp_wrapper_asterisk113_sched_del_ref,
 	sched_replace_ref:		sccp_wrapper_asterisk113_sched_replace_ref,
 	sched_when:			sccp_wrapper_asterisk113_sched_when,
-	sched_wait:			sccp_wrapper_asterisk113_sched_wai
+	sched_wait:			sccp_wrapper_asterisk113_sched_wait,
+	
 	/* rtp */
 	rtp_getPeer:			sccp_wrapper_asterisk113_rtpGetPeer,
 	rtp_getUs:			sccp_wrapper_asterisk113_rtpGetUs,
