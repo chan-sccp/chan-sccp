@@ -637,15 +637,11 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			 *  - adding time to channel->scheduler.digittimeout
 			 *  - rescheduling sccp_pbx_sched_dial 
 			 */
-			if (c->scheduler.digittimeout) {
-				SCCP_SCHED_DEL(c->scheduler.digittimeout);
-			}
-
 			if (!c->scheduler.deny) {
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-//				c->scheduler.digittimeout = PBX(sched_add) (c->enbloc.digittimeout, sccp_pbx_sched_dial, c);
 				sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
 			} else {
+				sccp_channel_stop_schedule_digittimout(c);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 			}
 			res = 0;
