@@ -554,7 +554,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	device->device_features = letohl(msg_in->data.RegisterMessage.phone_features);
 	device->linesRegistered = FALSE;
 
-	struct sockaddr_storage register_sas;
+	struct sockaddr_storage register_sas =  { 0 };
 	if (msg_in->data.RegisterMessage.ipv6Address) {
 		register_sas.ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&register_sas;

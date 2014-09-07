@@ -986,7 +986,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
-	char displayMessage[80];
+	char displayMessage[80] = "";
 #endif
 
 	if (!hint) {
