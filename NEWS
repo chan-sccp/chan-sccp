@@ -1,3 +1,22 @@
+Version: 4.2.0_RC2
+==================
+New Features in V4.2
+ - Added Support for Asterisk-12
+ - Added Support for Asterisk-13
+ - Support for IPv4 and IPv6
+ - Updated/Changed DTMF Handling to always take rfc2833
+ - Multi Channel Direct RTP (ie: SIP-SCCP direct media)
+ - Enums processed using meta programming (Renewed macro implementation)
+ - Support for named callgroup / pickupgroups when using >asterisk-11
+ - Added support for earlyrtp=immediate
+ - Added Scheduled Hangup (So that you can hear the hangupcause)
+ - Reworked digittimeout
+
+Bug Fixes
+ - Numerous smaller / bigger fixes (Check ChangeLog for details)
+ - Fixed RTP Handling
+ - Replaced Asterisk Scheduled Macro Use
+
 Version: 4.2.0_RC1
 ==================
 New Features in V4.2
@@ -9,7 +28,7 @@ New Features in V4.2
  - Support for named callgroup / pickupgroups when using >asterisk-11
 
 Bug Fixes
- - Numerous smaller / bifgger fixes (Check ChangeLog for details)
+ - Numerous smaller / bigger fixes (Check ChangeLog for details)
 
 Version: 4.2.0_DEV
 ==================

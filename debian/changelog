@@ -1,3 +1,24 @@
+chan-sccp-b (4.2.0-2) rc2; urgency=high
+
+  [ Diederik de Groot ]
+  * New features with V4.2:
+    - Added Support for Asterisk-12
+    - Added Support for Asterisk-13
+    - Support for IPv4 and IPv6
+    - Changed DTMF Handling to always take rfc2833
+    - Multi Channel Direct RTP (ie: SIP-SCCP direct media)
+    - Enums processed using meta programming (Renewed macro implementation)
+    - Support for named callgroup / pickupgroups when using >asterisk-11
+    - Added support for earlyrtp=immediate
+    - Added Scheduled Hangup (So that you can hear the hangupcause)
+    - Reworked digittimeout
+  * Bug Fixes 
+    - Numerous smaller / bifgger fixes (Check ChangeLog for details)
+    - Fixed RTP Handling
+    - Replaced Asterisk Scheduled Macro Use
+
+ -- Diederik de Groot <ddegroot@users.sourceforge.net>  Mon, 9 Sep 2014 18:00:00 +0100
+
 chan-sccp-b (4.2.0-1) rc1; urgency=high
 
   [ Diederik de Groot ]

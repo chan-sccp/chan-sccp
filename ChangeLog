@@ -1,4 +1,157 @@
+2014-09-07  ddegroot
+
+	* [r5734] src/sccp_actions.c, src/sccp_hint.c: Fix: Initialize
+	  values
+
+2014-09-06  ddegroot
+
+	* [r5733] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_channel.c, src/sccp_pbx.c, src/sccp_refcount.h: Fix:
+	  digittimeout / scheduled hangup issues reported when in immediate
+	  mode using newly implemented sched_*_ref functions, correcting an
+	  error in the asterisk AST_SCHED_DEL macro. (Reported by Pavel
+	  Troller)
+
+	* [r5732] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast113.c:
+	  Fix: old-style field designator extension
+
+	* [r5731] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Fix:
+	  CS_AST_CONTROL_INCOMPLETE handling in regards to digittimeout
+
+	* [r5730] src/chan_sccp.c, src/chan_sccp.h, src/sccp_mwi.c:
+	  Enhancement: Remove sccp_sched_del / sccp_sched_add functions in
+	  favor of the PBX() versions
+
+	* [r5729] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/pbx_impl.h: Enhancement: Added
+	  sched_add_ref/sched_del_ref/sched_replace_ref wrapper functions
+
+2014-09-05  ddegroot
+
+	* [r5728] conf/tftp/SEP0000000000.cnf.xml_797x_template: Enable
+	  phoneservices in 797x template
+
+2014-09-04  ddegroot
+
+	* [r5727] src/chan_sccp.h, src/chan_sccp_enums.hh,
+	  src/sccp_channel.c, src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_protocol_enums.hh: Fix: Transfer to sharedline(default).
+	  Fix: Channel on hold for transfer remote announcement causing
+	  trouble to answer on sharedline device. (Reported by Antonio /
+	  Ian / Martin)
+
+2014-09-03  ddegroot
+
+	* [r5726] src/chan_sccp.h, src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_pbx.c: Fix: digittimeout / scheduled_hangup / refcount
+
+	* [r5725] src/sccp_channel.c, src/sccp_refcount.c: Fix
+	  scheduled_hangup / scheduled_digit refcount.
+
+2014-09-02  ddegroot
+
+	* [r5724] src/chan_sccp_enums.hh, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_hint.c, src/sccp_indicate.c:
+	  Removed CHANNELSTATE_HELD_FOR_TRANSPORT
+
+2014-09-01  ddegroot
+
+	* [r5723] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c:
+	  Fix: compile error for asterisk-1.8 / asterisk-10. (Reported by
+	  Hhornung)
+
+	* [r5722] src/sccp_channel.c, src/sccp_channel.h: Enhancement:
+	  Changed sccp_chanenl_sched_hangup_by_callid to static
+	  _sccp_chanenl_sched_hangup
+
+	* [r5721] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c:
+	  Fix: compile error for asterisk-1.8 / asterisk-10. (Reported by
+	  Hhornung)
+
+	* [r5720] src/sccp_channel.c: Revised set OriginalCalledParty /
+	  OriginalCallingParty
+
+	* [r5719] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: Fix: Allow calledparty/callingparty to
+	  be overwritten using an empty string during connectedline update.
+	  (Issue & Adapted Patch by Antonio).
+
+	* [r5718] src/sccp_channel.c: Enhancement: Synchronized
+	  setCalled/setCalling/setOriginalCalled/setOriginalCalling party
+	  funcions.
+
+	* [r5717] src/sccp_features.c: Fix: Transfer using 6921
+	  (Reported/Patched by Antonio)
+
+2014-08-31  ddegroot
+
+	* [r5716] src/pbx_impl/ast/ast.c, src/sccp_appfunctions.c:
+	  Enhancement: Implement a way to set OriginalCallingParty and
+	  OrginalCalledParty from the dialplan. Revised supplied p1 patch
+	  in favor of implementing the same functionality via CHANNEL()
+	  instead. Deprecated the SCCPSetCalledParty function in the
+	  process. (Reported and Patch (p1) provided by Nikolay Vasilev)
+
+	* [r5715] src/sccp_utils.c: Enhancement: Store callforward
+	  information into astdb once by device/line and once by
+	  line/device. (Reported and Patch (p2_v2) provided by Nikolay
+	  Vasilev)
+
+	* [r5714] src/chan_sccp.h, src/pbx_impl/ast/ast111.c,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_features.c, src/sccp_indicate.c, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: Fix: scheduled hangup (references #220,
+	  references #221, references #223, references #224)
+
+2014-08-30  ddegroot
+
+	* [r5713] src/sccp_device.c: Fix: Remove const from device when
+	  running without atomic functions
+
+2014-08-30  marcelloceschia
+
+	* [r5712] conf/tftp/XMLDefault504G.cnf.xml[ADD]:
+	  XMLDefault504G.cnf.xml
+
+2014-08-30  ddegroot
+
+	* [r5711] src/sccp_device.c: Fix: memset call_statistics during
+	  device creation
+
+	* [r5710] src/chan_sccp.h, src/sccp_actions.c, src/sccp_cli.c:
+	  Remove call_stats->type which is not required and seems to
+	  conflict with pthreads
+
+	* [r5709] src/sccp_socket.c: Fix: Downplay getnameinfo error in
+	  sccp_socket_stringify (We are trying to report and error, and
+	  should not generate extra ones if the incoming data is wrong).
+	  Use them instead of tmp__addr.ss to report connection issues in
+	  sccp_socket_getOurAddressfor. (Reported by Jordan Cook)
+
+2014-08-29  ddegroot
+
+	* [r5708] src/pbx_impl/ast/ast106.c: Fix compilation against
+	  asterisk-1.6
+
+2014-08-23  ddegroot
+
+	* [r5707] src/sccp_hint.c: Enhancement: Localize the creation and
+	  use of tmpChannel (only where needed)
+
+	* [r5706] README.md: Fix: README.md documentation links
+
 2014-08-22  ddegroot
+
+	* [r5705] ChangeLog: Test: svn commit hook
 
 	* [r5704] ChangeLog: Test: svn commit hook
 
