@@ -1766,6 +1766,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 
 	/* we need this for callwaiting, hold, answer and stuff */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Taken Offhook\n", d->id);
+	d->state = SCCP_DEVICESTATE_OFFHOOK;
 
 	/* checking for registered lines */
 	if (!d->configurationStatistic.numberOfLines) {
