@@ -2608,7 +2608,7 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
 		SCCP_LIST_UNLOCK(&l->channels);
 	}
 	if (!c) {
-		pbx_log(LOG_WARNING, "%s: Could not find channel for lineInstance:%u and callid:%d on device\n", DEV_ID_LOG(d), lineInstance, callid);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Could not find channel for lineInstance:%u and callid:%d on device\n", DEV_ID_LOG(d), lineInstance, callid);
 	}
 	return c;
 }
@@ -2640,7 +2640,7 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	if (!channel) {
-		pbx_log(LOG_WARNING, "SCCP: Could not find channel for callid:%d on device\n", callid);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Could not find channel for callid:%d on device\n", callid);
 	}
 	return channel;
 }
@@ -2648,8 +2648,6 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
 /*!
  * \brief Find Channel by Pass Through Party ID
  * We need this to start the correct rtp stream.
- * \param passthrupartyid Party ID
- * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
  *
  * \note Does check that channel state not is DOWN.
  *
@@ -2678,7 +2676,7 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	if (!c) {
-		pbx_log(LOG_WARNING, "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "SCCP: Could not find active channel with Passthrupartyid %u\n", passthrupartyid);
 	}
 	return c;
 }
@@ -2724,7 +2722,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
 		}
 	}
 	if (!c) {
-		pbx_log(LOG_WARNING, "%s: Could not find active channel with Passthrupartyid %u on device\n", DEV_ID_LOG(d), passthrupartyid);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Could not find active channel with Passthrupartyid %u on device\n", DEV_ID_LOG(d), passthrupartyid);
 	}
 
 	return c;
@@ -2751,7 +2749,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channels
 	SCCP_LIST_UNLOCK(&l->channels);
 
 	if (!c) {
-		pbx_log(LOG_WARNING, "%s: Could not find active channel with state %s(%u) on line\n", l->id, sccp_channelstate2str(state), state);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Could not find active channel with state %s(%u) on line\n", l->id, sccp_channelstate2str(state), state);
 	}
 
 	return c;
@@ -2793,7 +2791,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp
 		}
 	}
 	if (!c) {
-		pbx_log(LOG_WARNING, "%s: Could not find active channel with state %s(%u) on device\n", DEV_ID_LOG(d), sccp_channelstate2str(state), state);
+		sccp_log((DEBUGCAT_CHANNEL))(VERBOSE_PREFIX_3 "%s: Could not find active channel with state %s(%u) on device\n", DEV_ID_LOG(d), sccp_channelstate2str(state), state);
 	}
 	return c;
 }
