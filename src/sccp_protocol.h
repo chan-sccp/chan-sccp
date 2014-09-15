@@ -824,7 +824,8 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-		char data[StationMaxXMLMessage];								// dummy char for variable length message
+//		char data[StationMaxXMLMessage];								// dummy char for variable length message (Causes issues on 7960, needs further research)
+		char data;											// dummy char for variable length message (Revert)
 	} UserToDeviceDataVersion1Message;									/*!< User to Device Version1 Message Structure */
 
 	struct {
