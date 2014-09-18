@@ -3234,6 +3234,11 @@ static uint8_t skSet_InUseHint[] = {
 	SKINNY_LBL_BARGE,
 };														/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
 
+static uint8_t skSet_Empty[] = {
+
+};
+
+
 /*! 
  */
 static const softkey_modes SoftKeyModes[] = {
@@ -3256,6 +3261,7 @@ static const softkey_modes SoftKeyModes[] = {
 	{KEYMODE_OFFHOOKFEAT, skSet_Offhookfeat, sizeof(skSet_Offhookfeat) / sizeof(uint8_t)},
 	{KEYMODE_INUSEHINT, skSet_InUseHint, sizeof(skSet_InUseHint) / sizeof(uint8_t)},
 	{KEYMODE_ONHOOKSTEALABLE, skSet_OnhookStealable, sizeof(skSet_OnhookStealable) / sizeof(uint8_t)},
+	{KEYMODE_EMPTY, skSet_Empty, sizeof(skSet_Empty) / sizeof(uint8_t)},
 	/* *INDENT-ON* */
 };														/*!< SoftKey Modes Constants */
 
