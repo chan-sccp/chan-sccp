@@ -465,7 +465,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_t * msg_in)
 {
 	AUTO_RELEASE sccp_device_t *device = NULL;
-	char *phone_ipv4, *phone_ipv6;
+	char *phone_ipv4 = NULL, *phone_ipv6 = NULL;
 	
 	uint32_t deviceInstance = letohl(msg_in->data.RegisterMessage.sId.lel_instance);
 	uint32_t userid = letohl(msg_in->data.RegisterMessage.sId.lel_userid);
@@ -2965,8 +2965,6 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 {
 	#define CALC_AVG(_newval, _mean, _numval) ( ( (_mean * (_numval) ) + _newval ) / (_numval + 1))
 
-	sccp_call_statistics_t *last_call_stats = NULL;
-	sccp_call_statistics_t *avg_call_stats = NULL;
 	size_t buffersize = 2048;
 	struct ast_str *output_buf = pbx_str_alloca(buffersize);
 	char QualityStats[600] = "";
@@ -2975,115 +2973,119 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain(device);
 	if (d) {
 		// update last_call_statistics
-		last_call_stats = &(d->call_statistics[SCCP_CALLSTATISTIC_LAST]);
+		sccp_call_statistics_t *call_stats = d->call_statistics;
 		if (letohl(msg_in->header.lel_protocolVer < 20)) {
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_latency);
+			call_stats[SCCP_CALLSTATISTIC_LAST].num = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_CallIdentifier);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_SentPackets);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_RecvdPackets);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_LostPkts);
+			call_stats[SCCP_CALLSTATISTIC_LAST].jitter = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_Jitter);
+			call_stats[SCCP_CALLSTATISTIC_LAST].latency = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_latency);
 			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.v3.lel_QualityStatsSize);
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v3.QualityStats, QualityStatsSize);
+			if (QualityStatsSize) {
+				sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v3.QualityStats, QualityStatsSize);
+			}
 		} else if (letohl(msg_in->header.lel_protocolVer < 22)){
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_latency);
+			call_stats[SCCP_CALLSTATISTIC_LAST].num = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_CallIdentifier);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_SentPackets);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_RecvdPackets);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_LostPkts);
+			call_stats[SCCP_CALLSTATISTIC_LAST].jitter = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_Jitter);
+			call_stats[SCCP_CALLSTATISTIC_LAST].latency = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_latency);
 			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.v20.lel_QualityStatsSize);
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v20.QualityStats, QualityStatsSize);
+			if (QualityStatsSize) {
+				sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v20.QualityStats, QualityStatsSize);
+			}
                 } else {
                         // ConnectionStatisticsRes_V22 has irregular packing (single byte packing), need to access unaligned data (using get_unaligned_uint32 for sparc62 / buserror machines
 #if defined(HAVE_UNALIGNED_BUSERROR)
-			last_call_stats->num = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier));
-			last_call_stats->packets_sent = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets));
-			last_call_stats->packets_received = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_RecvdPackets));
-			last_call_stats->packets_lost = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts));
-			last_call_stats->jitter = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter));
-			last_call_stats->latency = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_latency));
+			call_stats[SCCP_CALLSTATISTIC_LAST].num = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier));
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets));
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_received = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_RecvdPackets));
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts));
+			call_stats[SCCP_CALLSTATISTIC_LAST].jitter = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter));
+			call_stats[SCCP_CALLSTATISTIC_LAST].latency = letohl(get_unaligned_uint32((const void *)&msg_in->data.ConnectionStatisticsRes.v22.lel_latency));
 			QualityStatsSize = letohl(get_unaligned_uint32(msg_in->data.ConnectionStatisticsRes.v22.lel_QualityStatsSize));
 #else
-			last_call_stats->num = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier);
-			last_call_stats->packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets);
-			last_call_stats->packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_RecvdPackets);
-			last_call_stats->packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts);
-			last_call_stats->jitter = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter);
-			last_call_stats->latency = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_latency);
+			call_stats[SCCP_CALLSTATISTIC_LAST].num = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_received = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_RecvdPackets);
+			call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts);
+			call_stats[SCCP_CALLSTATISTIC_LAST].jitter = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter);
+			call_stats[SCCP_CALLSTATISTIC_LAST].latency = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_latency);
 			QualityStatsSize = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_QualityStatsSize);
 #endif
 			QualityStatsSize = QualityStatsSize < sizeof(QualityStats) ? QualityStatsSize : sizeof(QualityStats);
-			sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v22.QualityStats, QualityStatsSize);
+			if (QualityStatsSize) {
+				sccp_copy_string(QualityStats, msg_in->data.ConnectionStatisticsRes.v22.QualityStats, QualityStatsSize);
+			}
                 }
 		pbx_str_append(&output_buf, buffersize, "%s: Call Statistics:\n", d->id);
 		pbx_str_append(&output_buf, buffersize, "       [\n");
 
-		pbx_str_append(&output_buf, buffersize, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", last_call_stats->num, last_call_stats->packets_sent, last_call_stats->packets_received, last_call_stats->packets_lost, last_call_stats->jitter, last_call_stats->latency);
+		pbx_str_append(&output_buf, buffersize, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", call_stats[SCCP_CALLSTATISTIC_LAST].num, call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency);
 		sccp_log(DEBUGCAT_CORE)("QualityStats: %s\n",QualityStats);
 		if (!sccp_strlen_zero(QualityStats)) {
 			if (letohl(msg_in->header.lel_protocolVer < 20)) {
 				sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;MLQKvr=%f;CCR=%f;ICR=%f;ICRmx=%f;CS=%d;SCS=%d",
-				       &last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality,
-				       &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, 
-				       &last_call_stats->variance_opinion_score_listening_quality, &last_call_stats->cumulative_concealement_ratio, 
-				       &last_call_stats->interval_concealement_ratio, &last_call_stats->max_concealement_ratio, 
-				       &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds);
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, &call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, &call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
 			} else if (letohl(msg_in->header.lel_protocolVer < 22)){
 			        int Log = 0;
 				sscanf(QualityStats, "Log %d: mos %f, avgMos %f, maxMos %f, minMos %f, CS %d, SCS %d, CCR %f, ICR %f, maxCR %f",
                                         &Log,
-				       &last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality,
-				       &last_call_stats->max_opinion_score_listening_quality, &last_call_stats->mean_opinion_score_listening_quality, 
-				       &last_call_stats->concealed_seconds, &last_call_stats->severely_concealed_seconds,  &last_call_stats->cumulative_concealement_ratio, 
-				       &last_call_stats->interval_concealement_ratio, &last_call_stats->max_concealement_ratio);
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, &call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds,  &call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, &call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio);
 			} else {
 				sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;ICR=%f;CCR=%f;ICRmx=%f;CS=%d;SCS=%d;MLQKvr=%f",
-				       &last_call_stats->opinion_score_listening_quality, &last_call_stats->avg_opinion_score_listening_quality,
-				       &last_call_stats->mean_opinion_score_listening_quality, &last_call_stats->max_opinion_score_listening_quality, 
-				       &last_call_stats->interval_concealement_ratio, &last_call_stats->cumulative_concealement_ratio, 
-				       &last_call_stats->max_concealement_ratio, &last_call_stats->concealed_seconds, 
-				       &last_call_stats->severely_concealed_seconds, &last_call_stats->variance_opinion_score_listening_quality);
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, &call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, &call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio, &call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, 
+				       &call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds, &call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality);
 			}
 		}
 		pbx_str_append(&output_buf, buffersize, "         Last Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
-			       last_call_stats->opinion_score_listening_quality, last_call_stats->avg_opinion_score_listening_quality,
-			       last_call_stats->mean_opinion_score_listening_quality, last_call_stats->max_opinion_score_listening_quality, last_call_stats->variance_opinion_score_listening_quality, last_call_stats->interval_concealement_ratio, last_call_stats->cumulative_concealement_ratio, last_call_stats->max_concealement_ratio, (int) last_call_stats->concealed_seconds, (int) last_call_stats->severely_concealed_seconds);
+			       call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
+			       call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio, (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
 
 		// update avg_call_statistics
-		avg_call_stats = &(d->call_statistics[SCCP_CALLSTATISTIC_AVG]);
-		avg_call_stats->packets_sent = CALC_AVG(last_call_stats->packets_sent, avg_call_stats->packets_sent, avg_call_stats->num);
-		avg_call_stats->packets_received = CALC_AVG(last_call_stats->packets_received, avg_call_stats->packets_received, avg_call_stats->num);
-		avg_call_stats->packets_lost = CALC_AVG(last_call_stats->packets_lost, avg_call_stats->packets_lost, avg_call_stats->num);
-		avg_call_stats->jitter = CALC_AVG(last_call_stats->jitter, avg_call_stats->jitter, avg_call_stats->num);
-		avg_call_stats->latency = CALC_AVG(last_call_stats->latency, avg_call_stats->latency, avg_call_stats->num);
-		avg_call_stats->opinion_score_listening_quality = CALC_AVG(last_call_stats->opinion_score_listening_quality, avg_call_stats->opinion_score_listening_quality, avg_call_stats->num);
-		avg_call_stats->avg_opinion_score_listening_quality = CALC_AVG(last_call_stats->avg_opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality, avg_call_stats->num);
-		avg_call_stats->mean_opinion_score_listening_quality = CALC_AVG(last_call_stats->mean_opinion_score_listening_quality, avg_call_stats->mean_opinion_score_listening_quality, avg_call_stats->num);
-		if (avg_call_stats->max_opinion_score_listening_quality < last_call_stats->max_opinion_score_listening_quality) {
-			avg_call_stats->max_opinion_score_listening_quality = last_call_stats->max_opinion_score_listening_quality;
+		call_stats[SCCP_CALLSTATISTIC_AVG].packets_sent = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_AVG].packets_sent, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].packets_received = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_AVG].packets_received, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].packets_lost = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_AVG].packets_lost, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].jitter = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_AVG].jitter, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].latency = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].latency, call_stats[SCCP_CALLSTATISTIC_AVG].latency, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].opinion_score_listening_quality = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].avg_opinion_score_listening_quality = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].avg_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].mean_opinion_score_listening_quality = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		if (call_stats[SCCP_CALLSTATISTIC_AVG].max_opinion_score_listening_quality < call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality) {
+			call_stats[SCCP_CALLSTATISTIC_AVG].max_opinion_score_listening_quality = call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality;
                 }
-		avg_call_stats->interval_concealement_ratio = CALC_AVG(last_call_stats->interval_concealement_ratio, avg_call_stats->interval_concealement_ratio, avg_call_stats->num);
-		avg_call_stats->cumulative_concealement_ratio = CALC_AVG(last_call_stats->cumulative_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->num);
-		if (avg_call_stats->max_concealement_ratio < last_call_stats->max_concealement_ratio) {
-			avg_call_stats->max_concealement_ratio = last_call_stats->max_concealement_ratio;
+		call_stats[SCCP_CALLSTATISTIC_AVG].interval_concealement_ratio = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_AVG].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].cumulative_concealement_ratio = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_AVG].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		if (call_stats[SCCP_CALLSTATISTIC_AVG].max_concealement_ratio < call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio) {
+			call_stats[SCCP_CALLSTATISTIC_AVG].max_concealement_ratio = call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio;
                 }
-		avg_call_stats->concealed_seconds = CALC_AVG(last_call_stats->concealed_seconds, avg_call_stats->concealed_seconds, avg_call_stats->num);
-		avg_call_stats->severely_concealed_seconds = CALC_AVG(last_call_stats->severely_concealed_seconds, avg_call_stats->severely_concealed_seconds, avg_call_stats->num);
-		avg_call_stats->variance_opinion_score_listening_quality = CALC_AVG(last_call_stats->variance_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].concealed_seconds = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, call_stats[SCCP_CALLSTATISTIC_AVG].concealed_seconds, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].severely_concealed_seconds = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds, call_stats[SCCP_CALLSTATISTIC_AVG].severely_concealed_seconds, call_stats[SCCP_CALLSTATISTIC_AVG].num);
+		call_stats[SCCP_CALLSTATISTIC_AVG].variance_opinion_score_listening_quality = CALC_AVG(call_stats[SCCP_CALLSTATISTIC_LAST]. variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].num);
 
-		avg_call_stats->num++;
-		pbx_str_append(&output_buf, buffersize, "         Mean Statistics  : #Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", avg_call_stats->num, avg_call_stats->packets_sent, avg_call_stats->packets_received, avg_call_stats->packets_lost, avg_call_stats->jitter, avg_call_stats->latency);
+		call_stats[SCCP_CALLSTATISTIC_AVG].num++;
+		pbx_str_append(&output_buf, buffersize, "         Mean Statistics  : #Calls: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", call_stats[SCCP_CALLSTATISTIC_AVG].num, call_stats[SCCP_CALLSTATISTIC_AVG].packets_sent, call_stats[SCCP_CALLSTATISTIC_AVG].packets_received, call_stats[SCCP_CALLSTATISTIC_AVG].packets_lost, call_stats[SCCP_CALLSTATISTIC_AVG].jitter, call_stats[SCCP_CALLSTATISTIC_AVG].latency);
 
 		pbx_str_append(&output_buf, buffersize, "         Mean Quality     : MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d\n",
-			       avg_call_stats->opinion_score_listening_quality, avg_call_stats->avg_opinion_score_listening_quality,
-			       avg_call_stats->mean_opinion_score_listening_quality, avg_call_stats->max_opinion_score_listening_quality, avg_call_stats->variance_opinion_score_listening_quality, avg_call_stats->interval_concealement_ratio, avg_call_stats->cumulative_concealement_ratio, avg_call_stats->max_concealement_ratio, (int) avg_call_stats->concealed_seconds, (int) avg_call_stats->severely_concealed_seconds);
+			       call_stats[SCCP_CALLSTATISTIC_AVG].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].avg_opinion_score_listening_quality,
+			       call_stats[SCCP_CALLSTATISTIC_AVG].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].max_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_AVG].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_AVG].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_AVG].max_concealement_ratio, (int) call_stats[SCCP_CALLSTATISTIC_AVG].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_AVG].severely_concealed_seconds);
 		pbx_str_append(&output_buf, buffersize, "       ]\n");
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s", pbx_str_buffer(output_buf));
 	}
-
 }
 
 /*!
