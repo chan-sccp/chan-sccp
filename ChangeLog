@@ -1,3 +1,30 @@
+2014-09-15  ddegroot
+
+	* [r5741] src/sccp_protocol.h: Fix: Conference on 7960, reversion
+	  of previous change (to please clang static analysis). (Patch
+	  submitted by Sharan Harkisoon)
+
+2014-09-10  ddegroot
+
+	* [r5740] src/sccp_channel.c: Enhancement: Reduced WARNING to
+	  sccp_log(DEBUGCAT_CHANNEL) in the channel_find functions.
+	  (Reported by Sander Smeenk).
+
+	* [r5739] src/sccp_device.c: Fix: Exclude setSoftkeyState when
+	  KEYMODE_EMPTY is invoked
+
+2014-09-09  ddegroot
+
+	* [r5736] src/config.h.in, src/sccp_actions.c: Fix: Add
+	  DEVICESTATE_OFFHOOK to sccp_handle_offhook. (Fix for sf:#239)
+
+2014-09-08  ddegroot
+
+	* [r5735] .version, ChangeLog, Makefile.in, NEWS, README,
+	  autoconf/config.guess, autoconf/config.sub, autoconf/depcomp,
+	  autoconf/install-sh, autoconf/missing, debian/changelog,
+	  src/Makefile.in, src/config.h.in: Release: Chan_SCCP-4.2.0_RC2
+
 2014-09-07  ddegroot
 
 	* [r5734] src/sccp_actions.c, src/sccp_hint.c: Fix: Initialize
