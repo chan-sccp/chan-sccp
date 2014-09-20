@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_refcount.c
  * \brief	SCCP Refcount Class
@@ -108,10 +107,20 @@ static struct refcount_objentry {
 	SCCP_RWLIST_HEAD (, RefCountedObject) refCountedObjects;						//!< one rwlock per hash table entry, used to modify list
 } *objects[SCCP_HASH_PRIME];											//!< objects hash table
 
+#if CS_REFCOUNT_DEBUG
+static FILE *sccp_ref_debug_log;
+#endif
+
 void sccp_refcount_init(void)
 {
-	sccp_log((DEBUGCAT_REFCOUNT + DEBUGCAT_HIGH)) ("SCCP: (Refcount) init\n");
+	sccp_log((DEBUGCAT_REFCOUNT + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1"SCCP: (Refcount) init\n");
 	pbx_rwlock_init_notracking(&objectslock);								// No tracking to safe cpu cycles
+#if CS_REFCOUNT_DEBUG
+	sccp_ref_debug_log = fopen(REF_FILE, "w");
+	if (!sccp_ref_debug_log) {
+		pbx_log(LOG_NOTICE, "SCCP: Failed to open ref debug log file '%s'\n", REF_FILE);
+	}
+#endif	
 	runState = SCCP_REF_RUNNING;
 }
 
@@ -151,6 +160,13 @@ void sccp_refcount_destroy(void)
 	}
 	ast_rwlock_unlock(&objectslock);
 	pbx_rwlock_destroy(&objectslock);
+#if CS_REFCOUNT_DEBUG
+	if (sccp_ref_debug_log) {
+	        fclose(sccp_ref_debug_log);
+	        sccp_ref_debug_log = NULL;
+		pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s closed\n", REF_FILE);
+	}
+#endif
 	runState = SCCP_REF_DESTROYED;
 }
 
@@ -170,6 +186,10 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	RefCountedObject *obj;
 	void *ptr = NULL;
 	int hash;
+	if (!runState) {
+		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Not Running Yet!\n");
+		return NULL;
+	}
 
 	if (!(obj = calloc(1, size + sizeof(*obj)))) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
@@ -216,11 +236,9 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	obj->alive = SCCP_LIVE_MARKER;
 
 #if CS_REFCOUNT_DEBUG
-	FILE *refo = fopen(REF_FILE, "a");
-
-	if (refo) {
-		fprintf(refo, "%p =1   %s:%d:%s (allocate new %s, len: %d, destructor: %p) [%p]\n", obj, __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, (int) obj->len, (&obj_info[type])->destructor, ptr);
-		fclose(refo);
+	if (sccp_ref_debug_log) {
+		fprintf(sccp_ref_debug_log, "%p,+1,%d,%s,%d,%s,**constructor**,%s:%s\n", obj, ast_get_tid(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, obj->identifier);
+		fflush(sccp_ref_debug_log);
 	}
 #endif
 	memset(ptr, 0, size);
@@ -230,54 +248,37 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 #if CS_REFCOUNT_DEBUG
 int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
 {
+	if (!sccp_ref_debug_log) {
+		return -1;
+	}
+	
 	if (ptr == NULL) {
-		FILE *refo = fopen(REF_FILE, "a");
-
-		if (refo) {
-			fprintf(refo, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
-			fclose(refo);
-		}
+		fprintf(sccp_ref_debug_log, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
 		// ast_assert(0);
+		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 	if (obj == NULL) {
-		FILE *refo = fopen(REF_FILE, "a");
-
-		if (refo) {
-			fprintf(refo, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
-			fclose(refo);
-		}
+		fprintf(sccp_ref_debug_log, "%p **OBJ ALREADY DESTROYED !!** %s:%d:%s\n", ptr, file, line, func);
 		// ast_assert(0);
+		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 
 	if (delta == 0 && obj->alive != SCCP_LIVE_MARKER) {
-		FILE *refo = fopen(REF_FILE, "a");
-
-		if (refo) {
-			fprintf(refo, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-			fclose(refo);
-		}
+		fprintf(sccp_ref_debug_log, "%p **OBJ Already destroyed and Declared DEAD !!** %s:%d:%s (%s:%s) [@%d] [%p]\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
 		// ast_assert(0);
+		fflush(sccp_ref_debug_log);
 		return -1;
 	}
 
 	if (delta != 0) {
-		FILE *refo = fopen(REF_FILE, "a");
-
-		if (refo) {
-			fprintf(refo, "%p %s%d   %s:%d:%s (%s:%s) [@%d] [%p]\n", obj, (delta < 0 ? "" : "+"), delta, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier, obj->refcount, ptr);
-			fclose(refo);
-		}
+		fprintf(sccp_ref_debug_log, "%p,%s%d,%d,%s,%d,%s,%d,%s:%s\n", ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj ? obj->refcount : -1, (&obj_info[obj->type])->datatype, obj->identifier);
 	}
 	if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
-		FILE *refo = fopen(REF_FILE, "a");
-
-		if (refo) {
-			fprintf(refo, "%p **call destructor** %s:%d:%s (%s:%s)\n", ptr, file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
-			fclose(refo);
-		}
+		fprintf(sccp_ref_debug_log, "%p,%d,%d,%s,%d,%s,**destructor**,%s:%s\n", ptr, delta, ast_get_tid(), file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
 	}
+	fflush(sccp_ref_debug_log);
 	return 0;
 }
 #endif
