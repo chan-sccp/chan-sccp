@@ -237,7 +237,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 
 #if CS_REFCOUNT_DEBUG
 	if (sccp_ref_debug_log) {
-		fprintf(sccp_ref_debug_log, "%p,+1,%d,%s,%d,%s,**constructor**,%s:%s\n", obj, ast_get_tid(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, obj->identifier);
+		fprintf(sccp_ref_debug_log, "%p,+1,%d,%s,%d,%s,**constructor**,%s:%s\n", ptr, ast_get_tid(), __FILE__, __LINE__, __PRETTY_FUNCTION__, (&obj_info[obj->type])->datatype, obj->identifier);
 		fflush(sccp_ref_debug_log);
 	}
 #endif
