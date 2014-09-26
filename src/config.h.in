@@ -1067,9 +1067,6 @@
 /* Found 'ast_app_separate_args' in asterisk/app.h */
 #undef sccp_app_separate_args
 
-/* 'ast_copy_string' replacement */
-#undef sccp_copy_string
-
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 

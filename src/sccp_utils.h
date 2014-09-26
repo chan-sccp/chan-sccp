@@ -139,4 +139,5 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path);
 void sccp_print_group(struct ast_str *buf, int buflen, sccp_group_t group);
 int sccp_strversioncmp(const char *s1, const char *s2);
 char *sccp_dec2binstr(char *buf, size_t size, int value);
+gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
 #endif

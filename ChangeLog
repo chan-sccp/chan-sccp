@@ -1,3 +1,37 @@
+2014-09-26  ddegroot
+
+	* [r5748] src/sccp_protocol.c: Fix: Add asterisk/unaligned.h to
+	  sccp_protocol.c. Reported by Jay Glenn.
+
+2014-09-23  ddegroot
+
+	* [r5747] src/sccp_features.c: Fix: Conferencing selected calls.
+	  Reported by David George.
+
+2014-09-20  ddegroot
+
+	* [r5746] src/sccp_refcount.c: Fix: refcount constructor debug
+	  logging
+
+	* [r5745] contrib/refcounter.py[ADD], src/sccp_refcount.c:
+	  Enhancement: Switched to new asterisk refcount debugging method.
+	  Used static declaration for ref_count_debug file and only open
+	  and close it once per module load/unload cycle. Copied their
+	  refcounter.py script to contrib directory.
+
+	* [r5744] ChangeLog, aclocal.m4, autoconf/asterisk.m4, configure:
+	  Fix: Added an extra check size <> 0 in sccp_copy_string
+
+2014-09-19  ddegroot
+
+	* [r5743] src/sccp_actions.c: Fix: buffer overflow in
+	  sccp_handle_ConnectionStatistics when QualityStatsSize==0.
+	  (Reported by Sharan Harkisoon)
+
+2014-09-18  marcelloceschia
+
+	* [r5742] src/sccp_protocol.h: fixes #234
+
 2014-09-15  ddegroot
 
 	* [r5741] src/sccp_protocol.h: Fix: Conference on 7960, reversion
