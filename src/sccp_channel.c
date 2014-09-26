@@ -668,30 +668,12 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
  */
 void sccp_channel_StatisticsRequest(sccp_channel_t * channel)
 {
-	sccp_msg_t *msg;
-	
 	ast_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
 	if (!d) {
 		return;
 	}
-	//TODO use protocol implementation
-	if (d->protocol->version < 19) {
-		REQ(msg, ConnectionStatisticsReq);
-	} else {
-		REQ(msg, ConnectionStatisticsReq_V19);
-	}
-
-	/*! \todo We need to test what we have to copy in the DirectoryNumber */
-	if (channel->calltype == SKINNY_CALLTYPE_OUTBOUND) {
-		sccp_copy_string(msg->data.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.calledPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.DirectoryNumber));
-	} else {
-		sccp_copy_string(msg->data.ConnectionStatisticsReq.DirectoryNumber, channel->callInfo.callingPartyNumber, sizeof(msg->data.ConnectionStatisticsReq.DirectoryNumber));
-	}
-	msg->data.ConnectionStatisticsReq.lel_callReference = htolel((channel) ? channel->callid : 0);
-	msg->data.ConnectionStatisticsReq.lel_StatsProcessing = htolel(SKINNY_STATSPROCESSING_CLEAR);
-	sccp_dev_send(d, msg);
+	d->protocol->sendConnectionStatisticsReq(d, channel, SKINNY_STATSPROCESSING_CLEAR);
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device is Requesting CallStatisticsAndClear\n", DEV_ID_LOG(d));
 }
 
