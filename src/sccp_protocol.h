@@ -395,7 +395,6 @@ typedef enum {
 	OpenReceiveChannel 				= 0x0105,
 	CloseReceiveChannel 				= 0x0106,
 	ConnectionStatisticsReq 			= 0x0107,
-	ConnectionStatisticsReq_V19 			= 0x0107,
 	SoftKeyTemplateResMessage 			= 0x0108,
 	SoftKeySetResMessage 				= 0x0109,
 
@@ -1773,7 +1772,7 @@ typedef union {
 			/*
 			00000000 - B4 00 00 00 16 00 00 00  23 00 00 00 39 38 30 31  - ........#...9801	// DirectoryNumber= 98031
 			00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............	
-			00000020 - 00 00 00 00 00 00 00 00  00 00 00 00 00 5C 00 00  - .............\..	// callIdentifier=0, StatsProcessingType= 0, sendPackets=5c=92
+			00000020 - 00 00 00 00 00 00 00 00  01 00 00 00 00 5C 00 00  - .............\..	// callIdentifier=1, StatsProcessingType= 0, sendPackets=5c=92
 			00000030 - 00 D0 3D 00 00 59 00 00  00 CC 3B 00 00 00 00 00  - ..=..Y....;.....	// sendOctets=D03D=53309, RecvdPackets=59=89, RecvdOctets=cc3b=52283
 			00000040 - 00 00 00 00 00 00 00 00  00 6F 00 00 00 4D 4C 51  - .........o...MLQ	// lostPkts=0, Jitter=0, Latency=0, unknown2=6F000000
 			00000050 - 4B 3D 30 2E 30 30 30 30  3B 4D 4C 51 4B 61 76 3D  - K=0.0000;MLQKav=
@@ -1788,9 +1787,10 @@ typedef union {
 #pragma pack(push)
 #pragma pack(1)
 			struct {
-				char DirectoryNumber[25];
+//				char DirectoryNumber[25];
+				char DirectoryNumber[28];
 				uint32_t lel_CallIdentifier;							/*!< Call Identifier */
-				uint32_t lel_StatsProcessingType;						/*!< Stats Processing Type */
+				uint8_t lel_StatsProcessingType;						/*!< Stats Processing Type */
 				uint32_t lel_SentPackets;							/*!< Sent Packets */
 				uint32_t lel_SentOctets;							/*!< Sent Octets */
 				uint32_t lel_RecvdPackets;							/*!< Received Packets */
@@ -1801,7 +1801,7 @@ typedef union {
 				uint32_t lel_QualityStatsSize;
 				char QualityStats[600];								/*!< QualityStatistics */
 			} v22;											/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 22) */
-#pragma pack(pop)
+#pragma pack(pop)		
 		};
 	} ConnectionStatisticsRes;
 
@@ -2374,16 +2374,19 @@ typedef union {
 	} CloseMultiMediaReceiveChannel;
 
 	struct {												// Request Statistics from Phone
-		char DirectoryNumber[StationMaxDirnumSize];							/*!< Directory Number */
-		uint32_t lel_callReference;									/*!< Call Reference */
-		uint32_t lel_StatsProcessing;									/*!< Statistics Processing */
+		union {
+			struct {
+				char DirectoryNumber[StationMaxDirnumSize];					/*!< Directory Number */
+				uint32_t lel_callReference;							/*!< Call Reference */
+				uint32_t lel_StatsProcessing;							/*!< Statistics Processing */
+			} v3;
+			struct {
+				char DirectoryNumber[25];							/*!< Directory Number*/
+				uint32_t lel_callReference;							/*!< Call Reference */
+				uint32_t lel_StatsProcessing;							/*!< Statistics Processing */
+			} v19;
+		};
 	} ConnectionStatisticsReq;										/*!< Connection Statistics Request Message Structure */
-
-	struct {												// Request Statistics from Phone
-		char DirectoryNumber[25];									/*!< Directory Number*/
-		uint32_t lel_callReference;									/*!< Call Reference */
-		uint32_t lel_StatsProcessing;									/*!< Statistics Processing */
-	} ConnectionStatisticsReq_V19;										/*!< Connection Statistics Request Message Structure */
 
 	struct {
 		uint32_t lel_softKeyOffset;									/*!< Soft Key Off Set */
@@ -3290,6 +3293,7 @@ typedef struct {
 	void (*const sendOpenMultiMediaChannel) (const sccp_device_t * device, const sccp_channel_t * channel, uint32_t skinnyFormat, int payloadType, uint8_t linInstance, int bitrate);
 	void (*const sendStartMultiMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel, int payloadType, int bitRate);
 	void (*const sendStartMediaTransmission) (const sccp_device_t * device, const sccp_channel_t * channel);
+	void (*const sendConnectionStatisticsReq) (const sccp_device_t * device, const sccp_channel_t * channel, uint8_t clear);
 
 	/* parse received messages */
 	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
