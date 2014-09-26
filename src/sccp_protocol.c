@@ -19,6 +19,7 @@
 #include "sccp_utils.h"
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
+#include <asterisk/unaligned.h>
 
 #define ENUMMACRO_FILE "sccp_protocol_enums.hh"
 #define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
