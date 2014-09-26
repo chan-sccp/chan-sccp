@@ -996,24 +996,7 @@ dnl			)
     ])
     AC_CHECK_HEADER([asterisk/strings.h],
 		[
-dnl 			AC_DEFINE([CS_AST_HAS_STRINGS],1,[Found 'asterisk/strings.h'])
-    			AC_DEFINE([HAVE_PBX_STRINGS_H],1,[Found 'asterisk/strings.h'])
-			dnl Checking for ast_copy_string
-			AC_MSG_CHECKING([ - availability 'ast_copy_string'...])
-			AC_TRY_COMPILE([
-		               	$HEADER_INCLUDE
-				#include <asterisk/strings.h>
-				], [
-					const char *test_src = "SRC";
-					char *test_dst = "DST";
-					ast_copy_string(test_dst, test_src, (size_t)3);
-				], [
-					AC_MSG_RESULT(yes)
-					AC_DEFINE([sccp_copy_string(x,y,z)],[{if (z) {ast_copy_string(x,y,z);} else {pbx_log(LOG_WARNING, "SCCP: (%s:%d): sccp_copy_string called with size: 0.\n", __FILE__, __LINE__); *(x)='\0';}}],['ast_copy_string' available])
-				], [
-					AC_MSG_RESULT(no)
-					AC_DEFINE([sccp_copy_string(x,y,z)],[{if (z) {strncpy(x,y,z - 1);} else {pbx_log(LOG_WARNING, "SCCP: (%s:%d): sccp_copy_string called with size: 0.\n", __FILE__, __LINE__); *(x)='\0';}}],['ast_copy_string' replacement])			
-				])
+   			AC_DEFINE([HAVE_PBX_STRINGS_H],1,[Found 'asterisk/strings.h'])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])

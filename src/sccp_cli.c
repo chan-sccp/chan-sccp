@@ -1935,7 +1935,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 						usleep(50);
 						snprintf(command, 512, "wget -q --user %s --password %s http://%s/CGI/Screenshot -O \"./screenshot_%s_%s_%d_%d.bmp\"", argv[4], argv[5], clientAddress, argv[3], skinny_devicetype2str(d->skinny_type), block, x);
 						sccp_log(DEBUGCAT_CORE)("%s: Taking snapshot using '%s'\n", d->id, command);
-						system(command);
+						int sysout = system(command);
+						sccp_log(DEBUGCAT_CORE)("%s: System Result '%d'\n", d->id, sysout);
 						usleep(100);
 					}
 				}
@@ -1943,6 +1944,37 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sccp_log(DEBUGCAT_CORE)("%s: Device not registered yet, try again later\n", d->id);
 			}
 			d = sccp_device_release(d);
+		}
+	}
+	if (!strcasecmp(argv[2], "callinfo") && argc > 4) {
+		sccp_channel_t *c = sccp_channel_find_byid(atoi(argv[3]));
+		
+		if (c) {
+			pbx_log(LOG_NOTICE, "%s: Running CallInfo: %s\n", c->designator, argv[4]);
+			if (sccp_strcaseequals(argv[4], "CalledParty")) {
+				pbx_log(LOG_NOTICE, "%s: Setting Called Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
+				sccp_channel_set_calledparty(c, argv[5], argv[6]);
+			} else
+			if (sccp_strcaseequals(argv[4], "CallingParty")) {
+				pbx_log(LOG_NOTICE, "%s: Setting Calling Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
+				sccp_channel_set_callingparty(c, argv[5], argv[6]);
+			} else
+			if (sccp_strcaseequals(argv[4], "OriginalCalledPartyName")) {
+				pbx_log(LOG_NOTICE, "%s: Setting Original Called Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
+				sccp_channel_set_originalCalledparty(c, argv[5], argv[6]);
+			} else
+			if (sccp_strcaseequals(argv[4], "OriginalCallingPartyName")) {
+				pbx_log(LOG_NOTICE, "%s: Setting Original Calling Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
+				sccp_channel_set_originalCalledparty(c, argv[5], argv[6]);
+			} else
+			if (sccp_strcaseequals(argv[4], "lastRedirectReason")) {
+				pbx_log(LOG_NOTICE, "%s: Setting RedirectReason '%d' -> '%s'\n", c->designator, c->callInfo.lastRedirectingReason, argv[5]);
+				c->callInfo.originalCdpnRedirectReason = c->callInfo.lastRedirectingReason;
+				c->callInfo.lastRedirectingReason = atoi(argv[5]);
+			}
+ 			c = sccp_channel_release(c);
+		} else {
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test Callinfo, callid %s not found\n", argv[3]);
 		}
 	}
 #endif
