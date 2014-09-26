@@ -2579,9 +2579,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						goto EXIT;
 					}
 				}
+#ifdef CS_SCCP_REALTIME
 				if (device->realtime){
 					v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
-				} else {
+				} else 
+#endif
+				{
 					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
@@ -2594,9 +2597,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						device->pendingUpdate = 1;
 						sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
 					}
+#ifdef CS_SCCP_REALTIME
 					if (device->realtime) {
 						pbx_variables_destroy(v);
 					}
+#endif
 				} else {
 					device->pendingDelete = 1;
 				}
@@ -2611,8 +2616,9 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			if (argc == 4) {
 				sccp_line_t *line = sccp_line_find_byname(argv[3], FALSE);
 				PBX_VARIABLE_TYPE *v = NULL;
+#ifdef CS_SCCP_REALTIME
 				PBX_VARIABLE_TYPE *dv = NULL;			
-
+#endif
 				if(!line) {
 					pbx_cli(fd, "Could not find line %s\n", argv[3]);
 					const char *utype;
@@ -2624,9 +2630,12 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						goto EXIT;
 					}
 				}
+#ifdef CS_SCCP_REALTIME
 				if (line->realtime){
 					v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
-				} else {
+				} else 
+#endif
+				{
 					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
@@ -2641,27 +2650,34 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						SCCP_LIST_LOCK(&line->devices);
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 							if ((device = sccp_device_retain(lineDevice->device))) {
+#ifdef CS_SCCP_REALTIME
 								if (device->realtime){
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
 										change =  sccp_config_applyDeviceConfiguration(device, dv);
 									}
-								} else if (GLOB(cfg)) {
+								} else 
+#endif
+								if (GLOB(cfg)) {
 									v = ast_variable_browse(GLOB(cfg), device->id);
 									change =  sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
 								sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
+#ifdef CS_SCCP_REALTIME
 								if (device->realtime && dv) {
 									pbx_variables_destroy(dv);
 								}
+#endif								
 								device = sccp_device_release(device);
 							}
 						}
 						SCCP_LIST_UNLOCK(&line->devices);
 					}
+#ifdef CS_SCCP_REALTIME
 					if (line->realtime) {
 						pbx_variables_destroy(v);
 					}
+#endif					
 				} else {
 					line->pendingDelete = 1;
 				}

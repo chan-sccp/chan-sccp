@@ -1,5 +1,10 @@
 2014-09-26  ddegroot
 
+	* [r5749] ChangeLog, autoconf/asterisk.m4, configure,
+	  src/config.h.in, src/sccp_cli.c, src/sccp_utils.c,
+	  src/sccp_utils.h: Enhancement: Replacement for the
+	  sccp_copy_string function. Added cli test function for callinfo.
+
 	* [r5748] src/sccp_protocol.c: Fix: Add asterisk/unaligned.h to
 	  sccp_protocol.c. Reported by Jay Glenn.
 
