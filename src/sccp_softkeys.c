@@ -177,13 +177,9 @@ void sccp_sk_dial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstanc
 	if (c && !PBX(getChannelPbx)(c)) {								// Prevent dialling if in an inappropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
 		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-//			sccp_channel_stop_schedule_digittimout(c);
 			sccp_pbx_softswitch(c);
 
 		} else if (c->state == SCCP_CHANNELSTATE_DIGITSFOLL) {
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-//			sccp_channel_stop_schedule_digittimout(c);
 			sccp_pbx_softswitch(c);
 		}
 	}
@@ -260,9 +256,6 @@ void sccp_sk_redial(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			/* we have a offhook channel */
 			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
-			// c->digittimeout = time(0)+1;
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-//			sccp_channel_stop_schedule_digittimout(c);
 			sccp_pbx_softswitch(c);
 		}
 		/* here's a KEYMODE error. nothing to do */
@@ -429,7 +422,6 @@ void sccp_sk_endcall(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 		sccp_channel_endcall(c);
 	}
 	if (d && d->indicate && d->indicate->onhook) {
-		//sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
 		d->indicate->onhook(d, lineInstance, c->callid);
 	}
 #endif
@@ -456,7 +448,7 @@ void sccp_sk_dnd(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance
 
 	if (!d->dndFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Feature disabled\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, 10);
+		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return;
 	}
 
@@ -553,15 +545,16 @@ void sccp_sk_answer(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	}
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Answer Pressed, instance: %d\n", DEV_ID_LOG(d), lineInstance);
 
-	/* Changed Lock into a Barrier, Lock should actually be moved to sccp_channel_answer if necessary. 
-	   In sccp_channel_answer, we should unlock while lock before changing/updating codecs to prevent a deadlock against setWriteFormat 
-	*/
+	/* taking the reference during a locked ast channel allows us to call sccp_channel_answer unlock without the risk of loosing the channel */
 	if (c->owner) {
-		/* memmory barrier */
 		pbx_channel_lock(c->owner);
+		PBX_CHANNEL_TYPE *pbx_channel = pbx_channel_ref(c->owner);
 		pbx_channel_unlock(c->owner);
 		
-		sccp_channel_answer(d, c);
+		if (pbx_channel) {
+			sccp_channel_answer(d, c);
+			pbx_channel_unref(pbx_channel);
+		}
 	}
 }
 
@@ -782,10 +775,6 @@ void sccp_sk_cfwdnoanswer(sccp_device_t * d, sccp_line_t * l, const uint32_t lin
 	} else {
  		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No line found\n", DEV_ID_LOG(d));
 	}
-
-	/*
-	   sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### CFwdNoAnswer Softkey pressed - NOT SUPPORTED\n");
-	 */
 }
 
 /*!
@@ -883,9 +872,8 @@ void sccp_sk_private(sccp_device_t * d, sccp_line_t * line, const uint32_t lineI
 	
 	// Should actually use the messageStack instead of using displayprompt directly
 	if (c->privacy) {
-//		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 0);
-		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 300);			// replaced with 5 min instead of always, just to make sure we return
 //		sccp_device_addMessageToStack(d, SCCP_MESSAGE_PRIORITY_PRIVACY, SKINNY_DISP_PRIVATE);
+		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_PRIVATE, 300);			// replaced with 5 min instead of always, just to make sure we return
 		c->callInfo.presentation = 0;
 	} else {
 		sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, 1);
@@ -1049,8 +1037,6 @@ void sccp_sk_pickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInsta
 	if (line) {
 		sccp_feat_handle_directed_pickup(line, lineInstance, d);
 		line = sccp_line_release(line);
-//		if (c && c->scheduler.digittimeout) {
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		if (c) {
 			sccp_channel_stop_schedule_digittimout(c);
 		}
@@ -1084,8 +1070,6 @@ void sccp_sk_gpickup(sccp_device_t * d, sccp_line_t * l, const uint32_t lineInst
 	if (line) {
 		sccp_feat_grouppickup(line, d);
 		line = sccp_line_release(line);
-//		if (c && c->scheduler.digittimeout) {
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		if (c) {
 			sccp_channel_stop_schedule_digittimout(c);
 		}
