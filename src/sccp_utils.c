@@ -1826,9 +1826,11 @@ gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 				break;
 			}
 		}
-	} else {
-		*dst = '\0';
-	}
+	} 
+	
+	// always end string with \0
+	*dst = '\0';
+	
 #else
 	if (size != 0) {
 		ast_copy_string(dst, src, size);
