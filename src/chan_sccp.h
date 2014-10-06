@@ -940,6 +940,7 @@ struct sccp_device {
 	uint16_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
 	uint16_t accessorystatus;										/*!< Accessory Status */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
+	char loadedimageversion[StationMaxImageVersionSize];							/*!< Loaded version on the phone */
 	char config_type[10];											/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
 	uint16_t maxstreams;											/*!< Maximum number of Stream supported by the device */
 	int tz_offset;												/*!< Timezone OffSet */

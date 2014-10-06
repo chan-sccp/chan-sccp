@@ -768,7 +768,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s", d->softkeyDefinition);
 	CLI_AMI_OUTPUT_YES_NO("BTemplate support",	CLI_AMI_LIST_WIDTH, d->buttonTemplate);
 	CLI_AMI_OUTPUT_YES_NO("linesRegistered",	CLI_AMI_LIST_WIDTH, d->linesRegistered);
-	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->imageversion);
+	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->loadedimageversion);
 	CLI_AMI_OUTPUT_PARAM("Timezone Offset",		CLI_AMI_LIST_WIDTH, "%d", d->tz_offset);
 	CLI_AMI_OUTPUT_PARAM("Capabilities",		CLI_AMI_LIST_WIDTH, "%s", cap_buf);
 	CLI_AMI_OUTPUT_PARAM("Codecs preference",	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
@@ -1900,6 +1900,58 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
+	if (!strcasecmp(argv[2], "inputxml")) {									/*  WIP */
+		sccp_device_t *d = NULL;
+		d = sccp_device_find_byid(argv[3], FALSE);
+		if (d) {
+			char xmlData1[] = {
+			"<CiscoIPPhoneInput>"
+				"<Title>Change Password</Title>"
+//				"<URL>:::10.15.15.195:2000:SESSION_NUMBER/Preferences/PinInput</URL>"
+				"<URL>:%s:SESSION_NUMBER/Preferences/PinInput</URL>"
+				"<Prompt>PROMPT_TEXT</Prompt>"
+				"<InputItem>"
+					"<DisplayName>PIN</DisplayName>"
+					"<QueryStringParam>s</QueryStringParam>"
+					"<InputFlags>NP</InputFlags>"
+					"<DefaultValue></DefaultValue>"
+				"</InputItem>"
+				"<SoftKeyItem>"
+					"<Name>Accept</Name>"
+					"<URL>SoftKey:Submit</URL>"
+					"<Position>1</Position>"
+				"</SoftKeyItem>"
+				"<SoftKeyItem>"
+					"<Name>Accept</Name>"
+					"<URL>Key:Submit</URL>"
+					"<Position>2</Position>"
+				"</SoftKeyItem>"
+				"<SoftKeyItem>"
+					"<Name>Cancel</Name>"
+					"<URL>:::SESSION_NUMBER/Preferences/Back</URL>"
+					"<Position>2</Position>"
+				"</SoftKeyItem>"
+				"<SoftKeyItem>"
+					"<Name>&lt;&lt;</Name>"
+					"<URL>SoftKey:&lt;&lt;</URL>"
+					"<Position>3</Position>"
+				"</SoftKeyItem>"
+				"<SoftKeyItem>"
+					"<Name>Home</Name>"
+					"<URL>:::SESSION_NUMBER/Preferences/Home</URL>"
+					"<Position>4</Position>"
+				"</SoftKeyItem>"
+			"</CiscoIPPhoneInput>"
+			};
+			char xmlData2[2000];
+			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&d->session->ourip));
+
+			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
+			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
+			d = sccp_device_release(d);
+		}
+		return RESULT_SUCCESS;
+	}
 #ifdef CS_EXPERIMENTAL
 	if (!strcasecmp(argv[2], "remove_reference")) {									/*  WIP */
 		long findobj = 0;
@@ -1944,7 +1996,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sccp_log(DEBUGCAT_CORE)("%s: Device not registered yet, try again later\n", d->id);
 			}
 			d = sccp_device_release(d);
+			return RESULT_SUCCESS;
 		}
+		return RESULT_FAILURE;
 	}
 	if (!strcasecmp(argv[2], "callinfo") && argc > 4) {
 		sccp_channel_t *c = sccp_channel_find_byid(atoi(argv[3]));
@@ -1973,9 +2027,47 @@ static int sccp_test(int fd, int argc, char *argv[])
 				c->callInfo.lastRedirectingReason = atoi(argv[5]);
 			}
  			c = sccp_channel_release(c);
+			return RESULT_SUCCESS;
 		} else {
 			sccp_log(DEBUGCAT_CORE)("SCCP: Test Callinfo, callid %s not found\n", argv[3]);
 		}
+		return RESULT_FAILURE;
+	}
+	if (!strcasecmp(argv[2], "linestat") && argc > 2) {
+		sccp_device_t *d = NULL;
+		d = sccp_device_find_byid(argv[3], FALSE);
+		if (d) {
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat\n");
+			sccp_msg_t *msg;
+			msg = sccp_utils_buildLineStatDynamicMessage(1, 0x01 & 0x08, "1234", "name", "disp1");
+			sccp_dev_send(d, msg);
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat1 Sent\n");
+			sleep(2);
+			msg = sccp_utils_buildLineStatDynamicMessage(2, 2, "98011", "Diederik de Groot", "CfwdAll: 1234");
+			sccp_dev_send(d, msg);
+			if (d->protocolversion < 11) {
+				sccp_dev_set_cplane(d, 2, 1);
+				sleep(1);
+				sccp_dev_deactivate_cplane(d);
+			}
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat2 Sent\n");
+			sleep(2);
+			msg = sccp_utils_buildLineStatDynamicMessage(3, 4, "1234", "name", "disp4");
+			sccp_dev_send(d, msg);
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat4 Sent\n");
+			sleep(2);
+			msg = sccp_utils_buildLineStatDynamicMessage(4, 8, "1234", "name", "disp8");
+			sccp_dev_send(d, msg);
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat8 Sent\n");
+			sleep(2);
+			msg = sccp_utils_buildLineStatDynamicMessage(5, 0x0f, "1234", "name", "disp");
+			sccp_dev_send(d, msg);
+			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat 0x0f Sent\n");
+			sleep(2);
+			d = sccp_device_release(d);
+			return RESULT_SUCCESS;
+		}
+		return RESULT_SUCCESS;
 	}
 #endif
 	return RESULT_FAILURE;

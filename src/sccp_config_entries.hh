@@ -240,6 +240,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 #endif
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},
 	{"ringtone",			D_OBJ_REF(ringtone),			TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Ring Tone after device registered. Ring Tone must be set as URI to a http served file."},
+	{"imageversion",		D_OBJ_REF(imageversion),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"ImageVersion to be loaded on the device."},
 };
 
 /*!
