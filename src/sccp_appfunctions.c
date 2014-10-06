@@ -98,7 +98,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		} else if (!strcasecmp(colname, "tz_offset")) {
 			snprintf(buf, len, "%d", d->tz_offset);
 		} else if (!strcasecmp(colname, "image_version")) {
-			sccp_copy_string(buf, d->imageversion, len);
+			sccp_copy_string(buf, d->loadedimageversion, len);
 		} else if (!strcasecmp(colname, "accessory_status")) {
 			sccp_copy_string(buf, sccp_accessorystate2str(d->accessorystatus), len);
 		} else if (!strcasecmp(colname, "registration_state")) {
