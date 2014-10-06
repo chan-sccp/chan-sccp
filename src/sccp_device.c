@@ -108,14 +108,13 @@ static void sccp_device_retrieveDeviceCapabilities(const sccp_device_t * device)
 
 static void sccp_device_setBackgroundImage(const sccp_device_t * device, const char *url)
 {
-	char xmlStr[2048];
+	char xmlStr[2048] = {0};
 	unsigned int transactionID = random();
 
-	if (strncmp("http://", url, strlen("http://")) != 0) {
-		pbx_log(LOG_WARNING, "SCCP: '%s' needs to bee a valid http url\n", url ? url : "");
+	if (strncasecmp("http://", url, strlen("http://")) != 0) {
+		pbx_log(LOG_WARNING, "SCCP: '%s' needs to be a valid http url\n", url ? url : "");
+		return;
 	}
-	memset(xmlStr, 0, sizeof(xmlStr));
-
 	strcat(xmlStr, "<setBackground>");
 	strcat(xmlStr, "<background>");
 	strcat(xmlStr, "<image>");
@@ -128,6 +127,7 @@ static void sccp_device_setBackgroundImage(const sccp_device_t * device, const c
 	strcat(xmlStr, "</setBackground>\n\0");
 
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
+	//sccp_log(DEBUGCAT_CORE)("%s: sent new background to device: %s, from d->backgroundImage: %s\n", device->id, url, device->backgroundImage);
 }
 
 static sccp_dtmfmode_t sccp_device_getDtfmMode(const sccp_device_t *device) 
