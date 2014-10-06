@@ -2598,7 +2598,11 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 							if (s != tmp) {
 								pbx_build_string(&s, &len, ", ");
 							}
-							pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+							if (strlen(line->cid_num) + strlen(linedevice->cfwdAll.number) > 15) {
+								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, linedevice->cfwdAll.number);
+							} else {
+								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
+							}
 						}
 						break;
 					case SCCP_FEATURE_CFWDBUSY:
@@ -2607,7 +2611,11 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 							if (s != tmp) {
 								pbx_build_string(&s, &len, ", ");
 							}
-							pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
+							if (strlen(line->cid_num) + strlen(linedevice->cfwdAll.number) > 15) {
+								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, linedevice->cfwdBusy.number);
+							} else {
+								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
+							}
 						}
 						break;
 					default:
