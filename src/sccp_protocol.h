@@ -975,7 +975,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_lineNumber;									/*!< Line Number */
-		uint32_t lel_lineType;										/*!< Line Type */
+		uint32_t lel_lineType;										/*!< Line Type: Bit-field: 1-Original Dialed 2-Redirected Dialed, 4-Calling line ID, 8-Calling name ID */
 		char dummy[310];										/*!< Dummy (25+141+141) + 3 terminators */
 	} LineStatDynamicMessage;										/*!< Line Stat Dynmic Message Structure */
 
@@ -2095,6 +2095,7 @@ typedef union {
 		char lineDirNumber[StationMaxDirnumSize];							/*!< Line Dir Number */
 		char lineFullyQualifiedDisplayName[StationMaxNameSize];						/*!< Line Fully Qualified Display Name */
 		char lineDisplayName[StationMaxButtonTemplateNameSize];						/*!< Line Display Name */
+		uint32_t lineDisplayOptions;
 	} LineStatMessage;											/*!< Line Status Messages Structure */
 
 	struct {
