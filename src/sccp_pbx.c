@@ -672,10 +672,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_channel_updateChannelCapability(c);
 	PBX(set_nativeAudioFormats) (c, c->preferences.audio, 1);
 
-	//! \todo check locking
-	/* \todo we should remove this shit. */
+	/* can be replaced with c->designator */
 	char tmpName[StationMaxNameSize];
-
 	snprintf(tmpName, sizeof(tmpName), "SCCP/%s-%08x", l->name, c->callid);
 	PBX(setChannelName) (c, tmpName);
 
@@ -683,6 +681,8 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 
 	// \todo: Bridge?
 	// \todo: Transfer?
+	
+	/* \todo: can be done using atomic function, maybe we should not be using this method at all */
 	sccp_mutex_lock(&GLOB(usecnt_lock));
 	GLOB(usecnt)++;
 	sccp_mutex_unlock(&GLOB(usecnt_lock));
@@ -695,6 +695,58 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	if (PBX(set_callerid_name)) {
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
 	}
+
+	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
+	if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+		sccp_linedevices_t *linedevice;
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice->line == l) {
+				break;
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+		if (linedevice->cfwdAll.enabled) {
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdAll.number);
+			PBX(setChannelCallForward)(c, linedevice->cfwdAll.number);
+		} else if (linedevice->cfwdBusy.enabled && linedevice->device->state != SCCP_DEVICESTATE_ONHOOK) {
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdBusy.number);
+			PBX(setChannelCallForward)(c, linedevice->cfwdBusy.number);
+		}
+	}
+#if 0
+	{
+		
+		/* (shared line version) call ast_channel_call_forward_set if all devices for this line are forwarded. Send the first forward destination to PBX */
+		sccp_linedevices_t *linedevice;
+		int numdevices=SCCP_LIST_GETSIZE(&l->devices);
+		int numforwards=0;
+		char cfwdnum[SCCP_MAX_EXTENSION]="";
+		
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice->line == l && 
+				(linedevice->cfwdAll.enabled || 
+				(linedevice->cfwdBusy.enabled && linedevice->device->state != SCCP_DEVICESTATE_ONHOOK))
+			) {
+				numforwards++;
+				if (sccp_strlen_zero(cfwdnum)) {
+					if (linedevice->cfwdAll.number) {
+						sccp_copy_string(cfwdnum, linedevice->cfwdAll.number, SCCP_MAX_EXTENSION);
+					} else {
+						sccp_copy_string(cfwdnum, linedevice->cfwdBusy.number, SCCP_MAX_EXTENSION);
+					}
+				}
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
+		if (numdevices == numforwards) {
+			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: setting ast call forward channel: %s\n", c->designator, cfwdnum);
+			PBX(setChannelCallForward)(c, cfwdnum);
+		}
+	}
+#endif
+	
 	/* asterisk needs the native formats bevore dialout, otherwise the next channel gets the whole AUDIO_MASK as requested format
 	 * chan_sip dont like this do sdp processing */
 	//PBX(set_nativeAudioFormats)(c, c->preferences.audio, ARRAY_LEN(c->preferences.audio));
