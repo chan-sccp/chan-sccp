@@ -1035,7 +1035,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 		char xmlTmp[512] = "";
 
 		//sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
-		if (participant->device->protocolversion >= 17) {
+		if (participant->device->protocolversion >= 15) {
 			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">", appID);
 			strcat(xmlStr, xmlTmp);
 			if (conference->isLocked) {
@@ -1156,7 +1156,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 #endif
 		}
 		// CiscoIPPhoneIconMenu Icons
-		if (participant->device->protocolversion >= 17) {
+		if (participant->device->protocolversion >= 15) {
 			strcat(xmlStr, "<IconItem><Index>0</Index><URL>Resource:Icon.Connected</URL></IconItem>");	// moderator
 			strcat(xmlStr, "<IconItem><Index>1</Index><URL>Resource:AnimatedIcon.Hold</URL></IconItem>");	// muted moderator
 			strcat(xmlStr, "<IconItem><Index>2</Index><URL>Resource:AnimatedIcon.StreamRxTx</URL></IconItem>");	// participant
@@ -1170,7 +1170,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "<IconItem><Index>3</Index><Height>10</Height><Width>16</Width><Depth>2</Depth><Data>000F0000C030F03CC030F03CC030F03C000FF03CFCF0F33C0C00F33CCC30F33CCC30F33C00000000</Data></IconItem>\n");	// muted participant
 		}
 
-		if (participant->device->protocolversion >= 17) {
+		if (participant->device->protocolversion >= 15) {
 			strcat(xmlStr, "</CiscoIPPhoneIconFileMenu>\n");
 		} else {
 			strcat(xmlStr, "</CiscoIPPhoneIconMenu>\n");
@@ -1474,7 +1474,7 @@ void sccp_conference_invite_participant(sccp_conference_t * conference, sccp_con
 
 	if (moderator->channel && moderator->device) {
 
-		if (moderator->device->protocolversion >= 17) {
+		if (moderator->device->protocolversion >= 15) {
 			sprintf(xmlTmp, "<CiscoIPPhoneInput appId=\"%d\">\n", appID);
 		} else {
 			sprintf(xmlTmp, "<CiscoIPPhoneInput>\n");
