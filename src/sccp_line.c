@@ -430,6 +430,7 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward_t type, char *number)
 {
 	sccp_linedevices_t *linedevice = NULL;
+	sccp_feature_type_t feature_type = SCCP_FEATURE_CFWDNONE;
 
 	if (!line || !device) {
 		return;
@@ -443,14 +444,16 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 			if (!number || sccp_strlen_zero(number)) {
 				linedevice->cfwdAll.enabled = 0;
 				linedevice->cfwdBusy.enabled = 0;
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid\n", DEV_ID_LOG(device));
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward to an empty number. Invalid. Cfwd Disabled\n", DEV_ID_LOG(device));
 			} else {
 				switch (type) {
 					case SCCP_CFWD_ALL:
+						feature_type = SCCP_FEATURE_CFWDALL;
 						linedevice->cfwdAll.enabled = 1;
 						sccp_copy_string(linedevice->cfwdAll.number, number, sizeof(linedevice->cfwdAll.number));
 						break;
 					case SCCP_CFWD_BUSY:
+						feature_type = SCCP_FEATURE_CFWDBUSY;
 						linedevice->cfwdBusy.enabled = 1;
 						sccp_copy_string(linedevice->cfwdBusy.number, number, sizeof(linedevice->cfwdBusy.number));
 						break;
@@ -458,11 +461,11 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 						linedevice->cfwdAll.enabled = 0;
 						linedevice->cfwdBusy.enabled = 0;
 				}
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward enabled on line %s to number %s\n", DEV_ID_LOG(device), line->name, number);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward %s enabled on line %s to number %s\n", DEV_ID_LOG(device), sccp_callforward2str(type), line->name, number);
 			}
 		}
 		sccp_dev_starttone(linedevice->device, SKINNY_TONE_ZIPZIP, 0, 0, 0);
-		sccp_feat_changed(linedevice->device, linedevice, SCCP_FEATURE_CFWDALL);
+		sccp_feat_changed(linedevice->device, linedevice, feature_type);
 		sccp_dev_forward_status(linedevice->line, linedevice->lineInstance, device);
 		linedevice = sccp_linedevice_release(linedevice);
 	} else {

@@ -981,6 +981,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
 			break;
 		case 3:
 			d->accessoryStatus.speaker = (status) ? TRUE : FALSE;
+			// should we not also set d->state = SCCP_DEVICESTATE_OFFHOOK / SCCP_DEVICESTATE_ONHOOK
 			break;
 	}
 
@@ -3187,7 +3188,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 	}
 
 	/* speeddial with hint. Sending empty forward message */
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status.  Instance: %d\n", d->id, instance);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status. Instance: %d\n", d->id, instance);
 	REQ(msg_out, ForwardStatMessage);
 	msg_out->data.ForwardStatMessage.lel_lineNumber = msg_in->data.ForwardStatReqMessage.lel_lineNumber;
 	sccp_dev_send(d, msg_out);
