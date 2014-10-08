@@ -938,6 +938,7 @@ char *sccp_get_debugcategories(int32_t debugvalue)
 /*!
  * \brief create a LineStatDynamicMessage
  * \param lineInstance the line instance
+ * \param type LineType or LineOptions as uint32_t
  * \param dirNum the dirNum (e.g. line->cid_num)
  * \param fqdn line description (top right o the first line)
  * \param lineDisplayName label on the display

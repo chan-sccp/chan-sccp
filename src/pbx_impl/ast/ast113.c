@@ -359,25 +359,6 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 	return res;
 }
 
-/*!
- * \brief Convert an array of skinny_codecs (enum) to ast_codec_prefs
- *
- * \param skinny_codecs Array of Skinny Codecs
- * \param astCodecPref Array of PBX Codec Preferences
- *
- * \return bit array fmt/Format of ast_format_type (int)
- */
-
-/*! \todo create replacement, 'struct ast_codec_pref' does not exist in asterisk-13 anymore */
-//int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref)
-//{
-//	struct ast_format dst;
-//	uint32_t codec = skinny_codecs2pbx_codecs(skinny_codecs);						// convert to bitfield
-//
-//	ast_format_from_old_bitfield(&dst, codec);
-//	return ast_codec_pref_append(astCodecPref, &dst);							// return ast_codec_pref
-//}
-
 static boolean_t sccp_wrapper_asterisk113_setReadFormat(const sccp_channel_t * channel, skinny_codec_t codec);
 
 #define RTP_NEW_SOURCE(_c,_log) 								\
