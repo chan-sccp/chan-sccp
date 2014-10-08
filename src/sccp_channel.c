@@ -1222,12 +1222,10 @@ static int _sccp_channel_sched_endcall(const void *data)
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t *channel)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-//	sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c) {
 		if (c->scheduler.digittimeout > 0) {
 			PBX(sched_del_ref)(&c->scheduler.digittimeout, c);
 		}
-//		c = sccp_channel_release(c);
 	}
 }
 
@@ -1238,14 +1236,12 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t *channel)
 gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeout)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-//	sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c) {
 		if (c && !c->scheduler.deny && !c->scheduler.hangup) {											/* only schedule if allowed and not already scheduled */
 			if (PBX(sched_add_ref)(&c->scheduler.hangup, timeout, _sccp_channel_sched_endcall, c) < 0) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: Unable to schedule dialing in '%d' ms\n", c->designator, timeout);
+				pbx_log(LOG_NOTICE, "%s: Unable to schedule dialing in '%d' ms\n", c->designator, timeout);
 			}
 		}
-//		c = sccp_channel_release(c);
 	}
 }
 
@@ -1256,20 +1252,17 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeo
 gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t *channel, uint timeout)
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-//	sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c) {
 		if (!c->scheduler.deny) {													/* only schedule if allowed and not already scheduled */
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "%s: schedule digittimeout %d\n", c->designator, timeout);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: schedule digittimeout %d\n", c->designator, timeout);
 			PBX(sched_replace_ref)(&c->scheduler.digittimeout, timeout * 1000, sccp_pbx_sched_dial, c);
 		}
-//		c = sccp_channel_release(c);
 	}
 }
 
 void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel) 
 {
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
-//	sccp_channel_t *c = sccp_channel_retain(channel);
 	if (c) {
 		ATOMIC_INCR(&c->scheduler.deny, TRUE, &c->scheduler.lock);
 		sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Disabling scheduler / Removing Scheduled tasks\n", c->designator);
@@ -1279,7 +1272,6 @@ void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel)
 		if (c->scheduler.hangup > 0) {
 			PBX(sched_del_ref)(&c->scheduler.hangup, c);
 		}
-//		c = sccp_channel_release(c);
 	}
 }
 
@@ -1416,10 +1408,6 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		sccp_pbx_softswitch(channel);
 		return channel;
 	} 
-
-//	if ((channel->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, channel)) < 0) {
-//		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
-//	}
 	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 
 	return channel;

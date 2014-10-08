@@ -160,7 +160,6 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 
 			/** we just opened a channel for cfwd, switch ss_action = SCCP_SS_GETFORWARDEXTEN */
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_channel_stop_schedule_digittimout(c);
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(device, linedevice->lineInstance, c->callid);
@@ -366,7 +365,6 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		}
 
 		if (res == 0) {
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_channel_stop_schedule_digittimout(c);
 			c->calltype = SKINNY_CALLTYPE_INBOUND;
 			c->state = SCCP_CHANNELSTATE_PROCEED;
@@ -472,7 +470,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
 	}
 	
-//	SCCP_SCHED_DEL(c->scheduler.digittimeout);
 	sccp_channel_stop_schedule_digittimout(c);
 	char *pickupexten;
 	if (PBX(getPickupExtension)(channel, &pickupexten)) {
@@ -501,7 +498,6 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		dest = c->owner;
 	}
 	/* prepare for call pickup */
-	//SCCP_SCHED_DEL(c->scheduler.digittimeout);
 	sccp_channel_stop_schedule_digittimout(c);
 		
 	/* change the call direction, we know it is a pickup, so it should be an inbound call */
@@ -602,7 +598,6 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 			}
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_DIALING) {
 				sccp_copy_string(c->dialedNumber, c->line->vmnum, sizeof(c->dialedNumber));
-//				c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 				sccp_channel_stop_schedule_digittimout(c);
 				sccp_pbx_softswitch(c);
 				return;
@@ -735,7 +730,6 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 
 		PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 		/* removing scheduled dial */
-//		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		sccp_channel_stop_schedule_digittimout(c);
 
 		sccp_pbx_softswitch(c);
@@ -1004,11 +998,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	}
 
 	/* removing scheduled dial */
-//	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
-//	if (!(c->scheduler.digittimeout = sccp_sched_add(GLOB(firstdigittimeout) * 1000, sccp_pbx_sched_dial, c))) {
-//		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unable to schedule dialing in '%d' ms\n", GLOB(firstdigittimeout));
-//	}
-	sccp_channel_schedule_digittimout(c, GLOB(firstdigittimeout));
+	sccp_channel_stop_schedule_digittimout(c);
 }
 
 /*!
@@ -1338,8 +1328,6 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 	if (c) {
 		if ((c->state == SCCP_CHANNELSTATE_DIALING) || (c->state == SCCP_CHANNELSTATE_OFFHOOK)) {
 			sccp_copy_string(c->dialedNumber, line->adhocNumber, sizeof(c->dialedNumber));
-
-//			c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 			sccp_channel_stop_schedule_digittimout(c);
 			
 			sccp_pbx_softswitch(c);

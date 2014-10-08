@@ -344,7 +344,6 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 	sccp_channel_closeAllMediaTransmitAndReceive(d, c);
 
 	// removing scheduled dialing
-//	c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 	sccp_channel_stop_schedule_digittimout(c);
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Current channel %s-%08x state %s(%d)\n", (d) ? DEV_ID_LOG(d) : "(null)", l ? l->name : "(null)", c->callid, sccp_channelstate2str(c->state), c->state);
@@ -761,8 +760,6 @@ int sccp_pbx_sched_dial(const void *data)
 		if (c->owner && !PBX(getChannelPbx) (c)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
-//		} else {
-//			sccp_channel_stop_schedule_digittimout(c);			// in case of immediate
 		}
 		sccp_channel_release(c);						// release scheduled dial channel retension (scheduled digit timed out)
 	}
@@ -827,7 +824,6 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 			goto EXIT_FUNC;
 		}
 		/* removing scheduled dialing */
-//		c->scheduler.digittimeout = SCCP_SCHED_DEL(c->scheduler.digittimeout);
 		sccp_channel_stop_schedule_digittimout(c);
 
 		/* Reset Enbloc Dial Emulation */
