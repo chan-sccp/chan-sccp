@@ -778,7 +778,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 	if (!sccp_strlen_zero(c->dialedNumber)) {
 		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[strlen(c->dialedNumber) - 1]) {
 			/* we finished dialing with digit timeout char */
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: We finished dialing with digit timeout char %s\n", c->dialedNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: We finished dialing with digit timeout char %s\n", c->designator, c->dialedNumber);
 			return SCCP_EXTENSION_EXACTMATCH;
 		}
 	}
@@ -795,14 +795,14 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 
 		if (d) {
 			if (((d->overlapFeature.enabled && !extensionStatus) || (!d->overlapFeature.enabled && !extensionStatus))) {
-				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Matches More\n", c->dialedNumber);
+				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: %s Matches More\n", c->designator, c->dialedNumber);
 				return SCCP_EXTENSION_MATCHMORE;
 			}
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Match %s\n", c->dialedNumber, extensionStatus == SCCP_EXTENSION_EXACTMATCH ? "Exactly" : "More");
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: %s Matches %s\n", c->designator, c->dialedNumber, extensionStatus == SCCP_EXTENSION_EXACTMATCH ? "Exactly" : "More");
 		}
 		return extensionStatus;
 	}
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: %s Does Exists\n", c->dialedNumber);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: %s Does Exists\n", c->designator, c->dialedNumber);
 	return SCCP_EXTENSION_NOTEXISTS;
 }
 

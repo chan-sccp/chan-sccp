@@ -2980,7 +2980,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 		pbx_str_append(&output_buf, buffersize, "       [\n");
 
 		pbx_str_append(&output_buf, buffersize, "         Last Call        : CallID: %d Packets sent: %d rcvd: %d lost: %d jitter: %d latency: %d\n", call_stats[SCCP_CALLSTATISTIC_LAST].num, call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency);
-		sccp_log(DEBUGCAT_CORE)("QualityStats: %s\n", QualityStats);
+		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "QualityStats: %s\n", QualityStats);
 		if (!sccp_strlen_zero(QualityStats)) {
 			if (letohl(msg_in->header.lel_protocolVer < 20)) {
 				sscanf(QualityStats, "MLQK=%f;MLQKav=%f;MLQKmn=%f;MLQKmx=%f;MLQKvr=%f;CCR=%f;ICR=%f;ICRmx=%f;CS=%d;SCS=%d",
