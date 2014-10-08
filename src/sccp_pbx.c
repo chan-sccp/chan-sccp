@@ -204,31 +204,16 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 		/* do we have cfwd enabled? */
-		if (linedevice->cfwdAll.enabled) {
-			pbx_log(LOG_NOTICE, "%s: initialize cfwd for line %s\n", linedevice->device->id, l->name);
-			if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.number) == 0) {
-				sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-				sccp_channel_send_callinfo(linedevice->device, c);
-#ifdef CS_EXPERIMENTAL
-				if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "FORWARDER_FOR"))) {
-					struct ast_var_t *variables;
-					const char *var, *val;
-					char mask[25];
-
-					ast_channel_lock(c->owner);
-					sprintf(mask, "SCCP::%d", c->callid);
-					AST_LIST_TRAVERSE(pbx_channel_varshead(c->owner), variables, entries) {
-						if ((var = ast_var_name(variables)) && (val = ast_var_value(variables)) && (!strcmp("LINKID", var)) && (strcmp(mask, val))) {
-							sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: LINKID %s\n", val);
-							pbx_builtin_setvar_helper(c->owner, "__FORWARDER_FOR", val);
-						}
-					}
-					ast_channel_unlock(c->owner);
+		if (sccp_strlen_zero(pbx_builtin_getvar_helper(c->owner, "BYPASS_CFWD"))) {
+			if (linedevice->cfwdAll.enabled || (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || linedevice->device->accessoryStatus.speaker))) {
+				pbx_log(LOG_NOTICE, "%s: initialize cfwd%s for line %s\n", linedevice->device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name);
+				if (sccp_channel_forward(c, linedevice, linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : linedevice->cfwdBusy.number) == 0) {
+					sccp_device_sendcallstate(linedevice->device, linedevice->lineInstance, c->callid, SKINNY_CALLSTATE_INTERCOMONEWAY, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+					sccp_channel_send_callinfo(linedevice->device, c);
+					isRinging = TRUE;
 				}
-#endif
-				isRinging = TRUE;
+				continue;
 			}
-			continue;
 		}
 
 		if (!linedevice->device->session) {
@@ -702,17 +687,17 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->line == l) {
+				if (linedevice->cfwdAll.enabled) {
+					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdAll.number);
+					PBX(setChannelCallForward)(c, linedevice->cfwdAll.number);
+				} else if (linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || linedevice->device->accessoryStatus.speaker)) {
+					sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdBusy.number);
+					PBX(setChannelCallForward)(c, linedevice->cfwdBusy.number);
+				}
 				break;
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-		if (linedevice->cfwdAll.enabled) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdAll.number);
-			PBX(setChannelCallForward)(c, linedevice->cfwdAll.number);
-		} else if (linedevice->cfwdBusy.enabled && linedevice->device->state != SCCP_DEVICESTATE_ONHOOK) {
-			sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: ast call forward channel_set: %s\n", c->designator, linedevice->cfwdBusy.number);
-			PBX(setChannelCallForward)(c, linedevice->cfwdBusy.number);
-		}
 	}
 #if 0
 	{
@@ -727,7 +712,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->line == l && 
 				(linedevice->cfwdAll.enabled || 
-				(linedevice->cfwdBusy.enabled && linedevice->device->state != SCCP_DEVICESTATE_ONHOOK))
+				(linedevice->cfwdBusy.enabled && (linedevice->device->state != SCCP_DEVICESTATE_ONHOOK || linedevice->device->accessoryStatus.speaker)))
 			) {
 				numforwards++;
 				if (sccp_strlen_zero(cfwdnum)) {
@@ -938,12 +923,15 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		/* This will choose what to do */
 		switch (c->ss_action) {
 			case SCCP_SS_GETFORWARDEXTEN:
-				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward Extension\n", d->id);
+			{
+				sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Forward %s Extension\n", d->id, sccp_callforward2str(type));
 				if (!sccp_strlen_zero(shortenedNumber)) {
-					sccp_line_cfwd(l, d, c->ss_data, shortenedNumber);
+					sccp_line_cfwd(l, d, type, shortenedNumber);
 				}
 				sccp_channel_endcall(c);
 				goto EXIT_FUNC;									// leave simple switch without dial
+			}
 #ifdef CS_SCCP_PICKUP
 			case SCCP_SS_GETPICKUPEXTEN:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);
