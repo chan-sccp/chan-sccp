@@ -970,7 +970,7 @@ static int sccp_wrapper_asterisk113_setNativeAudioFormats(const sccp_channel_t *
 // 		ast_format_set(&fmt, skinny_codec2pbx_codec(codec[i]), 0);
 // 		ast_format_cap_add(ast_channel_nativeformats(channel->owner), &fmt);
 // 	}
-	
+	ast_format_cap_remove_by_type(ast_channel_nativeformats(channel->owner), AST_MEDIA_TYPE_AUDIO);
 	for (i = 0; i < length; i++) {
 		format = sccp_asterisk13_skinny2ast_format(codec[i]);
 		framing = ast_format_get_default_ms(format);
@@ -1043,20 +1043,22 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 	ast_channel_tech_set(pbxDstChannel, &sccp_tech);
 	ast_channel_tech_pvt_set(pbxDstChannel, sccp_channel_retain(channel));
 
+	
 	/* Copy Codec from SrcChannel */
-
-// 	if (!pbxSrcChannel || ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
 	if (!pbxSrcChannel || ast_format_cap_count(pbx_channel_nativeformats(pbxSrcChannel)) == 0 ) {
-		//ast_format_set(&tmpfmt, AST_FORMAT_ULAW, 0);
-		ast_format = ast_format_alaw;
+pbx_log(LOG_NOTICE, "!pbxSrcChannel || ast_format_cap_count(pbx_channel_nativeformats(pbxSrcChannel)) == 0\n");
+		ast_format = ast_format_slin16;
 	} else {
-// 		ast_best_codec(pbx_channel_nativeformats(pbxSrcChannel), &tmpfmt);
+pbx_log(LOG_NOTICE, "else\n");
+struct ast_str *codec_buf = ast_str_alloca(64);
+pbx_log(LOG_NOTICE, "nativ: %s\n", ast_format_cap_get_names(ast_channel_nativeformats(pbxSrcChannel), &codec_buf) );
+
 		ast_format = ast_format_cap_get_best_by_type(pbx_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_AUDIO);
+		pbx_log(LOG_NOTICE, "%p name: %s %d\n", ast_format, ast_format_get_name(ast_format), ast_format_get_codec_id(ast_format) );
 	}
-// 	ast_format_cap_add(ast_channel_nativeformats(pbxDstChannel), &tmpfmt);
-// 	ast_set_read_format(pbxDstChannel, &tmpfmt);
-// 	ast_set_write_format(pbxDstChannel, &tmpfmt);
+
 	framing = ast_format_get_default_ms(ast_format);
+	ast_format_cap_remove_by_type(ast_channel_nativeformats(pbxDstChannel), AST_MEDIA_TYPE_AUDIO);
 	ast_format_cap_append(ast_channel_nativeformats(pbxDstChannel), ast_format, framing);
 	ast_set_read_format(pbxDstChannel, ast_format);
 	ast_set_write_format(pbxDstChannel, ast_format);
@@ -1245,7 +1247,6 @@ static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 	
 // 	if (ast_format_cap_is_empty(pbx_channel_nativeformats(pbxSrcChannel))) {
 	if (ast_format_cap_count(pbx_channel_nativeformats(pbxSrcChannel)) == 0 ) {
-// 		ast_format_set(&tmpfmt, AST_FORMAT_ULAW, 0);
 		ast_format = ast_format_alaw;
 	} else {
 		ast_format = ast_format_cap_get_best_by_type(pbx_channel_nativeformats(pbxSrcChannel), AST_MEDIA_TYPE_AUDIO);
@@ -1254,6 +1255,7 @@ static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 // 	ast_set_read_format(pbxDstChannel, &tmpfmt);
 // 	ast_set_write_format(pbxDstChannel, &tmpfmt);
 	framing = ast_format_get_default_ms(ast_format);
+	ast_format_cap_remove_by_type(ast_channel_nativeformats(pbxDstChannel), AST_MEDIA_TYPE_AUDIO);
 	ast_format_cap_append(ast_channel_nativeformats(pbxDstChannel), ast_format, framing);
 	ast_set_read_format(pbxDstChannel, ast_format);
 	ast_set_write_format(pbxDstChannel, ast_format);
