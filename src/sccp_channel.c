@@ -571,7 +571,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
 		changed = TRUE;
 	}
 
-	if (number && strncmp(name, channel->callInfo.originalCallingPartyNumber, StationMaxNameSize - 1)) {
+	if (number && strncmp(number, channel->callInfo.originalCallingPartyNumber, StationMaxNameSize - 1)) {
 		if (!sccp_strlen_zero(number)) {
 			sccp_copy_string(channel->callInfo.originalCallingPartyNumber, number, sizeof(channel->callInfo.originalCallingPartyNumber));
 			channel->callInfo.originalCallingParty_valid = 1;
@@ -647,7 +647,7 @@ boolean_t sccp_channel_set_originalCalledparty(sccp_channel_t * channel, char *n
 		changed = TRUE;
 	}
 
-	if (number && strncmp(name, channel->callInfo.originalCalledPartyNumber, StationMaxNameSize - 1)) {
+	if (number && strncmp(number, channel->callInfo.originalCalledPartyNumber, StationMaxNameSize - 1)) {
 		if (!sccp_strlen_zero(number)) {
 			sccp_copy_string(channel->callInfo.originalCalledPartyNumber, number, sizeof(channel->callInfo.originalCalledPartyNumber));
 			channel->callInfo.originalCalledParty_valid = 1;
