@@ -175,6 +175,7 @@ meetmeopts = ""                                                                 
                                                                                   ; Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation (Size: 79)
 softkeyset = ""                                                                   ; use specified softkeyset with name softkeyset1 (Size: 49)
 useRedialMenu = no                                                                ; show the redial phone book list instead of dialing the last number (adv_feature)
+										  ; requires <phoneServices>...</phoneServices> section in your SEP...cnf.xml file. Please copy that segment from conf/tftp/SEP0000000000.cnf.xml_797x_template.
 pickupexten = ""                                                                  ; enable Pickup function to direct pickup an extension (Deprecated use directed_pickup instead)
 pickupcontext = ""                                                                ; context where direct pickup search for extensions. if not set it will be ignored. (Deprecated use direct_pickup_context instead)
 pickupmodeanswer = ""                                                             ; on = asterisk way, the call has been answered when picked up (Deprecated use direct_pickup_modeanswer instead)
