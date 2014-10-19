@@ -959,8 +959,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_PROCEED);
 					PBX(set_callstate) (channel, AST_STATE_UP);
 					if (!d->conference) {
-						d->conference = sccp_conference_create(d, c);
-						sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
+						if (!(d->conference = sccp_conference_create(d, c))) {
+						         goto EXIT_FUNC;
+                                                }
+                                                sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTEDCONFERENCE);
 					} else {
 						pbx_log(LOG_NOTICE, "%s: There is already a conference running on this device.\n", DEV_ID_LOG(d));
 						sccp_channel_endcall(c);

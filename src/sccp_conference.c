@@ -212,6 +212,12 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 	ast_bridge_set_talker_src_video_mode(conference->bridge);
 #endif
 
+	if (!conference->bridge) { 
+		pbx_log(LOG_WARNING, "%s: Creating conference bridge failed, cancelling conference\n", channel->designator);
+		sccp_conference_release(conference);
+		return NULL;
+	}
+
 	/*
 	   pbx_bridge_set_internal_sample_rate(conference_bridge->bridge, auto);
 	   pbx_bridge_set_mixing_interval(conference->bridge,40);
