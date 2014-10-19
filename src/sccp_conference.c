@@ -547,7 +547,7 @@ static void sccp_conference_removeParticipant(sccp_conference_t * conference, sc
 static void *sccp_conference_thread(void *data)
 {
 	AUTO_RELEASE sccp_conference_participant_t *participant = sccp_participant_retain(data);
-	if (participant && participant->conference) {
+	if (participant && participant->conference && participant->conference->bridge) {
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: entering join thread.\n", participant->conference->id);
 #ifdef CS_MANAGER_EVENTS
 		if (GLOB(callevents)) {
@@ -581,6 +581,8 @@ static void *sccp_conference_thread(void *data)
 		participant->pendingRemoval = TRUE;
 		sccp_conference_removeParticipant(participant->conference, participant);
 		participant->joinThread = AST_PTHREADT_NULL;
+	} else {
+		pbx_log(LOG_WARNING, "SCCP: Conference thread could not be started because of missing conference (%d), participant (%d) or conference->bridge\n", (participant && participant->conference) ? participant->conference->id : 0, participant ? participant->id : 0);
 	}
 	return NULL;
 }
