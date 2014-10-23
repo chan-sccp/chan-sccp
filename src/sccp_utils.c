@@ -243,6 +243,10 @@ gcc_inline uint32_t debugcat2int(const char *str)
 {														/* chan_sccp.h */
 	_STRARR2INT(sccp_debug_categories, key, str, category);
 }
+gcc_inline uint32_t labelstr2int(const char *str)
+{														/* chan_sccp.h */
+	_STRARR2INT(skinny_labels, text, str, label);
+}
 
 /*!
  * \brief Retrieve the string of format numbers and names from an array of formats
