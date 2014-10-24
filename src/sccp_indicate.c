@@ -89,8 +89,9 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				sccp_dev_set_cplane(d, instance, 1);
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
-				if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE)
+				if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE){
 					sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, c->callid, 0);
+				}
 			} else {										// call pickup
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
@@ -155,12 +156,12 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			d->protocol->sendDialedNumber(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
 			d->protocol->sendCallInfo(d, c, instance);
-			if (!c->rtp.audio.rtp) {
-				if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
-					sccp_channel_openReceiveChannel(c);
-				} else {
-					sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
-				}
+			
+			if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
+				sccp_channel_openReceiveChannel(c);
+			}
+			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {					/* send tone if ther is no rtp for inband signaling */
+				sccp_dev_starttone(d, (uint8_t) SKINNY_TONE_ALERTINGTONE, instance, c->callid, 0);
 			}
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
 			
@@ -221,7 +222,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_CONNECTED);
 			break;
 		case SCCP_CHANNELSTATE_BUSY:
-			if (!c->rtp.audio.rtp) {
+			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
 				sccp_dev_starttone(d, SKINNY_TONE_LINEBUSYTONE, instance, c->callid, 0);
 			}
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_BUSY, GLOB(digittimeout));
@@ -271,7 +272,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			break;
 		case SCCP_CHANNELSTATE_CONGESTION:
 			/* it will be emulated if the rtp audio stream is open */
-			if (!c->rtp.audio.rtp) {
+			if (c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
 				sccp_dev_starttone(d, SKINNY_TONE_REORDERTONE, instance, c->callid, 0);
 			}
 			d->protocol->sendCallInfo(d, c, instance);
