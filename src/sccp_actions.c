@@ -2510,8 +2510,6 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
  */
 void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	const sccp_softkeyMap_cb_t *softkeyMap_cb = NULL;
-
 	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Got Softkey\n", DEV_ID_LOG(d));
 
 	uint32_t event = letohl(msg_in->data.SoftKeyEventMessage.lel_softKeyEvent);
@@ -2554,13 +2552,8 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	if (l && callid) {
 		c = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid);
 	}
-	softkeyMap_cb = sccp_getSoftkeyMap_by_SoftkeyEvent(event);
 
-	if (!softkeyMap_cb) {
-		pbx_log(LOG_WARNING, "Don't know how to handle keypress %d\n", event);
-		return;
-	}
-	if (softkeyMap_cb->channelIsNecessary == TRUE && !c) {
+	if (!sccp_SoftkeyMap_execCallbackByEvent(d, l, lineInstance, c, event)) {
 		char buf[100];
 
 		/* skipping message if event is endcall, because they can coincide when both parties hangup around the same time */
@@ -2575,10 +2568,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 		if (d && d->indicate && d->indicate->onhook) {
 			d->indicate->onhook(d, lineInstance, callid);
 		}
-		return;
 	}
-	sccp_log((DEBUGCAT_MESSAGE + DEBUGCAT_ACTION + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Handling Softkey: %s on line: %s and channel: %s\n", d->id, label2str(event), l ? l->name : "UNDEF", c ? sccp_channel_toString(c) : "UNDEF");
-	softkeyMap_cb->softkeyEvent_cb(d, l, lineInstance, c);
 }
 
 /*!

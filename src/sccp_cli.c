@@ -2449,8 +2449,12 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 			sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 			sccp_dev_check_displayprompt(d);
 		} else {
-			sccp_sk_dnd(d, NULL, 0, NULL);
-			CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\r\n");
+			//sccp_sk_dnd(d, NULL, 0, NULL);
+			if (sccp_SoftkeyMap_execCallbackByEvent(d, NULL, 0, NULL, SKINNY_LBL_DND)) {
+				CLI_AMI_OUTPUT(fd, s, "Set/Unset DND\r\n");
+			} else {
+				CLI_AMI_OUTPUT(fd, s, "Set/Unset DND Failed\r\n");
+			}
 		}
 		d = sccp_device_release(d);
 	} else {
