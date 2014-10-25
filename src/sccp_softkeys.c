@@ -1009,6 +1009,23 @@ void sccp_softkey_pre_reload(void)
  */
 void sccp_softkey_post_reload(void)
 {
+#ifdef CS_EXPERIMENTAL
+	/* only required because softkeys are parsed after devices */
+	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
+	sccp_softKeySetConfiguration_t *softkeyset;
+	sccp_device_t *d;
+	SCCP_LIST_LOCK(&softKeySetConfig);
+	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
+		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+			if (d->softkeyDefinition && !strcasecmp(d->softkeyDefinition, softkeyset->name)) {
+				d->softkeyset = softkeyset;
+			}
+		}
+		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+	}
+	SCCP_LIST_UNLOCK(&softKeySetConfig);
+#endif
 }
 
 /*!
