@@ -191,7 +191,6 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
-
 #include "sccp_config_entries.hh"
 
 /*!
@@ -2454,6 +2453,9 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 		sccp_copy_string(softKeySetConfiguration->name, name, sizeof(sccp_softKeySetConfiguration_t));
 		softKeySetConfiguration->numberOfSoftKeySets = 0;
+#ifdef CS_EXPERIMENTAL
+		softKeySetConfiguration->softkeyCbMap = NULL;			// defaults to static softkeyMapCb
+#endif
 
 		/* add new softkexSet to list */
 		SCCP_LIST_LOCK(&softKeySetConfig);
@@ -2466,6 +2468,23 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeyset: %s \n", variable->name);
 		if (sccp_strcaseequals(variable->name, "type")) {
 
+#ifdef CS_EXPERIMENTAL
+		} else if (sccp_strcaseequals(variable->name, "uriaction")) {
+                        sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "SCCP: UriAction softkey (%s) found\n", variable->value);
+                        if (!softKeySetConfiguration->softkeyCbMap) {
+                                softKeySetConfiguration->softkeyCbMap = sccp_softkeyMap_copyStaticallyMapped();
+                        }
+                        char delims[]=",";
+                        char *token = NULL;
+                        char *value = strdupa(variable->value);
+                        token = strtok(value, delims);
+                        if (token && !sccp_strlen_zero(value)) {
+                                char *uriactionstr = strdupa(variable->value);
+                                sccp_softkeyMap_replaceCallBackByUriAction(softKeySetConfiguration->softkeyCbMap, labelstr2int(token), uriactionstr + strlen(token) + 1);
+                        } else {
+                                sccp_log(DEBUGCAT_CONFIG)(VERBOSE_PREFIX_3 "SCCP: UriAction softkey (%s) not found, or no uris (%s) specified\n", token, value);
+                        }
+#endif
 		} else if (sccp_strcaseequals(variable->name, "onhook")) {
 			keyMode = KEYMODE_ONHOOK;
 		} else if (sccp_strcaseequals(variable->name, "connected")) {

@@ -765,7 +765,11 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
 	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_devicetype2str(d->skinny_type), d->skinny_type);
 	CLI_AMI_OUTPUT_YES_NO("Softkey support",	CLI_AMI_LIST_WIDTH, d->softkeysupport);
+#ifndef CS_EXPERIMENTAL
 	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s", d->softkeyDefinition);
+#else
+	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s (%p)", d->softkeyDefinition, d->softkeyset);
+#endif
 	CLI_AMI_OUTPUT_YES_NO("BTemplate support",	CLI_AMI_LIST_WIDTH, d->buttonTemplate);
 	CLI_AMI_OUTPUT_YES_NO("linesRegistered",	CLI_AMI_LIST_WIDTH, d->linesRegistered);
 	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->loadedimageversion);
@@ -2152,12 +2156,10 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 		}
 #define CLI_AMI_TABLE_FIELDS													\
 				CLI_AMI_TABLE_FIELD(Set,		"-15.15s",	15,	softkeyset->name)		\
-				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	skinny_keymode2str(i))			\
+				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	skinny_keymode2str(i))		\
 				CLI_AMI_TABLE_FIELD(Description,	"-40.40s",	40,	skinny_keymode2longstr(i))	\
 				CLI_AMI_TABLE_FIELD(LblID,		"-5d",		5,	c)				\
 				CLI_AMI_TABLE_FIELD(Label,              "-15.15s",	15,     label2str(b[c]))		
-
-
 #include "sccp_cli_table.h"
 
 	if (s) {
