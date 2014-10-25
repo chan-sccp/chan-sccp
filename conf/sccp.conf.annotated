@@ -262,6 +262,8 @@ regexten = ""                                                                   
 [softkey]
 type = softkeyset
 name = default                                                                    ; (REQUIRED) softkeyset name (Size: 49)
+;uriaction = private, Key:Directories, http://www.google.com/			  ; (MULTI-ENTRY) softkey uri action to replace default handling. Format: uriaction = softkeyname, uri[,uri...]\n. URI can be an embedded cisco action (like Key:Service, Play:1041.raw) or a URL
+										  ; If uri is a url the following parameters will be added to it: devicename, linename, channelname, callid, linkedid, uniqueid, appid, transactionid
 onhook = redial,newcall,cfwdall,dnd,pickup,gpickup,private                        ; displayed when we are on hook (Size: 23)
 connected = hold,endcall,park,select,cfwdall,cfwdbusy,idivert                     ; displayed when we have a connected call (Size: 23)
 onhold = resume,newcall,endcall,transfer,conflist,select,dirtrfr,idivert,meetme   ; displayed when we have a call on hold (Size: 23)

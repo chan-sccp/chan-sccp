@@ -256,6 +256,7 @@ typedef struct sccp_buttonconfig sccp_buttonconfig_t;								/*!< SCCP Button Co
 typedef struct sccp_hotline sccp_hotline_t;									/*!< SCCP Hotline Structure */
 typedef struct sccp_callinfo sccp_callinfo_t;									/*!< SCCP Call Information Structure */
 typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
+typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */
 
 #ifndef SOLARIS
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
@@ -1089,6 +1090,9 @@ struct sccp_device {
 #endif
 	uint16_t defaultLineInstance;										/*!< Default Line Instance */
 	char softkeyDefinition[50];										/*!< requested softKey configuration */
+#ifdef CS_EXPERIMENTAL
+	sccp_softKeySetConfiguration_t *softkeyset;
+#endif
 	
 //	PBX_ENDPOINT_TYPE *endpoint;
 	
@@ -1398,8 +1402,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 
 int sccp_sched_free(void *ptr);
 
-typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */
-
 /*!
  * \brief SCCP SoftKeySet Configuration Structure
  */
@@ -1407,6 +1409,9 @@ struct softKeySetConfiguration {
 	char name[50];												/*!< Name for this configuration */
 	softkey_modes modes[16];										/*!< SoftKeySet modes, see KEYMODE_ */
 	uint8_t numberOfSoftKeySets;										/*!< Number of SoftKeySets we define */
+#ifdef CS_EXPERIMENTAL
+	sccp_softkeyMap_cb_t *softkeyCbMap;									/*!< Softkey Callback Map, ie handlers */
+#endif
 	unsigned int pendingDelete:1;
 	unsigned int pendingUpdate:1;
 	SCCP_LIST_ENTRY (sccp_softKeySetConfiguration_t) list;							/*!< Next list entry */
