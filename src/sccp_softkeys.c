@@ -895,7 +895,7 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t *softkeyMap_cb, sccp_de
 			ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;uniqueid=%s", pbx_channel_uniqueid(c->owner));
 		}
 	}
-	ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;apptID=%d", APPID_URIHOOK);
+	ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;appID=%d", APPID_URIHOOK);
 	ast_str_append(&paramStr, DEFAULT_PBX_STR_BUFFERSIZE, "&amp;transactionID=%d", transactionID);
 	
 	/* build xmlStr */
