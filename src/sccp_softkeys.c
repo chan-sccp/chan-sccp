@@ -866,13 +866,8 @@ static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t *softkeyMap_cb, sccp_devi
 
 #if CS_EXPERIMENTAL
 /*!
-#ifdef CS_EXPERIMENTAL
  * \brief Execute URI(s) 
  * \n Usage: \ref sk_uriaction
- * \param d SCCP Device
- * \param l SCCP Line
- * \param lineInstance lineInstance as uint8_t
- * \param c SCCP Channel
  */
 static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t *softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
@@ -1047,7 +1042,6 @@ void sccp_softkey_clear(void)
 }
 
 /*!
-#ifdef CS_EXPERIMENTAL
  * \brief Return a Copy of the statically defined SoftkeyMap
  * \note malloc, needs to be freed
  */
@@ -1083,7 +1077,6 @@ boolean_t sccp_softkeyMap_replaceCallBackByUriAction( sccp_softkeyMap_cb_t *soft
 #endif 
 
 /*!
-#endif
  * \brief Execute Softkey Callback by SofkeyEvent
  */
 boolean_t sccp_SoftkeyMap_execCallbackByEvent(sccp_device_t *d, sccp_line_t *l, uint32_t lineInstance, sccp_channel_t *c, uint32_t event)
@@ -1108,13 +1101,6 @@ boolean_t sccp_SoftkeyMap_execCallbackByEvent(sccp_device_t *d, sccp_line_t *l, 
 
 /*!
  * \brief Enable or Disable one softkey on a specific softKeySet
-#ifdef CS_EXPERIMENTAL
- * \param device SCCP Device ()
- * \param softKeySet SoftkeySet \see SoftKeyModes
- * \param softKey softkey e.g. SKINNY_LBL_REDIAL
- * \param enable enabled or disabled
- *
-#endif
  */
 void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, uint8_t softKey, boolean_t enable)
 {
