@@ -280,10 +280,10 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	}
 
 	if (cid_name) {
-		free(cid_name);
+		sccp_free(cid_name);
 	}
 	if (cid_number) {
-		free(cid_number);
+		sccp_free(cid_number);
 	}
 
 	return isRinging != TRUE;

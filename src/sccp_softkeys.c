@@ -1047,7 +1047,7 @@ void sccp_softkey_clear(void)
 		if (k->softkeyCbMap) {
 			for(i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
 				if (!sccp_strlen_zero(k->softkeyCbMap[i].uriactionstr)) {
-					free(k->softkeyCbMap[i].uriactionstr);
+					sccp_free(k->softkeyCbMap[i].uriactionstr);
 				}
 			}
 			sccp_free(k->softkeyCbMap);

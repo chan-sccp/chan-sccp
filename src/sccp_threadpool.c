@@ -190,7 +190,7 @@ static void sccp_threadpool_thread_end(void *p)
 
 	ast_cond_signal(&(tp_p->exit));
 	if (res) {
-		free(res);
+		sccp_free(res);
 	}
 }
 
@@ -239,7 +239,7 @@ void sccp_threadpool_thread_do(void *p)
 			sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_thread_do) executing %p in thread: %p\n", job, thread);
 			if (job) {
 				func_buff(arg_buff);								/* run function */
-				free(job);									/* DEALLOC job */
+				sccp_free(job);									/* DEALLOC job */
 			}
 			// check number of threads in threadpool
 			if ((time(0) - tp_p->last_size_check) > THREADPOOL_RESIZE_INTERVAL) {
@@ -335,7 +335,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	ast_cond_destroy(&(tp_p->exit));									/* Remove Condition */
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->jobs));
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->threads));
-	free(tp_p);												/* DEALLOC thread pool */
+	sccp_free(tp_p);												/* DEALLOC thread pool */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Threadpool Ended\n");
 }
 
