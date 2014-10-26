@@ -191,7 +191,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 		return NULL;
 	}
 
-	if (!(obj = calloc(1, size + sizeof(*obj)))) {
+	if (!(obj = sccp_calloc(1, size + sizeof(*obj)))) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (obj)");
 		return NULL;
 	}
@@ -216,7 +216,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 		// create new hashtable head when necessary (should this possibly be moved to refcount_init, to avoid raceconditions ?)
 		ast_rwlock_wrlock(&objectslock);
 		if (!objects[hash]) {										// check again after getting the lock, to see if another thread did not create the head already
-			if (!(objects[hash] = malloc(sizeof(struct refcount_objentry)))) {
+			if (!(objects[hash] = sccp_malloc(sizeof(struct refcount_objentry)))) {
 				ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (hashtable)");
 				free(obj);
 				obj = NULL;
