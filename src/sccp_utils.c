@@ -1524,7 +1524,7 @@ struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp
 		path = path->next;
 	}
 
-	if (!(ha = ast_calloc(1, sizeof(*ha)))) {
+	if (!(ha = sccp_calloc(1, sizeof(*ha)))) {
 		if (error) {
 			*error = 1;
 		}

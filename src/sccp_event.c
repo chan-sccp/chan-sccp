@@ -121,8 +121,8 @@ void sccp_event_module_start(void)
 
 	if (!sccp_event_running) {
 		for (i = 0; i < NUMBER_OF_EVENT_TYPES; i++) {
-			subscriptions[i].async = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
-			subscriptions[i].sync = (sccp_event_subscriber_t *) malloc(sizeof(sccp_event_subscriber_t));
+			subscriptions[i].async = (sccp_event_subscriber_t *) sccp_malloc(sizeof(sccp_event_subscriber_t));
+			subscriptions[i].sync = (sccp_event_subscriber_t *) sccp_malloc(sizeof(sccp_event_subscriber_t));
 		}
 		sccp_event_running = TRUE;
 	}
@@ -290,7 +290,7 @@ void sccp_event_fire(const sccp_event_t * event)
 	if (GLOB(module_running)) {
 		if (subscriptions[i].aSyncSize > 0 && sccp_event_running) {
 			/* create thread for async subscribers */
-			struct sccp_event_aSyncEventProcessorThreadArg *arg = malloc(sizeof(struct sccp_event_aSyncEventProcessorThreadArg));
+			struct sccp_event_aSyncEventProcessorThreadArg *arg = sccp_malloc(sizeof(struct sccp_event_aSyncEventProcessorThreadArg));
 
 			if (!arg) {
 				pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event_aSyncEventProcessorThreadArg. Skipping\n", event);

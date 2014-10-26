@@ -1044,10 +1044,10 @@ void sccp_softkey_clear(void)
 			}
 		}
 #ifdef CS_EXPERIMENTAL
-		if (k->softkeyCbMap != softkeyCbMap) {
+		if (k->softkeyCbMap) {
 			for(i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
-				if (!sccp_strlen_zero(softkeyCbMap[i].uriactionstr)) {
-					free(softkeyCbMap[i].uriactionstr);
+				if (!sccp_strlen_zero(k->softkeyCbMap[i].uriactionstr)) {
+					free(k->softkeyCbMap[i].uriactionstr);
 				}
 			}
 			sccp_free(k->softkeyCbMap);
@@ -1062,9 +1062,9 @@ void sccp_softkey_clear(void)
  * \brief Return a Copy of the statically defined SoftkeyMap
  * \note malloc, needs to be freed
  */
-sccp_softkeyMap_cb_t *sccp_softkeyMap_copyStaticallyMapped(void)
+sccp_softkeyMap_cb_t __attribute__((malloc)) *sccp_softkeyMap_copyStaticallyMapped(void)
 {
-	sccp_softkeyMap_cb_t *newSoftKeyMap = malloc(ARRAY_LEN(softkeyCbMap) * sizeof(sccp_softkeyMap_cb_t));
+	sccp_softkeyMap_cb_t *newSoftKeyMap = sccp_malloc(ARRAY_LEN(softkeyCbMap) * sizeof(sccp_softkeyMap_cb_t));
 	if (!newSoftKeyMap) {
 		return NULL;
 	}
