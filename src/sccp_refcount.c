@@ -218,7 +218,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 		if (!objects[hash]) {										// check again after getting the lock, to see if another thread did not create the head already
 			if (!(objects[hash] = sccp_malloc(sizeof(struct refcount_objentry)))) {
 				ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Memory allocation failure (hashtable)");
-				free(obj);
+				sccp_free(obj);
 				obj = NULL;
 				ast_rwlock_unlock(&objectslock);
 				return NULL;

@@ -463,7 +463,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 					if (strcasecmp(str, value)) {
 						changed = SCCP_CONFIG_CHANGE_CHANGED;
 						/* there is a value already, free it */
-						free(str);
+						sccp_free(str);
 						*(void **) dst = strdup(value);
 					}
 				} else {
@@ -474,7 +474,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			} else if (!sccp_strlen_zero(str)) {
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 				/* there is a value already, free it */
-				free(str);
+				sccp_free(str);
 				if (value == NULL) {
 					*(void **) dst = NULL;
 				} else {
