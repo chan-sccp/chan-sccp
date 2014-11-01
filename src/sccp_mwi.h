@@ -4,9 +4,9 @@
  * \author	Marcello Ceschia <marcello [at] ceschia.de>
  * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *		See the LICENSE file at the top of the source tree.
- * 
+ *
  * $Date$
- * $Revision$  
+ * $Revision$
  */
 
 #ifndef SCCP_MWI_H_
@@ -14,6 +14,7 @@
 
 #ifdef CS_AST_HAS_EVENT
 #include "asterisk/event.h"
+
 #endif
 
 /*!
@@ -25,7 +26,7 @@
 typedef struct sccp_mailboxLine sccp_mailboxLine_t;
 
 /*!
- * \brief SCCP Mailbox Line Type Structure 
+ * \brief SCCP Mailbox Line Type Structure
  *
  * holding line information for mailbox subscription
  *
@@ -42,7 +43,7 @@ typedef struct sccp_mailbox_subscriber_list sccp_mailbox_subscriber_list_t;
 
 /*!
  * \brief SCCP Mailbox Subscriber List Structure
- * 
+ *
  * we hold a mailbox event subscription in sccp_mailbox_subscription_t.
  * Each line that holds a subscription for this mailbox is listed in
  */
@@ -54,7 +55,7 @@ struct sccp_mailbox_subscriber_list {
 	SCCP_LIST_ENTRY (sccp_mailbox_subscriber_list_t) list;
 
 	/*!
-	 * \brief Current Voicemail Statistic Structure 
+	 * \brief Current Voicemail Statistic Structure
 	 */
 	struct {
 		int newmsgs;											/*!< New Messages */
@@ -62,14 +63,14 @@ struct sccp_mailbox_subscriber_list {
 	} currentVoicemailStatistic;										/*!< Current Voicemail Statistic Structure */
 
 	/*!
-	 * \brief Previous Voicemail Statistic Structure 
+	 * \brief Previous Voicemail Statistic Structure
 	 */
 	struct {
 		int newmsgs;											/*!< New Messages */
 		int oldmsgs;											/*!< Old Messages */
 	} previousVoicemailStatistic;										/*!< Previous Voicemail Statistic Structure */
 
-#ifdef CS_AST_HAS_EVENT
+#if defined ( CS_AST_HAS_EVENT ) || defined( CS_AST_HAS_STASIS )
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
@@ -85,8 +86,11 @@ void sccp_mwi_check(sccp_device_t * device);
 
 void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox);
 
-#ifdef CS_AST_HAS_EVENT
+#if defined( CS_AST_HAS_EVENT )
 void sccp_mwi_event(const struct ast_event *event, void *data);
+#elif defined(CS_AST_HAS_STASIS)  && defined(CS_EXPERIMENTAL)
+void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg);
+
 #else
 int sccp_mwi_checksubscription(const void *ptr);
 #endif

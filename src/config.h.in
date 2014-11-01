@@ -164,6 +164,9 @@
 /* 'ast_app_has_voicemail' available */
 #undef CS_AST_HAS_NEW_VOICEMAIL
 
+/* 'stasis_subscribe' available */
+#undef CS_AST_HAS_STASIS
+
 /* 'struct ast_channel_tech' available */
 #undef CS_AST_HAS_TECH_PVT
 
@@ -556,7 +559,7 @@
 /* Found 'asterisk/event_defs.h' */
 #undef HAVE_PBX_EVENT_DEFS_CIDNAME_H
 
-/* Found 'asterisk/event.h' */
+/* WOOHOO Found 'asterisk/event.h' */
 #undef HAVE_PBX_EVENT_H
 
 /* Found 'asterisk/extconf.h' */
@@ -612,6 +615,9 @@
 
 /* Found 'asterisk/sched.h' */
 #undef HAVE_PBX_SCHED_H
+
+/* Found 'asterisk/stasis.h' */
+#undef HAVE_PBX_STASIS_H
 
 /* Found 'asterisk/stringfields.h' */
 #undef HAVE_PBX_STRINGFIELDS_H

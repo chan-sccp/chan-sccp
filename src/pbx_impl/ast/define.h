@@ -163,7 +163,11 @@ typedef struct ast_event pbx_event_t;
 #define pbx_event_get_ie_str ast_event_get_ie_str
 #define pbx_event_get_ie_uint ast_event_get_ie_uint
 #define pbx_event_new ast_event_new
+#if defined( CS_AST_HAS_STASIS )
+#define pbx_event_sub stasis_subscription
+#else
 #define pbx_event_sub ast_event_sub
+#endif
 #define pbx_event_subscribe ast_event_subscribe
 #define pbx_event_unsubscribe ast_event_unsubscribe
 #define pbx_event_queue_and_cache ast_event_queue_and_cache
@@ -286,7 +290,11 @@ typedef struct ast_event pbx_event_t;
 #define pbx_variable_retrieve ast_variable_retrieve
 #define pbx_variables_destroy ast_variables_destroy
 #define pbx_strlen_zero ast_strlen_zero
+#if defined( CS_AST_HAS_STASIS )
+#define pbx_event_sub stasis_subscription
+#else
 #define pbx_event_sub ast_event_sub
+#endif
 #define pbx_context_find ast_context_find
 #define pbx_hangup ast_hangup
 #define pbx_atomic_fetchadd_int ast_atomic_fetchadd_int
