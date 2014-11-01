@@ -63,10 +63,16 @@ void sccp_mwi_module_stop(void)
 		SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
 		SCCP_LIST_HEAD_DESTROY(&subscription->sccp_mailboxLine);
 
-#ifdef CS_AST_HAS_EVENT
+#if defined(CS_AST_HAS_EVENT)
 		/* unsubscribe asterisk event */
 		if (subscription->event_sub) {
 			pbx_event_unsubscribe(subscription->event_sub);
+		}
+
+#elif defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (sccp_mwi_module_stop) STASIS Unsubscribe\n");
+		if (subscription->event_sub) {
+			stasis_unsubscribe(subscription->event_sub);
 		}
 #else
 		subscription->schedUpdate = SCCP_SCHED_DEL(subscription->schedUpdate);
@@ -81,6 +87,8 @@ void sccp_mwi_module_stop(void)
 	sccp_event_unsubscribe(SCCP_EVENT_DEVICE_ATTACHED, sccp_mwi_deviceAttachedEvent);
 	sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED, sccp_mwi_lineStatusChangedEvent);
 }
+
+
 
 /*!
  * \brief Generic update mwi count
@@ -120,7 +128,42 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 	SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
 }
 
-#ifdef CS_AST_HAS_EVENT
+#if defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
+/*!
+ * \brief Receive MWI Event from Asterisk
+ * \param event Asterisk Event
+ * \param data Asterisk Data
+ */
+
+void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg)
+{
+	sccp_mailbox_subscriber_list_t *subscription = userdata;
+
+	pbx_log(LOG_NOTICE, "Got mwi-event\n");
+
+	if (!subscription || !sub) {
+		return;
+	}
+
+        if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
+                struct ast_mwi_state *mwi_state = stasis_message_data(msg);
+		subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
+	        subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
+
+		subscription->currentVoicemailStatistic.newmsgs = mwi_state->new_msgs;
+		subscription->currentVoicemailStatistic.oldmsgs = mwi_state->old_msgs;
+
+	        if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
+	                sccp_mwi_updatecount(subscription);
+	        }
+
+        } else {
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received STASIS Message that did not contain mwi state\n");
+	}
+
+}
+
+#elif defined(CS_AST_HAS_EVENT)
 /*!
  * \brief Receive MWI Event from Asterisk
  * \param event Asterisk Event
@@ -153,10 +196,10 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
  * \brief MWI Progress
  * \param ptr Pointer to Mailbox Subscriber list Entry
  * \note only used for asterisk version without mwi event (scheduled check)
- * 
+ *
  * \warning
  *  - line->devices is not always locked
- * 
+ *
  * \called_from_asterisk
  */
 int sccp_mwi_checksubscription(const void *ptr)
@@ -186,6 +229,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	}
 	return 0;
 }
+
 #endif
 
 /*!
@@ -200,7 +244,7 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox)
 }
 
 /*!
- * \brief Device Attached Event 
+ * \brief Device Attached Event
  * \param event SCCP Event
  */
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
@@ -211,7 +255,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
-	
+
 	sccp_linedevices_t 	*linedevice	= event->event.deviceAttached.linedevice;
 	sccp_line_t 		*line 		= linedevice->line;
 	sccp_device_t 		*device		= linedevice->device;
@@ -226,7 +270,7 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 }
 
 /*!
- * \brief Line Status Changed Event 
+ * \brief Line Status Changed Event
  * \param event SCCP Event
  */
 void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
@@ -237,7 +281,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
-	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN || 
+	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN ||
 		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_ONHOOK ||
 		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_RINGING) {				/* these are the only events we are interested in */
 		sccp_mwi_check(event->event.lineStatusChanged.optional_device);
@@ -245,9 +289,9 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 }
 
 /*!
- * \brief Line Created Event 
+ * \brief Line Created Event
  * \param event SCCP Event
- * 
+ *
  * \warning
  *  - line->mailboxes is not always locked
  */
@@ -277,7 +321,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
  * \param mailbox Mailbox as char
  * \param context Mailbox Context
  * \param line SCCP Line
- * 
+ *
  * \warning
  *  - subscription->sccp_mailboxLine is not always locked
  */
@@ -316,6 +360,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		SCCP_LIST_UNLOCK(&sccp_mailbox_subscriptions);
 
 		/* get initial value */
+
 #ifdef CS_AST_HAS_EVENT
 		struct ast_event *event = ast_event_get_cached(AST_EVENT_MWI,
 							       AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox,
@@ -335,7 +380,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 			pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 		}
 
-#ifdef CS_AST_HAS_EVENT
+#if defined( CS_AST_HAS_EVENT)
 		/* register asterisk event */
 		//struct pbx_event_sub *pbx_event_subscribe(enum ast_event_type event_type, ast_event_cb_t cb, char *description, void *userdata, ...);
 #if ASTERISK_VERSION_NUMBER >= 10800
@@ -346,7 +391,19 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		if (!subscription->event_sub) {
 			pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
+#elif defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Adding STASIS Subscription for mailbox %s\n", subscription->mailbox);
+		char mailbox_context[512];
+		sprintf(mailbox_context, "%s@%s", subscription->mailbox, subscription->context);
+
+                struct stasis_topic *mailbox_specific_topic;
+                mailbox_specific_topic = ast_mwi_topic(mailbox_context);
+                if (mailbox_specific_topic) {
+                        subscription->event_sub = stasis_subscribe(mailbox_specific_topic, sccp_mwi_event, subscription);
+                }
+
 #else
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Falling back to polling mailbox status\n");
 		if ((subscription->schedUpdate = PBX(sched_add)(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
@@ -476,7 +533,7 @@ void sccp_mwi_check(sccp_device_t * d)
 
 	/* check if we have an active channel */
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
-	
+
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 	if (!device) {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_check) called with NULL device!\n");
@@ -570,14 +627,14 @@ void sccp_mwi_check(sccp_device_t * d)
 
 /*!
  * \brief Show MWI Subscriptions
- * \param fd Fd as int   
+ * \param fd Fd as int
  * \param total Total number of lines as int
- * \param s AMI Session 
+ * \param s AMI Session
  * \param m Message
  * \param argc Argc as int
  * \param argv[] Argv[] as char
  * \return Result as int
- * 
+ *
  * \called_from_asterisk
  */
 #include <asterisk/cli.h>

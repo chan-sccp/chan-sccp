@@ -687,7 +687,7 @@ dnl			)
     ])
     AC_CHECK_HEADER([asterisk/event.h],	
     		[
-    			AC_DEFINE(HAVE_PBX_EVENT_H,1,[Found 'asterisk/event.h'])
+    			AC_DEFINE(HAVE_PBX_EVENT_H,1,[WOOHOO Found 'asterisk/event.h'])
     			CS_CV_TRY_COMPILE_DEFINE([ - availability 'ast_event_subscribe'...], [ac_cv_ast_event_subscribe], [
 			               	$HEADER_INCLUDE
 					#include <asterisk/event.h>
@@ -715,6 +715,21 @@ dnl			)
 	               	$HEADER_INCLUDE
     ])
     
+    AC_CHECK_HEADER([asterisk/stasis.h],	
+    		[
+    			AC_DEFINE(HAVE_PBX_STASIS_H,1,[Found 'asterisk/stasis.h'])
+    			CS_CV_TRY_COMPILE_DEFINE([ - availability 'stasis_subscribe'...], [ac_cv_ast_stasis_subscribe], [
+			               	$HEADER_INCLUDE
+					#include <asterisk/stasis.h>
+				], [
+                                        struct stasis_topic *stasis_topic;
+					void *data;
+                                        struct stasis_subscription *stasis_sub = stasis_subscribe(stasis_topic, data, data);
+				], [CS_AST_HAS_STASIS],['stasis_subscribe' available]
+			)
+		],,[ 
+	               	$HEADER_INCLUDE
+    ])
     AC_CHECK_HEADER([asterisk/features.h],
     [
    			AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h'])

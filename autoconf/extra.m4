@@ -230,7 +230,7 @@ AC_DEFUN([CS_CC_VERSION_CHECK], [
 	elif test "${CC}" = "clang"; then
 		dnl CLANG_CHECK=`echo | clang -fblocks -dM -E -`
 		if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
-			CFLAGS_saved="${CFLAGS_saved} -fblocks"
+			CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
 			AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
 			CC_works=1
 		else			
