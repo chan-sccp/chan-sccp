@@ -70,7 +70,7 @@ struct sccp_mailbox_subscriber_list {
 		int oldmsgs;											/*!< Old Messages */
 	} previousVoicemailStatistic;										/*!< Previous Voicemail Statistic Structure */
 
-#if defined ( CS_AST_HAS_EVENT ) || defined( CS_AST_HAS_STASIS )
+#if defined ( CS_AST_HAS_EVENT ) || (defined( CS_AST_HAS_STASIS ) && defined(CS_EXPERIMENTAL))
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
