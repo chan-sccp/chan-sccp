@@ -19,3 +19,4 @@ void sccp_register_cli(void);
 void sccp_unregister_cli(void);
 
 #endif														// __SCCP_CLI_H
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

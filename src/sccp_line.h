@@ -66,3 +66,4 @@ void sccp_line_createLineButtonsArray(sccp_device_t *device);
 void sccp_line_deleteLineButtonsArray(sccp_device_t *device);
 
 #endif														/* __SCCP_LINE_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

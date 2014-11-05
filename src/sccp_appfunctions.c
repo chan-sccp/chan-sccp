@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_appfunctions.c
  * \brief       SCCP application / dialplan functions Class
@@ -779,3 +778,4 @@ int sccp_unregister_dialplan_functions(void)
 
 	return result;
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

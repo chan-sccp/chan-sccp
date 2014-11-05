@@ -156,4 +156,4 @@ NAMESPACE##_##ENUM_NAME##_t NAMESPACE##_##ENUM_NAME##_longstr2val(const char * l
 #undef ENUMMACRO_GENERATE
 #undef ENUMMACRO_FILE
 #undef ENUMMACRO_STAGE
-
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -386,3 +386,4 @@ int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 #endif
 enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast);
 #endif
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

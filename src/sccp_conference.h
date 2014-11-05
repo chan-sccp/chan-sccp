@@ -95,3 +95,4 @@ int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const 
 #endif
 #endif														/* CS_SCCP_CONFERENCE */
 #endif														/* SCCP_CONFERENCE_H_ */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

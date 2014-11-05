@@ -578,3 +578,5 @@ BEGIN_ENUM(skinny,mediastatus,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_RequestedIpAddrTypeUnavailable	,,	"Media Error: Requested IP Address Type if not available") 
         ENUM_ELEMENT(SKINNY_MEDIASTATUS_DeviceOnHook 			,,	"Media Error: Device is on hook") 
 END_ENUM(skinny,mediastatus,ENUMMACRO_INCREMENTAL)
+
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

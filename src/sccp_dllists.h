@@ -390,3 +390,4 @@ struct {												\
 #define SCCP_LIST_GETSIZE(head) (head)->size
 #define SCCP_RWLIST_GETSIZE SCCP_LIST_GETSIZE
 #endif														/* _SCCP_DLLISTS_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

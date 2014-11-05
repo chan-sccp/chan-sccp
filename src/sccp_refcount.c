@@ -525,3 +525,4 @@ void sccp_refcount_autorelease(void *ptr)
 		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

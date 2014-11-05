@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_softkeys.c
  * \brief	SCCP SoftKeys Class
@@ -1141,4 +1140,4 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 		}
 	}
 }
-
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

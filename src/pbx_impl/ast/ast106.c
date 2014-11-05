@@ -1,4 +1,3 @@
-
 /*!
  * \file        ast106.c
  * \brief       SCCP PBX Asterisk Wrapper Class
@@ -3440,3 +3439,4 @@ PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_findPickupChannelByExtenLocked(PBX_CHA
 	target = ast_channel_search_locked(sccp_find_pbxchannel_by_exten, &search);
 	return target;
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

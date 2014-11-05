@@ -125,3 +125,4 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 void sccp_device_setLamp(const sccp_device_t *device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
 
 #endif														/* __SCCP_DEVICE_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

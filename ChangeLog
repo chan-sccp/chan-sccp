@@ -1,3 +1,140 @@
+2014-11-04  ddegroot
+
+	* [r5788] src/sccp_mwi.h: Fix: Ast-13 compile issue. Reported by
+	  Niklas Larsson.
+
+2014-11-01  marcelloceschia
+
+	* [r5787] autoconf/asterisk.m4, autoconf/extra.m4, configure,
+	  src/config.h.in, src/pbx_impl/ast/define.h, src/sccp_mwi.c,
+	  src/sccp_mwi.h: stasis patch by Matt Hoskins, requires
+	  experiamental mode
+
+2014-10-26  ddegroot
+
+	* [r5786] src/sccp_config.c, src/sccp_event.c, src/sccp_pbx.c,
+	  src/sccp_refcount.c, src/sccp_softkeys.c, src/sccp_threadpool.c:
+	  Enhancement: replace free/ast_free with sccp_free and realloc
+	  with sccp_realloc (consistency)
+
+	* [r5785] src/sccp_event.c, src/sccp_refcount.c,
+	  src/sccp_softkeys.c, src/sccp_threadpool.c, src/sccp_utils.c:
+	  Enhancement: use sccp_malloc/sccp_calloc everywhere so that all
+	  allocation show up in 'memory show summary'. Fix: Memory Leak in
+	  sccp_softkey
+
+2014-10-26  marcelloceschia
+
+	* [r5784] src/sccp_socket.c: debug send messages when
+	  DEBUGCAT_MESSAGE
+
+2014-10-25  ddegroot
+
+	* [r5783] src/sccp_softkeys.c: Fix: sccp_sk_post_reload to fixup
+	  devices and softkeys (only required for experimental mode and
+	  because of device before softkey parsing order
+
+	* [r5782] src/sccp_softkeys.c: Fix: apptID -> appID
+
+	* [r5781] src/sccp_softkeys.c: Fix: cleanup some of the doxygen
+	  remarks
+
+	* [r5780] conf/sccp.conf.annotated, src/chan_sccp.h,
+	  src/sccp_actions.c, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_config_entries.hh, src/sccp_protocol.c,
+	  src/sccp_protocol.h, src/sccp_softkeys.c, src/sccp_softkeys.h,
+	  src/sccp_utils.c, src/sccp_utils.h: Enhancement: Added
+	  'uriaction' parameter to softkeyset, which makes it possible to
+	  intercept a softkey press and handled it using a custom
+	  implementation by calling a url instead (experimental feature).
+	  Custom Feature Requested by Cody Miller-Kelly (Vertiro)
+
+2014-10-24  marcelloceschia
+
+	* [r5779] src/sccp_indicate.c: fixes #228 (in and out of band
+	  signaling during ringout)
+
+2014-10-24  ddegroot
+
+	* [r5778] src/sccp_actions.c, src/sccp_cli.c, src/sccp_softkeys.c,
+	  src/sccp_softkeys.h: Enhancement: Reduce the softkey class
+	  exposure
+
+2014-10-23  ddegroot
+
+	* [r5777] src/sccp_utils.c, src/sccp_utils.h: Enhancement: Added
+	  labelstr2int lookup function
+
+2014-10-19  ddegroot
+
+	* [r5776] src/sccp_conference.c, src/sccp_pbx.c: Enhancement: Check
+	  if conference->bridge was created succesfully during
+	  conference_create or return NULL, and cancel conference. Issue
+	  reported by Asela Fernando
+
+	* [r5775] src/sccp_refcount.c: Fix: refcount array length should be
+	  prime number.
+
+	* [r5774] src/sccp_conference.c: Enhancement: Check if
+	  conference->bridge exists before trying to join it. Issue
+	  reported by Asela Fernando
+
+2014-10-14  ddegroot
+
+	* [r5773] conf/sccp.conf.annotated: Doc: add useRedialMenu
+	  requiredment for phoneServices entry
+
+2014-10-13  ddegroot
+
+	* [r5772] src/sccp_channel.c: Fix: segfault set_originalCalledParty
+	  / set_originalCallingParty. Reported by Alena Juk.
+
+2014-10-10  marcelloceschia
+
+	* [r5771] src/pbx_impl/ast/ast113.c: references #237; remove debug
+	  notice output
+
+	* [r5770] src/pbx_impl/ast/ast113.c: fixes #237; asterisk
+	  introduces a none codec that kills asterisk translation path
+	  whereas there a valid codec after the none
+
+2014-10-09  ddegroot
+
+	* [r5769] src/sccp_indicate.c: Fix: remove duplicate information
+	  from status bar when channel is ringing, no need to duplicate the
+	  CallPlane information
+
+	* [r5768] contrib/phone_screenshot/phone_screenshot: Fix:
+	  phone_screenshot
+
+	* [r5767] src/sccp_indicate.c: Enhancement: Show
+	  originalCalledNumber if available during ringin in the status bar
+
+2014-10-08  ddegroot
+
+	* [r5766] src/pbx_impl/ast/ast113.c, src/sccp_utils.c: Fix: doxygen
+	  issues
+
+	* [r5765] src/sccp_actions.c, src/sccp_pbx.c: Enhancement: Change
+	  Log Levels to reduce logging with 'core set verbose 2' to only
+	  show the most important including notices/errors
+
+	* [r5764] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_channel.c, src/sccp_features.c, src/sccp_pbx.c: Cleanup:
+	  scheduled digittimeout. Enhancement: Reduce log level for
+	  extension matcher
+
+	* [r5763] src/sccp_actions.c, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_pbx.c: Enhancement: Revised cfwdBusy handling (db
+	  update, device status check etc).
+
+	* [r5762] ChangeLog, INSTALL, Makefile.in, autoconf/extra.m4,
+	  autoconf/missing, configure, contrib/gen_sccpconf/Makefile.in,
+	  doc/Makefile.in, src/Makefile.in: Update: ChangeLog staring at
+	  revision 5500
+
 2014-10-06  ddegroot
 
 	* [r5761] src/sccp_protocol.h, src/sccp_utils.c, src/sccp_utils.h:

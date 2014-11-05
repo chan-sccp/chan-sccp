@@ -61,3 +61,4 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in);
 void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in);
 #endif
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

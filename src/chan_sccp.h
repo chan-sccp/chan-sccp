@@ -1438,3 +1438,4 @@ int sccp_updateExternIp(void);
 extern const char devstate_db_family[];
 #endif
 #endif														/* __CHAN_SCCP_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

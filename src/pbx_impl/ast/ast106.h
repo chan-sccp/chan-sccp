@@ -228,3 +228,4 @@ char *pbx_getformatname_multiple(char *buf, size_t size, format_t format);
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														/* SCCP_ASTERISK19_PBX_H_ */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

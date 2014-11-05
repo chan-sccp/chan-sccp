@@ -38,3 +38,4 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 #endif
 
 #endif														/* __SCCP_INDICATE_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

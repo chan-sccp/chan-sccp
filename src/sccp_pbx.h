@@ -33,3 +33,4 @@ int sccp_pbx_answer(sccp_channel_t * c);
 // At this moment it provides a little logging and switches a couple of DTMF signals off when bridging SCCP<->SCCP calls - DdG
 //! \todo move this to pbx impl
 #endif
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
