@@ -97,3 +97,4 @@ int sccp_mwi_checksubscription(const void *ptr);
 int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 
 #endif														/*SCCP_MWI_H_ */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

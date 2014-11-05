@@ -86,3 +86,4 @@ int sccp_refcount_force_release(long findobj, char *identifier);
 
 /* *INDENT-ON* */
 #endif														// __SCCP_REFCOUNT_H
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off

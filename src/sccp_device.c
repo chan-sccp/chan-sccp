@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_device.c
  * \brief       SCCP Device Class
@@ -2828,4 +2827,3 @@ void sccp_device_setLamp(const sccp_device_t *device, skinny_stimulus_t stimulus
 	}
 }
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets on;
-

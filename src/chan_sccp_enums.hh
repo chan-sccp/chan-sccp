@@ -151,3 +151,4 @@ BEGIN_ENUM(sccp,call_answer_order,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_ANSWER_LAST_FIRST			,=1,	"LastFirst")
 END_ENUM(sccp,call_answer_order,ENUMMACRO_INCREMENTAL)
 
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -20,3 +20,4 @@ void sccp_devstate_module_start(void);
 void sccp_devstate_module_stop(void);
 
 #endif							/* SCCP_DEVSTATE_H_ */ 
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

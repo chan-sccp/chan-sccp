@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_hint.c
  * \brief	SCCP Hint Class
@@ -1316,3 +1315,4 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
 	}
 	return RESULT_SUCCESS;
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

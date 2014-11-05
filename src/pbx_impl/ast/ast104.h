@@ -78,3 +78,4 @@ uint8_t sccp_wrapper_asterisk_get_payloadType(const struct sccp_rtp *rtp, skinny
 // END CLI_ENTRY
 
 #endif														/* SCCP_ASTERISK19_PBX_H_ */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -143,3 +143,4 @@ char *sccp_dec2binstr(char *buf, size_t size, int value);
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
 char *sccp_trimwhitespace(char *str);
 #endif
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -270,3 +270,4 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	};
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														/* SCCP_AST108_H_ */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

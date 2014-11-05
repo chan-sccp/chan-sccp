@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_adv_features.c
  * \brief       SCCP Advanced Features Class
@@ -40,3 +39,4 @@ void dummyproc2(void)
 		dummyproc1();
 	}
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

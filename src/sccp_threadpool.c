@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_threadpool.c
  * \brief	SCCP Threadpool Class
@@ -377,3 +376,4 @@ int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 	sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
 	return SCCP_LIST_GETSIZE(&tp_p->jobs);
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

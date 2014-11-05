@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_featureButton.c
  * \brief	SCCP FeatureButton Class
@@ -342,3 +341,4 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	}
 }
 #endif
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

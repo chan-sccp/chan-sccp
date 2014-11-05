@@ -1289,7 +1289,4 @@ void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features)
 	msg->data.SPCPRegisterTokenAck.lel_features = htolel(features);
 	sccp_session_send2(session, msg);
 }
-
-
-
-
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

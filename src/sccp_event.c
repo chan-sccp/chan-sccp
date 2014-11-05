@@ -1,4 +1,3 @@
-
 /*!
  * \file	sccp_event.c
  * \brief	SCCP Event Class
@@ -344,3 +343,4 @@ void sccp_event_fire(const sccp_event_t * event)
 		}
 	}
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

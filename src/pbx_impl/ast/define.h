@@ -1,4 +1,3 @@
-
 /*!
  * \file	define.h
  * \brief       SCCP PBX Redefinition Asterisk Header
@@ -340,3 +339,4 @@ typedef struct ast_event pbx_event_t;
 #define pbx_channel_redirecting_effective_to(_a) (_a)->redirecting.to
 
 #endif
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

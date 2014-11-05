@@ -20,3 +20,4 @@ void sccp_hint_module_stop(void);
 int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
 #endif														/* SCCP_HINT_H_ */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

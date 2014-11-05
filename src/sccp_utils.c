@@ -1872,3 +1872,4 @@ char *sccp_trimwhitespace(char *str)
 	*(end+1) = 0;
 	return str;
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

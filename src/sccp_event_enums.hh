@@ -23,3 +23,5 @@ BEGIN_ENUM(sccp,event_type,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_EVENT_FEATURE_CHANGED				,=1<<8,	"Feature Changed")
         ENUM_ELEMENT(SCCP_EVENT_LINESTATUS_CHANGED			,=1<<9,	"LineStatus Changed")
 END_ENUM(sccp,event_type,ENUMMACRO_INCREMENTAL)
+
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

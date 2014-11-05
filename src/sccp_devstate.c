@@ -283,3 +283,4 @@ void sccp_devstate_changed_cb(const struct ast_event *ast_event, void *data)
 		sccp_devstate_notifySubscriber(deviceState, subscriber);
 	}
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

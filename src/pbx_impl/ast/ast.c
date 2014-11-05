@@ -1,4 +1,3 @@
-
 /*!
  * \file	ast.c
  * \brief	SCCP PBX Asterisk Wrapper Class
@@ -938,5 +937,4 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 EXIT:
 	return res;
 }
- 
 // kate: indent-width 4; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off;

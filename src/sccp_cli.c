@@ -3649,3 +3649,4 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowHintLineStates");
 	pbx_manager_unregister("SCCPShowHintSubscriptions");
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

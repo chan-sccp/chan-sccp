@@ -1,4 +1,3 @@
-
 /*!
  * \file        ast112_announce.c
  * \brief       SCCP PBX Conference Announcement Channel Tech
@@ -186,3 +185,4 @@ int sccpconf_announce_channel_push(struct ast_channel *ast, struct ast_bridge *b
 	ao2_cleanup(p);
 	return 0;
 }
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

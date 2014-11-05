@@ -35,3 +35,4 @@ boolean_t sccp_rtp_getPeer(const struct sccp_rtp *rtp, struct sockaddr_storage *
 uint16_t sccp_rtp_getServerPort(const struct sccp_rtp *rtp);
 
 #endif														// __SCCP_RTP_H
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

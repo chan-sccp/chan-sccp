@@ -39,3 +39,4 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten);
 void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d);
 int sccp_feat_cbarge(sccp_channel_t * c, char *conferencenum);
 #endif														/* __SCCP_FEATURES_H */
+// kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
