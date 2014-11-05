@@ -1,13 +1,13 @@
 /*!
- * \file	sccp_channel.h
+ * \file        sccp_channel.h
  * \brief       SCCP Channel Header
- * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \date
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -22,7 +22,7 @@
 
 /* live cycle */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE *parentChannel);
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
@@ -53,17 +53,17 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel);
 void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen);
 void sccp_channel_updateMultiMediaTransmission(sccp_channel_t * channel);
 
-void sccp_channel_closeAllMediaTransmitAndReceive (sccp_device_t *d, sccp_channel_t *channel);
+void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channel_t * channel);
 
-boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t *channel);
-gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t *channel);
-gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t *channel, uint timeout);
-gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t *channel, uint timeout);
-void sccp_channel_end_forwarding_channel(sccp_channel_t *channel);
+boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t * channel);
+gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel);
+gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint timeout);
+gcc_inline void sccp_channel_schedule_digittimout(sccp_channel_t * channel, uint timeout);
+void sccp_channel_end_forwarding_channel(sccp_channel_t * channel);
 void sccp_channel_endcall(sccp_channel_t * c);
 void sccp_channel_StatisticsRequest(sccp_channel_t * c);
 void sccp_channel_answer(const sccp_device_t * d, sccp_channel_t * c);
-void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t *channel);
+void sccp_channel_stop_and_deny_scheduled_tasks(sccp_channel_t * channel);
 void sccp_channel_clean(sccp_channel_t * c);
 void sccp_channel_transfer(sccp_channel_t * c, sccp_device_t * device);
 void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c);
@@ -96,7 +96,7 @@ sccp_channel_t *sccp_find_channel_on_line_byid(sccp_line_t * l, uint32_t id);
 sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid);
 sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channelstate_t state);
 sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * d, sccp_channelstate_t state);
-sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t *d, const uint32_t lineInstance, const uint32_t callid);
+sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t * d, const uint32_t lineInstance, const uint32_t callid);
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid);
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * c);
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * d);

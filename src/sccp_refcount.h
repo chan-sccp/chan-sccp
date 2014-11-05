@@ -1,8 +1,8 @@
 /*!
- * \file	sccp_refcount.h
+ * \file        sccp_refcount.h
  * \brief       SCCP RefCount Header
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -30,9 +30,9 @@ enum sccp_refcounted_types {
 };
 
 enum sccp_refcount_runstate {
-        SCCP_REF_RUNNING = 1,
-        SCCP_REF_STOPPED = 0,
-        SCCP_REF_DESTROYED = -1
+	SCCP_REF_RUNNING = 1,
+	SCCP_REF_STOPPED = 0,
+	SCCP_REF_DESTROYED = -1
 };
 
 typedef struct refcount_object RefCountedObject;
@@ -48,6 +48,7 @@ void *sccp_refcount_release(const void *ptr, const char *filename, int lineno, c
 void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func);
 void sccp_refcount_print_hashtable(int fd);
 void sccp_refcount_autorelease(void *ptr);
+
 #define AUTO_RELEASE auto __attribute__((cleanup(sccp_refcount_autorelease)))
 #ifdef CS_EXPERIMENTAL
 int sccp_refcount_force_release(long findobj, char *identifier);

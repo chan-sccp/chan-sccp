@@ -1,8 +1,8 @@
 /*!
- * \file	sccp_refcount.c
- * \brief	SCCP Refcount Class
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * 		See the LICENSE file at the top of the source tree.
+ * \file        sccp_refcount.c
+ * \brief       SCCP Refcount Class
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  * 
  * $Date$
  * $Revision$  
@@ -31,7 +31,7 @@
  *
  * - Rule 4: When releasing an object the pointer we had toward the object should be nullified immediatly, either of these solutions is possible:
  *   \code
- *   d = sccp_device_release(d);		// sccp_release always returns NULL
+ *   d = sccp_device_release(d);                // sccp_release always returns NULL
  *   \endcode
  *   or 
  *   \code
@@ -39,8 +39,8 @@
  *   d = NULL;
  *   \endcode
  *   
- * - Rule 5: 	You <b><em>cannnot</em></b> use free on a refcounted object. Destruction of the refcounted object and subsequent freeing of the occupied memory is performed by the sccp_release 
- *   		when the number of reference reaches 0. To finalize the use of a refcounted object just release the object one final time, to negate the initial refcount of 1 during creation.
+ * - Rule 5:    You <b><em>cannnot</em></b> use free on a refcounted object. Destruction of the refcounted object and subsequent freeing of the occupied memory is performed by the sccp_release 
+ *              when the number of reference reaches 0. To finalize the use of a refcounted object just release the object one final time, to negate the initial refcount of 1 during creation.
  * .
  * These rules need to followed to the letter !
  */
@@ -59,7 +59,7 @@
 #include "sccp_mwi.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-//nb: SCCP_HASH_PRIME defined in config.h, default 563
+    //nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
 #define REF_FILE "/tmp/sccp_refs"
@@ -113,14 +113,14 @@ static FILE *sccp_ref_debug_log;
 
 void sccp_refcount_init(void)
 {
-	sccp_log((DEBUGCAT_REFCOUNT + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1"SCCP: (Refcount) init\n");
+	sccp_log((DEBUGCAT_REFCOUNT + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "SCCP: (Refcount) init\n");
 	pbx_rwlock_init_notracking(&objectslock);								// No tracking to safe cpu cycles
 #if CS_REFCOUNT_DEBUG
 	sccp_ref_debug_log = fopen(REF_FILE, "w");
 	if (!sccp_ref_debug_log) {
 		pbx_log(LOG_NOTICE, "SCCP: Failed to open ref debug log file '%s'\n", REF_FILE);
 	}
-#endif	
+#endif
 	runState = SCCP_REF_RUNNING;
 }
 
@@ -154,7 +154,7 @@ void sccp_refcount_destroy(void)
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
 			SCCP_RWLIST_HEAD_DESTROY(&(objects[x])->refCountedObjects);
 
-			sccp_free(objects[x]);                                                                  // free hashtable entry
+			sccp_free(objects[x]);									// free hashtable entry
 			objects[x] = NULL;
 		}
 	}
@@ -162,8 +162,8 @@ void sccp_refcount_destroy(void)
 	pbx_rwlock_destroy(&objectslock);
 #if CS_REFCOUNT_DEBUG
 	if (sccp_ref_debug_log) {
-	        fclose(sccp_ref_debug_log);
-	        sccp_ref_debug_log = NULL;
+		fclose(sccp_ref_debug_log);
+		sccp_ref_debug_log = NULL;
 		pbx_log(LOG_NOTICE, "SCCP: ref debug log file: %s closed\n", REF_FILE);
 	}
 #endif
@@ -186,6 +186,7 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 	RefCountedObject *obj;
 	void *ptr = NULL;
 	int hash;
+
 	if (!runState) {
 		ast_log(LOG_ERROR, "SCCP: (sccp_refcount_object_alloc) Not Running Yet!\n");
 		return NULL;
@@ -251,7 +252,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 	if (!sccp_ref_debug_log) {
 		return -1;
 	}
-	
+
 	if (ptr == NULL) {
 		fprintf(sccp_ref_debug_log, "%p **PTR IS NULL !!** %s:%d:%s\n", ptr, file, line, func);
 		// ast_assert(0);
@@ -380,22 +381,22 @@ void sccp_refcount_print_hashtable(int fd)
 				fillfactor++;
 			}
 			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects)) {
-				maxdepth=SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects);
+				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects);
 			}
 			SCCP_RWLIST_UNLOCK(&(objects[x])->refCountedObjects);
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
 	pbx_cli(fd, "+==============================================================================================+\n");
-	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", fillfactor, SCCP_HASH_PRIME, (float)fillfactor/SCCP_HASH_PRIME, maxdepth);
+	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", fillfactor, SCCP_HASH_PRIME, (float) fillfactor / SCCP_HASH_PRIME, maxdepth);
 	pbx_cli(fd, "+==============================================================================================+\n");
-	
+
 }
 
 #ifdef CS_EXPERIMENTAL
 int sccp_refcount_force_release(long findobj, char *identifier)
 {
-	int x= 0;
+	int x = 0;
 	RefCountedObject *obj = NULL;
 	void *ptr = NULL;
 
@@ -404,7 +405,7 @@ int sccp_refcount_force_release(long findobj, char *identifier)
 		if (objects[x] && &(objects[x])->refCountedObjects) {
 			SCCP_RWLIST_RDLOCK(&(objects[x])->refCountedObjects);
 			SCCP_RWLIST_TRAVERSE(&(objects[x])->refCountedObjects, obj, list) {
-				if (sccp_strequals(obj->identifier, identifier) && (long)obj == findobj) {
+				if (sccp_strequals(obj->identifier, identifier) && (long) obj == findobj) {
 					ptr = obj->data;
 				}
 			}
@@ -493,22 +494,24 @@ gcc_inline void *sccp_refcount_release(const void *ptr, const char *filename, in
 	return NULL;
 }
 
-gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func) {
-	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {		// nothing changed
+gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const char *filename, int lineno, const char *func)
+{
+	if ((!replaceptr && !newptr) || (&newptr == replaceptr)) {						// nothing changed
 		return;
 	}
 
-	void *tmpNewPtr = NULL;						// retain new one first
+	void *tmpNewPtr = NULL;											// retain new one first
 	void *oldPtr = *replaceptr;
+
 	if (newptr) {
 		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {
 			*replaceptr = tmpNewPtr;
-			if (oldPtr) { 							// release previous one after
+			if (oldPtr) {										// release previous one after
 				sccp_refcount_release(oldPtr, filename, lineno, func);
 			}
 		}
 	} else {
-		if (oldPtr) { 							// release previous one after
+		if (oldPtr) {											// release previous one after
 			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);
 		}
 	}
@@ -519,10 +522,11 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
  * Used together with the cleanup attribute, to handle the automatic reference release of an object when we leave the scope in which the 
  * reference was defined. 
  */
-void sccp_refcount_autorelease(void *ptr) 
+void sccp_refcount_autorelease(void *ptr)
 {
 	if (*(void **) ptr) {
 		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	}
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

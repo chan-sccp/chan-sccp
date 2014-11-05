@@ -1,9 +1,9 @@
 /*!
- * \file	sccp_cli_table.h
+ * \file        sccp_cli_table.h
  * \brief       SCCP CLI Table Macro Header
- * \author	Diederik de Groot <ddegroot [at] users.sf.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Diederik de Groot <ddegroot [at] users.sf.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date: 2013-04-04 12:59:26 +0200 (Thu, 04 Apr 2013) $
  * $Revision: 4514 $

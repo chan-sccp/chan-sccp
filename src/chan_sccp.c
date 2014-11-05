@@ -1,17 +1,17 @@
 /*!
- * \file	chan_sccp.c
+ * \file        chan_sccp.c
  * \brief       An implementation of Skinny Client Control Protocol (SCCP)
- * \author	Sergio Chersovani <mlists [at] c-net.it>
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
  * \brief       Main chan_sccp Class
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  * \remarks
- * Purpose:	This source file should be used only for asterisk module related content.
- * When to use:	Methods communicating to asterisk about module initialization, status, destruction
- * Relations:	Main hub for all other sourcefiles.
+ * Purpose:     This source file should be used only for asterisk module related content.
+ * When to use: Methods communicating to asterisk about module initialization, status, destruction
+ * Relations:   Main hub for all other sourcefiles.
  *
  * $Date$
  * $Revision$
@@ -48,24 +48,22 @@
 #include <signal.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #define ENUMMACRO_FILE "chan_sccp_enums.hh"
 #define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
 #include "sccp_enum_macro.h"
 #undef  ENUMMACRO_GENERATE
 #undef  ENUMMACRO_FILE
-
-/*!
- * \brief       Buffer for Jitterbuffer use
- */
+    /*!
+     * \brief       Buffer for Jitterbuffer use
+     */
 #if defined(__cplusplus) || defined(c_plusplus)
 static ast_jb_conf default_jbconf = {
-	flags:	0,
-	max_size:-1,
-	resync_threshold:-1,
-	impl:	"",
+flags:	0,
+max_size:-1,
+resync_threshold:-1,
+impl:	"",
 #ifdef CS_AST_JB_TARGETEXTRA
-	target_extra:-1,
+target_extra:-1,
 #endif
 };
 #else
@@ -83,7 +81,7 @@ static struct ast_jb_conf default_jbconf = {
 /*!
  * \brief       Global null frame
  */
-static PBX_FRAME_TYPE sccp_null_frame;											/*!< Asterisk Structure */
+static PBX_FRAME_TYPE sccp_null_frame;										/*!< Asterisk Structure */
 
 /*!
  * \brief       Global variables
@@ -92,14 +90,14 @@ struct sccp_global_vars *sccp_globals = 0;
 
 /*!
  * \brief SCCP Request Channel
- * \param lineName		Line Name as Char
- * \param requestedCodec	Requested Skinny Codec
- * \param capabilities		Array of Skinny Codec Capabilities
- * \param capabilityLength	Length of Capabilities Array
- * \param autoanswer_type	SCCP Auto Answer Type
- * \param autoanswer_cause	SCCP Auto Answer Cause
- * \param ringermode		Ringer Mode
- * \param channel		SCCP Channel
+ * \param lineName              Line Name as Char
+ * \param requestedCodec        Requested Skinny Codec
+ * \param capabilities          Array of Skinny Codec Capabilities
+ * \param capabilityLength      Length of Capabilities Array
+ * \param autoanswer_type       SCCP Auto Answer Type
+ * \param autoanswer_cause      SCCP Auto Answer Cause
+ * \param ringermode            Ringer Mode
+ * \param channel               SCCP Channel
  * \return SCCP Channel Request Status
  * 
  * \called_from_asterisk
@@ -125,7 +123,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 		return SCCP_REQUEST_STATUS_LINEUNKNOWN;
 	}
 	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
-	if (SCCP_RWLIST_GETSIZE(&l->devices)== 0) {
+	if (SCCP_RWLIST_GETSIZE(&l->devices) == 0) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
 		l = sccp_line_release(l);
 		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
@@ -339,10 +337,11 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 		messageMap_cb->messageHandler_cb(s, device, msg);
 	}
 	s->lastKeepAlive = time(0);
-	
-	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId ) {
+
+	if (device && device->registrationState == SKINNY_DEVICE_RS_PROGRESS && mid == device->protocol->registrationFinishedMessageId) {
 		sccp_dev_set_registered(device, SKINNY_DEVICE_RS_OK);
 		char servername[StationMaxDisplayNotifySize];
+
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(device, servername, 5);
 	}
@@ -356,14 +355,12 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
  */
 int load_config(void)
 {
-	int oldPort = 0; //ntohs(GLOB(bindaddr));
-        int newPort = 0;
+	int oldPort = 0;											//ntohs(GLOB(bindaddr));
+	int newPort = 0;
 	int on = 1;
-        char addrStr[INET6_ADDRSTRLEN];
-        
-        
-        oldPort = sccp_socket_getPort(&GLOB(bindaddr));
-        
+	char addrStr[INET6_ADDRSTRLEN];
+
+	oldPort = sccp_socket_getPort(&GLOB(bindaddr));
 
 	/* Copy the default jb config over global_jbconf */
 	memcpy(&GLOB(global_jbconf), &default_jbconf, sizeof(struct ast_jb_conf));
@@ -397,9 +394,9 @@ int load_config(void)
 		return 0;
 	}
 	sccp_config_readDevicesLines(SCCP_CONFIG_READINITIAL);
-	
-        /* ok the config parse is done */
-        newPort = sccp_socket_getPort(&GLOB(bindaddr));
+
+	/* ok the config parse is done */
+	newPort = sccp_socket_getPort(&GLOB(bindaddr));
 	if ((GLOB(descriptor) > -1) && (newPort != oldPort)) {
 		close(GLOB(descriptor));
 		GLOB(descriptor) = -1;
@@ -413,22 +410,22 @@ int load_config(void)
 		memset(&hints, 0, sizeof hints);								// make sure the struct is empty
 		hints.ai_family = AF_UNSPEC;									// don't care IPv4 or IPv6
 		hints.ai_socktype = SOCK_STREAM;								// TCP stream sockets
-                hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;     				// fill in my IP for me
+		hints.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV | AI_PASSIVE;					// fill in my IP for me
 
-                if (sccp_socket_getPort(&GLOB(bindaddr))>0) {
-                        snprintf(port_str, sizeof(port_str), "%d", sccp_socket_getPort(&GLOB(bindaddr)));
-                } else {
-                        snprintf(port_str, sizeof(port_str), "%s", "cisco-sccp");
-                }
-                
-                sccp_copy_string(addrStr, sccp_socket_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
-                
-                if ((status = getaddrinfo(sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
-                        pbx_log(LOG_WARNING, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
-                        close(GLOB(descriptor));
-                        GLOB(descriptor) = -1;
-                        return 0;
-                }
+		if (sccp_socket_getPort(&GLOB(bindaddr)) > 0) {
+			snprintf(port_str, sizeof(port_str), "%d", sccp_socket_getPort(&GLOB(bindaddr)));
+		} else {
+			snprintf(port_str, sizeof(port_str), "%s", "cisco-sccp");
+		}
+
+		sccp_copy_string(addrStr, sccp_socket_stringify_addr(&GLOB(bindaddr)), sizeof(addrStr));
+
+		if ((status = getaddrinfo(sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, &hints, &res)) != 0) {
+			pbx_log(LOG_WARNING, "Failed to get addressinfo for %s:%s, error: %s!\n", sccp_socket_stringify_addr(&GLOB(bindaddr)), port_str, gai_strerror(status));
+			close(GLOB(descriptor));
+			GLOB(descriptor) = -1;
+			return 0;
+		}
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);			// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
 
 		on = 1;
@@ -438,24 +435,24 @@ int load_config(void)
 		}
 		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-                } else if (GLOB(sccp_tos)) {
+		} else if (GLOB(sccp_tos)) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
-                }
+		}
 		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
-                }
+		}
 #if defined(linux)
 		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
 			pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
 		} else if (GLOB(sccp_cos)) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
-                }
+		}
 #endif
 
 		if (GLOB(descriptor) < 0) {
 			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
-                        /* get ip-address string */
+			/* get ip-address string */
 			if (bind(GLOB(descriptor), res->ai_addr, res->ai_addrlen) < 0) {
 				pbx_log(LOG_WARNING, "Failed to bind to %s:%d: %s!\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
@@ -488,7 +485,7 @@ int load_config(void)
 boolean_t sccp_prePBXLoad(void)
 {
 	pbx_log(LOG_NOTICE, "preloading pbx module\n");
-	
+
 	/* make globals */
 	sccp_globals = (struct sccp_global_vars *) sccp_malloc(sizeof(struct sccp_global_vars));
 	if (!sccp_globals) {
@@ -501,9 +498,9 @@ boolean_t sccp_prePBXLoad(void)
 	memset(sccp_globals, 0, sizeof(struct sccp_global_vars));
 	GLOB(debug) = DEBUGCAT_CORE;
 
-	//      sccp_event_listeners = (struct sccp_event_subscriptions *)sccp_malloc(sizeof(struct sccp_event_subscriptions));
-	//      memset(sccp_event_listeners, 0, sizeof(struct sccp_event_subscriptions));
-	//      SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
+	//sccp_event_listeners = (struct sccp_event_subscriptions *)sccp_malloc(sizeof(struct sccp_event_subscriptions));
+	//memset(sccp_event_listeners, 0, sizeof(struct sccp_event_subscriptions));
+	//SCCP_LIST_HEAD_INIT(&sccp_event_listeners->subscriber);
 
 	pbx_mutex_init(&GLOB(lock));
 	pbx_mutex_init(&GLOB(usecnt_lock));
@@ -534,12 +531,12 @@ boolean_t sccp_prePBXLoad(void)
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend, TRUE);
 
 	GLOB(descriptor) = -1;
-	
-        //GLOB(bindaddr.sin_port) = DEFAULT_SCCP_PORT;
-        GLOB(bindaddr).ss_family = AF_INET;
-        ((struct sockaddr_in*)&GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
-	
-        GLOB(externrefresh) = 60;
+
+	//GLOB(bindaddr.sin_port) = DEFAULT_SCCP_PORT;
+	GLOB(bindaddr).ss_family = AF_INET;
+	((struct sockaddr_in *) &GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
+
+	GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_KEEPALIVE;
 	sccp_copy_string(GLOB(dateformat), "D/M/YA", sizeof(GLOB(dateformat)));
 	sccp_copy_string(GLOB(context), "default", sizeof(GLOB(context)));
@@ -589,8 +586,7 @@ boolean_t sccp_postPBX_load(void)
 	sprintf(SCCP_REVISIONSTR, "%s", SCCP_REVISION);
 #endif
 	sprintf(SCCP_VERSIONSTR, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
-	
-	
+
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
 	pbx_mutex_unlock(&GLOB(lock));
@@ -606,7 +602,7 @@ int sccp_sched_free(void *ptr)
 {
 	if (!ptr) {
 		return -1;
-        }
+	}
 	sccp_free(ptr);
 	return 0;
 
@@ -625,6 +621,7 @@ int sccp_preUnload(void)
 	sccp_device_t *d;
 	sccp_line_t *l;
 	sccp_session_t *s;
+
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
@@ -701,10 +698,10 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing bind\n");
 	if (GLOB(ha)) {
 		sccp_free_ha(GLOB(ha));
-        }
+	}
 	if (GLOB(localaddr)) {
 		sccp_free_ha(GLOB(localaddr));
-        }
+	}
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "SCCP: Removing io/sched\n");
 
 	sccp_hint_module_stop();
@@ -716,14 +713,14 @@ int sccp_preUnload(void)
 	if (GLOB(config_file_name)) {
 		sccp_free(GLOB(config_file_name));
 	}
-//        if (GLOB(token_fallback)) {
-//       	sccp_free(GLOB(token_fallback));
-//	}
+	//if (GLOB(token_fallback)) {
+	//  sccp_free(GLOB(token_fallback));
+	//}
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
-                                
+
 	pbx_mutex_destroy(&GLOB(usecnt_lock));
 	pbx_mutex_destroy(&GLOB(lock));
-	//      pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
+	//pbx_log(LOG_NOTICE, "SCCP chan_sccp unloaded\n");
 	return 0;
 }
 
@@ -798,21 +795,22 @@ const char devstate_db_family[] = "CustomDevstate";
 /*
  * deprecated
  */
-int sccp_updateExternIp(void){
+int sccp_updateExternIp(void)
+{
 	/* setup hostname -> externip */
 	/*! \todo change using singular h_addr to h_addr_list (name may resolve to multiple ip-addresses */
-/*
-	struct ast_hostent ahp;
-	struct hostent *hp;
-	if (!sccp_strlen_zero(GLOB(externhost))) {
-		if (!(hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
-	        	pbx_log(LOG_WARNING, "Invalid address resolution for externhost keyword: %s\n", GLOB(externhost));
-		} else {
-			memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
-			time(&GLOB(externexpire));
-		}
-	}
-*/
+	/*
+	   struct ast_hostent ahp;
+	   struct hostent *hp;
+	   if (!sccp_strlen_zero(GLOB(externhost))) {
+	   if (!(hp = pbx_gethostbyname(GLOB(externhost), &ahp))) {
+	   pbx_log(LOG_WARNING, "Invalid address resolution for externhost keyword: %s\n", GLOB(externhost));
+	   } else {
+	   memcpy(&GLOB(externip.sin_addr), hp->h_addr, sizeof(GLOB(externip.sin_addr)));
+	   time(&GLOB(externexpire));
+	   }
+	   }
+	 */
 	return 0;
 }
 

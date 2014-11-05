@@ -1,12 +1,12 @@
 /*!
- * \file	sccp_device.h
+ * \file        sccp_device.h
  * \brief       SCCP Device Header
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -28,8 +28,8 @@ struct sccp_device_indication_cb {
 	void (*const remoteOnhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 	void (*const offhook) (const sccp_device_t * device, sccp_linedevices_t * linedevice, uint32_t callid);
 	void (*const onhook) (const sccp_device_t * device, const uint8_t lineInstance, uint32_t callid);
-	void (*const dialing) (const sccp_device_t *device, const uint8_t lineInstance, const sccp_channel_t *channel);
-	void (*const proceed) (const sccp_device_t *device, const uint8_t lineInstance, const sccp_channel_t *channel);
+	void (*const dialing) (const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
+	void (*const proceed) (const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel);
 	void (*const connected) (const sccp_device_t * device, sccp_linedevices_t * linedevice, const sccp_channel_t * channel);
 };
 
@@ -102,6 +102,7 @@ boolean_t sccp_device_check_update(sccp_device_t * d);
 
 // find device
 sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime);
+
 #if DEBUG
 #define sccp_device_find_byname(_x) __sccp_device_find_byid(_x)
 #ifdef CS_SCCP_REALTIME
@@ -122,7 +123,7 @@ sccp_device_t *sccp_device_find_realtime(const char *name);
 #endif
 #endif
 
-void sccp_device_setLamp(const sccp_device_t *device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
+void sccp_device_setLamp(const sccp_device_t * device, skinny_stimulus_t stimulus, uint8_t instance, skinny_lampmode_t mode);
 
 #endif														/* __SCCP_DEVICE_H */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

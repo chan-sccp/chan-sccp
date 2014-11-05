@@ -1,10 +1,10 @@
 /*!
- * \file	sccp_event.c
- * \brief	SCCP Event Class
- * \author	Marcello Ceschia <marcello [at] ceschia.de>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \since	2009-09-02
+ * \file        sccp_event.c
+ * \brief       SCCP Event Class
+ * \author      Marcello Ceschia <marcello [at] ceschia.de>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2009-09-02
  * 
  * $Date$
  * $Revision$  
@@ -12,9 +12,9 @@
 
 /*!
  * \remarks
- * Purpose:	SCCP Event
- * When to use:	Only methods directly related to sccp events should be stored in this source file.
- * Relations:	SCCP Hint
+ * Purpose:     SCCP Event
+ * When to use: Only methods directly related to sccp events should be stored in this source file.
+ * Relations:   SCCP Hint
  */
 
 #include <config.h>
@@ -24,13 +24,11 @@
 #include "sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
-
 #define ENUMMACRO_FILE "sccp_event_enums.hh"
 #define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
 #include "sccp_enum_macro.h"
 #undef  ENUMMACRO_GENERATE
 #undef  ENUMMACRO_FILE
-
 void sccp_event_destroy(sccp_event_t * event);
 
 /*!
@@ -55,7 +53,7 @@ static boolean_t sccp_event_running = FALSE;
 
 void sccp_event_destroy(sccp_event_t * event)
 {
-//	pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
+	//pbx_log(LOG_NOTICE, "destroy event - %p type: %d: releasing held object references\n", event, event->type);
 	switch (event->type) {
 		case SCCP_EVENT_DEVICE_REGISTERED:
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
@@ -88,7 +86,7 @@ void sccp_event_destroy(sccp_event_t * event)
 		case sccp_event_type_LOOKUPERROR:
 			break;
 	}
-//	pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
+	//pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
 }
 
 static void *sccp_event_processor(void *data)
@@ -109,7 +107,7 @@ static void *sccp_event_processor(void *data)
 	} else {
 		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Could not retain event\n");
 	}
-	sccp_event_release(args->event);	//finale release
+	sccp_event_release(args->event);									//finale release
 	sccp_free(data);
 	return NULL;
 }
@@ -220,16 +218,16 @@ void sccp_event_fire(const sccp_event_t * event)
 {
 	if (event == NULL || SCCP_REF_RUNNING != sccp_refcount_isRunning() || !sccp_event_running) {
 		if (event) {
-			sccp_event_destroy((sccp_event_t *)event);
+			sccp_event_destroy((sccp_event_t *) event);
 		}
 		return;
 	}
 
 	AUTO_RELEASE sccp_event_t *e = (sccp_event_t *) sccp_refcount_object_alloc(sizeof(sccp_event_t), SCCP_REF_EVENT, sccp_event_type2str(event->type), sccp_event_destroy);
-	
+
 	if (!e) {
 		pbx_log(LOG_ERROR, "%p: Memory Allocation Error while creating sccp_event e. Exiting\n", event);
-		sccp_event_destroy((sccp_event_t *)event);
+		sccp_event_destroy((sccp_event_t *) event);
 		return;
 	}
 	// memcpy(e, event, sizeof(sccp_event_t));
@@ -314,6 +312,7 @@ void sccp_event_fire(const sccp_event_t * event)
 
 		/* execute sync subscribers */
 		AUTO_RELEASE sccp_event_t *tmp_e = NULL;
+
 		if ((tmp_e = sccp_event_retain(e))) {
 			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
 				if (subscriptions[i].sync[n].callback_function != NULL) {
@@ -327,6 +326,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		// we are unloading. switching to synchonous mode for everything
 		sccp_log((DEBUGCAT_EVENT)) (VERBOSE_PREFIX_3 "Handling Event %p of Type %s in Forced Synchronous Mode\n", event, sccp_event_type2str(e->type));
 		AUTO_RELEASE sccp_event_t *tmp_e = NULL;
+
 		if ((tmp_e = sccp_event_retain(e))) {
 			for (n = 0; n < subscriptions[i].syncSize && sccp_event_running; n++) {
 				if (subscriptions[i].sync[n].callback_function != NULL) {
@@ -343,4 +343,5 @@ void sccp_event_fire(const sccp_event_t * event)
 		}
 	}
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

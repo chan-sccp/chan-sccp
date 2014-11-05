@@ -1,12 +1,12 @@
 /*!
- * \file	sccp_line.c
- * \brief	SCCP Line
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- * 		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- * 		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \file        sccp_line.c
+ * \brief       SCCP Line
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -84,6 +84,7 @@ void sccp_line_post_reload(void)
 			continue;
 		}
 		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+
 		if (l) {
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -116,13 +117,13 @@ void sccp_line_post_reload(void)
 sccp_line_t *sccp_line_create(const char *name)
 {
 	sccp_line_t *l = NULL;
-	
-/* 	// do make sure line->name is unique before adding.
+
+	/*      // do make sure line->name is unique before adding.
 	if ((l = sccp_line_find_byname(name, FALSE))) {
-		sccp_line_release(l);
-		return NULL;
+	   sccp_line_release(l);
+	   return NULL;
 	}
-*/
+	*/
 	l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
 
 	if (!l) {
@@ -219,8 +220,9 @@ void *sccp_create_hotline(void)
 	}
 	memset(GLOB(hotline), 0, sizeof(sccp_hotline_t));
 
-//	SCCP_RWLIST_WRLOCK(&GLOB(lines));
+	//SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	AUTO_RELEASE sccp_line_t *hotline = sccp_line_create("Hotline");
+
 	if (hotline) {
 #ifdef CS_SCCP_REALTIME
 		hotline->realtime = TRUE;
@@ -237,7 +239,7 @@ void *sccp_create_hotline(void)
 		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
 		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
 	}
-//	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	//SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 	return NULL;
 }
@@ -260,6 +262,7 @@ void sccp_line_kill_channels(sccp_line_t * l)
 	// SCCP_LIST_LOCK(&l->channels);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->channels, c, list) {
 		AUTO_RELEASE sccp_channel_t *channel = sccp_channel_retain(c);
+
 		sccp_channel_endcall(channel);
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
@@ -311,9 +314,9 @@ int __sccp_line_destroy(const void *ptr)
 		SCCP_LIST_HEAD_DESTROY(&l->devices);
 	}
 	// cleanup mailboxes
-//	if (l->trnsfvm) {
-//		sccp_free(l->trnsfvm);
-//	}
+	//if (l->trnsfvm) {
+	//  sccp_free(l->trnsfvm);
+	//}
 	sccp_mailbox_t *mailbox = NULL;
 
 	SCCP_LIST_LOCK(&l->mailboxes);
@@ -334,17 +337,16 @@ int __sccp_line_destroy(const void *ptr)
 	if (SCCP_LIST_EMPTY(&l->mailboxes)) {
 		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
 	}
-//#if CS_AST_HAS_NAMEDGROUP
-//	if (l->namedcallgroup) {
-//		sccp_free(l->namedcallgroup);
-//	}
-//	if (l->namedpickupgroup) {
-//		sccp_free(l->namedpickupgroup);
-//	}
-//#endif
+	//#if CS_AST_HAS_NAMEDGROUP
+	//if (l->namedcallgroup) {
+	//  sccp_free(l->namedcallgroup);
+	//}
+	//if (l->namedpickupgroup) {
+	//  sccp_free(l->namedpickupgroup);
+	//}
+	//#endif
 	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
-	
-	
+
 	// cleanup channels
 	sccp_channel_t *c = NULL;
 
@@ -492,6 +494,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	}
 
 	sccp_linedevices_t *linedevice = NULL;
+
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: device already registered for line '%s'\n", DEV_ID_LOG(device), l->name);
 		sccp_linedevice_release(linedevice);
@@ -522,7 +525,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 
 	linedevice->line->statistic.numberOfActiveDevices++;
 	linedevice->device->configurationStatistic.numberOfLines++;
-	
+
 	// fire event for new device
 	sccp_event_t event;
 
@@ -595,6 +598,7 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 	sccp_channel_t *c = NULL;
 
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
+
 	if (l) {
 		l->statistic.numberOfActiveChannels++;
 		SCCP_LIST_LOCK(&l->channels);
@@ -605,7 +609,7 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
 			} else {
 				SCCP_LIST_INSERT_HEAD(&l->channels, c, list);					// add to list
-			}	
+			}
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 	}
@@ -634,7 +638,7 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 		if ((c = SCCP_LIST_REMOVE(&l->channels, channel, list))) {
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Removing channel %d from line %s\n", c->callid, l->name);
 			l->statistic.numberOfActiveChannels--;
-			channel = sccp_channel_release(c);						// Remove retain from list
+			channel = sccp_channel_release(c);							// Remove retain from list
 		}
 		SCCP_LIST_UNLOCK(&l->channels);
 	}
@@ -694,7 +698,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 			} else {
 				/* un-register */
 
-				if (&l->devices && SCCP_LIST_GETSIZE(&l->devices) == 1) {							// only remove entry if it is the last one (shared line)
+				if (&l->devices && SCCP_LIST_GETSIZE(&l->devices) == 1) {			// only remove entry if it is the last one (shared line)
 					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
 						sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
@@ -773,7 +777,7 @@ sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line)
 sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 {
 	sccp_line_t *l = NULL;
-	
+
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	l = SCCP_RWLIST_FIND(&GLOB(lines), l, list, (sccp_strcaseequals(l->name, name)), TRUE);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
@@ -833,16 +837,16 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 
-//		SCCP_RWLIST_WRLOCK(&GLOB(lines));
-		if ((l = sccp_line_create(name))) {									/* already retained */
+		//  SCCP_RWLIST_WRLOCK(&GLOB(lines));
+		if ((l = sccp_line_create(name))) {								/* already retained */
 			sccp_config_applyLineConfiguration(l, variable);
 			l->realtime = TRUE;
-			sccp_line_addToGlobals(l);									// can return previous instance on doubles
+			sccp_line_addToGlobals(l);								// can return previous instance on doubles
 			pbx_variables_destroy(v);
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
-//		SCCP_RWLIST_UNLOCK(&GLOB(lines));
+		//  SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
 
@@ -880,7 +884,6 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 #endif
 {
 	sccp_line_t *l = NULL;
-	
 
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Looking for line with instance %d.\n", DEV_ID_LOG(d), instance);
 
@@ -888,11 +891,11 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 		return NULL;
 	}
 
-	if (0 < instance && instance < d->lineButtons.size && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line ){
+	if (0 < instance && instance < d->lineButtons.size && d->lineButtons.instance[instance] && d->lineButtons.instance[instance]->line) {
 #if DEBUG
-		l = sccp_refcount_retain( d->lineButtons.instance[instance]->line, filename, lineno, func);
+		l = sccp_refcount_retain(d->lineButtons.instance[instance]->line, filename, lineno, func);
 #else
-		l = sccp_line_retain( d->lineButtons.instance[instance]->line );
+		l = sccp_line_retain(d->lineButtons.instance[instance]->line);
 #endif
 	}
 
@@ -924,7 +927,8 @@ sccp_line_t *sccp_line_find_byid(sccp_device_t * d, uint16_t instance)
 sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const sccp_line_t * line, const char *filename, int lineno, const char *func)
 {
 	sccp_linedevices_t *linedevice = NULL;
-	sccp_line_t *l = (sccp_line_t *) line;       // loose const qualifier, to be able to lock the list;
+	sccp_line_t *l = (sccp_line_t *) line;									// loose const qualifier, to be able to lock the list;
+
 	if (!l) {
 		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
 		return NULL;
@@ -933,7 +937,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (line: %s)\n", filename, lineno, line ? line->name : "UNDEF");
 		return NULL;
 	}
-	
+
 	SCCP_LIST_LOCK(&l->devices);
 	linedevice = SCCP_LIST_FIND(&l->devices, linedevice, list, (device == linedevice->device), TRUE);
 	SCCP_LIST_UNLOCK(&l->devices);
@@ -947,7 +951,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * device, uint16_t instance, const char *filename, int lineno, const char *func)
 {
 	sccp_linedevices_t *linedevice = NULL;
-  
+
 	if (instance < 1) {
 		pbx_log(LOG_NOTICE, "%s: [%s:%d]->linedevice_find: No line provided to search in\n", DEV_ID_LOG(device), filename, lineno);
 		return NULL;
@@ -956,9 +960,9 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 		pbx_log(LOG_NOTICE, "SCCP: [%s:%d]->linedevice_find: No device provided to search for (lineinstance: %d)\n", filename, lineno, instance);
 		return NULL;
 	}
-	
-	if (0 < instance && instance < device->lineButtons.size && device->lineButtons.instance[instance]) {		/* 0 < instance < lineButton.size */
-		linedevice = sccp_linedevice_retain( device->lineButtons.instance[ instance ] ) ;
+
+	if (0 < instance && instance < device->lineButtons.size && device->lineButtons.instance[instance]) {	/* 0 < instance < lineButton.size */
+		linedevice = sccp_linedevice_retain(device->lineButtons.instance[instance]);
 	}
 
 	if (!linedevice) {
@@ -967,44 +971,44 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 	return linedevice;
 }
 
-
-
 /* create linebutton array */
-void sccp_line_createLineButtonsArray(sccp_device_t *device) {
+void sccp_line_createLineButtonsArray(sccp_device_t * device)
+{
 	sccp_linedevices_t *linedevice;
 	uint8_t lineInstances = 0;
 	btnlist *btn;
 	uint8_t i;
-	
-	if(device->lineButtons.instance){
+
+	if (device->lineButtons.instance) {
 		sccp_line_deleteLineButtonsArray(device);
 	}
-	
+
 	btn = device->buttonTemplate;
-	
+
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances &&  btn[i].ptr) {
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].instance > lineInstances && btn[i].ptr) {
 			lineInstances = btn[i].instance;
-		} 
+		}
 	}
-	
+
 	device->lineButtons.size = lineInstances + SCCP_FIRST_LINEINSTANCE;					/* add the offset of SCCP_FIRST_LINEINSTANCE for explicit access */
-	device->lineButtons.instance = sccp_calloc(device->lineButtons.size, sizeof(sccp_linedevices_t *) );
-	
+	device->lineButtons.instance = sccp_calloc(device->lineButtons.size, sizeof(sccp_linedevices_t *));
+
 	for (i = 0; i < StationMaxButtonTemplateSize; i++) {
-		if (btn[i].type == SKINNY_BUTTONTYPE_LINE  && btn[i].ptr ) {
-			linedevice = sccp_linedevice_find(device, (sccp_line_t *)btn[i].ptr );
-			device->lineButtons.instance[ btn[i].instance ] = linedevice;
-		} 
+		if (btn[i].type == SKINNY_BUTTONTYPE_LINE && btn[i].ptr) {
+			linedevice = sccp_linedevice_find(device, (sccp_line_t *) btn[i].ptr);
+			device->lineButtons.instance[btn[i].instance] = linedevice;
+		}
 	}
 }
 
-void sccp_line_deleteLineButtonsArray(sccp_device_t *device) {
+void sccp_line_deleteLineButtonsArray(sccp_device_t * device)
+{
 	uint8_t i;
-  
-	if(device->lineButtons.instance){
+
+	if (device->lineButtons.instance) {
 		for (i = SCCP_FIRST_LINEINSTANCE; i < device->lineButtons.size; i++) {
-			if(device->lineButtons.instance[i]){ 
+			if (device->lineButtons.instance[i]) {
 				device->lineButtons.instance[i] = sccp_linedevice_release(device->lineButtons.instance[i]);
 			}
 		}
@@ -1012,4 +1016,5 @@ void sccp_line_deleteLineButtonsArray(sccp_device_t *device) {
 		sccp_free(device->lineButtons.instance);
 	}
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

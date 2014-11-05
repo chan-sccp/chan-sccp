@@ -1,12 +1,12 @@
 /*!
- * \file	sccp_socket.h
+ * \file        sccp_socket.h
  * \brief       SCCP Socket Header
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -43,35 +43,41 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 
 /* begin sccp_socket_stringify_fmt short cuts */
 static inline char *sccp_socket_stringify(const struct sockaddr_storage *sockAddrStorage)
-{  
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_DEFAULT);
+{
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_DEFAULT);
 }
+
 static inline char *sccp_socket_stringify_remote(const struct sockaddr_storage *sockAddrStorage)
 {
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_DEFAULT_REMOTE);
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_DEFAULT_REMOTE);
 }
+
 static inline char *sccp_socket_stringify_addr(const struct sockaddr_storage *sockAddrStorage)
 {
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_ADDR);
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_ADDR);
 }
+
 static inline char *sccp_socket_stringify_addr_remote(const struct sockaddr_storage *sockAddrStorage)
 {
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_ADDR_REMOTE);
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_ADDR_REMOTE);
 }
+
 static inline char *sccp_socket_stringify_host(const struct sockaddr_storage *sockAddrStorage)
 {
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_HOST);
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_HOST);
 }
+
 static inline char *sccp_socket_stringify_host_remote(const struct sockaddr_storage *sockAddrStorage)
-{ 
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_HOST_REMOTE);
+{
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_HOST_REMOTE);
 }
+
 static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *sockAddrStorage)
 {
-        return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_PORT);
+	return sccp_socket_stringify_fmt(sockAddrStorage, SCCP_SOCKADDR_STR_PORT);
 }
-/* end sccp_socket_stringify_fmt short cuts */
 
+/* end sccp_socket_stringify_fmt short cuts */
 
 void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t);

@@ -1,13 +1,13 @@
 /*!
- * \file	sccp_hint.c
- * \brief	SCCP Hint Class
- * \author	Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * 		See the LICENSE file at the top of the source tree.
- * \note	For more information about how does hint update works, see \ref hint_update 
- * \since	2009-01-16
- * \remarks	Purpose:	SCCP Hint
- * 		When to use:	Does the business of hint status
+ * \file        sccp_hint.c
+ * \brief       SCCP Hint Class
+ * \author      Marcello Ceschia < marcello.ceschia@users.sourceforge.net >
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \note        For more information about how does hint update works, see \ref hint_update 
+ * \since       2009-01-16
+ * \remarks     Purpose:        SCCP Hint
+ *              When to use:    Does the business of hint status
  *
  * $Date$
  * $Revision$
@@ -32,14 +32,14 @@
 #include "sccp_channel.h"
 #include "sccp_line.h"
 #include "sccp_utils.h"
-#include "sccp_indicate.h"		// only for SCCP_CHANNELSTATE_Idling
+#include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-/* ========================================================================================================================= Struct Definitions */
-/*!
- *\brief SCCP Hint Subscribing Device Structure
- */
+    /* ========================================================================================================================= Struct Definitions */
+    /*!
+     *\brief SCCP Hint Subscribing Device Structure
+     */
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
 typedef struct sccp_hint_list sccp_hint_list_t;
 
@@ -75,7 +75,7 @@ struct sccp_hint_lineState {
  * \brief SCCP Hint List Structure
  */
 struct sccp_hint_list {
-//	pbx_mutex_t lock;											/*!< Asterisk Lock */
+	//pbx_mutex_t lock;                                                                                       /*!< Asterisk Lock */
 
 	char exten[SCCP_MAX_EXTENSION];										/*!< Extension for Hint */
 	char context[SCCP_MAX_CONTEXT];										/*!< Context for Hint */
@@ -202,6 +202,7 @@ void sccp_hint_module_stop(void)
 			SCCP_LIST_LOCK(&hint->subscribers);
 			while ((subscriber = SCCP_LIST_REMOVE_HEAD(&hint->subscribers, list))) {
 				AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) subscriber->device);
+
 				if (device) {
 					subscriber->device = sccp_device_release(subscriber->device);
 					sccp_free(subscriber);
@@ -379,8 +380,9 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 {
 	sccp_buttonconfig_t *config;
 	uint8_t positionOnDevice = 0;
-	
+
 	AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) device);
+
 	if (d) {
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			positionOnDevice++;
@@ -461,13 +463,13 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	}
 
 	/* skip subscribtions to already owned line */
-/*	sccp_buttonconfig_t *config;
-	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
-		if (config->type == LINE && sccp_strcaseequals(config->button.line.name, hint_exten)) {
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Skipping Hint Registration for Line we already have this connected (%s, %s).\n", DEV_ID_LOG(device), config->button.line.name, hint_exten);
-			return;
-		}
-	}*/
+	/*      sccp_buttonconfig_t *config;
+	   SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
+	   if (config->type == LINE && sccp_strcaseequals(config->button.line.name, hint_exten)) {
+	   sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Skipping Hint Registration for Line we already have this connected (%s, %s).\n", DEV_ID_LOG(device), config->button.line.name, hint_exten);
+	   return;
+	   }
+	   } */
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_addSubscription4Device) Dialplan %s for exten: %s and context: %s\n", DEV_ID_LOG(device), hintStr, hint_exten, hint_context);
 
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -551,7 +553,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	memset(hint, 0, sizeof(sccp_hint_list_t));
 
 	SCCP_LIST_HEAD_INIT(&hint->subscribers);
-//	sccp_mutex_init(&hint->lock);
+	//sccp_mutex_init(&hint->lock);
 
 	sccp_copy_string(hint->exten, hint_exten, sizeof(hint->exten));
 	sccp_copy_string(hint->context, hint_context, sizeof(hint->context));
@@ -623,6 +625,7 @@ static void sccp_hint_lineStatusChanged(sccp_line_t * line, sccp_device_t * devi
 static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 {
 	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(lineState->line);
+
 	if (line) {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_updateLineState) Update Line Channel State: %s(%d)\n", line->name, sccp_channelstate2str(lineState->state), lineState->state);
 
@@ -666,6 +669,7 @@ static void sccp_hint_updateLineStateForMultipleChannels(struct sccp_hint_lineSt
 		if (SCCP_LIST_GETSIZE(&line->channels) == 1) {
 			SCCP_LIST_LOCK(&line->channels);
 			AUTO_RELEASE sccp_channel_t *channel = SCCP_LIST_FIRST(&line->channels) ? sccp_channel_retain(SCCP_LIST_FIRST(&line->channels)) : NULL;
+
 			SCCP_LIST_UNLOCK(&line->channels);
 
 			if (channel) {
@@ -730,6 +734,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 	memset(lineState->callInfo.partyNumber, 0, sizeof(lineState->callInfo.partyNumber));
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
+
 	if (SCCP_LIST_GETSIZE(&line->channels) > 0) {
 		SCCP_LIST_LOCK(&line->channels);
 		channel = SCCP_LIST_LAST(&line->channels) ? sccp_channel_retain(SCCP_LIST_LAST(&line->channels)) : NULL;
@@ -742,9 +747,11 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 
 		SCCP_LIST_LOCK(&line->devices);
 		AUTO_RELEASE sccp_linedevices_t *lineDevice = SCCP_LIST_FIRST(&line->devices) ? sccp_linedevice_retain(SCCP_LIST_FIRST(&line->devices)) : NULL;
+
 		SCCP_LIST_UNLOCK(&line->devices);
 		if (lineDevice) {
 			AUTO_RELEASE sccp_device_t *device = sccp_device_retain(lineDevice->device);
+
 			if (device) {
 				if (device->dndFeature.enabled && device->dndFeature.status == SCCP_DNDMODE_REJECT) {
 					state = SCCP_CHANNELSTATE_DND;
@@ -850,23 +857,25 @@ static void sccp_hint_handleFeatureChangeEvent(const sccp_event_t * event)
 
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_DND:
-		{
-			AUTO_RELEASE sccp_device_t *d = sccp_device_retain(event->event.featureChanged.device);
-			if (d) {
-				SCCP_LIST_LOCK(&d->buttonconfig);
-				SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-					if (buttonconfig->type == LINE) {
-						AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
-						if (line) {
-							sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
-							sccp_hint_lineStatusChanged(line, d);
+			{
+				AUTO_RELEASE sccp_device_t *d = sccp_device_retain(event->event.featureChanged.device);
+
+				if (d) {
+					SCCP_LIST_LOCK(&d->buttonconfig);
+					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+						if (buttonconfig->type == LINE) {
+							AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
+
+							if (line) {
+								sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_handleFeatureChangeEvent) Notify the dnd status (%s) to asterisk for line %s\n", d->id, d->dndFeature.status ? "on" : "off", line->name);
+								sccp_hint_lineStatusChanged(line, d);
+							}
 						}
 					}
+					SCCP_LIST_UNLOCK(&d->buttonconfig);
 				}
-				SCCP_LIST_UNLOCK(&d->buttonconfig);
+				break;
 			}
-			break;
-		}
 		default:
 			break;
 	}
@@ -1003,6 +1012,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 	SCCP_LIST_LOCK(&hint->subscribers);
 	SCCP_LIST_TRAVERSE(&hint->subscribers, subscriber, list) {
 		AUTO_RELEASE sccp_device_t *d = sccp_device_retain((sccp_device_t *) subscriber->device);
+
 		if (d) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify subscriber %s of %s's state %s (%d)\n", DEV_ID_LOG(d), d->id, (hint->hint_dialplan) ? hint->hint_dialplan : "null", sccp_channelstate2str(hint->currentState), hint->currentState);
 #ifdef CS_DYNAMIC_SPEEDDIAL
@@ -1137,14 +1147,14 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				if (hint->currentState == SCCP_CHANNELSTATE_ONHOOK || hint->currentState == SCCP_CHANNELSTATE_CONGESTION) {
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_OFF);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_ONHOOK);
-					
-				} else if (hint->currentState == SCCP_CHANNELSTATE_RINGING && d->allowRinginNotification ) {
+
+				} else if (hint->currentState == SCCP_CHANNELSTATE_RINGING && d->allowRinginNotification) {
 					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_BLINK);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
-					
+
 				} else {
 					/* use a temporary channel as fallback for non dynamic speeddial devices */
-					sccp_channel_t tmpChannel = {0};
+					sccp_channel_t tmpChannel = { 0 };
 					sccp_copy_string(tmpChannel.callInfo.callingPartyName, hint->callInfo.partyName, sizeof(tmpChannel.callInfo.callingPartyName));
 					sccp_copy_string(tmpChannel.callInfo.calledPartyName, hint->callInfo.partyName, sizeof(tmpChannel.callInfo.calledPartyName));
 					sccp_copy_string(tmpChannel.callInfo.callingPartyNumber, hint->callInfo.partyNumber, sizeof(tmpChannel.callInfo.callingPartyNumber));
@@ -1153,7 +1163,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					/* done */
 
 					d->protocol->sendCallInfo(d, &tmpChannel, subscriber->instance);
-					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE,subscriber->instance, SKINNY_LAMP_ON);
+					sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, subscriber->instance, SKINNY_LAMP_ON);
 					sccp_dev_set_keyset(d, subscriber->instance, 0, KEYMODE_INUSEHINT);
 				}
 			}
@@ -1210,7 +1220,7 @@ static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 		if (allDevicesInDND) {
 			lineState->state = SCCP_CHANNELSTATE_DND;
 		}
-	} while(0);
+	} while (0);
 
 	if (lineState->state == SCCP_CHANNELSTATE_DND) {
 		sccp_copy_string(lineState->callInfo.partyName, "DND", sizeof(lineState->callInfo.partyName));
@@ -1250,6 +1260,7 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
 int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int local_total = 0;
+
 #define CLI_AMI_TABLE_NAME Hint_LineStates
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Hint_lineState
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &lineStates
@@ -1315,4 +1326,5 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
 	}
 	return RESULT_SUCCESS;
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

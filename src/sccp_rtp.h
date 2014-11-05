@@ -1,9 +1,9 @@
 /*!
- * \file	sccp_rtp.h
+ * \file        sccp_rtp.h
  * \brief       SCCP RTP Header
- * \author	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  

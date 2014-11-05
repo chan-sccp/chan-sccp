@@ -1,14 +1,14 @@
 /*!
- * \file	sccp_protocol.h
+ * \file        sccp_protocol.h
  * \brief       SCCP Protocol Header
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  * 
- * \note	Thank you Federico Santulli for SPCP support
+ * \note        Thank you Federico Santulli for SPCP support
  *
  * $Date$
  * $Revision$  
@@ -630,7 +630,7 @@ typedef struct {
 
 	levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE];						/*!< Level Preference */
 
-	//      uint32_t lel_codec_options[2];                                          /*!< Codec Options */
+	//uint32_t lel_codec_options[2];									/*!< Codec Options */
 
 	union {
 		struct {
@@ -826,7 +826,7 @@ typedef union {
 		uint32_t lel_conferenceID;
 		uint32_t lel_appInstanceID;
 		uint32_t lel_routing;
-//		char data[StationMaxXMLMessage];								// dummy char for variable length message (Causes issues on 7960, needs further research)
+		//char data[StationMaxXMLMessage];                                                              // dummy char for variable length message (Causes issues on 7960, needs further research)
 		char data;											// dummy char for variable length message (Revert)
 	} UserToDeviceDataVersion1Message;									/*!< User to Device Version1 Message Structure */
 
@@ -876,11 +876,11 @@ typedef union {
 		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseVersion1Message;
 
-/*
-	struct {
-		uint32_t lel_unknown[533];
-	} Unknown_0x0044_Message;
-*/
+	/*
+	   struct {
+	   uint32_t lel_unknown[533];
+	   } Unknown_0x0044_Message;
+	 */
 	struct {
 		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
 		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
@@ -914,16 +914,16 @@ typedef union {
 	struct {
 		uint32_t lel_AccessoryID;									/*!< Accessory ID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) (MediaPathID) */
 		uint32_t lel_AccessoryStatus;									/*!< Accessory Status (0x1=On, 0x2=Off) (MediaPathEvent) */
-//		uint32_t lel_unknown;										/*!< Unknown */
-	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure (MediaPathEventMessage)*/
+		//uint32_t lel_unknown;										/*!< Unknown */
+	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure (MediaPathEventMessage) */
 
 	// Message 0x4A len 12 (cisco ip communicator uses it)
 	// 00000000 - 03 00 00 00 01 00 00 00 00 00 00 00             ............
 
 	struct {
-		uint32_t lel_MediaPathID;									/*!< mediaPathID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker)*/
+		uint32_t lel_MediaPathID;									/*!< mediaPathID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) */
 		uint32_t lel_MediaPathCapabilities;								/*!< mediaPathCapabilities (0x1=Enable, 0x2=Disable, 0x3=Monitor) */
-//		uint32_t lel_unknown3;										/*!< Unknown */
+		//uint32_t lel_unknown3;									/*!< Unknown */
 	} MediaPathCapabilityMessage;										/*!< \todo MediaPath Capability Message Structure */
 
 	struct {												// INCOMPLETE
@@ -1020,7 +1020,6 @@ typedef union {
 		 */
 	} CallInfoDynamicMessage;										/*!< Call Information Dynamic Message Structure */
 
-
 	struct {
 		union {
 			/* this is from a 7941
@@ -1100,7 +1099,7 @@ typedef union {
 	 * 00000030 - 00 00 00 00 00 00 00 00 00 00 00 00 52 49 4E 47 ............RING
 	 * 00000040 - 00 00 00 00                                     ....
 	 */
- 	struct {
+	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
 		uint32_t stationIpAddr;										/*c0:a8:09:24=192.168.9.36 *//*!< Station IP Address */
 		uint32_t lel_deviceType;									/*73:00:00:00=115 *//*!< Device Type as part of SKINNY_DEVICETYPE_* */
@@ -1124,7 +1123,6 @@ typedef union {
 		   ce f1 00 00 // == (61092 / 206 / 241) 1668 dn-size 420
 		 */
 	} RegisterMessage;											/*!< Register Message Structure */
-
 
 	struct {
 		StationIdentifier sId;										/*!< Station Identifier */
@@ -1159,7 +1157,7 @@ typedef union {
 		char serverName[StationMaxNameSize];								/*!< Server Name */
 		uint32_t lel_numberLines;									/*!< Number of Lines configured */
 		uint32_t lel_numberSpeedDials;									/*!< Number of SpeedDials configured */
-	} ConfigStatDynamicMessage;											/*!< Configuration Status Message - Server -> Client */
+	} ConfigStatDynamicMessage;										/*!< Configuration Status Message - Server -> Client */
 
 	struct {
 		uint32_t les_rtpMediaPort;									/*!< RTP Media Port */
@@ -1180,7 +1178,7 @@ typedef union {
 				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
 				uint32_t lel_lineInstance;
 			} v17;
-			struct __attribute__((__packed__)) {							/* packing needed because of char[25] */
+			struct __attribute__ ((__packed__)) {							/* packing needed because of char[25] */
 				char calledParty[25];								/*!< Called Party */
 				uint32_t lel_lineInstance;
 			} v18;
@@ -1194,11 +1192,10 @@ typedef union {
 		uint32_t lel_stimulusStatus;									/*!< Stimulus Status */
 	} StimulusMessage;											/*!< Stimulus Message - Client -> Server */
 
-
 	/*
 	 * 7960: 00000000 - 0C 00 00 00 00 00 00 00  06 00 00 00 00 00 00 00  - ................
 	 *       00000010 - 00 00 00 00                                       - ....
-         *
+	 *
 	 * 7962: 00000000 - 0C 00 00 00 16 00 00 00  06 00 00 00 00 00 00 00  - ................
 	 *       00000010 - 00 00 00 00                                       - ....
 	 */
@@ -1216,7 +1213,7 @@ typedef union {
 	/*
 	 * 7960: 00000000 - 0C 00 00 00 00 00 00 00  07 00 00 00 00 00 00 00  - ................
 	 *       00000010 - 00 00 00 00                                       - ....
-         *
+	 *
 	 * 7962: 00000000 - 0C 00 00 00 16 00 00 00  07 00 00 00 00 00 00 00  - ................
 	 *       00000010 - 00 00 00 00                                       - ....
 	 */
@@ -1648,149 +1645,149 @@ typedef union {
 			} v17;
 		};
 	} OpenMultiMediaReceiveChannelAckMessage;
-	
+
 	struct {
 		union {
 
 			/*
-			00000000 - 9C 02 00 00 00 00 00 00  23 00 00 00 39 38 30 33  - ........#...9803
-			00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............
-			00000020 - 00 00 00 00 04 00 00 00  00 00 00 00 2F 00 00 00  - ............/...
-			00000030 - 94 1F 00 00 30 00 00 00  40 20 00 00 00 00 00 00  - ....0...@ ......
-			00000040 - 00 00 00 00 00 00 00 00  6F 00 00 00 4D 4C 51 4B  - ........o...MLQK
-			00000050 - 3D 30 2E 30 30 30 30 3B  4D 4C 51 4B 61 76 3D 30  - =0.0000;MLQKav=0
-			00000060 - 2E 30 30 30 30 3B 4D 4C  51 4B 6D 6E 3D 30 2E 30  - .0000;MLQKmn=0.0
-			00000070 - 30 30 30 3B 4D 4C 51 4B  6D 78 3D 30 2E 30 30 30  - 000;MLQKmx=0.000
-			00000080 - 30 3B 4D 4C 51 4B 76 72  3D 30 2E 39 35 3B 43 43  - 0;MLQKvr=0.95;CC
-			00000090 - 52 3D 30 2E 30 30 30 30  3B 49 43 52 3D 30 2E 30  - R=0.0000;ICR=0.0
-			000000A0 - 30 30 30 3B 49 43 52 6D  78 3D 30 2E 30 30 30 30  - 000;ICRmx=0.0000
-			000000B0 - 3B 43 53 3D 30 3B 53 43  53 3D 30 00 00 00 00 00  - ;CS=0;SCS=0.....
-			000000C0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000000D0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000000E0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000000F0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000100 - 00 00 00 00 00 00 00 00  00 00 00 00 00 48 54 54  - .............HTT
-			00000110 - 50 5F 31 32 36 36 32 5F  31 32 37 33 35 00 00 00  - P_12662_12735...
-			00000120 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000130 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000140 - 00 00 00 00 00 00 00 00  8F 12 00 00 00 80 00 00  - ................
-			00000150 - A4 1C 48 00 0A 0F 0F C3  08 00 03 00 94 29 41 00  - ..H..........)A.
-			00000160 - 20 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  -  ...............
-			00000170 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000180 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000190 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001B0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001C0 - 00 00 00 00 74 18 4C 76  0A 0F 0F C3 00 00 00 00  - ....t.Lv........
-			000001D0 - 69 96 B8 00 CC 42 48 00  00 00 82 07 0A 00 00 00  - i....BH.........
-			000001E0 - 24 3D 41 00 00 00 01 03  01 00 00 00 0C 00 00 00  - $=A.............
-			000001F0 - 44 97 41 00 84 02 00 00  01 02 00 00 77 B9 94 37  - D.A.........w..7
-			00000200 - 04 00 00 00 03 00 00 00  08 00 00 00 03 01 01 01  - ................
-			00000210 - 01 01 01 01 01 01 01 01  01 01 06 01 01 01 01 01  - ................
-			00000220 - 01 01 01 01 01 01 01 01  01 01 03 00 00 00 00 00  - ................
-			00000230 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000240 - 00 00 00 00 00 00 00 00  00 00 00 00 4C 49 53 54  - ............LIST
-			00000250 - 2E 58 4D 4C 00 00 00 00  00 00 00 00 00 00 00 00  - .XML............
-			00000260 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000270 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000280 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000290 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000002A0 - 00 00 00 00                                       - ....
-			*/
+			   00000000 - 9C 02 00 00 00 00 00 00  23 00 00 00 39 38 30 33  - ........#...9803
+			   00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............
+			   00000020 - 00 00 00 00 04 00 00 00  00 00 00 00 2F 00 00 00  - ............/...
+			   00000030 - 94 1F 00 00 30 00 00 00  40 20 00 00 00 00 00 00  - ....0...@ ......
+			   00000040 - 00 00 00 00 00 00 00 00  6F 00 00 00 4D 4C 51 4B  - ........o...MLQK
+			   00000050 - 3D 30 2E 30 30 30 30 3B  4D 4C 51 4B 61 76 3D 30  - =0.0000;MLQKav=0
+			   00000060 - 2E 30 30 30 30 3B 4D 4C  51 4B 6D 6E 3D 30 2E 30  - .0000;MLQKmn=0.0
+			   00000070 - 30 30 30 3B 4D 4C 51 4B  6D 78 3D 30 2E 30 30 30  - 000;MLQKmx=0.000
+			   00000080 - 30 3B 4D 4C 51 4B 76 72  3D 30 2E 39 35 3B 43 43  - 0;MLQKvr=0.95;CC
+			   00000090 - 52 3D 30 2E 30 30 30 30  3B 49 43 52 3D 30 2E 30  - R=0.0000;ICR=0.0
+			   000000A0 - 30 30 30 3B 49 43 52 6D  78 3D 30 2E 30 30 30 30  - 000;ICRmx=0.0000
+			   000000B0 - 3B 43 53 3D 30 3B 53 43  53 3D 30 00 00 00 00 00  - ;CS=0;SCS=0.....
+			   000000C0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000000D0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000000E0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000000F0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000100 - 00 00 00 00 00 00 00 00  00 00 00 00 00 48 54 54  - .............HTT
+			   00000110 - 50 5F 31 32 36 36 32 5F  31 32 37 33 35 00 00 00  - P_12662_12735...
+			   00000120 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000130 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000140 - 00 00 00 00 00 00 00 00  8F 12 00 00 00 80 00 00  - ................
+			   00000150 - A4 1C 48 00 0A 0F 0F C3  08 00 03 00 94 29 41 00  - ..H..........)A.
+			   00000160 - 20 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  -  ...............
+			   00000170 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000180 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000190 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001B0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001C0 - 00 00 00 00 74 18 4C 76  0A 0F 0F C3 00 00 00 00  - ....t.Lv........
+			   000001D0 - 69 96 B8 00 CC 42 48 00  00 00 82 07 0A 00 00 00  - i....BH.........
+			   000001E0 - 24 3D 41 00 00 00 01 03  01 00 00 00 0C 00 00 00  - $=A.............
+			   000001F0 - 44 97 41 00 84 02 00 00  01 02 00 00 77 B9 94 37  - D.A.........w..7
+			   00000200 - 04 00 00 00 03 00 00 00  08 00 00 00 03 01 01 01  - ................
+			   00000210 - 01 01 01 01 01 01 01 01  01 01 06 01 01 01 01 01  - ................
+			   00000220 - 01 01 01 01 01 01 01 01  01 01 03 00 00 00 00 00  - ................
+			   00000230 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000240 - 00 00 00 00 00 00 00 00  00 00 00 00 4C 49 53 54  - ............LIST
+			   00000250 - 2E 58 4D 4C 00 00 00 00  00 00 00 00 00 00 00 00  - .XML............
+			   00000260 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000270 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000280 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000290 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000002A0 - 00 00 00 00                                       - ....
+			 */
 			struct {
-				char DirectoryNumber[StationMaxDirnumSize];							/*!< Directory Number */
-				uint32_t lel_CallIdentifier;									/*!< Call Identifier */
-				uint32_t lel_StatsProcessingType;								/*!< Stats Processing Type */
-				uint32_t lel_SentPackets;									/*!< Sent Packets */
-				uint32_t lel_SentOctets;									/*!< Sent Octets */
-				uint32_t lel_RecvdPackets;									/*!< Received Packets */
-				uint32_t lel_RecvdOctets;									/*!< Received Octets */
-				uint32_t lel_LostPkts;										/*!< Lost Packets */
-				uint32_t lel_Jitter;										/*!< Jitter */
-				uint32_t lel_latency;										/*!< Latency */
+				char DirectoryNumber[StationMaxDirnumSize];					/*!< Directory Number */
+				uint32_t lel_CallIdentifier;							/*!< Call Identifier */
+				uint32_t lel_StatsProcessingType;						/*!< Stats Processing Type */
+				uint32_t lel_SentPackets;							/*!< Sent Packets */
+				uint32_t lel_SentOctets;							/*!< Sent Octets */
+				uint32_t lel_RecvdPackets;							/*!< Received Packets */
+				uint32_t lel_RecvdOctets;							/*!< Received Octets */
+				uint32_t lel_LostPkts;								/*!< Lost Packets */
+				uint32_t lel_Jitter;								/*!< Jitter */
+				uint32_t lel_latency;								/*!< Latency */
 				uint32_t lel_QualityStatsSize;
-				char QualityStats[600];										/*!< QualityStatistics */
-			} v3;										/*!< Connection Statistics Response Message - Server -> Client */
+				char QualityStats[600];								/*!< QualityStatistics */
+			} v3;											/*!< Connection Statistics Response Message - Server -> Client */
 			/*
-			00000000 - A0 02 00 00 14 00 00 00  23 00 00 00 31 33 37 00  - ........#...137.
-			00000010 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000020 - 00 00 00 00 00 00 00 00  03 00 00 00 00 00 00 00  - ................		// unknown1=0, callIdentifier=3, StatsProcessingType=0, 
-			00000030 - 99 00 00 00 A0 5F 00 00  91 00 00 00 A0 5A 00 00  - ....._.......Z..		// sendPackets=99=153,sendOctets=A05F=41055, RecvdPackets=91=145, RecvdOctets=A05A=41050
-			00000040 - 00 00 00 00 00 00 00 00  00 00 00 00 74 00 00 00  - ............t...		// lostPkts=0, Jitter=0, Latency=0, unknown2=74
-			00000050 - 4C 6F 67 20 34 37 36 3A  20 6D 6F 73 20 30 2E 30  - Log 476: mos 0.0		//
-			00000060 - 30 30 30 2C 20 61 76 67  4D 6F 73 20 30 2E 30 30  - 000, avgMos 0.00
-			00000070 - 30 30 2C 20 6D 61 78 4D  6F 73 20 30 2E 30 30 30  - 00, maxMos 0.000
-			00000080 - 30 2C 20 6D 69 6E 4D 6F  73 20 30 2E 30 30 30 30  - 0, minMos 0.0000
-			00000090 - 2C 20 43 53 20 30 2C 20  53 43 53 20 30 2C 20 43  - , CS 0, SCS 0, C
-			000000A0 - 43 52 20 30 2E 30 30 30  30 2C 20 49 43 52 20 30  - CR 0.0000, ICR 0
-			000000B0 - 2E 30 30 30 30 2C 20 6D  61 78 43 52 20 30 2E 30  - .0000, maxCR 0.0
-			000000C0 - 30 30 30 0A 00 00 00 00  00 00 00 00 00 00 00 00  - 000.............
-			000000D0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000000E0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000000F0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000100 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000110 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000120 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000130 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000140 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000150 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000160 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000170 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000180 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000190 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001B0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001C0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001D0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001E0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000001F0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000200 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000210 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000220 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000230 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000240 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000250 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000260 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000270 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000280 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			00000290 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
-			000002A0 - 00 00 00 00 00 00 00 00                           - ........
-*/
+			   00000000 - A0 02 00 00 14 00 00 00  23 00 00 00 31 33 37 00  - ........#...137.
+			   00000010 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000020 - 00 00 00 00 00 00 00 00  03 00 00 00 00 00 00 00  - ................              // unknown1=0, callIdentifier=3, StatsProcessingType=0, 
+			   00000030 - 99 00 00 00 A0 5F 00 00  91 00 00 00 A0 5A 00 00  - ....._.......Z..              // sendPackets=99=153,sendOctets=A05F=41055, RecvdPackets=91=145, RecvdOctets=A05A=41050
+			   00000040 - 00 00 00 00 00 00 00 00  00 00 00 00 74 00 00 00  - ............t...              // lostPkts=0, Jitter=0, Latency=0, unknown2=74
+			   00000050 - 4C 6F 67 20 34 37 36 3A  20 6D 6F 73 20 30 2E 30  - Log 476: mos 0.0              //
+			   00000060 - 30 30 30 2C 20 61 76 67  4D 6F 73 20 30 2E 30 30  - 000, avgMos 0.00
+			   00000070 - 30 30 2C 20 6D 61 78 4D  6F 73 20 30 2E 30 30 30  - 00, maxMos 0.000
+			   00000080 - 30 2C 20 6D 69 6E 4D 6F  73 20 30 2E 30 30 30 30  - 0, minMos 0.0000
+			   00000090 - 2C 20 43 53 20 30 2C 20  53 43 53 20 30 2C 20 43  - , CS 0, SCS 0, C
+			   000000A0 - 43 52 20 30 2E 30 30 30  30 2C 20 49 43 52 20 30  - CR 0.0000, ICR 0
+			   000000B0 - 2E 30 30 30 30 2C 20 6D  61 78 43 52 20 30 2E 30  - .0000, maxCR 0.0
+			   000000C0 - 30 30 30 0A 00 00 00 00  00 00 00 00 00 00 00 00  - 000.............
+			   000000D0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000000E0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000000F0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000100 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000110 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000120 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000130 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000140 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000150 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000160 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000170 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000180 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000190 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001A0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001B0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001C0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001D0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001E0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000001F0 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000200 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000210 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000220 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000230 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000240 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000250 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000260 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000270 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000280 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   00000290 - 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - ................
+			   000002A0 - 00 00 00 00 00 00 00 00                           - ........
+			 */
 			struct {
-				char DirectoryNumber[StationMaxDirnumSize];							/*!< Directory Number */
+				char DirectoryNumber[StationMaxDirnumSize];					/*!< Directory Number */
 				uint32_t lel_padding;
-				uint32_t lel_CallIdentifier;									/*!< Call Identifier */
-				uint32_t lel_StatsProcessingType;								/*!< Stats Processing Type */
-				uint32_t lel_SentPackets;									/*!< Sent Packets */
-				uint32_t lel_SentOctets;									/*!< Sent Octets */
-				uint32_t lel_RecvdPackets;									/*!< Received Packets */
-				uint32_t lel_RecvdOctets;									/*!< Received Octets */
-				uint32_t lel_LostPkts;										/*!< Lost Packets */
-				uint32_t lel_Jitter;										/*!< Jitter */
-				uint32_t lel_latency;										/*!< Latency */
+				uint32_t lel_CallIdentifier;							/*!< Call Identifier */
+				uint32_t lel_StatsProcessingType;						/*!< Stats Processing Type */
+				uint32_t lel_SentPackets;							/*!< Sent Packets */
+				uint32_t lel_SentOctets;							/*!< Sent Octets */
+				uint32_t lel_RecvdPackets;							/*!< Received Packets */
+				uint32_t lel_RecvdOctets;							/*!< Received Octets */
+				uint32_t lel_LostPkts;								/*!< Lost Packets */
+				uint32_t lel_Jitter;								/*!< Jitter */
+				uint32_t lel_latency;								/*!< Latency */
 				uint32_t lel_QualityStatsSize;
-				char QualityStats[600];										/*!< QualityStatistics */
-			} v20;										/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 19) */
+				char QualityStats[600];								/*!< QualityStatistics */
+			} v20;											/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 19) */
 
 			/*
-			00000000 - B4 00 00 00 16 00 00 00  23 00 00 00 39 38 30 31  - ........#...9801	// DirectoryNumber= 98031
-			00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............	
-			00000020 - 00 00 00 00 00 00 00 00  01 00 00 00 00 5C 00 00  - .............\..	// callIdentifier=1, StatsProcessingType= 0, sendPackets=5c=92
-			00000030 - 00 D0 3D 00 00 59 00 00  00 CC 3B 00 00 00 00 00  - ..=..Y....;.....	// sendOctets=D03D=53309, RecvdPackets=59=89, RecvdOctets=cc3b=52283
-			00000040 - 00 00 00 00 00 00 00 00  00 6F 00 00 00 4D 4C 51  - .........o...MLQ	// lostPkts=0, Jitter=0, Latency=0, unknown2=6F000000
-			00000050 - 4B 3D 30 2E 30 30 30 30  3B 4D 4C 51 4B 61 76 3D  - K=0.0000;MLQKav=
-			00000060 - 30 2E 30 30 30 30 3B 4D  4C 51 4B 6D 6E 3D 30 2E  - 0.0000;MLQKmn=0.
-			00000070 - 30 30 30 30 3B 4D 4C 51  4B 6D 78 3D 30 2E 30 30  - 0000;MLQKmx=0.00
-			00000080 - 30 30 3B 49 43 52 3D 30  2E 30 30 30 30 3B 43 43  - 00;ICR=0.0000;CC
-			00000090 - 52 3D 30 2E 30 30 30 30  3B 49 43 52 6D 78 3D 30  - R=0.0000;ICRmx=0
-			000000A0 - 2E 30 30 30 30 3B 43 53  3D 30 3B 53 43 53 3D 30  - .0000;CS=0;SCS=0
-			000000B0 - 3B 4D 4C 51 4B 76 72 3D  30 2E 39 35              - ;MLQKvr=0.95
-			*/
+			   00000000 - B4 00 00 00 16 00 00 00  23 00 00 00 39 38 30 31  - ........#...9801      // DirectoryNumber= 98031
+			   00000010 - 31 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  - 1...............      
+			   00000020 - 00 00 00 00 00 00 00 00  01 00 00 00 00 5C 00 00  - .............\..      // callIdentifier=1, StatsProcessingType= 0, sendPackets=5c=92
+			   00000030 - 00 D0 3D 00 00 59 00 00  00 CC 3B 00 00 00 00 00  - ..=..Y....;.....      // sendOctets=D03D=53309, RecvdPackets=59=89, RecvdOctets=cc3b=52283
+			   00000040 - 00 00 00 00 00 00 00 00  00 6F 00 00 00 4D 4C 51  - .........o...MLQ      // lostPkts=0, Jitter=0, Latency=0, unknown2=6F000000
+			   00000050 - 4B 3D 30 2E 30 30 30 30  3B 4D 4C 51 4B 61 76 3D  - K=0.0000;MLQKav=
+			   00000060 - 30 2E 30 30 30 30 3B 4D  4C 51 4B 6D 6E 3D 30 2E  - 0.0000;MLQKmn=0.
+			   00000070 - 30 30 30 30 3B 4D 4C 51  4B 6D 78 3D 30 2E 30 30  - 0000;MLQKmx=0.00
+			   00000080 - 30 30 3B 49 43 52 3D 30  2E 30 30 30 30 3B 43 43  - 00;ICR=0.0000;CC
+			   00000090 - 52 3D 30 2E 30 30 30 30  3B 49 43 52 6D 78 3D 30  - R=0.0000;ICRmx=0
+			   000000A0 - 2E 30 30 30 30 3B 43 53  3D 30 3B 53 43 53 3D 30  - .0000;CS=0;SCS=0
+			   000000B0 - 3B 4D 4C 51 4B 76 72 3D  30 2E 39 35              - ;MLQKvr=0.95
+			 */
 
 #pragma pack(push)
 #pragma pack(1)
 			struct {
-//				char DirectoryNumber[25];
+				//char DirectoryNumber[25];
 				char DirectoryNumber[28];
 				uint32_t lel_CallIdentifier;							/*!< Call Identifier */
 				uint8_t lel_StatsProcessingType;						/*!< Stats Processing Type */
@@ -1804,10 +1801,9 @@ typedef union {
 				uint32_t lel_QualityStatsSize;
 				char QualityStats[600];								/*!< QualityStatistics */
 			} v22;											/*!< Connection Statistics Response Message - Client -> Server (used when protocol version >= 22) */
-#pragma pack(pop)		
+#pragma pack(pop)
 		};
 	} ConnectionStatisticsRes;
-
 
 	struct {
 		char calledParty[StationMaxDirnumSize];								/*!< Called Party Array */
@@ -1960,7 +1956,7 @@ typedef union {
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
 			} v17;
-			
+
 			struct {
 				uint32_t lel_conferenceId;							/*!< Conference ID */
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
@@ -2124,7 +2120,7 @@ typedef union {
 		uint32_t lel_totalButtonCount;									/*!< Total Number of Buttons */
 		StationButtonDefinition definition[StationMaxButtonTemplateSize];				/*!< Station Button Definition */
 	} ButtonTemplateMessage;										/*!< Button Template Message Structure */
-	
+
 	struct {
 		uint32_t lel_buttonOffset;									/*!< Button OffSet */
 		uint32_t lel_buttonCount;									/*!< Button Count */
@@ -2134,11 +2130,11 @@ typedef union {
 
 	// never used & special case of ButtonTemplateMessage
 	//struct {
-	//	uint32_t lel_buttonOffset;									/*!< Button OffSet */
-	//	uint32_t lel_buttonCount;									/*!< Button Count */
-	//	uint32_t lel_totalButtonCount;									/*!< Total Number of Buttons */
-	//	StationButtonDefinition definition[1];								/*!< Station Button Definition */
-	//} ButtonTemplateMessageSingle;										/*!< Button Template Message Structure */
+	//	uint32_t lel_buttonOffset;										/*!< Button OffSet */
+	//	uint32_t lel_buttonCount;										/*!< Button Count */
+	//	uint32_t lel_totalButtonCount;										/*!< Total Number of Buttons */
+	//	StationButtonDefinition definition[1];									/*!< Station Button Definition */
+	//} ButtonTemplateMessageSingle; 										/*!< Button Template Message Structure */
 
 	struct {
 		char requiredVersion[StationMaxVersionSize];							/*!< Required Version */
@@ -2146,7 +2142,7 @@ typedef union {
 
 	struct {
 		char displayMessage[StationMaxDisplayTextSize];							/*!< Display Message */
-		/*		uint32_t        lel_displayTimeout; *//*!< Display Timeout */
+		/*              uint32_t        lel_displayTimeout; *//*!< Display Timeout */
 	} DisplayTextMessage;											/*!< Display Text Message */
 
 	struct {
@@ -2325,7 +2321,7 @@ typedef union {
 				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
 				uint32_t lel_requestedIpAddrType;						/*!< Unknown */
 			} v17;
-			
+
 			struct {
 				uint32_t lel_conferenceId;							/*!< Conference ID */
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
@@ -2385,7 +2381,7 @@ typedef union {
 				uint32_t lel_StatsProcessing;							/*!< Statistics Processing */
 			} v3;
 			struct {
-				char DirectoryNumber[25];							/*!< Directory Number*/
+				char DirectoryNumber[25];							/*!< Directory Number */
 				uint32_t lel_callReference;							/*!< Call Reference */
 				uint32_t lel_StatsProcessing;							/*!< Statistics Processing */
 			} v19;
@@ -2649,7 +2645,7 @@ typedef union {
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
 
 	struct {
-		uint32_t lel_unknown;										
+		uint32_t lel_unknown;
 	} CallCountReqMessage;											/*!< CallCount Request Message Structure (@see https://sourceforge.net/p/chan-sccp-b/bugs/173/?page=1) */
 
 	/* SPA */
@@ -2697,9 +2693,9 @@ typedef union {
 	// empty / unresearched structs
 	// 00000000 - 08 00 00 00 00 00 00 00  2D 00 00 00 00 00 00 00  // 7960 -- 6 buttons
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7962 -- 6 buttons
-	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00	// 7970 -- 8 buttons
+	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7970 -- 8 buttons
 	struct {
-		uint32_t maxAvailLines;		
+		uint32_t maxAvailLines;
 	} RegisterAvailableLinesMessage;
 
 	struct {
@@ -2780,14 +2776,14 @@ typedef union {
 	struct {
 	} AuditParticipantReqMessage;
 
-/* new */
+	/* new */
 	struct {
 	} UpdateCapabilitiesV2Message;										/*!< Update Capabilities V2 Structure */
-	
-//	struct {
-//	} UpdateCapabilitiesV3Message;										/*!< Update Capabilities V3 Structure */
-	
-	struct {	
+
+	//struct {
+	//} UpdateCapabilitiesV3Message;									/*!< Update Capabilities V3 Structure */
+
+	struct {
 	} PortResMessage;											/*!< Port Response Message Structure */
 
 	struct {
@@ -3075,7 +3071,7 @@ static const uint8_t softkeysmap[] = {
 	SKINNY_LBL_INTRCPT,
 	SKINNY_LBL_EMPTY,
 	SKINNY_LBL_DIAL,
-//      SKINNY_LBL_CBARGE,
+	//SKINNY_LBL_CBARGE,
 };														/*!< SKINNY Soft Keys Map as INT */
 
 /*!
@@ -3092,15 +3088,14 @@ static uint8_t skSet_Onhook[] = {
 	SKINNY_LBL_NEWCALL,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_DND,
-	//      SKINNY_LBL_CFWDBUSY,
-	//      SKINNY_LBL_CFWDNOANSWER,
+	//SKINNY_LBL_CFWDBUSY,
+	//SKINNY_LBL_CFWDNOANSWER,
 #ifdef CS_SCCP_PICKUP
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
 #endif
 	SKINNY_LBL_PRIVATE,
-	//      SKINNY_LBL_CONFLIST,
-
+	//SKINNY_LBL_CONFLIST,
 };														/*!< SKINNY SoftKeys Set "Onhook" as INT */
 
 static uint8_t skSet_OnhookStealable[] = {
@@ -3126,7 +3121,7 @@ static uint8_t skSet_Connected[] = {
 #endif
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	//      SKINNY_LBL_CFWDNOANSWER,
+	//SKINNY_LBL_CFWDNOANSWER,
 	SKINNY_LBL_IDIVERT,
 };														/*!< SKINNY SoftKeys Set "Connected" as INT */
 
@@ -3151,8 +3146,8 @@ static uint8_t skSet_Ringin[] = {
 	SKINNY_LBL_ENDCALL,
 	SKINNY_LBL_TRNSFVM,
 	SKINNY_LBL_IDIVERT,
-	//      SKINNY_LBL_TRANSFER,
-	//      SKINNY_LBL_DIRTRFR
+	//SKINNY_LBL_TRANSFER,
+	//SKINNY_LBL_DIRTRFR
 };														/*!< SKINNY SoftKeys Set "Ring-IN" as INT */
 
 static uint8_t skSet_Offhook[] = {
@@ -3161,14 +3156,14 @@ static uint8_t skSet_Offhook[] = {
 	SKINNY_LBL_PRIVATE,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_CFWDBUSY,
-	//      SKINNY_LBL_CFWDNOANSWER,
+	//SKINNY_LBL_CFWDNOANSWER,
 #ifdef CS_SCCP_PICKUP
 	SKINNY_LBL_PICKUP,
 	SKINNY_LBL_GPICKUP,
 #endif
 	SKINNY_LBL_MEETME,
 	SKINNY_LBL_BARGE,
-	//      SKINNY_LBL_CBARGE,
+	//SKINNY_LBL_CBARGE,
 };														/*!< SKINNY SoftKeys Set "OffHook" as INT */
 
 static uint8_t skSet_Conntrans[] = {
@@ -3190,7 +3185,7 @@ static uint8_t skSet_Conntrans[] = {
 	SKINNY_LBL_CFWDBUSY,
 	SKINNY_LBL_VIDEO_MODE,
 	SKINNY_LBL_MONITOR,
-	//      SKINNY_LBL_CFWDNOANSWER,
+	//SKINNY_LBL_CFWDNOANSWER,
 };														/*!< SKINNY SoftKeys Set "Connected With Transfer" as INT */
 
 static uint8_t skSet_DigitsFoll[] = {
@@ -3212,8 +3207,8 @@ static uint8_t skSet_RingOut[] = {
 	SKINNY_LBL_TRANSFER,
 	SKINNY_LBL_CFWDALL,
 	SKINNY_LBL_IDIVERT,
-	//      SKINNY_LBL_CFWDBUSY,
-	//      SKINNY_LBL_CFWDNOANSWER,
+	//SKINNY_LBL_CFWDBUSY,
+	//SKINNY_LBL_CFWDNOANSWER,
 };														/*!< SKINNY SoftKeys Set "Ring-Out" as INT */
 
 static uint8_t skSet_Offhookfeat[] = {
@@ -3244,7 +3239,6 @@ static uint8_t skSet_InUseHint[] = {
 static uint8_t skSet_Empty[] = {
 
 };
-
 
 /*! 
  */
@@ -3290,7 +3284,7 @@ typedef struct {
 	void (*const displayPrompt) (const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message);
 	void (*const displayNotify) (const sccp_device_t * device, uint8_t timeout, const char *message);
 	void (*const displayPriNotify) (const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message);
-	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t *linedevice);
+	void (*const sendCallforwardMessage) (const sccp_device_t * device, const sccp_linedevices_t * linedevice);
 	void (*const sendUserToDeviceDataVersionMessage) (const sccp_device_t * device, uint32_t appID, uint32_t lineInstance, uint32_t callReference, uint32_t transactionID, const void *xmlData, uint8_t priority);
 	void (*const sendFastPictureUpdate) (const sccp_device_t * device, const sccp_channel_t * channel);
 	void (*const sendOpenReceiveChannel) (const sccp_device_t * device, const sccp_channel_t * channel);
@@ -3301,10 +3295,10 @@ typedef struct {
 
 	/* parse received messages */
 	void (*const parseOpenReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss, uint32_t * passthrupartyid, uint32_t * callReference);
-	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss);
-	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage *ss);
-	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t *lineInstance);
+	void (*const parseOpenMultiMediaReceiveChannelAck) (const sccp_msg_t * msg, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss, uint32_t * passthrupartyid, uint32_t * callReference);
+	void (*const parseStartMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseStartMultiMediaTransmissionAck) (const sccp_msg_t * msg, uint32_t * partyID, uint32_t * callID, uint32_t * callID1, skinny_mediastatus_t * mediastatus, struct sockaddr_storage * ss);
+	void (*const parseEnblocCall) (const sccp_msg_t * msg, char *calledParty, uint32_t * lineInstance);
 } sccp_deviceProtocol_t;											/*!< SCCP Device Protocol Callback Structure */
 
 boolean_t sccp_protocol_isProtocolSupported(uint8_t type, uint8_t version);
