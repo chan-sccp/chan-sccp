@@ -1,12 +1,12 @@
 /*!
- * \file	sccp_threadpool.c
- * \brief	SCCP Threadpool Class
- * \author	Diederik de Groot < ddegroot@users.sourceforge.net >
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * 		See the LICENSE file at the top of the source tree.
- * \note	Based on the work of Johan Hanssen Seferidis
- * 		Library providing a threading pool where you can add work. 
- * \since	2009-01-16
+ * \file        sccp_threadpool.c
+ * \brief       SCCP Threadpool Class
+ * \author      Diederik de Groot < ddegroot@users.sourceforge.net >
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \note        Based on the work of Johan Hanssen Seferidis
+ *              Library providing a threading pool where you can add work. 
+ * \since       2009-01-16
  *
  * $Date$
  * $Revision$
@@ -51,12 +51,12 @@ struct sccp_threadpool {
 /* 
  * Fast reminders:
  * 
- * tp			= threadpool 
- * sccp_threadpool	= threadpool
- * sccp_threadpool_t	= threadpool type
- * tp_p			= threadpool pointer
- * sem			= semaphore
- * xN			= x can be any string. N stands for amount
+ * tp                   = threadpool 
+ * sccp_threadpool      = threadpool
+ * sccp_threadpool_t    = threadpool type
+ * tp_p                 = threadpool pointer
+ * sem                  = semaphore
+ * xN                   = x can be any string. N stands for amount
  * */
 static volatile int sccp_threadpool_shuttingdown = 0;
 
@@ -76,7 +76,7 @@ sccp_threadpool_t *sccp_threadpool_init(int threadsN)
 		threadsN = THREADPOOL_MAX_SIZE;
 	}
 	/* Make new thread pool */
-	tp_p = (sccp_threadpool_t *) sccp_malloc(sizeof(sccp_threadpool_t));						/* MALLOC thread pool */
+	tp_p = (sccp_threadpool_t *) sccp_malloc(sizeof(sccp_threadpool_t));					/* MALLOC thread pool */
 	if (tp_p == NULL) {
 		pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread pool\n");
 		return NULL;
@@ -143,8 +143,8 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 		for (t = 0; t < amount; t++) {
 			tp_thread = SCCP_LIST_FIRST(&(tp_p->threads));
 			tp_thread->die = 1;
-			
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *)tp_thread->thread);
+
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *) tp_thread->thread);
 			// wake up all threads
 			ast_cond_broadcast(&(tp_p->work));
 		}
@@ -198,7 +198,7 @@ void sccp_threadpool_thread_do(void *p)
 {
 	sccp_threadpool_thread_t *tp_thread = (sccp_threadpool_thread_t *) p;
 	sccp_threadpool_t *tp_p = tp_thread->tp_p;
-	void * thread = (void *)pthread_self();
+	void *thread = (void *) pthread_self();
 
 	pthread_cleanup_push(sccp_threadpool_thread_end, tp_thread);
 
@@ -334,7 +334,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	ast_cond_destroy(&(tp_p->exit));									/* Remove Condition */
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->jobs));
 	SCCP_LIST_HEAD_DESTROY(&(tp_p->threads));
-	sccp_free(tp_p);												/* DEALLOC thread pool */
+	sccp_free(tp_p);											/* DEALLOC thread pool */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Threadpool Ended\n");
 }
 
@@ -376,4 +376,5 @@ int sccp_threadpool_jobqueue_count(sccp_threadpool_t * tp_p)
 	sccp_log((DEBUGCAT_THPOOL)) (VERBOSE_PREFIX_3 "(sccp_threadpool_jobqueue_count) tp_p: %p, jobCount: %d\n", tp_p, SCCP_LIST_GETSIZE(&tp_p->jobs));
 	return SCCP_LIST_GETSIZE(&tp_p->jobs);
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

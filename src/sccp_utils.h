@@ -1,12 +1,12 @@
 /*!
- * \file	sccp_utils.h
+ * \file        sccp_utils.h
  * \brief       SCCP Utils Header
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -30,7 +30,7 @@
 #endif
 
 void sccp_dump_packet(unsigned char *messagebuffer, int len);
-void sccp_dump_msg(sccp_msg_t *msg) ;
+void sccp_dump_msg(sccp_msg_t * msg);
 int sccp_addons_taps(sccp_device_t * d);
 void sccp_addons_clear(sccp_device_t * d);
 void sccp_safe_sleep(int ms);
@@ -130,6 +130,7 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 void sccp_free_ha(struct sccp_ha *ha);
 int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
 int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
+
 #if 0
 int sccp_sockaddr_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b);
 #endif

@@ -1,10 +1,10 @@
 /*!
- * \file	sccp_event.h
+ * \file        sccp_event.h
  * \brief       SCCP Event Header
- * \author	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \since	2009-09-02
+ * \author      Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2009-09-02
  *
  * $Date$
  * $Revision$  
@@ -80,15 +80,8 @@ struct sccp_event_subscriber {
 	sccp_event_type_t eventType;
 	sccp_event_callback_t callback_function;
 
-	//      SCCP_LIST_ENTRY(sccp_event_subscriber_t) list;
+	//SCCP_LIST_ENTRY(sccp_event_subscriber_t) list;
 };
-
-/*!
- * \brief SCCP Event Subscribtions Structure
- */
-// struct sccp_event_subscriptions {
-//      SCCP_LIST_HEAD(, sccp_event_subscriber_t) subscriber;
-// };
 
 void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb);
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowASyncExecution);

@@ -1,12 +1,12 @@
 /*!
- * \file	sccp_cli.c
- * \brief	SCCP CLI Class
- * \author	Sergio Chersovani <mlists [at] c-net.it>
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \file        sccp_cli.c
+ * \brief       SCCP CLI Class
+ * \author      Sergio Chersovani <mlists [at] c-net.it>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -14,29 +14,29 @@
 
 /*!
  * \remarks
- * Purpose:	SCCP CLI
+ * Purpose:     SCCP CLI
  * When to use: Only methods directly related to the asterisk cli interface should be stored in this source file.
- * Relations: 	Calls ???
+ * Relations:   Calls ???
  *
  * how to use the cli macro's
  * /code
  * static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "Send a message to an SCCP Device + phone beep + timeout.\n";
  * static char ami_message_device_usage[] = "Usage: SCCPMessageDevices\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
- * #define CLI_COMMAND "sccp", "message", "device" 					// defines the cli command line before parameters
- * #define AMI_COMMAND "SCCPMessageDevice" 						// defines the ami command line before parameters
- * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER					// defines on or more cli tab completion helpers (in order)
- * #define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"			// defines the ami parameter conversion mapping to argc/argv, empty string if not defined
+ * #define CLI_COMMAND "sccp", "message", "device"                                      // defines the cli command line before parameters
+ * #define AMI_COMMAND "SCCPMessageDevice"                                              // defines the ami command line before parameters
+ * #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER                                       // defines on or more cli tab completion helpers (in order)
+ * #define CLI_AMI_PARAMS "DeviceId" "MessageText", "Beep", "Timeout"                   // defines the ami parameter conversion mapping to argc/argv, empty string if not defined
  * CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
- * 											// the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
- *											// - functionname (will be expanded to manager_functionname and cli_functionname)
- *											// - function to be called upon execution
- *											// - description
- *											// - usage
- *											// - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
+ *                                                                                      // the actual macro call which will generate an cli function and an ami function to be called. CLI_AMI_ENTRY elements:
+ *                                                                                      // - functionname (will be expanded to manager_functionname and cli_functionname)
+ *                                                                                      // - function to be called upon execution
+ *                                                                                      // - description
+ *                                                                                      // - usage
+ *                                                                                      // - completer repeats indefinitly (multi calls to the completer, for example for 'sccp debug')
  * #undef CLI_AMI_PARAMS
  * #undef AMI_COMMAND
  * #undef CLI_COMPLETE
- * #undef CLI_COMMAND									// cleanup / undefine everything before the next call to CLI_AMI_ENTRY
+ * #undef CLI_COMMAND                                                                   // cleanup / undefine everything before the next call to CLI_AMI_ENTRY
  * #endif
  * /endcode
  * 
@@ -45,7 +45,7 @@
  *  - we need to add local_total which get's set to the number of lines returned (for ami calls).
  *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_RETURN_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_RETURN_ERROR.
  *  .
- */ 
+ */
 #include <config.h>
 #include "common.h"
 #include "sccp_cli.h"
@@ -64,8 +64,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <asterisk/cli.h>
-
-
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
 	SCCP_CLI_DEVICE_COMPLETER,
@@ -285,30 +283,29 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 	sccp_device_t *d;
 	sccp_channel_t *c;
 	sccp_line_t *l;
-	
+
 	int wordlen = strlen(word), which = 0;
 	char tmpname[80];
 	char *ret = NULL;
-	
-	char *types[] = { "device", "channel", "line", "fallback"};
-	
-	char *properties_channel[] = { "hold"};
-	char *properties_device[] = { "ringtone", "backgroundImage"};
+
+	char *types[] = { "device", "channel", "line", "fallback" };
+
+	char *properties_channel[] = { "hold" };
+	char *properties_device[] = { "ringtone", "backgroundImage" };
 	char *properties_fallback[] = { "true", "false", "odd", "even", "path" };
-	
-	char *values_hold[] = { "on", "off"};
-	
-	
+
+	char *values_hold[] = { "on", "off" };
+
 	switch (pos) {
-		case 2:		// type
+		case 2:											// type
 			for (i = 0; i < ARRAY_LEN(types); i++) {
 				if (!strncasecmp(word, types[i], wordlen) && ++which > state) {
 					return strdup(types[i]);
 				}
 			}
 			break;
-		case 3:		// device / channel / line / fallback
-			if( strstr(line, "device") != NULL ){
+		case 3:											// device / channel / line / fallback
+			if (strstr(line, "device") != NULL) {
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
@@ -317,8 +314,8 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					}
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(devices));
-				
-			} else if( strstr(line, "channel")  != NULL  ){
+
+			} else if (strstr(line, "channel") != NULL) {
 				SCCP_RWLIST_RDLOCK(&GLOB(lines));
 				SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
 					SCCP_LIST_LOCK(&l->channels);
@@ -332,7 +329,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 					SCCP_LIST_UNLOCK(&l->channels);
 				}
 				SCCP_RWLIST_UNLOCK(&GLOB(lines));
-			} else if( strstr(line, "fallback") != NULL ){
+			} else if (strstr(line, "fallback") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_fallback); i++) {
 					if (!strncasecmp(word, properties_fallback[i], wordlen) && ++which > state) {
 						return strdup(properties_fallback[i]);
@@ -340,16 +337,16 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
-		case 4:		// properties
-		  
-			if( strstr(line, "device") != NULL  ){
+		case 4:											// properties
+
+			if (strstr(line, "device") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_device); i++) {
 					if (!strncasecmp(word, properties_device[i], wordlen) && ++which > state) {
 						return strdup(properties_device[i]);
 					}
 				}
-				
-			} else if( strstr(line, "channel") != NULL ){
+
+			} else if (strstr(line, "channel") != NULL) {
 				for (i = 0; i < ARRAY_LEN(properties_channel); i++) {
 					if (!strncasecmp(word, properties_channel[i], wordlen) && ++which > state) {
 						return strdup(properties_channel[i]);
@@ -357,9 +354,9 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
-		case 5:		// values_hold
-		  
-			if( strstr(line, "channel") != NULL && strstr(line, "hold") != NULL ){
+		case 5:											// values_hold
+
+			if (strstr(line, "channel") != NULL && strstr(line, "hold") != NULL) {
 				for (i = 0; i < ARRAY_LEN(values_hold); i++) {
 					if (!strncasecmp(word, values_hold[i], wordlen) && ++which > state) {
 						return strdup(values_hold[i]);
@@ -367,15 +364,15 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 				}
 			}
 			break;
-		case 6:		// values_hold off device
-			if( strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL){
+		case 6:											// values_hold off device
+			if (strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL) {
 				if (!strncasecmp(word, "device", wordlen) && ++which > state) {
 					return strdup("device");
 				}
 			}
 			break;
-		case 7:		// values_hold off device
-			if( strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL && strstr(line, "device") != NULL){
+		case 7:											// values_hold off device
+			if (strstr(line, "channel") != NULL && strstr(line, "hold off") != NULL && strstr(line, "device") != NULL) {
 				SCCP_RWLIST_RDLOCK(&GLOB(devices));
 				SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
 					if (!strncasecmp(word, d->id, wordlen) && ++which > state) {
@@ -395,7 +392,7 @@ static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos
 static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	char *completerStr;
-	
+
 	completerStr = NULL;
 	switch (completer) {
 		case SCCP_CLI_NULL_COMPLETER:
@@ -451,7 +448,8 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
 static int sccp_show_globals(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char pref_buf[256];
-        //char addrStr[INET6_ADDRSTRLEN];
+
+	//char addrStr[INET6_ADDRSTRLEN];
 	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #ifdef CS_SCCP_PICKUP
@@ -491,10 +489,10 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #endif
 	// CLI_AMI_OUTPUT_PARAM("Protocol Version", CLI_AMI_LIST_WIDTH, "%d", GLOB(protocolversion));
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
-	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(bindaddr)) );
+	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(bindaddr)));
 	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, GLOB(nat));
-//	CLI_AMI_OUTPUT_PARAM("Extern Hostname", CLI_AMI_LIST_WIDTH, "%s", GLOB(externhost));				// deprecated
-//	CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", CLI_AMI_LIST_WIDTH, "%d", GLOB(externrefresh));			// deprecated
+	//CLI_AMI_OUTPUT_PARAM("Extern Hostname", CLI_AMI_LIST_WIDTH, "%s", GLOB(externhost));                            // deprecated
+	//CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", CLI_AMI_LIST_WIDTH, "%d", GLOB(externrefresh));                     // deprecated
 	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_socket_is_any_addr(&GLOB(externip)) ? sccp_socket_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
@@ -592,28 +590,28 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
-/*!
- * \brief Show Devices
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
-//static int sccp_show_devices(int fd, int argc, char *argv[])
+    /* --------------------------------------------------------------------------------------------------------SHOW DEVICES- */
+    /*!
+     * \brief Show Devices
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+    //static int sccp_show_devices(int fd, int argc, char *argv[])
 static int sccp_show_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	struct tm *timeinfo;
 	char regtime[25];
 	int local_total = 0;
 	sccp_device_t *d = NULL;
-        char addrStr[INET6_ADDRSTRLEN];
+	char addrStr[INET6_ADDRSTRLEN];
 
 	// table definition
 #define CLI_AMI_TABLE_NAME Devices
@@ -671,22 +669,22 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
-/*!
- * \brief Show Device
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- * \warning
- *   - device->buttonconfig is not always locked
- */
+    /* --------------------------------------------------------------------------------------------------------SHOW DEVICE- */
+    /*!
+     * \brief Show Device
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     * \warning
+     *   - device->buttonconfig is not always locked
+     */
 static int sccp_show_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -699,8 +697,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_linedevices_t *linedevice = NULL;
 	int local_total = 0;
 	const char *actionid = "";
-        char clientAddress[INET6_ADDRSTRLEN];
-        char serverAddress[INET6_ADDRSTRLEN];
+	char clientAddress[INET6_ADDRSTRLEN];
+	char serverAddress[INET6_ADDRSTRLEN];
 
 	const char *dev;
 
@@ -722,16 +720,17 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, d->preferences.audio, ARRAY_LEN(d->preferences.audio));
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, d->ha);
-        
-        if (d->session) { 
+
+	if (d->session) {
 		sccp_copy_string(clientAddress, sccp_socket_stringify(&d->session->sin), sizeof(clientAddress));
 		sccp_copy_string(serverAddress, sccp_socket_stringify(&d->session->ourip), sizeof(serverAddress));
-        } else {
-                sprintf(clientAddress, "%s", "???.???.???.???");
-                sprintf(serverAddress, "%s", "???.???.???.???");
-        }
-	
+	} else {
+		sprintf(clientAddress, "%s", "???.???.???.???");
+		sprintf(serverAddress, "%s", "???.???.???.???");
+	}
+
 	sccp_hostname_t *hostname;
+
 	SCCP_LIST_TRAVERSE(&d->permithosts, hostname, list) {
 		ast_str_append(&permithost_buf, DEFAULT_PBX_STR_BUFFERSIZE, "%s ", hostname->name);
 	}
@@ -892,7 +891,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)					\
 			CLI_AMI_TABLE_FIELD(Number,		"-31.31s",	31,	buttonconfig->button.speeddial.ext)			\
 			CLI_AMI_TABLE_FIELD(Hint,		"-27.27s",	27, 	buttonconfig->button.speeddial.hint)
-			// CLI_AMI_TABLE_FIELD(HintStatus,	"-20.20s",	20,	ast_extension_state2str(ast_extension_state()))
+		// CLI_AMI_TABLE_FIELD(HintStatus,      "-20.20s",      20,     ast_extension_state2str(ast_extension_state()))
 #include "sccp_cli_table.h"
 
 		// FEATURES
@@ -990,21 +989,21 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
-/*!
- * \brief Show Lines
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
-//static int sccp_show_lines(int fd, int argc, char *argv[])
+    /* ---------------------------------------------------------------------------------------------------------SHOW LINES- */
+    /*!
+     * \brief Show Lines
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+    //static int sccp_show_lines(int fd, int argc, char *argv[])
 static int sccp_show_lines(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l = NULL;
@@ -1139,21 +1138,21 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
-/*!
- * \brief Show Line
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
-//static int sccp_show_line(int fd, int argc, char *argv[])
+    /* -----------------------------------------------------------------------------------------------------------SHOW LINE- */
+    /*!
+     * \brief Show Line
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+    //static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l;
@@ -1209,7 +1208,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_PARAM("Pickup Group", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
 #endif
 #ifdef CS_AST_HAS_NAMEDGROUP
-	CLI_AMI_OUTPUT_PARAM("Named Call Group", CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE" );
+	CLI_AMI_OUTPUT_PARAM("Named Call Group", CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE");
 	CLI_AMI_OUTPUT_PARAM("Named Pickup Group", CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
 #endif
 	CLI_AMI_OUTPUT_PARAM("ParkingLot", CLI_AMI_LIST_WIDTH, "%s", !sccp_strlen_zero(l->parkinglot) ? l->parkinglot : "default");
@@ -1262,7 +1261,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 
 #define CLI_AMI_TABLE_FIELDS 											\
 		CLI_AMI_TABLE_FIELD(mailbox,		"15.15s",	15,	mailbox->mailbox)		\
-		CLI_AMI_TABLE_FIELD(context,		"-15.15s",	15,	mailbox->context)			
+		CLI_AMI_TABLE_FIELD(context,		"-15.15s",	15,	mailbox->context)
 #include "sccp_cli_table.h"
 
 	if (l->variables) {
@@ -1278,7 +1277,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	sccp_line_release(l);
 	if (s) {
 		*total = local_total;
-	} 
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -1296,21 +1295,21 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
-/*!
- * \brief Show Channels
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
-//static int sccp_show_channels(int fd, int argc, char *argv[])
+    /* --------------------------------------------------------------------------------------------------------SHOW CHANNELS- */
+    /*!
+     * \brief Show Channels
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+    //static int sccp_show_channels(int fd, int argc, char *argv[])
 static int sccp_show_channels(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *channel;
@@ -1340,7 +1339,6 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 			if (&channel->rtp) {											\
 				sccp_copy_string(addrStr,sccp_socket_stringify(&channel->rtp.audio.phone), sizeof(addrStr));	\
 			}
-			
 
 #define CLI_AMI_TABLE_AFTER_ITERATION 												\
 			if (d) {												\
@@ -1386,26 +1384,26 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
-/*!
- * \brief Show Sessions
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
-//static int sccp_show_sessions(int fd, int argc, char *argv[])
+    /* -------------------------------------------------------------------------------------------------------SHOW SESSIONS- */
+    /*!
+     * \brief Show Sessions
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+    //static int sccp_show_sessions(int fd, int argc, char *argv[])
 static int sccp_show_sessions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
 	int local_total = 0;
-        char clientAddress[INET6_ADDRSTRLEN]="";
+	char clientAddress[INET6_ADDRSTRLEN] = "";
 
 #define CLI_AMI_TABLE_NAME Sessions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Session
@@ -1441,7 +1439,7 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 
 	if (s) {
 		*total = local_total;
-	} 
+	}
 	return RESULT_SUCCESS;
 }
 
@@ -1459,9 +1457,8 @@ CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_s
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
-/* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
-// sccp_show_mwi_subscriptions implementation moved to sccp_mwi.c, because of access to private struct
+    /* ---------------------------------------------------------------------------------------------SHOW_MWI_SUBSCRIPTIONS- */
+    // sccp_show_mwi_subscriptions implementation moved to sccp_mwi.c, because of access to private struct
 static char cli_mwi_subscriptions_usage[] = "Usage: sccp show mwi subscriptions\n" "	Show All SCCP MWI Subscriptions.\n";
 static char ami_mwi_subscriptions_usage[] = "Usage: SCCPShowMWISubscriptions\n" "Show All SCCP MWI Subscriptions.\n\n" "PARAMS: None\n";
 
@@ -1477,11 +1474,8 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #if defined(DEBUG) || defined(CS_EXPERIMENTAL)
-
-
-/* ---------------------------------------------------------------------------------------------CONFERENCE FUNCTIONS- */
+    /* ---------------------------------------------------------------------------------------------CONFERENCE FUNCTIONS- */
 #ifdef CS_SCCP_CONFERENCE
-
 static char cli_conferences_usage[] = "Usage: sccp show conferences\n" "       Lists running SCCP conferences.\n";
 static char ami_conferences_usage[] = "Usage: SCCPShowConferences\n" "Lists running SCCP conferences.\n\n" "PARAMS: None\n";
 
@@ -1496,7 +1490,6 @@ CLI_AMI_ENTRY(show_conferences, sccp_cli_show_conferences, "List running SCCP Co
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
 static char cli_conference_usage[] = "Usage: sccp show conference\n" "       Lists running SCCP conference.\n";
 static char ami_conference_usage[] = "Usage: SCCPShowConference\n" "Lists running SCCP conference.\n\n" "PARAMS: ConferenceId\n";
 
@@ -1510,9 +1503,8 @@ CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conf
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
 #undef CLI_COMMAND
-#endif			
-
-											/* DOXYGEN_SHOULD_SKIP_THIS */
+#endif
+    /* DOXYGEN_SHOULD_SKIP_THIS */
 static char cli_conference_command_usage[] = "Usage: sccp conference [conference_id]\n" "	Conference [EndConf | Kick | Mute | Invite | Moderate] [conference_id] [participant_id].\n";
 static char ami_conference_command_usage[] = "Usage: SCCPConference [conference id]\n" "Conference Command.\n\n" "PARAMS: \n" "  Command: [EndConf | Kick | Mute | Invite | Moderate]\n" "  ConferenceId\n" "  ParticipantId\n";
 
@@ -1528,8 +1520,7 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														/* CS_SCCP_CONFERENCE */
-
-/* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
+    /* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
 static char cli_show_hint_lineStates_usage[] = "Usage: sccp show hint linestates\n" "	Show All SCCP HINT LineStates.\n";
 static char ami_show_hint_lineStates_usage[] = "Usage: SCCPShowHintLineStates\n" "Show All SCCP Hint Line States.\n\n" "PARAMS: None\n";
 
@@ -1544,8 +1535,7 @@ CLI_AMI_ENTRY(show_hint_lineStates, sccp_show_hint_lineStates, "Show all SCCP Hi
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
-/* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
+    /* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
 static char cli_show_hint_subscriptions_usage[] = "Usage: sccp show hint linestates\n" "	Show All SCCP HINT LineStates.\n";
 static char ami_show_hint_subscriptions_usage[] = "Usage: SCCPShowHintLineStates\n" "Show All SCCP Hint Line States.\n\n" "PARAMS: None\n";
 
@@ -1560,8 +1550,7 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
-/* -------------------------------------------------------------------------------------------------------TEST- */
+    /* -------------------------------------------------------------------------------------------------------TEST- */
 #define NUM_LOOPS 20
 #define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
@@ -1769,7 +1758,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		pbx_log(LOG_NOTICE, "Hint %s Set NewState: %d\n", argv[3], state);
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[2], "permit")) {												/*  WIP */
+	if (!strcasecmp(argv[2], "permit")) {									/*  WIP */
 		struct ast_str *buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 		//struct sccp_ha *path; 
@@ -1779,8 +1768,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 		pbx_log(LOG_NOTICE, "%s: HA Buffer: %s\n", argv[3], pbx_str_buffer(buf));
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[2], "retrieveDeviceCapabilities")) {									/*  WIP */
+	if (!strcasecmp(argv[2], "retrieveDeviceCapabilities")) {						/*  WIP */
 		sccp_device_t *d = NULL;
+
 		d = sccp_device_find_byid(argv[3], FALSE);
 		if (d) {
 			d->retrieveDeviceCapabilities(d);
@@ -1792,28 +1782,31 @@ static int sccp_test(int fd, int argc, char *argv[])
 	if (!strcasecmp(argv[2], "ha")) {
 		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 		int error;
+
 		pbx_cli(fd, "running ha path tests\n");
 
 		struct sockaddr_storage sas10, sas1014, sas1015, sas1016, sas172;
-		sccp_sockaddr_storage_parse(&sas10,   "10.0.0.1", PARSE_PORT_FORBID);
+
+		sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
 		sccp_sockaddr_storage_parse(&sas1014, "10.14.14.1", PARSE_PORT_FORBID);
 		sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
 		sccp_sockaddr_storage_parse(&sas1016, "10.16.16.1", PARSE_PORT_FORBID);
-		sccp_sockaddr_storage_parse(&sas172,  "172.16.0.1", PARSE_PORT_FORBID);
+		sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
 
 		// test 1
-//		struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
+		//  struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
 		struct sccp_ha *ha = NULL;
+
 		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
 		pbx_cli(fd, "test 1: deny all\n");
 
 		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   != AST_SENSE_ALLOW) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
+		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_ALLOW) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
 		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
 		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172)  == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
+		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
 
 		// test 2
 		ha = sccp_append_ha("permit", "10.14.14.0/255.255.255.0", ha, &error);
@@ -1821,11 +1814,11 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ast_str_reset(ha_buf);
 		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
+		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
 		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
 		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172)  == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
+		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
 
 		// test 3
 		ha = sccp_append_ha("permit", "10.15.15.0/255.255.0.0", ha, &error);
@@ -1833,23 +1826,11 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ast_str_reset(ha_buf);
 		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
+		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
 		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
 		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172)  == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
-		
-		// test 4
-		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
-		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
-		ast_str_reset(ha_buf);
-		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
-		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
-		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
-		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
-		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172)  == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
+		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
 
 		// test 4
 		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
@@ -1857,14 +1838,26 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ast_str_reset(ha_buf);
 		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
+		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
 		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
 		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172)  == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
+		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
+
+		// test 4
+		ha = sccp_append_ha("permit", "10.16.16.0/255.0.0.0", ha, &error);
+		pbx_cli(fd, "test 4: added permit 10.16.16.0/255.0.0.0\n");
+		ast_str_reset(ha_buf);
+		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
+		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
+		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10));
+		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1014));
+		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015));
+		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1016));
+		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172));
 
 		sccp_free_ha(ha);
-		
+
 		ha = NULL;
 		pbx_cli(fd, "test 5: clean path structure and only added permit 10.0.0.0/255.0.0.0 (localnet)\n");
 		ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
@@ -1872,32 +1865,37 @@ static int sccp_test(int fd, int argc, char *argv[])
 		ast_str_reset(ha_buf);
 		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, ha);
 		pbx_cli(fd, "ha: %s\n", pbx_str_buffer(ha_buf));
-		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n",   (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY)   == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY));
+		pbx_cli(fd, "10.0.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas10, AST_SENSE_DENY));
 		pbx_cli(fd, "10.14.14.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1014, AST_SENSE_DENY));
 		pbx_cli(fd, "10.15.15.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1015, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1015, AST_SENSE_DENY));
 		pbx_cli(fd, "10.16.16.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1016, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas1016, AST_SENSE_DENY));
-		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY)  == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY));
+		pbx_cli(fd, "172.16.0.1 - '%s' (%d)\n", (sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY) == AST_SENSE_DENY) ? "denied" : "allowed", sccp_apply_ha_default(ha, (struct sockaddr_storage *) &sas172, AST_SENSE_DENY));
 		sccp_free_ha(ha);
-		
+
 		return RESULT_SUCCESS;
 	}
 	if (!strcasecmp(argv[2], "xml")) {									/*  WIP */
 		sccp_device_t *d = NULL;
+
 		d = sccp_device_find_byid(argv[3], FALSE);
 		if (d) {
 			char *xmlData1 = "<CiscoIPPhoneText><Title>Test 1 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz</Text></CiscoIPPhoneText>";
+
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 1, 1, 1, xmlData1, 2);
 			pbx_log(LOG_NOTICE, "%s: Done1\n", d->id);
 			sleep(1);
-			char *xmlData2 = "<CiscoIPPhoneText><Title>Test 2 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_</Text></CiscoIPPhoneText>";
+			char *xmlData2 =
+			    "<CiscoIPPhoneText><Title>Test 2 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_</Text></CiscoIPPhoneText>";
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 1, 1, 1, xmlData2, 2);
 			pbx_log(LOG_NOTICE, "%s: Done2\n", d->id);
 			sleep(1);
-			char *xmlData3 = "<CiscoIPPhoneText><Title>Test 3 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_</Text></CiscoIPPhoneText>";
+			char *xmlData3 =
+			    "<CiscoIPPhoneText><Title>Test 3 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_</Text></CiscoIPPhoneText>";
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 1, 1, 1, xmlData3, 2);
 			pbx_log(LOG_NOTICE, "%s: Done3\n", d->id);
 			sleep(2);
-			char *xmlData4 = "<CiscoIPPhoneText><Title>Test 4 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_</Text></CiscoIPPhoneText>";
+			char *xmlData4 =
+			    "<CiscoIPPhoneText><Title>Test 4 XML Message</Title><Text>abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_abcdefghijklmnopqrstuvwxyz_</Text></CiscoIPPhoneText>";
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 1, 1, 1, xmlData4, 2);
 			pbx_log(LOG_NOTICE, "%s: Done4\n", d->id);
 			d = sccp_device_release(d);
@@ -1906,48 +1904,31 @@ static int sccp_test(int fd, int argc, char *argv[])
 	}
 	if (!strcasecmp(argv[2], "inputxml")) {									/*  WIP */
 		sccp_device_t *d = NULL;
+
 		d = sccp_device_find_byid(argv[3], FALSE);
 		if (d) {
 			char xmlData1[] = {
-			"<CiscoIPPhoneInput>"
-				"<Title>Change Password</Title>"
-//				"<URL>:::10.15.15.195:2000:SESSION_NUMBER/Preferences/PinInput</URL>"
+				"<CiscoIPPhoneInput>" "<Title>Change Password</Title>"
+				    //"<URL>:::10.15.15.195:2000:SESSION_NUMBER/Preferences/PinInput</URL>"
 				"<URL>:%s:SESSION_NUMBER/Preferences/PinInput</URL>"
-				"<Prompt>PROMPT_TEXT</Prompt>"
-				"<InputItem>"
-					"<DisplayName>PIN</DisplayName>"
-					"<QueryStringParam>s</QueryStringParam>"
-					"<InputFlags>NP</InputFlags>"
-					"<DefaultValue></DefaultValue>"
-				"</InputItem>"
-				"<SoftKeyItem>"
-					"<Name>Accept</Name>"
-					"<URL>SoftKey:Submit</URL>"
-					"<Position>1</Position>"
-				"</SoftKeyItem>"
-				"<SoftKeyItem>"
-					"<Name>Accept</Name>"
-					"<URL>Key:Submit</URL>"
-					"<Position>2</Position>"
-				"</SoftKeyItem>"
-				"<SoftKeyItem>"
-					"<Name>Cancel</Name>"
-					"<URL>:::SESSION_NUMBER/Preferences/Back</URL>"
-					"<Position>2</Position>"
-				"</SoftKeyItem>"
-				"<SoftKeyItem>"
-					"<Name>&lt;&lt;</Name>"
-					"<URL>SoftKey:&lt;&lt;</URL>"
-					"<Position>3</Position>"
-				"</SoftKeyItem>"
-				"<SoftKeyItem>"
-					"<Name>Home</Name>"
-					"<URL>:::SESSION_NUMBER/Preferences/Home</URL>"
-					"<Position>4</Position>"
-				"</SoftKeyItem>"
-			"</CiscoIPPhoneInput>"
+				    "<Prompt>PROMPT_TEXT</Prompt>"
+				    "<InputItem>"
+				    "<DisplayName>PIN</DisplayName>"
+				    "<QueryStringParam>s</QueryStringParam>"
+				    "<InputFlags>NP</InputFlags>"
+				    "<DefaultValue></DefaultValue>"
+				    "</InputItem>"
+				    "<SoftKeyItem>"
+				    "<Name>Accept</Name>"
+				    "<URL>SoftKey:Submit</URL>"
+				    "<Position>1</Position>"
+				    "</SoftKeyItem>"
+				    "<SoftKeyItem>"
+				    "<Name>Accept</Name>"
+				    "<URL>Key:Submit</URL>" "<Position>2</Position>" "</SoftKeyItem>" "<SoftKeyItem>" "<Name>Cancel</Name>" "<URL>:::SESSION_NUMBER/Preferences/Back</URL>" "<Position>2</Position>" "</SoftKeyItem>" "<SoftKeyItem>" "<Name>&lt;&lt;</Name>" "<URL>SoftKey:&lt;&lt;</URL>" "<Position>3</Position>" "</SoftKeyItem>" "<SoftKeyItem>" "<Name>Home</Name>" "<URL>:::SESSION_NUMBER/Preferences/Home</URL>" "<Position>4</Position>" "</SoftKeyItem>" "</CiscoIPPhoneInput>"
 			};
 			char xmlData2[2000];
+
 			sprintf(xmlData2, xmlData1, sccp_socket_stringify(&d->session->ourip));
 
 			d->protocol->sendUserToDeviceDataVersionMessage(d, 1, 0, 0, 1, xmlData2, 1);
@@ -1957,23 +1938,26 @@ static int sccp_test(int fd, int argc, char *argv[])
 		return RESULT_SUCCESS;
 	}
 #ifdef CS_EXPERIMENTAL
-	if (!strcasecmp(argv[2], "remove_reference")) {									/*  WIP */
+	if (!strcasecmp(argv[2], "remove_reference")) {								/*  WIP */
 		long findobj = 0;
+
 		if (argc == 5 && sscanf(argv[3], "%lx", &findobj) == 1) {
-			sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_1 "SCCP: Reducing Refounct of 0x%lx, %s, %s by one\n", findobj, argv[3], argv[4]);
+			sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_1 "SCCP: Reducing Refounct of 0x%lx, %s, %s by one\n", findobj, argv[3], argv[4]);
 			if (sccp_refcount_force_release(findobj, argv[4])) {
 				return RESULT_SUCCESS;
 			}
 		}
 	}
-#endif	 
+#endif
 	if (!strcasecmp(argv[2], "labels")) {
 		sccp_device_t *d = NULL;
+
 		d = sccp_device_find_byid(argv[3], FALSE);
 		uint8_t x, y, block;
 		char clientAddress[INET6_ADDRSTRLEN];
+
 		pbx_log(LOG_NOTICE, "%s: Running Labels\n", d->id);
-		
+
 		if (d) {
 			if (d->registrationState == SKINNY_DEVICE_RS_OK) {
 				if (argc < 5) {
@@ -1981,23 +1965,25 @@ static int sccp_test(int fd, int argc, char *argv[])
 				} else {
 					sccp_copy_string(clientAddress, argv[6], sizeof(clientAddress));
 				}
-				for(y=0; y<2; y++) {
-					block=y == 0 ? 36 : 200;;
-					for(x=0; x<255; x++) {
-						char label[]= { y == 0 ? '\36' : '\200',  x, '\0'};
-						sccp_log(DEBUGCAT_CORE)("%s: Sending \\%d\\%d\n", d->id, block, x);
+				for (y = 0; y < 2; y++) {
+					block = y == 0 ? 36 : 200;;
+					for (x = 0; x < 255; x++) {
+						char label[] = { y == 0 ? '\36' : '\200', x, '\0' };
+						sccp_log(DEBUGCAT_CORE) ("%s: Sending \\%d\\%d\n", d->id, block, x);
 						sccp_dev_displayprompt(d, 0, 0, label, 2);
 						char command[512];
+
 						usleep(50);
 						snprintf(command, 512, "wget -q --user %s --password %s http://%s/CGI/Screenshot -O \"./screenshot_%s_%s_%d_%d.bmp\"", argv[4], argv[5], clientAddress, argv[3], skinny_devicetype2str(d->skinny_type), block, x);
-						sccp_log(DEBUGCAT_CORE)("%s: Taking snapshot using '%s'\n", d->id, command);
+						sccp_log(DEBUGCAT_CORE) ("%s: Taking snapshot using '%s'\n", d->id, command);
 						int sysout = system(command);
-						sccp_log(DEBUGCAT_CORE)("%s: System Result '%d'\n", d->id, sysout);
+
+						sccp_log(DEBUGCAT_CORE) ("%s: System Result '%d'\n", d->id, sysout);
 						usleep(100);
 					}
 				}
 			} else {
-				sccp_log(DEBUGCAT_CORE)("%s: Device not registered yet, try again later\n", d->id);
+				sccp_log(DEBUGCAT_CORE) ("%s: Device not registered yet, try again later\n", d->id);
 			}
 			d = sccp_device_release(d);
 			return RESULT_SUCCESS;
@@ -2006,46 +1992,44 @@ static int sccp_test(int fd, int argc, char *argv[])
 	}
 	if (!strcasecmp(argv[2], "callinfo") && argc > 4) {
 		sccp_channel_t *c = sccp_channel_find_byid(atoi(argv[3]));
-		
+
 		if (c) {
 			pbx_log(LOG_NOTICE, "%s: Running CallInfo: %s\n", c->designator, argv[4]);
 			if (sccp_strcaseequals(argv[4], "CalledParty")) {
 				pbx_log(LOG_NOTICE, "%s: Setting Called Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
 				sccp_channel_set_calledparty(c, argv[5], argv[6]);
-			} else
-			if (sccp_strcaseequals(argv[4], "CallingParty")) {
+			} else if (sccp_strcaseequals(argv[4], "CallingParty")) {
 				pbx_log(LOG_NOTICE, "%s: Setting Calling Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
 				sccp_channel_set_callingparty(c, argv[5], argv[6]);
-			} else
-			if (sccp_strcaseequals(argv[4], "OriginalCalledPartyName")) {
+			} else if (sccp_strcaseequals(argv[4], "OriginalCalledPartyName")) {
 				pbx_log(LOG_NOTICE, "%s: Setting Original Called Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
 				sccp_channel_set_originalCalledparty(c, argv[5], argv[6]);
-			} else
-			if (sccp_strcaseequals(argv[4], "OriginalCallingPartyName")) {
+			} else if (sccp_strcaseequals(argv[4], "OriginalCallingPartyName")) {
 				pbx_log(LOG_NOTICE, "%s: Setting Original Calling Party, '%s', '%s'\n", c->designator, argv[5], argv[6]);
 				sccp_channel_set_originalCalledparty(c, argv[5], argv[6]);
-			} else
-			if (sccp_strcaseequals(argv[4], "lastRedirectReason")) {
+			} else if (sccp_strcaseequals(argv[4], "lastRedirectReason")) {
 				pbx_log(LOG_NOTICE, "%s: Setting RedirectReason '%d' -> '%s'\n", c->designator, c->callInfo.lastRedirectingReason, argv[5]);
 				c->callInfo.originalCdpnRedirectReason = c->callInfo.lastRedirectingReason;
 				c->callInfo.lastRedirectingReason = atoi(argv[5]);
 			}
- 			c = sccp_channel_release(c);
+			c = sccp_channel_release(c);
 			return RESULT_SUCCESS;
 		} else {
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test Callinfo, callid %s not found\n", argv[3]);
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test Callinfo, callid %s not found\n", argv[3]);
 		}
 		return RESULT_FAILURE;
 	}
 	if (!strcasecmp(argv[2], "linestat") && argc > 2) {
 		sccp_device_t *d = NULL;
+
 		d = sccp_device_find_byid(argv[3], FALSE);
 		if (d) {
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat\n");
 			sccp_msg_t *msg;
+
 			msg = sccp_utils_buildLineStatDynamicMessage(1, 0x01 & 0x08, "1234", "name", "disp1");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat1 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat1 Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(2, 2, "98011", "Diederik de Groot", "CfwdAll: 1234");
 			sccp_dev_send(d, msg);
@@ -2054,19 +2038,19 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sleep(1);
 				sccp_dev_deactivate_cplane(d);
 			}
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat2 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat2 Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(3, 4, "1234", "name", "disp4");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat4 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat4 Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(4, 8, "1234", "name", "disp8");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat8 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat8 Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(5, 0x0f, "1234", "name", "disp");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE)("SCCP: Test LineStat 0x0f Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat 0x0f Sent\n");
 			sleep(2);
 			d = sccp_device_release(d);
 			return RESULT_SUCCESS;
@@ -2086,16 +2070,16 @@ CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
-/*!
- * \brief Print Refcount Hash Table
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
+    /*!
+     * \brief Print Refcount Hash Table
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_show_refcount(int fd, int argc, char *argv[])
 {
 	if (argc < 3) {
@@ -2115,21 +2099,21 @@ CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refc
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
 #endif														//defined(DEBUG) || defined(CS_EXPERIMENTAL)
-/* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
-/*!
- * \brief Show Sessions
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
-//static int sccp_show_softkeysets(int fd, int argc, char *argv[])
+    /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
+    /*!
+     * \brief Show Sessions
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
+    //static int sccp_show_softkeysets(int fd, int argc, char *argv[])
 static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	uint8_t i = 0;
@@ -2159,7 +2143,7 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	skinny_keymode2str(i))		\
 				CLI_AMI_TABLE_FIELD(Description,	"-40.40s",	40,	skinny_keymode2longstr(i))	\
 				CLI_AMI_TABLE_FIELD(LblID,		"-5d",		5,	c)				\
-				CLI_AMI_TABLE_FIELD(Label,              "-15.15s",	15,     label2str(b[c]))		
+				CLI_AMI_TABLE_FIELD(Label,              "-15.15s",	15,     label2str(b[c]))
 #include "sccp_cli_table.h"
 
 	if (s) {
@@ -2182,20 +2166,20 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
-/*!
- * \brief Message Devices
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
+    /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICES- */
+    /*!
+     * \brief Message Devices
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
 static int sccp_message_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2251,21 +2235,21 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
-/*!
- * \brief Message Device
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- *
- * \todo TO BE IMPLEMENTED: sccp message device
- */
+    /* -----------------------------------------------------------------------------------------------------MESSAGE DEVICE- */
+    /*!
+     * \brief Message Device
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     *
+     * \todo TO BE IMPLEMENTED: sccp message device
+     */
 static int sccp_message_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
@@ -2309,6 +2293,7 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 
 static char cli_message_device_usage[] = "Usage: sccp message device <deviceId> <message text> [beep] [timeout]\n" "       Send a message to an SCCP Device + phone beep + timeout.\n";
 static char ami_message_device_usage[] = "Usage: SCCPMessageDevice\n" "Send a message to an SCCP Device.\n\n" "PARAMS: DeviceId, MessageText, Beep, Timeout\n";
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "message", "device"
 #define AMI_COMMAND "SCCPMessageDevice"
@@ -2320,24 +2305,24 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
-/*!
- * \brief System Message
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* ------------------------------------------------------------------------------------------------------SYSTEM MESSAGE- */
+    /*!
+     * \brief System Message
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_system_message(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
 	int timeout = 0;
-	char timeoutStr[5]="";
+	char timeoutStr[5] = "";
 	boolean_t beep = FALSE;
 	int local_total = 0;
 	int res = RESULT_FAILURE;
@@ -2371,7 +2356,7 @@ static int sccp_system_message(int fd, int *total, struct mansession *s, const s
 	} else {
 		timeout = 0;
 	}
-	
+
 	snprintf(timeoutStr, sizeof(timeoutStr), "%d", timeout);
 	if (!(PBX(feature_addToDatabase) ("SCCP/message", "timeout", timeoutStr))) {
 		CLI_AMI_OUTPUT(fd, s, "Failed to store the SCCP system message timeout\n");
@@ -2389,12 +2374,13 @@ static int sccp_system_message(int fd, int *total, struct mansession *s, const s
 
 	if (s) {
 		*total = local_total;
-	}	
+	}
 	return res;
 }
 
 static char cli_system_message_usage[] = "Usage: sccp system message <message text> [beep] [timeout]\n" "       The default optional timeout is 0 (forever)\n" "       Example: sccp system message \"The boss is gone. Let's have some fun!\"  10\n";
 static char ami_system_message_usage[] = "Usage: SCCPSystemMessage\n" "Set a system wide message for all devices.\n\n" "PARAMS: MessageText, Beep, Timeout\n";
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "system", "message"
 #define AMI_COMMAND "SCCPSystemMessage"
@@ -2406,27 +2392,25 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
-
-/* -----------------------------------------------------------------------------------------------------DND DEVICE- */
-/*!
- * \brief Message Device
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
+    /* -----------------------------------------------------------------------------------------------------DND DEVICE- */
+    /*!
+     * \brief Message Device
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
 static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
 	int res = RESULT_SUCCESS;
-	
+
 	int local_total = 0;
 
 	if (3 > argc || argc > 5) {
@@ -2469,8 +2453,10 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 	}
 	return res;
 }
+
 static char cli_dnd_device_usage[] = "Usage: sccp dnd <deviceId> [off|reject|silent]\n" "       Send a dnd to an SCCP Device. Optionally specifying new DND state  [off|reject|silent]\n";
 static char ami_dnd_device_usage[] = "Usage: SCCPDndDevice\n" "Set/Unset DND status on a SCCP Device.\n\n" "PARAMS: DeviceId, State= [off|reject|silent]\n";
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "dnd", "device"
 #define AMI_COMMAND "SCCPDndDevice"
@@ -2482,19 +2468,18 @@ CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cl
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
-/* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
-/*!
- * \brief Remove Line From Device
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- *
- * \todo TO BE IMPLEMENTED: sccp message device
- */
+    /* --------------------------------------------------------------------------------------------REMOVE_LINE_FROM_DEVICE- */
+    /*!
+     * \brief Remove Line From Device
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     *
+     * \todo TO BE IMPLEMENTED: sccp message device
+     */
 static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
 	pbx_cli(fd, "Command has not been implemented yet!\n");
@@ -2510,16 +2495,16 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
-/*!
- * \brief Add Line To Device
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* -------------------------------------------------------------------------------------------------ADD_LINE_TO_DEVICE- */
+    /*!
+     * \brief Add Line To Device
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2558,16 +2543,16 @@ CLI_ENTRY(cli_add_line_to_device, sccp_add_line_to_device, "Add a line to a devi
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
-/*!
- * \brief Do Debug
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* ------------------------------------------------------------------------------------------------------------DO DEBUG- */
+    /*!
+     * \brief Do Debug
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_do_debug(int fd, int argc, char *argv[])
 {
 	int32_t new_debug = GLOB(debug);
@@ -2598,16 +2583,16 @@ CLI_ENTRY(cli_do_debug, sccp_do_debug, "Set SCCP Debugging Types", do_debug_usag
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
-/*!
- * \brief No Debug
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* ------------------------------------------------------------------------------------------------------------NO DEBUG- */
+    /*!
+     * \brief No Debug
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_no_debug(int fd, int argc, char *argv[])
 {
 	if (argc < 3) {
@@ -2627,18 +2612,18 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------------RELOAD- */
-/*!
- * \brief Do Reload
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- * \note To find out more about the reload function see \ref sccp_config_reload
- */
+    /* --------------------------------------------------------------------------------------------------------------RELOAD- */
+    /*!
+     * \brief Do Reload
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     * \note To find out more about the reload function see \ref sccp_config_reload
+     */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	sccp_readingtype_t readingtype;
@@ -2654,7 +2639,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		pbx_cli(fd, "SCCP reloading already in progress.\n");
 		goto EXIT;
 	}
-	
+
 	if (!GLOB(cfg)) {
 		pbx_log(LOG_NOTICE, "GLOB(cfg) not available. Skip loading default setting.\n");
 		goto EXIT;
@@ -2665,12 +2650,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			if (argc == 4) {
 				sccp_device_t *device = sccp_device_find_byid(argv[3], FALSE);
 				PBX_VARIABLE_TYPE *v = NULL;
-				
-				if(!device){
+
+				if (!device) {
 					pbx_cli(fd, "Could not find device %s\n", argv[3]);
 					const char *utype;
+
 					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
-					if (utype && !strcasecmp(utype, "device") ){
+					if (utype && !strcasecmp(utype, "device")) {
 						device = sccp_device_create(argv[3]);
 					} else {
 						pbx_cli(fd, "Could not find device %s in config\n", argv[3]);
@@ -2678,20 +2664,20 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					}
 				}
 #ifdef CS_SCCP_REALTIME
-				if (device->realtime){
+				if (device->realtime) {
 					v = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL);
-				} else 
+				} else
 #endif
 				{
 					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
 				}
-				if(v){
-					change =  sccp_config_applyDeviceConfiguration(device, v);
+				if (v) {
+					change = sccp_config_applyDeviceConfiguration(device, v);
 					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
 					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
-					if(change == SCCP_CONFIG_NEEDDEVICERESET){
+					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						device->pendingUpdate = 1;
 						sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
 					}
@@ -2703,25 +2689,27 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				} else {
 					device->pendingDelete = 1;
 				}
-				
+
 				device = sccp_device_release(device);
 				returnval = RESULT_SUCCESS;
 			} else {
 				pbx_cli(fd, "Usage: sccp reload device [SEP00???????], device name required\n");
 			}
 			goto EXIT;
-		} else if (sccp_strequals("line", argv[2])) { 
+		} else if (sccp_strequals("line", argv[2])) {
 			if (argc == 4) {
 				sccp_line_t *line = sccp_line_find_byname(argv[3], FALSE);
 				PBX_VARIABLE_TYPE *v = NULL;
+
 #ifdef CS_SCCP_REALTIME
-				PBX_VARIABLE_TYPE *dv = NULL;			
+				PBX_VARIABLE_TYPE *dv = NULL;
 #endif
-				if(!line) {
+				if (!line) {
 					pbx_cli(fd, "Could not find line %s\n", argv[3]);
 					const char *utype;
+
 					utype = pbx_variable_retrieve(GLOB(cfg), argv[3], "type");
-					if (utype && !strcasecmp(utype, "line") ) {
+					if (utype && !strcasecmp(utype, "line")) {
 						line = sccp_line_create(argv[3]);
 					} else {
 						pbx_cli(fd, "Could not find line %s in config\n", argv[3]);
@@ -2729,43 +2717,44 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					}
 				}
 #ifdef CS_SCCP_REALTIME
-				if (line->realtime){
+				if (line->realtime) {
 					v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
-				} else 
+				} else
 #endif
 				{
 					if ((CONFIG_STATUS_FILE_OK == sccp_config_getConfig(TRUE)) && GLOB(cfg)) {
 						v = ast_variable_browse(GLOB(cfg), argv[3]);
 					}
 				}
-				if(v) {
-					change =  sccp_config_applyLineConfiguration(line, v);
+				if (v) {
+					change = sccp_config_applyLineConfiguration(line, v);
 					sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
 					pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
-					if(change == SCCP_CONFIG_NEEDDEVICERESET){
+					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						sccp_device_t *device = NULL;
 						sccp_linedevices_t *lineDevice = NULL;
+
 						SCCP_LIST_LOCK(&line->devices);
 						SCCP_LIST_TRAVERSE(&line->devices, lineDevice, list) {
 							if ((device = sccp_device_retain(lineDevice->device))) {
 #ifdef CS_SCCP_REALTIME
-								if (device->realtime){
+								if (device->realtime) {
 									if ((dv = pbx_load_realtime(GLOB(realtimedevicetable), "name", argv[3], NULL))) {
-										change =  sccp_config_applyDeviceConfiguration(device, dv);
+										change = sccp_config_applyDeviceConfiguration(device, dv);
 									}
-								} else 
+								} else
 #endif
 								if (GLOB(cfg)) {
 									v = ast_variable_browse(GLOB(cfg), device->id);
-									change =  sccp_config_applyDeviceConfiguration(device, v);
+									change = sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
-								sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
+								sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);	// SKINNY_DEVICE_RELOAD_CONFIG
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime && dv) {
 									pbx_variables_destroy(dv);
 								}
-#endif								
+#endif
 								device = sccp_device_release(device);
 							}
 						}
@@ -2775,11 +2764,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					if (line->realtime) {
 						pbx_variables_destroy(v);
 					}
-#endif					
+#endif
 				} else {
 					line->pendingDelete = 1;
 				}
-				
+
 				line = sccp_device_release(line);
 				returnval = RESULT_SUCCESS;
 			} else {
@@ -2788,21 +2777,21 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			goto EXIT;
 		} else if (sccp_strequals("force", argv[2]) && argc == 3) {
 			pbx_cli(fd, "Force Reading Config file '%s'\n", GLOB(config_file_name));
-			force_reload=TRUE;
-		} else if (sccp_strequals("file", argv[2])) { 
+			force_reload = TRUE;
+		} else if (sccp_strequals("file", argv[2])) {
 			if (argc == 4) {
 				if (!pbx_fileexists(argv[3], NULL, NULL)) {
 					pbx_cli(fd, "The config file '%s' you requested to load does not exist. Aborting reload\n", argv[3]);
 					goto EXIT;
 				}
-				
+
 				pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[3], GLOB(config_file_name));
 				if (!sccp_strequals(GLOB(config_file_name), argv[3])) {
-					force_reload=TRUE;
+					force_reload = TRUE;
 				}
 				if (GLOB(config_file_name)) {
 					sccp_free(GLOB(config_file_name));
-				}	
+				}
 				GLOB(config_file_name) = sccp_strdup(argv[3]);
 			} else {
 				pbx_cli(fd, "Usage: sccp reload file [filename], filename is required\n");
@@ -2813,6 +2802,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		}
 	}
 	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload);
+
 	switch (cfg) {
 		case CONFIG_STATUS_FILE_NOT_CHANGED:
 			pbx_cli(fd, "config file '%s' has not change, skipping reload.\n", GLOB(config_file_name));
@@ -2864,29 +2854,29 @@ static char reload_usage[] = "Usage: SCCP reload [force|file filename|device dev
 CLI_ENTRY(cli_reload, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #define CLI_COMMAND "sccp", "reload", "force"
-CLI_ENTRY(cli_reload_force, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+    CLI_ENTRY(cli_reload_force, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
 #define CLI_COMMAND "sccp", "reload", "device"
-CLI_ENTRY(cli_reload_device, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+    CLI_ENTRY(cli_reload_device, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER
 #define CLI_COMMAND "sccp", "reload", "line"
-CLI_ENTRY(cli_reload_line, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
+    CLI_ENTRY(cli_reload_line, sccp_cli_reload, "Reload the SCCP configuration", reload_usage, FALSE)
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/*!
- * \brief Generare sccp.conf
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /*!
+     * \brief Generare sccp.conf
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 {
 	int returnval = RESULT_FAILURE;
@@ -2897,7 +2887,7 @@ static int sccp_cli_config_generate(int fd, int argc, char *argv[])
 	}
 
 	pbx_cli(fd, "SCCP: Generating new config file.\n");
-	
+
 	if (argc == 4) {
 		config_file = sccp_strdupa(argv[3]);
 	}
@@ -2919,16 +2909,16 @@ CLI_ENTRY(cli_config_generate, sccp_cli_config_generate, "Generate a SCCP config
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
-/*!
- * \brief Show Version
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* -------------------------------------------------------------------------------------------------------SHOW VERSION- */
+    /*!
+     * \brief Show Version
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_show_version(int fd, int argc, char *argv[])
 {
 	pbx_cli(fd, "%s", SCCP_VERSIONSTR);
@@ -2944,17 +2934,17 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
-/*!
- * \brief Reset/Restart
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- * 
- */
+    /* -------------------------------------------------------------------------------------------------------RESET_RESTART- */
+    /*!
+     * \brief Reset/Restart
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     * 
+     */
 static int sccp_reset_restart(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -2992,8 +2982,8 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 	/* sccp_device_clean will check active channels */
 	/* \todo implement a check for active channels before sending reset */
 	//if (d->channelCount > 0) {
-	//	pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
-	//	return RESULT_SUCCESS;
+	//pbx_cli(fd, "%s: unable to %s device with active channels. Hangup first\n", argv[2], (!strcasecmp(argv[1], "reset")) ? "reset" : "restart");
+	//return RESULT_SUCCESS;
 	//}
 	if (!restart) {
 		sccp_device_sendReset(d, SKINNY_DEVICE_RESET);
@@ -3003,6 +2993,7 @@ static int sccp_reset_restart(int fd, int argc, char *argv[])
 
 	usleep(20);
 	sccp_session_t *s;
+
 	if (d && (s = d->session) && AST_PTHREADT_NULL != s->session_thread) {
 		pthread_cancel(s->session_thread);
 	}
@@ -3021,7 +3012,7 @@ CLI_ENTRY(cli_reset, sccp_reset_restart, "Show SCCP version details", reset_usag
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* -------------------------------------------------------------------------------------------------------------RESTART- */
+    /* -------------------------------------------------------------------------------------------------------------RESTART- */
 static char restart_usage[] = "Usage: SCCP restart\n" "       sccp restart <deviceId>\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
@@ -3031,16 +3022,16 @@ CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usa
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
-/*!
- * \brief Unregister
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* ----------------------------------------------------------------------------------------------------------UNREGISTER- */
+    /*!
+     * \brief Unregister
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_unregister(int fd, int argc, char *argv[])
 {
 	sccp_msg_t *msg;
@@ -3082,16 +3073,16 @@ CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregist
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------------START CALL- */
-/*!
- * \brief Start Call
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* --------------------------------------------------------------------------------------------------------------START CALL- */
+    /*!
+     * \brief Start Call
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -3145,24 +3136,24 @@ CLI_ENTRY(cli_start_call, sccp_start_call, "Call Number via Device", start_call_
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------------SET HOLD- */
-/*!
- * \brief Set Channel on Hold
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* --------------------------------------------------------------------------------------------------------------SET HOLD- */
+    /*!
+     * \brief Set Channel on Hold
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_set_object(int fd, int argc, char *argv[])
 {
-	sccp_channel_t		*c 	= NULL;
-	sccp_device_t 		*device = NULL;
-	PBX_VARIABLE_TYPE 	variable;
+	sccp_channel_t *c = NULL;
+	sccp_device_t *device = NULL;
+	PBX_VARIABLE_TYPE variable;
 	int res;
 	int cli_result = RESULT_SUCCESS;
-	
+
 	if (argc < 2) {
 		return RESULT_SHOWUSAGE;
 	}
@@ -3179,36 +3170,37 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		// sccp set channel SCCP/test123-123 hold on
 		if (!strncasecmp("SCCP/", argv[3], 5)) {
 			char line[80];
-			int channel; 
+			int channel;
 
 			sscanf(argv[3], "SCCP/%[^-]-%08x", line, &channel);
-//			c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
+			//    c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
 			c = sccp_channel_find_byid(channel);
 		} else {
 			c = sccp_channel_find_byid(atoi(argv[3]));
 		}
-		
+
 		if (!c) {
 			pbx_cli(fd, "Can't find channel for ID %s\n", argv[3]);
 			return RESULT_FAILURE;
 		}
-		
-		do{
-			if (sccp_strcaseequals("hold", argv[4]) ){
-				if (sccp_strcaseequals("on", argv[5])) {								/* check to see if enable hold */
+
+		do {
+			if (sccp_strcaseequals("hold", argv[4])) {
+				if (sccp_strcaseequals("on", argv[5])) {					/* check to see if enable hold */
 					pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
 					sccp_channel_hold(c);
-				} else if (!strcmp("off", argv[5])) {									/* check to see if disable hold */
-					if (argc < 7){
+				} else if (!strcmp("off", argv[5])) {						/* check to see if disable hold */
+					if (argc < 7) {
 						pbx_cli(fd, "For resuming a channel from hold, you have to specify the resuming device\n%s %s %s %s %s %s <device>\n", argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 						cli_result = RESULT_FAILURE;
 						break;
 					}
 					char *dev;
-					if (sccp_strcaseequals("device", argv[6])) {							/* 'device' str is optional during 'hold off' (to match old behaviour) */
+
+					if (sccp_strcaseequals("device", argv[6])) {				/* 'device' str is optional during 'hold off' (to match old behaviour) */
 						dev = sccp_strdupa(argv[7]);
 					} else {
-					 	dev = sccp_strdupa(argv[6]);
+						dev = sccp_strdupa(argv[6]);
 					}
 					if (pbx_strlen_zero(dev)) {
 						pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
@@ -3216,6 +3208,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 						break;
 					}
 					sccp_device_t *d;
+
 					if (!(d = sccp_device_find_byid(dev, FALSE))) {
 						pbx_log(LOG_WARNING, "Device not found\n");
 						cli_result = RESULT_FAILURE;
@@ -3231,19 +3224,20 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 					return RESULT_SHOWUSAGE;
 				}
 			}
-		} while(FALSE);
-		
+		} while (FALSE);
+
 		c = sccp_channel_release(c);
-	  
+
 	} else if (!strcmp("device", argv[2])) {
 		if (argc < 6) {
 			return RESULT_SHOWUSAGE;
 		}
-		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5])){
+		if (pbx_strlen_zero(argv[3]) || pbx_strlen_zero(argv[4]) || pbx_strlen_zero(argv[5])) {
 			return RESULT_SHOWUSAGE;
 		}
-		
+
 		char *dev = sccp_strdupa(argv[3]);
+
 		if (pbx_strlen_zero(dev)) {
 			pbx_log(LOG_WARNING, "DeviceName needs to be supplied\n");
 		}
@@ -3254,35 +3248,36 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			return RESULT_FAILURE;
 		}
 
-		if(!strcmp("ringtone", argv[4])){
+		if (!strcmp("ringtone", argv[4])) {
 			device->setRingTone(device, argv[5]);
 
-		} else if(!strcmp("backgroundImage", argv[4])){
+		} else if (!strcmp("backgroundImage", argv[4])) {
 			device->setBackgroundImage(device, argv[5]);
 
 		} else {
-			variable.name	= argv[4];
-			variable.value	= argv[5];
-			variable.next	= NULL;
-			variable.file	= "cli";
-			variable.lineno	= 0;
-		    
+			variable.name = argv[4];
+			variable.value = argv[5];
+			variable.next = NULL;
+			variable.file = "cli";
+			variable.lineno = 0;
+
 			res = sccp_config_applyDeviceConfiguration(device, &variable);
-			
-			if (res & SCCP_CONFIG_NEEDDEVICERESET){
-				device->pendingUpdate = 1; 
+
+			if (res & SCCP_CONFIG_NEEDDEVICERESET) {
+				device->pendingUpdate = 1;
 			}
 		}
-		
+
 		device = device ? sccp_device_release(device) : NULL;
 	} else if (sccp_strcaseequals("fallback", argv[2])) {
-		if (argc < 4){
+		if (argc < 4) {
 			return RESULT_SHOWUSAGE;
-		} 
-		if (pbx_strlen_zero(argv[3])){
+		}
+		if (pbx_strlen_zero(argv[3])) {
 			return RESULT_SHOWUSAGE;
 		}
 		char *fallback_option = sccp_strdupa(argv[3]);
+
 		if (sccp_strcaseequals(fallback_option, "odd") || sccp_strcaseequals(fallback_option, "even") || sccp_true(fallback_option) || sccp_false(fallback_option)) {
 			if (GLOB(token_fallback)) {
 				sccp_free(GLOB(token_fallback));
@@ -3290,6 +3285,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			GLOB(token_fallback) = strdup(fallback_option);
 		} else if (strstr(fallback_option, "/") != NULL) {
 			struct stat sb;
+
 			if (stat(fallback_option, &sb) == 0 && sb.st_mode & S_IXUSR) {
 				if (GLOB(token_fallback)) {
 					sccp_free(GLOB(token_fallback));
@@ -3308,7 +3304,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 		}
 		pbx_cli(fd, "New global fallback value: %s\n", GLOB(token_fallback));
 	}
-	
+
 	return cli_result;
 }
 
@@ -3321,24 +3317,24 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
-/*!
- * \brief Answer a Remote Channel
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* --------------------------------------------------------------------------------------------------------------REMOTE ANSWER- */
+    /*!
+     * \brief Answer a Remote Channel
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_answercall(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
-	
+
 	int local_total = 0;
 	int res = RESULT_SUCCESS;
 	char error[100] = "";
@@ -3350,8 +3346,9 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
 		char line[80];
 		int channelId;
+
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channelId);
-//		c = sccp_find_channel_on_line_byid(l, channeId);	// possible replacement, to also check if the line provided can be matched up.
+		//  c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));
@@ -3375,27 +3372,28 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 			pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
 			snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s needs to be ringing and incoming, to be answered\n", c->designator);
 			res = RESULT_FAILURE;
-		}		
+		}
 		c = sccp_channel_release(c);
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
 		snprintf(error, sizeof(error), "SCCP: (sccp_answercall) Channel %s is not active\n", argv[2]);
 		res = RESULT_FAILURE;
 	}
-		
+
 	if (res == RESULT_FAILURE && !sccp_strlen_zero(error)) {
 		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
 	}
-	
+
 	if (s) {
 		*total = local_total;
 	}
-	
+
 	return res;
 }
 
 static char cli_answercall_usage[] = "Usage: sccp answercall channelId deviceId\n" "       Answer a ringing incoming channel on device.\n";
 static char ami_answercall_usage[] = "Usage: SCCPAsnwerCall1\n" "Answer a ringing incoming channel on device.\n\n" "PARAMS: ChannelId,DeviceId\n";
+
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "answer"
 #define AMI_COMMAND "SCCPAsnwerCall1"
@@ -3407,17 +3405,16 @@ CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-
-/* --------------------------------------------------------------------------------------------------------------END CALL- */
-/*!
- * \brief End a Call (on a Channel)
- * \param fd Fd as int
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* --------------------------------------------------------------------------------------------------------------END CALL- */
+    /*!
+     * \brief End a Call (on a Channel)
+     * \param fd Fd as int
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_end_call(int fd, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
@@ -3429,7 +3426,7 @@ static int sccp_end_call(int fd, int argc, char *argv[])
 		return RESULT_SHOWUSAGE;
 	}
 	if (!strncasecmp("SCCP/", argv[2], 5)) {
-		char line[80]; 
+		char line[80];
 		int channel;
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channel);
@@ -3456,19 +3453,19 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* ---------------------------------------------------------------------------------------------------------------------- TOKEN - */
-/*!
- * \brief Send Token Ack to device(s)
- * \param fd Fd as int
- * \param total Total number of lines as int
- * \param s AMI Session
- * \param m Message
- * \param argc Argc as int
- * \param argv[] Argv[] as char
- * \return Result as int
- * 
- * \called_from_asterisk
- */
+    /* ---------------------------------------------------------------------------------------------------------------------- TOKEN - */
+    /*!
+     * \brief Send Token Ack to device(s)
+     * \param fd Fd as int
+     * \param total Total number of lines as int
+     * \param s AMI Session
+     * \param m Message
+     * \param argc Argc as int
+     * \param argv[] Argv[] as char
+     * \return Result as int
+     * 
+     * \called_from_asterisk
+     */
 static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
@@ -3477,7 +3474,7 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 
 	if (argc < 3 || sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
-	}	
+	}
 	dev = sccp_strdupa(argv[2]);
 	d = sccp_device_find_byid(dev, FALSE);
 	if (!d) {
@@ -3518,14 +3515,14 @@ CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALS
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-/* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
-/*!
- * \brief Asterisk Cli Entry
- *
- * structure for cli functions including short description.
- *
- * \return Result as struct
- */
+    /* --- Register Cli Entries-------------------------------------------------------------------------------------------- */
+    /*!
+     * \brief Asterisk Cli Entry
+     *
+     * structure for cli functions including short description.
+     *
+     * \return Result as struct
+     */
 static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_show_globals, "Show SCCP global settings."),
 	AST_CLI_DEFINE(cli_show_devices, "Show all SCCP Devices."),
@@ -3551,7 +3548,7 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_reload_force, "SCCP module reload force."),
 	AST_CLI_DEFINE(cli_reload_device, "SCCP module reload device."),
 	AST_CLI_DEFINE(cli_reload_line, "SCCP module reload line."),
- 	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
+	AST_CLI_DEFINE(cli_restart, "Restart an SCCP device"),
 	AST_CLI_DEFINE(cli_reset, "Reset an SCCP Device"),
 	AST_CLI_DEFINE(cli_start_call, "Start a Call."),
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
@@ -3649,4 +3646,5 @@ void sccp_unregister_cli(void)
 	pbx_manager_unregister("SCCPShowHintLineStates");
 	pbx_manager_unregister("SCCPShowHintSubscriptions");
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -56,12 +56,12 @@ boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage)
 	return (sockAddrStorage->ss_family == AF_INET6) ? TRUE : FALSE;
 }
 
-uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage)
+uint16_t sccp_socket_getPort(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_socket_is_IPv4(sockAddrStorage)) {
-		return ntohs(((struct sockaddr_in*)sockAddrStorage)->sin_port);
+		return ntohs(((struct sockaddr_in *) sockAddrStorage)->sin_port);
 	} else if (sccp_socket_is_IPv6(sockAddrStorage)) {
-		return ntohs(((struct sockaddr_in6*)sockAddrStorage)->sin6_port);
+		return ntohs(((struct sockaddr_in6 *) sockAddrStorage)->sin6_port);
 	}
 	return 0;
 }
@@ -69,9 +69,9 @@ uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage)
 void sccp_socket_setPort(const struct sockaddr_storage *sockAddrStorage, uint16_t port)
 {
 	if (sccp_socket_is_IPv4(sockAddrStorage)) {
-		((struct sockaddr_in*)sockAddrStorage)->sin_port = htons(port);
+		((struct sockaddr_in *) sockAddrStorage)->sin_port = htons(port);
 	} else if (sccp_socket_is_IPv6(sockAddrStorage)) {
-		((struct sockaddr_in6*)sockAddrStorage)->sin6_port =htons(port);
+		((struct sockaddr_in6 *) sockAddrStorage)->sin6_port = htons(port);
 	}
 }
 
@@ -81,22 +81,21 @@ int sccp_socket_is_any_addr(const struct sockaddr_storage *sockAddrStorage)
 		.ss = *sockAddrStorage,
 	};
 
-	return (sccp_socket_is_IPv4(sockAddrStorage) && (tmp_addr.sin.sin_addr.s_addr == INADDR_ANY)) ||
-	    (sccp_socket_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_UNSPECIFIED(&tmp_addr.sin6.sin6_addr));
+	return (sccp_socket_is_IPv4(sockAddrStorage) && (tmp_addr.sin.sin_addr.s_addr == INADDR_ANY)) || (sccp_socket_is_IPv6(sockAddrStorage) && IN6_IS_ADDR_UNSPECIFIED(&tmp_addr.sin6.sin6_addr));
 }
 
 boolean_t sccp_socket_getExternalAddr(struct sockaddr_storage *sockAddrStorage)
-{    
+{
 	//! \todo handle IPv4 / IPV6 family ?
 	if (sccp_socket_is_any_addr(&GLOB(externip))) {
-		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "SCCP: No externip set in sccp.conf. In case you are running your PBX on a seperate host behind a NATTED Firewall you need to set externip.\n");
 		return FALSE;
 	}
 	memcpy(sockAddrStorage, &GLOB(externip), sizeof(struct sockaddr_storage));
 	return TRUE;
 }
 
-size_t sccp_socket_sizeof(const struct sockaddr_storage *sockAddrStorage) 
+size_t sccp_socket_sizeof(const struct sockaddr_storage * sockAddrStorage)
 {
 	if (sccp_socket_is_IPv4(sockAddrStorage)) {
 		return sizeof(struct sockaddr_in);
@@ -117,7 +116,8 @@ static int sccp_socket_is_ipv6_link_local(const struct sockaddr_storage *sockAdd
 boolean_t sccp_socket_is_mapped_IPv4(const struct sockaddr_storage *sockAddrStorage)
 {
 	if (sccp_socket_is_IPv6(sockAddrStorage)) {
-		const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)sockAddrStorage;
+		const struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) sockAddrStorage;
+
 		return IN6_IS_ADDR_V4MAPPED(&sin6->sin6_addr);
 	} else {
 		return FALSE;
@@ -132,17 +132,17 @@ boolean_t sccp_socket_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage
 	if (!sccp_socket_is_IPv6(sockAddrStorage)) {
 		return FALSE;
 	}
-  
+
 	if (!sccp_socket_is_mapped_IPv4(sockAddrStorage)) {
 		return FALSE;
 	}
 
-	sin6 = (const struct sockaddr_in6*)sockAddrStorage;
+	sin6 = (const struct sockaddr_in6 *) sockAddrStorage;
 
 	memset(&sin4, 0, sizeof(sin4));
 	sin4.sin_family = AF_INET;
 	sin4.sin_port = sin6->sin6_port;
-	sin4.sin_addr.s_addr = ((uint32_t *)&sin6->sin6_addr)[3];
+	sin4.sin_addr.s_addr = ((uint32_t *) & sin6->sin6_addr)[3];
 
 	memcpy(sockAddrStorage_mapped, &sin4, sizeof(sin4));
 	return TRUE;
@@ -158,9 +158,9 @@ boolean_t sccp_socket_ipv4_mapped(const struct sockaddr_storage *sockAddrStorage
  */
 int sccp_socket_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b)
 {
-//	char *stra = ast_strdupa(sccp_socket_stringify_addr(a));
-//	char *strb = ast_strdupa(sccp_socket_stringify_addr(b));
-	
+	//char *stra = ast_strdupa(sccp_socket_stringify_addr(a));
+	//char *strb = ast_strdupa(sccp_socket_stringify_addr(b));
+
 	const struct sockaddr_storage *a_tmp, *b_tmp;
 	struct sockaddr_storage ipv4_mapped;
 	size_t len_a = sccp_socket_sizeof(a);
@@ -184,28 +184,24 @@ int sccp_socket_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr
 		ret = 1;
 		goto EXIT;
 	}
-	
+
 	if (a_tmp->ss_family == b_tmp->ss_family) {
 		if (a_tmp->ss_family == AF_INET) {
-			ret = memcmp(     &(((struct sockaddr_in *) a_tmp)->sin_addr), 
-					&(((struct sockaddr_in *) b_tmp)->sin_addr),
-					sizeof(struct in_addr) );
-		} else { // AF_INET6
-			ret = memcmp(     &(((struct sockaddr_in6 *) a_tmp)->sin6_addr), 
-					&(((struct sockaddr_in6 *) b_tmp)->sin6_addr),
-					sizeof(struct in6_addr) );
+			ret = memcmp(&(((struct sockaddr_in *) a_tmp)->sin_addr), &(((struct sockaddr_in *) b_tmp)->sin_addr), sizeof(struct in_addr));
+		} else {											// AF_INET6
+			ret = memcmp(&(((struct sockaddr_in6 *) a_tmp)->sin6_addr), &(((struct sockaddr_in6 *) b_tmp)->sin6_addr), sizeof(struct in6_addr));
 		}
 	}
 EXIT:
-//	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: sccp_socket_cmp_addr(%s, %s) returning %d\n", stra, strb, ret);
-	return ret;  
+	//sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_2 "SCCP: sccp_socket_cmp_addr(%s, %s) returning %d\n", stra, strb, ret);
+	return ret;
 }
 
 /*!
  * \brief
  * Splits a string into its host and port components
  *
- * \param str	    [in] The string to parse. May be modified by writing a NUL at the end of
+ * \param str       [in] The string to parse. May be modified by writing a NUL at the end of
  *                  the host part.
  * \param host      [out] Pointer to the host component within \a str.
  * \param port      [out] Pointer to the port component within \a str.
@@ -220,10 +216,10 @@ EXIT:
 int sccp_socket_split_hostport(char *str, char **host, char **port, int flags)
 {
 	char *s = str;
-	char *orig_str = str;/* Original string in case the port presence is incorrect. */
-	char *host_end = NULL;/* Delay terminating the host in case the port presence is incorrect. */
+	char *orig_str = str;											/* Original string in case the port presence is incorrect. */
+	char *host_end = NULL;											/* Delay terminating the host in case the port presence is incorrect. */
 
-	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "Splitting '%s' into...\n", str);
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_4 "Splitting '%s' into...\n", str);
 	*host = NULL;
 	*port = NULL;
 	if (*s == '[') {
@@ -237,7 +233,7 @@ int sccp_socket_split_hostport(char *str, char **host, char **port, int flags)
 		if (*s == ':') {
 			*port = s + 1;
 		}
-	} else { 
+	} else {
 		*host = s;
 		for (; *s; ++s) {
 			if (*s == ':') {
@@ -256,30 +252,29 @@ int sccp_socket_split_hostport(char *str, char **host, char **port, int flags)
 	}
 
 	switch (flags & PARSE_PORT_MASK) {
-	case PARSE_PORT_IGNORE:
-		*port = NULL;  
-		break;
-	case PARSE_PORT_REQUIRE:
-		if (*port == NULL) {
-			pbx_log(LOG_WARNING, "Port missing in %s\n", orig_str);
-			return 0;
-		}
-		break;
-	case PARSE_PORT_FORBID:
-		if (*port != NULL) {
-			pbx_log(LOG_WARNING, "Port disallowed in %s\n", orig_str);
-			return 0;
-		}
-		break;
+		case PARSE_PORT_IGNORE:
+			*port = NULL;
+			break;
+		case PARSE_PORT_REQUIRE:
+			if (*port == NULL) {
+				pbx_log(LOG_WARNING, "Port missing in %s\n", orig_str);
+				return 0;
+			}
+			break;
+		case PARSE_PORT_FORBID:
+			if (*port != NULL) {
+				pbx_log(LOG_WARNING, "Port disallowed in %s\n", orig_str);
+				return 0;
+			}
+			break;
 	}
 	/* Can terminate the host string now if needed. */
 	if (host_end) {
 		*host_end = '\0';
 	}
-	sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_4 "...host '%s' and port '%s'.\n", *host, *port ? *port : "");
+	sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_4 "...host '%s' and port '%s'.\n", *host, *port ? *port : "");
 	return 1;
 }
-
 
 AST_THREADSTORAGE(sccp_socket_stringify_buf);
 char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, int format)
@@ -291,7 +286,6 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 	int e;
 	static const size_t size = sizeof(host) - 1 + sizeof(port) - 1 + 4;
 
-
 	if (!sockAddrStorage) {
 		return "(null)";
 	}
@@ -299,51 +293,44 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 	if (!(str = ast_str_thread_get(&sccp_socket_stringify_buf, size))) {
 		return "";
 	}
+	//if (sccp_socket_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
+	//  struct sockaddr_storage sockAddrStorage_tmp_ipv4;
+	//  sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
+	//#if DEBUG
+	//  sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
+	//#endif
+	//} else {
+	sockAddrStorage_tmp = sockAddrStorage;
+	//}
 
-//	if (sccp_socket_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
-//		struct sockaddr_storage sockAddrStorage_tmp_ipv4;
-//		sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
-//#if DEBUG
-//		sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
-//#endif
-//	} else {
-		sockAddrStorage_tmp = sockAddrStorage;
-//	}
-
-	if ((e = getnameinfo((struct sockaddr *)sockAddrStorage_tmp, sccp_socket_sizeof(sockAddrStorage_tmp),
-			     format & SCCP_SOCKADDR_STR_ADDR ? host : NULL,
-			     format & SCCP_SOCKADDR_STR_ADDR ? sizeof(host) : 0,
-			     format & SCCP_SOCKADDR_STR_PORT ? port : 0,
-			     format & SCCP_SOCKADDR_STR_PORT ? sizeof(port): 0,
-			     NI_NUMERICHOST | NI_NUMERICSERV))) {
-		sccp_log(DEBUGCAT_SOCKET)( VERBOSE_PREFIX_3 "SCCP: getnameinfo(): %s \n", gai_strerror(e));
+	if ((e = getnameinfo((struct sockaddr *) sockAddrStorage_tmp, sccp_socket_sizeof(sockAddrStorage_tmp), format & SCCP_SOCKADDR_STR_ADDR ? host : NULL, format & SCCP_SOCKADDR_STR_ADDR ? sizeof(host) : 0, format & SCCP_SOCKADDR_STR_PORT ? port : 0, format & SCCP_SOCKADDR_STR_PORT ? sizeof(port) : 0, NI_NUMERICHOST | NI_NUMERICSERV))) {
+		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "SCCP: getnameinfo(): %s \n", gai_strerror(e));
 		return "";
 	}
 
 	if ((format & SCCP_SOCKADDR_STR_REMOTE) == SCCP_SOCKADDR_STR_REMOTE) {
 		char *p;
+
 		if (sccp_socket_is_ipv6_link_local(sockAddrStorage_tmp) && (p = strchr(host, '%'))) {
 			*p = '\0';
 		}
 	}
-	switch ((format & SCCP_SOCKADDR_STR_FORMAT_MASK))  {
-	case SCCP_SOCKADDR_STR_DEFAULT:
-		ast_str_set(&str, 0, sockAddrStorage_tmp->ss_family == AF_INET6 ?
-				"[%s]:%s" : "%s:%s", host, port);
-		break;
-	case SCCP_SOCKADDR_STR_ADDR:
-		ast_str_set(&str, 0, "%s", host);
-		break;
-	case SCCP_SOCKADDR_STR_HOST:
-		ast_str_set(&str, 0,
-			    sockAddrStorage_tmp->ss_family == AF_INET6 ? "[%s]" : "%s", host);
-		break;
-	case SCCP_SOCKADDR_STR_PORT:
-		ast_str_set(&str, 0, "%s", port);
-		break;
-	default:
-		ast_log(LOG_ERROR, "Invalid format\n");
-		return "";
+	switch ((format & SCCP_SOCKADDR_STR_FORMAT_MASK)) {
+		case SCCP_SOCKADDR_STR_DEFAULT:
+			ast_str_set(&str, 0, sockAddrStorage_tmp->ss_family == AF_INET6 ? "[%s]:%s" : "%s:%s", host, port);
+			break;
+		case SCCP_SOCKADDR_STR_ADDR:
+			ast_str_set(&str, 0, "%s", host);
+			break;
+		case SCCP_SOCKADDR_STR_HOST:
+			ast_str_set(&str, 0, sockAddrStorage_tmp->ss_family == AF_INET6 ? "[%s]" : "%s", host);
+			break;
+		case SCCP_SOCKADDR_STR_PORT:
+			ast_str_set(&str, 0, "%s", port);
+			break;
+		default:
+			ast_log(LOG_ERROR, "Invalid format\n");
+			return "";
 	}
 
 	return ast_str_buffer(str);
@@ -361,11 +348,11 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 		.ss = *them,
 	};
 
-	if (sccp_socket_is_IPv6(them)){
-		tmp_addr.sin6.sin6_port = htons(sccp_socket_getPort( &GLOB(bindaddr)) );
+	if (sccp_socket_is_IPv6(them)) {
+		tmp_addr.sin6.sin6_port = htons(sccp_socket_getPort(&GLOB(bindaddr)));
 		slen = sizeof(struct sockaddr_in6);
 	} else if (sccp_socket_is_IPv4(them)) {
-		tmp_addr.sin.sin_port = htons(sccp_socket_getPort( &GLOB(bindaddr)) );
+		tmp_addr.sin.sin_port = htons(sccp_socket_getPort(&GLOB(bindaddr)));
 		slen = sizeof(struct sockaddr_in);
 	} else {
 		pbx_log(LOG_WARNING, "SCCP: getOurAddressfor Unspecified them format: %s\n", sccp_socket_stringify(them));
@@ -407,7 +394,7 @@ void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistr
 	}
 }
 
-static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header) 
+static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 {
 	unsigned int packetSize = header->length;
 	unsigned int protocolVersion = letohl(header->lel_protocolVer);
@@ -415,22 +402,22 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
 
 	// dissecting header to see if we have a valid sccp message, that we can handle
 	if (packetSize < 4 || packetSize > SCCP_MAX_PACKET - 8) {
-		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet is out of bounds: %d < %u > %d, cancelling read.\n", 4, packetSize, (int)(SCCP_MAX_PACKET - 8));
+		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) Size of the data payload in the packet is out of bounds: %d < %u > %d, cancelling read.\n", 4, packetSize, (int) (SCCP_MAX_PACKET - 8));
 		return -1;
 	}
-	if ( protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion)) ) {
+	if (protocolVersion > 0 && !(sccp_protocol_isProtocolSupported(s->protocolType, protocolVersion))) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) protocolversion %u is unknown, cancelling read.\n", protocolVersion);
 		return -1;
 	}
-	
+
 	if (messageId < SCCP_MESSAGE_LOW_BOUNDARY || messageId > SCCP_MESSAGE_HIGH_BOUNDARY) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId out of bounds: %d < %u > %d, cancelling read.\n", SCCP_MESSAGE_LOW_BOUNDARY, messageId, SCCP_MESSAGE_HIGH_BOUNDARY);
 		return -1;
 	}
-
 #if DEBUG
 	boolean_t Found = FALSE;
 	uint32_t x;
+
 	for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
 		if (messageId == x) {
 			Found = TRUE;
@@ -439,10 +426,9 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
 	}
 	if (!Found) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_read_data) messageId %d could not be found in the array of known messages, cancelling read.\n", messageId);
-		//return -1;										/* not returning -1 in this case, so that we can see the message we would otherwise miss */
+		//return -1;                                                                            /* not returning -1 in this case, so that we can see the message we would otherwise miss */
 	}
 #endif
-
 
 	return msgtype2size(messageId);
 }
@@ -455,7 +441,7 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t *header)
  * \lock
  *      - session
  */
-static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
+static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 {
 	if (!s || s->session_stop) {
 		return 0;
@@ -466,34 +452,42 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	int bytesToRead = 0;
 	int bytesReadSoFar = 0;
 	int readlen = 0;
-	unsigned char buffer[SCCP_MAX_PACKET] = {0};
+	unsigned char buffer[SCCP_MAX_PACKET] = { 0 };
 	unsigned char *dataptr;
+
 	errno = 0;
 	int tries = 0;
 	int max_retries = 30;											/* arbitrairy number of tries to read a message */
 
 	// STAGE 1: read header
-	memset(msg, 0, SCCP_MAX_PACKET);	
+	memset(msg, 0, SCCP_MAX_PACKET);
 	readlen = read(s->fds[0].fd, (&msg->header), SCCP_PACKET_HEADER);
-	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) { return 0;}                    /* try again later, return TRUE with empty r */
-	else if (readlen <= 0) {goto READ_ERROR;}								/* error || client closed socket */
-	
+	if (readlen < 0 && (errno == EINTR || errno == EAGAIN)) {
+		return 0;
+	} /* try again later, return TRUE with empty r */
+	else if (readlen <= 0) {
+		goto READ_ERROR;
+	}
+	/* error || client closed socket */
 	msg->header.length = letohl(msg->header.length);
 	if ((msgDataSegmentSize = sccp_dissect_header(s, &msg->header)) < 0) {
 		goto READ_ERROR;
 	}
-	
 	// STAGE 2: read message data
 	msgDataSegmentSize -= SCCP_PACKET_HEADER;
 	UnreadBytesAccordingToPacket = msg->header.length - 4;							/* correction because we count messageId as part of the header */
 	bytesToRead = (UnreadBytesAccordingToPacket > msgDataSegmentSize) ? msgDataSegmentSize : UnreadBytesAccordingToPacket;	/* take the smallest of the two */
-	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: Dissection %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, msg->header.length: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, msg->header.length, bytesToRead, bytesReadSoFar);
+	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Dissection %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, msg->header.length: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, msg->header.length, bytesToRead, bytesReadSoFar);
 	dataptr = (unsigned char *) &msg->data;
-	while (bytesToRead >0) {
-		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+	while (bytesToRead > 0) {
+		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 		readlen = read(s->fds[0].fd, buffer, bytesToRead);						// use bufferptr instead
-		if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {continue;}	/* try again, blocking */
-		else if (readlen <= 0) {goto READ_ERROR;}							/* client closed socket, because read caused an error */
+		if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {
+			continue;
+		} /* try again, blocking */
+		else if (readlen <= 0) {
+			goto READ_ERROR;
+		}												/* client closed socket, because read caused an error */
 		bytesReadSoFar += readlen;
 		bytesToRead -= readlen;										// if bytesToRead then more segments to read
 		memcpy(dataptr, buffer, readlen);
@@ -501,20 +495,25 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	}
 	UnreadBytesAccordingToPacket -= bytesReadSoFar;
 	tries = 0;
-	
-	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH))(VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
-	
+
+	sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Finished Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
+
 	// STAGE 3: discard the rest of UnreadBytesAccordingToPacket if it was bigger then msgDataSegmentSize
-	if (UnreadBytesAccordingToPacket > 0) { 								/* checking to prevent unneeded allocation of discardBuffer */
+	if (UnreadBytesAccordingToPacket > 0) {									/* checking to prevent unneeded allocation of discardBuffer */
 		pbx_log(LOG_NOTICE, "%s: Going to Discard %d bytes of data for '%s' (%d) (Needs developer attention)\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
 		unsigned char discardBuffer[128];
+
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
-			readlen= read(s->fds[0].fd, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
-			if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {continue;}	/* try again, blocking */
-			else if (readlen <= 0) {break;}								/* if we read EOF, just break reading (invalid packet information) */
+			readlen = read(s->fds[0].fd, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
+			if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {
+				continue;
+			} /* try again, blocking */
+			else if (readlen <= 0) {
+				break;
+			}											/* if we read EOF, just break reading (invalid packet information) */
 			bytesToRead -= readlen;
-			sccp_dump_packet((unsigned char *)discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
+			sccp_dump_packet((unsigned char *) discardBuffer, readlen);				/* dump the discarded bytes, for analysis */
 		}
 		pbx_log(LOG_NOTICE, "%s: Discarded %d bytes of data for '%s' (%d) (Needs developer attention)\nReturning Only:\n", DEV_ID_LOG(s->device), UnreadBytesAccordingToPacket, msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId);
 		sccp_dump_msg(msg);
@@ -526,13 +525,13 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t *msg)
 	} else {
 		return -2;
 	}
-	
+
 READ_ERROR:
 	if (errno) {
 		pbx_log(LOG_ERROR, "%s: error '%s (%d)' while reading from socket.\n", DEV_ID_LOG(s->device), strerror(errno), errno);
 		pbx_log(LOG_ERROR, "%s: stats: %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 	}
-	memset(msg, 0, SCCP_MAX_PACKET);	
+	memset(msg, 0, SCCP_MAX_PACKET);
 	return -1;
 }
 
@@ -622,6 +621,7 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 		sccp_session_lock(session);
 		if (session->device) {
 			sccp_device_t *previous_device = sccp_session_removeDevice(session);
+
 			previous_device = previous_device ? sccp_device_release(previous_device) : NULL;
 		}
 		if ((session->device = sccp_device_retain(device))) {
@@ -639,6 +639,7 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 {
 	sccp_device_t *return_device = NULL;
+
 	if (session && session->device) {
 		if (session->device->session && session->device->session != session) {
 			// cleanup previous/crossover session
@@ -647,8 +648,8 @@ sccp_device_t *sccp_session_removeDevice(sccp_session_t * session)
 		sccp_session_lock(session);
 		session->device->registrationState = SKINNY_DEVICE_RS_NONE;
 		session->device->session = NULL;
-		return_device = session->device;			// sign over device reference
-		session->device = NULL;					// clear device reference
+		return_device = session->device;								// sign over device reference
+		session->device = NULL;										// clear device reference
 		sccp_session_unlock(session);
 	}
 	return return_device;
@@ -700,7 +701,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	}
 
 	sccp_copy_string(addrStr, sccp_socket_stringify_addr(&s->sin), sizeof(addrStr));
-	
+
 	found_in_list = sccp_session_removeFromGlobals(s);
 
 	if (!found_in_list) {
@@ -710,6 +711,7 @@ void destroy_session(sccp_session_t * s, uint8_t cleanupTime)
 	/* cleanup device if this session is not a crossover session */
 	if (s->device) {
 		AUTO_RELEASE sccp_device_t *d = sccp_device_retain(s->device);
+
 		if (d) {
 			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: Destroy Device Session %s\n", DEV_ID_LOG(s->device), addrStr);
 			d->registrationState = SKINNY_DEVICE_RS_NONE;
@@ -745,7 +747,7 @@ void sccp_socket_device_thread_exit(void *session)
 	sccp_session_t *s = (sccp_session_t *) session;
 
 	if (!s->device) {
-		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "SCCP: Session without a device attached !\n");
+		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "SCCP: Session without a device attached !\n");
 	}
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "%s: cleanup session\n", DEV_ID_LOG(s->device));
@@ -764,6 +766,7 @@ void sccp_socket_device_thread_exit(void *session)
 void *sccp_socket_device_thread(void *session)
 {
 	sccp_session_t *s = (sccp_session_t *) session;
+
 	if (!s) {
 		return NULL;
 	}
@@ -874,9 +877,9 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_ERROR, "Error accepting new socket %s\n", strerror(errno));
 		return;
 	}
-	//      if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-	//	      pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-	//      }
+	//if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
+	//pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
+	//}
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
 	}
@@ -884,8 +887,8 @@ static void sccp_accept_connection(void)
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 	}
 #if defined(linux)
-	struct timeval tv = {1,0};							/* timeout after one second when trying to read from a socket */
-	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {				
+	struct timeval tv = { 1, 0 };										/* timeout after one second when trying to read from a socket */
+	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_RCVTIMEO: %s\n", strerror(errno));
 	}
 	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
@@ -906,7 +909,7 @@ static void sccp_accept_connection(void)
 	if (!GLOB(ha)) {
 		pbx_log(LOG_NOTICE, "No global ha list\n");
 	}
-	
+
 	sccp_copy_string(addrStr, sccp_socket_stringify(&s->sin), sizeof(addrStr));
 
 	/* check ip address against global permit/deny ACL */
@@ -922,13 +925,14 @@ static void sccp_accept_connection(void)
 		return;
 	}
 	sccp_session_addToGlobals(s);
+
 	/** set default handler for registration to sccp */
 	s->protocolType = SCCP_PROTOCOL;
 
 	s->lastKeepAlive = time(0);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Accepted Client Connection from %s\n", addrStr);
 
-	if ( sccp_socket_is_any_addr( &GLOB(bindaddr)) ) {
+	if (sccp_socket_is_any_addr(&GLOB(bindaddr))) {
 		sccp_socket_getOurAddressfor(&incoming, &s->ourip);
 	} else {
 		memcpy(&s->ourip, &GLOB(bindaddr), sizeof(s->ourip));
@@ -948,9 +952,10 @@ static void sccp_accept_connection(void)
 	sccp_session_unlock(s);
 }
 
-static void sccp_socket_cleanup_timed_out(void) 
+static void sccp_socket_cleanup_timed_out(void)
 {
 	sccp_session_t *session;
+
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 		if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive))) {
 			if (session->session_thread) {
@@ -970,7 +975,7 @@ static void sccp_socket_cleanup_timed_out(void)
  *
  * \lock
  *      - sessions
- *	- globals
+ *      - globals
  *          - see sccp_device_check_update()
  *        - see sccp_socket_poll()
  *        - see sccp_session_close()
@@ -1033,7 +1038,7 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 	}
 
 	sccp_msg_t *msg = sccp_build_packet(t, 0);
-	
+
 	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
 		uint32_t mid = letohl(msg->header.lel_messageId);
 
@@ -1118,7 +1123,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 				usleep(200);									/* back off to give network/other threads some time */
 				continue;
 			}
-			pbx_log(LOG_ERROR, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int) res, strerror(errno), errno, (int) bytesSent, (int) bufLen, msgtype2str(letohl(msg->header.lel_messageId)), letohl(msg->header.length) );
+			pbx_log(LOG_ERROR, "%s: write returned %d (error: '%s (%d)'). Sent %d of %d for Message: '%s' with total length %d \n", DEV_ID_LOG(s->device), (int) res, strerror(errno), errno, (int) bytesSent, (int) bufLen, msgtype2str(letohl(msg->header.lel_messageId)), letohl(msg->header.length));
 			if (s) {
 				sccp_socket_stop_sessionthread(s, SKINNY_DEVICE_RS_FAILED);
 			}
@@ -1159,20 +1164,20 @@ sccp_session_t *sccp_session_findByDevice(const sccp_device_t * device)
 
 /* defined but not used */
 /*
-static sccp_session_t *sccp_session_findSessionForDevice(const sccp_device_t * device)
-{
-	sccp_session_t *session;
+   static sccp_session_t *sccp_session_findSessionForDevice(const sccp_device_t * device)
+   {
+   sccp_session_t *session;
 
-	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-		if (session->device == device) {
-			break;
-		}
-	}
-	SCCP_LIST_TRAVERSE_SAFE_END;
+   SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
+   if (session->device == device) {
+   break;
+   }
+   }
+   SCCP_LIST_TRAVERSE_SAFE_END;
 
-	return session;
-}
-*/
+   return session;
+   }
+ */
 
 /*!
  * \brief Send a Reject Message to Device.
@@ -1206,33 +1211,34 @@ void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_ses
 
 	/* cleanup previous session */
 	if (current_session != previous_session) {
-		sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", DEV_ID_LOG(current_session->device), previous_session);
-		
+		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_2 "%s: Previous session %p needs to be cleaned up and killed!\n", DEV_ID_LOG(current_session->device), previous_session);
+
 		/* remove session */
-		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", DEV_ID_LOG(current_session->device), previous_session);
-//		sccp_session_removeFromGlobals(previous_session);
+		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", DEV_ID_LOG(current_session->device), previous_session);
+		//  sccp_session_removeFromGlobals(previous_session);
 
 		/* cleanup device */
-		if (previous_session->device) {		
+		if (previous_session->device) {
 			AUTO_RELEASE sccp_device_t *d = sccp_session_removeDevice(previous_session);
+
 			if (d) {
-	 			sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(d));
+				sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Running Device Cleanup\n", DEV_ID_LOG(d));
 				d->registrationState = SKINNY_DEVICE_RS_NONE;
 				d->needcheckringback = 0;
 				sccp_dev_clean(d, (d->realtime) ? TRUE : FALSE, 0);
 			}
 		}
 		/* kill threads */
-		sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Kill Previous Session %p Thread\n", DEV_ID_LOG(current_session->device), previous_session);
+		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Kill Previous Session %p Thread\n", DEV_ID_LOG(current_session->device), previous_session);
 		sccp_socket_stop_sessionthread(previous_session, SKINNY_DEVICE_RS_FAILED);
 	}
 
 	/* reject current_session and cleanup */
-	sccp_log(DEBUGCAT_SOCKET)(VERBOSE_PREFIX_3 "%s: Reject New Session %p and make device come back again for another try.\n", DEV_ID_LOG(current_session->device), current_session);
+	sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Reject New Session %p and make device come back again for another try.\n", DEV_ID_LOG(current_session->device), current_session);
 	if (token) {
 		sccp_session_tokenReject(current_session, GLOB(token_backoff_time));
 	}
-	sccp_session_reject(current_session, "Crossover session not allowed, come back later");		/* this gives us a little time to clean everything up */
+	sccp_session_reject(current_session, "Crossover session not allowed, come back later");			/* this gives us a little time to clean everything up */
 	return;
 }
 
@@ -1289,4 +1295,5 @@ void sccp_session_tokenAckSPCP(sccp_session_t * session, uint32_t features)
 	msg->data.SPCPRegisterTokenAck.lel_features = htolel(features);
 	sccp_session_send2(session, msg);
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

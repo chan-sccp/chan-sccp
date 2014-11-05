@@ -1,9 +1,9 @@
 /*!
- * \file	sccp_mwi.c
- * \brief	SCCP Message Waiting Indicator Class
- * \author	Marcello Ceschia <marcello.ceschia [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * 		See the LICENSE file at the top of the source tree.
+ * \file        sccp_mwi.c
+ * \brief       SCCP Message Waiting Indicator Class
+ * \author      Marcello Ceschia <marcello.ceschia [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$
@@ -22,7 +22,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #define SCCP_MWI_CHECK_INTERVAL 30
 #endif
 void sccp_mwi_checkLine(sccp_line_t * line);
-void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice);
+void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice);
 void sccp_mwi_linecreatedEvent(const sccp_event_t * event);
 void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event);
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line);
@@ -67,7 +67,6 @@ void sccp_mwi_module_stop(void)
 		if (subscription->event_sub) {
 			pbx_event_unsubscribe(subscription->event_sub);
 		}
-
 #elif defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (sccp_mwi_module_stop) STASIS Unsubscribe\n");
 		if (subscription->event_sub) {
@@ -87,8 +86,6 @@ void sccp_mwi_module_stop(void)
 	sccp_event_unsubscribe(SCCP_EVENT_LINESTATUS_CHANGED, sccp_mwi_lineStatusChangedEvent);
 }
 
-
-
 /*!
  * \brief Generic update mwi count
  * \param subscription Pointer to a mailbox subscription
@@ -100,6 +97,7 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 	SCCP_LIST_LOCK(&subscription->sccp_mailboxLine);
 	SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {
 		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(mailboxLine->line);
+
 		if (line) {
 			sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "line: %s\n", line->name);
 			sccp_linedevices_t *lineDevice = NULL;
@@ -144,19 +142,20 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 		return;
 	}
 
-        if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
-                struct ast_mwi_state *mwi_state = stasis_message_data(msg);
+	if (msg && ast_mwi_state_type() == stasis_message_type(msg)) {
+		struct ast_mwi_state *mwi_state = stasis_message_data(msg);
+
 		subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
-	        subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
+		subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
 		subscription->currentVoicemailStatistic.newmsgs = mwi_state->new_msgs;
 		subscription->currentVoicemailStatistic.oldmsgs = mwi_state->old_msgs;
 
-	        if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-	                sccp_mwi_updatecount(subscription);
-	        }
+		if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
+			sccp_mwi_updatecount(subscription);
+		}
 
-        } else {
+	} else {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received STASIS Message that did not contain mwi state\n");
 	}
 
@@ -175,7 +174,7 @@ void sccp_mwi_event(const struct ast_event *event, void *data)
 	pbx_log(LOG_NOTICE, "Got mwi-event\n");
 	if (!subscription || !event) {
 		return;
-        }
+	}
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", (subscription->mailbox) ? subscription->mailbox : "NULL", (subscription->context) ? subscription->context : "NULL");
 
 	/* for calculation store previous voicemail counts */
@@ -207,7 +206,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 
 	if (!subscription) {
 		return -1;
-        }
+	}
 	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
 	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
 
@@ -223,7 +222,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	}
 
 	/* reschedule my self */
-	if ((subscription->schedUpdate = PBX(sched_add)(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+	if ((subscription->schedUpdate = PBX(sched_add) (SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 		pbx_log(LOG_ERROR, "Error creating mailbox subscription.\n");
 	}
 	return 0;
@@ -255,9 +254,9 @@ void sccp_mwi_deviceAttachedEvent(const sccp_event_t * event)
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_deviceAttachedEvent) Get deviceAttachedEvent\n");
 
-	sccp_linedevices_t 	*linedevice	= event->event.deviceAttached.linedevice;
-	sccp_line_t 		*line 		= linedevice->line;
-	sccp_device_t 		*device		= linedevice->device;
+	sccp_linedevices_t *linedevice = event->event.deviceAttached.linedevice;
+	sccp_line_t *line = linedevice->line;
+	sccp_device_t *device = linedevice->device;
 
 	if (line && device) {
 		device->voicemailStatistic.oldmsgs += line->voicemailStatistic.oldmsgs;
@@ -280,9 +279,7 @@ void sccp_mwi_lineStatusChangedEvent(const sccp_event_t * event)
 	}
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_lineStatusChangedEvent) Get lineStatusChangedEvent\n");
-	if (	event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN ||
-		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_ONHOOK ||
-		event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_RINGING) {				/* these are the only events we are interested in */
+	if (event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_DOWN || event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_ONHOOK || event->event.lineStatusChanged.state == SCCP_CHANNELSTATE_RINGING) {	/* these are the only events we are interested in */
 		sccp_mwi_check(event->event.lineStatusChanged.optional_device);
 	}
 }
@@ -331,10 +328,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list) {
-		if (strlen(mailbox) == strlen(subscription->mailbox) &&
-		    strlen(context) == strlen(subscription->context) &&
-		    !strcmp(mailbox, subscription->mailbox) &&
-		    !strcmp(context, subscription->context)) {
+		if (strlen(mailbox) == strlen(subscription->mailbox) && strlen(context) == strlen(subscription->context) && !strcmp(mailbox, subscription->mailbox) && !strcmp(context, subscription->context)) {
 			break;
 		}
 	}
@@ -393,17 +387,18 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 #elif defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Adding STASIS Subscription for mailbox %s\n", subscription->mailbox);
 		char mailbox_context[512];
+
 		sprintf(mailbox_context, "%s@%s", subscription->mailbox, subscription->context);
 
-                struct stasis_topic *mailbox_specific_topic;
-                mailbox_specific_topic = ast_mwi_topic(mailbox_context);
-                if (mailbox_specific_topic) {
-                        subscription->event_sub = stasis_subscribe(mailbox_specific_topic, sccp_mwi_event, subscription);
-                }
+		struct stasis_topic *mailbox_specific_topic;
 
+		mailbox_specific_topic = ast_mwi_topic(mailbox_context);
+		if (mailbox_specific_topic) {
+			subscription->event_sub = stasis_subscribe(mailbox_specific_topic, sccp_mwi_event, subscription);
+		}
 #else
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Falling back to polling mailbox status\n");
-		if ((subscription->schedUpdate = PBX(sched_add)(SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
+		if ((subscription->schedUpdate = PBX(sched_add) (SCCP_MWI_CHECK_INTERVAL * 1000, sccp_mwi_checksubscription, subscription)) < 0) {
 			pbx_log(LOG_ERROR, "SCCP: (mwi_addMailboxSubscription) Error creating mailbox subscription.\n");
 		}
 #endif
@@ -413,7 +408,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 	SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {
 		if (line == mailboxLine->line) {
 			break;
-                }
+		}
 	}
 
 	if (!mailboxLine) {
@@ -467,7 +462,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
  * \brief Set MWI Line Status
  * \param lineDevice SCCP LineDevice
  */
-void sccp_mwi_setMWILineStatus(sccp_linedevices_t *lineDevice)
+void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 {
 	sccp_msg_t *msg;
 	sccp_line_t *l = lineDevice->line;
@@ -534,6 +529,7 @@ void sccp_mwi_check(sccp_device_t * d)
 	boolean_t hasActiveChannel = FALSE, hasRinginChannel = FALSE;
 
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+
 	if (!device) {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_check) called with NULL device!\n");
 		return;
@@ -544,14 +540,17 @@ void sccp_mwi_check(sccp_device_t * d)
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == LINE) {
 			AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
+
 			if (!line) {
 				sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: NULL line retrieved from buttonconfig!\n", DEV_ID_LOG(device));
 				continue;
 			}
 			sccp_channel_t *c = NULL;
+
 			SCCP_LIST_LOCK(&line->channels);
 			SCCP_LIST_TRAVERSE(&line->channels, c, list) {
 				AUTO_RELEASE sccp_device_t *tmpDevice = sccp_channel_getDevice_retained(c);
+
 				if (tmpDevice && tmpDevice == device) {						// We have a channel belonging to our device (no remote shared line channel)
 					if (c->state != SCCP_CHANNELSTATE_ONHOOK && c->state != SCCP_CHANNELSTATE_DOWN) {
 						hasActiveChannel = TRUE;
@@ -682,4 +681,5 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
 	}
 	return RESULT_SUCCESS;
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

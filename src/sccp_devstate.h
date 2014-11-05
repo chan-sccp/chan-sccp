@@ -1,10 +1,10 @@
 /*!
- * \file	sccp_devstate.h
+ * \file        sccp_devstate.h
  * \brief       SCCP device state Header
- * \author	Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
- * \since	2013-08-15
+ * \author      Marcello Ceschia <marcelloceschia [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2013-08-15
  *
  * $Date$
  * $Revision$  
@@ -19,5 +19,5 @@
 void sccp_devstate_module_start(void);
 void sccp_devstate_module_stop(void);
 
-#endif							/* SCCP_DEVSTATE_H_ */ 
+#endif														/* SCCP_DEVSTATE_H_ */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

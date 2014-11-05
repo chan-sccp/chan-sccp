@@ -1,10 +1,10 @@
 /*!
- * \file	sccp_featureButton.c
- * \brief	SCCP FeatureButton Class
- * \author	Marcello Ceschia <marcello [at] ceschia.de>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- * 		See the LICENSE file at the top of the source tree.
- * \since	2009-06-15
+ * \file        sccp_featureButton.c
+ * \brief       SCCP FeatureButton Class
+ * \author      Marcello Ceschia <marcello [at] ceschia.de>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
+ * \since       2009-06-15
  *
  * $Date$
  * $Revision$
@@ -12,11 +12,11 @@
 
 /*!
  * \remarks
- * Purpose:	SCCP FeatureButton
- * When to use:	Only methods directly related to the phone featureButtons should be stored in this source file.
- * 		FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial
- *		buttons on the right side of the display.
- * Relations:	Call SCCP Features
+ * Purpose:     SCCP FeatureButton
+ * When to use: Only methods directly related to the phone featureButtons should be stored in this source file.
+ *              FeatureButtons are the ones at the bottom of the display, not to be confused with speeddial
+ *              buttons on the right side of the display.
+ * Relations:   Call SCCP Features
  */
 
 #include <config.h>
@@ -33,18 +33,18 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
-/*!
- * \brief Feature Button Changed
- *
- * fetch the new state, and send status to device
- *
- * \param device SCCP Device
- * \param featureType SCCP Feature Type
- * 
- * \warning
- *  - device->buttonconfig is not always locked
- *
- */
+    /*!
+     * \brief Feature Button Changed
+     *
+     * fetch the new state, and send status to device
+     *
+     * \param device SCCP Device
+     * \param featureType SCCP Feature Type
+     * 
+     * \warning
+     *  - device->buttonconfig is not always locked
+     *
+     */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	sccp_msg_t *msg = NULL;
@@ -94,8 +94,10 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 						if (buttonconfig->type == LINE) {
 							// Check if line and line device exists and thus forward status on that device can be checked
 							AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);
+
 							if (line) {
 								AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(device, line);
+
 								if (linedevice) {
 									sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: SCCP_CFWD_ALL on line: %s is %s\n", DEV_ID_LOG(device), line->name, (linedevice->cfwdAll.enabled) ? "on" : "off");
 
@@ -133,14 +135,14 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 					break;
 				case SCCP_FEATURE_MONITOR:
 					sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: monitor feature state: %d\n", DEV_ID_LOG(device), device->monitorFeature.status);
-					if (device->inuseprotocolversion > 15) {					// multiple States
+					if (device->inuseprotocolversion > 15) {				// multiple States
 						buttonID = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 						switch (device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
 								break;
 							case SCCP_FEATURE_MONITOR_STATE_REQUESTED:
-								config->button.feature.status = 131586;				// old BUTTONTYPE_FEATURE interprets this a simple TRUE value
+								config->button.feature.status = 131586;		// old BUTTONTYPE_FEATURE interprets this a simple TRUE value
 								break;
 							case SCCP_FEATURE_MONITOR_STATE_ACTIVE:
 								config->button.feature.status = 131843;
@@ -150,7 +152,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 								break;
 						}
 					} else {
-						sccp_log(DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)(VERBOSE_PREFIX_3 "%s: (featButton_changed) state %d\n", device->id, device->monitorFeature.status);
+						sccp_log(DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "%s: (featButton_changed) state %d\n", device->id, device->monitorFeature.status);
 						switch (device->monitorFeature.status) {
 							case SCCP_FEATURE_MONITOR_STATE_DISABLED:
 								config->button.feature.status = 0;
@@ -212,11 +214,11 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 				case SCCP_FEATURE_CONF_LIST:
 					buttonID = SKINNY_BUTTONTYPE_CONF_LIST;
 					break;
-					
+
 				case SCCP_FEATURE_REMOVE_LAST_PARTICIPANT:
 					buttonID = SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT;
 					break;
-					
+
 				case SCCP_FEATURE_HLOG:
 					buttonID = SKINNY_BUTTONTYPE_HLOG;
 					break;
@@ -322,6 +324,7 @@ void sccp_devstateFeatureState_cb(const struct ast_event *ast_event, void *data)
 	sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "got device state change event from asterisk channel: %s\n", (dev) ? dev : "NULL");
 
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) data);
+
 	if (!device) {
 		sccp_log((DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "NULL device in devstate event callback.\n");
 		return;
