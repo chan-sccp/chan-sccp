@@ -1361,8 +1361,8 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 	} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
 		if (SCCP_RWLIST_GETSIZE(&l->channels) == 1) {							/* only one call on hold, so resume that one */
-			channel = SCCP_LIST_FIRST(&l->channels);
-			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, channel->callid, instance);
+			//channel = SCCP_LIST_FIRST(&l->channels);
+			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, tmpChannel->callid, instance);
 			sccp_dev_set_activeline(d, l);
 			sccp_channel_resume(d, tmpChannel, TRUE);
 			sccp_dev_set_cplane(d, instance, 1);
