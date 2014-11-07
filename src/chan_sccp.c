@@ -106,7 +106,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 {
 	struct composedId lineSubscriptionId;
 	sccp_channel_t *my_sccp_channel = NULL;
-	sccp_line_t *l = NULL;
+	AUTO_RELEASE sccp_line_t *l = NULL;
 
 	memset(&lineSubscriptionId, 0, sizeof(struct composedId));
 
@@ -125,7 +125,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	if (SCCP_RWLIST_GETSIZE(&l->devices) == 0) {
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "SCCP/%s isn't currently registered anywhere.\n", l->name);
-		l = sccp_line_release(l);
 		return SCCP_REQUEST_STATUS_LINEUNAVAIL;
 	}
 	sccp_log_and((DEBUGCAT_SCCP + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_1 "[SCCP] in file %s, line %d (%s)\n", __FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -133,10 +132,18 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
-	*channel = my_sccp_channel = sccp_channel_allocate(l, NULL);
+	AUTO_RELEASE sccp_device_t *d = NULL;
+	SCCP_LIST_LOCK(&l->devices);	
+	if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+		/* non SharedLine*/
+		sccp_linedevices_t *linedevice = SCCP_LIST_FIRST(&l->devices);
+		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: Device used for this line\n", DEV_ID_LOG(linedevice->device));
+		d = linedevice ? sccp_device_retain(linedevice->device) : NULL;
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
+	*channel = my_sccp_channel = sccp_channel_allocate(l, d);
 
 	if (!my_sccp_channel) {
-		l = sccp_line_release(l);
 		return SCCP_REQUEST_STATUS_ERROR;
 	}
 
@@ -172,8 +179,6 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 	my_sccp_channel->autoanswer_cause = autoanswer_cause;
 	my_sccp_channel->ringermode = ringermode;
 	my_sccp_channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
-	l = sccp_line_release(l);
-
 	return SCCP_REQUEST_STATUS_SUCCESS;
 }
 
