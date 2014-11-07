@@ -685,7 +685,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 									}
 								}
 							}
-#if defined(CS_SCCP_VIDEO) and defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
 							for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.video[x] != 0; x++) {
 								for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.video[y] != 0; y++) {
 									if (remoteSccpChannel->preferences.video[x] == remoteSccpChannel->capabilities.video[y]) {
@@ -698,7 +698,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 						} else {
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
 							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio), AST_FORMAT_TYPE_AUDIO);
-#if defined(CS_SCCP_VIDEO) and defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
 							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.video, ARRAY_LEN(c->remoteCapabilities.video), AST_FORMAT_TYPE_VIDEO);
 #endif
 						}
@@ -1428,7 +1428,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 					}
 				}
 			}
-#if defined(CS_SCCP_VIDEO) and defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
 			for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.video[x] != 0; x++) {
 				for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.video[y] != 0; y++) {
 					if (remoteSccpChannel->preferences.video[x] == remoteSccpChannel->capabilities.video[y]) {
@@ -1441,7 +1441,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 			remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
 		} else {
 			sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), audioCapabilities, ARRAY_LEN(audioCapabilities), AST_FORMAT_TYPE_AUDIO);
-#if defined(CS_SCCP_VIDEO) and defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
 			sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities), AST_FORMAT_TYPE_VIDEO);
 #endif
 		}
