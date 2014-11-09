@@ -132,16 +132,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
 
 	// Allocate a new SCCP channel.
 	/* on multiline phone we set the line when answering or switching lines */
-	AUTO_RELEASE sccp_device_t *d = NULL;
-	SCCP_LIST_LOCK(&l->devices);	
-	if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
-		/* non SharedLine*/
-		sccp_linedevices_t *linedevice = SCCP_LIST_FIRST(&l->devices);
-		sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "%s: Device used for this line\n", DEV_ID_LOG(linedevice->device));
-		d = linedevice ? sccp_device_retain(linedevice->device) : NULL;
-	}
-	SCCP_LIST_UNLOCK(&l->devices);
-	*channel = my_sccp_channel = sccp_channel_allocate(l, d);
+	*channel = my_sccp_channel = sccp_channel_allocate(l, NULL);
 
 	if (!my_sccp_channel) {
 		return SCCP_REQUEST_STATUS_ERROR;
