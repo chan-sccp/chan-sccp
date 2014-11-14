@@ -2683,7 +2683,8 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 
 			}
 			sccp_rtp_set_phone(channel, &channel->rtp.audio, &sas);
-			sccp_channel_startMediaTransmission(channel);
+			sccp_channel_updateMediaTransmission(channel);
+			//sccp_channel_startMediaTransmission(channel);
 
 			/* update status */
 			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;

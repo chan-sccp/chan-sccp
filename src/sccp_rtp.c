@@ -153,7 +153,8 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 
 		/*! \todo we should check if this is a video or autio rtp */
 		//  sccp_channel_stopmediatransmission(c);
-		sccp_channel_startMediaTransmission(c);
+		//sccp_channel_startMediaTransmission(c);
+		sccp_channel_updateMediaTransmission(c);
 	}
 
 }
