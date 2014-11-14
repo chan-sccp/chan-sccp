@@ -176,6 +176,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 		return NULL;
 	}
 	memset(channel, 0, sizeof(sccp_channel_t));
+	//ast_mutex_init(&channel->lock);
 	sccp_copy_string(channel->designator, designator, sizeof(channel->designator));
 
 	private_data = sccp_malloc(sizeof(struct sccp_private_channel_data));
@@ -280,7 +281,6 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	if (!channel || !channel->privateData) {
 		return;
 	}
-
 	/** for previous device,set active channel to null */
 	if (!device) {
 		if (!channel->privateData->device) {
@@ -931,6 +931,8 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 		PBX(set_nativeAudioFormats) (channel, &channel->rtp.audio.readFormat, 1);
 		PBX(rtp_setReadFormat) (channel, channel->rtp.audio.readFormat);
 	}
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
+
 	channel->rtp.audio.readState |= SCCP_RTP_STATUS_PROGRESS;
 	d->protocol->sendStartMediaTransmission(d, channel);
 
@@ -1955,6 +1957,10 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	if (channel->privateData) {
 		sccp_free(channel->privateData);
 	}
+#ifndef SCCP_ATOMIC
+	ast_mutex_destroy(&channel->scheduler.lock);
+#endif
+	//ast_mutex_destroy(&channel->lock);
 	return;
 }
 
