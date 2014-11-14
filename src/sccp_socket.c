@@ -1039,13 +1039,6 @@ void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t)
 
 	sccp_msg_t *msg = sccp_build_packet(t, 0);
 
-	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
-		uint32_t mid = letohl(msg->header.lel_messageId);
-
-		pbx_log(LOG_NOTICE, "%s: Send Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(device), msgtype2str(mid), mid, msg ? msg->header.length : 0);
-		sccp_dump_msg(msg);
-	}
-
 	if (msg) {
 		sccp_session_send(device, msg);
 	}
@@ -1106,6 +1099,13 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 		msg->header.lel_protocolVer = htolel(0x11);							/* we should always send 0x11 */
 	} else {
 		msg->header.lel_protocolVer = 0;
+	}
+
+	if (msg && (GLOB(debug) & DEBUGCAT_MESSAGE) != 0) {
+		uint32_t mid = letohl(msg->header.lel_messageId);
+
+		pbx_log(LOG_NOTICE, "%s: Send Message: %s(0x%04X) %d bytes length\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid, msg ? msg->header.length : 0);
+		sccp_dump_msg(msg);
 	}
 
 	try = 0;

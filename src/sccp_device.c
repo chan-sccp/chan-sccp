@@ -934,9 +934,6 @@ int sccp_dev_send(const sccp_device_t * d, sccp_msg_t * msg)
 
 	if (d && d->session && msg) {
 		sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Send message %s\n", d->id, msgtype2str(letohl(msg->header.lel_messageId)));
-		if (msg && (GLOB(debug) & (DEBUGCAT_MESSAGE)) != 0) {
-			sccp_dump_msg(msg);
-		}
 		result = sccp_session_send(d, msg);
 	} else {
 		sccp_free(msg);
