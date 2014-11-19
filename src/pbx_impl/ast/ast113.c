@@ -1026,7 +1026,7 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 	struct ast_format *ast_format;
 	unsigned int framing;
 	
-	if (pbxSrcChannel && ids) {
+	if (ids) {
 		assignedids = ids;
 	}
 

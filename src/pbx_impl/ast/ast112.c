@@ -956,7 +956,7 @@ static boolean_t sccp_wrapper_asterisk112_allocPBXChannel(sccp_channel_t * chann
 	sccp_line_t *line = channel->line;
 	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
 	
-	if (pbxSrcChannel && ids) {
+	if (ids) {
 		assignedids = ids;
 	}
 
