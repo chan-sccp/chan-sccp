@@ -142,7 +142,7 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_devi
 		if (line) {
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(line, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			new_channel = sccp_channel_newcall(line, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 			line = sccp_line_release(line);
 		} else {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
@@ -207,7 +207,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 
 		AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-		new_channel = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		new_channel = sccp_channel_newcall(line, d, adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		line = sccp_line_release(line);
 	}
 }
@@ -663,7 +663,7 @@ static void sccp_sk_private(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		instance = sccp_device_find_index_for_line(d, l->name);
 		sccp_dev_set_activeline(d, l);
 		sccp_dev_set_cplane(d, instance, 1);
-		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 
 	if (!c) {

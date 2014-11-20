@@ -473,7 +473,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Already offhook, reusing callid %d\n", d->id, c->callid);
 	} else {
 		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
-		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 
 	sccp_channel_stop_schedule_digittimout(c);
@@ -502,7 +502,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	} else {
 		/* emulate a new call so we end up in the same state as when a new call has been started */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
-		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		dest = c->owner;
 	}
 	/* prepare for call pickup */
@@ -639,7 +639,7 @@ void sccp_feat_voicemail(sccp_device_t * d, uint8_t lineInstance)
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Dialing voicemail %s\n", d->id, l->vmnum);
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			new_channel = sccp_channel_newcall(l, d, l->vmnum, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No voicemail number configured on line %d\n", d->id, lineInstance);
 		}
@@ -1367,7 +1367,7 @@ void sccp_feat_adhocDial(sccp_device_t * d, sccp_line_t * line)
 		if (GLOB(hotline)->line) {
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			new_channel = sccp_channel_newcall(line, d, line->adhocNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 }

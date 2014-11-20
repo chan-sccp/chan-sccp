@@ -1332,7 +1332,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \callergraph
  * 
  */
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel)
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	/* handle outgoing calls */
 	sccp_channel_t *channel;
@@ -1395,7 +1395,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	}
 
 	/* ok the number exist. allocate the asterisk channel */
-	if (!sccp_pbx_channel_allocate(channel, NULL, parentChannel)) {
+	if (!sccp_pbx_channel_allocate(channel, ids, parentChannel)) {
 		pbx_log(LOG_WARNING, "%s: Unable to allocate a new channel for line %s\n", device->id, l->name);
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_CONGESTION);
 		return channel;
@@ -2044,7 +2044,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			if (channel->state != SCCP_CHANNELSTATE_CALLTRANSFER) {
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CALLTRANSFER);
 			}
-			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner);
+			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
 
 			if (sccp_channel_new && (pbx_channel_bridgepeer = CS_AST_BRIDGED_CHANNEL(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
