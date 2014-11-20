@@ -82,7 +82,7 @@
     <settingsAccess>1</settingsAccess>
     <garp>1</garp>
     <voiceVlanAccess>0</voiceVlanAccess>
-    <videoCapability>1</videoCapability>
+    <videoCapability>0</videoCapability> <!-- make sure this is only set when video is available -->
     <autoSelectLineEnable>0</autoSelectLineEnable>
     <webAccess>0</webAccess>
     <!-- Power Save Configuration -->

@@ -152,9 +152,12 @@
 		
 		<videoCapability>1</videoCapability>  
 		<!-- 
-			7975G doesn't have any "real" video capability, it requires (I believe)
-			integration with a special pc-only program.  Enabled here just as a 
+			a 7975G doesn't have any "real" video capability, it requires software 
+			called video advantage to stream webcam/video from a pc connected to
+			the pc-port on the back of the phone.  Enabled here just as a 
 			curiosity for now.
+
+			Make sure this is only set when video is available. Seems to cause sporadic issues if not.
 		 -->
 		 
 		<autoSelectLineEnable>0</autoSelectLineEnable>
