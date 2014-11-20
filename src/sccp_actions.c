@@ -1256,7 +1256,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 		}
 	} else {
-		channel = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL);
+		channel = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 }
 
@@ -1355,7 +1355,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(d, instance, 1);
-			tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_RINGING))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Answering incoming/ringing line %d", d->id, instance);
 			sccp_channel_answer(d, tmpChannel);
@@ -1376,7 +1376,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s for this phone\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_set_activeline(d, l);
 			sccp_dev_set_cplane(d, instance, 1);
-			tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			tmpChannel = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 }
@@ -1572,7 +1572,7 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
 	//sccp_feat_handle_directed_pickup(l, 1, d);
 	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-	new_channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL);
+	new_channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 #else
 	sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #endif
@@ -1738,7 +1738,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			if (l) {
 				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-				new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 			}
 			return;
 		}
@@ -1763,7 +1763,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 		if (l) {
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			new_channel = sccp_channel_newcall(l, d, k->ext, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 }
@@ -1827,7 +1827,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Using line %s\n", d->id, l->name);
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(l, d, !sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : NULL, SKINNY_CALLTYPE_OUTBOUND, NULL);
+			new_channel = sccp_channel_newcall(l, d, !sccp_strlen_zero(l->adhocNumber) ? l->adhocNumber : NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 		}
 	}
 }
@@ -3209,7 +3209,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 			if (linedevice) {
 				AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-				new_channel = sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL);
+				new_channel = sccp_channel_newcall(linedevice->line, d, calledParty, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 			}
 
 		}
