@@ -1082,7 +1082,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 	//msg->data.SelectSoftKeysMessage.les_validKeyMask = 0xFFFFFFFF;           /* htolel(65535); */
 	msg->data.SelectSoftKeysMessage.les_validKeyMask = htolel(d->softKeyConfiguration.activeMask[softKeySetIndex]);
 
-	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
+	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Set softkeyset to %s(%d) on line %d  and call %d\n", d->id, skinny_keymode2str(softKeySetIndex), softKeySetIndex, lineInstance, callid);
 	sccp_log((DEBUGCAT_SOFTKEY + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: validKeyMask %u\n", d->id, msg->data.SelectSoftKeysMessage.les_validKeyMask);
 	sccp_dev_send(d, msg);
 }
