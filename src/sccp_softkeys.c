@@ -405,26 +405,30 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Direct Transfer Pressed\n", DEV_ID_LOG(d));
 
-	sccp_device_t *device = sccp_device_retain(d);
+	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
 
 	if (!device) {
 		return;
 	}
 
-	sccp_selectedchannel_t *x;
-	sccp_channel_t *chan1 = NULL, *chan2 = NULL, *tmp = NULL;
+	AUTO_RELEASE sccp_channel_t *chan1 = NULL, *chan2 = NULL;
+	sccp_channel_t *tmp = NULL;
 
-	if ((sccp_device_selectedchannels_count(device)) != 2) {
+	if ((sccp_device_selectedchannels_count(device)) == 2) {
+		sccp_selectedchannel_t *x = NULL;
+		SCCP_LIST_LOCK(&device->selectedChannels);
+		x = SCCP_LIST_FIRST(&device->selectedChannels);
+		chan1 = sccp_channel_retain(x->channel);
+		chan2 = SCCP_LIST_NEXT(x, list)->channel;
+		chan2 = sccp_channel_retain(chan2);
+		SCCP_LIST_UNLOCK(&device->selectedChannels);
+	} else {
 		if (SCCP_RWLIST_GETSIZE(&l->channels) == 2) {
-			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Automatically select the two current channels\n", device->id);
 			SCCP_LIST_LOCK(&l->channels);
-			SCCP_LIST_TRAVERSE(&l->channels, c, list) {
-				x = sccp_malloc(sizeof(sccp_selectedchannel_t));
-				if (x != NULL) {
-					x->channel = c;
-					SCCP_LIST_LOCK(&device->selectedChannels);
-					SCCP_LIST_INSERT_HEAD(&device->selectedChannels, x, list);
-					SCCP_LIST_UNLOCK(&device->selectedChannels);
+			if ((tmp  = SCCP_LIST_FIRST(&l->channels))) {
+				chan1 = sccp_channel_retain(tmp);
+				if ((tmp = SCCP_LIST_NEXT(tmp, list))) {
+					chan2 = sccp_channel_retain(tmp);
 				}
 			}
 			SCCP_LIST_UNLOCK(&l->channels);
@@ -439,12 +443,6 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		}
 	}
 
-	SCCP_LIST_LOCK(&device->selectedChannels);
-	x = SCCP_LIST_FIRST(&device->selectedChannels);
-	chan1 = sccp_channel_retain(x->channel);
-	chan2 = SCCP_LIST_NEXT(x, list)->channel;
-	chan2 = sccp_channel_retain(chan2);
-	SCCP_LIST_UNLOCK(&device->selectedChannels);
 
 	if (chan1 && chan2) {
 		//for using the sccp_channel_transfer_complete function
@@ -466,10 +464,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		device->transferChannels.transferer = sccp_channel_retain(chan2);
 
 		sccp_channel_transfer_complete(chan2);
-		chan1 = sccp_channel_release(chan1);
-		chan2 = sccp_channel_release(chan2);
 	}
-	device = sccp_device_release(device);
 }
 
 /*!
