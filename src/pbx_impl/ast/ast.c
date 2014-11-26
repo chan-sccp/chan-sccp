@@ -923,11 +923,13 @@ enum ast_pbx_result pbx_pbx_start (PBX_CHANNEL_TYPE *pbx_channel) {
 			} while (!pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && !pbx_channel_pbx(pbx_channel) && pbx_check_hangup(pbx_channel));
 			
 			/* test if __ast_pbx_run got started correctly and if the channel has not already been hungup */
-			if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && pbx_channel_pbx(pbx_channel) && !pbx_check_hangup(pbx_channel)) {
+			//if (pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) && pbx_channel_pbx(pbx_channel) && !pbx_check_hangup(pbx_channel)) {
+			if (pbx_channel_pbx(pbx_channel) && !pbx_check_hangup(pbx_channel)) {
 				sccp_log(DEBUGCAT_PBX)(VERBOSE_PREFIX_3 "%s: (pbx_pbx_start) autoloop has started, set requestHangup = requestQueueHangup\n", channel->designator);
 				channel->hangupRequest = sccp_wrapper_asterisk_requestQueueHangup;
 			} else {
-				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) autoloop is not running anymore, carefullHangup should remain. This channel will be hungup/being hungup soon\n", channel->designator);
+				pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) pbx_pbx_start thread is not running anymore, carefullHangup should remain. This channel will be hungup/being hungup soon\n", channel->designator);
+				//pbx_log(LOG_NOTICE, "%s: (pbx_pbx_start) Reason: autoloop: %s, pbx_start: %s, already hungup: %s\n", channel->designator, pbx_test_flag(pbx_channel_flags(pbx_channel), AST_FLAG_IN_AUTOLOOP) ? "TRUE" : "FALSE", pbx_channel_pbx(pbx_channel) ? "TRUE" : "FALSE", !pbx_check_hangup(pbx_channel) ? "TRUE" : "FALSE");
 				res = AST_PBX_FAILED;
 			}
 		}
