@@ -720,7 +720,12 @@ static void sccp_sk_conference(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_
 static void sccp_sk_conflist(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Conflist Pressed\n", DEV_ID_LOG(d));
+#ifdef CS_SCCP_CONFERENCE
 	sccp_feat_conflist(d, l, lineInstance, c);
+#else
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Conference was not compiled in\n");
+#endif
 }
 
 /*!
@@ -731,7 +736,12 @@ static void sccp_sk_conflist(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_de
 static void sccp_sk_join(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Join Pressed\n", DEV_ID_LOG(d));
+#ifdef CS_SCCP_CONFERENCE
 	sccp_feat_join(d, l, lineInstance, c);
+#else
+	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "### Conference was not compiled in\n");
+#endif
 }
 
 /*!
@@ -952,18 +962,12 @@ static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
 	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE, NULL},
 	{SKINNY_LBL_DIAL, sccp_sk_dial, TRUE, NULL},
 	{SKINNY_LBL_VIDEO_MODE, sccp_sk_videomode, TRUE, NULL},
-#ifdef CS_SCCP_PARK
 	{SKINNY_LBL_PARK, sccp_sk_park, TRUE, NULL},
-#endif
-#ifdef CS_SCCP_PICKUP
 	{SKINNY_LBL_PICKUP, sccp_sk_pickup, FALSE, NULL},
 	{SKINNY_LBL_GPICKUP, sccp_sk_gpickup, FALSE, NULL},
-#endif
-#ifdef CS_SCCP_CONFERENCE
 	{SKINNY_LBL_CONFRN, sccp_sk_conference, TRUE, NULL},
 	{SKINNY_LBL_JOIN, sccp_sk_join, TRUE, NULL},
 	{SKINNY_LBL_CONFLIST, sccp_sk_conflist, TRUE, NULL},
-#endif
 };
 
 /*!
