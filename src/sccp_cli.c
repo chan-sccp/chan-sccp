@@ -3186,6 +3186,11 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 
 		do {
 			if (sccp_strcaseequals("hold", argv[4])) {
+				if (argc < 6) {
+					pbx_log(LOG_WARNING, "yes/no needs to be supplied\n");
+					cli_result = RESULT_FAILURE;
+					break;
+				}
 				if (sccp_strcaseequals("on", argv[5])) {					/* check to see if enable hold */
 					pbx_cli(fd, "PLACING CHANNEL %s ON HOLD\n", argv[3]);
 					sccp_channel_hold(c);
