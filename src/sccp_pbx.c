@@ -232,6 +232,15 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 		if (active_channel) {
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
+			
+			/* display the new call on prompt */
+			{
+				AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
+				
+				char prompt[100];
+				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, c->callInfo.callingPartyNumber);
+				sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, prompt, GLOB(digittimeout));
+			}
 			isRinging = TRUE;
 		} else {
 
