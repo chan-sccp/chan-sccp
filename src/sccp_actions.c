@@ -2400,10 +2400,12 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		resp = '*';
 	} else if (digit == 15) {
 		resp = '#';
+	} else if (digit == 16) {
+		resp = '+';
 	} else if (digit >= 0 && digit <= 9) {
 		resp = '0' + digit;
 	} else {
-		resp = '0' + digit;
+// 		resp = '0' + digit;
 		pbx_log(LOG_WARNING, "Unsupported digit %d\n", digit);
 	}
 
