@@ -1,3 +1,173 @@
+2014-12-23  marcelloceschia
+
+	* [r5813] src/sccp_actions.c: fixes wrong digit @ instead of + on a
+	  6945 device dialing off hook; reported by Ксения Юрьевна Блащук
+
+2014-12-13  marcelloceschia
+
+	* [r5812] src/sccp_pbx.c: display inbound callerid number on prompt
+	  when device has an active channel
+
+	* [r5811] src/sccp_channel.c: fixes BLINDTRANSFER variable issue,
+	  reported by Nikola
+
+2014-12-12  marcelloceschia
+
+	* [r5810] src/sccp_indicate.c: revert FLASH prompt when ringermode
+	  is set
+
+2014-11-27  ddegroot
+
+	* [r5809] src/sccp_softkeys.c: Fix: Compile warning when compiling
+	  without conference
+
+2014-11-27  marcelloceschia
+
+	* [r5808] src/sccp_cli.c: apply patch to fix segfault on cli
+	  commond 'sccp set channel <channe> hold' (without 6th argument).
+	  Patch provied by Max Nesterov. Thank you Max
+
+2014-11-26  ddegroot
+
+	* [r5807] src/pbx_impl/ast/ast.c: Fix: Remove second autoloop check
+	  during pbx_start.
+
+2014-11-23  ddegroot
+
+	* [r5806] src/sccp_softkeys.c: Fix: DirTrsfr. Reported by Alexander
+	  Lopez.
+
+2014-11-20  ddegroot
+
+	* [r5805] conf/tftp/SEP0000000000.cnf.xml_797x_template,
+	  conf/tftp/SEP0000000000.cnf.xml_annotated,
+	  conf/tftp/SEP0000000000.cnf.xml_ipv6_template: Fix: Added warning
+	  about use of videoCapability in SEP files, when video is not
+	  actually available. Warning can be removed once the issue in
+	  source is found.
+
+	* [r5804] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_channel.h, src/sccp_cli.c, src/sccp_features.c,
+	  src/sccp_management.c, src/sccp_softkeys.c: Enhancement: Added
+	  possiblity to define a uniqueId during sccp_channel_newcall for
+	  asterisk > 12. Used in AMI: SCCPStartCall to specify the uniqueid
+	  of the channel to be created. Follow up on the Fix to allow
+	  Originate to specify the uniqueId on channels to be created.
+	  Issue Reported and Patch verified by Niklas Larssson.
+
+	* [r5803] src/sccp_device.c: Fix: softkeyset debug message
+
+	* [r5802] src/sccp_actions.c: Fix: skinny_stimulusMap_cb
+	  indentation
+
+2014-11-19  ddegroot
+
+	* [r5801] src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c:
+	  Enhancement: Support uniqueId/ChannelId during Originate in
+	  >asterisk-12. Requested by Niklas Larsson.
+
+2014-11-14  ddegroot
+
+	* [r5800] src/sccp_channel.c: Fix: Added mutex_destroy
+	  channel->scheduler.lock
+
+	* [r5799] src/sccp_actions.c, src/sccp_rtp.c: Enhancement: Use
+	  sccp_channel_updateMediaTransmission instead of
+	  sccp_channel_startMediaTransmission to make sure
+	  mediatransmission is stopped before starting again (if already
+	  started)
+
+	* [r5798] src/sccp_device.c, src/sccp_socket.c: Enhancement: moved
+	  packet debug output to one function
+
+2014-11-09  ddegroot
+
+	* [r5797] src/chan_sccp.c: Fix: sccp_channel_answer does not answer
+	  because device was already assigned during sccp_requestChannel
+	  (reversion). Issue Reported by Riten Jaiswal.
+
+2014-11-07  ddegroot
+
+	* [r5796] src/pbx_impl/ast/ast111.c: Enhancement: Deal with video
+	  codec requesting the same way as with requested audio codecs (2)
+
+	* [r5795] src/pbx_impl/ast/ast111.c: Enhancement: Deal with video
+	  codec requesting the same way as with requested audio codecs
+
+	* [r5794] src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: Fix: Only set wideband codec during
+	  channel_request when using SharedLine and not audiocapabilities
+	  have been set
+
+	* [r5793] src/chan_sccp.c: Assign device to newly created channel
+	  when dealing with a non shared line, which prevent NONE codec
+	  issue
+
+	* [r5792] src/sccp_actions.c: Enhancement: prevent refcount issue
+	  during HOLD/RESUME when using line button
+
+	* [r5791] src/sccp_actions.c: Fix: refcount issue during
+	  HOLD/RESUME when using line button
+
+2014-11-05  ddegroot
+
+	* [r5790] src/chan_sccp.c, src/chan_sccp.h, src/common.h,
+	  src/sccp_actions.c, src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_appfunctions.c,
+	  src/sccp_appfunctions.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_cli_table.h,
+	  src/sccp_conference.c, src/sccp_conference.h, src/sccp_config.c,
+	  src/sccp_config.h, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_devstate.c, src/sccp_devstate.h, src/sccp_dllists.h,
+	  src/sccp_event.c, src/sccp_event.h, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_lock.h,
+	  src/sccp_management.c, src/sccp_management.h, src/sccp_mwi.c,
+	  src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.c, src/sccp_protocol.h, src/sccp_refcount.c,
+	  src/sccp_refcount.h, src/sccp_rtp.c, src/sccp_rtp.h,
+	  src/sccp_socket.c, src/sccp_socket.h, src/sccp_softkeys.c,
+	  src/sccp_softkeys.h, src/sccp_threadpool.c,
+	  src/sccp_threadpool.h, src/sccp_utils.c, src/sccp_utils.h:
+	  Reformat sources
+
+	* [r5789] ChangeLog, src/chan_sccp.c, src/chan_sccp.h,
+	  src/chan_sccp_enums.hh, src/common.h, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/ast104.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast106.h,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast108.h,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast110.h,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast111.h,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast112.h,
+	  src/pbx_impl/ast/ast112_announce.c,
+	  src/pbx_impl/ast/ast112_announce.h, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.h, src/sccp_adv_features.c,
+	  src/sccp_adv_features.h, src/sccp_appfunctions.c,
+	  src/sccp_appfunctions.h, src/sccp_channel.c, src/sccp_channel.h,
+	  src/sccp_cli.c, src/sccp_cli.h, src/sccp_cli_table.h,
+	  src/sccp_conference.h, src/sccp_config.c, src/sccp_config.h,
+	  src/sccp_config_entries.hh, src/sccp_device.c, src/sccp_device.h,
+	  src/sccp_devstate.c, src/sccp_devstate.h, src/sccp_dllists.h,
+	  src/sccp_enum_macro.h, src/sccp_event.c, src/sccp_event.h,
+	  src/sccp_event_enums.hh, src/sccp_featureButton.c,
+	  src/sccp_featureButton.h, src/sccp_features.c,
+	  src/sccp_features.h, src/sccp_hint.c, src/sccp_hint.h,
+	  src/sccp_indicate.c, src/sccp_indicate.h, src/sccp_labels.h,
+	  src/sccp_line.c, src/sccp_line.h, src/sccp_lock.h,
+	  src/sccp_management.c, src/sccp_management.h, src/sccp_mwi.c,
+	  src/sccp_mwi.h, src/sccp_pbx.c, src/sccp_pbx.h,
+	  src/sccp_protocol.c, src/sccp_protocol_enums.hh,
+	  src/sccp_refcount.c, src/sccp_refcount.h, src/sccp_rtp.c,
+	  src/sccp_rtp.h, src/sccp_socket.c, src/sccp_socket.h,
+	  src/sccp_softkeys.c, src/sccp_softkeys.h, src/sccp_threadpool.c,
+	  src/sccp_threadpool.h, src/sccp_utils.c, src/sccp_utils.h:
+	  Enhancement: Added kate source format line to all files. Fix:
+	  gcc-4.9.2 compilation issue because of file end
+
 2014-11-04  ddegroot
 
 	* [r5788] src/sccp_mwi.h: Fix: Ast-13 compile issue. Reported by

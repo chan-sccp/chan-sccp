@@ -48,6 +48,9 @@ fi
 if test "$SCCP_VERSION" = "unknown"; then
   SCCP_BRANCH="`cat .version|cut -d_ -f2`"
   SCCP_VERSION="`cat .version|cut -d_ -f1`"
+  if test -f .revision; then
+    SCCP_REVISION="`cat .revision |grep VCS_NUM |cut -d= -f2`"
+  fi
   REPOS_TYPE="TGZ"
 fi
 
