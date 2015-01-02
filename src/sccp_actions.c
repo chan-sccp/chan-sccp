@@ -43,9 +43,10 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 #include <math.h>
 #if ASTERISK_VERSION_NUMBER < 10400
-    /* !
-     *\brief Host Access Rule Structure
-     */
+
+/* !
+ *\brief Host Access Rule Structure
+ */
 struct ast_ha {
 	/* Host access rule */
 	struct in_addr netaddr;
@@ -621,7 +622,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Asked for our protocol capability (%d).\n", DEV_ID_LOG(device), ourMaxProtocolCapability);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Phone protocol capability : %d\n", DEV_ID_LOG(device), protocolVer);
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_4 "%s: Our protocol capability   : %d\n", DEV_ID_LOG(device), ourMaxProtocolCapability);
-	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Joint protocol capability   : %d\n", DEV_ID_LOG(device), device->protocol->version);
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Joint protocol capability : %d\n", DEV_ID_LOG(device), device->protocol->version);
 
 	/* we need some entropy for keepalive, to reduce the number of devices sending keepalive at one time */
 	device->keepaliveinterval = device->keepalive ? device->keepalive : GLOB(keepalive);
