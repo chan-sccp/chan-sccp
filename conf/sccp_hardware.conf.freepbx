@@ -1,7 +1,7 @@
 [SEP001122334455]
 description = Phone Number One
 addon = 7914
-devicetype = 7940
+devicetype = 7960
 park = off
 button = speeddial,Helpdesk, 98112, 98112@hints  	; Add SpeedDial to Helpdesk
 button = line, 98011: Line1				; Assign Line 98011 to Device
