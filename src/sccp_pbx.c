@@ -685,6 +685,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	if (PBX(set_callerid_number)) {
 		PBX(set_callerid_number) (c, c->callInfo.callingPartyNumber);
 	}
+	if (PBX(set_callerid_ani)) {
+		PBX(set_callerid_ani) (c, c->callInfo.callingPartyNumber);
+	}
 	if (PBX(set_callerid_name)) {
 		PBX(set_callerid_name) (c, c->callInfo.callingPartyName);
 	}
