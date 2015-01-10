@@ -2305,6 +2305,16 @@ static void sccp_wrapper_asterisk16_setCalleridNumber(const sccp_channel_t * cha
 	channel->owner->cid.cid_num = ast_strdup(number);
 }
 
+static void sccp_wrapper_asterisk16_setCalleridAni(const sccp_channel_t * channel, const char *number)
+{
+	if (channel->owner->cid.cid_ani) {
+		ast_free(channel->owner->cid.cid_ani);
+	}
+	if (number) {
+		channel->owner->cid.cid_ani = ast_strdup(number);
+	}
+}
+
 /*
    ANI=Automatic Number Identification => Calling Party
    DNIS/DNID=Dialed Number Identification Service
@@ -3051,7 +3061,7 @@ sccp_pbx_cb sccp_pbx = {
 
 	set_callerid_name:		sccp_wrapper_asterisk16_setCalleridName,
 	set_callerid_number:		sccp_wrapper_asterisk16_setCalleridNumber,
-	set_callerid_ani:		NULL,
+	set_callerid_ani:		sccp_wrapper_asterisk16_setCalleridAni,
 	set_callerid_dnid:		NULL,
 	
 	set_callerid_redirectingParty:	sccp_wrapper_asterisk16_setRedirectingParty,
@@ -3178,8 +3188,9 @@ struct sccp_pbx_cb sccp_pbx = {
 	.get_callerid_dnid 		= sccp_wrapper_asterisk16_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk16_callerid_rdnis,
 	.get_callerid_presence 		= sccp_wrapper_asterisk16_callerid_presence,
-	.set_callerid_name 		= sccp_wrapper_asterisk16_setCalleridName,	//! \todo implement callback
-	.set_callerid_number 		= sccp_wrapper_asterisk16_setCalleridNumber,	//! \todo implement callback
+	.set_callerid_name 		= sccp_wrapper_asterisk16_setCalleridName,
+	.set_callerid_number 		= sccp_wrapper_asterisk16_setCalleridNumber,
+	.set_callerid_ani		= sccp_wrapper_asterisk16_setCalleridAni,
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk16_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk16_setRedirectedParty,

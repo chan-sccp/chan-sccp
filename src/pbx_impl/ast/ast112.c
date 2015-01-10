@@ -2469,6 +2469,15 @@ static void sccp_wrapper_asterisk112_setCalleridNumber(const sccp_channel_t * ch
 	}
 }
 
+static void sccp_wrapper_asterisk112_setCalleridAni(const sccp_channel_t * channel, const char *number)
+{
+	if (number) {
+		ast_party_number_free(&ast_channel_caller(channel->owner)->ani.number);
+		ast_channel_caller(channel->owner)->ani.number.str = ast_strdup(number);
+		ast_channel_caller(channel->owner)->ani.number.valid = 1;
+	}
+}
+
 static void sccp_wrapper_asterisk112_setRedirectingParty(const sccp_channel_t * channel, const char *number, const char *name)
 {
 	if (number) {
@@ -3388,7 +3397,7 @@ sccp_pbx_cb sccp_pbx = {
 
 	set_callerid_name:		sccp_wrapper_asterisk112_setCalleridName,
 	set_callerid_number:		sccp_wrapper_asterisk112_setCalleridNumber,
-	set_callerid_ani:		NULL,
+	set_callerid_ani:		sccp_wrapper_asterisk112_setCalleridAni,
 	set_callerid_dnid:		NULL,
 	set_callerid_redirectingParty:	sccp_wrapper_asterisk112_setRedirectingParty,
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk112_setRedirectedParty,
@@ -3519,8 +3528,9 @@ struct sccp_pbx_cb sccp_pbx = {
 	.get_callerid_dnid 		= sccp_wrapper_asterisk112_callerid_dnid,
 	.get_callerid_rdnis 		= sccp_wrapper_asterisk112_callerid_rdnis,
 	.get_callerid_presence 		= sccp_wrapper_asterisk112_callerid_presence,
-	.set_callerid_name 		= sccp_wrapper_asterisk112_setCalleridName,	//! \todo implement callback
-	.set_callerid_number 		= sccp_wrapper_asterisk112_setCalleridNumber,	//! \todo implement callback
+	.set_callerid_name 		= sccp_wrapper_asterisk112_setCalleridName,
+	.set_callerid_number 		= sccp_wrapper_asterisk112_setCalleridNumber,
+	.set_callerid_ani 		= sccp_wrapper_asterisk112_setCalleridAni,
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk112_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk112_setRedirectedParty,
