@@ -391,7 +391,7 @@ void sccp_refcount_print_hashtable(int fd)
 	fillfactor = (float) numentries / SCCP_HASH_PRIME;
 	pbx_cli(fd, "+==============================================================================================+\n");
 	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", numentries, SCCP_HASH_PRIME, fillfactor, maxdepth);
-	if (fillfactor > 0.01) {
+	if (fillfactor > 1.00) {
 		pbx_cli(fd, "| \033[1m\033[41m\033[37mPlease keep fillfactor below 1.00. Check ./configure --with-hash-size.\033[0m                       |\n");
 	}
 	pbx_cli(fd, "+==============================================================================================+\n");
