@@ -361,7 +361,8 @@ void sccp_refcount_print_hashtable(int fd)
 	int x, prev = 0;
 	RefCountedObject *obj = NULL;
 	unsigned int maxdepth = 0;
-	unsigned int fillfactor = 0;
+	unsigned int numentries = 0;
+	float fillfactor = 0.00;
 
 	pbx_cli(fd, "+==============================================================================================+\n");
 	pbx_cli(fd, "| %5s | %17s | %25s | %15s | %4s | %4s | %4s |\n", "hash", "type", "id", "ptr", "refc", "live", "size");
@@ -378,7 +379,7 @@ void sccp_refcount_print_hashtable(int fd)
 				}
 				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
 				prev = x;
-				fillfactor++;
+				numentries++;
 			}
 			if (maxdepth < SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects)) {
 				maxdepth = SCCP_RWLIST_GETSIZE(&(objects[x])->refCountedObjects);
@@ -387,10 +388,13 @@ void sccp_refcount_print_hashtable(int fd)
 		}
 	}
 	ast_rwlock_unlock(&objectslock);
+	fillfactor = (float) numentries / SCCP_HASH_PRIME;
 	pbx_cli(fd, "+==============================================================================================+\n");
-	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", fillfactor, SCCP_HASH_PRIME, (float) fillfactor / SCCP_HASH_PRIME, maxdepth);
+	pbx_cli(fd, "| fillfactor = (%03d / %03d) = %02.2f, maxdepth = %02d                                               |\n", numentries, SCCP_HASH_PRIME, fillfactor, maxdepth);
+	if (fillfactor > 0.01) {
+		pbx_cli(fd, "| \033[1m\033[41m\033[37mPlease keep fillfactor below 1.00. Check ./configure --with-hash-size.\033[0m                       |\n");
+	}
 	pbx_cli(fd, "+==============================================================================================+\n");
-
 }
 
 #ifdef CS_EXPERIMENTAL
