@@ -746,11 +746,19 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
  *
  * \called_from_asterisk
  */
-int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen)
+int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen)
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 	int res = 0;
+
+        char *parse = sccp_strdupa(preparse);
+        AST_DECLARE_APP_ARGS(args,
+                AST_APP_ARG(param);
+                AST_APP_ARG(type);
+                AST_APP_ARG(field);
+        );
+        AST_STANDARD_APP_ARGS(args, parse);
 
 	if (!ast || !CS_AST_CHANNEL_PVT_IS_SCCP(ast)) {
 		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
@@ -759,14 +767,102 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 
 	if ((c = get_sccp_channel_from_pbx_channel(ast))) {
 		if ((d = sccp_channel_getDevice_retained(c))) {
-			if (!strcasecmp(args, "peerip")) {
+			if (!strcasecmp(args.param, "peerip")) {
                                 sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
-			} else if (!strcasecmp(args, "recvip")) {
+			} else if (!strcasecmp(args.param, "recvip")) {
 				ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
-			} else if (!strcasecmp(args, "useragent")) {
+			} else if (!strcasecmp(args.param, "useragent")) {
 				sccp_copy_string(buf, skinny_devicetype2str(d->skinny_type), buflen);
-			} else if (!strcasecmp(args, "from")) {
+			} else if (!strcasecmp(args.param, "from")) {
 				sccp_copy_string(buf, (char *) d->id, buflen);
+#if ASTERISK_VERSION_GROUP >= 108
+			} else if (!strcasecmp(args.param, "rtpqos")) {
+				PBX_RTP_TYPE * rtp = NULL;
+
+				if (sccp_strlen_zero(args.type)) {
+					args.type = "audio";
+				}
+
+				if (sccp_strcaseequals(args.type, "audio")) {
+					rtp = c->rtp.audio.rtp;
+				} else if (sccp_strcaseequals(args.type, "video")) {
+					rtp = c->rtp.video.rtp;
+				//} else if (sccp_strcaseequals(args.type, "text")) {
+				//	rtp = c->rtp.text.rtp;
+				} else {
+					return -1;
+				}
+
+				if (sccp_strlen_zero(args.field) || sccp_strcaseequals(args.field, "all")) {
+					char quality_buf[256 /*AST_MAX_USER_FIELD*/];
+
+					if (!ast_rtp_instance_get_quality(rtp, AST_RTP_INSTANCE_STAT_FIELD_QUALITY, quality_buf, sizeof(quality_buf))) {
+						return -1;
+					}
+
+					sccp_copy_string(buf, quality_buf, buflen);
+					return res;
+				} else {
+					struct ast_rtp_instance_stats stats;
+					int i;
+					struct {
+						const char *name;
+						enum { INT, DBL } type;
+						union {
+							unsigned int *i4;
+							double *d8;
+						};
+					} lookup[] = {
+						{ "txcount",               INT, { .i4 = &stats.txcount, }, },
+						{ "rxcount",               INT, { .i4 = &stats.rxcount, }, },
+						{ "txjitter",              DBL, { .d8 = &stats.txjitter, }, },
+						{ "rxjitter",              DBL, { .d8 = &stats.rxjitter, }, },
+						{ "remote_maxjitter",      DBL, { .d8 = &stats.remote_maxjitter, }, },
+						{ "remote_minjitter",      DBL, { .d8 = &stats.remote_minjitter, }, },
+						{ "remote_normdevjitter",  DBL, { .d8 = &stats.remote_normdevjitter, }, },
+						{ "remote_stdevjitter",    DBL, { .d8 = &stats.remote_stdevjitter, }, },
+						{ "local_maxjitter",       DBL, { .d8 = &stats.local_maxjitter, }, },
+						{ "local_minjitter",       DBL, { .d8 = &stats.local_minjitter, }, },
+						{ "local_normdevjitter",   DBL, { .d8 = &stats.local_normdevjitter, }, },
+						{ "local_stdevjitter",     DBL, { .d8 = &stats.local_stdevjitter, }, },
+						{ "txploss",               INT, { .i4 = &stats.txploss, }, },
+						{ "rxploss",               INT, { .i4 = &stats.rxploss, }, },
+						{ "remote_maxrxploss",     DBL, { .d8 = &stats.remote_maxrxploss, }, },
+						{ "remote_minrxploss",     DBL, { .d8 = &stats.remote_minrxploss, }, },
+						{ "remote_normdevrxploss", DBL, { .d8 = &stats.remote_normdevrxploss, }, },
+						{ "remote_stdevrxploss",   DBL, { .d8 = &stats.remote_stdevrxploss, }, },
+						{ "local_maxrxploss",      DBL, { .d8 = &stats.local_maxrxploss, }, },
+						{ "local_minrxploss",      DBL, { .d8 = &stats.local_minrxploss, }, },
+						{ "local_normdevrxploss",  DBL, { .d8 = &stats.local_normdevrxploss, }, },
+						{ "local_stdevrxploss",    DBL, { .d8 = &stats.local_stdevrxploss, }, },
+						{ "rtt",                   DBL, { .d8 = &stats.rtt, }, },
+						{ "maxrtt",                DBL, { .d8 = &stats.maxrtt, }, },
+						{ "minrtt",                DBL, { .d8 = &stats.minrtt, }, },
+						{ "normdevrtt",            DBL, { .d8 = &stats.normdevrtt, }, },
+						{ "stdevrtt",              DBL, { .d8 = &stats.stdevrtt, }, },
+						{ "local_ssrc",            INT, { .i4 = &stats.local_ssrc, }, },
+						{ "remote_ssrc",           INT, { .i4 = &stats.remote_ssrc, }, },
+						{ NULL, },
+					};
+
+					if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
+						return -1;
+					}
+
+					for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
+						if (sccp_strcaseequals(args.field, lookup[i].name)) {
+							if (lookup[i].type == INT) {
+								snprintf(buf, buflen, "%u", *lookup[i].i4);
+							} else {
+								snprintf(buf, buflen, "%f", *lookup[i].d8);
+							}
+							return 0;
+						}
+					}
+					pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+					return -1;
+				}
+#endif
 			} else {
 				res = -1;
 			}
