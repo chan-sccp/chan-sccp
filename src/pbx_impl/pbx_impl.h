@@ -9,7 +9,7 @@
  *		See the LICENSE file at the top of the source tree.
  *
  * $Date$
- * $Revision$  
+ * $Revision$
  */
 #ifndef __PBX_IMPL_H
 #define __PBX_IMPL_H
@@ -29,7 +29,7 @@
 /*!
  * \brief SCCP PBX Callback function
  *
- * Register Callback_Functions for a particular PBX Implementation and PBX Version. This will make it possible to make 
+ * Register Callback_Functions for a particular PBX Implementation and PBX Version. This will make it possible to make
  * chan-sccp agnostic to the PBX Software we are connected to. And provides a way to cope with multiple different versions
  * of these PBX Implementation. There Callback functions are implemented under the pbx_impl directory
  */
@@ -41,7 +41,7 @@ struct sccp_pbx_cb {
 	boolean_t(*const checkhangup) (const sccp_channel_t * channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
 	sccp_extension_status_t(*const extension_status) (const sccp_channel_t * channel);
-	
+
 	void (*const setPBXChannelLinkedId) (PBX_CHANNEL_TYPE *pbxchannel, const char *linkedid);
 	const char *(*const getChannelName) (const sccp_channel_t *channel);
 	void (*const setChannelName) (const sccp_channel_t *channel, const char *name);
@@ -66,7 +66,7 @@ struct sccp_pbx_cb {
 	boolean_t(*const getChannelByName) (const char *name, PBX_CHANNEL_TYPE **pbx_channel);
 	boolean_t(*const getRemoteChannel) (const sccp_channel_t *channel, PBX_CHANNEL_TYPE **pbx_channel);
 	void *(*const getChannelByCallback) (int (*is_match)(PBX_CHANNEL_TYPE *, void *),void *data);
-	
+
 
 	int (*const set_nativeAudioFormats) (const sccp_channel_t * channel, skinny_codec_t codec[], int length);
 	int (*const set_nativeVideoFormats) (const sccp_channel_t * channel, uint32_t);
@@ -109,7 +109,8 @@ struct sccp_pbx_cb {
 	int (*const get_callerid_presence) (const sccp_channel_t * channel);
 
 	void (*const set_callerid_name) (const sccp_channel_t * channel, const char *name);
-	void (*const set_callerid_number) (const sccp_channel_t * channel, const char *name);
+	void (*const set_dialed_number) (const sccp_channel_t * channel, const char *number);
+	void (*const set_callerid_number) (const sccp_channel_t * channel, const char *number);
 	void (*const set_callerid_ani) (const sccp_channel_t * channel, const char *ani);
 	void (*const set_callerid_dnid) (const sccp_channel_t * channel, const char *dnid);
 	void (*const set_callerid_redirectingParty) (const sccp_channel_t * channel, const char *number, const char *name);
@@ -142,20 +143,20 @@ struct sccp_pbx_cb {
 	boolean_t(*const allocTempPBXChannel) (PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);
 	boolean_t(*const masqueradeHelper) (PBX_CHANNEL_TYPE *pbxChannel, PBX_CHANNEL_TYPE *pbxTmpchannel);
 	PBX_CHANNEL_TYPE *(*const requestAnnouncementChannel) (pbx_format_type format, const PBX_CHANNEL_TYPE * requestor, void *data);
-	
+
 	boolean_t(*const set_language)(PBX_CHANNEL_TYPE *pbxChannel, const char *language);
-	
+
 	/* devicestate / extension state */
 	skinny_busylampfield_state_t (*const getExtensionState)(const char *extension, const char *context);
-	
+
 	PBX_CHANNEL_TYPE *(*const findPickupChannelByExtenLocked)(PBX_CHANNEL_TYPE *chan, const char *exten, const char *context);
-	
+
 // 	PBX_ENDPOINT_TYPE *(*const endpoint_create)(const char *tech, const char *resource);
 //	void (*const endpoint_online)(PBX_ENDPOINT_TYPE *endpoint);
 //	void (*const endpoint_offline)(PBX_ENDPOINT_TYPE *endpoint);
 //	void (*const endpoint_shutdown)(PBX_ENDPOINT_TYPE *endpoint);
-	
-        void (*const set_owner)(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel); 	
+
+        void (*const set_owner)(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel);
 	int (*const dumpchan) (PBX_CHANNEL_TYPE *pbx_channel, char *buf, size_t size);
 	boolean_t (*const channel_is_bridged) (sccp_channel_t *channel);
 	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);
