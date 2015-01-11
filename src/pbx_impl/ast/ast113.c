@@ -3653,14 +3653,13 @@ struct sccp_pbx_cb sccp_pbx = {
 
 	.set_callerid_name 		= sccp_wrapper_asterisk113_setCalleridName,
 	.set_callerid_number 		= sccp_wrapper_asterisk113_setCalleridNumber,
-	.set_dialed_number		= sccp_wrapper_asterisk13_setDialedNumber
+	.set_dialed_number		= sccp_wrapper_asterisk13_setDialedNumber,
 	.set_callerid_ani 		= sccp_wrapper_asterisk113_setCalleridAni,
 	.set_callerid_dnid 		= NULL,						//! \todo implement callback
 	.set_callerid_redirectingParty 	= sccp_wrapper_asterisk113_setRedirectingParty,
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk113_setRedirectedParty,
 	.set_callerid_presence 		= sccp_wrapper_asterisk113_setCalleridPresence,
 	.set_connected_line		= sccp_wrapper_asterisk113_updateConnectedLine,
-//	.sendRedirectedUpdate		= sccp_wrapper_asterisk113_sendRedirectedUpdate,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 
 	/* database */
