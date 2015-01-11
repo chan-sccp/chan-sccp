@@ -29,7 +29,7 @@
 SCCP_FILE_VERSION(__FILE__, "$Revision$")
 
     /*!
-     * \brief SCCP Structure to pass data to the pbx answer thread 
+     * \brief SCCP Structure to pass data to the pbx answer thread
      */
 struct sccp_answer_conveyor_struct {
 	uint32_t callid;
@@ -98,9 +98,9 @@ FINAL:
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \called_from_asterisk
- * 
+ *
  * \note called with c retained
  */
 
@@ -232,11 +232,11 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 
 		if (active_channel) {
 			sccp_indicate(linedevice->device, c, SCCP_CHANNELSTATE_CALLWAITING);
-			
+
 			/* display the new call on prompt */
 			{
 				AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
-				
+
 				char prompt[100];
 				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, c->callInfo.callingPartyNumber);
 				sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, prompt, GLOB(digittimeout));
@@ -304,9 +304,9 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \called_from_asterisk via sccp_wrapper_asterisk.._hangup
- * 
+ *
  * \note sccp_channel should be retained in calling function
  */
 
@@ -555,7 +555,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \lock
  *  - usecnt_lock
  */
@@ -760,7 +760,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  * \brief Schedule Asterisk Dial
  * \param data Data as constant
  * \return Success as int
- * 
+ *
  * \called_from_asterisk
  */
 int sccp_pbx_sched_dial(const void *data)
@@ -1089,7 +1089,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 		sccp_channel_set_calledparty(c, "", shortenedNumber);
 
-#if 0														/* Remarked out by Pavel Troller for the earlyrtp immediate implementation. Checking if there will be negative fall out. 
+#if 0														/* Remarked out by Pavel Troller for the earlyrtp immediate implementation. Checking if there will be negative fall out.
 														   It might have to check the device->earlyrtp state, to do the correct thing (Let's see). */
 
 		/* proceed call state is needed to display the called number. The phone will not display callinfo in offhook state */
@@ -1137,6 +1137,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 						break;
 				}
 				sccp_device_setLastNumberDialed(d, shortenedNumber);
+				if (PBX(set_dialed_number)) PBX(set_dialed_number) (c, shortenedNumber);
+
 			} else {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx_check_hangup(chan): %d on line %s\n", DEV_ID_LOG(d), (pbx_channel && pbx_check_hangup(pbx_channel)), l->name);
 			}
@@ -1171,7 +1173,7 @@ EXIT_FUNC:
  *
  * \test Dialplan Transfer Needs to be tested
  * \todo pbx_transfer needs to be implemented correctly
- * 
+ *
  * \called_from_asterisk
  */
 int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
