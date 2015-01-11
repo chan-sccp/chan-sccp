@@ -81,7 +81,7 @@ int sccp_addons_taps(sccp_device_t * d)
 	sccp_addon_t *cur = NULL;
 	int taps = 0;
 	
-	if (SCCP_LIST_GETSIZE(&d->addons) > 0 && (d->skinny_type == SKINNY_DEVICETYPE_CISCO7940 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7941 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7941GE)) {
+	if (SCCP_LIST_GETSIZE(&d->addons) > 0 && (d->skinny_type == SKINNY_DEVICETYPE_CISCO7941 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7941GE)) {
 		 pbx_log(LOG_WARNING, "%s: %s devices do no support AddOns/Expansion Modules of any kind. Skipping !\n", DEV_ID_LOG(d), skinny_devicetype2str(d->skinny_type));
 	}
 
