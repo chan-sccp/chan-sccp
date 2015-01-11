@@ -269,6 +269,7 @@ typedef struct ast_event pbx_event_t;
 #define pbx_state2str ast_state2str
 #define pbx_str_alloca ast_str_alloca
 #define pbx_str_append ast_str_append
+#define pbx_str_append_escapecommas ast_str_append_escapecommas
 #define pbx_str_buffer ast_str_buffer
 #define pbx_strdup ast_strdup
 #define pbx_strdupa ast_strdupa
