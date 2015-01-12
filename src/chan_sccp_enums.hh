@@ -147,23 +147,17 @@ BEGIN_ENUM(sccp,blindtransferindication,ENUMMACRO_INCREMENTAL)
 END_ENUM(sccp,blindtransferindication,ENUMMACRO_INCREMENTAL)
 
 BEGIN_ENUM(sccp,call_answer_order,ENUMMACRO_INCREMENTAL)
-#ifndef CS_EXPERIMENTAL
-        ENUM_ELEMENT(SCCP_ANSWER_OLDEST_FIRST			,=0,	"OldestFirst")
-        ENUM_ELEMENT(SCCP_ANSWER_LAST_FIRST			,=1,	"LastFirst")
-#else
         ENUM_ELEMENT(SCCP_ANSWER_OLDEST_FIRST				,=0,	"OldestFirst")
         ENUM_ELEMENT(SCCP_ANSWER_LAST_FIRST				,=1,	"LastFirst")
-#endif
 END_ENUM(sccp,call_answer_order,ENUMMACRO_INCREMENTAL)
 
 #ifdef CS_EXPERIMENTAL
 BEGIN_ENUM(sccp,nat,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_NAT_AUTO					,= 0,	"Auto")
         ENUM_ELEMENT(SCCP_NAT_OFF					,= 1,	"Off")
-        ENUM_ELEMENT(SCCP_NAT_AUTO_OFF					,= 2,	"(Auto) Off")
+        ENUM_ELEMENT(SCCP_NAT_AUTO_OFF					,= 2,	"(Auto)Off")
         ENUM_ELEMENT(SCCP_NAT_ON					,= 3,	"On")
-        ENUM_ELEMENT(SCCP_NAT_AUTO_ON					,= 4,	"(Auto) On")
+        ENUM_ELEMENT(SCCP_NAT_AUTO_ON					,= 4,	"(Auto)On")
 END_ENUM(sccp,nat,ENUMMACRO_INCREMENTAL)
-
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
