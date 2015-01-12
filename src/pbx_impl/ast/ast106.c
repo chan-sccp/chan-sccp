@@ -1964,13 +1964,24 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 			instance = trtp;
 		}
 		
-		if (d->directrtp && !d->nat && !nat_active) {						// asume directrtp
+#ifndef CS_EXPERIMENTAL
+ 		if (d->directrtp && !d->nat && !nat_active && !c->conference) {				// asume directrtp
+#else
+		if (d->directrtp && d->nat < SCCP_NAT_ON && !nat_active && !c->conference) {		// asume directrtp
+#endif
 			ast_rtp_get_peer(instance, &sin);
-//		        if (sccp_apply_ha(d->ha, &sin) == AST_SENSE_ALLOW) {				// check remote sin against local device acl (to match netmask)
-//				directmedia=TRUE;
-//			}
                 	memcpy(&sas, &sin, sizeof(struct sockaddr_storage));
-		        //ast_sockaddr_to_sin(&sin_tmp, &sin);
+#ifdef CS_EXPERIMENTAL
+		        if (d->nat == SCCP_NAT_OFF) {							// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
+		        	struct sockaddr_in sin_local = { 0, };
+		        	struct sockaddr_storage localsas = {0,};
+		        	ast_rtp_get_us(instance, &sin_local);
+		        	memcpy(&localsas, &sin_local, sizeof(struct sockaddr_storage));
+				if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW && sccp_apply_ha(d->ha, &localsas) == AST_SENSE_ALLOW) {
+					directmedia=TRUE;
+				}
+		        } else
+#endif
 		        if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {				// check remote sin against local device acl (to match netmask)
 				directmedia=TRUE;
 			}
@@ -1992,7 +2003,11 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 				c->currentDeviceId, 
 				sccp_socket_stringify(&sas),
 				S_COR(d->directrtp, "yes", "no"), 
-				S_COR(!d->nat,"yes","no"), 
+#ifndef CS_EXPERIMENTAL
+ 				S_COR(!d->nat,"yes","no"),
+#else
+				sccp_nat2str(d->nat),
+#endif
 				S_COR(!nat_active,"yes","no"),
 				S_COR(directmedia,"yes","no"),
 				S_COR(directmedia,"yes","no")
