@@ -27,20 +27,11 @@ update sccpdevice set audio_tos="0xB8",audio_cos="6",video_tos="0x88",video_cos=
 -- View for merging device and button configuration
 --
 CREATE OR REPLACE
-#ifndef CS_EXPERIMENTAL
-ALGORITHM =
-MERGE
-#else
 ALGORITHM = MERGE
-#endif
 VIEW sccpdeviceconfig AS
 	SELECT GROUP_CONCAT( CONCAT_WS( ',', buttonconfig.type, buttonconfig.name, buttonconfig.options )
 	ORDER BY instance ASC
-#ifndef CS_EXPERIMENTAL
-	SEPARATOR ';' ) AS button, sccpdevice . *
-#else
 	SEPARATOR ';' ) AS button, sccpdevice.*
-#endif
 	FROM sccpdevice
 	LEFT JOIN buttonconfig ON ( buttonconfig.device = sccpdevice.name )
 GROUP BY sccpdevice.name;

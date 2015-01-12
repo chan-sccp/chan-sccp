@@ -74,11 +74,7 @@ blindtransferindication = ring                                                  
 cfwdall = yes                                                                     ; activate the callforward ALL stuff and softkeys
 cfwdbusy = yes                                                                    ; activate the callforward BUSY stuff and softkeys
 cfwdnoanswer = yes                                                                ; activate the callforward NOANSWER stuff and softkeys
-#ifndef CS_EXPERIMENTAL
-nat = no                                                                          ; Global NAT support.
-#else
 nat = auto                                                                        ; Global NAT support (auto / on / off).
-#endif
 directrtp = no                                                                    ; This option allow devices to do direct RTP sessions.
 allowoverlap = no                                                                 ; Enable overlap dialing support. If enabled, starts dialing immediately and sends remaing digits as DTMF/inband.
                                                                                   ; Use with extreme caution as it is very dialplan and provider dependent.
@@ -166,10 +162,7 @@ video_tos = ""                                                                  
 video_cos = ""                                                                    ; sets the video/rtp packets Class of Service (COS).
 trustphoneip = ""                                                                 ; The phone has a ip address. It could be private, so if the phone is behind NAT 
                                                                                   ; we don't have to trust the phone ip address, but the ip address of the connection
-#ifndef CS_EXPERIMENTAL
 nat = ""                                                                          ; Device NAT support. Currently nat is automatically detected in most cases.
-#else
-nat = auto                                                                        ; Device NAT support. Currently nat is automatically detected in most cases (Defaults to "auto". Valid Values: "auto" / "on" / "off") .
 #endif
 directrtp = ""                                                                    ; This option allow devices to do direct RTP sessions.
 earlyrtp = ""                                                                     ; valid options: none, offhook, immediate, dial, ringout and progress.
