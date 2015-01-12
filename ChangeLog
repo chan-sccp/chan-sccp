@@ -1,3 +1,77 @@
+2015-01-11  ddegroot
+
+	* [r5828] src/sccp_actions.c: Fix: Debug message about auto nat
+
+	* [r5827] src/pbx_impl/ast/define.h, src/sccp_appfunctions.c:
+	  Enhancement: Allow the use of dialplan HASH() function combined
+	  with SCCPDEVICE(), SCCPLINE() and SCCPCHANNEL() to query multiple
+	  parameters with only one function call (Required to fix dialplan
+	  macro readability for Cody Miller-Kelly).
+	  Note: Original single parameter queries are still supported as
+	  before.
+	  
+	  Diaplan Example:
+	  Set(HASH(_SCCP_DEVICE)=${SCCPDEVICE(current,id,description,ip,button_config,codecs,codec[2])});
+	  Noop(Keys: ${HASHKEYS(SCCP_DEVICE)});
+	  Noop(Id: ${HASH(SCCP_DEVICE,id)});
+	  Noop(Desc: ${HASH(SCCP_DEVICE,description)});
+	  Noop(Ip: ${HASH(SCCP_DEVICE,ip)});
+	  Noop(button_config: ${HASH(SCCP_DEVICE,button_config)});
+	  Noop(codecs: ${HASH(SCCP_DEVICE,codecs)});
+	  Noop(codec[2]: ${HASH(SCCP_DEVICE,codec[2])});
+
+	* [r5826] src/pbx_impl/ast/ast.c, src/sccp_appfunctions.c:
+	  Enhancement: Added rtp quality statistics, i.e. 'rtpqos' to
+	  CHANNEL(), SCCPDEVICE() and SCCPCHANNEL() as per request from
+	  Cody Miller-Kelly
+
+2015-01-11  marcelloceschia
+
+	* [r5825] src/pbx_impl/ast/ast113.c: fix missing ,
+
+	* [r5824] src/sccp_pbx.c: use dialed number interface
+
+	* [r5823] src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c: implement interface for dialed number
+	  for asterisk 11,12,13
+
+	* [r5822] src/pbx_impl/pbx_impl.h: add interface for dialed number
+
+2015-01-11  ddegroot
+
+	* [r5821] src/sccp_utils.c: Fix: Remove the 7940 from the addon
+	  warning message. (Reported by hhornung).
+
+2015-01-10  ddegroot
+
+	* [r5820] src/sccp_refcount.c: Fix: fillfactor check
+
+	* [r5819] src/sccp_refcount.c: Fix: Added warning about fillfactor
+	  to 'sccp show refcount'
+
+	* [r5818] src/sccp_utils.c: Fix: Added warning when specifying
+	  addons for 794x phones during device registration
+
+	* [r5817] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_pbx.c: Fix: Changing CallerID in CDR becasuse of
+	  CallerId(ANI) Issue reported by Pavel Troller.
+
+2015-01-03  ddegroot
+
+	* [r5816] conf/sccp.conf, conf/sccp_hardware.conf.freepbx,
+	  conf/sccp_templated.conf: Fix config examples: show 7914 attached
+	  to 7960 instead of (non-working) 7940. (Requested by Matt
+	  Darnell)
+
+2015-01-02  ddegroot
+
+	* [r5815] src/sccp_actions.c: Fix: debug message
+
+	* [r5814] ChangeLog, tools/versioncheck: Include revision number
+	  based on .revision when compiling from TGZ
+
 2014-12-23  marcelloceschia
 
 	* [r5813] src/sccp_actions.c: fixes wrong digit @ instead of + on a

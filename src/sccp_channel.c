@@ -729,7 +729,11 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 	sccp_log((DEBUGCAT_RTP + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Open receive channel with format %s[%d], payload %d, echocancel: %d, passthrupartyid: %u, callid: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.writeFormat), channel->rtp.audio.writeFormat, channel->rtp.audio.writeFormat, channel->line->echocancel, channel->passthrupartyid, channel->callid);
 	channel->rtp.audio.writeState = SCCP_RTP_STATUS_PROGRESS;
 
+#ifndef CS_EXPERIMENTAL
 	if (d->nat) {												/* device is natted */
+#else
+	if (d->nat >= SCCP_NAT_ON) {										/* device is natted */
+#endif
 		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);					/* get rtp server port */
 
 		if (!sccp_socket_getExternalAddr(&channel->rtp.audio.phone_remote)) {				/* Use externip (PBX behind NAT Firewall */
@@ -911,7 +915,11 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 	uint16_t remoteFamily = (channel->rtp.audio.phone_remote.ss_family == AF_INET6 && !sccp_socket_is_mapped_IPv4(&channel->rtp.audio.phone_remote)) ? AF_INET6 : AF_INET;
 
 	/*! \todo move the refreshing of the hostname->ip-address to another location (for example scheduler) to re-enable dns hostname lookup */
+#ifndef CS_EXPERIMENTAL
 	if (!d->nat) {
+#else
+	if (d->nat >= SCCP_NAT_ON) {
+#endif
 		if ((usFamily == AF_INET) != remoteFamily) {							/* device needs correction for ipv6 address in remote */
 			uint16_t port = sccp_rtp_getServerPort(&channel->rtp.audio);				/* get rtp server port */
 
@@ -942,7 +950,11 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
 	sccp_copy_string(buf1, sccp_socket_stringify(&channel->rtp.audio.phone), sizeof(buf1));
 	sccp_copy_string(buf2, sccp_socket_stringify(&channel->rtp.audio.phone_remote), sizeof(buf2));
 
+#ifndef CS_EXPERIMENTAL
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, d->nat ? "yes" : "no");
+#else
+	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell Phone to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(d), buf1, buf2, sccp_nat2str(d->nat));
+#endif
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Using codec: %s(%d), TOS %d, Silence Suppression: %s for call with PassThruId: %u and CallID: %u\n", DEV_ID_LOG(d), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat, d->audio_tos, channel->line->silencesuppression ? "ON" : "OFF", channel->passthrupartyid, channel->callid);
 }
 
@@ -1055,7 +1067,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 		sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);	/*!< we need this to convert mapped IPv4 to real IPv4 address */
 		sccp_socket_setPort(&channel->rtp.video.phone_remote, port);
 
+#ifndef CS_EXPERIMENTAL
 	} else if (d->nat || ((usFamily == AF_INET) != remoteFamily)) {						/* natted or needs correction for ipv6 address in remote */
+#else
+	} else if (d->nat >= SCCP_NAT_ON || ((usFamily == AF_INET) != remoteFamily)) {				/* natted or needs correction for ipv6 address in remote */
+#endif
 		uint16_t port = sccp_rtp_getServerPort(&channel->rtp.video);					/* get rtp server port */
 
 		memcpy(&channel->rtp.video.phone_remote, &d->session->ourip, sizeof(struct sockaddr_storage));	/* use ourip as destination (rtp server) */

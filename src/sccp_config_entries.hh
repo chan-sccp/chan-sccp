@@ -98,7 +98,11 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"cfwdall", 			G_OBJ_REF(cfwdall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"activate the callforward ALL stuff and softkeys\n"},
 	{"cfwdbusy", 			G_OBJ_REF(cfwdbusy), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"activate the callforward BUSY stuff and softkeys\n"},
 	{"cfwdnoanswer", 		G_OBJ_REF(cfwdnoanswer), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"yes",				"activate the callforward NOANSWER stuff and softkeys\n"},
+#ifndef CS_EXPERIMENTAL
 	{"nat", 			G_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"no",				"Global NAT support.\n"},
+#else
+	{"nat", 			G_OBJ_REF(nat), 			TYPE_ENUM(sccp,nat),								SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"auto",				"Global NAT support.\n"},
+#endif
 	{"directrtp", 			G_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"This option allow devices to do direct RTP sessions.\n"},
 	{"allowoverlap", 		G_OBJ_REF(useoverlap), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Enable overlap dialing support. If enabled, starts dialing immediately and sends remaing digits as DTMF/inband.\n"
 																																					"Use with extreme caution as it is very dialplan and provider dependent.\n"},
@@ -190,7 +194,11 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"video_cos", 			D_OBJ_REF(video_cos),			TYPE_PARSER(sccp_config_parse_cos),						SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT, 				SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"sets the video/rtp packets Class of Service (COS).\n"},
 	{"trustphoneip", 		D_OBJ_REF(trustphoneip), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT | SCCP_CONFIG_FLAG_DEPRECATED,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"The phone has a ip address. It could be private, so if the phone is behind NAT \n"
 																																					"we don't have to trust the phone ip address, but the ip address of the connection\n"},
+#ifndef CS_EXPERIMENTAL
 	{"nat", 			D_OBJ_REF(nat), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support. Currently nat is automatically detected in most cases.\n"},
+#else
+	{"nat", 			D_OBJ_REF(nat), 			TYPE_ENUM(sccp,nat),								SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,	SCCP_CONFIG_NOUPDATENEEDED,	NULL,				"Device NAT support. Currently nat is automatically detected in most cases.\n"},
+#endif
 	{"directrtp", 			D_OBJ_REF(directrtp), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"This option allow devices to do direct RTP sessions.\n"},
 	{"earlyrtp", 			D_OBJ_REF(earlyrtp), 			TYPE_ENUM(sccp,earlyrtp),							SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"valid options: none, offhook, immediate, dial, ringout and progress.\n"
 																																					"The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.\n"},

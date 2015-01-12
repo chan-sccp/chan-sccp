@@ -915,7 +915,11 @@ struct sccp_device {
 	uint8_t protocolversion;										/*!< Skinny Supported Protocol Version */
 	uint8_t inuseprotocolversion;										/*!< Skinny Used Protocol Version */
 	uint16_t registrationState;										/*!< If the device has been fully registered yet */
+#ifndef CS_EXPERIMENTAL
 	boolean_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
+#else
+	sccp_nat_t nat;												/*!< Network Address Translation Support (Boolean, default=on) */
+#endif
 	boolean_t directrtp;											/*!< Direct RTP Support (Boolean, default=on) */
 
 	sccp_channel_t *active_channel;										/*!< Active SCCP Channel */
@@ -1320,7 +1324,11 @@ struct sccp_global_vars {
 	boolean_t cfwdall;											/*!< Call Forward All Support (Boolean, default=on) */
 	boolean_t cfwdbusy;											/*!< Call Forward on Busy Support (Boolean, default=on) */
 	boolean_t cfwdnoanswer;											/*!< Call Forward on No-Answer Support (Boolean, default=on) */
+#ifndef CS_EXPERIMENTAL
 	boolean_t nat;												/*!< Network Address Translation */
+#else
+	sccp_nat_t nat;												/*!< Network Address Translation */
+#endif
 	boolean_t directrtp;											/*!< Direct RTP */
 	boolean_t useoverlap;											/*!< Overlap Dial Support */
 	sccp_group_t callgroup;											/*!< Call Group */

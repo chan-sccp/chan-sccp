@@ -497,6 +497,9 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
+#ifdef CS_EXPERIMENTAL
+	CLI_AMI_OUTPUT_PARAM("Nat", CLI_AMI_LIST_WIDTH, "%s", sccp_nat2str(GLOB(nat)));
+#endif
 	CLI_AMI_OUTPUT_PARAM("Keepalive", CLI_AMI_LIST_WIDTH, "%d", GLOB(keepalive));
 	CLI_AMI_OUTPUT_PARAM("Debug", CLI_AMI_LIST_WIDTH, "(%d) %s", GLOB(debug), debugcategories);
 	CLI_AMI_OUTPUT_PARAM("Date format", CLI_AMI_LIST_WIDTH, "%s", GLOB(dateformat));
@@ -637,6 +640,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 	//#define CLI_AMI_TABLE_BEFORE_ITERATION timeinfo = localtime(&d->registrationTime); strftime(regtime, sizeof(regtime), "%c ", timeinfo);
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
 
+#ifndef CS_EXPERIMENTAL
 #define CLI_AMI_TABLE_FIELDS 																	\
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	d->description)										\
 		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
@@ -646,6 +650,18 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
 		CLI_AMI_TABLE_FIELD(Lines, 		"-5d",		5, 	d->configurationStatistic.numberOfLines)
+#else
+#define CLI_AMI_TABLE_FIELDS 																	\
+		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	d->description)										\
+		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
+		CLI_AMI_TABLE_FIELD(Mac,		"-16.16s",	16,	d->id)											\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	skinny_registrationstate2str(d->registrationState))						\
+		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Ack" : "Rej") : "None") \
+		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
+		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
+		CLI_AMI_TABLE_FIELD(Lines, 		"-5d",		5, 	d->configurationStatistic.numberOfLines)						\
+		CLI_AMI_TABLE_FIELD(Nat,		"9.9s", 	9,	sccp_nat2str(d->nat))
+#endif
 #include "sccp_cli_table.h"
 
 	// end of table definition
@@ -790,7 +806,11 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("Private softkey",		CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
 	CLI_AMI_OUTPUT_PARAM("Dtmf mode",		CLI_AMI_LIST_WIDTH, "%s", sccp_dtmfmode2str(d->getDtmfMode(d)));
 //	CLI_AMI_OUTPUT_PARAM("digit timeout",		CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
+#ifndef CS_EXPERIMENTAL
 	CLI_AMI_OUTPUT_BOOL("Nat",			CLI_AMI_LIST_WIDTH, d->nat);
+#else
+	CLI_AMI_OUTPUT_PARAM("Nat",			CLI_AMI_LIST_WIDTH, "%s", sccp_nat2str(d->nat));
+#endif
 	CLI_AMI_OUTPUT_YES_NO("Videosupport?",		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP",		CLI_AMI_LIST_WIDTH, d->directrtp);
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
