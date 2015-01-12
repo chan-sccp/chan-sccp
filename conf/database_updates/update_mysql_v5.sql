@@ -1,6 +1,6 @@
 DROP sccpdeviceconfig;
 ALTER TABLE `sccpdevice` ADD `pickupcontext` VARCHAR( 100 ) NULL DEFAULT "" AFTER `pickupexten`;
-ALTER TABLE `sccpdevice` ADD `nat` VARCHAR( 5 ) NULL DEFAULT "no" BEFORE `name`;
+ALTER TABLE `sccpdevice` CHANGE `nat` VARCHAR( 4 ) DEFAULT "auto";
 ALTER TABLE `sccpdevice` CHANGE COLUMN `earlyrtp` VARCHAR(10);
 ALTER TABLE `sccpdevice` ADD `audio_tos` VARCHAR( 11 ) NULL DEFAULT "0xB8" AFTER `softkeyset`;
 ALTER TABLE `sccpdevice` ADD `audio_cos` VARCHAR( 1 ) NULL DEFAULT "6" AFTER `audio_tos`;

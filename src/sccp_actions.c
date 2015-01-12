@@ -576,7 +576,12 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: maxStreams: %d, activeStreams: %d, maxConferences: %d, activeConferences: %d\n", deviceName, maxStreams, activeStreams, maxConferences, activeConferences);
 
 	/* auto NAT detection if NAT is not set as device configuration */
+#ifndef CS_EXPERIMENTAL
 	if (!device->nat && GLOB(localaddr)) {
+#else
+	if (device->nat == SCCP_NAT_AUTO && GLOB(localaddr)) {
+		device->nat = SCCP_NAT_AUTO_OFF;
+#endif
 		struct sockaddr_storage session_sas;
 
 		memcpy(&session_sas, &s->sin, sizeof(struct sockaddr_storage));
@@ -589,10 +594,18 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		if (session_sas.ss_family == AF_INET) {
 			if (sccp_apply_ha_default(GLOB(localaddr), &session_sas, AST_SENSE_DENY) != AST_SENSE_ALLOW) {	// if device->sin falls in localnet scope
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected NAT. Session IP '%s' (Phone: '%s') is outside of localnet('%s') scope. We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4, pbx_str_buffer(ha_localnet_buf));
+#ifndef CS_EXPERIMENTAL
 				device->nat = 1;
+#else
+				device->nat = SCCP_NAT_AUTO_ON;
+#endif
 			} else if (sccp_socket_cmp_addr(&session_sas, &register_sas)) {				// compare device->sin to the phones reported ipaddr
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Auto Detected Remote NAT. Session IP '%s' does not match IpAddr '%s' Reported by Device.  We will use externip or externhost for the RTP stream\n", deviceName, session_ipv4, phone_ipv4);
+#ifndef CS_EXPERIMENTAL
 				device->nat = 1;
+#else
+				device->nat = SCCP_NAT_AUTO_ON;
+#endif
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Device Not NATTED. Device IP '%s' falls in localnet scope\n", deviceName, session_ipv4);
 			}
@@ -2681,7 +2694,11 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting Phone RTP/UDP Transmission (State: %s[%d])\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		sccp_channel_setDevice(channel, d);
 		if (channel->rtp.audio.rtp) {
+#ifndef CS_EXPERIMENTAL
 			if (d->nat) {
+#else
+			if (d->nat >= SCCP_NAT_ON) {
+#endif
 				/* Rewrite ip-addres to the outside source address via which the phone connection (device->sin) */
 				uint16_t port = sccp_socket_getPort(&sas);
 
@@ -2760,7 +2777,11 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Starting device rtp transmission with state %s(%d)\n", d->id, sccp_channelstate2str(channel->state), channel->state);
 		if (channel->rtp.video.rtp || sccp_rtp_createVideoServer(channel)) {
 
+#ifndef CS_EXPERIMENTAL
 			if (d->nat) {
+#else
+			if (d->nat >= SCCP_NAT_ON) {
+#endif
 				uint16_t port = sccp_socket_getPort(&sas);
 
 				memcpy(&sas, &d->session->sin, sizeof(struct sockaddr_storage));

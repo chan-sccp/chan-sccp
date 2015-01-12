@@ -190,7 +190,11 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 
 		//update pbx
 		if (PBX(rtp_setPhoneAddress)) {
+#ifndef CS_EXPERIMENTAL
 			PBX(rtp_setPhoneAddress) (rtp, new_peer, device->nat);
+#else
+			PBX(rtp_setPhoneAddress) (rtp, new_peer, device->nat >= SCCP_NAT_ON ? 1 : 0);
+#endif
 		}
 
 		char buf1[NI_MAXHOST + NI_MAXSERV];
@@ -199,7 +203,11 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		char buf2[NI_MAXHOST + NI_MAXSERV];
 
 		sccp_copy_string(buf2, sccp_socket_stringify(&rtp->phone), sizeof(buf2));
+#ifndef CS_EXPERIMENTAL
 		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, device->nat ? "yes" : "no");
+#else
+		sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: Tell PBX   to send RTP/UDP media from %s to %s (NAT: %s)\n", DEV_ID_LOG(device), buf1, buf2, sccp_nat2str(device->nat));
+#endif
 	}
 }
 
@@ -220,7 +228,11 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_
 
 	result = SCCP_RTP_INFO_AVAILABLE;
 	// \todo add apply_ha(d->ha, &sin) check here instead
+#ifndef CS_EXPERIMENTAL
 	if (device->directrtp && !device->nat && !c->conference) {
+#else
+	if (device->directrtp && device->nat == SCCP_NAT_OFF && !c->conference) {
+#endif
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
 	return result;
@@ -242,7 +254,11 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_
 	*rtp = &(((sccp_channel_t *) c)->rtp.video);
 
 	result = SCCP_RTP_INFO_AVAILABLE;
+#ifndef CS_EXPERIMENTAL
 	if (device->directrtp && !device->nat && !c->conference) {
+#else
+	if (device->directrtp && device->nat == SCCP_NAT_OFF && !c->conference) {
+#endif
 		result |= SCCP_RTP_INFO_ALLOW_DIRECTRTP;
 	}
 	return result;
