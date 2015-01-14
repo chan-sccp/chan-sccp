@@ -5,9 +5,11 @@ compiler:
  - clang
  - gcc
 env:
+ - REPOS=lucid
  - REPOS=precise
  - REPOS=trusty
  - REPOS=utopic
+ - REPOS=vivid
 
 # Prepare Configure Script
 before_script:
@@ -28,3 +30,8 @@ notifications:
     recipients:
       - ddegroot@talon.nl
       - marcelloceschia@users.sourceforge.net
+
+#matrix:
+#  exclude:
+#      - os: osx
+#        compiler: gcc
