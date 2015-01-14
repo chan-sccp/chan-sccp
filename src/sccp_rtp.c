@@ -20,12 +20,12 @@
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*!
-     * \brief create a new rtp server for audio data
-     * \param c SCCP Channel
-     */
+/*!
+ * \brief create a new rtp server for audio data
+ * \param c SCCP Channel
+ */
 int sccp_rtp_createAudioServer(const sccp_channel_t * c)
 {
 	boolean_t rtpResult = FALSE;
@@ -142,8 +142,8 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 	//memcpy(&c->rtp.audio.phone_remote, new_peer, sizeof(c->rtp.audio.phone_remote));
 	memcpy(&rtp->phone_remote, new_peer, sizeof(rtp->phone_remote));
 
-	//  inet_ntop(rtp->phone_remote.ss_family, sccp_socket_getAddr(&rtp->phone_remote), addressString, sizeof(addressString));
-	//pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, addressString, sccp_socket_getPort(new_peer));
+	// inet_ntop(rtp->phone_remote.ss_family, sccp_socket_getAddr(&rtp->phone_remote), addressString, sizeof(addressString));
+	// pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s:%d\n", c->currentDeviceId, addressString, sccp_socket_getPort(new_peer));
 	pbx_log(LOG_NOTICE, "%s: ( sccp_rtp_set_peer ) Set remote address to %s\n", c->currentDeviceId, sccp_socket_stringify(&rtp->phone_remote));
 
 	if (rtp->readState & SCCP_RTP_STATUS_ACTIVE) {
@@ -152,8 +152,8 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_peer) Stop media transmission on channel %d\n", c->currentDeviceId, c->callid);
 
 		/*! \todo we should check if this is a video or autio rtp */
-		//  sccp_channel_stopmediatransmission(c);
-		//sccp_channel_startMediaTransmission(c);
+		// sccp_channel_stopmediatransmission(c);
+		// sccp_channel_startMediaTransmission(c);
 		sccp_channel_updateMediaTransmission(c);
 	}
 
@@ -180,11 +180,11 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 		/* check if we have new infos */
 		/*! \todo if we enable this, we get an audio issue when resume on the same device, so we need to force asterisk to update -MC */
 		/*
-		   if (socket_equals(new_peer, &c->rtp.audio.phone)) {
-		   sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
-		   //return;
-		   } 
-		 */
+		if (socket_equals(new_peer, &c->rtp.audio.phone)) {
+			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_2 "%s: (sccp_rtp_set_phone) remote information are equal to the current one, ignore change\n", c->currentDeviceId);
+			//return;
+		} 
+		*/
 
 		memcpy(&rtp->phone, new_peer, sizeof(rtp->phone));
 
@@ -336,7 +336,7 @@ boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_storage *us
 		PBX(rtp_getUs) (rtp->rtp, us);
 		return TRUE;
 	} else {
-		//  us = &rtp->phone_remote;
+		// us = &rtp->phone_remote;
 		return FALSE;
 	}
 }

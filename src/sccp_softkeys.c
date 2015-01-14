@@ -25,12 +25,12 @@
 #include "sccp_actions.h"
 #include "sccp_rtp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /* =========================================================================================== Global */
-    /*!
-     * \brief Global list of softkeys
-     */
+/* =========================================================================================== Global */
+/*!
+ * \brief Global list of softkeys
+ */
 struct softKeySetConfigList softKeySetConfig;									/*!< List of SoftKeySets */
 
 /*!
@@ -416,6 +416,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 
 	if ((sccp_device_selectedchannels_count(device)) == 2) {
 		sccp_selectedchannel_t *x = NULL;
+
 		SCCP_LIST_LOCK(&device->selectedChannels);
 		x = SCCP_LIST_FIRST(&device->selectedChannels);
 		chan1 = sccp_channel_retain(x->channel);
@@ -425,7 +426,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 	} else {
 		if (SCCP_RWLIST_GETSIZE(&l->channels) == 2) {
 			SCCP_LIST_LOCK(&l->channels);
-			if ((tmp  = SCCP_LIST_FIRST(&l->channels))) {
+			if ((tmp = SCCP_LIST_FIRST(&l->channels))) {
 				chan1 = sccp_channel_retain(tmp);
 				if ((tmp = SCCP_LIST_NEXT(tmp, list))) {
 					chan2 = sccp_channel_retain(tmp);
@@ -442,7 +443,6 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 			return;
 		}
 	}
-
 
 	if (chan1 && chan2) {
 		//for using the sccp_channel_transfer_complete function

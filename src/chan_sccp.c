@@ -47,15 +47,16 @@
 #include "revision.h"
 #include <signal.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #define ENUMMACRO_FILE "chan_sccp_enums.hh"
 #define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
 #include "sccp_enum_macro.h"
 #undef  ENUMMACRO_GENERATE
 #undef  ENUMMACRO_FILE
-    /*!
-     * \brief       Buffer for Jitterbuffer use
-     */
+
+/*!
+ * \brief       Buffer for Jitterbuffer use
+ */
 #if defined(__cplusplus) || defined(c_plusplus)
 static ast_jb_conf default_jbconf = {
 flags:	0,
@@ -709,9 +710,11 @@ int sccp_preUnload(void)
 	if (GLOB(config_file_name)) {
 		sccp_free(GLOB(config_file_name));
 	}
-	//if (GLOB(token_fallback)) {
-	//  sccp_free(GLOB(token_fallback));
-	//}
+	/*
+	if (GLOB(token_fallback)) {
+		sccp_free(GLOB(token_fallback));
+	}
+	*/
 	sccp_config_cleanup_dynamically_allocated_memory(sccp_globals, SCCP_CONFIG_GLOBAL_SEGMENT);
 
 	pbx_mutex_destroy(&GLOB(usecnt_lock));

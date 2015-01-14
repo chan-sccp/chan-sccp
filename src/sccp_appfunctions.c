@@ -22,26 +22,25 @@
 #include "sccp_conference.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 AST_THREADSTORAGE(coldata_buf);
 AST_THREADSTORAGE(colnames_buf);
 
-    /*!
-     * \brief  ${SCCPDEVICE()} Dialplan function - reads device data 
-     * \param chan Asterisk Channel
-     * \param cmd Command as char
-     * \param data Extra data as char
-     * \param buf Buffer as chan*
-     * \param len Lenght as size_t
-     * \return Status as int
-     *
-     * \author Diederik de Groot <ddegroot@users.sourceforce.net>
-     * \ref nf_sccp_dialplan_sccpdevice
-     * 
-     * \called_from_asterisk
-     * 
-     */
+/*!
+ * \brief  ${SCCPDEVICE()} Dialplan function - reads device data 
+ * \param chan Asterisk Channel
+ * \param cmd Command as char
+ * \param data Extra data as char
+ * \param buf Buffer as chan*
+ * \param len Lenght as size_t
+ * \return Status as int
+ *
+ * \author Diederik de Groot <ddegroot@users.sourceforce.net>
+ * \ref nf_sccp_dialplan_sccpdevice
+ * 
+ * \called_from_asterisk
+ */
 static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char *data, char *output, size_t len)
 {
 	struct ast_str *coldata = ast_str_thread_get(&coldata_buf, 16);
@@ -91,14 +90,15 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
-			
+
 			/** copy request tokens for HASH() */
 			if (ast_str_strlen(colnames)) {
 				ast_str_append(&colnames, 0, ",");
 			}
 			pbx_str_append_escapecommas(&colnames, 0, token, strlen(token));
+
 			/** */
-			
+
 			if (!strcasecmp(token, "ip")) {
 				sccp_session_t *s = d->session;
 
@@ -218,10 +218,11 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				sccp_copy_string(buf, d->pendingUpdate ? "yes" : "no", buf_len);
 			} else if (!strcasecmp(colname, "rtpqos")) {
 				sccp_call_statistics_t *call_stats = d->call_statistics;
+
 				snprintf(buf, len, "Packets sent: %d;rcvd: %d;lost: %d;jitter: %d;latency: %d;MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d", call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency,
-				       call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
-				       call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio,
-				       (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
+					 call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
+					 call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio,
+					 (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
 			} else if (!strncasecmp(token, "chanvar[", 8)) {
 				char *chanvar = token + 8;
 				PBX_VARIABLE_TYPE *v;
@@ -235,8 +236,8 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strncasecmp(token, "codec[", 6)) {
 				char *codecnum;
 
-				codecnum = token + 6;									// move past the '[' 
-				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
+				codecnum = token + 6;								// move past the '[' 
+				codecnum = strsep(&codecnum, "]");						// trim trailing ']' if any 
 				if (skinny_codecs[atoi(codecnum)].key) {
 					sccp_copy_string(buf, codec2name(atoi(codecnum)), buf_len);
 				} else {
@@ -246,7 +247,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				pbx_log(LOG_WARNING, "SCCPDEVICE(%s): unknown colname: %s\n", data, token);
 				buf[0] = '\0';
 			}
-			
+
 			/** copy buf to coldata */
 			pbx_str_append_escapecommas(&coldata, 0, buf, buf_len);
 			token = strtok(NULL, ",");
@@ -254,10 +255,11 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 				pbx_str_append(&coldata, 0, ",");
 			}
 			buf[0] = '\0';
+
 			/** */
 		}
-		
-		pbx_builtin_setvar_helper(chan, "~ODBCFIELDS~", pbx_str_buffer(colnames));	/* setvar ODBCFIELDS so that results can be used by HASH() and ARRAY() */
+
+		pbx_builtin_setvar_helper(chan, "~ODBCFIELDS~", pbx_str_buffer(colnames));			/* setvar ODBCFIELDS so that results can be used by HASH() and ARRAY() */
 		sccp_copy_string(output, pbx_str_buffer(coldata), len);
 	}
 	return 0;
@@ -354,14 +356,15 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
-			
+
 			/** copy request tokens for HASH() */
 			if (ast_str_strlen(colnames)) {
 				ast_str_append(&colnames, 0, ",");
 			}
 			pbx_str_append_escapecommas(&colnames, 0, token, strlen(token));
+
 			/** */
-			
+
 			if (!strcasecmp(token, "id")) {
 				sccp_copy_string(buf, l->id, len);
 			} else if (!strcasecmp(token, "name")) {
@@ -500,10 +503,11 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 				pbx_str_append(&coldata, 0, ",");
 			}
 			buf[0] = '\0';
+
 			/** */
 		}
-		
-		pbx_builtin_setvar_helper(chan, "~ODBCFIELDS~", pbx_str_buffer(colnames));	/* setvar ODBCFIELDS so that results can be used by HASH() and ARRAY() */
+
+		pbx_builtin_setvar_helper(chan, "~ODBCFIELDS~", pbx_str_buffer(colnames));			/* setvar ODBCFIELDS so that results can be used by HASH() and ARRAY() */
 		sccp_copy_string(output, pbx_str_buffer(coldata), len);
 	}
 	return 0;
@@ -583,14 +587,14 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		token = strtok(colname, ",");
 		while (token != NULL) {
 			token = pbx_trim_blanks(token);
-			
+
 			/** copy request tokens for HASH() */
 			if (ast_str_strlen(colnames)) {
 				ast_str_append(&colnames, 0, ",");
 			}
 			pbx_str_append_escapecommas(&colnames, 0, token, strlen(token));
+
 			/** */
-			
 
 			if (!strcasecmp(token, "callid") || !strcasecmp(token, "id")) {
 				snprintf(buf, len, "%d", c->callid);
@@ -649,7 +653,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "ss_action")) {
 				snprintf(buf, len, "%d", c->ss_action);
 				// } else if (!strcasecmp(token, "monitorEnabled")) {
-					//sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+				//sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
 #ifdef CS_SCCP_CONFERENCE
 			} else if (!strcasecmp(token, "conference_id")) {
 				snprintf(buf, len, "%d", c->conference_id);
@@ -660,30 +664,34 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				snprintf(buf, len, "%d", c->parentChannel->callid);
 			} else if (!strcasecmp(token, "bridgepeer")) {
 				snprintf(buf, len, "%s", (c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ? pbx_channel_name(CS_AST_BRIDGED_CHANNEL(c->owner)) : "<unknown>");
-			} else if (!strcasecmp(token, "peerip")) {							// NO-NAT (Ip-Address Associated with the Session->sin)
+			} else if (!strcasecmp(token, "peerip")) {						// NO-NAT (Ip-Address Associated with the Session->sin)
 				AUTO_RELEASE sccp_device_t *d = NULL;
+
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
 				}
-			} else if (!strcasecmp(token, "recvip")) {							// NAT (Actual Source IP-Address Reported by the phone upon registration)
+			} else if (!strcasecmp(token, "recvip")) {						// NAT (Actual Source IP-Address Reported by the phone upon registration)
 				AUTO_RELEASE sccp_device_t *d = NULL;
+
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					ast_copy_string(buf, sccp_socket_stringify(&d->session->sin), len);
 				}
 			} else if (!strcasecmp(colname, "rtpqos")) {
 				AUTO_RELEASE sccp_device_t *d = NULL;
+
 				if ((d = sccp_channel_getDevice_retained(c))) {
 					sccp_call_statistics_t *call_stats = d->call_statistics;
+
 					snprintf(buf, len, "Packets sent: %d;rcvd: %d;lost: %d;jitter: %d;latency: %d;MLQK=%.4f;MLQKav=%.4f;MLQKmn=%.4f;MLQKmx=%.4f;MLQKvr=%.2f|ICR=%.4f;CCR=%.4f;ICRmx=%.4f|CS=%d;SCS=%d", call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent, call_stats[SCCP_CALLSTATISTIC_LAST].packets_received, call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost, call_stats[SCCP_CALLSTATISTIC_LAST].jitter, call_stats[SCCP_CALLSTATISTIC_LAST].latency,
-					       call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
-					       call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio,
-					       (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
+						 call_stats[SCCP_CALLSTATISTIC_LAST].opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].avg_opinion_score_listening_quality,
+						 call_stats[SCCP_CALLSTATISTIC_LAST].mean_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].max_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].variance_opinion_score_listening_quality, call_stats[SCCP_CALLSTATISTIC_LAST].interval_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].cumulative_concealement_ratio, call_stats[SCCP_CALLSTATISTIC_LAST].max_concealement_ratio,
+						 (int) call_stats[SCCP_CALLSTATISTIC_LAST].concealed_seconds, (int) call_stats[SCCP_CALLSTATISTIC_LAST].severely_concealed_seconds);
 				}
 			} else if (!strncasecmp(token, "codec[", 6)) {
 				char *codecnum;
 
-				codecnum = token + 6;									// move past the '[' 
-				codecnum = strsep(&codecnum, "]");							// trim trailing ']' if any 
+				codecnum = token + 6;								// move past the '[' 
+				codecnum = strsep(&codecnum, "]");						// trim trailing ']' if any 
 				if (skinny_codecs[atoi(codecnum)].key) {
 					sccp_copy_string(buf, codec2name(atoi(codecnum)), len);
 				} else {
@@ -701,10 +709,11 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				pbx_str_append(&coldata, 0, ",");
 			}
 			buf[0] = '\0';
+
 			/** */
 		}
-		
-		pbx_builtin_setvar_helper(chan, "~ODBCFIELDS~", pbx_str_buffer(colnames));	/* setvar ODBCFIELDS so that results can be used by HASH() and ARRAY() */
+
+		pbx_builtin_setvar_helper(chan, "~ODBCFIELDS~", pbx_str_buffer(colnames));			/* setvar ODBCFIELDS so that results can be used by HASH() and ARRAY() */
 		sccp_copy_string(output, pbx_str_buffer(coldata), len);
 	}
 	return 0;
@@ -721,7 +730,8 @@ static struct pbx_custom_function sccpchannel_function = {
 	.arguments = "ChannelId = use on off these: 'current', actual callid\n"
 	    "Option = One of these possible options:\n"
 	    "callid, id, format, codecs, capability, calledPartyName, calledPartyNumber, callingPartyName, \n"
-	    "callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n" "originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n" "cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n" "previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n" "monitorEnabled, conference_id, conference_participant_id, parent, bridgepeer, peerip, recvip, codec[]"
+	    "callingPartyNumber, originalCallingPartyName, originalCallingPartyNumber, originalCalledPartyName, \n" "originalCalledPartyNumber, lastRedirectingPartyName, lastRedirectingPartyNumber, cgpnVoiceMailbox, \n" "cdpnVoiceMailbox, originalCdpnVoiceMailbox, lastRedirectingVoiceMailbox, passthrupartyid, state, \n" "previous_state, calltype, dialed_number, device, line, answered_elsewhere, privacy, ss_action, \n"
+	    "monitorEnabled, conference_id, conference_participant_id, parent, bridgepeer, peerip, recvip, codec[]"
 #endif
 };
 

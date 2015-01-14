@@ -34,12 +34,12 @@
 #include "sccp_utils.h"
 #include "sccp_indicate.h"											// only for SCCP_CHANNELSTATE_Idling
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /* ========================================================================================================================= Struct Definitions */
-    /*!
-     *\brief SCCP Hint Subscribing Device Structure
-     */
+/* ========================================================================================================================= Struct Definitions */
+/*!
+ *\brief SCCP Hint Subscribing Device Structure
+ */
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
 typedef struct sccp_hint_list sccp_hint_list_t;
 

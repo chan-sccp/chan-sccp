@@ -33,7 +33,7 @@
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static uint32_t callCount = 1;
 void __sccp_channel_destroy(sccp_channel_t * channel);
 
@@ -281,6 +281,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 	if (!channel || !channel->privateData) {
 		return;
 	}
+
 	/** for previous device,set active channel to null */
 	if (!device) {
 		if (!channel->privateData->device) {
@@ -1048,9 +1049,11 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 	//! \todo use rtp codec map
 
 	//check if bind address is an global bind address
-	//if (!channel->rtp.video.phone_remote.sin_addr.s_addr) {
-	//  channel->rtp.video.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-	//}
+	/*
+	if (!channel->rtp.video.phone_remote.sin_addr.s_addr) {
+		channel->rtp.video.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+	}
+	*/
 
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: using payload %d\n", DEV_ID_LOG(d), payloadType);
@@ -1086,15 +1089,16 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
 
 	} else if (!d->directrtp) {
 		/* I think we do not need this part, because phone_remote will be set on sccp_rtp_createAudioServer -MC */
-		//  sccp_rtp_getUs(&channel->rtp.audio, &channel->rtp.audio.phone_remote);
+		/*
+		sccp_rtp_getUs(&channel->rtp.audio, &channel->rtp.audio.phone_remote);
 
-		//  if(sccp_socket_is_any_addr(&channel->rtp.audio.phone_remote) && channel->rtp.audio.phone_remote.ss_family == AF_INET6){
-		//    struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
-		//    memcpy(&in6->sin6_addr, &((struct sockaddr_in6 *)&d->session->ourip)->sin6_addr, 16);
-		//  }
-
-		//  channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
-		//  memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(channel->rtp.audio.phone_remote));
+		if(sccp_socket_is_any_addr(&channel->rtp.audio.phone_remote) && channel->rtp.audio.phone_remote.ss_family == AF_INET6){
+			struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&channel->rtp.audio.phone_remote;
+			memcpy(&in6->sin6_addr, &((struct sockaddr_in6 *)&d->session->ourip)->sin6_addr, 16);
+		}
+		channel->rtp.audio.phone_remote.sin_addr.s_addr = d->session->ourip.s_addr;
+		memcpy(&channel->rtp.audio.phone_remote, &d->session->ourip, sizeof(channel->rtp.audio.phone_remote));
+		*/
 	}
 
 	sccp_socket_ipv4_mapped(&channel->rtp.video.phone_remote, &channel->rtp.video.phone_remote);		/*!< we need this to convert mapped IPv4 to real IPv4 address */
@@ -1495,7 +1499,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			if (!activeLine) {
 				return;
 			}
-			//    sccp_channel_set_line(channel, activeLine);                     // function is to be removed
+			// sccp_channel_set_line(channel, activeLine);                     // function is to be removed
 			sccp_line_refreplace(l, activeLine);
 		}
 	}
@@ -2044,7 +2048,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 
 		if (channel->state == SCCP_CHANNELSTATE_HOLD) {							/* already put on hold manually */
 			channel->channelStateReason = SCCP_CHANNELSTATEREASON_TRANSFER;
-			//    sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);                      /* do we need to reindicate ? */
+			// sccp_indicate(d, channel, SCCP_CHANNELSTATE_HOLD);                      /* do we need to reindicate ? */
 		}
 		if ((channel->state != SCCP_CHANNELSTATE_OFFHOOK && channel->state != SCCP_CHANNELSTATE_HOLD && channel->state != SCCP_CHANNELSTATE_CALLTRANSFER)) {
 			channel->channelStateReason = SCCP_CHANNELSTATEREASON_TRANSFER;

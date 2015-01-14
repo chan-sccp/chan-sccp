@@ -35,19 +35,18 @@
 #include "sccp_indicate.h"
 #include "sccp_rtp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*!
-     * \brief Handle Call Forwarding
-     * \param l SCCP Line
-     * \param device SCCP Device
-     * \param type CallForward Type (NONE, ALL, BUSY, NOANSWER) as SCCP_CFWD_*
-     * \return SCCP Channel
-     *
-     * \callgraph
-     * \callergraph
-     *
-     */
+/*!
+ * \brief Handle Call Forwarding
+ * \param l SCCP Line
+ * \param device SCCP Device
+ * \param type CallForward Type (NONE, ALL, BUSY, NOANSWER) as SCCP_CFWD_*
+ * \return SCCP Channel
+ *
+ * \callgraph
+ * \callergraph
+ */
 void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type)
 {
 	if (!l) {

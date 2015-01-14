@@ -1,10 +1,10 @@
 /*!
- * \file	ast108.h
+ * \file        ast108.h
  * \brief       SCCP PBX Asterisk Header
- * \author	Marcello Ceshia
- * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Marcello Ceshia
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -33,6 +33,7 @@
 typedef int64_t ast_format_t;
 int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
+
 //void *sccp_do_monitor(void *data);
 //int sccp_restart_monitor(void);
 char *pbx_getformatname(format_t format);

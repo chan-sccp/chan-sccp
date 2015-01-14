@@ -58,8 +58,9 @@
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
-    //nb: SCCP_HASH_PRIME defined in config.h, default 563
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
+
+//nb: SCCP_HASH_PRIME defined in config.h, default 563
 #define SCCP_SIMPLE_HASH(_a) (((unsigned long)(_a)) % SCCP_HASH_PRIME)
 #define SCCP_LIVE_MARKER 13
 #define REF_FILE "/tmp/sccp_refs"
@@ -69,8 +70,7 @@ static struct sccp_refcount_obj_info {
 	int (*destructor) (const void *ptr);
 	char datatype[StationMaxDeviceNameSize];
 	sccp_debug_category_t debugcat;
-} obj_info[] =
-{
+} obj_info[] = {
 /* *INDENT-OFF* */
 	[SCCP_REF_DEVICE] = {NULL, "device", DEBUGCAT_DEVICE},
 	[SCCP_REF_LINE] = {NULL, "line", DEBUGCAT_LINE},

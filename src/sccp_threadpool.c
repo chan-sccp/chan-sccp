@@ -16,7 +16,7 @@
 #include "common.h"
 #include "sccp_threadpool.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #include "sccp_threadpool.h"
 #include <signal.h>
 #undef pthread_create

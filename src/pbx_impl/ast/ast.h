@@ -1,12 +1,12 @@
 /*!
- * \file	ast.h
+ * \file        ast.h
  * \brief       SCCP PBX Asterisk Header
- * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	Reworked, but based on chan_sccp code.
- *		The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
- *		Modified by Jan Czmok and Julien Goodwin
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        Reworked, but based on chan_sccp code.
+ *              The original chan_sccp driver that was made by Zozo which itself was derived from the chan_skinny driver.
+ *              Modified by Jan Czmok and Julien Goodwin
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -363,8 +363,8 @@ sccp_channel_t *__get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx
 sccp_channel_t *get_sccp_channel_from_pbx_channel(const PBX_CHANNEL_TYPE * pbx_channel);
 #endif
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value);
-boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t *channel);
-boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t *channel);
+boolean_t sccp_wrapper_asterisk_requestQueueHangup(sccp_channel_t * channel);
+boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * channel);
 
 /***** database *****/
 boolean_t sccp_asterisk_addToDatabase(const char *family, const char *key, const char *value);
@@ -380,10 +380,11 @@ void sccp_asterisk_redirectedUpdate(sccp_channel_t * channel, const void *data, 
 void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason);
 int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *args, char *buf, size_t buflen);
 boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel);
+
 #if ASTERISK_VERSION_GROUP > 106
 int sccp_wrapper_sendDigits(const sccp_channel_t * channel, const char *digits);
 int sccp_wrapper_sendDigit(const sccp_channel_t * channel, const char digit);
 #endif
-enum ast_pbx_result pbx_pbx_start (struct ast_channel *ast);
+enum ast_pbx_result pbx_pbx_start(struct ast_channel *ast);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

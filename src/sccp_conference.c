@@ -38,7 +38,7 @@
 #define sccp_participant_retain(_x) 	({ast_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_participant_release(_x) 	({ast_assert(_x != NULL);(sccp_conference_participant_t *)sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static uint32_t lastConferenceID = 99;
 static const uint32_t appID = APPID_CONFERENCE;
 
@@ -256,8 +256,8 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, conference->id);
 		participant->isModerator = TRUE;
 		device->conferencelist_active = device->conf_show_conflist;					// Activate conflist
-		//  sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
-		//  sccp_softkey_setSoftkeyState(device, KEYMODE_CONNTRANS, SKINNY_LBL_JOIN, TRUE);
+		// sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
+		// sccp_softkey_setSoftkeyState(device, KEYMODE_CONNTRANS, SKINNY_LBL_JOIN, TRUE);
 		sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device, channel->line->name), channel->callid, KEYMODE_CONNCONF);
 		pbx_builtin_setvar_int_helper(channel->owner, "__SCCP_CONFERENCE_ID", conference->id);
 		pbx_builtin_setvar_int_helper(channel->owner, "__SCCP_CONFERENCE_PARTICIPANT_ID", participant->id);

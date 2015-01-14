@@ -18,9 +18,11 @@
 #include "sccp_utils.h"
 #include "sccp_mwi.h"
 
-typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
-struct sccp_devstate_SubscribingDevice {
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
+typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
+
+struct sccp_devstate_SubscribingDevice {
 	const sccp_device_t *device;										/*!< SCCP Device */
 	uint8_t instance;											/*!< Instance */
 	sccp_buttonconfig_t *buttonConfig;

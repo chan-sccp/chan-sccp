@@ -1,10 +1,10 @@
 /*!
- * \file	ast113.h
+ * \file        ast113.h
  * \brief       SCCP PBX Asterisk Header
- * \author	Marcello Ceshia
- * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Marcello Ceshia
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -38,6 +38,7 @@
 #define PBX_EVENT_SUBSCRIPTION struct stasis_subscription
 
 typedef struct ast_format_cap ast_format_t;
+
 //int skinny_codecs2pbx_codec_pref(skinny_codec_t * skinny_codecs, struct ast_codec_pref *astCodecPref);
 int sccp_wrapper_asterisk_set_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, int codecs, int nat_active);
 const char *pbx_getformatname(const struct ast_format *format);
@@ -80,7 +81,7 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
 #undef pbx_channel_redirecting_effective_to
 #undef pbx_channel_monitor
 #undef pbx_channel_string2amaflag
-#undef pbx_channel_amaflags2string 
+#undef pbx_channel_amaflags2string
 #undef pbx_event_subscribe
 #undef pbx_event_unsubscribe
 #undef pbx_bridge_destroy

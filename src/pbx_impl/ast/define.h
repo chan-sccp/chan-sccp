@@ -1,9 +1,9 @@
 /*!
- * \file	define.h
+ * \file        define.h
  * \brief       SCCP PBX Redefinition Asterisk Header
- * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  

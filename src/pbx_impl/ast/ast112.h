@@ -1,10 +1,10 @@
 /*!
- * \file	ast112.h
+ * \file        ast112.h
  * \brief       SCCP PBX Asterisk Header
- * \author	Marcello Ceshia
- * \author	Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note	This program is free software and may be modified and distributed under the terms of the GNU Public License.
- *		See the LICENSE file at the top of the source tree.
+ * \author      Marcello Ceshia
+ * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
+ * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
+ *              See the LICENSE file at the top of the source tree.
  *
  * $Date$
  * $Revision$  
@@ -79,7 +79,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 #undef pbx_channel_redirecting_effective_to
 #undef pbx_channel_monitor
 #undef pbx_channel_string2amaflag
-#undef pbx_channel_amaflags2string 
+#undef pbx_channel_amaflags2string
 #undef pbx_event_subscribe
 #undef pbx_event_unsubscribe
 #undef pbx_bridge_destroy

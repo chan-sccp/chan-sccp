@@ -630,7 +630,7 @@ typedef struct {
 
 	levelPreference_t levelPreference[MAX_LEVEL_PREFERENCE];						/*!< Level Preference */
 
-	//uint32_t lel_codec_options[2];									/*!< Codec Options */
+	//uint32_t lel_codec_options[2];                                                                        /*!< Codec Options */
 
 	union {
 		struct {
@@ -914,7 +914,7 @@ typedef union {
 	struct {
 		uint32_t lel_AccessoryID;									/*!< Accessory ID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) (MediaPathID) */
 		uint32_t lel_AccessoryStatus;									/*!< Accessory Status (0x1=On, 0x2=Off) (MediaPathEvent) */
-		//uint32_t lel_unknown;										/*!< Unknown */
+		//uint32_t lel_unknown;                                                                         /*!< Unknown */
 	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure (MediaPathEventMessage) */
 
 	// Message 0x4A len 12 (cisco ip communicator uses it)
@@ -923,7 +923,7 @@ typedef union {
 	struct {
 		uint32_t lel_MediaPathID;									/*!< mediaPathID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) */
 		uint32_t lel_MediaPathCapabilities;								/*!< mediaPathCapabilities (0x1=Enable, 0x2=Disable, 0x3=Monitor) */
-		//uint32_t lel_unknown3;									/*!< Unknown */
+		//uint32_t lel_unknown3;                                                                        /*!< Unknown */
 	} MediaPathCapabilityMessage;										/*!< \todo MediaPath Capability Message Structure */
 
 	struct {												// INCOMPLETE
@@ -2130,11 +2130,11 @@ typedef union {
 
 	// never used & special case of ButtonTemplateMessage
 	//struct {
-	//	uint32_t lel_buttonOffset;										/*!< Button OffSet */
-	//	uint32_t lel_buttonCount;										/*!< Button Count */
-	//	uint32_t lel_totalButtonCount;										/*!< Total Number of Buttons */
-	//	StationButtonDefinition definition[1];									/*!< Station Button Definition */
-	//} ButtonTemplateMessageSingle; 										/*!< Button Template Message Structure */
+	//      uint32_t lel_buttonOffset;                                                                              /*!< Button OffSet */
+	//      uint32_t lel_buttonCount;                                                                               /*!< Button Count */
+	//      uint32_t lel_totalButtonCount;                                                                          /*!< Total Number of Buttons */
+	//      StationButtonDefinition definition[1];                                                                  /*!< Station Button Definition */
+	//} ButtonTemplateMessageSingle;                                                                                /*!< Button Template Message Structure */
 
 	struct {
 		char requiredVersion[StationMaxVersionSize];							/*!< Required Version */
@@ -2781,7 +2781,7 @@ typedef union {
 	} UpdateCapabilitiesV2Message;										/*!< Update Capabilities V2 Structure */
 
 	//struct {
-	//} UpdateCapabilitiesV3Message;									/*!< Update Capabilities V3 Structure */
+	//} UpdateCapabilitiesV3Message;                                                                        /*!< Update Capabilities V3 Structure */
 
 	struct {
 	} PortResMessage;											/*!< Port Response Message Structure */
