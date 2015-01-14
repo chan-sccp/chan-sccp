@@ -1,5 +1,30 @@
 2015-01-14  ddegroot
 
+	* [r5836] .travis.yml: Add vivid and lucid repositories to travis
+	  CI script
+
+	* [r5835] ChangeLog, src/chan_sccp.c, src/chan_sccp.h,
+	  src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast104.h, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast106.h, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast108.h, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast110.h, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast111.h, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast112.h, src/pbx_impl/ast/ast112_announce.c,
+	  src/pbx_impl/ast/ast112_announce.h, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/ast/ast113.h, src/pbx_impl/ast/define.h,
+	  src/pbx_impl/pbx_impl.c, src/pbx_impl/pbx_impl.h,
+	  src/sccp_actions.c, src/sccp_adv_features.c,
+	  src/sccp_appfunctions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_conference.c, src/sccp_config.c, src/sccp_device.c,
+	  src/sccp_devstate.c, src/sccp_event.c, src/sccp_featureButton.c,
+	  src/sccp_features.c, src/sccp_hint.c, src/sccp_indicate.c,
+	  src/sccp_line.c, src/sccp_management.c, src/sccp_mwi.c,
+	  src/sccp_pbx.c, src/sccp_protocol.c, src/sccp_protocol.h,
+	  src/sccp_refcount.c, src/sccp_rtp.c, src/sccp_socket.c,
+	  src/sccp_softkeys.c, src/sccp_threadpool.c, src/sccp_utils.c:
+	  Cleanup: Replace commented code blocks. Re-indent sources
+
 	* [r5834] .travis.yml: Update travis.yml
 
 2015-01-12  ddegroot
