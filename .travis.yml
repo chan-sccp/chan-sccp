@@ -1,20 +1,28 @@
 language: c
-compiler: clang
 
-# Asterisk-11
+# Setup Build Matrix
+compiler: 
+ - clang
+ - gcc
+env:
+ - REPOS=precise
+ - REPOS=trusty
+ - REPOS=utopic
+
+# Prepare Configure Script
 before_script:
  - autoreconf -fi
 
+# Install Required Devel Packages
 before_install:
-# - sudo apt-add-repository -y ppa:d-shegolihin/asterisk
- - echo "deb http://archive.ubuntu.com/ubuntu trusty main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list
- - echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list
- - echo "deb http://security.ubuntu.com/ubuntu/ trusty-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list
- - echo "deb http://archive.canonical.com/ubuntu/ trusty partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list
+ - echo "deb http://archive.ubuntu.com/ubuntu ${REPOS} main restricted universe multiverse"            | sudo tee -a /etc/apt/sources.list.d/trusty.list
+ - echo "deb http://archive.ubuntu.com/ubuntu ${REPOS}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list
+ - echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list
+ - echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list
  - sudo apt-get update -qq
-# - sudo apt-get install -qq asterisk-11.2.1
  - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules
 
+# Report Results
 notifications:
   email:
     recipients:
