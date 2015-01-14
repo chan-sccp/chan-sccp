@@ -1,3 +1,31 @@
+chan-sccp-b (4.2.0-2ppa5836~vivid) vivid; urgency=high
+  [ Diederik de Groot ]
+  * Changes
+    - Added launchpad repository for ubuntu users
+
+ -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+
+chan-sccp-b (4.2.0-2ppa5836~utopic) utopic; urgency=high
+  [ Diederik de Groot ]
+  * Changes
+    - Added launchpad repository for ubuntu users
+
+ -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+
+chan-sccp-b (4.2.0-2ppa5836~trusty) trusty; urgency=high
+  [ Diederik de Groot ]
+  * Changes
+    - Added launchpad repository for ubuntu users
+
+ -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+
+chan-sccp-b (4.2.0-2ppa5836~precise) precise; urgency=high
+  [ Diederik de Groot ]
+  * Changes
+    - Added launchpad repository for ubuntu users
+
+ -- Diederik de Groot <ddegroot@talon.nl>  14 jan 2015 22:45:54 +0100
+
 chan-sccp-b (4.2.0-2) rc2; urgency=high
 
   [ Diederik de Groot ]
