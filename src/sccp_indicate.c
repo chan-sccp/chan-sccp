@@ -22,7 +22,7 @@
 #include "sccp_conference.h"
 #include "sccp_actions.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t * line, sccp_channelstate_t state);
 
@@ -205,11 +205,14 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
 			char prompt[100];
+
 			snprintf(prompt, sizeof(prompt), "%s%s: %s", (c->ringermode == SKINNY_RINGTYPE_URGENT) ? SKINNY_DISP_FLASH : "", strlen(c->callInfo.originalCalledPartyName) ? c->callInfo.originalCalledPartyName : SKINNY_DISP_FROM, strlen(c->callInfo.callingPartyName) ? c->callInfo.callingPartyName : c->callInfo.callingPartyNumber);
 			sccp_dev_displayprompt(d, instance, c->callid, prompt, GLOB(digittimeout));
-// 			if (c->ringermode) {
-// 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_FLASH, GLOB(digittimeout));
-// 			}
+			/*
+			if (c->ringermode) {
+				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_FLASH, GLOB(digittimeout));
+			}
+			*/
 
 			PBX(set_callstate) (c, AST_STATE_RINGING);						/*!\todo thats not the right place to update pbx state */
 			break;
@@ -317,7 +320,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			d->protocol->sendCallInfo(d, c, instance);
 			break;
 		case SCCP_CHANNELSTATE_CALLCONFERENCE:
-			//    sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			// sccp_device_sendcallstate(d, instance, c->callid, SCCP_CHANNELSTATE_CALLCONFERENCE, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			break;
 		case SCCP_CHANNELSTATE_INVALIDCONFERENCE:
 			/*! \todo SCCP_CHANNELSTATE_INVALIDCONFERENCE To be implemented */
@@ -502,7 +505,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 			uint8_t stateVisibility = (c->privacy || !c->callInfo.presentation) ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : SKINNY_CALLINFO_VISIBILITY_DEFAULT;
 
 			/*! \note SKINNY_CALLINFO_VISIBILITY_HIDDEN on old devices: Dirty Hack to prevent showing the call twice (both incoming and outgoing) */
-			//    stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
+			// stateVisibility = remoteDevice->protocolversion < 17 ? SKINNY_CALLINFO_VISIBILITY_HIDDEN : stateVisibility;
 
 			/* Remarking the next piece out, solves the transfer issue when using sharedline as default on the transferer. Don't know why though (yet) */
 			if (state != SCCP_CHANNELSTATE_ONHOOK) {
@@ -551,7 +554,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 									remoteDevice->indicate->remoteOffhook(remoteDevice, linedevice, &tmpChannel);
 									remoteDevice->indicate->dialing(remoteDevice, instance, &tmpChannel);
 									remoteDevice->indicate->proceed(remoteDevice, instance, &tmpChannel);
-									//    remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel); /*TODO add source device to phonebook entry */
+									// remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel); /*TODO add source device to phonebook entry */
 
 									sccp_copy_string(tmpChannel.callInfo.originalCalledPartyName, "originalCalledPartyName", sizeof(tmpChannel.callInfo.calledPartyNumber));
 									sccp_copy_string(tmpChannel.callInfo.originalCalledPartyNumber, "originalCalledPartyNumber", sizeof(tmpChannel.callInfo.calledPartyNumber));
@@ -600,7 +603,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 					sccp_device_setLamp(remoteDevice, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
 					sccp_device_sendcallstate(remoteDevice, instance, tmpChannel.callid, SKINNY_CALLSTATE_CALLREMOTEMULTILINE, SKINNY_CALLPRIORITY_NORMAL, stateVisibility);
 					remoteDevice->protocol->sendCallInfo(remoteDevice, &tmpChannel, instance);
-					//  sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
+					// sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_ONHOOKSTEALABLE);
 					sccp_dev_set_keyset(remoteDevice, instance, tmpChannel.callid, KEYMODE_EMPTY);	/* set NULL keymode -> No SoftKeys */
 					break;
 

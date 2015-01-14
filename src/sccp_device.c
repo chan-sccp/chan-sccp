@@ -31,7 +31,7 @@
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(sccp_device_t * device);
 int sccp_device_destroy(const void *ptr);
@@ -416,9 +416,11 @@ sccp_device_t *sccp_device_create(const char *id)
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD_INIT(&d->devstateSpecifiers);
 #endif
-	//if (PBX(endpoint_create)) {
-	//  d->endpoint = PBX(endpoint_create)("sccp", id);
-	//}
+	/*
+	if (PBX(endpoint_create)) {
+		d->endpoint = PBX(endpoint_create)("sccp", id);
+	}
+	*/
 	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
 	memset(d->call_statistics, 0, (sizeof(sccp_call_statistics_t) * 2));
 
@@ -449,10 +451,12 @@ sccp_device_t *sccp_device_create(const char *id)
 #endif
 
 	// /* disable videomode and join softkey for all softkeysets */
-	// for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
-	//	sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
-	//	sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
-	// }
+	/*
+	for (i = 0; i < KEYMODE_ONHOOKSTEALABLE; i++) {
+		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_VIDEO_MODE, FALSE);
+		sccp_softkey_setSoftkeyState(d, i, SKINNY_LBL_JOIN, FALSE);
+	}
+	*/
 
 	d->pushURL = sccp_device_pushURLNotSupported;
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
@@ -819,9 +823,11 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			for (i = 0; i < 10; i++) {								// 4 visible, 6 in dropdown
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
-			// for (i = 5; i <= 10; i++) {
-			//   (btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			// }
+			/*
+			for (i = 5; i <= 10; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			}
+			*/
 			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
@@ -866,13 +872,15 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			for (i = 0; i < 2; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
-			//for (i = 0; i < 6; i++) {
-			//  (btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			//}
-			//(btn++)->type = SKINNY_BUTTONTYPE_NONE;
-			//(btn++)->type = SKINNY_BUTTONTYPE_PRIVACY;
-			//(btn++)->type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
-			//(btn++)->type = SKINNY_BUTTONTYPE_HLOG;                       // hunt group logout
+			/*
+			for (i = 0; i < 6; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			}
+			(btn++)->type = SKINNY_BUTTONTYPE_NONE;
+			(btn++)->type = SKINNY_BUTTONTYPE_PRIVACY;
+			(btn++)->type = SKINNY_BUTTONTYPE_DO_NOT_DISTURB;
+			(btn++)->type = SKINNY_BUTTONTYPE_HLOG;                       // hunt group logout
+			*/
 			break;
 		case SKINNY_DEVICETYPE_CISCO6941:
 		case SKINNY_DEVICETYPE_CISCO6945:
@@ -1911,15 +1919,19 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 		/** normaly we should only remove this when removing the device from globals,
 		 *  in this case we can do this also when device unregistered, so we do not set this multiple times -MC
 		 */
-		//  if (d->backgroundImage) {
-		//    sccp_free(d->backgroundImage);
-		//    d->backgroundImage = NULL;
-		//  }
+		/*
+		if (d->backgroundImage) {
+			sccp_free(d->backgroundImage);
+			d->backgroundImage = NULL;
+		}
+		*/
 
-		//  if (d->ringtone) {
-		//    sccp_free(d->ringtone);
-		//    d->ringtone = NULL;
-		//  }
+		/*
+		if (d->ringtone) {
+			sccp_free(d->ringtone);
+			d->ringtone = NULL;
+		}
+		*/
 		sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
 
 		/* hang up open channels and remove device from line */
@@ -2108,9 +2120,11 @@ int __sccp_device_destroy(const void *ptr)
 		pbx_variables_destroy(d->variables);
 		d->variables = NULL;
 	}
-	//if (PBX(endpoint_shutdown)) {
-	//  PBX(endpoint_shutdown)(d->endpoint);
-	//}
+	/*
+	if (PBX(endpoint_shutdown)) {
+		PBX(endpoint_shutdown)(d->endpoint);
+	}
+	*/
 
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device Destroyed\n", d->id);
 	return 0;

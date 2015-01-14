@@ -62,7 +62,7 @@
 #include "sccp_hint.h"
 #include "sys/stat.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #include <asterisk/cli.h>
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
@@ -1674,7 +1674,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 				msg1->data.OpenReceiveChannel.v17.lel_callReference = htolel(channel->callid);
 				msg1->data.OpenReceiveChannel.v17.lel_dtmfType = htolel(10);
 				sccp_dev_send(d, msg1);
-				//  sleep(1);
+				// sleep(1);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Sending OpenReceiveChannel and changing payloadType to 4\n");
 				REQ(msg2, OpenReceiveChannel);
 				msg2->data.OpenReceiveChannel.v17.lel_conferenceId = htolel(channel->callid);
@@ -1814,7 +1814,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
 
 		// test 1
-		//  struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
+		// struct sccp_ha *ha = sccp_calloc(1, sizeof(struct sccp_ha));
 		struct sccp_ha *ha = NULL;
 
 		ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
@@ -3193,7 +3193,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 			int channel;
 
 			sscanf(argv[3], "SCCP/%[^-]-%08x", line, &channel);
-			//    c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
+			// c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
 			c = sccp_channel_find_byid(channel);
 		} else {
 			c = sccp_channel_find_byid(atoi(argv[3]));
@@ -3373,7 +3373,7 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 		int channelId;
 
 		sscanf(argv[2], "SCCP/%[^-]-%08x", line, &channelId);
-		//  c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
+		// c = sccp_find_channel_on_line_byid(l, channeId);        // possible replacement, to also check if the line provided can be matched up.
 		c = sccp_channel_find_byid(channelId);
 	} else {
 		c = sccp_channel_find_byid(atoi(argv[2]));

@@ -16,11 +16,11 @@
 #include "common.h"
 #include "sccp_adv_features.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*!
-     * \brief Dummy Procedure 1
-     */
+/*!
+ * \brief Dummy Procedure 1
+ */
 void dummyproc1(void)
 {
 	/* this is a dummy proc */

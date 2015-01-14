@@ -2,7 +2,7 @@
  * \file        ast112_announce.c
  * \brief       SCCP PBX Conference Announcement Channel Tech
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note  	Referencing ConfBridge Announcement Channel Created by Richard Mudgett <rmudgett@digium.com>
+ * \note        Referencing ConfBridge Announcement Channel Created by Richard Mudgett <rmudgett@digium.com>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
@@ -12,20 +12,19 @@
 
 #include <asterisk.h>
 
-ASTERISK_FILE_VERSION(__FILE__, "$Revision$")
+ASTERISK_FILE_VERSION(__FILE__, "$Revision$");
 #include <asterisk/channel.h>
 #include <asterisk/bridge.h>
 #include <asterisk/core_unreal.h>
 #include "pbx_impl/ast/ast112_announce.h"
 
 /* ------------------------------------------------------------------- */
-
 /*! ConfBridge announcer channel private. */
 struct announce_pvt {
 	/*! Unreal channel driver base class values. */
 	struct ast_unreal_pvt base;
 	/*! Conference bridge associated with this announcer. */
-//	struct ast_bridge *bridge;
+	// struct ast_bridge *bridge;
 };
 
 static int announce_call(struct ast_channel *chan, const char *addr, int timeout)
@@ -55,8 +54,8 @@ static void announce_pvt_destructor(void *vdoomed)
 {
 	struct announce_pvt *doomed = vdoomed;
 
-//	ao2_cleanup(doomed->bridge);
-//	doomed->bridge = NULL;
+	// ao2_cleanup(doomed->bridge);
+	// doomed->bridge = NULL;
 	ast_unreal_destructor(&doomed->base);
 }
 
@@ -74,8 +73,7 @@ static struct ast_channel *announce_request(const char *type, struct ast_format_
 	ast_set_flag(&pvt->base, AST_UNREAL_NO_OPTIMIZATION);
 	ast_copy_string(pvt->base.name, conf_name, sizeof(pvt->base.name));
 
-	chan = ast_unreal_new_channels(&pvt->base, sccpconf_announce_get_tech(),
-		AST_STATE_UP, AST_STATE_UP, NULL, NULL, assignedids, requestor, NULL);
+	chan = ast_unreal_new_channels(&pvt->base, sccpconf_announce_get_tech(), AST_STATE_UP, AST_STATE_UP, NULL, NULL, assignedids, requestor, NULL);
 	if (chan) {
 		ast_answer(pvt->base.owner);
 		ast_answer(pvt->base.chan);
@@ -172,8 +170,7 @@ int sccpconf_announce_channel_push(struct ast_channel *ast, struct ast_bridge *b
 	ast_set_flag(&features->feature_flags, AST_BRIDGE_CHANNEL_FLAG_IMMOVABLE);
 
 	// Impart the output channel into the bridge
-	if (ast_bridge_impart(bridge, chan, NULL, features,
-		AST_BRIDGE_IMPART_CHAN_DEPARTABLE)) {
+	if (ast_bridge_impart(bridge, chan, NULL, features, AST_BRIDGE_IMPART_CHAN_DEPARTABLE)) {
 		ast_bridge_features_destroy(features);
 		ast_channel_unref(chan);
 		ao2_cleanup(p);
@@ -185,4 +182,5 @@ int sccpconf_announce_channel_push(struct ast_channel *ast, struct ast_bridge *b
 	ao2_cleanup(p);
 	return 0;
 }
+
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

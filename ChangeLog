@@ -1,3 +1,50 @@
+2015-01-14  ddegroot
+
+	* [r5834] .travis.yml: Update travis.yml
+
+2015-01-12  ddegroot
+
+	* [r5832] src/chan_sccp_enums.hh: Cleanup: Shorten displayed nat
+	  string / Remove CS_Expirmental block because of indentation
+	  difference.
+
+	* [r5831] conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/sccp.conf.annotated, conf/sccp_hardware.conf.freepbx:
+	  Fix/Update: config examples
+
+	* [r5830] src/pbx_impl/ast/ast106.c: Experimental Enhancement: Same
+	  as previous revision but for ast106.c
+
+	* [r5829] ChangeLog, conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql, conf/mysql-v4.sql,
+	  conf/mysql-v5.sql, conf/postgres.sql, conf/sccp.conf.annotated,
+	  conf/sccp_hardware.conf.freepbx, conf/sqlite.sql,
+	  conf/sqlite3.sql, src/chan_sccp.h, src/chan_sccp_enums.hh,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_cli.c, src/sccp_config_entries.hh,
+	  src/sccp_rtp.c: Experimental Enhancement: Change nat parameter to
+	  enum (auto/off/on) to allow for more control during directrtp
+	  bridging. New Default value is "auto".
+	  Requires:
+	  ./configure --enable-experimental-mode
+	  change in realtime db: ALTER TABLE sccpdevice CHANGE COLUMN nat
+	  VARCHAR(4) DEFAULT 'auto'
+	  
+	  This change makes it possible to use directrtp in remote natted
+	  locations, by setting directrtp=on and device permit/deny to
+	  include both the remote phone ip range (between which directrtp
+	  should occur) and the natted source ip-address.
+	  Example
+	  [SEP00123445566]
+	  directrtp=on ; force directrtp attempt
+	  nat=off ; force non-natted negotiation
+	  deny=0.0.0.0/0.0.0.0
+	  permit=192.168.1.0/24 ; remote phone ip-address range
+	  permit=21.22.23.222/32 ; natted remote address
+
 2015-01-11  ddegroot
 
 	* [r5828] src/sccp_actions.c: Fix: Debug message about auto nat

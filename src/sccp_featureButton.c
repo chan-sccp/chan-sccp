@@ -31,20 +31,19 @@
 #include "sccp_devstate.h"
 #endif
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*!
-     * \brief Feature Button Changed
-     *
-     * fetch the new state, and send status to device
-     *
-     * \param device SCCP Device
-     * \param featureType SCCP Feature Type
-     * 
-     * \warning
-     *  - device->buttonconfig is not always locked
-     *
-     */
+/*!
+ * \brief Feature Button Changed
+ *
+ * fetch the new state, and send status to device
+ *
+ * \param device SCCP Device
+ * \param featureType SCCP Feature Type
+ * 
+ * \warning
+ *  - device->buttonconfig is not always locked
+ */
 void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t featureType)
 {
 	sccp_msg_t *msg = NULL;

@@ -18,13 +18,13 @@
 #include "sccp_utils.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*!
-     * \brief Print out a messagebuffer
-     * \param messagebuffer Pointer to Message Buffer as char
-     * \param len Lenght as Int
-     */
+/*!
+ * \brief Print out a messagebuffer
+ * \param messagebuffer Pointer to Message Buffer as char
+ * \param len Lenght as Int
+ */
 void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
 	static const int numcolumns = 16;									// number output columns
@@ -43,9 +43,9 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 	char *chrptr;
 
 	do {
-		//  memset(hexout, 0, sizeof(hexout));
+		// memset(hexout, 0, sizeof(hexout));
 		memset(hexout, 0, (numcolumns * 3) + (numcolumns / 8) + 1);
-		//  memset(chrout, 0, sizeof(chrout));
+		// memset(chrout, 0, sizeof(chrout));
 		memset(chrout, 0, numcolumns + 1);
 		hexptr = hexout;
 		chrptr = chrout;
@@ -80,9 +80,9 @@ int sccp_addons_taps(sccp_device_t * d)
 {
 	sccp_addon_t *cur = NULL;
 	int taps = 0;
-	
+
 	if (SCCP_LIST_GETSIZE(&d->addons) > 0 && (d->skinny_type == SKINNY_DEVICETYPE_CISCO7941 || d->skinny_type == SKINNY_DEVICETYPE_CISCO7941GE)) {
-		 pbx_log(LOG_WARNING, "%s: %s devices do no support AddOns/Expansion Modules of any kind. Skipping !\n", DEV_ID_LOG(d), skinny_devicetype2str(d->skinny_type));
+		pbx_log(LOG_WARNING, "%s: %s devices do no support AddOns/Expansion Modules of any kind. Skipping !\n", DEV_ID_LOG(d), skinny_devicetype2str(d->skinny_type));
 	}
 
 	if (!strcasecmp(d->config_type, "7914")) {
@@ -335,9 +335,11 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
 		// insert behaviour: skip if already there (cheaper)
-		//  if (skinny_codec_pref[x] == skinny_codec) {
-		//    return x;
-		//  }
+		/*
+		if (skinny_codec_pref[x] == skinny_codec) {
+			return x;
+		}
+		*/
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
 			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 			skinny_codec_pref[x] = skinny_codec;
@@ -544,7 +546,6 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		//  if (d->session && IN6_ARE_ADDR_EQUAL(&d->session->sin,  sas) == 0 ) {
 		if (d->session && sccp_socket_cmp_addr(&d->session->sin, sas) == 0) {
 			d = sccp_device_retain(d);
 			break;
@@ -981,7 +982,7 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
 	if (dummy_len) {
 		char buffer[dummy_len + padding];
 
-		//  memset(&buffer[0], 0, sizeof(buffer));
+		// memset(&buffer[0], 0, sizeof(buffer));
 		memset(&buffer[0], 0, dummy_len + padding);
 
 		if (dirNum_len) {
@@ -993,7 +994,7 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
 		if (lineDisplayName_len) {
 			memcpy(&buffer[dirNum_len + FQDN_len + 2], lineDisplayName, lineDisplayName_len);
 		}
-		//  memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
+		// memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], sizeof(buffer));
 		sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "LineStatDynamicMessage.dummy: %s\n", buffer);
 		memcpy(&msg->data.LineStatDynamicMessage.dummy, &buffer[0], dummy_len + padding);
 	}
@@ -1012,9 +1013,11 @@ sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32
  */
 int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1)
 {
-	//if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
-	//  return 0;
-	//}
+	/*
+	if (s0->sin_addr.s_addr != s1->sin_addr.s_addr || s0->sin_port != s1->sin_port || s0->sin_family != s1->sin_family) {
+		return 0;
+	}
+	*/
 
 	//if (IN6_ARE_ADDR_EQUAL(s0, s1) && s0->ss_family == s1->ss_family ){
 	if (sccp_socket_cmp_addr(s0, s1) && s0->ss_family == s1->ss_family) {
@@ -1347,9 +1350,9 @@ int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storag
 				continue;
 			}
 		}
-		//  char *straddr = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
-		//  char *strmask = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
-		//  sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s:%s/%s\n", AST_SENSE_DENY == current_ha->sense ? "deny" : "permit", straddr, strmask);
+		// char *straddr = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netaddr));
+		// char *strmask = ast_strdupa(sccp_socket_stringify_addr(&current_ha->netmask));
+		// sccp_log(DEBUGCAT_HIGH)(VERBOSE_PREFIX_3 "%s:%s/%s\n", AST_SENSE_DENY == current_ha->sense ? "deny" : "permit", straddr, strmask);
 
 		/* For each rule, if this address and the netmask = the net address
 		   apply the current rule */
@@ -1828,11 +1831,13 @@ gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
 #ifdef CS_EXPERIMENTAL
 	/*alternative implementation */
-	//if (size > 1) {
-	//  *((char *)mempcpy(dst, src, size-1)) = '\0';
-	//} else {
-	//  *dst = '\0';
-	//}
+	/*
+	if (size > 1) {
+		*((char *)mempcpy(dst, src, size-1)) = '\0';
+	} else {
+		*dst = '\0';
+	}
+	*/
 	if (size != 0) {
 		while (--size != 0) {
 			if ((*dst++ = *src++) == '\0') {

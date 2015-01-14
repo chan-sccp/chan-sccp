@@ -20,6 +20,8 @@
 #include "sccp_socket.h"
 #include <asterisk/unaligned.h>
 
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
+
 #define ENUMMACRO_FILE "sccp_protocol_enums.hh"
 #define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
 #include "sccp_enum_macro.h"
@@ -154,14 +156,14 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
 
 	if (dummy_len) {
-		//  int bufferSize = dummy_len + ARRAY_LEN(data);
+		// int bufferSize = dummy_len + ARRAY_LEN(data);
 		int bufferSize = dummy_len + dataSize;
 		char buffer[bufferSize];
 
 		memset(&buffer[0], 0, bufferSize);
 		int pos = 0;
 
-		//  for (i = 0; i < ARRAY_LEN(data); i++) {
+		// for (i = 0; i < ARRAY_LEN(data); i++) {
 		for (i = 0; i < dataSize; i++) {
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {
@@ -240,14 +242,14 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 	msg->data.CallInfoDynamicMessage.lel_lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
 
 	if (dummy_len) {
-		//  int bufferSize = dummy_len + ARRAY_LEN(data);
+		// int bufferSize = dummy_len + ARRAY_LEN(data);
 		int bufferSize = dummy_len + dataSize;
 		char buffer[bufferSize];
 
 		memset(&buffer[0], 0, bufferSize);
 		int pos = 0;
 
-		//  for (i = 0; i < ARRAY_LEN(data); i++) {
+		// for (i = 0; i < ARRAY_LEN(data); i++) {
 		for (i = 0; i < dataSize; i++) {
 			sccp_log(DEBUGCAT_HIGH) (VERBOSE_PREFIX_3 "SCCP: cid field %d, value: '%s'\n", i, (data[i]) ? data[i] : "");
 			if (data[i]) {

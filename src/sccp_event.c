@@ -23,7 +23,7 @@
 #include "sccp_device.h"
 #include "sccp_line.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #define ENUMMACRO_FILE "sccp_event_enums.hh"
 #define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
 #include "sccp_enum_macro.h"

@@ -21,11 +21,11 @@
 #include "sccp_actions.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*
-     * Descriptions
-     */
+/*
+ * Descriptions
+ */
 static char management_show_devices_desc[] = "Description: Lists SCCP devices in text format with details on current status. (DEPRECATED in favor of SCCPShowDevices)\n" "\n" "DevicelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 static char management_show_lines_desc[] = "Description: Lists SCCP lines in text format with details on current status. (DEPRECATED in favor of SCCPShowLines)\n" "\n" "LinelistComplete.\n" "Variables: \n" "  ActionID: <id>	Action ID for this transaction. Will be returned.\n";
 static char management_restart_devices_desc[] = "Description: restart a given device\n" "\n" "Variables:\n" "   Devicename: Name of device to restart\n";
@@ -34,6 +34,7 @@ static char management_device_update_desc[] = "Description: restart a given devi
 static char management_device_set_dnd_desc[] = "Description: set dnd on device\n" "\n" "Variables:\n" "   Devicename: Name of device\n" "  DNDState: on (busy) / off / reject/ silent";
 static char management_line_fwd_update_desc[] = "Description: update forward status for line\n" "\n" "Variables:\n" "  Devicename: Name of device\n" "  Linename: Name of line\n" "  Forwardtype: type of cfwd (all | busy | noAnswer)\n" "  Disable: yes Disable call forward (optional)\n" "  Number: number to forward calls (optional)";
 static char management_fetch_config_metadata_desc[] = "Description: fetch configuration metadata\n" "\n" "Variables:\n" "  segment: Config Segment Name (if empty returns all segments).\n";
+
 #if ASTERISK_VERSION_GROUP >= 112
 static char management_startcall_desc[] = "Description: start a new call on a device/line\n" "\n" "Variables:\n" "  Devicename: Name of the Device\n" "  Linename: Name of the line\n" "  number: Number to call\n" "  ChannelId: Channel UniqueId to be set on the channel\n";
 #else
@@ -661,20 +662,21 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 	}
 
 	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
+
 #if ASTERISK_VERSION_GROUP >= 112
-        struct ast_assigned_ids ids = {
-        	.uniqueid = astman_get_header(m, "ChannelId"),
-                //.uniqueid2 = astman_get_header(m, "OtherChannelId")
+	struct ast_assigned_ids ids = {
+		.uniqueid = astman_get_header(m, "ChannelId"),
+		//.uniqueid2 = astman_get_header(m, "OtherChannelId")
 	};
-	if (	(ids.uniqueid && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid))
-		//|| (ids.uniqueid2 && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid2))
-		) {
+	if ((ids.uniqueid && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid))
+	    //|| (ids.uniqueid2 && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid2))
+	    ) {
 		astman_send_error_va(s, m, "Uniqueid length exceeds maximum of %d\n", AST_MAX_PUBLIC_UNIQUEID);
 		return 0;
 	}
-        new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, (ids.uniqueid) ? &ids : NULL);
+	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, (ids.uniqueid) ? &ids : NULL);
 #else
- 	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+	new_channel = sccp_channel_newcall(line, d, sccp_strlen_zero(number) ? NULL : (char *) number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 #endif
 	astman_send_ack(s, m, "Call Started");
 	return 0;

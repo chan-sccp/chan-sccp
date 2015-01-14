@@ -26,11 +26,11 @@
 #include "sccp_indicate.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-    /*!
-     * \brief SCCP Structure to pass data to the pbx answer thread
-     */
+/*!
+ * \brief SCCP Structure to pass data to the pbx answer thread
+ */
 struct sccp_answer_conveyor_struct {
 	uint32_t callid;
 	sccp_linedevices_t *linedevice;
@@ -238,6 +238,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 				AUTO_RELEASE sccp_linedevices_t *activeChannelLinedevice = sccp_linedevice_find(linedevice->device, active_channel->line);
 
 				char prompt[100];
+
 				snprintf(prompt, sizeof(prompt), "%s: %s: %s", active_channel->line->name, SKINNY_DISP_FROM, c->callInfo.callingPartyNumber);
 				sccp_dev_displayprompt(linedevice->device, activeChannelLinedevice->lineInstance, active_channel->callid, prompt, GLOB(digittimeout));
 			}
@@ -269,7 +270,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (isRinging) {
-		//  sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
+		// sccp_channel_setSkinnyCallstate(c, SKINNY_CALLSTATE_RINGIN);
 		sccp_channel_setChannelstate(c, SCCP_CHANNELSTATE_RINGING);
 		PBX(queue_control) (c->owner, AST_CONTROL_RINGING);
 	} else if (hasDNDParticipant) {
@@ -331,7 +332,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
 	if (d && c->state != SCCP_CHANNELSTATE_DOWN && SKINNY_DEVICE_RS_OK == d->registrationState) {
-		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))             /* Caused active channels never to be full released */
+		// if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == sccp_device_getActiveChannel_nolock(d))	/* Caused active channels never to be full released */
 		if (GLOB(remotehangup_tone) && d && d->state == SCCP_DEVICESTATE_OFFHOOK && c == d->active_channel) {
 			sccp_dev_starttone(d, GLOB(remotehangup_tone), 0, 0, 10);
 		}
@@ -952,9 +953,11 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 
 				if (!sccp_strlen_zero(shortenedNumber)) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
-					//if (!sccp_feat_directed_pickup(c, shortenedNumber)) {
-					//	sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
-					//}
+					/*
+					if (!sccp_feat_directed_pickup(c, shortenedNumber)) {
+						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
+					}
+					*/
 					PBX(set_callstate) (c, AST_STATE_UP);
 				} else {
 					// without a number we can also close the call. Isn't it true ?
@@ -1137,7 +1140,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 						break;
 				}
 				sccp_device_setLastNumberDialed(d, shortenedNumber);
-				if (PBX(set_dialed_number)) PBX(set_dialed_number) (c, shortenedNumber);
+				if (PBX(set_dialed_number))
+					PBX(set_dialed_number) (c, shortenedNumber);
 
 			} else {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx_check_hangup(chan): %d on line %s\n", DEV_ID_LOG(d), (pbx_channel && pbx_check_hangup(pbx_channel)), l->name);

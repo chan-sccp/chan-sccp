@@ -2,7 +2,7 @@
  * \file        ast112_announce.c
  * \brief       SCCP PBX Conference Announcement Channel Tech
  * \author      Diederik de Groot <ddegroot [at] users.sourceforge.net>
- * \note  	Referencing ConfBridge Announcement Channel Created by Richard Mudgett <rmudgett@digium.com>
+ * \note        Referencing ConfBridge Announcement Channel Created by Richard Mudgett <rmudgett@digium.com>
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *

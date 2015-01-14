@@ -22,7 +22,7 @@
 #include "sccp_config.h"
 #include "sccp_mwi.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptionId, int onoff);
 int __sccp_line_destroy(const void *ptr);
 int __sccp_lineDevice_destroy(const void *ptr);
@@ -119,11 +119,11 @@ sccp_line_t *sccp_line_create(const char *name)
 	sccp_line_t *l = NULL;
 
 	/*      // do make sure line->name is unique before adding.
-	if ((l = sccp_line_find_byname(name, FALSE))) {
+	   if ((l = sccp_line_find_byname(name, FALSE))) {
 	   sccp_line_release(l);
 	   return NULL;
-	}
-	*/
+	   }
+	 */
 	l = (sccp_line_t *) sccp_refcount_object_alloc(sizeof(sccp_line_t), SCCP_REF_LINE, name, __sccp_line_destroy);
 
 	if (!l) {
@@ -314,9 +314,11 @@ int __sccp_line_destroy(const void *ptr)
 		SCCP_LIST_HEAD_DESTROY(&l->devices);
 	}
 	// cleanup mailboxes
-	//if (l->trnsfvm) {
-	//  sccp_free(l->trnsfvm);
-	//}
+	/*  
+	if (l->trnsfvm) {
+		sccp_free(l->trnsfvm);
+	}
+	*/
 	sccp_mailbox_t *mailbox = NULL;
 
 	SCCP_LIST_LOCK(&l->mailboxes);
@@ -337,14 +339,16 @@ int __sccp_line_destroy(const void *ptr)
 	if (SCCP_LIST_EMPTY(&l->mailboxes)) {
 		SCCP_LIST_HEAD_DESTROY(&l->mailboxes);
 	}
-	//#if CS_AST_HAS_NAMEDGROUP
-	//if (l->namedcallgroup) {
-	//  sccp_free(l->namedcallgroup);
-	//}
-	//if (l->namedpickupgroup) {
-	//  sccp_free(l->namedpickupgroup);
-	//}
-	//#endif
+	/*
+	#if CS_AST_HAS_NAMEDGROUP
+	if (l->namedcallgroup) {
+		sccp_free(l->namedcallgroup);
+	}
+	if (l->namedpickupgroup) {
+		sccp_free(l->namedpickupgroup);
+	}
+	#endif
+	*/
 	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
 
 	// cleanup channels
@@ -837,7 +841,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 
 		sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_4 "SCCP: creating realtime line '%s'\n", name);
 
-		//  SCCP_RWLIST_WRLOCK(&GLOB(lines));
+		// SCCP_RWLIST_WRLOCK(&GLOB(lines));
 		if ((l = sccp_line_create(name))) {								/* already retained */
 			sccp_config_applyLineConfiguration(l, variable);
 			l->realtime = TRUE;
@@ -846,7 +850,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 		} else {
 			pbx_log(LOG_ERROR, "SCCP: Unable to build realtime line '%s'\n", name);
 		}
-		//  SCCP_RWLIST_UNLOCK(&GLOB(lines));
+		// SCCP_RWLIST_UNLOCK(&GLOB(lines));
 		return l;
 	}
 

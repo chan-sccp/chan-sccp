@@ -40,7 +40,7 @@
 #include <asterisk/unaligned.h>
 #include <sys/stat.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #include <math.h>
 #if ASTERISK_VERSION_NUMBER < 10400
 
@@ -589,6 +589,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		char *session_ipv4 = strdupa(sccp_socket_stringify_host(&session_sas));
 
 		struct ast_str *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+
 		sccp_print_ha(ha_localnet_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(localaddr));
 
 		if (session_sas.ss_family == AF_INET) {
@@ -1339,24 +1340,25 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 	// Handle Local Line
 	{
 		AUTO_RELEASE sccp_channel_t *channel = NULL;
+
 		if (instance && callId) {
-			channel = sccp_find_channel_by_lineInstance_and_callid(d, instance, callId);			/* newer phones */
+			channel = sccp_find_channel_by_lineInstance_and_callid(d, instance, callId);		/* newer phones */
 		} else {
-			channel = sccp_device_getActiveChannel(d);							/* older phones don't provide instance or callid */
+			channel = sccp_device_getActiveChannel(d);						/* older phones don't provide instance or callid */
 		}
 		if (channel) {
 			AUTO_RELEASE sccp_device_t *check_device = sccp_channel_getDevice_retained(channel);
 
-			if (channel && check_device == d) {								// check to see if we own the channel (otherwise it would be a shared line owned by another device)
+			if (channel && check_device == d) {							// check to see if we own the channel (otherwise it would be a shared line owned by another device)
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: gotten active channel %d on line %s\n", d->id, channel->callid, (l) ? l->name : "(nil)");
-				if (channel->state == SCCP_CHANNELSTATE_CONNECTED) {					/* incoming call on other line */
+				if (channel->state == SCCP_CHANNELSTATE_CONNECTED) {				/* incoming call on other line */
 					if (sccp_channel_hold(channel)) {
 						sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: call (%d) put on hold on line %s\n", d->id, channel->callid, l->name);
 					} else {
 						sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Hold failed for call (%d), line %s\n", d->id, channel->callid, l->name);
 						return;
 					}
-				} else {										/* ??? No idea when this is supposed to happen */
+				} else {									/* ??? No idea when this is supposed to happen */
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call not in progress. Closing line %s\n", d->id, (l) ? l->name : "(nil)");
 					sccp_channel_endcall(channel);
 					sccp_dev_deactivate_cplane(d);
@@ -1368,6 +1370,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 	// Handle Shared Line
 	{
 		AUTO_RELEASE sccp_channel_t *tmpChannel = NULL;
+
 		if (!SCCP_RWLIST_GETSIZE(&l->channels)) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: no activate channel on line %s\n -> New Call", DEV_ID_LOG(d), (l) ? l->name : "(nil)");
 			sccp_dev_set_activeline(d, l);
@@ -1378,13 +1381,13 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 			sccp_channel_answer(d, tmpChannel);
 		} else if ((tmpChannel = sccp_channel_find_bystate_on_line(l, SCCP_CHANNELSTATE_HOLD))) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Channel count on line %d = %d", d->id, instance, SCCP_RWLIST_GETSIZE(&l->channels));
-			if (SCCP_RWLIST_GETSIZE(&l->channels) == 1) {							/* only one call on hold, so resume that one */
+			if (SCCP_RWLIST_GETSIZE(&l->channels) == 1) {						/* only one call on hold, so resume that one */
 				//channel = SCCP_LIST_FIRST(&l->channels);
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Resume channel %d on line %d", d->id, tmpChannel->callid, instance);
 				sccp_dev_set_activeline(d, l);
 				sccp_channel_resume(d, tmpChannel, TRUE);
 				sccp_dev_set_cplane(d, instance, 1);
-			} else {											/* not sure which channel to make activem let the user decide */
+			} else {										/* not sure which channel to make activem let the user decide */
 				sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Switch to line %d", d->id, instance);
 				sccp_dev_set_activeline(d, l);
 				sccp_dev_set_cplane(d, instance, 1);
@@ -2422,7 +2425,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	} else if (digit >= 0 && digit <= 9) {
 		resp = '0' + digit;
 	} else {
-// 		resp = '0' + digit;
+		// resp = '0' + digit;
 		pbx_log(LOG_WARNING, "Unsupported digit %d\n", digit);
 	}
 
@@ -2813,12 +2816,12 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		msg_out->data.MiscellaneousCommandMessage.lel_miscCommandType = htolel(SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE);	/* videoFastUpdatePicture */
 		sccp_dev_send(d, msg_out);
 
-		//  msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_in->data.FlowControlNotifyMessage));
-		//  msg_out->data.FlowControlNotifyMessage.lel_conferenceID         = htolel(channel->callid);
-		//  msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId      = htolel(channel->passthrupartyid);
-		//  msg_out->data.FlowControlNotifyMessage.lel_callReference        = htolel(channel->callid);
-		//  msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
-		//  sccp_dev_send(d, msg_out);
+		// msg_out = sccp_build_packet(FlowControlNotifyMessage, sizeof(msg_in->data.FlowControlNotifyMessage));
+		// msg_out->data.FlowControlNotifyMessage.lel_conferenceID         = htolel(channel->callid);
+		// msg_out->data.FlowControlNotifyMessage.lel_passThruPartyId      = htolel(channel->passthrupartyid);
+		// msg_out->data.FlowControlNotifyMessage.lel_callReference        = htolel(channel->callid);
+		// msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
+		// sccp_dev_send(d, msg_out);
 
 		PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
 	} else {

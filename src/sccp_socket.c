@@ -19,7 +19,7 @@
 #include "sccp_device.h"
 #include "sccp_utils.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$")
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
 #include <sys/poll.h>
@@ -293,13 +293,15 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 	if (!(str = ast_str_thread_get(&sccp_socket_stringify_buf, size))) {
 		return "";
 	}
-	//if (sccp_socket_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
-	//  struct sockaddr_storage sockAddrStorage_tmp_ipv4;
-	//  sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
-	//#if DEBUG
-	//  sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
-	//#endif
-	//} else {
+	/*
+	if (sccp_socket_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
+		struct sockaddr_storage sockAddrStorage_tmp_ipv4;
+		sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
+#if DEBUG
+		sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
+#endif
+	} else {
+	*/
 	sockAddrStorage_tmp = sockAddrStorage;
 	//}
 
@@ -1215,7 +1217,7 @@ void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_ses
 
 		/* remove session */
 		sccp_log(DEBUGCAT_SOCKET) (VERBOSE_PREFIX_3 "%s: Remove Session %p from globals\n", DEV_ID_LOG(current_session->device), previous_session);
-		//  sccp_session_removeFromGlobals(previous_session);
+		// sccp_session_removeFromGlobals(previous_session);
 
 		/* cleanup device */
 		if (previous_session->device) {
