@@ -408,6 +408,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 						}
 					}
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGING);
+					PBX(set_callstate) (c, AST_STATE_RINGING);
 				}
 			}
 		} else {
