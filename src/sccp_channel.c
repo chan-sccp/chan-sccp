@@ -312,7 +312,7 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 }
 
 /*!
- * \brief recalculating read format for channel
+ * \brief recalculating read format for channel 
  * \param channel a *retained* SCCP Channel
  */
 static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
@@ -354,7 +354,7 @@ static void sccp_channel_recalculateReadformat(sccp_channel_t * channel)
 }
 
 /*!
- * \brief recalculating write format for channel
+ * \brief recalculating write format for channel 
  * \param channel a *retained* SCCP Channel
  */
 static void sccp_channel_recalculateWriteformat(sccp_channel_t * channel)
@@ -596,7 +596,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
  */
 void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *number)
 {
-	if (!channel || sccp_strequals(number, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
+	if (!channel || sccp_strequals(name, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
 		return;
 	}
 
@@ -763,7 +763,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
  * \param channel SCCP Channel
  * \param KeepPortOpen Boolean
  * \note sccp_channel_stopMediaTransmission is explicit call within this function!
- *
+ * 
  */
 void sccp_channel_closeReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
@@ -965,7 +965,7 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
  * Also RTP will be Stopped/Destroyed and Call Statistic is requested.
  * \param channel SCCP Channel
  * \param KeepPortOpen Boolean
- *
+ * 
  */
 void sccp_channel_stopMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
@@ -1174,7 +1174,7 @@ void sccp_channel_closeAllMediaTransmitAndReceive(sccp_device_t * d, sccp_channe
 }
 
 /*
- * \brief Check if we are in the middle of a transfer and if transfer on hangup is wanted, function is only called by sccp_handle_onhook for now
+ * \brief Check if we are in the middle of a transfer and if transfer on hangup is wanted, function is only called by sccp_handle_onhook for now 
  */
 boolean_t sccp_channel_transfer_on_hangup(sccp_channel_t * channel)
 {
@@ -1240,7 +1240,7 @@ static int _sccp_channel_sched_endcall(const void *data)
 	return 0;
 }
 
-/*
+/* 
  * Remove Schedule digittimeout
  */
 gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
@@ -1254,7 +1254,7 @@ gcc_inline void sccp_channel_stop_schedule_digittimout(sccp_channel_t * channel)
 	}
 }
 
-/*
+/* 
  * Schedule hangup if allowed and not already scheduled
  * \note needs to take retain on channel to pass it on the the scheduled hangup
  */
@@ -1271,7 +1271,7 @@ gcc_inline void sccp_channel_schedule_hangup(sccp_channel_t * channel, uint time
 	}
 }
 
-/*
+/* 
  * Schedule digittimeout if allowed
  * Release any previously scheduled digittimeout
  */
@@ -1350,7 +1350,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  *
  * \callgraph
  * \callergraph
- *
+ * 
  */
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
@@ -1727,7 +1727,7 @@ int sccp_channel_hold(sccp_channel_t * channel)
  *
  * \callgraph
  * \callergraph
- *
+ * 
  */
 int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolean_t swap_channels)
 {
@@ -1882,7 +1882,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
  *
  * \callgraph
  * \callergraph
- *
+ * 
  */
 void sccp_channel_clean(sccp_channel_t * channel)
 {
@@ -2424,10 +2424,6 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		PBX(set_callerid_ani) (sccp_forwarding_channel, dialedNumber);
 	}
 
-	if (PBX(set_dialed_number)) {
-		PBX(set_dialed_number) (sccp_forwarding_channel, dialedNumber);
-	}
-
 	if (PBX(set_callerid_dnid)) {
 		PBX(set_callerid_dnid) (sccp_forwarding_channel, dialedNumber);
 	}
@@ -2595,7 +2591,7 @@ const char *sccp_channel_getLinkedId(const sccp_channel_t * channel)
  *
  * \callgraph
  * \callergraph
- *
+ * 
  * \param l     SCCP Line
  * \param id    channel ID as int
  * \return *refcounted* SCCP Channel (can be null)
@@ -2643,7 +2639,7 @@ sccp_channel_t *sccp_find_channel_by_lineInstance_and_callid(const sccp_device_t
  *
  * \callgraph
  * \callergraph
- *
+ * 
  * \param callid Call ID as uint32_t
  * \return *refcounted* SCCP Channel (can be null)
  *
@@ -2678,7 +2674,7 @@ sccp_channel_t *sccp_channel_find_byid(uint32_t callid)
  *
  * \callgraph
  * \callergraph
- *
+ * 
  * \param passthrupartyid Party ID
  * \return *refcounted* SCCP Channel - cann bee NULL if no channel with this id was found
  */
@@ -2712,14 +2708,14 @@ sccp_channel_t *sccp_channel_find_bypassthrupartyid(uint32_t passthrupartyid)
  *
  * \param d SCCP Device
  * \param passthrupartyid Party ID
- * \return retained SCCP Channel - can be NULL if no channel with this id was found.
+ * \return retained SCCP Channel - can be NULL if no channel with this id was found. 
  *
  * \note does not take channel state into account, this need to be asserted in the calling function
  * \note this is different from the sccp_channel_find_bypassthrupartyid behaviour
  *
  * \callgraph
  * \callergraph
- *
+ * 
  */
 sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d, uint32_t passthrupartyid)
 {
@@ -2761,7 +2757,7 @@ sccp_channel_t *sccp_channel_find_on_device_bypassthrupartyid(sccp_device_t * d,
  *
  * \callgraph
  * \callergraph
- *
+ * 
  * \param l SCCP Line
  * \param state State
  * \return *refcounted* SCCP Channel
@@ -2788,7 +2784,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_line(sccp_line_t * l, sccp_channels
  *
  * \callgraph
  * \callergraph
- *
+ * 
  * \param device SCCP Device
  * \param state State as int
  * \return *refcounted* SCCP Channel
@@ -2835,7 +2831,7 @@ sccp_channel_t *sccp_channel_find_bystate_on_device(sccp_device_t * device, sccp
  *
  * \callgraph
  * \callergraph
- *
+ * 
  * \todo Currently this returns the selectedchannel unretained (there is no retain/release for selectedchannel at the moment)
  */
 sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp_channel_t * channel)
@@ -2857,7 +2853,7 @@ sccp_selectedchannel_t *sccp_device_find_selectedchannel(sccp_device_t * d, sccp
  * \brief Count Selected Channel on Device
  * \param device SCCP Device
  * \return count Number of Selected Channels
- *
+ * 
  */
 uint8_t sccp_device_selectedchannels_count(sccp_device_t * device)
 {
