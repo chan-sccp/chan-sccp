@@ -596,7 +596,7 @@ boolean_t sccp_channel_set_originalCallingparty(sccp_channel_t * channel, char *
  */
 void sccp_channel_set_calledparty(sccp_channel_t * channel, char *name, char *number)
 {
-	if (!channel || sccp_strequals(name, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
+	if (!channel || sccp_strequals(number, "s") /* skip update for immediate earlyrtp + s-extension */ ) {
 		return;
 	}
 
