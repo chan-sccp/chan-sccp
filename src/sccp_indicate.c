@@ -87,7 +87,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			if (SCCP_CHANNELSTATE_DOWN == c->previousChannelState) {				// new call
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
-				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+				
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_set_cplane(d, instance, 1);
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
@@ -98,7 +98,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			} else {										// call pickup
 				sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
 				sccp_device_setLamp(d, SKINNY_STIMULUS_LINE, instance, SKINNY_LAMP_ON);
-				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+				
 				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				sccp_dev_set_cplane(d, instance, 1);
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
@@ -108,7 +108,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 		case SCCP_CHANNELSTATE_GETDIGITS:
 			c->state = SCCP_CHANNELSTATE_OFFHOOK;
 			sccp_dev_set_speaker(d, SKINNY_STATIONSPEAKER_ON);
-			PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_OFFHOOK, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_DIGITSFOLL);
@@ -128,7 +127,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_ENTER_NUMBER, GLOB(digittimeout));
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_OFFHOOK);
 			sccp_dev_set_cplane(d, instance, 1);
-			PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 			/* for earlyrtp take a look at sccp_channel_newcall because we have no c->owner here */
 			break;
 		case SCCP_CHANNELSTATE_ONHOOK:
