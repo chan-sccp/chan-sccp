@@ -155,10 +155,29 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			}
 			break;
 		case SCCP_CHANNELSTATE_RINGOUT:
+			{
+				/*
+				fixes a problem with remembering dialed numbers in case of overlap dialing onto the trunks. 
+				It adds sending the DialedNumber message also to a situation, when a PROCEEDING signal is received
+				from the B-side (the trunk). Many public trunk types (SS7, ISDN etc) don't
+				always send RINGOUT, sometimes they send only PROCEEDING. In such a case, the
+				complete number was never set to the phone and it remembered only a part of
+				the number or possibly even nothing. We are already sending DialedNumber
+				message upon receiving of the RINGOUT state, so it's just extension to do
+				the same for another state and I hope it won't break anything. BTW the primary
+				meaning of the PROCEEDING signal is "number complete, attempting to make the
+				connection", so it's a really good place to send the number back to the
+				caller. -Pavel Troller
+				*/ 
+				if( !sccp_strequals(c->dialedNumber, "s") ){
+					d->protocol->sendDialedNumber(d, c);
+				}
+				d->protocol->sendCallInfo(d, c, instance);
+				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
+			}
+
 			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_RINGOUT, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
-			d->protocol->sendDialedNumber(d, c);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_RING_OUT, GLOB(digittimeout));
-			d->protocol->sendCallInfo(d, c, instance);
 
 			if (d->earlyrtp <= SCCP_EARLYRTP_RINGOUT && c->rtp.audio.writeState == SCCP_RTP_STATUS_INACTIVE) {
 				sccp_channel_openReceiveChannel(c);
@@ -254,7 +273,20 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				break;
 			}
 			sccp_dev_stoptone(d, instance, c->callid);
-			sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
+			
+			/* nessesary for overlap dialing */
+			{
+				/* suppresses sending of the DialedNumber message in the case, when the number is just "s" 
+				* (initial dial string in immeediate mode) -Pavel Troller
+				*/
+				if( !sccp_strequals(c->dialedNumber, "s") ){
+					d->protocol->sendDialedNumber(d, c);
+				}
+				d->protocol->sendCallInfo(d, c, instance);
+				sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_PROCEED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_DEFAULT);	/* send connected, so it is not listed as missed call */
+			}
+			/* done */
+			
 			d->protocol->sendCallInfo(d, c, instance);
 			sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 			if (!c->rtp.audio.rtp && d->earlyrtp <= SCCP_EARLYRTP_RINGOUT) {
