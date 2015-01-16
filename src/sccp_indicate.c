@@ -187,7 +187,6 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 			}
 			sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGOUT);
 
-			PBX(set_callstate) (c, AST_STATE_RING);
 			break;
 		case SCCP_CHANNELSTATE_RINGING:
 			sccp_dev_cleardisplaynotify(d);

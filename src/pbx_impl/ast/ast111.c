@@ -664,6 +664,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				PBX(set_callstate) (c, AST_STATE_RING);
 
 				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 
