@@ -1404,13 +1404,13 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 			if (PBX(getPickupExtension) (channel, &pickupexten)) {
 				sccp_copy_string(channel->dialedNumber, pickupexten, sizeof(channel->dialedNumber));
 				sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+				PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
 				sccp_free(pickupexten);
 			}
 		} else {
 			sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
 			sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-			PBX(set_callstate) (c, AST_STATE_OFFHOOK);
+			PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
 		}
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
