@@ -133,6 +133,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 				// changing channelstate to GETDIGITS
 				//sccp_indicate(device, c, SCCP_CHANNELSTATE_OFFHOOK);                          /* Removal requested by Antonio */
 				sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
+				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 				return;
 			} else {
 				// we cannot allocate a channel, or ask an extension to pickup.
@@ -181,6 +182,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	sccp_indicate(device, c, SCCP_CHANNELSTATE_GETDIGITS);
+	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 	sccp_dev_displayprompt(device, linedevice->lineInstance, c->callid, SKINNY_DISP_ENTER_NUMBER_TO_FORWARD_TO, SCCP_DISPLAYSTATUS_TIMEOUT);
 
 	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
@@ -222,6 +224,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 				return;
 			} else {
 				/* there is an active call, let's put it on hold first */
@@ -244,6 +247,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
@@ -731,6 +735,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 		c->ss_data = 0;											/* not needed here */
 		c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+		PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 		/* ok the number exist. allocate the asterisk channel */
 		if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
@@ -975,6 +980,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 				return;
 				/* there is an active call, let's put it on hold first */
 			} else if (!sccp_channel_hold(c)) {
@@ -998,6 +1004,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	//sccp_device_setActiveChannel(d, c);
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
@@ -1180,6 +1187,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 				return;
 			} else if (!sccp_channel_hold(c)) {
 				/* there is an active call, let's put it on hold first */
@@ -1201,6 +1209,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
@@ -1271,6 +1280,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+				PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 				return;
 			} else if (!sccp_channel_hold(c)) {
 				/* there is an active call, let's put it on hold first */
@@ -1294,6 +1304,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 	//sccp_device_setActiveChannel(d, c);
 	sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
+	PBX(set_callstate) (c, AST_STATE_OFFHOOK);
 
 	/* ok the number exist. allocate the asterisk channel */
 	if (!sccp_pbx_channel_allocate(c, NULL, NULL)) {
