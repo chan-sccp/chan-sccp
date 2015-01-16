@@ -337,7 +337,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_WAITING, GLOB(digittimeout));
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 				sccp_dev_set_keyset(d, instance, c->callid, KEYMODE_RINGIN);
-				PBX(set_callstate) (c, AST_STATE_RINGING);
+
 #ifdef CS_SCCP_CONFERENCE
 				if (d->conferencelist_active) {
 					sccp_conference_hide_list_ByDevice(d);
