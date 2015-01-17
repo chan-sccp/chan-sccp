@@ -854,7 +854,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				if (PBX(send_digits)) {
 					PBX(send_digits) (channel, c->dialedNumber);
 				}
-				sccp_channel_set_calledparty(c, "", c->dialedNumber);
+				sccp_channel_set_calledparty(c, NULL, c->dialedNumber);
 			}
 			goto EXIT_FUNC;
 		}

@@ -2471,11 +2471,6 @@ static void sccp_device_indicate_connected(const sccp_device_t * device, sccp_li
 static void __sccp_device_indicate_immediate_dialing(const sccp_device_t * device, const uint8_t lineInstance, const sccp_channel_t * channel)
 {
 	sccp_device_setLamp(device, SKINNY_STIMULUS_LINE, lineInstance, SKINNY_LAMP_BLINK);
-	if (device->protocol) {
-		if (device->protocol->sendDialedNumber) {
-			device->protocol->sendDialedNumber(device, channel);
-		}
-	}
 	sccp_dev_set_keyset(device, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
 }
 

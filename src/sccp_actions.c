@@ -2517,7 +2517,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		channel->dialedNumber[len] = '\0';
 
 		if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
-			sccp_channel_set_calledparty(channel, channel->dialedNumber, channel->dialedNumber);
+			sccp_channel_set_calledparty(channel, NULL, channel->dialedNumber);
 		}
 		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Force Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
