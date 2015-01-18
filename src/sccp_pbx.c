@@ -530,6 +530,16 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
 		if (d) {
+			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+				/* 
+				* Redial button isnt't working properly in immediate mode, because the
+				* last dialed number was being remembered too early. This fix
+				* remembers the last dialed number in the same cases, where the dialed number
+				* is being sent - after receiving of RINGOUT -Pavel Troller
+				*/
+				sccp_device_setLastNumberDialed(d, c->dialedNumber); 
+				sccp_wrapper_asterisk12_setDialedNumber(c, c->dialedNumber);
+			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
 

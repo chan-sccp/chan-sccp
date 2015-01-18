@@ -749,7 +749,6 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			res = -1;
 			break;
 		case AST_CONTROL_PROCEEDING:
-			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 				/* 
 					* Redial button isnt't working properly in immediate mode, because the
@@ -759,6 +758,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 					*/
 				sccp_device_setLastNumberDialed(d, c->dialedNumber); 
 			}
+			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			res = -1;
 			break;
 		case AST_CONTROL_SRCCHANGE:
