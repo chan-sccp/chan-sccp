@@ -1139,9 +1139,16 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 #endif														// CS_MANAGER_EVENTS
 						break;
 				}
-				sccp_device_setLastNumberDialed(d, shortenedNumber);
-				if (PBX(set_dialed_number))
-					PBX(set_dialed_number) (c, shortenedNumber);
+				if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE){
+					/* 
+					 * too early to set last dialed number for immediate mode -Pavel Troller
+					 */
+					sccp_device_setLastNumberDialed(d, shortenedNumber);
+					if (PBX(set_dialed_number)){
+						PBX(set_dialed_number) (c, shortenedNumber);
+					}
+				}
+				
 
 			} else {
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx_check_hangup(chan): %d on line %s\n", DEV_ID_LOG(d), (pbx_channel && pbx_check_hangup(pbx_channel)), l->name);

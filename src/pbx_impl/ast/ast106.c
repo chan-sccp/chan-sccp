@@ -579,6 +579,15 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+					/* 
+					 * Redial button isnt't working properly in immediate mode, because the
+					 * last dialed number was being remembered too early. This fix
+					 * remembers the last dialed number in the same cases, where the dialed number
+					 * is being sent - after receiving of RINGOUT -Pavel Troller
+					 */
+					sccp_device_setLastNumberDialed(d, c->dialedNumber); 
+				}
 				PBX(set_callstate) (c, AST_STATE_RING);
 			}
 			break;
@@ -595,6 +604,15 @@ static int sccp_wrapper_asterisk16_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			break;
 		case AST_CONTROL_PROCEEDING:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+				/* 
+					* Redial button isnt't working properly in immediate mode, because the
+					* last dialed number was being remembered too early. This fix
+					* remembers the last dialed number in the same cases, where the dialed number
+					* is being sent - after receiving of PROCEEDING -Pavel Troller
+					*/
+				sccp_device_setLastNumberDialed(d, c->dialedNumber); 
+			}
 			res = -1;
 			break;
 		case AST_CONTROL_SRCCHANGE:

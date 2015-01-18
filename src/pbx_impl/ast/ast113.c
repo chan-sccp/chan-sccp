@@ -62,6 +62,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast)
 static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
 static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk113_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan);
+static void sccp_wrapper_asterisk13_setDialedNumber(const sccp_channel_t * channel, const char *number);
 
 //#ifdef CS_AST_RTP_INSTANCE_BRIDGE
 //static enum ast_bridge_result sccp_wrapper_asterisk113_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
@@ -730,6 +731,16 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+					/* 
+					 * Redial button isnt't working properly in immediate mode, because the
+					 * last dialed number was being remembered too early. This fix
+					 * remembers the last dialed number in the same cases, where the dialed number
+					 * is being sent - after receiving of RINGOUT -Pavel Troller
+					 */
+					sccp_device_setLastNumberDialed(d, c->dialedNumber);
+					sccp_wrapper_asterisk13_setDialedNumber(c, c->dialedNumber);
+				}
 				PBX(set_callstate) (c, AST_STATE_RING);
 
 				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
@@ -784,6 +795,16 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 		case AST_CONTROL_PROCEEDING:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+				/* 
+					* Redial button isnt't working properly in immediate mode, because the
+					* last dialed number was being remembered too early. This fix
+					* remembers the last dialed number in the same cases, where the dialed number
+					* is being sent - after receiving of PROCEEDING -Pavel Troller
+					*/
+				sccp_device_setLastNumberDialed(d, c->dialedNumber);
+				sccp_wrapper_asterisk13_setDialedNumber(c, c->dialedNumber);
+			}
 			res = -1;
 			break;
 		case AST_CONTROL_SRCCHANGE:									/* ask our channel's remote source address to update */
@@ -3231,24 +3252,84 @@ static int sccp_wrapper_asterisk113_dumpchan(struct ast_channel *c, char *buf, s
 
 	pbx_builtin_serialize_variables(c, &vars);
 
-	snprintf(buf, size, "Name=               %s\n" "Type=               %s\n" "UniqueID=           %s\n" "LinkedID=           %s\n" "CallerIDNum=        %s\n" "CallerIDName=       %s\n" "ConnectedLineIDNum= %s\n" "ConnectedLineIDName=%s\n" "DNIDDigits=         %s\n" "RDNIS=              %s\n" "Parkinglot=         %s\n" "Language=           %s\n" "State=              %s (%d)\n" "Rings=              %d\n" "NativeFormat=       %s\n" "WriteFormat=        %s\n" "ReadFormat=         %s\n" "RawWriteFormat=     %s\n" "RawReadFormat=      %s\n" "WriteTranscode=     %s %s\n" "ReadTranscode=      %s %s\n" "1stFileDescriptor=  %d\n" "Framesin=           %d %s\n" "Framesout=          %d %s\n" "TimetoHangup=       %ld\n" "ElapsedTime=        %dh%dm%ds\n" "BridgeID=           %s\n" "Context=            %s\n" "Extension=          %s\n" "Priority=           %d\n" "CallGroup=          %s\n" "PickupGroup=        %s\n" "Application=        %s\n" "Data=               %s\n" "Blocking_in=        %s\n" "Variables=          %s\n", ast_channel_name(c), ast_channel_tech(c)->type, ast_channel_uniqueid(c), ast_channel_linkedid(c), S_COR(ast_channel_caller(c)->id.number.valid, ast_channel_caller(c)->id.number.str, "(N/A)"), S_COR(ast_channel_caller(c)->id.name.valid, ast_channel_caller(c)->id.name.str, "(N/A)"), S_COR(ast_channel_connected(c)->id.number.valid, ast_channel_connected(c)->id.number.str, "(N/A)"), S_COR(ast_channel_connected(c)->id.name.valid, ast_channel_connected(c)->id.name.str, "(N/A)"), S_OR(ast_channel_dialed(c)->number.str, "(N/A)"), S_COR(ast_channel_redirecting(c)->from.number.valid, ast_channel_redirecting(c)->from.number.str, "(N/A)"), ast_channel_parkinglot(c), ast_channel_language(c), ast_state2str(ast_channel_state(c)), ast_channel_state(c), ast_channel_rings(c), ast_format_cap_get_names(ast_channel_nativeformats(c), &codec_buf),	//ast_getformatname_multiple(nf, sizeof(nf), ast_channel_nativeformats(c)),
-		 ast_format_get_name(ast_channel_writeformat(c)),
-		 ast_format_get_name(ast_channel_readformat(c)),
-		 ast_format_get_name(ast_channel_rawwriteformat(c)),
-		 ast_format_get_name(ast_channel_rawreadformat(c)),
-		 ast_channel_writetrans(c) ? "Yes" : "No",
-		 ast_translate_path_to_str(ast_channel_writetrans(c), &write_transpath),
-		 ast_channel_readtrans(c) ? "Yes" : "No",
-		 ast_translate_path_to_str(ast_channel_readtrans(c), &read_transpath),
-		 ast_channel_fd(c, 0),
-		 ast_channel_fin(c) & ~DEBUGCHAN_FLAG, (ast_channel_fin(c) & DEBUGCHAN_FLAG) ? " (DEBUGGED)" : "",
-		 ast_channel_fout(c) & ~DEBUGCHAN_FLAG, (ast_channel_fout(c) & DEBUGCHAN_FLAG) ? " (DEBUGGED)" : "",
-		 (long) ast_channel_whentohangup(c)->tv_sec,
-		 hour,
-		 min,
-		 sec,
-		 bridge ? bridge->uniqueid : "(Not bridged)",
-		 ast_channel_context(c), ast_channel_exten(c), ast_channel_priority(c), ast_print_group(cgrp, sizeof(cgrp), ast_channel_callgroup(c)), ast_print_group(pgrp, sizeof(pgrp), ast_channel_pickupgroup(c)), ast_channel_appl(c) ? ast_channel_appl(c) : "(N/A)", ast_channel_data(c) ? S_OR(ast_channel_data(c), "(Empty)") : "(None)", (ast_test_flag(ast_channel_flags(c), AST_FLAG_BLOCKING) ? ast_channel_blockproc(c) : "(Not Blocking)"), ast_str_buffer(vars));
+	snprintf(buf, size, "Name=               %s\n"
+				"Type=               %s\n"
+				"UniqueID=           %s\n"
+				"LinkedID=           %s\n"
+				"CallerIDNum=        %s\n"
+				"CallerIDName=       %s\n"
+				"ConnectedLineIDNum= %s\n"
+				"ConnectedLineIDName=%s\n"
+				"DNIDDigits=         %s\n"
+				"RDNIS=              %s\n"
+				"Parkinglot=         %s\n"
+				"Language=           %s\n"
+				"State=              %s (%d)\n"
+				"Rings=              %d\n"
+				"NativeFormat=       %s\n"
+				"WriteFormat=        %s\n"
+				"ReadFormat=         %s\n"
+				"RawWriteFormat=     %s\n"
+				"RawReadFormat=      %s\n"
+				"WriteTranscode=     %s %s\n"
+				"ReadTranscode=      %s %s\n"
+				"1stFileDescriptor=  %d\n"
+				"Framesin=           %d %s\n"
+				"Framesout=          %d %s\n"
+				"TimetoHangup=       %ld\n"
+				"ElapsedTime=        %dh%dm%ds\n"
+				"BridgeID=           %s\n"
+				"Context=            %s\n"
+				"Extension=          %s\n"
+				"Priority=           %d\n"
+				"CallGroup=          %s\n"
+				"PickupGroup=        %s\n"
+				"Application=        %s\n"
+				"Data=               %s\n"
+				"Blocking_in=        %s\n"
+				"Variables=          %s\n",
+		ast_channel_name(c),
+		ast_channel_tech(c)->type,
+		ast_channel_uniqueid(c),
+		ast_channel_linkedid(c),
+		S_COR(ast_channel_caller(c)->id.number.valid, ast_channel_caller(c)->id.number.str, "(N/A)"), 
+		S_COR(ast_channel_caller(c)->id.name.valid, ast_channel_caller(c)->id.name.str, "(N/A)"), 
+		S_COR(ast_channel_connected(c)->id.number.valid, ast_channel_connected(c)->id.number.str, "(N/A)"), 
+		S_COR(ast_channel_connected(c)->id.name.valid, ast_channel_connected(c)->id.name.str, "(N/A)"), 
+		S_OR(ast_channel_dialed(c)->number.str, "(N/A)"), 
+		S_COR(ast_channel_redirecting(c)->from.number.valid, ast_channel_redirecting(c)->from.number.str, "(N/A)"), 
+		ast_channel_parkinglot(c), 
+		ast_channel_language(c), 
+		ast_state2str(ast_channel_state(c)), 
+		ast_channel_state(c), 
+		ast_channel_rings(c), 
+		ast_format_cap_get_names(ast_channel_nativeformats(c), &codec_buf),	//ast_getformatname_multiple(nf, sizeof(nf), ast_channel_nativeformats(c)),
+		ast_format_get_name(ast_channel_writeformat(c)),
+		ast_format_get_name(ast_channel_readformat(c)),
+		ast_format_get_name(ast_channel_rawwriteformat(c)),
+		ast_format_get_name(ast_channel_rawreadformat(c)),
+		ast_channel_writetrans(c) ? "Yes" : "No",
+		ast_translate_path_to_str(ast_channel_writetrans(c), &write_transpath),
+		ast_channel_readtrans(c) ? "Yes" : "No",
+		ast_translate_path_to_str(ast_channel_readtrans(c), &read_transpath),
+		ast_channel_fd(c, 0),
+		ast_channel_fin(c) & ~DEBUGCHAN_FLAG, (ast_channel_fin(c) & DEBUGCHAN_FLAG) ? " (DEBUGGED)" : "",
+		ast_channel_fout(c) & ~DEBUGCHAN_FLAG, (ast_channel_fout(c) & DEBUGCHAN_FLAG) ? " (DEBUGGED)" : "",
+		(long) ast_channel_whentohangup(c)->tv_sec,
+		hour,
+		min,
+		sec,
+		bridge ? bridge->uniqueid : "(Not bridged)",
+		ast_channel_context(c), 
+		ast_channel_exten(c), 
+		ast_channel_priority(c), 
+		ast_print_group(cgrp, sizeof(cgrp), ast_channel_callgroup(c)), 
+		ast_print_group(pgrp, sizeof(pgrp), ast_channel_pickupgroup(c)), 
+		ast_channel_appl(c) ? ast_channel_appl(c) : "(N/A)", 
+		ast_channel_data(c) ? S_OR(ast_channel_data(c), "(Empty)") : "(None)", 
+		(ast_test_flag(ast_channel_flags(c), AST_FLAG_BLOCKING) ? ast_channel_blockproc(c) : "(Not Blocking)"), 
+		ast_str_buffer(vars)
+	);
 
 	ao2_cleanup(bridge);
 	return 0;
