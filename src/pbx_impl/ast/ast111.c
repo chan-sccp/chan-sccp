@@ -57,6 +57,7 @@ static PBX_FRAME_TYPE *sccp_wrapper_asterisk111_rtp_read(PBX_CHANNEL_TYPE * ast)
 static int sccp_wrapper_asterisk111_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame);
 static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen);
 static int sccp_wrapper_asterisk111_fixup(PBX_CHANNEL_TYPE * oldchan, PBX_CHANNEL_TYPE * newchan);
+static void sccp_wrapper_asterisk11_setDialedNumber(const sccp_channel_t * channel, const char *number);
 
 //#ifdef CS_AST_RTP_INSTANCE_BRIDGE
 //static enum ast_bridge_result sccp_wrapper_asterisk111_rtpBridge(PBX_CHANNEL_TYPE * c0, PBX_CHANNEL_TYPE * c1, int flags, PBX_FRAME_TYPE ** fo, PBX_CHANNEL_TYPE ** rc, int timeoutms);
@@ -664,6 +665,16 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
+				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+					/* 
+					 * Redial button isnt't working properly in immediate mode, because the
+					 * last dialed number was being remembered too early. This fix
+					 * remembers the last dialed number in the same cases, where the dialed number
+					 * is being sent - after receiving of RINGOUT -Pavel Troller
+					 */
+					sccp_device_setLastNumberDialed(d, c->dialedNumber);
+					sccp_wrapper_asterisk11_setDialedNumber(c, c->dialedNumber);
+				}
 				PBX(set_callstate) (c, AST_STATE_RING);
 
 				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
@@ -730,6 +741,16 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			break;
 		case AST_CONTROL_PROCEEDING:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
+			if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
+				/* 
+					* Redial button isnt't working properly in immediate mode, because the
+					* last dialed number was being remembered too early. This fix
+					* remembers the last dialed number in the same cases, where the dialed number
+					* is being sent - after receiving of PROCEEDING -Pavel Troller
+					*/
+				sccp_device_setLastNumberDialed(d, c->dialedNumber);
+				sccp_wrapper_asterisk11_setDialedNumber(c, c->dialedNumber);
+			}
 			res = -1;
 			break;
 		case AST_CONTROL_SRCCHANGE:									/* ask our channel's remote source address to update */
