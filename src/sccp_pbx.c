@@ -539,7 +539,7 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				*/
 				sccp_device_setLastNumberDialed(d, c->dialedNumber); 
 				if (PBX(set_dialed_number)){
-					PBX(set_dialed_number) (c, shortenedNumber);
+					PBX(set_dialed_number) (c, c->dialedNumber);
 				}
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
