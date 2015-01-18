@@ -677,7 +677,6 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 				// Allow signalling of RINGOUT only on outbound calls.
 				// Otherwise, there are some issues with late arrival of ringing
 				// indications on ISDN calls (chan_lcr, chan_dahdi) (-DD).
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
 				if (d->earlyrtp == SCCP_EARLYRTP_IMMEDIATE) {
 					/* 
 					 * Redial button isnt't working properly in immediate mode, because the
@@ -688,6 +687,7 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					sccp_device_setLastNumberDialed(d, c->dialedNumber); 
 					sccp_wrapper_asterisk12_setDialedNumber(c, c->dialedNumber);
 				}
+				sccp_indicate(d, c, SCCP_CHANNELSTATE_RINGOUT);
 				PBX(set_callstate) (c, AST_STATE_RING);
 
 				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
