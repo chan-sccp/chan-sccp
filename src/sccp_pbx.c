@@ -538,7 +538,9 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				* is being sent - after receiving of RINGOUT -Pavel Troller
 				*/
 				sccp_device_setLastNumberDialed(d, c->dialedNumber); 
-				sccp_wrapper_asterisk12_setDialedNumber(c, c->dialedNumber);
+				if (PBX(set_dialed_number)){
+					PBX(set_dialed_number) (c, shortenedNumber);
+				}
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
