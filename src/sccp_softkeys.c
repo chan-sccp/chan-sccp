@@ -416,7 +416,6 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 
 	if ((sccp_device_selectedchannels_count(device)) == 2) {
 		sccp_selectedchannel_t *x = NULL;
-
 		SCCP_LIST_LOCK(&device->selectedChannels);
 		x = SCCP_LIST_FIRST(&device->selectedChannels);
 		chan1 = sccp_channel_retain(x->channel);
@@ -426,7 +425,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 	} else {
 		if (SCCP_RWLIST_GETSIZE(&l->channels) == 2) {
 			SCCP_LIST_LOCK(&l->channels);
-			if ((tmp = SCCP_LIST_FIRST(&l->channels))) {
+			if ((tmp  = SCCP_LIST_FIRST(&l->channels))) {
 				chan1 = sccp_channel_retain(tmp);
 				if ((tmp = SCCP_LIST_NEXT(tmp, list))) {
 					chan2 = sccp_channel_retain(tmp);
@@ -443,6 +442,7 @@ static void sccp_sk_dirtrfr(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 			return;
 		}
 	}
+
 
 	if (chan1 && chan2) {
 		//for using the sccp_channel_transfer_complete function
@@ -1022,8 +1022,12 @@ void sccp_softkey_post_reload(void)
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
 		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-			if (d->softkeyDefinition && !strcasecmp(d->softkeyDefinition, softkeyset->name)) {
+			if (sccp_strcaseequals(d->softkeyDefinition, softkeyset->name)) {
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Re-attaching softkeyset: %s to device d: %s\n", softkeyset->name, d->id);
 				d->softkeyset = softkeyset;
+				d->softKeyConfiguration.modes = softkeyset->modes;
+				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
+//				sccp_handle_soft_key_set_req(d->s, d, NULL);
 			}
 		}
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
@@ -1044,7 +1048,9 @@ void sccp_softkey_clear(void)
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
 		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
 			if (k->modes[i].ptr) {
+				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Freeing KeyMode Ptr: %p for KeyMode %i\n", k->modes[i].ptr, i);
 				sccp_free(k->modes[i].ptr);
+				k->modes[i].count = 0;
 			}
 		}
 #ifdef CS_EXPERIMENTAL
@@ -1057,6 +1063,7 @@ void sccp_softkey_clear(void)
 			sccp_free(k->softkeyCbMap);
 		}
 #endif
+		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Softkeyset: %s removed\n", k->name);
 		sccp_free(k);
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
@@ -1138,7 +1145,7 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
-		if (device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
+		if (device->softKeyConfiguration.modes[softKeySet].ptr && device->softKeyConfiguration.modes[softKeySet].ptr[i] == softKey) {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: found softkey '%s' at %d\n", DEV_ID_LOG(device), label2str(device->softKeyConfiguration.modes[softKeySet].ptr[i]), i);
 
 			if (enable) {

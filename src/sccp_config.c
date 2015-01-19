@@ -116,10 +116,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
 #define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
 #define BITTOGGLE(a, b) ((a)[BITSLOT(b)] ^= BITMASK(b))
-
-/*!
- * \brief Enum for Config Option Types
- */
+    /*!
+     * \brief Enum for Config Option Types
+     */
 enum SCCPConfigOptionType {
 /* *INDENT-OFF* */
 	SCCP_CONFIG_DATATYPE_BOOLEAN			= 1 << 0,
@@ -2165,7 +2164,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			v = ast_variable_browse(GLOB(cfg), cat);
 
 			/* check if we have this line already */
-			// SCCP_RWLIST_WRLOCK(&GLOB(lines));
+			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
 			if ((l = sccp_line_find_byname(cat, FALSE))) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
@@ -2176,7 +2175,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				}
 			}
 			l = l ? sccp_line_release(l) : NULL;							/* release either found / or newly created line. will remain retained in glob(lines) anyway. */
-			// SCCP_RWLIST_UNLOCK(&GLOB(lines));
+			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 		} else if (!strcasecmp(utype, "softkeyset")) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "read set %s\n", cat);
@@ -2450,12 +2449,14 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softKeySetConfiguration, list) {
 		if (sccp_strcaseequals(softKeySetConfiguration->name, name)) {
+			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Softkeyset: %s already defined\n", name);
 			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
 
 	if (!softKeySetConfiguration) {
+		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding Softkeyset: %s\n", name);
 		softKeySetConfiguration = sccp_calloc(1, sizeof(sccp_softKeySetConfiguration_t));
 		memset(softKeySetConfiguration, 0, sizeof(sccp_softKeySetConfiguration_t));
 
@@ -2535,17 +2536,20 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 				/* cleanup old value */
 				if (softKeySetConfiguration->modes[i].ptr) {
+					//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "KeyMode(%d) Ptr already defined in Softkeyset: %s. Freeing...\n", keyMode, name);
 					sccp_free(softKeySetConfiguration->modes[i].ptr);
 				}
 				uint8_t *softkeyset = sccp_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
 
 				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
+				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding KeyMode(%d), with Size(%d), prt(%p) to Softkeyset: %s\n", keyMode, keySetSize, softkeyset, name);
 
 				if (keySetSize > 0) {
 					softKeySetConfiguration->modes[i].id = keyMode;
 					softKeySetConfiguration->modes[i].ptr = softkeyset;
 					softKeySetConfiguration->modes[i].count = keySetSize;
 				} else {
+					softKeySetConfiguration->modes[i].id = keyMode;
 					softKeySetConfiguration->modes[i].ptr = NULL;
 					softKeySetConfiguration->modes[i].count = 0;
 					sccp_free(softkeyset);
