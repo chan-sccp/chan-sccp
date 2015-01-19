@@ -1,3 +1,17 @@
+2015-01-19  ddegroot
+
+	* [r5861] src/sccp_appfunctions.c: Fix: buffer issue because of
+	  using len instead of buf_len
+
+	* [r5860] src/sccp_config.c, src/sccp_softkeys.c: Fix: reloading
+	  softkeysets. Issue reported by Pavel.
+
+	* [r5859] ChangeLog, autoconf/extra.m4, configure: Enhancement:
+	  Wenn using gcc and --enable-optimization set -Og instead of -O2
+	  which will enable all optimizations without sacrificing the
+	  ability to have enxtended gdb debug capbility. This optimization
+	  level is not supported in clang.
+
 2015-01-18  marcelloceschia
 
 	* [r5858] src/sccp_pbx.c: fixes compile issue
