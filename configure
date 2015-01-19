@@ -19950,9 +19950,10 @@ $as_echo "#define GCC_NESTED 1" >>confdefs.h
 		else
 			echo "gcc: ${CC_VERSION}"
 		fi
+		GCC=yes
 	elif test "${CC}" = "clang"; then
 				if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
-			CFLAGS_saved="${CFLAGS_saved} -fblocks"
+			CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
 
 $as_echo "#define CLANG_BLOCKS 1" >>confdefs.h
 
@@ -19968,6 +19969,7 @@ $as_echo "#define CLANG_BLOCKS 1" >>confdefs.h
 				CC_works=1
 			fi
 		fi
+		clang=yes
 	fi
 
 	if test CC_works = 0; then
@@ -29856,9 +29858,13 @@ $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
 		CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
 	else
 		strip_binaries="yes"
-		CFLAGS_saved="${CFLAGS_saved} -O3 "
+		if test "x${GCC}" = "xyes"; then
+			CFLAGS_saved="${CFLAGS_saved} -Og "					                CPPFLAGS_saved="${CPPFLAGS_saved} -Og -D_FORTIFY_SOURCE=2"
+		else
+			CFLAGS_saved="${CFLAGS_saved} -O2 "
+	                CPPFLAGS_saved="${CPPFLAGS_saved} -O2 -D_FORTIFY_SOURCE=2"
+		fi
 		GDB_FLAGS=""
-                CPPFLAGS_saved="${CPPFLAGS_saved} -O3 -D_FORTIFY_SOURCE=2"
 	fi
 
 	if test "${enable_debug}" = "yes"; then

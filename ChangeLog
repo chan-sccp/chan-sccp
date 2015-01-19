@@ -1,4 +1,91 @@
+2015-01-18  marcelloceschia
+
+	* [r5858] src/sccp_pbx.c: fixes compile issue
+
+	* [r5857] src/sccp_pbx.c: fixes compile issue
+
+	* [r5856] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_pbx.c: move sccp_device_setLastNumberDialed before
+	  SCCP_CHANNELSTATE_PROCEED
+
+	* [r5855] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_pbx.c: fixes redial button in immediate mode, patch
+	  provided by Pavel Troller
+
+2015-01-17  marcelloceschia
+
+	* [r5854] src/sccp_actions.c, src/sccp_device.c, src/sccp_pbx.c:
+	  applying patch from Pavel Troller that fixes callinfo for
+	  immediate dialing
+
+2015-01-16  marcelloceschia
+
+	* [r5853] src/sccp_channel.c: fixes compile issue
+
+	* [r5852] src/sccp_channel.c, src/sccp_features.c,
+	  src/sccp_indicate.c: remove PBX(set_callstate) (c,
+	  AST_STATE_OFFHOOK) from sccp_indicate and move it to the right
+	  places
+
+	* [r5851] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_indicate.c: remove PBX(set_callstate) (c,
+	  AST_STATE_RING) from sccp_indicate and move it to the right
+	  places
+
+	* [r5850] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_indicate.c: remove PBX(set_callstate) (c,
+	  AST_STATE_BUSY) from sccp_indicate and move it to the right
+	  places
+
+	* [r5849] src/sccp_indicate.c: remove PBX(set_callstate) (c,
+	  AST_STATE_RINGING) from sccp_indicate and move it to the right
+	  places
+
+	* [r5848] src/sccp_features.c, src/sccp_indicate.c: remove
+	  PBX(set_callstate) (c, AST_STATE_RINGING) from sccp_indicate and
+	  move it to the right places
+
+	* [r5847] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_indicate.c: reapply patch: A small patchset to fix small
+	  bugs in immediate mode (patch1+patch2), provided by Pavel Troller
+
+	* [r5846] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_indicate.c: revert my change for patch A small patchset
+	  to fix small bugs in immediate mode (patch1+patch2), provided by
+	  Pavel Troller
+
+2015-01-15  marcelloceschia
+
+	* [r5843] src/sccp_actions.c: A small patchset to fix small bugs in
+	  immediate mode (patch2), provided by Pavel Troller
+
+	* [r5842] src/sccp_actions.c: A small patchset to fix small bugs in
+	  immediate mode (patch2), provided by Pavel Troller
+
+	* [r5841] src/sccp_channel.c, src/sccp_indicate.c: A small patchset
+	  to fix small bugs in immediate mode (patch1), provided by Pavel
+	  Troller
+
+2015-01-15  ddegroot
+
+	* [r5839] .: Edit property svn:ignore
+
 2015-01-14  ddegroot
+
+	* [r5838] ChangeLog, debian/compat: Fix: COMPAT level for debian
+	  packages
+
+	* [r5837] debian/changelog: Enhancement: Added launchpad/ppa
+	  repository for Ubuntu Users. See:
+	  https://launchpad.net/~chan-sccp-b for details
 
 	* [r5836] .travis.yml: Add vivid and lucid repositories to travis
 	  CI script
