@@ -227,6 +227,7 @@ AC_DEFUN([CS_CC_VERSION_CHECK], [
 		else
 			echo "gcc: ${CC_VERSION}"
 		fi
+		GCC=yes
 	elif test "${CC}" = "clang"; then
 		dnl CLANG_CHECK=`echo | clang -fblocks -dM -E -`
 		if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
@@ -241,6 +242,7 @@ AC_DEFUN([CS_CC_VERSION_CHECK], [
 				CC_works=1
 			fi
 		fi
+		clang=yes
 	fi
 	AC_SUBST([CC_works])
 	if test CC_works = 0; then
@@ -580,9 +582,14 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
 	else
 		strip_binaries="yes"
-		CFLAGS_saved="${CFLAGS_saved} -O3 "
+		if test "x${GCC}" = "xyes"; then
+			CFLAGS_saved="${CFLAGS_saved} -Og "				dnl -O2 without removing the capabilty of debugging using symbol files (not supported by clang)
+	                CPPFLAGS_saved="${CPPFLAGS_saved} -Og -D_FORTIFY_SOURCE=2"
+		else
+			CFLAGS_saved="${CFLAGS_saved} -O2 "
+	                CPPFLAGS_saved="${CPPFLAGS_saved} -O2 -D_FORTIFY_SOURCE=2"
+		fi
 		GDB_FLAGS=""
-                CPPFLAGS_saved="${CPPFLAGS_saved} -O3 -D_FORTIFY_SOURCE=2"
 	fi
 	
 	if test "${enable_debug}" = "yes"; then
