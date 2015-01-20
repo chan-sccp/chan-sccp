@@ -1,5 +1,9 @@
 2015-01-19  ddegroot
 
+	* [r5862] ChangeLog, autoconf/compile[ADD], doc/Makefile.in,
+	  src/config.h.in: Fix: Adding autoconf/compile required for make
+	  release by automake
+
 	* [r5861] src/sccp_appfunctions.c: Fix: buffer issue because of
 	  using len instead of buf_len
 
