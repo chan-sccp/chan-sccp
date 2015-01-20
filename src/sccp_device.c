@@ -1469,12 +1469,16 @@ void sccp_dev_displaynotify_debug(const sccp_device_t * d, const char *msg, uint
  * \callgraph
  * \callergraph
  */
-void sccp_dev_cleardisplayprinotify(const sccp_device_t * d)
+void sccp_dev_cleardisplayprinotify(const sccp_device_t * d, const uint8_t priority)
 {
+	sccp_msg_t *msg;
 	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
 	}
-	sccp_dev_sendmsg(d, ClearPriNotifyMessage);
+	REQ(msg, ClearPriNotifyMessage);
+	msg->data.ClearPriNotifyMessage.lel_priority = htolel(priority);
+
+	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
 }
 
