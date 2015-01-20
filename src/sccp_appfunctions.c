@@ -820,25 +820,43 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 		return 0;
 	}
 
-	char *text;
-	char *splitter = sccp_strdupa(data);
 	int timeout = 0;
+	int priority = -1;
 
-	text = strsep(&splitter, ",");
-	if (splitter) {
-		timeout = atoi(splitter);
-	}
+        char *parse = sccp_strdupa(data);
+        AST_DECLARE_APP_ARGS(args,
+                AST_APP_ARG(text);
+                AST_APP_ARG(timeout);
+                AST_APP_ARG(priority);
+        );
+        AST_STANDARD_APP_ARGS(args, parse);
+        
+        if (!sccp_strlen_zero(args.timeout)) {
+        	timeout = atoi(args.timeout);
+        }
+        if (!sccp_strlen_zero(args.priority)) {
+        	priority = atoi(args.priority);
+        }
 
 	AUTO_RELEASE sccp_device_t *d = NULL;
-
-	if (!text || !(d = sccp_channel_getDevice_retained(c))) {
-		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device or not text provided\n");
+	if (!(d = sccp_channel_getDevice_retained(c))) {
+		pbx_log(LOG_WARNING, "SCCPSetMessage: Not an SCCP device provided\n");
 		return 0;
 	}
-	if (text[0] != '\0') {
-		sccp_dev_set_message(d, text, timeout, TRUE, FALSE);
+	
+	pbx_log(LOG_WARNING, "SCCPSetMessage: text:'%s', prio:%d, timeout:%d\n", args.text, priority, timeout);
+	if (!sccp_strlen_zero(args.text)) {
+		if (priority > -1) {
+			sccp_dev_displayprinotify(d, args.text, priority, timeout);
+		} else {
+			sccp_dev_set_message(d, args.text, timeout, TRUE, FALSE);
+		}
 	} else {
-		sccp_dev_clear_message(d, TRUE);
+		if (priority > -1) {
+			sccp_dev_cleardisplayprinotify(d, priority);
+		} else {
+			sccp_dev_clear_message(d, TRUE);
+		}
 	}
 	return 0;
 }
@@ -847,7 +865,7 @@ static int sccp_app_setmessage(PBX_CHANNEL_TYPE * chan, void *data)
 static char *setmessage_name = "SCCPSetMessage";
 static char *old_setmessage_name = "SetMessage";
 static char *setmessage_synopsis = "Send a Message to the current Phone";
-static char *setmessage_descr = "Usage: SCCPSetMessage(\"Message\"[,timeout])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message)\n";
+static char *setmessage_descr = "Usage: SCCPSetMessage(\"Message\"[,timeout][,priority])\n" "       Send a Message to the Calling Device (and remove after timeout, if timeout is ommited will stay until next/empty message). Use priority to set/clear priority notifications. Higher priority levels overrule lower ones.\n";
 
 int sccp_register_dialplan_functions(void)
 {
