@@ -582,13 +582,8 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
 	else
 		strip_binaries="yes"
-		if test "x${GCC}" = "xyes"; then
-			CFLAGS_saved="${CFLAGS_saved} -Og "				dnl -O2 without removing the capabilty of debugging using symbol files (not supported by clang)
-	                CPPFLAGS_saved="${CPPFLAGS_saved} -Og -D_FORTIFY_SOURCE=2"
-		else
-			CFLAGS_saved="${CFLAGS_saved} -O2 "
-	                CPPFLAGS_saved="${CPPFLAGS_saved} -O2 -D_FORTIFY_SOURCE=2"
-		fi
+		CFLAGS_saved="${CFLAGS_saved} -O2 "
+                CPPFLAGS_saved="${CPPFLAGS_saved} -O2 -D_FORTIFY_SOURCE=2"
 		GDB_FLAGS=""
 	fi
 	
