@@ -956,14 +956,19 @@ static void sccp_socket_cleanup_timed_out(void)
 {
 	sccp_session_t *session;
 
+	
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
 		if (session->lastKeepAlive == 0) {
 			// final resort
 			destroy_session(session, 0);
 		} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
-			sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
-			session->session_thread = AST_PTHREADT_NULL;
-			session->lastKeepAlive = 0;
+			pbx_mutex_lock(&GLOB(lock));
+			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+				sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
+				session->session_thread = AST_PTHREADT_NULL;
+				session->lastKeepAlive = 0;
+			}
+			pbx_mutex_unlock(&GLOB(lock));
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
@@ -1001,7 +1006,7 @@ void *sccp_socket_thread(void *ignore)
 
 	while (GLOB(descriptor) > -1) {
 		fds[0].fd = GLOB(descriptor);
-		res = sccp_socket_poll(fds, 1, SCCP_SOCKET_ACCEPT_TIMEOUT);
+		res = sccp_socket_poll(fds, 1, GLOB(keepalive));
 
 		if (res < 0) {
 			if (errno == EINTR || errno == EAGAIN) {
@@ -1009,14 +1014,16 @@ void *sccp_socket_thread(void *ignore)
 			} else {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 			}
-		} else if (GLOB(module_running) && !GLOB(reload_in_progress)) {
-			if (res == 0) {
-				// poll timeout
-				sccp_socket_cleanup_timed_out();
-			} else {
-				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
+		} else if (res == 0) {
+			// poll timeout
+			sccp_socket_cleanup_timed_out();
+		} else {
+			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
+			pbx_mutex_lock(&GLOB(lock));
+			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
 				sccp_accept_connection();
 			}
+			pbx_mutex_unlock(&GLOB(lock));
 		}
 	}
 
