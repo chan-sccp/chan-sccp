@@ -1030,7 +1030,7 @@ void sccp_softkey_post_reload(void)
 //				sccp_handle_soft_key_set_req(d->s, d, NULL);
 			}
 		}
-		SCCP_RWLIST_WRLOCK(&GLOB(devices));
+		SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
 #endif
