@@ -2836,9 +2836,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				GLOB(reload_in_progress) = TRUE;
 				if (!sccp_config_general(readingtype)) {
 					pbx_cli(fd, "Unable to reload configuration.\n");
-					GLOB(reload_in_progress) = FALSE;
-					pbx_mutex_unlock(&GLOB(lock));
-					return RESULT_FAILURE;
+					returnval = RESULT_FAILURE;
+					goto EXIT;
 				}
 				sccp_config_readDevicesLines(readingtype);
 				returnval = RESULT_SUCCESS;
