@@ -378,11 +378,11 @@ int sccp_socket_getOurAddressfor(const struct sockaddr_storage *them, struct soc
 
 void sccp_socket_stop_sessionthread(sccp_session_t * session, uint8_t newRegistrationState)
 {
-	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "%s: Stopping Session Thread\n", DEV_ID_LOG(session->device));
 	if (!session) {
 		pbx_log(LOG_NOTICE, "SCCP: session already terminated\n");
 		return;
 	}
+	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_2 "%s: Stopping Session Thread\n", DEV_ID_LOG(session->device));
 
 	session->session_stop = 1;
 	if (session->device) {
