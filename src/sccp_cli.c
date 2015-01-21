@@ -2818,7 +2818,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				goto EXIT;
 			}
 		} else {
-			return RESULT_SHOWUSAGE;
+			returnval = RESULT_SHOWUSAGE;
+			goto EXIT;
 		}
 	}
 	sccp_config_file_status_t cfg = sccp_config_getConfig(force_reload);
