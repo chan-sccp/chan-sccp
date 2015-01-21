@@ -2513,11 +2513,11 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 	uint64_t x;
 	unsigned int numFoundCodecs = 0;
 
-	skinny_codec_t tempCodecPreferences[ARRAY_LEN(c->preferences.audio)];
-
 	if (!data || !c) {
 		return FALSE;
 	}
+
+	skinny_codec_t tempCodecPreferences[ARRAY_LEN(c->preferences.audio)];
 
 	sccp_copy_string(text, data, sizeof(text));
 
