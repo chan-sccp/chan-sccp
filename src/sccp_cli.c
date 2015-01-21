@@ -3077,7 +3077,8 @@ static int sccp_unregister(int fd, int argc, char *argv[])
 	pbx_cli(fd, "%s: Turn off the monitored line lamps to permit the %s\n", argv[2], argv[1]);
 
 	REQ(msg, RegisterRejectMessage);
-	strncpy(msg->data.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
+	sccp_copy_string(msg->data.RegisterRejectMessage.text, "Unregister user request", StationMaxDisplayTextSize);
+	
 	sccp_dev_send(d, msg);
 
 	d = sccp_device_release(d);

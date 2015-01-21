@@ -2519,7 +2519,7 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 		return FALSE;
 	}
 
-	strncpy(text, data, sizeof(text) - 1);
+	sccp_copy_string(text, data, sizeof(text));
 
 	/* save original preferences */
 	memcpy(&tempCodecPreferences, c->preferences.audio, sizeof(c->preferences.audio));
