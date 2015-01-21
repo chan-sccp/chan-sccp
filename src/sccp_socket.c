@@ -293,15 +293,13 @@ char *sccp_socket_stringify_fmt(const struct sockaddr_storage *sockAddrStorage, 
 	if (!(str = ast_str_thread_get(&sccp_socket_stringify_buf, size))) {
 		return "";
 	}
-	/*
-	if (sccp_socket_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
-		struct sockaddr_storage sockAddrStorage_tmp_ipv4;
-		sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
-#if DEBUG
-		sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
-#endif
-	} else {
-	*/
+	//if (sccp_socket_ipv4_mapped(sockAddrStorage, &sockAddrStorage_tmp_ipv4)) {
+	//	struct sockaddr_storage sockAddrStorage_tmp_ipv4;
+	//	sockAddrStorage_tmp = &sockAddrStorage_tmp_ipv4;
+	//#if DEBUG
+	//	sccp_log(0)("SCCP: ipv4 mapped in ipv6 address\n");
+	//#endif
+	//} else {
 	sockAddrStorage_tmp = sockAddrStorage;
 	//}
 
@@ -959,13 +957,13 @@ static void sccp_socket_cleanup_timed_out(void)
 	sccp_session_t *session;
 
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&GLOB(sessions), session, list) {
-		if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive))) {
-			if (session->session_thread) {
-				sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
-				session->session_thread = AST_PTHREADT_NULL;
-			} else {
-				destroy_session(session, 0);
-			}
+		if (session->lastKeepAlive == 0) {
+			// final resort
+			destroy_session(session, 0);
+		} else if ((time(0) - session->lastKeepAlive) > (5 * GLOB(keepalive)) && (session->session_thread != AST_PTHREADT_NULL)) {
+			sccp_socket_stop_sessionthread(session, SKINNY_DEVICE_RS_FAILED);
+			session->session_thread = AST_PTHREADT_NULL;
+			session->lastKeepAlive = 0;
 		}
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
@@ -1011,16 +1009,15 @@ void *sccp_socket_thread(void *ignore)
 			} else {
 				pbx_log(LOG_ERROR, "SCCP poll() returned %d. errno: %d (%s)\n", res, errno, strerror(errno));
 			}
-
-		} else if (res == 0) {
-			// poll timeout
-		} else {
-			if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+		} else if (GLOB(module_running) && !GLOB(reload_in_progress)) {
+			if (res == 0) {
+				// poll timeout
+				sccp_socket_cleanup_timed_out();
+			} else {
 				sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Accept Connection\n");
 				sccp_accept_connection();
 			}
 		}
-		sccp_socket_cleanup_timed_out();
 	}
 
 	sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_3 "SCCP: Exit from the socket thread\n");
