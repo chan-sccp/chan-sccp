@@ -732,8 +732,8 @@ int sccp_reload(void)
 	pbx_mutex_lock(&GLOB(lock));
 	if (GLOB(reload_in_progress) == TRUE) {
 		pbx_log(LOG_ERROR, "SCCP reloading already in progress.\n");
-		pbx_mutex_unlock(&GLOB(lock));
-		return 1;
+		returnval = 1;
+		goto EXIT;
 	}
 
 	sccp_config_file_status_t cfg = sccp_config_getConfig(FALSE);
@@ -747,16 +747,12 @@ int sccp_reload(void)
 			pbx_log(LOG_NOTICE, "SCCP reloading configuration.\n");
 			readingtype = SCCP_CONFIG_READRELOAD;
 			GLOB(reload_in_progress) = TRUE;
-			pbx_mutex_unlock(&GLOB(lock));
 			if (!sccp_config_general(readingtype)) {
 				pbx_log(LOG_ERROR, "Unable to reload configuration.\n");
-				GLOB(reload_in_progress) = FALSE;
-				pbx_mutex_unlock(&GLOB(lock));
-				return 2;
+				returnval = 2;
+				break;
 			}
 			sccp_config_readDevicesLines(readingtype);
-			pbx_mutex_lock(&GLOB(lock));
-			GLOB(reload_in_progress) = FALSE;
 			returnval = 3;
 			break;
 		case CONFIG_STATUS_FILE_OLD:
@@ -780,6 +776,8 @@ int sccp_reload(void)
 			returnval = 4;
 			break;
 	}
+EXIT:
+	GLOB(reload_in_progress) = FALSE;
 	pbx_mutex_unlock(&GLOB(lock));
 	return returnval;
 }

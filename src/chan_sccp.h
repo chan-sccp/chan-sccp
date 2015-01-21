@@ -114,7 +114,6 @@ char SCCP_REVISIONSTR[30];
 #define SCCP_FIRST_SERVICEINSTANCE 1										/* whats the instance of the first service button */
 #define SCCP_FIRST_SPEEDDIALINSTANCE 1										/* whats the instance of the first speeddial button */
 
-#define SCCP_SOCKET_ACCEPT_TIMEOUT 2000
 #define SCCP_DISPLAYSTATUS_TIMEOUT 5
 
 /* Simulated Enbloc Dialing */
@@ -835,8 +834,8 @@ struct sccp_line {
 	char *namedpickupgroup;											/*!< Named Pickup Group */
 #endif
 
-	char cid_num[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) *//*!< Caller(ID) to use on outgoing calls  */
-	char cid_name[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) *//*!< Caller(Name) to use on outgoing calls */
+	char cid_num[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) */ /*!< Caller(ID) to use on outgoing calls  */
+	char cid_name[SCCP_MAX_EXTENSION];									/* smaller would be better (i.e. 32) */ /*!< Caller(Name) to use on outgoing calls */
 
 	int amaflags;												/*!< amaflags */
 	boolean_t echocancel;											/*!< echocancel phone support */
@@ -1079,7 +1078,7 @@ struct sccp_device {
 	sccp_mutex_t messageStackLock;										/*!< Message Stack Lock */
 #endif
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
-	sccp_conference_t *conference;										/*!< conference we are part of *//*! \todo to be removed in favor of conference_id */
+	sccp_conference_t *conference;										/*!< conference we are part of */ /*! \todo to be removed in favor of conference_id */
 	uint32_t conference_id;											/*!< Conference ID */
 #ifdef CS_SCCP_CONFERENCE
 	boolean_t conferencelist_active;									/*!< ConfList is being displayed on this device */
@@ -1233,7 +1232,7 @@ struct sccp_channel {
 
 	sccp_channel_t *parentChannel;										/*!< if we are a cfwd channel, our parent is this */
 
-	sccp_conference_t *conference;										/*!< are we part of a conference? *//*! \todo to be removed instead of conference_id */
+	sccp_conference_t *conference;										/*!< are we part of a conference? */ /*! \todo to be removed instead of conference_id */
 	uint32_t conference_id;											/*!< Conference ID (might be safer to use instead of conference) */
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 
