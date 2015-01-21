@@ -172,7 +172,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 		   This would help users dial from call history lists on other phones, which do not have enbloc dialing,
 		   when using shared lines. */
 		if (NULL != cid_number && strlen(cid_number) > 0 && strlen(cid_number) < sizeof(suffixedNumber) - 2 && '0' == cid_number[0]) {
-			strncpy(suffixedNumber, cid_number, strlen(cid_number));
+			sccp_copy_string(suffixedNumber, cid_number, sizeof(suffixedNumber));
 			suffixedNumber[strlen(cid_number) + 0] = '#';
 			suffixedNumber[strlen(cid_number) + 1] = '\0';
 			sccp_channel_set_callingparty(c, cid_name, suffixedNumber);
