@@ -28,13 +28,13 @@
 
 /* Macro for Sessions */
 #define sccp_session_lock(x)			pbx_mutex_lock(&x->lock)
-#define sccp_session_unlock(x)		pbx_mutex_unlock(&x->lock)
-#define sccp_session_trylock(x)		pbx_mutex_trylock(&x->lock)
+#define sccp_session_unlock(x)			pbx_mutex_unlock(&x->lock)
+#define sccp_session_trylock(x)			pbx_mutex_trylock(&x->lock)
 
 /* Macro for Globals */
 #define sccp_globals_lock(x)			pbx_mutex_lock(&sccp_globals->x)
-#define sccp_globals_unlock(x)		pbx_mutex_unlock(&sccp_globals->x)
-#define sccp_globals_trylock(x)		pbx_mutex_trylock(&sccp_globals->x)
+#define sccp_globals_unlock(x)			pbx_mutex_unlock(&sccp_globals->x)
+#define sccp_globals_trylock(x)			pbx_mutex_trylock(&sccp_globals->x)
 
 /* Macro for Lists */
 #define SCCP_LIST_LOCK(x)			pbx_mutex_lock(&(x)->lock)
@@ -42,19 +42,11 @@
 #define SCCP_LIST_TRYLOCK(x)			pbx_mutex_trylock(&(x)->lock)
 
 /* Macro for read/write Lists */
-#if 0														/* extra rwlock debugging / default off */
-#define SCCP_RWLIST_RDLOCK(x)			{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_RDLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_rdlock(&(x)->lock);}
-#define SCCP_RWLIST_WRLOCK(x)			{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_WRLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_wrlock(&(x)->lock);}
-#define SCCP_RWLIST_UNLOCK(x)			{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_UNLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_unlock(&(x)->lock);}
-#define SCCP_RWLIST_TRYRDLOCK(x)		{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_TRYRDLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_tryrdlock(&(x)->lock);}
-#define SCCP_RWLIST_TRYWRLOCK(x)		{ast_log(AST_LOG_NOTICE, "%d (%s) SCCP_RWLIST_TRYRWLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); pbx_rwlock_trywrlock(&(x)->lock);}
-#else
 #define SCCP_RWLIST_RDLOCK(x)			pbx_rwlock_rdlock(&(x)->lock)
 #define SCCP_RWLIST_WRLOCK(x)			pbx_rwlock_wrlock(&(x)->lock)
 #define SCCP_RWLIST_UNLOCK(x)			pbx_rwlock_unlock(&(x)->lock)
 #define SCCP_RWLIST_TRYRDLOCK(x)		pbx_rwlock_tryrdlock(&(x)->lock)
 #define SCCP_RWLIST_TRYWRLOCK(x)		pbx_rwlock_trywrlock(&(x)->lock)
-#endif
 
 // Declare CAS32 / CAS_PTR and CAS_TYPE for easy reference in other functions
 #ifdef SCCP_ATOMIC

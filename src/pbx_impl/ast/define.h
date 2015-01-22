@@ -195,19 +195,30 @@ typedef struct ast_event pbx_event_t;
 #define pbx_mutex_destroy ast_mutex_destroy
 #define pbx_mutex_init ast_mutex_init
 #define pbx_mutex_init_notracking ast_mutex_init_notracking
-#define pbx_mutex_lock ast_mutex_lock
-#define pbx_mutex_trylock ast_mutex_trylock
-#define pbx_mutex_unlock ast_mutex_unlock
-
 #define pbx_rwlock_t ast_rwlock_t
 #define pbx_rwlock_destroy ast_rwlock_destroy
 #define pbx_rwlock_init ast_rwlock_init
 #define pbx_rwlock_init_notracking ast_rwlock_init_notracking
+
+#if CS_LOCK_DEBUG
+#define pbx_mutex_lock(x) {ast_debug(4, "%d (%s) MUTEX_LOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_mutex_lock(x);}
+#define pbx_mutex_trylock(x) {ast_debug(4, "%d (%s) MUTEX_TRYLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_mutex_trylock(x);}
+#define pbx_mutex_unlock(x) {ast_debug(4, "%d (%s) MUTEX_UNLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_mutex_unlock(x);}
+#define pbx_rwlock_rdlock(x) {ast_debug(5, "%d (%s) RWLOCK_RDLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_rdlock(x);}
+#define pbx_rwlock_wrlock(x) {ast_debug(5, "%d (%s) RWLOCK_WRLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_wrlock(x);}
+#define pbx_rwlock_tryrdlock(x) {ast_debug(5, "%d (%s) RWLOCK_TRYRDLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_tryrdlock(x);}
+#define pbx_rwlock_trywrlock(x) {ast_debug(5, "%d (%s) RWLOCK_TRYWRLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_trywrlock(x);}
+#define pbx_rwlock_unlock(x) {ast_debug(5, "%d (%s) RWLOCK_UNLOCK: " #x ": %p\n", __LINE__, __PRETTY_FUNCTION__, x); ast_rwlock_unlock(x);}
+#else
+#define pbx_mutex_lock ast_mutex_lock
+#define pbx_mutex_trylock ast_mutex_trylock
+#define pbx_mutex_unlock ast_mutex_unlock
 #define pbx_rwlock_rdlock ast_rwlock_rdlock
 #define pbx_rwlock_wrlock ast_rwlock_wrlock
 #define pbx_rwlock_tryrdlock ast_rwlock_tryrdlock
 #define pbx_rwlock_trywrlock ast_rwlock_trywrlock
 #define pbx_rwlock_unlock ast_rwlock_unlock
+#endif
 
 #define pbx_park_call ast_park_call
 #define pbx_party_name_free ast_party_name_free
