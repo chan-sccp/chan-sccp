@@ -274,7 +274,7 @@ int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const ch
 	}
 
 	if (delta != 0) {
-		fprintf(sccp_ref_debug_log, "%p,%s%d,%d,%s,%d,%s,%d,%s:%s\n", ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj ? obj->refcount : -1, (&obj_info[obj->type])->datatype, obj->identifier);
+		fprintf(sccp_ref_debug_log, "%p,%s%d,%d,%s,%d,%s,%d,%s:%s\n", ptr, (delta < 0 ? "" : "+"), delta, ast_get_tid(), file, line, func, obj->refcount, (&obj_info[obj->type])->datatype, obj->identifier);
 	}
 	if (obj->refcount + delta == 0 && (&obj_info[obj->type])->destructor != NULL) {
 		fprintf(sccp_ref_debug_log, "%p,%d,%d,%s,%d,%s,**destructor**,%s:%s\n", ptr, delta, ast_get_tid(), file, line, func, (&obj_info[obj->type])->datatype, obj->identifier);
