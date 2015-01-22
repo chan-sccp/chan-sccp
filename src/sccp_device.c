@@ -1479,7 +1479,7 @@ void sccp_dev_cleardisplayprinotify(const sccp_device_t * d, const uint8_t prior
 	msg->data.ClearPriNotifyMessage.lel_priority = htolel(priority);
 
 	sccp_dev_send(d, msg);
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Clear the display priority notify message\n", d->id);
 }
 
 /*!
@@ -1498,12 +1498,11 @@ void sccp_dev_cleardisplayprinotify(const sccp_device_t * d, const uint8_t prior
 //void sccp_dev_displayprinotify(sccp_device_t * d, char *msg, uint32_t priority, uint32_t timeout)
 void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, const uint8_t priority, const uint8_t timeout, const char *file, const int lineno, const char *pretty_function)
 {
-	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: ( %s:%d:%s ) sccp_dev_displayprinotify '%s' (%d/%d)\n", DEV_ID_LOG(d), file, lineno, pretty_function, msg, timeout, priority);
-
 	if (!d || !d->session || !d->protocol || !d->hasDisplayPrompt()) {
 		return;
 	}
 	if (!msg || sccp_strlen_zero(msg)) {
+		sccp_dev_cleardisplayprinotify(d, priority);
 		return;
 	}
 	d->protocol->displayPriNotify(d, priority, timeout, msg);
