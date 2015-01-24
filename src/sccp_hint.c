@@ -42,6 +42,9 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  */
 typedef struct sccp_hint_SubscribingDevice sccp_hint_SubscribingDevice_t;
 typedef struct sccp_hint_list sccp_hint_list_t;
+#ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+static char default_eid_str[32];
+#endif
 
 struct sccp_hint_SubscribingDevice {
 
@@ -121,7 +124,15 @@ static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, co
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *data)
 {
-
+	char eid_str[32] = "";
+	const struct ast_eid *eid = ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
+	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
+	if (!ast_eid_cmp(&ast_eid_default, eid)) {
+		// If the event originate from this server, skip updating (Was already done in sccp_hint_notifyPBX).
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Skipping distribute devstate from EID:'%s', MYEID:'%s'\n", eid_str, default_eid_str);
+		return;
+	}
+	
 	sccp_hint_list_t *hint;
 	const char *cidName;
 	const char *cidNumber;
@@ -131,7 +142,7 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
 	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
 
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL");
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
 
 	if (cidName) {
 		sccp_copy_string(hint->callInfo.partyName, cidName, sizeof(hint->callInfo.partyName));
@@ -167,6 +178,9 @@ void sccp_hint_module_start(void)
 	SCCP_LIST_HEAD_INIT(&lineStates);
 	SCCP_LIST_HEAD_INIT(&sccp_hint_subscriptions);
 	sccp_event_subscribe(SCCP_EVENT_DEVICE_REGISTERED | SCCP_EVENT_DEVICE_UNREGISTERED | SCCP_EVENT_DEVICE_DETACHED | SCCP_EVENT_DEVICE_ATTACHED | SCCP_EVENT_LINESTATUS_CHANGED | SCCP_EVENT_FEATURE_CHANGED, sccp_hint_eventListener, TRUE);
+#ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+	ast_eid_to_str(default_eid_str, sizeof(default_eid_str), &ast_eid_default);
+#endif
 }
 
 /*!
@@ -944,7 +958,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
 	enum ast_device_state oldDeviceState = AST_DEVICE_NOT_INUSE;
 
-#ifndef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+	/* Local Update */
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (!strncasecmp(channelName, hint->hint_dialplan, sizeof(channelName))) {
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyPBX) %s <==> %s \n", channelName, hint->hint_dialplan);
@@ -956,18 +970,16 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			break;
 		}
 	}
-#endif
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
-	// if (hint && lineState->state == hint->currentState) {
-	if (hint && newDeviceState == oldDeviceState) {
+	if (newDeviceState == oldDeviceState) {
 		sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about changes e.g. cid update */
-	} else {
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+		/* Update Remote Servers Only (EID Will be checked upon Receipt of the CallBack / EID is added automatically)*/
 		pbx_event_t *event;
-
-		event = pbx_event_new(AST_EVENT_DEVICE_STATE, 
+		
+		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE, 
 			AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
 			AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
 			AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
@@ -975,9 +987,10 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, 
 			AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
-		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+//		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
 #else
+	} else {
 		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
 #endif
 	}
