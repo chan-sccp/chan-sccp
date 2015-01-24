@@ -813,11 +813,13 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			 *  - rescheduling sccp_pbx_sched_dial
 			 */
 
-			if (!c->scheduler.deny) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-				sccp_channel_schedule_digittimout(c, GLOB(digittimeout));
-			} else {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
+				if (!c->scheduler.deny) {
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
+					sccp_channel_schedule_digittimout(c, GLOB(digittimeout));
+				} else {
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+				}
 			}
 			res = 0;
 			break;
