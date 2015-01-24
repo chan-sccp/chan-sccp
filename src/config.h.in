@@ -86,15 +86,6 @@
 /* CLANG_BLOCKS Defined... */
 #undef CLANG_BLOCKS
 
-/* Some configure tests will unexpectedly fail if configure is run by a
-   non-root user. These may be able to be tested at runtime. */
-#undef CONFIGURE_RAN_AS_ROOT
-
-/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
-   systems. This function is required for `alloca.c' support on those systems.
-   */
-#undef CRAY_STACKSEG_END
-
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
@@ -109,9 +100,6 @@
 
 /* 'AST_CONTROL_REDIRECTING' available */
 #undef CS_AST_CONTROL_REDIRECTING
-
-/* 'AST_CONTROL_SRCCHANGE' available */
-#undef CS_AST_CONTROL_SRCCHANGE
 
 /* 'AST_DEVICE_RINGING' available */
 #undef CS_AST_DEVICE_RINGING
@@ -228,6 +216,9 @@
 /* experimental xml enabled */
 #undef CS_EXPERIMENTAL_XML
 
+/* lock debug enabled */
+#undef CS_LOCK_DEBUG
+
 /* asterisk compiled with 'LOW_MEMORY' */
 #undef CS_LOW_MEMORY
 
@@ -267,11 +258,11 @@
 /* Using video layer */
 #undef CS_SCCP_VIDEOLAYER
 
+/* distributed devicestate */
+#undef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+
 /* Define to 1 if internal poll should be used. */
 #undef CS_USE_POLL_COMPAT
-
-/* Define to 1 if using `alloca.c'. */
-#undef C_ALLOCA
 
 /* Using Darwin / Apple OSX */
 #undef DARWIN
@@ -287,13 +278,6 @@
 
 /* Define if pointers to integers require aligned access */
 #undef HAVE_ALIGNED_ACCESS_REQUIRED
-
-/* Define to 1 if you have `alloca', as a function or macro. */
-#undef HAVE_ALLOCA
-
-/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
-   */
-#undef HAVE_ALLOCA_H
 
 /* Define to 1 if you have the `argz_add' function. */
 #undef HAVE_ARGZ_ADD
@@ -319,9 +303,6 @@
 /* Define to 1 if you have the `argz_stringify' function. */
 #undef HAVE_ARGZ_STRINGIFY
 
-/* Define to 1 if you have the <arpa/nameser.h> header file. */
-#undef HAVE_ARPA_NAMESER_H
-
 /* Define to 1 if you have the <assert.h> header file. */
 #undef HAVE_ASSERT_H
 
@@ -343,9 +324,6 @@
 /* Define to 1 if you have the <byteswap.h> header file. */
 #undef HAVE_BYTESWAP_H
 
-/* Define to 1 if you have the `calloc' function. */
-#undef HAVE_CALLOC
-
 /* Uses Callweaver as PBX */
 #undef HAVE_CALLWEAVER
 
@@ -362,18 +340,6 @@
 /* Define to 1 if you have the declaration of `cygwin_conv_path', and to 0 if
    you don't. */
 #undef HAVE_DECL_CYGWIN_CONV_PATH
-
-/* Define to 1 if you have the declaration of `INET6_ADDRSTRLEN', and to 0 if
-   you don't. */
-#undef HAVE_DECL_INET6_ADDRSTRLEN
-
-/* Define to 1 if you have the declaration of `INET_ADDRSTRLEN', and to 0 if
-   you don't. */
-#undef HAVE_DECL_INET_ADDRSTRLEN
-
-/* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
-   don't. */
-#undef HAVE_DECL_STRERROR_R
 
 /* Define to 1 if you have the declaration of `tzname', and to 0 if you don't.
    */
@@ -408,12 +374,6 @@
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
-
-/* Define to 1 if you have the `free' function. */
-#undef HAVE_FREE
-
-/* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
-#undef HAVE_FSEEKO
 
 /* Define to 1 if you have the `gethostbyname' function. */
 #undef HAVE_GETHOSTBYNAME
@@ -487,20 +447,11 @@
 /* Define to 1 if you have the <mach-o/dyld.h> header file. */
 #undef HAVE_MACH_O_DYLD_H
 
-/* Define to 1 if you have the `malloc' function. */
-#undef HAVE_MALLOC
-
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
-/* Define to 1 if you have the `memset' function. */
-#undef HAVE_MEMSET
-
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
-
-/* Define to 1 if you have the <netdb.h> header file. */
-#undef HAVE_NETDB_H
 
 /* Define to 1 if you have the <netinet/in.h> header file. */
 #undef HAVE_NETINET_IN_H
@@ -517,23 +468,8 @@
 /* Found 'asterisk/app.h' */
 #undef HAVE_PBX_APP_H
 
-/* Found 'asterisk/astdb.h' */
-#undef HAVE_PBX_ASTDB_H
-
-/* Found 'asterisk/astobj2.h' */
-#undef HAVE_PBX_ASTOBJ2_H
-
-/* Found 'asterisk/bridge_features.h' */
-#undef HAVE_PBX_BRIDGING_FEATURES_H
-
 /* Found 'asterisk/bridging_roles.h' */
 #undef HAVE_PBX_BRIDGING_ROLES_H
-
-/* Found 'asterisk/callerid.h' */
-#undef HAVE_PBX_CALLERID_H
-
-/* Found 'asterisk/causes.h' */
-#undef HAVE_PBX_CAUSES_H
 
 /* Found 'asterisk/stringfields.h' */
 #undef HAVE_PBX_CEL_H
@@ -544,26 +480,14 @@
 /* Found 'asterisk/channel_pvt.h' */
 #undef HAVE_PBX_CHANNEL_pvt_H
 
-/* Found 'asterisk/cli.h' */
-#undef HAVE_PBX_CLI_H
-
-/* Found 'asterisk/config.h' */
-#undef HAVE_PBX_CONFIG_H
-
 /* Found 'asterisk/devicestate.h' */
 #undef HAVE_PBX_DEVICESTATE_H
 
 /* Found 'asterisk/endian.h' */
 #undef HAVE_PBX_ENDIAN_H
 
-/* Found 'asterisk/event_defs.h' */
-#undef HAVE_PBX_EVENT_DEFS_CIDNAME_H
-
-/* WOOHOO Found 'asterisk/event.h' */
+/* Found 'asterisk/event.h' */
 #undef HAVE_PBX_EVENT_H
-
-/* Found 'asterisk/extconf.h' */
-#undef HAVE_PBX_EXTCONF_H
 
 /* Found 'asterisk/features.h' */
 #undef HAVE_PBX_FEATURES_H
@@ -580,9 +504,6 @@
 /* Found 'asterisk/lock.h' */
 #undef HAVE_PBX_LOCK_H
 
-/* Found 'asterisk/logger.h' */
-#undef HAVE_PBX_LOGGER_H
-
 /* Found 'asterisk/manager.h' */
 #undef HAVE_PBX_MANAGER_H
 
@@ -591,18 +512,6 @@
 
 /* Found 'asterisk/message.h' */
 #undef HAVE_PBX_MESSAGE_H
-
-/* Found 'asterisk/module.h' */
-#undef HAVE_PBX_MODULE_H
-
-/* Found 'asterisk/musiconhold.h' */
-#undef HAVE_PBX_MUSICONHOLD_H
-
-/* Found 'asterisk/astdb.h' */
-#undef HAVE_PBX_NETWORK_H
-
-/* Found 'asterisk/options.h' */
-#undef HAVE_PBX_OPTIONS_H
 
 /* Found 'asterisk/pbx.h' */
 #undef HAVE_PBX_PBX_H
@@ -625,9 +534,6 @@
 /* Found 'asterisk/strings.h' */
 #undef HAVE_PBX_STRINGS_H
 
-/* Found 'asterisk/translate.h' */
-#undef HAVE_PBX_TRANSLATE_H
-
 /* Found 'asterisk/utils.h' */
 #undef HAVE_PBX_UTILS_H
 
@@ -643,20 +549,8 @@
 /* Define to 1 if you have the `readdir' function. */
 #undef HAVE_READDIR
 
-/* Define to 1 if you have the `realloc' function. */
-#undef HAVE_REALLOC
-
-/* Define to 1 if you have the <resolv.h> header file. */
-#undef HAVE_RESOLV_H
-
-/* Define to 1 if you have the `select' function. */
-#undef HAVE_SELECT
-
 /* Define if you have the shl_load function. */
 #undef HAVE_SHL_LOAD
-
-/* Define to 1 if you have the `socket' function. */
-#undef HAVE_SOCKET
 
 /* Define to 1 if stdbool.h conforms to C99. */
 #undef HAVE_STDBOOL_H
@@ -670,21 +564,6 @@
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
-/* Define to 1 if you have the `strcasecmp' function. */
-#undef HAVE_STRCASECMP
-
-/* Define to 1 if you have the `strchr' function. */
-#undef HAVE_STRCHR
-
-/* Define to 1 if you have the `strdup' function. */
-#undef HAVE_STRDUP
-
-/* Define to 1 if you have the `strerror' function. */
-#undef HAVE_STRERROR
-
-/* Define to 1 if you have the `strerror_r' function. */
-#undef HAVE_STRERROR_R
-
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
@@ -696,12 +575,6 @@
 
 /* Define to 1 if you have the `strlcpy' function. */
 #undef HAVE_STRLCPY
-
-/* Define to 1 if you have the `strncasecmp' function. */
-#undef HAVE_STRNCASECMP
-
-/* Define to 1 if you have the `strsep' function. */
-#undef HAVE_STRSEP
 
 /* Define to 1 if `tm_zone' is a member of `struct tm'. */
 #undef HAVE_STRUCT_TM_TM_ZONE
@@ -746,10 +619,6 @@
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
-
-/* Define to 1 if your system can support larger than default select bitmasks.
-   */
-#undef HAVE_VARIABLE_FDSET
 
 /* This value is set to 1 to indicate that the system argz facility works */
 #undef HAVE_WORKING_ARGZ
@@ -862,9 +731,6 @@
 /* Found Atomic Ops Library */
 #undef SCCP_ATOMIC_OPS
 
-/* SCCP_BIG_ENDIAN */
-#undef SCCP_BIG_ENDIAN
-
 /* Define the SCCP Branch */
 #undef SCCP_BRANCH
 
@@ -886,9 +752,6 @@
 /* defined SCCP_HASH_PRIME */
 #undef SCCP_HASH_PRIME
 
-/* SCCP_LITTLE_ENDIAN */
-#undef SCCP_LITTLE_ENDIAN
-
 /* Not Found 'AST_MAX_ACCOUNT_CODE' in asterisk/channel.h */
 #undef SCCP_MAX_ACCOUNT_CODE
 
@@ -904,31 +767,14 @@
 /* Define the SCCP Version */
 #undef SCCP_VERSION
 
-/* The size of `fd_set.fds_bits', as computed by sizeof. */
-#undef SIZEOF_FD_SET_FDS_BITS
-
 /* using SOLARIS */
 #undef SOLARIS
-
-/* If using the C implementation of alloca, define if you know the
-   direction of stack growth for your system; otherwise it will be
-   automatically deduced at runtime.
-	STACK_DIRECTION > 0 => grows toward higher addresses
-	STACK_DIRECTION < 0 => grows toward lower addresses
-	STACK_DIRECTION = 0 => direction of growth unknown */
-#undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* Define to 1 if strerror_r returns char *. */
-#undef STRERROR_R_CHAR_P
-
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
-
-/* Define to a type of the same size as fd_set.fds_bits[[0]] */
-#undef TYPEOF_FD_SET_FDS_BITS
 
 /* Define UI64FMT as "%llu" */
 #undef UI64FMT
@@ -973,20 +819,6 @@
 # endif
 #endif
 
-/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
-#endif
-
-/* Number of bits in a file offset, on hosts where this is settable. */
-#undef _FILE_OFFSET_BITS
-
-/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
-#undef _LARGEFILE_SOURCE
-
-/* Define for large files, on AIX-style hosts. */
-#undef _LARGE_FILES
-
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
@@ -997,38 +829,14 @@
 /* Define to 1 if you need to in order for `stat' and other things to work. */
 #undef _POSIX_SOURCE
 
-/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
-   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
-   #define below would cause a syntax error. */
-#undef _UINT32_T
-
-/* Define for Solaris 2.5.1 so the uint64_t typedef from <sys/synch.h>,
-   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
-   #define below would cause a syntax error. */
-#undef _UINT64_T
-
-/* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
-   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
-   #define below would cause a syntax error. */
-#undef _UINT8_T
-
 /* Heya, it's windows */
 #undef _WIN32_WINNT
-
-/* for the places where it is not defined */
-#undef __BIG_ENDIAN
-
-/* Little Endian */
-#undef __BYTE_ORDER
 
 /* make sure __CYGWIN__ is defined ... */
 #undef __CYGWIN__
 
 /* Using Darwin / Apple OSX */
 #undef __Darwin__
-
-/* for the places where it is not defined */
-#undef __LITTLE_ENDIAN
 
 /* Define so that glibc/gnulib argp.h does not typedef error_t. */
 #undef __error_t_defined
@@ -1042,9 +850,6 @@
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* conference distributed devicestate */
-#undef distributed_devicestate
-
 /* Define to a type to use for `error_t' if it is not otherwise available. */
 #undef error_t
 
@@ -1054,59 +859,8 @@
 #undef inline
 #endif
 
-/* Define to the type of a signed integer type of width exactly 16 bits if
-   such a type exists and the standard includes do not define it. */
-#undef int16_t
-
-/* Define to the type of a signed integer type of width exactly 32 bits if
-   such a type exists and the standard includes do not define it. */
-#undef int32_t
-
-/* Define to the type of a signed integer type of width exactly 64 bits if
-   such a type exists and the standard includes do not define it. */
-#undef int64_t
-
-/* Define to the type of a signed integer type of width exactly 8 bits if such
-   a type exists and the standard includes do not define it. */
-#undef int8_t
-
 /* Found 'ast_app_separate_args' in asterisk/app.h */
 #undef sccp_app_separate_args
-
-/* Define to `unsigned int' if <sys/types.h> does not define. */
-#undef size_t
-
-/* Define to `int' if <sys/types.h> does not define. */
-#undef ssize_t
-
-/* Define to `uint16_t' if <sys/types.h> does not define. */
-#undef u_int16_t
-
-/* Define to `uint32_t' if <sys/types.h> does not define. */
-#undef u_int32_t
-
-/* Define to `uint8_t' if <sys/types.h> does not define. */
-#undef u_int8_t
-
-/* Define to the type of an unsigned integer type of width exactly 16 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint16_t
-
-/* Define to the type of an unsigned integer type of width exactly 32 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint32_t
-
-/* Define to the type of an unsigned integer type of width exactly 64 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint64_t
-
-/* Define to the type of an unsigned integer type of width exactly 8 bits if
-   such a type exists and the standard includes do not define it. */
-#undef uint8_t
-
-/* Define to empty if the keyword `volatile' does not work. Warning: valid
-   code using `volatile' can become incorrect without. Disable with care. */
-#undef volatile
 
 
 #endif /* CHAN_SCCP_CONFIG_H */
