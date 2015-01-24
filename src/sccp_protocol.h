@@ -1848,13 +1848,11 @@ typedef union {
 	struct {
 		uint32_t lel_keepAliveInterval;									/*!< Keep Alive Interval to the Primary Server */
 		char dateTemplate[StationDateTemplateSize];							/*!< Date Template */
-		uint8_t filler1;										/*!< Filler 1 */
-		uint8_t filler2;										/*!< Filler 2 */
+		uint16_t alignmentPadding;									/*!< Filler 1 */
 		uint32_t lel_secondaryKeepAliveInterval;							/*!< Keep Alive Interval to the Secundairy Server */
-		uint8_t protocolVer;										/*!< Protocol Version */
-		uint8_t unknown1;										/*!< Unknown */
-		uint8_t unknown2;										/*!< Unknown */
-		uint8_t unknown3;										/*!< Unknown */
+		uint8_t maxProtocolVer;										/*!< Protocol Version */
+		uint8_t ProtocolVer2;										/*!< Protocol Version Part 2 */
+		uint16_t PhoneFeatures;										/*!< PhoneFeatures */
 	} RegisterAckMessage;											/*!< Register Acknowledgement Message Structure */
 
 	struct {
