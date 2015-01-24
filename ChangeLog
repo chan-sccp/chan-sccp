@@ -1,3 +1,68 @@
+2015-01-22  ddegroot
+
+	* [r5875] src/pbx_impl/ast/define.h, src/sccp_lock.h,
+	  src/sccp_refcount.c: Cleanup: Move lock debugging to define.h.
+	  Remove unnecessary obj check in refcount debug.
+
+	* [r5874] src/sccp_device.c: Fix: Make cleardisplayprinotify only
+	  remove the message with the right priority
+
+2015-01-21  ddegroot
+
+	* [r5873] src/chan_sccp.c, src/chan_sccp.h, src/sccp_socket.c:
+	  Enhancement/Cleanup: reload code in regards to socket session
+	  accept and cleanup
+
+	* [r5872] src/sccp_channel.c, src/sccp_socket.c: Fix: pointer
+	  derefence before NULL pointer check
+
+	* [r5871] src/sccp_channel.c, src/sccp_cli.c, src/sccp_pbx.c: Fix:
+	  Replaced three instances of strncpy (two without the -1 as size
+	  correction) with preferred sccp_copy_string function.
+
+	* [r5870] src/chan_sccp.c: Fix: hanging
+	  SCCP_RWLIST_UNLOCK(&GLOB(lines)) which was not locked beforehand
+
+	* [r5869] src/sccp_socket.c: Fix: making sure
+	  sccp_socket_cleanup_timed_out does not run during reload
+
+	* [r5868] src/sccp_softkeys.c: Fix: SCCP_RWLIST_WRLOCK which should
+	  have been SCCP_RWLIST_UNLOCK
+
+	* [r5867] src/sccp_cli.c: Fix: releasing 'global lock'/'reload in
+	  progress' when accidentaly mistyping sccp reload (2)
+
+	* [r5866] src/sccp_cli.c: Fix: releasing 'global lock'/'reload in
+	  progress' when accidentaly mistyping sccp reload
+
+2015-01-20  ddegroot
+
+	* [r5865] src/sccp_appfunctions.c: Allow setting priority notify
+	  messages using SCCPSetMessage(<text>[, timeout][, priority])
+	  
+	  Setting a priority notify message with a higher priority
+	  overrules lower priority messages, lower one will not be shown
+	  until higher one is removed.
+	  
+	  Example:
+	  macro sccp_set_message() {
+	  Noop(SCCPSetMessage);
+	  SCCPSetMessage(); // clear standard status prompt
+	  SCCPSetMessage(,0,1); // clear priority 1 notify message
+	  SCCPSetMessage(,0,2); // clear priority 2 notify message
+	  SCCPSetMessage(Incoming 1 prio1,0,1); // set priority 1 notify
+	  SCCPSetMessage(Incoming 2 prio2,0,2); // set priority 2 notify
+	  SCCPSetMessage(Incoming 3 prio1,0,1); // set priotity 1 notify
+	  (has no effect until priority 2 is cleared
+	  };
+
+	* [r5864] src/sccp_device.c, src/sccp_device.h: Fix:
+	  cleardisplayprinotify
+
+	* [r5863] ChangeLog, autoconf/extra.m4, configure, src/config.h.in:
+	  Revert: -Og optimization which not all gcc compilers seem to like
+	  either
+
 2015-01-19  ddegroot
 
 	* [r5862] ChangeLog, autoconf/compile[ADD], doc/Makefile.in,

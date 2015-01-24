@@ -31,7 +31,6 @@ AC_DEFUN([CS_SETUP_BUILD],[
 		BUILD_KERNEL="`${UNAME} -r`"
 		if test "_${AWK}" != "_No" && test "_${FINGER}" != "_No"; then
 			BUILD_USER="`${FINGER} -lp |${HEAD} -n1 |${CUT} -d: -f3|${CUT} -c 2-`"
-dnl			BUILD_USER="`${FINGER} -lp |${HEAD} -n1 |${AWK} -F:\  '{print $3}'`"
 		elif test ! -z "${USERNAME}"; then
 			BUILD_USER="${USERNAME}"		
 		else
@@ -152,10 +151,10 @@ AC_DEFUN([CS_SETUP_HOST_PLATFORM],[
 AC_DEFUN([CS_SETUP_ENVIRONMENT], [
 	AC_LANG_SAVE
 	AC_LANG_C
-	AC_SYS_LARGEFILE
+dnl	AC_SYS_LARGEFILE
 	AC_DISABLE_STATIC
-	AC_FUNC_ALLOCA
-	AC_HEADER_RESOLV
+dnl	AC_FUNC_ALLOCA
+dnl	AC_HEADER_RESOLV
 dnl	AC_GNU_SOURCE
 
 	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
@@ -199,7 +198,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PROG_AWK
 	AC_PROG_LN_S
 	AC_PROG_MAKE_SET
-	AC_FUNC_STRERROR_R
+dnl	AC_FUNC_STRERROR_R
 	AC_C_CONST
 	AC_C_INLINE
 	AC_PROG_LIBTOOL
@@ -229,8 +228,7 @@ AC_DEFUN([CS_CC_VERSION_CHECK], [
 		fi
 		GCC=yes
 	elif test "${CC}" = "clang"; then
-		dnl CLANG_CHECK=`echo | clang -fblocks -dM -E -`
-		if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
+				if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
 			CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
 			AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
 			CC_works=1
@@ -266,7 +264,8 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
-	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strerror strchr malloc calloc realloc free]) 
+dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
+	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
 	AC_HEADER_STDBOOL 
 	AC_CHECK_HEADERS([netinet/in.h fcntl.h sys/signal.h stdio.h errno.h ctype.h assert.h sys/sysinfo.h])
@@ -339,65 +338,6 @@ AC_DEFUN([CS_SETUP_LIBTOOL], [
 ])
 
 AC_DEFUN([CS_CHECK_TYPES], [ 
-	dnl check compiler specifics
-	AC_C_INLINE
-	AC_C_CONST 
-	AC_C_VOLATILE
-	AC_TYPE_SIZE_T
-	AC_TYPE_SSIZE_T
-	AC_TYPE_INT8_T
-	AC_TYPE_INT16_T
-	AC_TYPE_INT32_T
-	AC_TYPE_INT64_T
-	AC_TYPE_UINT8_T
-	AC_TYPE_UINT16_T
-	AC_TYPE_UINT32_T
-	AC_TYPE_UINT64_T
-	AC_FUNC_FSEEKO
-dnl	AC_FUNC_MALLOC
-dnl	AC_FUNC_REALLOC
-
-	dnl check declarations
-	AC_CHECK_DECLS(INET_ADDRSTRLEN,[],[],[#if HAVE_NETINET_IN_H
-	# include <netinet/in.h>
-	# endif
-	#if HAVE_W32API_WS32TCPIP_H
-	# include w32api/windows.h
-	# include w32api/winsock2.h  
-	# include w32api/ws2tcpip.h
-	#endif
-	])
-	AC_CHECK_DECLS(INET6_ADDRSTRLEN,[],[],[#if HAVE_NETINET_IN_H
-	# include <netinet/in.h>
-	# endif
-	#if HAVE_W32API_WS32TCPIP_H
-	# include w32api/windows.h
-	# include w32api/winsock2.h
-	# include w32api/ws2tcpip.h
-	#endif
-	])   
-	# more type checks, horrible shit
-	if test "$tru64_types" = "yes"; then
-		AC_CHECK_TYPE(u_int8_t, unsigned char)
-		AC_CHECK_TYPE(u_int16_t, unsigned short)
-		AC_CHECK_TYPE(u_int32_t, unsigned int)
-	else
-		if test "$broken_types" = "yes" ; then
-			AC_CHECK_TYPE(u_int8_t, unsigned char)
-			AC_CHECK_TYPE(u_int16_t, unsigned short)
-			AC_CHECK_TYPE(u_int32_t, unsigned long int)
-		else
-			AC_CHECK_TYPE(u_int8_t, uint8_t)
-			AC_CHECK_TYPE(u_int16_t, uint16_t)
-			AC_CHECK_TYPE(u_int32_t, uint32_t)
-		fi
-	fi
-dnl replaced AC_CHECK_SIZEOF
-#	AC_CHECK_SIZEOF([int])
-#	AC_CHECK_SIZEOF([long])
-#	AC_CHECK_SIZEOF([long long])
-#	AC_CHECK_SIZEOF([char *])
-dnl with
         AC_MSG_CHECKING([sizeof(long long) == sizeof(long)])
         AC_RUN_IFELSE([AC_LANG_SOURCE([
             int main(void)
@@ -421,13 +361,8 @@ dnl with
                 AC_DEFINE(UI64FMT, ["%llu"], [Define UI64FMT as "%llu"])
                 AC_MSG_RESULT([no])
         ])
-dnl end replace
 	# Big Endian / Little Endian	
-	AC_C_BIGENDIAN(AC_DEFINE([__BYTE_ORDER],__BIG_ENDIAN,[Big Endian]),AC_DEFINE([__BYTE_ORDER],__LITTLE_ENDIAN,[Little Endian]))
-	AC_C_BIGENDIAN(AC_DEFINE(SCCP_BIG_ENDIAN,1,[SCCP_BIG_ENDIAN]),AC_DEFINE(SCCP_LITTLE_ENDIAN,1,[SCCP_LITTLE_ENDIAN]))
 	AC_C_BIGENDIAN(AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_BIG_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]),AC_DEFINE(SCCP_PLATFORM_BYTE_ORDER,SCCP_LITTLE_ENDIAN,[SCCP_PLATFORM_BYTE_ORDER]))
-	AC_DEFINE([__LITTLE_ENDIAN],1234,[for the places where it is not defined])
-	AC_DEFINE([__BIG_ENDIAN],4321,[for the places where it is not defined])
 
         AC_CHECK_HEADERS([byteswap.h sys/endian.h sys/byteorder.h], [break])
         # Even if we have byteswap.h, we may lack the specific macros/functions.
@@ -653,6 +588,14 @@ AC_DEFUN([CS_ENABLE_REFCOUNT_DEBUG], [
 	AC_MSG_NOTICE([--enable-refcount-debug: ${ac_cv_refcount_debug}])
 ])
 
+AC_DEFUN([CS_ENABLE_LOCK_DEBUG], [
+	AC_ARG_ENABLE(lock_debug, 
+	  AC_HELP_STRING([--enable-lock-debug], [enable lock debug]), 
+	  ac_cv_lock_debug=$enableval, ac_cv_lock_debug=no)
+	AS_IF([test "_${ac_cv_lock_debug}" == "_yes"], [AC_DEFINE(CS_LOCK_DEBUG, 1, [lock debug enabled])])
+	AC_MSG_NOTICE([--enable-lock-debug: ${ac_cv_lock_debug}])
+])
+
 AC_DEFUN([CS_DISABLE_PICKUP], [
 	AC_ARG_ENABLE(pickup, 
 	  AC_HELP_STRING([--disable-pickup], [disable pickup function]), 
@@ -843,7 +786,7 @@ AC_DEFUN([CS_ENABLE_DISTRIBUTED_DEVSTATE], [
 	AC_ARG_ENABLE(distributed_devicestate, 
 	  AC_HELP_STRING([--enable-distributed-devicestate], [enable distributed devicestate (>ast 1.6.2)]), 
 	  ac_cv_use_distributed_devicestate=$enableval, ac_cv_use_distributed_devicestate=no)
-	AS_IF([test "_${ac_cv_use_distributed_devicestate}" == "_yes"], [AC_DEFINE(distributed_devicestate, 1, [conference distributed devicestate])])
+	AS_IF([test "_${ac_cv_use_distributed_devicestate}" == "_yes"], [AC_DEFINE(CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE, 1, [distributed devicestate])])
 	AC_MSG_NOTICE([--enable-distributed-devicestate: ${ac_cv_use_distributed_devicestate}])
 ])
 
@@ -860,6 +803,7 @@ AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
 	CS_ENABLE_OPTIMIZATION
 	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
+	CS_ENABLE_LOCK_DEBUG
 	CS_WITH_HASH_SIZE
 	CS_DISABLE_PICKUP
 	CS_DISABLE_PARK
