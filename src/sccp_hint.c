@@ -992,10 +992,12 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
-//		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
+
+		/* this would send out another device state change, which should not be necessary */
+		//pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
 #else
 	} else {
-		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
+		pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
 #endif
 	}
 }
