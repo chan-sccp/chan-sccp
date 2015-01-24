@@ -935,19 +935,27 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 		return TRUE;
 	}
 #else
+#ifdef CS_EXPERIMENTAL		// Added 2015/01/24
+	ast_rdlock_call_features();
+	
+	struct ast_call_feature *feature = ast_find_call_feature("automixmon");
+
+	if (feature) {
+		struct ast_call_feature feat;
+		memcpy(&feat, feature, sizeof(feat));
+		ast_unlock_call_features();
+		
+		feat.operation(channel->owner, CS_AST_BRIDGED_CHANNEL(channel->owner), NULL, "monitor button", FEATURE_SENSE_CHAN | FEATURE_SENSE_PEER, NULL);
+		return TRUE;
+	}
+#else				// Old Impl
 	struct ast_call_feature *feature = ast_find_call_feature("automon");
 
 	if (feature) {
 		feature->operation(channel->owner, channel->owner, NULL, "monitor button", 0, NULL);
-		/*
-		   if (pbx_channel_monitor(channel->owner)) {
-		   return TRUE;
-		   } else {
-		   return FALSE;
-		   }
-		 */
 		return TRUE;
 	}
+#endif
 #endif
 	sccp_log(DEBUGCAT_CORE) (VERBOSE_PREFIX_3 "%s: Automon not available in features.conf/n", channel->designator);
 	return FALSE;

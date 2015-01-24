@@ -866,12 +866,14 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 			 *  - adding time to channel->scheduler.digittimeout
 			 *  - rescheduling sccp_pbx_sched_dial
 			 */
-			if (!c->scheduler.deny) {
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
-				sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
-			} else {
-				sccp_channel_stop_schedule_digittimout(c);
-				sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+			if (d->earlyrtp != SCCP_EARLYRTP_IMMEDIATE) {
+				if (!c->scheduler.deny) {
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIGITSFOLL);
+					sccp_channel_schedule_digittimout(c, c->enbloc.digittimeout);
+				} else {
+					sccp_channel_stop_schedule_digittimout(c);
+					sccp_indicate(d, c, SCCP_CHANNELSTATE_ONHOOK);
+				}
 			}
 			res = 0;
 			break;
