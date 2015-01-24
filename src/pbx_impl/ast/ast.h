@@ -42,7 +42,7 @@
 #include <asterisk/musiconhold.h>
 #include <asterisk/astdb.h>
 #include <asterisk/features.h>
-#ifdef HAVE_PBX_EVENT
+#ifdef HAVE_PBX_EVENT_H
 #include <asterisk/event.h>
 #endif
 #ifndef CS_AST_HAS_TECH_PVT
