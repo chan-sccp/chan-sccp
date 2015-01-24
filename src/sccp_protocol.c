@@ -798,7 +798,7 @@ static void sccp_protocol_sendOpenMultiMediaChannelV17(const sccp_device_t * dev
 }
 
 /*!
- * \brief Send Start MultiMedia Transmission (V3)
+ * \brief Send Start Media Transmission (V3)
  */
 static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * device, const sccp_channel_t * channel)
 {
@@ -833,7 +833,7 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * dev
 }
 
 /*!
- * \brief Send Start MultiMedia Transmission (V17)
+ * \brief Send Start Media Transmission (V17)
  */
 static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * device, const sccp_channel_t * channel)
 {
@@ -870,7 +870,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 }
 
 /*!
- * \brief Send Start MultiMedia Transmission (v22)
+ * \brief Send Start Media Transmission (v22)
  */
 static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * device, const sccp_channel_t * channel)
 {
