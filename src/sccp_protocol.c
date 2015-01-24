@@ -505,15 +505,31 @@ static void sccp_protocol_sendRegisterAckV3(const sccp_device_t * device, uint8_
 
 	/* just for documentation */
 #if 0
-	msg->data.RegisterAckMessage.unknown1 = 0x00;
-	msg->data.RegisterAckMessage.unknown2 = 0x00;
-	msg->data.RegisterAckMessage.unknown3 = 0x00;
+	msg->data.RegisterAckMessage.maxProtocolVer = 0x00;
+	msg->data.RegisterAckMessage.ProtocolVer2 = 0x00;
+	msg->data.RegisterAckMessage.PhoneFeatures = 0x00;
 #endif
-	msg->data.RegisterAckMessage.protocolVer = device->protocol->version;
+	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
 	memcpy(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+
+/* Temp Debugging for John T. Bittner (2015-01-22) */
+	char binstr[33] = "";
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_4 "%s: Acknowledge Registration (KeepAlive: %d, SRSTKeepAlive: %d ,DateFormat:'%s', maxProtocolVer: %d, ProtocolVer2: %d, ProtocolFeatures: %d, RequestedProtocolFeatures: %#1x,%s\n", 
+			device->id, 
+			keepAliveInterval, 
+			secondaryKeepAlive, 
+			msg->data.RegisterAckMessage.dateTemplate,
+			msg->data.RegisterAckMessage.maxProtocolVer,
+			msg->data.RegisterAckMessage.ProtocolVer2, 
+			msg->data.RegisterAckMessage.PhoneFeatures,
+			device->device_features, 
+			sccp_dec2binstr(binstr, 40, device->device_features)
+		);
+	sccp_dump_msg(msg);
+/* End Temp */	
 	sccp_dev_send(device, msg);
 }
 
@@ -526,16 +542,32 @@ static void sccp_protocol_sendRegisterAckV4(const sccp_device_t * device, uint8_
 
 	REQ(msg, RegisterAckMessage);
 
-	msg->data.RegisterAckMessage.unknown1 = 0x20;								// 0x00;
-	msg->data.RegisterAckMessage.unknown2 = 0x00;								// 0x00;
-	msg->data.RegisterAckMessage.unknown3 = 0xFE;								// 0xFE;
-
-	msg->data.RegisterAckMessage.protocolVer = device->protocol->version;
+	//msg->data.RegisterAckMessage.maxProtocolVer = 0x20;
+	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+	msg->data.RegisterAckMessage.ProtocolVer2 = 0x00;
+	msg->data.RegisterAckMessage.PhoneFeatures = 0xFE;
+	// msg->data.RegisterAckMessage.PhoneFeatures = device->device_features && 0xFF;
 
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
 	memcpy(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+
+/* Temp Debugging for John T. Bittner (2015-01-22) */
+	char binstr[33] = "";
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_4 "%s: Acknowledge Registration (KeepAlive: %d, SRSTKeepAlive: %d ,DateFormat:'%s', maxProtocolVer: %d, ProtocolVer2: %d, ProtocolFeatures: %d, RequestedProtocolFeatures: %#1x,%s\n", 
+			device->id, 
+			keepAliveInterval, 
+			secondaryKeepAlive, 
+			msg->data.RegisterAckMessage.dateTemplate,
+			msg->data.RegisterAckMessage.maxProtocolVer,
+			msg->data.RegisterAckMessage.ProtocolVer2, 
+			msg->data.RegisterAckMessage.PhoneFeatures,
+			device->device_features, 
+			sccp_dec2binstr(binstr, 40, device->device_features)
+		);
+	sccp_dump_msg(msg);
+/* End Temp */	
 	sccp_dev_send(device, msg);
 }
 
@@ -548,15 +580,32 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t * device, uint8
 
 	REQ(msg, RegisterAckMessage);
 
-	msg->data.RegisterAckMessage.unknown1 = 0x20;								// 0x00;
-	msg->data.RegisterAckMessage.unknown2 = 0xF1;								// 0xF1;
-	msg->data.RegisterAckMessage.unknown3 = 0xFF;								// 0xFF;
+	//msg->data.RegisterAckMessage.maxProtocolVer = 0x20;
+	msg->data.RegisterAckMessage.maxProtocolVer = device->protocol->version;
+	msg->data.RegisterAckMessage.ProtocolVer2 = 0xF1;
+	msg->data.RegisterAckMessage.PhoneFeatures = 0xFF;
+	// msg->data.RegisterAckMessage.PhoneFeatures = device->device_features && 0xFF;
 
-	msg->data.RegisterAckMessage.protocolVer = device->protocol->version;
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
 	memcpy(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+
+/* Temp Debugging for John T. Bittner (2015-01-22) */
+	char binstr[33] = "";
+	sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_4 "%s: Acknowledge Registration (KeepAlive: %d, SRSTKeepAlive: %d ,DateFormat:'%s', maxProtocolVer: %d, ProtocolVer2: %d, ProtocolFeatures: %d, RequestedProtocolFeatures: %#1x,%s\n", 
+			device->id, 
+			keepAliveInterval, 
+			secondaryKeepAlive, 
+			msg->data.RegisterAckMessage.dateTemplate,
+			msg->data.RegisterAckMessage.maxProtocolVer,
+			msg->data.RegisterAckMessage.ProtocolVer2, 
+			msg->data.RegisterAckMessage.PhoneFeatures,
+			device->device_features, 
+			sccp_dec2binstr(binstr, 40, device->device_features)
+		);
+	sccp_dump_msg(msg);
+/* End Temp */	
 	sccp_dev_send(device, msg);
 }
 
