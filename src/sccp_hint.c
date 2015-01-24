@@ -957,7 +957,6 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		}
 	}
 #endif
-
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
@@ -968,15 +967,19 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 		pbx_event_t *event;
 
-		event = pbx_event_new(AST_EVENT_DEVICE_STATE, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber, AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, AST_EVENT_IE_END);
+		event = pbx_event_new(AST_EVENT_DEVICE_STATE, 
+			AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, channelName, 
+			AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
+			AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
+			AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber, 
+			AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, 
+			AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: \n");
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate %s (%d) => asterisk: %s (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
 #else
 		pbx_devstate_changed_literal(newDeviceState, channelName);					/* come back via pbx callback and update subscribers */
 #endif
-
 	}
 }
 
