@@ -129,7 +129,7 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
 	if (!ast_eid_cmp(&ast_eid_default, eid)) {
 		// If the event originate from this server, skip updating (Was already done in sccp_hint_notifyPBX).
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Skipping distribute devstate from EID:'%s', MYEID:'%s'\n", eid_str, default_eid_str);
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Skipping distribute devstate update from EID:'%s', MYEID:'%s' (i.e. myself)\n", eid_str, default_eid_str);
 		return;
 	}
 	
