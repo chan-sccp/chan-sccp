@@ -3799,7 +3799,7 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
 	commandType = letohl(msg_in->data.MiscellaneousCommandMessage.lel_miscCommandType);
 
-//	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
+//	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO8941 && 0 == passThruPartyId) {
 	if (0 == passThruPartyId) {
 		passThruPartyId = 0xFFFFFFFF - callReference;
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 8941 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
@@ -3823,12 +3823,12 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 				    );
 				break;
-				// case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
-				// case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
-				// case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
-				// case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
-				// case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
-				// case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
+			// case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+			// case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
+			// case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
+			// case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
+			// case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
+			// case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
 			default:
 
 				break;
