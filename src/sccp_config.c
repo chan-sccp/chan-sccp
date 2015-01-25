@@ -1438,6 +1438,12 @@ static int addonstr2enum(const char *addonstr)
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON;
 	} else if (sccp_strcaseequals(addonstr, "7916")) {
 		return SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON;
+	} else if (sccp_strcaseequals(addonstr, "500S")) {
+		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S;
+	} else if (sccp_strcaseequals(addonstr, "500DS")) {
+		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS;
+	} else if (sccp_strcaseequals(addonstr, "932DS")) {
+		return SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS;
 	} else {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Unknown addon type (%s)\n", addonstr);
 		return 0;
