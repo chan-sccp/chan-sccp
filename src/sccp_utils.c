@@ -100,6 +100,7 @@ int sccp_addons_taps(sccp_device_t * d)
 		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON) {
 			taps += 24;
 		}
+		/* should maybe check if connected via SPCS */
 		if (cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS || cur->type == SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS) {
 			taps += 32;
 		}
