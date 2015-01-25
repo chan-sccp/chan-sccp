@@ -3794,13 +3794,24 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 {
 	sccp_miscCommandType_t commandType;
 	struct sockaddr_in sin = { 0 };
-	uint32_t partyID;
-
-	partyID = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
+	uint32_t conferenceId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_conferenceId);
+	uint32_t callReference = letohl(msg_in->data.MiscellaneousCommandMessage.lel_callReference);
+	uint32_t passThruPartyId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_passThruPartyId);
 	commandType = letohl(msg_in->data.MiscellaneousCommandMessage.lel_miscCommandType);
 
-	AUTO_RELEASE sccp_channel_t *channel = sccp_channel_find_bypassthrupartyid(partyID);
-
+//	if (d->skinny_type == SKINNY_DEVICETYPE_CISCO6911 && 0 == passThruPartyId) {
+	if (0 == passThruPartyId) {
+		passThruPartyId = 0xFFFFFFFF - callReference;
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Dealing with 8941 which does not return a passThruPartyId, using callid: %u -> passThruPartyId %u\n", d->id, callReference, passThruPartyId);
+	}
+	
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
+		channel = sccp_channel_retain(d->active_channel);
+	} else {
+		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
+	}
+	
 	if (channel) {
 		switch (commandType) {
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
@@ -3824,7 +3835,8 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 		}
 		return;
 	}
-	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found\n", DEV_ID_LOG(d), partyID);
+	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found (callRef: %u/ confId: %u)\n", DEV_ID_LOG(d), passThruPartyId, callReference, conferenceId);
+	sccp_dump_msg(msg_in);
 	return;
 }
 
