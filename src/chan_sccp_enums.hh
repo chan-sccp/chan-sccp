@@ -160,4 +160,10 @@ BEGIN_ENUM(sccp,nat,ENUMMACRO_INCREMENTAL)
         ENUM_ELEMENT(SCCP_NAT_AUTO_ON					,= 4,	"(Auto)On")
 END_ENUM(sccp,nat,ENUMMACRO_INCREMENTAL)
 #endif
+
+BEGIN_ENUM(sccp,video_mode,ENUMMACRO_INCREMENTAL)
+        ENUM_ELEMENT(SCCP_VIDEO_MODE_OFF				,=0,	"Off")
+        ENUM_ELEMENT(SCCP_VIDEO_MODE_USER				,=1,	"User")
+	ENUM_ELEMENT(SCCP_VIDEO_MODE_AUTO				,=2,	"Auto")
+END_ENUM(sccp,video_mode,ENUMMACRO_INCREMENTAL)
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
