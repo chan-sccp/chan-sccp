@@ -1246,6 +1246,7 @@ struct sccp_channel {
 	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
 	sccp_callinfo_t callInfo;
 	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
+	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 };														/*!< SCCP Channel Structure */
 
 /*!

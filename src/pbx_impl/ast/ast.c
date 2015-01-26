@@ -552,6 +552,10 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 
 		} else if (!strcasecmp(args, "codec")) {
 			res = sccp_channel_setPreferredCodec(c, value);
+			
+		} else if (!strcasecmp(args, "video")) {
+			res = sccp_channel_setVideoMode(c, value);
+			
 		} else if (!strcasecmp(args, "CallingParty")) {
 			char *num, *name;
 

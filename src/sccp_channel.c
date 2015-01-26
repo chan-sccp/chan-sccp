@@ -746,7 +746,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
 
 	d->protocol->sendOpenReceiveChannel(d, channel);
 #ifdef CS_SCCP_VIDEO
-	if (sccp_device_isVideoSupported(d)) {
+	if (sccp_device_isVideoSupported(d) && channel->videomode == SCCP_VIDEO_MODE_AUTO) {
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: We can have video, try to start vrtp\n", DEV_ID_LOG(d));
 		if (!channel->rtp.video.rtp && !sccp_rtp_createVideoServer(channel)) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
@@ -2542,6 +2542,24 @@ boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data)
 	}
 
 	return TRUE;
+}
+
+boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data){
+	boolean_t res = TRUE;
+	
+	if (!strcasecmp(data, "off")) {
+		c->videomode = SCCP_VIDEO_MODE_OFF;
+	} else if (!strcasecmp(data, "user")) {
+		c->videomode = SCCP_VIDEO_MODE_USER;
+	} else if (!strcasecmp(data, "auto")) {
+		c->videomode = SCCP_VIDEO_MODE_AUTO;
+	}else {
+		res = TRUE;
+	}
+
+	
+
+	return res;
 }
 
 /*!

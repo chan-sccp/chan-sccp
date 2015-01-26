@@ -87,6 +87,7 @@ void sccp_channel_park(sccp_channel_t * c);
 #endif
 
 boolean_t sccp_channel_setPreferredCodec(sccp_channel_t * c, const void *data);
+boolean_t sccp_channel_setVideoMode(sccp_channel_t * c, const void *data);
 int sccp_channel_callwaiting_tone_interval(sccp_device_t * d, sccp_channel_t * c);
 const char *sccp_channel_getLinkedId(const sccp_channel_t * channel);
 
