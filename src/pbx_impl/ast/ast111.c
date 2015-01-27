@@ -800,6 +800,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 
 		case AST_CONTROL_VIDUPDATE:									/* Request a video frame update */
 			if (c->rtp.video.rtp && d && sccp_device_isVideoSupported(d)) {
+				/* maybe we should check/re-check video codec compatibility at this point, they might have switched on the remote end, correct ? */
 				d->protocol->sendFastPictureUpdate(d, c);
 				res = 0;
 			} else

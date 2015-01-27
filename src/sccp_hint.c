@@ -98,7 +98,7 @@ struct sccp_hint_list {
 
 	int stateid;												/*!< subscription id in asterisk */
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
-	struct pbx_event_sub *device_state_sub;									/*!< asterisk distributed device state subscription */
+	PBX_EVENT_SUBSCRIPTION *device_state_sub;									/*!< asterisk distributed device state subscription */
 #endif
 
 	SCCP_LIST_HEAD (, sccp_hint_SubscribingDevice_t) subscribers;						/*!< Hint Type Subscribers Linked List Entry */
@@ -122,10 +122,39 @@ static void sccp_hint_eventListener(const sccp_event_t * event);
 static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, const uint8_t positionOnDevice);
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+#if ASTERISK_VERSION_GROUP >= 112
+static void sccp_hint_distributed_devstate_cb(void *data, struct stasis_subscription *sub, struct stasis_message *msg)
+#else
 static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *data)
+#endif
 {
+	sccp_hint_list_t *hint = (sccp_hint_list_t *) data;
+	const struct ast_eid *eid;
+	const char *cidName;
+	const char *cidNumber;
+	//enum ast_device_state state;		/* maybe we should store the last state */
+	
+#if ASTERISK_VERSION_GROUP >= 112
+	struct ast_device_state_message *dev_state = stasis_message_data(msg);
+	if (ast_device_state_message_type() != stasis_message_type(msg)) {
+		return;
+	}
+	if (dev_state->eid) {
+		return;
+	}
+	eid = dev_state->eid;
+	//state = dev_state->state;
+	//cidName = dev_state->
+	//cidNumber = dev_state->
+	cidName = "";
+	cidNumber = "";
+#else
+	eid = ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
+	//state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
+	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
+	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
+#endif
 	char eid_str[32] = "";
-	const struct ast_eid *eid = ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
 	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
 	if (!ast_eid_cmp(&ast_eid_default, eid)) {
 		// If the event originate from this server, skip updating (Was already done in sccp_hint_notifyPBX).
@@ -133,15 +162,6 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 		return;
 	}
 	
-	sccp_hint_list_t *hint;
-	const char *cidName;
-	const char *cidNumber;
-
-	hint = (sccp_hint_list_t *) data;
-
-	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
-	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
-
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
 
 	if (cidName) {
@@ -576,7 +596,12 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	hint->stateid = pbx_extension_state_add(hint->context, hint->exten, sccp_hint_devstate_cb, hint);
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+#if ASTERISK_VERSION_GROUP >= 112
+	//struct stasis_topic *devstate_specific_topic = ast_device_state_topic(strdup(buf)); /* create filter */
+	hint->device_state_sub = stasis_subscribe(ast_device_state_topic_all(), sccp_hint_distributed_devstate_cb, hint);
+#else
 	hint->device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_distributed_devstate_cb, "sccp_hint_distributed_devstate_cb", hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
+#endif
 #endif
 
 #if ASTERISK_VERSION_GROUP >= 111
@@ -979,8 +1004,45 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		}
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 		/* Update Remote Servers Only (EID Will be checked upon Receipt of the CallBack / EID is added automatically)*/
-		pbx_event_t *event;
+#if ASTERISK_VERSION_GROUP >= 112
+		/* needs work, to add the rest of the information, ast-13 has fixed templates for the events it seems. Maybe a celupdate wil work instead */
+		/* We need to do something like session_timeout_to_ami in channels/chan_sip */
 		
+		/* during module load we need to define a stasis local type definition*/
+		/*
+		STASIS_MESSAGE_TYPE_DEFN_LOCAL(session_timeout_type,
+			.to_ami = session_timeout_to_ami,
+		);
+		if (STASIS_MESSAGE_TYPE_INIT(session_timeout_type)) {
+			unload_module();
+			return AST_MODULE_LOAD_FAILURE;
+		}
+		*/
+		
+		/* module unload */
+		/*
+		STASIS_MESSAGE_TYPE_CLEANUP(session_timeout_type);
+		*/
+		
+		/* then here create a function for blob creation with the defined structure */
+		/*
+		struct ast_channel_blob *obj = stasis_message_data(msg);
+		const char *source = ast_json_string_get(ast_json_object_get(obj->blob, "source"));
+		ast_manager_event_blob_create(EVENT_FLAG_CALL, "SessionTimeout","%s","Source: %s\r\n",ast_str_buffer(channel_string), source);
+		*/
+		
+		/* here we can actually use the blob */
+		/*
+		RAII_VAR(struct ast_json *, blob, NULL, ast_json_unref);
+		blob = ast_json_pack("{s: s}", "source", source);
+		if (!blob) {
+			return;
+		}
+		ast_channel_publish_blob(chan, session_timeout_type(), blob);
+		*/
+		pbx_devstate_changed_literal(newDeviceState, lineName);
+#else
+		pbx_event_t *event;
 		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE, 
 			AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, lineName, 
 			AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
@@ -991,6 +1053,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			/* AST_EVENT_IE_PRESENCE_STATE, AST_EVENT_IE_PLTYPE_UINT, ->privacy ?? */
 			AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);
+#endif
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 		/* this would send out another device state change, which should not be necessary */
