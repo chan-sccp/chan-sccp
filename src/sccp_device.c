@@ -14,8 +14,8 @@
  * Relations:   SCCP Device -> SCCP DeviceLine -> SCCP Line
  *              SCCP Line -> SCCP ButtonConfig -> SCCP Device
  *
- * \date        $Date$
- * \version     $Revision$
+ * \date        $Date: 2015-01-25 17:21:10 +0100 (zo, 25 jan 2015) $
+ * \version     $Revision: 5885 $
  */
 
 #include <config.h>
@@ -31,7 +31,7 @@
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5885 $");
 int __sccp_device_destroy(const void *ptr);
 void sccp_device_removeFromGlobals(sccp_device_t * device);
 int sccp_device_destroy(const void *ptr);
@@ -325,42 +325,48 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 	boolean_t res = FALSE;
 
 	if (d) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s (check_update) pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
+
+
 		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
+					/* schedule a device restart later ? reload should actually not have started with open channels */
 					break;
 				}
 
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (Update:%d, Delete:%d)\n", d->id, d->pendingUpdate, d->pendingDelete);
 
 				d->pendingUpdate = 0;
+
+				sccp_buttonconfig_t *buttonconfig;
+				SCCP_LIST_LOCK(&d->buttonconfig);
+				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
+					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: ButtonConfig: index: %d, instance: %d, label: '%s': pendingDelete:%s, pendingUpdate:%s\n",
+						d->id, buttonconfig->index, buttonconfig->instance, buttonconfig->label,
+						buttonconfig->pendingDelete ? "on" : "off", buttonconfig->pendingUpdate ? "on" : "off"
+					);
+					if (buttonconfig->pendingDelete) {
+						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Buttonconfig for '%s' from List\n", d->id, buttonconfig->label);
+						SCCP_LIST_REMOVE_CURRENT(list);
+						{
+							AUTO_RELEASE sccp_line_t *line = sccp_line_find_byid(d, buttonconfig->instance);
+							if (line) {
+								sccp_line_removeDevice(line, d);
+							}
+						}
+						sccp_free(buttonconfig);
+									}
+				}
+				SCCP_LIST_TRAVERSE_SAFE_END;
+				SCCP_LIST_UNLOCK(&d->buttonconfig);
+
 				if (d->pendingDelete) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
 					sccp_dev_clean(d, TRUE, 0);
 				} else {
 					sccp_dev_clean(d, FALSE, 0);
-					sccp_buttonconfig_t *buttonconfig;
-
-					SCCP_LIST_LOCK(&d->buttonconfig);
-					SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
-						if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate) {
-							continue;
-						}
-						if (buttonconfig->pendingDelete) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Buttonconfig for '%s' from List\n", d->id, buttonconfig->label);
-							SCCP_LIST_REMOVE_CURRENT(list);
-							sccp_free(buttonconfig);
-						} else if (buttonconfig->pendingUpdate) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Buttonconfig '%s' underwent a preplacement\n", d->id, buttonconfig->label);
-							buttonconfig->pendingUpdate = 0;
-						} else {
-							buttonconfig->pendingUpdate = 0;
-						}
-					}
-					SCCP_LIST_TRAVERSE_SAFE_END;
-					SCCP_LIST_UNLOCK(&d->buttonconfig);
 				}
 				res = TRUE;
 			} while (0);
@@ -380,6 +386,7 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 void sccp_device_post_reload(void)
 {
 	sccp_device_t *d;
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: (post_reload)\n");
 
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
 		if (!d->pendingDelete && !d->pendingUpdate) {

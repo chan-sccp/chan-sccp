@@ -10,8 +10,8 @@
  * \note        To find out more about the reload function see \ref sccp_config_reload
  * \remarks     Only methods directly related to chan-sccp configuration should be stored in this source file.
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-01-25 17:21:10 +0100 (zo, 25 jan 2015) $
+ * $Revision: 5885 $
  */
 
 /*!
@@ -95,7 +95,7 @@
 #include "sccp_socket.h"
 #include <asterisk/paths.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5885 $");
 #ifndef offsetof
 #if defined(__GNUC__) && __GNUC__ > 3
 #define offsetof(type, member)  __builtin_offsetof (type, member)
@@ -168,7 +168,7 @@ typedef struct SCCPConfigOption {
 /* *INDENT-ON* */
 } SCCPConfigOption;
 
-//converter function prototypes 
+//converter function prototypes
 sccp_value_changed_t sccp_config_parse_codec_preferences(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
@@ -1453,7 +1453,7 @@ static int addonstr2enum(const char *addonstr)
 
 /*!
  * \brief Config Converter/Parser for addons
- * 
+ *
  * \todo make more generic
  * \todo cleanup original implementation in sccp_utils.c
  *
@@ -1638,7 +1638,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  *
  * \note multi_entry
  */
-sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
+sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * vars, const sccp_config_segment_t segment)
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 
@@ -1649,37 +1649,55 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
 	unsigned int i;
 	int buttonindex = 0;
-
+	
+	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = dest;
+	sccp_buttonconfig_t *config = NULL;
+	PBX_VARIABLE_TYPE * first_var = vars;
+	PBX_VARIABLE_TYPE * v = NULL;
 
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Checking Button Config\n");
-	for (; v; v = v->next) {										/* check buttons against currently loaded set*/
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
-		sccp_copy_string(k_button, v->value, sizeof(k_button));
-		splitter = k_button;
-		buttonType = strsep(&splitter, ",");
-		buttonName = strsep(&splitter, ",");
-		buttonOption = strsep(&splitter, ",");
-		buttonArgs = splitter;
+	/* check if the number of buttons got reduced */
+	if (SCCP_LIST_GETSIZE(buttonconfigList) != buttonindex) {
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed. Reloading all of them.\n");
+		changed = SCCP_CONFIG_CHANGE_CHANGED;
+	} else {
+		for (v = first_var; v; v = v->next) {										/* check buttons against currently loaded set*/
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
+			sccp_copy_string(k_button, v->value, sizeof(k_button));
+			splitter = k_button;
+			buttonType = strsep(&splitter, ",");
+			buttonName = strsep(&splitter, ",");
+			buttonOption = strsep(&splitter, ",");
+			buttonArgs = splitter;
 
-		for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
-		if (i >= ARRAY_LEN(sccp_buttontypes)) {
-			pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
-			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-			/* will cause an empty button to be inserted */
-		} else {
-			type = sccp_buttontypes[i].buttontype;
+			for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
+			if (i >= ARRAY_LEN(sccp_buttontypes)) {
+				pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
+				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+				/* will cause an empty button to be inserted */
+			} else {
+				type = sccp_buttontypes[i].buttontype;
+			}
+			if ((changed = sccp_config_checkButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
+				break;
+			}
+			buttonindex++;
 		}
-		if ((changed = sccp_config_checkButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed\n", v->value);
-			break;
-		}
-		buttonindex++;
 	}
 
-	if (changed) {	
+	if (!changed) {
+		/* Nothing Changed: Clear pending Delete and Pending Update */
+		SCCP_LIST_LOCK(buttonconfigList);
+		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
+			config->pendingDelete = 0;
+			config->pendingUpdate = 0;
+		}
+		SCCP_LIST_UNLOCK(buttonconfigList);
+	} else {
 		int buttonindex = 0;										/* buttonconfig has changed. Load all buttons as new ones */
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Discarding Previous ButtonConfig Completely\n");
-		for (; v; v = v->next) {
+		for (v = first_var; v; v = v->next) {
 			sccp_copy_string(k_button, v->value, sizeof(k_button));
 			splitter = k_button;
 			buttonType = strsep(&splitter, ",");
@@ -1706,7 +1724,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "buttonconfig: %s\n", changed ? "changed" : "remained the same");
 	}
 
-	return changed ? SCCP_CONFIG_CHANGE_CHANGED : SCCP_CONFIG_CHANGE_NOCHANGE;
+	return changed;
 }
 
 /* end dyn config */
@@ -1798,18 +1816,10 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 				break;
 		}
 	}
-	if (changed) {	
+	if (changed) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: ButtonTemplate Has Changed\n");
 	} else {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: ButtonTemplate Remained the same\n");
-		
-		/* Clear pending Delete and Pending Update */
-		SCCP_LIST_LOCK(buttonconfigList);
-		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-			config->pendingDelete = 0;		// button should stay
-			config->pendingUpdate = 0;		
-		}
-		SCCP_LIST_UNLOCK(buttonconfigList);
 	}
 	return changed;
 }
