@@ -9,7 +9,7 @@ env:
  - REPOS=precise
  - REPOS=trusty
  - REPOS=utopic
- - REPOS=vivid
+# - REPOS=vivid
 
 # Prepare Configure Script
 before_script:
