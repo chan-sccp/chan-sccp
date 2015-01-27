@@ -807,105 +807,108 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 				} else {
 					return -1;
 				}
+				ast_channel_lock(ast);				
+				if (rtp) {
+					if (sccp_strlen_zero(args.field) || sccp_strcaseequals(args.field, "all")) {
+						char quality_buf[256 /*AST_MAX_USER_FIELD */ ];
 
-				if (sccp_strlen_zero(args.field) || sccp_strcaseequals(args.field, "all")) {
-					char quality_buf[256 /*AST_MAX_USER_FIELD */ ];
-
-					if (!ast_rtp_instance_get_quality(rtp, AST_RTP_INSTANCE_STAT_FIELD_QUALITY, quality_buf, sizeof(quality_buf))) {
-						return -1;
-					}
-
-					sccp_copy_string(buf, quality_buf, buflen);
-					return res;
-				} else {
-					struct ast_rtp_instance_stats stats;
-					int i;
-					struct {
-						const char *name;
-						enum { INT, DBL } type;
-						union {
-							unsigned int *i4;
-							double *d8;
-						};
-					} lookup[] = {
-						{
-							"txcount", INT, {
-						.i4 = &stats.txcount,},}, {
-							"rxcount", INT, {
-						.i4 = &stats.rxcount,},}, {
-							"txjitter", DBL, {
-						.d8 = &stats.txjitter,},}, {
-							"rxjitter", DBL, {
-						.d8 = &stats.rxjitter,},}, {
-							"remote_maxjitter", DBL, {
-						.d8 = &stats.remote_maxjitter,},}, {
-							"remote_minjitter", DBL, {
-						.d8 = &stats.remote_minjitter,},}, {
-							"remote_normdevjitter", DBL, {
-						.d8 = &stats.remote_normdevjitter,},}, {
-							"remote_stdevjitter", DBL, {
-						.d8 = &stats.remote_stdevjitter,},}, {
-							"local_maxjitter", DBL, {
-						.d8 = &stats.local_maxjitter,},}, {
-							"local_minjitter", DBL, {
-						.d8 = &stats.local_minjitter,},}, {
-							"local_normdevjitter", DBL, {
-						.d8 = &stats.local_normdevjitter,},}, {
-							"local_stdevjitter", DBL, {
-						.d8 = &stats.local_stdevjitter,},}, {
-							"txploss", INT, {
-						.i4 = &stats.txploss,},}, {
-							"rxploss", INT, {
-						.i4 = &stats.rxploss,},}, {
-							"remote_maxrxploss", DBL, {
-						.d8 = &stats.remote_maxrxploss,},}, {
-							"remote_minrxploss", DBL, {
-						.d8 = &stats.remote_minrxploss,},}, {
-							"remote_normdevrxploss", DBL, {
-						.d8 = &stats.remote_normdevrxploss,},}, {
-							"remote_stdevrxploss", DBL, {
-						.d8 = &stats.remote_stdevrxploss,},}, {
-							"local_maxrxploss", DBL, {
-						.d8 = &stats.local_maxrxploss,},}, {
-							"local_minrxploss", DBL, {
-						.d8 = &stats.local_minrxploss,},}, {
-							"local_normdevrxploss", DBL, {
-						.d8 = &stats.local_normdevrxploss,},}, {
-							"local_stdevrxploss", DBL, {
-						.d8 = &stats.local_stdevrxploss,},}, {
-							"rtt", DBL, {
-						.d8 = &stats.rtt,},}, {
-							"maxrtt", DBL, {
-						.d8 = &stats.maxrtt,},}, {
-							"minrtt", DBL, {
-						.d8 = &stats.minrtt,},}, {
-							"normdevrtt", DBL, {
-						.d8 = &stats.normdevrtt,},}, {
-							"stdevrtt", DBL, {
-						.d8 = &stats.stdevrtt,},}, {
-							"local_ssrc", INT, {
-						.i4 = &stats.local_ssrc,},}, {
-							"remote_ssrc", INT, {
-						.i4 = &stats.remote_ssrc,},}, {
-					NULL,},};
-
-					if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
-						return -1;
-					}
-
-					for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
-						if (sccp_strcaseequals(args.field, lookup[i].name)) {
-							if (lookup[i].type == INT) {
-								snprintf(buf, buflen, "%u", *lookup[i].i4);
-							} else {
-								snprintf(buf, buflen, "%f", *lookup[i].d8);
-							}
-							return 0;
+						if (!ast_rtp_instance_get_quality(rtp, AST_RTP_INSTANCE_STAT_FIELD_QUALITY, quality_buf, sizeof(quality_buf))) {
+							return -1;
 						}
+
+						sccp_copy_string(buf, quality_buf, buflen);
+						return res;
+					} else {
+						struct ast_rtp_instance_stats stats;
+						int i;
+						struct {
+							const char *name;
+							enum { INT, DBL } type;
+							union {
+								unsigned int *i4;
+								double *d8;
+							};
+						} lookup[] = {
+							{
+								"txcount", INT, {
+							.i4 = &stats.txcount,},}, {
+								"rxcount", INT, {
+							.i4 = &stats.rxcount,},}, {
+								"txjitter", DBL, {
+							.d8 = &stats.txjitter,},}, {
+								"rxjitter", DBL, {
+							.d8 = &stats.rxjitter,},}, {
+								"remote_maxjitter", DBL, {
+							.d8 = &stats.remote_maxjitter,},}, {
+								"remote_minjitter", DBL, {
+							.d8 = &stats.remote_minjitter,},}, {
+								"remote_normdevjitter", DBL, {
+							.d8 = &stats.remote_normdevjitter,},}, {
+								"remote_stdevjitter", DBL, {
+							.d8 = &stats.remote_stdevjitter,},}, {
+								"local_maxjitter", DBL, {
+							.d8 = &stats.local_maxjitter,},}, {
+								"local_minjitter", DBL, {
+							.d8 = &stats.local_minjitter,},}, {
+								"local_normdevjitter", DBL, {
+							.d8 = &stats.local_normdevjitter,},}, {
+								"local_stdevjitter", DBL, {
+							.d8 = &stats.local_stdevjitter,},}, {
+								"txploss", INT, {
+							.i4 = &stats.txploss,},}, {
+								"rxploss", INT, {
+							.i4 = &stats.rxploss,},}, {
+								"remote_maxrxploss", DBL, {
+							.d8 = &stats.remote_maxrxploss,},}, {
+								"remote_minrxploss", DBL, {
+							.d8 = &stats.remote_minrxploss,},}, {
+								"remote_normdevrxploss", DBL, {
+							.d8 = &stats.remote_normdevrxploss,},}, {
+								"remote_stdevrxploss", DBL, {
+							.d8 = &stats.remote_stdevrxploss,},}, {
+								"local_maxrxploss", DBL, {
+							.d8 = &stats.local_maxrxploss,},}, {
+								"local_minrxploss", DBL, {
+							.d8 = &stats.local_minrxploss,},}, {
+								"local_normdevrxploss", DBL, {
+							.d8 = &stats.local_normdevrxploss,},}, {
+								"local_stdevrxploss", DBL, {
+							.d8 = &stats.local_stdevrxploss,},}, {
+								"rtt", DBL, {
+							.d8 = &stats.rtt,},}, {
+								"maxrtt", DBL, {
+							.d8 = &stats.maxrtt,},}, {
+								"minrtt", DBL, {
+							.d8 = &stats.minrtt,},}, {
+								"normdevrtt", DBL, {
+							.d8 = &stats.normdevrtt,},}, {
+								"stdevrtt", DBL, {
+							.d8 = &stats.stdevrtt,},}, {
+								"local_ssrc", INT, {
+							.i4 = &stats.local_ssrc,},}, {
+								"remote_ssrc", INT, {
+							.i4 = &stats.remote_ssrc,},}, {
+						NULL,},};
+
+						if (ast_rtp_instance_get_stats(rtp, &stats, AST_RTP_INSTANCE_STAT_ALL)) {
+							return -1;
+						}
+
+						for (i = 0; !sccp_strlen_zero(lookup[i].name); i++) {
+							if (sccp_strcaseequals(args.field, lookup[i].name)) {
+								if (lookup[i].type == INT) {
+									snprintf(buf, buflen, "%u", *lookup[i].i4);
+								} else {
+									snprintf(buf, buflen, "%f", *lookup[i].d8);
+								}
+								return 0;
+							}
+						}
+						pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
+						return -1;
 					}
-					pbx_log(LOG_WARNING, "SCCP: (sccp_wrapper_asterisk_channel_read) Unrecognized argument '%s' to %s\n", preparse, funcname);
-					return -1;
 				}
+				ast_channel_unlock(ast);
 #endif
 			} else {
 				res = -1;
