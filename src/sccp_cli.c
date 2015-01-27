@@ -2502,8 +2502,26 @@ CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cl
      */
 static int sccp_remove_line_from_device(int fd, int argc, char *argv[])
 {
-	pbx_cli(fd, "Command has not been implemented yet!\n");
-	return RESULT_FAILURE;
+	int res = RESULT_FAILURE;
+        AUTO_RELEASE sccp_device_t *d = NULL;
+	AUTO_RELEASE sccp_line_t *line = NULL;
+
+	if (3 > argc || argc > 5) {
+		return RESULT_SHOWUSAGE;
+	}
+        if ((d = sccp_device_find_byid(argv[3], FALSE))) {						// don't create new realtime devices by searching for them
+		if ((line = sccp_line_find_byname(argv[4], FALSE))) {					// don't create new realtime lines by searching for them
+		        sccp_line_removeDevice(line, d);
+			pbx_cli(fd, "Line %s has been removed from device %s. Reloading Device...\n", line->name, d->id);
+			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART); 
+		        res = RESULT_SUCCESS;
+		} else {
+			pbx_log(LOG_ERROR, "Error: Line %s not found\n", argv[4]);
+		}
+	} else {
+		pbx_log(LOG_ERROR, "Error: Device %s not found\n", argv[3]);
+	}
+	return res;
 }
 
 static char remove_line_from_device_usage[] = "Usage: sccp remove line <deviceID> <lineID>\n" "       Remove a line from device.\n";
