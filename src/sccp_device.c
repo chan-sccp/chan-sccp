@@ -301,6 +301,7 @@ void sccp_device_pre_reload(void)
 		d->pendingUpdate = 0;
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device->ButtonConfig '%s' to Pending Delete=1\n", d->id, config->label);
 			config->pendingDelete = 1;
 			config->pendingUpdate = 0;
 		}
@@ -348,9 +349,12 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 							continue;
 						}
 						if (buttonconfig->pendingDelete) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Buttonconfig for '%s' from List\n", d->id, buttonconfig->label);
 							SCCP_LIST_REMOVE_CURRENT(list);
 							sccp_free(buttonconfig);
+						} else if (buttonconfig->pendingUpdate) {
+							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Buttonconfig '%s' underwent a preplacement\n", d->id, buttonconfig->label);
+							buttonconfig->pendingUpdate = 0;
 						} else {
 							buttonconfig->pendingUpdate = 0;
 						}
