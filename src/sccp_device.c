@@ -290,7 +290,6 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 void sccp_device_pre_reload(void)
 {
 	sccp_device_t *d;
-	sccp_buttonconfig_t *config;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -299,6 +298,10 @@ void sccp_device_pre_reload(void)
 			d->pendingDelete = 1;
 		}
 		d->pendingUpdate = 0;
+		
+		// next section is not actually necessary any more, move inside sccp_config_parse_button
+		/*
+		sccp_buttonconfig_t *config;
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device->ButtonConfig '%s' to Pending Delete=1\n", d->id, config->label);
@@ -306,6 +309,7 @@ void sccp_device_pre_reload(void)
 			config->pendingUpdate = 0;
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		*/
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -340,11 +344,12 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 
 				d->pendingUpdate = 0;
 
+				/* buttonconfig cleanup section could be moved to sccp_dev_cleanup is desired */
 				sccp_buttonconfig_t *buttonconfig;
 				SCCP_LIST_LOCK(&d->buttonconfig);
 				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
-					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: ButtonConfig: index: %d, instance: %d, label: '%s': pendingDelete:%s, pendingUpdate:%s\n",
-						d->id, buttonconfig->index, buttonconfig->instance, buttonconfig->label,
+					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: ButtonConfig: index: %d, instance: %d, label: '%s': pendingDelete:%s, pendingUpdate:%s\n", 
+						d->id, buttonconfig->index, buttonconfig->instance, buttonconfig->label, 
 						buttonconfig->pendingDelete ? "on" : "off", buttonconfig->pendingUpdate ? "on" : "off"
 					);
 					if (buttonconfig->pendingDelete) {
@@ -361,6 +366,7 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 				}
 				SCCP_LIST_TRAVERSE_SAFE_END;
 				SCCP_LIST_UNLOCK(&d->buttonconfig);
+				/* end of buttonconfig pending check*/
 
 				if (d->pendingDelete) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);

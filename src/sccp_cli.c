@@ -8,8 +8,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-01-27 04:12:36 +0100 (di, 27 jan 2015) $
+ * $Revision: 5890 $
  */
 
 /*!
@@ -62,7 +62,7 @@
 #include "sccp_hint.h"
 #include "sys/stat.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5890 $");
 #include <asterisk/cli.h>
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
@@ -2717,7 +2717,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						device->pendingUpdate = 1;
-						sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
+						sccp_device_check_update(device);				// Will cleanup and Reset
+						//sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
 					}
 #ifdef CS_SCCP_REALTIME
 					if (device->realtime) {
@@ -2787,7 +2788,8 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 									change = sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
-								sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);	// SKINNY_DEVICE_RELOAD_CONFIG
+								sccp_device_check_update(device);				// Will cleanup and Reset
+								//sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);	// SKINNY_DEVICE_RELOAD_CONFIG
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime && dv) {
 									pbx_variables_destroy(dv);
