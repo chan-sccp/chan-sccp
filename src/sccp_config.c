@@ -1687,11 +1687,18 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
 
-		/* Nothing Changed: Clear pending Delete and Pending Update */
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d). Reloading all of them.\n", changed);
+		
+		/* Clear/Set pendingDelete and PendingUpdate if button has changed or not
+		 *
+		 * \note Moved here from device_post_reload so that we will know the new state before line_post_reload. 
+		 * That way adding/removind a line while accidentally keeping the button config for that line still works.
+		 */
 		SCCP_LIST_LOCK(buttonconfigList);
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-			config->pendingDelete = SCCP_CONFIG_CHANGE_CHANGED;
+			config->pendingDelete = changed;
 			config->pendingUpdate = 0;
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d). pendingDelete: %s, pendingUpdate: %s\n", changed, config->pendingDelete ? "on": "off", config->pendingUpdate? "on": "off");
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
 	}

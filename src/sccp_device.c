@@ -298,18 +298,6 @@ void sccp_device_pre_reload(void)
 			d->pendingDelete = 1;
 		}
 		d->pendingUpdate = 0;
-		
-		// next section is not actually necessary any more, move inside sccp_config_parse_button
-		/*
-		sccp_buttonconfig_t *config;
-		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: Setting Device->ButtonConfig '%s' to Pending Delete=1\n", d->id, config->label);
-			config->pendingDelete = 1;
-			config->pendingUpdate = 0;
-		}
-		SCCP_LIST_UNLOCK(&d->buttonconfig);
-		*/
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
@@ -331,43 +319,16 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 	if (d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s (check_update) pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
 
-
 		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, openchannel: %d -> device restart pending.\n", d->id, sccp_device_numberOfChannels(d));
-					/* schedule a device restart later ? reload should actually not have started with open channels */
 					break;
 				}
 
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Device %s needs to be reset because of a change in sccp.conf (Update:%d, Delete:%d)\n", d->id, d->pendingUpdate, d->pendingDelete);
 
 				d->pendingUpdate = 0;
-
-				/* buttonconfig cleanup section could be moved to sccp_dev_cleanup is desired */
-				sccp_buttonconfig_t *buttonconfig;
-				SCCP_LIST_LOCK(&d->buttonconfig);
-				SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
-					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: ButtonConfig: index: %d, instance: %d, label: '%s': pendingDelete:%s, pendingUpdate:%s\n", 
-						d->id, buttonconfig->index, buttonconfig->instance, buttonconfig->label, 
-						buttonconfig->pendingDelete ? "on" : "off", buttonconfig->pendingUpdate ? "on" : "off"
-					);
-					if (buttonconfig->pendingDelete) {
-						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Buttonconfig for '%s' from List\n", d->id, buttonconfig->label);
-						SCCP_LIST_REMOVE_CURRENT(list);
-						{
-							AUTO_RELEASE sccp_line_t *line = sccp_line_find_byid(d, buttonconfig->instance);
-							if (line) {
-								sccp_line_removeDevice(line, d);
-							}
-						}
-						sccp_free(buttonconfig);
-									}
-				}
-				SCCP_LIST_TRAVERSE_SAFE_END;
-				SCCP_LIST_UNLOCK(&d->buttonconfig);
-				/* end of buttonconfig pending check*/
-
 				if (d->pendingDelete) {
 					sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Remove Device from List\n", d->id);
 					sccp_dev_clean(d, TRUE, 0);
@@ -404,6 +365,7 @@ void sccp_device_post_reload(void)
 		if (!sccp_device_check_update(d)) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 		}
+		/* should we re-check the device after hangup ? */
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 }
@@ -1972,7 +1934,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 		/* hang up open channels and remove device from line */
 
 		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
 				AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
 
@@ -2000,7 +1962,14 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 				sccp_line_removeDevice(line, d);
 			}
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
+			if (config->pendingDelete) {
+				SCCP_LIST_REMOVE_CURRENT(list);
+				sccp_free(config);
+				config = NULL;
+				
+			}
 		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 		d->linesRegistered = FALSE;
 

@@ -63,8 +63,9 @@
 #include "sys/stat.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 5890 $");
-#include <asterisk/paths.h>
+
 #include <asterisk/cli.h>
+#include <asterisk/paths.h>
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
 	SCCP_CLI_DEVICE_COMPLETER,
