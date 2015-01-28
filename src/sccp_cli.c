@@ -63,6 +63,7 @@
 #include "sys/stat.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision: 5890 $");
+#include <asterisk/paths.h>
 #include <asterisk/cli.h>
 typedef enum sccp_cli_completer {
 	SCCP_CLI_NULL_COMPLETER,
@@ -2650,18 +2651,18 @@ CLI_ENTRY(cli_no_debug, sccp_no_debug, "Set SCCP Debugging Types", no_debug_usag
 #undef CLI_COMMAND
 #undef CLI_COMPLETE
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-    /* --------------------------------------------------------------------------------------------------------------RELOAD- */
-    /*!
-     * \brief Do Reload
-     * \param fd Fd as int
-     * \param argc Argc as int
-     * \param argv[] Argv[] as char
-     * \return Result as int
-     * 
-     * \called_from_asterisk
-     * 
-     * \note To find out more about the reload function see \ref sccp_config_reload
-     */
+/* --------------------------------------------------------------------------------------------------------------RELOAD- */
+/*!
+ * \brief Do Reload
+ * \param fd Fd as int
+ * \param argc Argc as int
+ * \param argv[] Argv[] as char
+ * \return Result as int
+ * 
+ * \called_from_asterisk
+ * 
+ * \note To find out more about the reload function see \ref sccp_config_reload
+ */
 static int sccp_cli_reload(int fd, int argc, char *argv[])
 {
 	sccp_readingtype_t readingtype;
@@ -2683,6 +2684,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 		goto EXIT;
 	}
 
+	GLOB(reload_in_progress) = TRUE;
 	if (argc > 2) {
 		if (sccp_strequals("device", argv[2])) {
 			if (argc == 4) {
@@ -2717,8 +2719,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						device->pendingUpdate = 1;
-						sccp_device_check_update(device);				// Will cleanup and Reset
-						//sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);		// SKINNY_DEVICE_RELOAD_CONFIG
+						sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
 					}
 #ifdef CS_SCCP_REALTIME
 					if (device->realtime) {
@@ -2788,8 +2789,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 									change = sccp_config_applyDeviceConfiguration(device, v);
 								}
 								device->pendingUpdate = 1;
-								sccp_device_check_update(device);				// Will cleanup and Reset
-								//sccp_device_sendReset(device, SKINNY_DEVICE_RESTART);	// SKINNY_DEVICE_RELOAD_CONFIG
+								sccp_device_check_update(device);				// Will cleanup after reload and restart the device if necessary
 #ifdef CS_SCCP_REALTIME
 								if (device->realtime && dv) {
 									pbx_variables_destroy(dv);
@@ -2820,11 +2820,24 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			force_reload = TRUE;
 		} else if (sccp_strequals("file", argv[2])) {
 			if (argc == 4) {
-				if (!pbx_fileexists(argv[3], NULL, NULL)) {
-					pbx_cli(fd, "The config file '%s' you requested to load does not exist. Aborting reload\n", argv[3]);
+				// build config file path
+				char *buf;
+				int buflen;
+				if (argv[3][0] != '/') { 
+					buflen = strlen(ast_config_AST_CONFIG_DIR) + strlen(argv[3]) + 2;
+					buf = ast_alloca(buflen);
+					snprintf(buf, buflen, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
+				} else {
+					buf = strdupa(buf);
+				}
+				// check file exists
+				struct stat sb = { 0 };
+				if (!(stat(buf, &sb) == 0 && S_ISREG(sb.st_mode))) {
+					pbx_cli(fd, "The config file '%s' you requested to load could not be found at '%s' (check path/rights ?). Aborting reload\n", argv[3], buf);
 					goto EXIT;
 				}
 
+				// load new config file
 				pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[3], GLOB(config_file_name));
 				if (!sccp_strequals(GLOB(config_file_name), argv[3])) {
 					force_reload = TRUE;
@@ -2853,7 +2866,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 			if (GLOB(cfg)) {
 				pbx_cli(fd, "SCCP reloading configuration. %p\n", GLOB(cfg));
 				readingtype = SCCP_CONFIG_READRELOAD;
-				GLOB(reload_in_progress) = TRUE;
+//				GLOB(reload_in_progress) = TRUE;
 				if (!sccp_config_general(readingtype)) {
 					pbx_cli(fd, "Unable to reload configuration.\n");
 					returnval = RESULT_FAILURE;

@@ -1640,7 +1640,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
  */
 sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX_VARIABLE_TYPE * vars, const sccp_config_segment_t segment)
 {
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_CHANGED;
 
 	/* parse all button definitions in one pass */
 	char *buttonType = NULL, *buttonName = NULL, *buttonOption = NULL, *buttonArgs = NULL;
@@ -1655,37 +1655,38 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	PBX_VARIABLE_TYPE * first_var = vars;
 	PBX_VARIABLE_TYPE * v = NULL;
 
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Checking Button Config\n");
-	/* check if the number of buttons got reduced */
-	for (v = first_var; v; v = v->next) {										/* check buttons against currently loaded set*/
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
-		sccp_copy_string(k_button, v->value, sizeof(k_button));
-		splitter = k_button;
-		buttonType = strsep(&splitter, ",");
-		buttonName = strsep(&splitter, ",");
-		buttonOption = strsep(&splitter, ",");
-		buttonArgs = splitter;
+	if (GLOB(reload_in_progress)) {
+		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "SCCP: Checking Button Config\n");
+		/* check if the number of buttons got reduced */
+		for (v = first_var; v; v = v->next) {										/* check buttons against currently loaded set*/
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Checking button: %s\n", v->value);
+			sccp_copy_string(k_button, v->value, sizeof(k_button));
+			splitter = k_button;
+			buttonType = strsep(&splitter, ",");
+			buttonName = strsep(&splitter, ",");
+			buttonOption = strsep(&splitter, ",");
+			buttonArgs = splitter;
 
-		for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
-		if (i >= ARRAY_LEN(sccp_buttontypes)) {
-			pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
-			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-			/* will cause an empty button to be inserted */
-		} else {
-			type = sccp_buttontypes[i].buttontype;
+			for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
+			if (i >= ARRAY_LEN(sccp_buttontypes)) {
+				pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
+				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+				/* will cause an empty button to be inserted */
+			} else {
+				type = sccp_buttontypes[i].buttontype;
+			}
+			if ((changed = sccp_config_checkButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
+				break;
+			}
+			buttonindex++;
 		}
-		if ((changed = sccp_config_checkButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
-			break;
+		if (!changed && SCCP_LIST_GETSIZE(buttonconfigList) != buttonindex) {
+			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d != %d). Reloading all of them.\n", SCCP_LIST_GETSIZE(buttonconfigList), buttonindex);
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
-		buttonindex++;
-	}
-	if (!changed && SCCP_LIST_GETSIZE(buttonconfigList) != buttonindex) {
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed. Reloading all of them.\n");
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-	}
 
-	//if (!changed) {	
 		/* Nothing Changed: Clear pending Delete and Pending Update */
 		SCCP_LIST_LOCK(buttonconfigList);
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
@@ -1693,7 +1694,8 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			config->pendingUpdate = 0;
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
-	//} else {
+	}
+	if (changed) {
 		buttonindex = 0;										/* buttonconfig has changed. Load all buttons as new ones */
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_2 "Discarding Previous ButtonConfig Completely\n");
 		for (v = first_var; v; v = v->next) {
@@ -1716,7 +1718,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Added button: %s\n", v->value);
 			buttonindex++;
 		}
-	//}
+	}
 
 	/* return changed status */
 	if (GLOB(reload_in_progress)) {
