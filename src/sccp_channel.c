@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-01-26 17:11:20 +0100 (ma, 26 jan 2015) $
+ * $Revision: 5889 $
  */
 
 /*!
@@ -33,7 +33,7 @@
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5889 $");
 static uint32_t callCount = 1;
 void __sccp_channel_destroy(sccp_channel_t * channel);
 
@@ -1339,7 +1339,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 }
 
 /*!
- * \brief Allocate a new Outgoing Channel.
+ * \brief Helper to Allocate a new Outgoing Channel.
  *
  * \param l SCCP Line that owns this channel
  * \param device SCCP Device that owns this channel
@@ -1352,9 +1352,9 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  * \callergraph
  * 
  */
-sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+//static sccp_channel_t *_sccp_channel_allocate_newcall_helper(const sccp_line_t * l, const sccp_device_t * device)
+static sccp_channel_t *_sccp_channel_allocate_newcall_helper(sccp_line_t * l, sccp_device_t * device)
 {
-	/* handle outgoing calls */
 	sccp_channel_t *channel;
 
 	if (!l) {
@@ -1372,9 +1372,6 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
 
 		if ((c)
-#if CS_SCCP_CONFERENCE
-		    //&& (NULL == c->conference)
-#endif
 		    ) {
 			/* there is an active call, let's put it on hold first */
 			if (!sccp_channel_hold(c)) {
@@ -1384,13 +1381,32 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		}
 	}
 
-	channel = sccp_channel_allocate(l, device);
-
+	channel = sccp_channel_allocate(l, device);								/* should be refactored to take const line and const device */
 	if (!channel) {
 		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", device->id, l->name);
 		return NULL;
 	}
+	return channel;
+}	
 
+/*!
+ * \brief Helper to Start Dialing newly allocated Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
+ * \return a *retained* SCCP Channel or NULL if something is wrong
+ *
+ * \callgraph
+ * \callergraph
+ * 
+ */
+//static sccp_channel_t *_sccp_channel_finish_newcall_helper(const sccp_line_t * l, const sccp_device_t * device, sccp_channel_t *channel, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids, boolean_t skip_softswitch)
+static sccp_channel_t *_sccp_channel_finish_newcall_helper(sccp_line_t * l, sccp_device_t * device, sccp_channel_t *channel, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids, boolean_t skip_softswitch)
+{
+	/* handle outgoing calls */
 	channel->ss_action = SCCP_SS_DIAL;									/* softswitch will catch the number to be dialed */
 	channel->ss_data = 0;											/* nothing to pass to action */
 
@@ -1398,20 +1414,9 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 
 	/* copy the number to dial in the ast->exten */
 	if (dial) {
-		if (sccp_strequals(dial, "pickupexten")) {
-			char *pickupexten;
-
-			if (PBX(getPickupExtension) (channel, &pickupexten)) {
-				sccp_copy_string(channel->dialedNumber, pickupexten, sizeof(channel->dialedNumber));
-				sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-				PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
-				sccp_free(pickupexten);
-			}
-		} else {
-			sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
-			sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);
-			PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
-		}
+		sccp_copy_string(channel->dialedNumber, dial, sizeof(channel->dialedNumber));
+		sccp_indicate(device, channel, SCCP_CHANNELSTATE_SPEEDDIAL);					/* should be refactored to take const line and const device */
+		PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
 	} else {
 		sccp_indicate(device, channel, SCCP_CHANNELSTATE_OFFHOOK);
 		PBX(set_callstate) (channel, AST_STATE_OFFHOOK);
@@ -1430,10 +1435,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		sccp_channel_openReceiveChannel(channel);
 	}
 
-	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
-		sccp_copy_string(channel->dialedNumber, "s", sizeof(channel->dialedNumber));
-		sccp_pbx_softswitch(channel);
-		channel->dialedNumber[0] = 0;
+	if (skip_softswitch) {
 		return channel;
 	}
 
@@ -1444,6 +1446,68 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 	sccp_channel_schedule_digittimout(channel, GLOB(firstdigittimeout));
 
 	return channel;
+}
+
+
+/*!
+ * \brief Allocate a new Outgoing Feature Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
+ * \return a *retained* SCCP Channel or NULL if something is wrong
+ */
+sccp_channel_t *sccp_channel_new_feature_call(sccp_line_t * l, sccp_device_t * device, sccp_feature_type_t feature, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+{
+	char *dial = NULL;
+	boolean_t skip_softswitch = FALSE;
+	sccp_channel_t *channel = _sccp_channel_allocate_newcall_helper(l, device);
+	if (!channel) {
+		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", device->id, l->name);
+		return NULL;
+	}
+	
+	if ((device->earlyrtp != SCCP_EARLYRTP_IMMEDIATE)) {
+		if (feature == SCCP_FEATURE_PICKUP) {
+			char *pickupexten;
+			if (PBX(getPickupExtension) (channel, &pickupexten)) {
+				sccp_copy_string(channel->dialedNumber, pickupexten, sizeof(channel->dialedNumber));
+				dial = strdupa(pickupexten);
+				sccp_free(pickupexten);
+			}
+		}
+	} else {
+		/* immediate mode, passing dial=NULL and preventing calling softswitch */
+		skip_softswitch = TRUE;
+	}
+	
+	return _sccp_channel_finish_newcall_helper(l, device, channel, dial, SKINNY_CALLTYPE_OUTBOUND, parentChannel, ids, skip_softswitch);
+}
+/*!
+ * \brief Allocate a new Outgoing Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
+ * \return a *retained* SCCP Channel or NULL if something is wrong
+ * 
+ */
+sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
+{
+	boolean_t skip_softswitch = FALSE;
+	sccp_channel_t *channel = _sccp_channel_allocate_newcall_helper(l, device);
+	if (!channel) {
+		pbx_log(LOG_ERROR, "%s: Can't allocate SCCP channel for line %s\n", device->id, l->name);
+		return NULL;
+	}
+	if (!dial && (device->earlyrtp == SCCP_EARLYRTP_IMMEDIATE)) {
+		skip_softswitch = TRUE;
+	}
+	return _sccp_channel_finish_newcall_helper(l, device, channel, dial, calltype, parentChannel, ids, skip_softswitch);
 }
 
 /*!
