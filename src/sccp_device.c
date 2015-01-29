@@ -290,6 +290,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 void sccp_device_pre_reload(void)
 {
 	sccp_device_t *d;
+	sccp_buttonconfig_t *config;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
@@ -298,6 +299,12 @@ void sccp_device_pre_reload(void)
 			d->pendingDelete = 1;
 		}
 		d->pendingUpdate = 0;
+		SCCP_LIST_LOCK(&d->buttonconfig);
+		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+			config->pendingDelete = 1;
+			config->pendingUpdate = 0;
+		}
+		SCCP_LIST_UNLOCK(&d->buttonconfig);
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
