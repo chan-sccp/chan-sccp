@@ -1343,6 +1343,13 @@ void sccp_channel_endcall(sccp_channel_t * channel)
  *
  * \param l SCCP Line that owns this channel
  * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
+ * \return a *retained* SCCP Channel or NULL if something is wrong
+ *
+ * \callgraph
+ * \callergraph
  * 
  */
 //static sccp_channel_t *_sccp_channel_allocate_newcall_helper(const sccp_line_t * l, const sccp_device_t * device)
@@ -1384,6 +1391,16 @@ static sccp_channel_t *_sccp_channel_allocate_newcall_helper(sccp_line_t * l, sc
 
 /*!
  * \brief Helper to Start Dialing newly allocated Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
+ * \return a *retained* SCCP Channel or NULL if something is wrong
+ *
+ * \callgraph
+ * \callergraph
  * 
  */
 //static sccp_channel_t *_sccp_channel_finish_newcall_helper(const sccp_line_t * l, const sccp_device_t * device, sccp_channel_t *channel, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids, boolean_t skip_softswitch)
@@ -1434,6 +1451,12 @@ static sccp_channel_t *_sccp_channel_finish_newcall_helper(sccp_line_t * l, sccp
 
 /*!
  * \brief Allocate a new Outgoing Feature Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
  * \return a *retained* SCCP Channel or NULL if something is wrong
  */
 sccp_channel_t *sccp_channel_new_feature_call(sccp_line_t * l, sccp_device_t * device, sccp_feature_type_t feature, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
@@ -1464,6 +1487,12 @@ sccp_channel_t *sccp_channel_new_feature_call(sccp_line_t * l, sccp_device_t * d
 }
 /*!
  * \brief Allocate a new Outgoing Channel.
+ *
+ * \param l SCCP Line that owns this channel
+ * \param device SCCP Device that owns this channel
+ * \param dial Dialed Number as char
+ * \param calltype Calltype as int
+ * \param parentChannel SCCP Channel for which the channel was created
  * \return a *retained* SCCP Channel or NULL if something is wrong
  * 
  */
