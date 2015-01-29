@@ -2826,7 +2826,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				int buflen;
 				if (argv[3][0] != '/') { 
 					buflen = strlen(ast_config_AST_CONFIG_DIR) + strlen(argv[3]) + 2;
-					buf = ast_alloca(buflen);
+					buf = alloca(buflen);
 					snprintf(buf, buflen, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
 				} else {
 					buf = strdupa(argv[3]);
