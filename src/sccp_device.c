@@ -1911,28 +1911,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
 		}
 
-		/* cleanup dynamic allocated strings */
-
-		/** normaly we should only remove this when removing the device from globals,
-		 *  in this case we can do this also when device unregistered, so we do not set this multiple times -MC
-		 */
-		/*
-		if (d->backgroundImage) {
-			sccp_free(d->backgroundImage);
-			d->backgroundImage = NULL;
-		}
-		*/
-
-		/*
-		if (d->ringtone) {
-			sccp_free(d->ringtone);
-			d->ringtone = NULL;
-		}
-		*/
-		sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
-
 		/* hang up open channels and remove device from line */
-
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
@@ -2063,6 +2042,9 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
+
+	/* cleanup dynamic allocated during sccp_config (i.e. STRINGPTR) */
+	sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
 
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart */

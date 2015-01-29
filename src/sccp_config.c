@@ -816,7 +816,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_conf
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(void **) dst;
 			if (str) {
-				//pbx_log(LOG_NOTICE, "SCCP: Freeing '%s'\n", sccpConfigOption[i].name);
+				//pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
 				sccp_free(str);
 				str = NULL;
 			}
@@ -1686,9 +1686,6 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d != %d). Reloading all of them.\n", SCCP_LIST_GETSIZE(buttonconfigList), buttonindex);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
 		}
-
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d). Reloading all of them.\n", changed);
-		
 		/* Clear/Set pendingDelete and PendingUpdate if button has changed or not
 		 *
 		 * \note Moved here from device_post_reload so that we will know the new state before line_post_reload. 
@@ -1698,7 +1695,6 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
 			config->pendingDelete = changed;
 			config->pendingUpdate = 0;
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Number of Buttons changed (%d). pendingDelete: %s, pendingUpdate: %s\n", changed, config->pendingDelete ? "on": "off", config->pendingUpdate? "on": "off");
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
 	}
