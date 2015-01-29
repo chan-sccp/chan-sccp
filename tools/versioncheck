@@ -38,7 +38,7 @@ elif test -d .git || test -d ../.git || test -d ../../.git;then
     if test "`git branch | awk '{print $2}' | sed 's/\n//g'`" = "master"; then
       SCCP_BRANCH="TRUNK"
     else 
-      SCCP_BRANCH="`git branch | awk '{print $2}' | sed s/\n//g`"
+      SCCP_BRANCH="`git branch| grep "*" |awk '{print $2}' | sed s/\\n//g`"
     fi
     SCCP_REVISION="`git describe --always`"
     REPOS_TYPE="GIT"
