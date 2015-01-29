@@ -816,7 +816,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_conf
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(void **) dst;
 			if (str) {
-				//pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
+				pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
 				sccp_free(str);
 				str = NULL;
 			}
@@ -1693,7 +1693,7 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 		 */
 		SCCP_LIST_LOCK(buttonconfigList);
 		SCCP_LIST_TRAVERSE(buttonconfigList, config, list) {
-			config->pendingDelete = changed;
+			config->pendingDelete = (int)changed;
 			config->pendingUpdate = 0;
 		}
 		SCCP_LIST_UNLOCK(buttonconfigList);
@@ -2018,6 +2018,7 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
+
 #endif
 
 #ifdef CS_SCCP_REALTIME
@@ -2442,7 +2443,6 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 	if (d->keepalive < SCCP_MIN_KEEPALIVE) {
 		d->keepalive = SCCP_MIN_KEEPALIVE;
 	}
-
 	return res;
 }
 
@@ -2727,7 +2727,6 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 256
 #endif
-
 	char buffer[ASTDB_RESULT_LEN];
 	char timebuffer[ASTDB_RESULT_LEN];
 	int timeout = 0;

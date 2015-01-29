@@ -2829,7 +2829,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					buf = ast_alloca(buflen);
 					snprintf(buf, buflen, "%s/%s", ast_config_AST_CONFIG_DIR, argv[3]);
 				} else {
-					buf = strdupa(buf);
+					buf = strdupa(argv[3]);
 				}
 				// check file exists
 				struct stat sb = { 0 };
@@ -2840,13 +2840,13 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 
 				// load new config file
 				pbx_cli(fd, "Using config file '%s' (previous config file: '%s')\n", argv[3], GLOB(config_file_name));
-				if (!sccp_strequals(GLOB(config_file_name), argv[3])) {
+				if (!sccp_strequals(GLOB(config_file_name), buf)) {
 					force_reload = TRUE;
 				}
 				if (GLOB(config_file_name)) {
 					sccp_free(GLOB(config_file_name));
 				}
-				GLOB(config_file_name) = sccp_strdup(argv[3]);
+				GLOB(config_file_name) = sccp_strdup(buf);
 			} else {
 				pbx_cli(fd, "Usage: sccp reload file [filename], filename is required\n");
 				goto EXIT;
