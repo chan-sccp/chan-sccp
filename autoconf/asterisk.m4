@@ -729,18 +729,35 @@ dnl    ])
 		],,[ 
 	               	$HEADER_INCLUDE
     ])
+    AC_CHECK_HEADER([asterisk/parking.h],
+    [
+		AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/parking.h'])
+    ],,[ 
+              	$HEADER_INCLUDE
+    ])
+    ast_pickup_h = 0;
+    AC_CHECK_HEADER([asterisk/pickup.h],
+    [
+		AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/pickup.h'])
+		AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/pickup.h])
+		ast_pickup_h = 1;
+    ],,[ 
+              	$HEADER_INCLUDE
+    ])
     AC_CHECK_HEADER([asterisk/features.h],
     [
    			AC_DEFINE(HAVE_PBX_FEATURES_H,1,[Found 'asterisk/features.h'])
-
-			AC_MSG_CHECKING([ - availability 'ast_do_pickup'...])
-			AC_EGREP_HEADER([ast_do_pickup], [asterisk/features.h],
-			[
-				AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/features.h])
-				AC_MSG_RESULT(yes)
-			],[
-				AC_MSG_RESULT(no)
-			])
+   			
+			AS_IF([test "${ast_pickup_h}" == 0], [
+				AC_MSG_CHECKING([ - availability 'ast_do_pickup'...])
+				AC_EGREP_HEADER([ast_do_pickup], [asterisk/features.h],
+				[
+					AC_DEFINE(CS_AST_DO_PICKUP,1,[Found 'ast_do_pickup' in asterisk/features.h])
+					AC_MSG_RESULT(yes)
+				],[
+					AC_MSG_RESULT(no)
+				])
+			]);
     ],,[ 
               	$HEADER_INCLUDE
     ])

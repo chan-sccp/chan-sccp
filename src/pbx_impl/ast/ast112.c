@@ -37,6 +37,7 @@ extern "C" {
 #include <asterisk/netsock2.h>
 #include <asterisk/cel.h>
 #include <asterisk/parking.h>
+#include <asterisk/pickup.h>
 #include <asterisk/stasis_channels.h>
 #include <asterisk/stasis_endpoints.h>
 #include <asterisk/bridge_channel.h>
