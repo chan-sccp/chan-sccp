@@ -5,7 +5,7 @@ compiler:
  - clang
  - gcc
 env:
- - REPOS=lucid
+# - REPOS=lucid
  - REPOS=precise
  - REPOS=trusty
  - REPOS=utopic
