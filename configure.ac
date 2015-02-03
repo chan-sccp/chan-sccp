@@ -10,7 +10,7 @@ AC_PREREQ([2.63])
 AC_INIT([Chan_SCCP],[4.2_TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
 
 MIN_ASTERISK_VERSION=106
-MAX_ASTERISK_VERSION=112
+MAX_ASTERISK_VERSION=113
 
 AC_CONFIG_AUX_DIR([autoconf])
 AC_CONFIG_MACRO_DIR([autoconf])
