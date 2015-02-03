@@ -10,8 +10,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-01-25 18:46:07 +0100 (zo, 25 jan 2015) $
+ * $Revision: 5888 $
  */
 
 /*!
@@ -40,7 +40,7 @@
 #include <asterisk/unaligned.h>
 #include <sys/stat.h>
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5888 $");
 #include <math.h>
 #if ASTERISK_VERSION_NUMBER < 10400
 
@@ -1592,7 +1592,10 @@ static void sccp_handle_stimulus_groupcallpickup(sccp_device_t * d, sccp_line_t 
 	//sccp_feat_handle_directed_pickup(l, 1, d);
 	AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-	new_channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+//	new_channel = sccp_channel_newcall(l, d, "pickupexten", SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+	if (!(new_channel = sccp_channel_new_feature_call(l, d, SCCP_FEATURE_PICKUP, NULL, NULL))) {
+	        pbx_log(LOG_ERROR, "%s: (grouppickup) Cannot start a new channel\n", d->id);
+	}
 #else
 	sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "### Native GROUP PICKUP was not compiled in\n");
 #endif
@@ -3822,13 +3825,16 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: media statistic for %s, value1: %u, value2: %u, value3: %u, value4: %u\n",
 							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 				    );
+			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
+			case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
+			case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
+			case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
+				if (channel->owner) {
+					PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
+				}
 				break;
-			// case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
-			// case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
-			// case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
-			// case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
-			// case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
-			// case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
+			//case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
 			default:
 
 				break;

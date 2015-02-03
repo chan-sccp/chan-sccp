@@ -6,8 +6,8 @@
  *              See the LICENSE file at the top of the source tree.
  * \since       2009-01-16
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-01-16 20:45:03 +0100 (vr, 16 jan 2015) $
+ * $Revision: 5852 $
  */
 
 /*!
@@ -35,7 +35,7 @@
 #include "sccp_indicate.h"
 #include "sccp_rtp.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5852 $");
 
 /*!
  * \brief Handle Call Forwarding
@@ -506,7 +506,11 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	} else {
 		/* emulate a new call so we end up in the same state as when a new call has been started */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
-		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+//		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+		if (!(c = sccp_channel_new_feature_call(l, d, SCCP_FEATURE_PICKUP, NULL, NULL))) {
+		        pbx_log(LOG_ERROR, "%s: (grouppickup) Cannot start a new channel\n", d->id);
+		        return -1;
+		}
 		dest = c->owner;
 	}
 	/* prepare for call pickup */

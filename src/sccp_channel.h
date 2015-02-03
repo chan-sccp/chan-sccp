@@ -9,8 +9,8 @@
  * \note        This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$  
+ * $Date: 2015-01-26 17:11:20 +0100 (ma, 26 jan 2015) $
+ * $Revision: 5889 $  
  */
 
 #ifndef __SCCP_CHANNEL_H
@@ -22,6 +22,7 @@
 
 /* live cycle */
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);					// device is optional
+sccp_channel_t *sccp_channel_new_feature_call(sccp_line_t * l, sccp_device_t * device, sccp_feature_type_t feature, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
