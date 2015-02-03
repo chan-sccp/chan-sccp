@@ -77,7 +77,6 @@ void sccp_line_pre_reload(void)
 void sccp_line_post_reload(void)
 {
 	sccp_line_t *line;
-	sccp_linedevices_t *linedevice;
 
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list) {
 		if (!line->pendingDelete && !line->pendingUpdate) {
@@ -86,11 +85,30 @@ void sccp_line_post_reload(void)
 		AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 
 		if (l) {
+			// existing lines
+			sccp_linedevices_t *linedevice;
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				linedevice->device->pendingUpdate = 1;
 			}
 			SCCP_LIST_UNLOCK(&l->devices);
+			
+			if (l->pendingUpdate) {
+				// new line
+				sccp_device_t *d = NULL;
+				sccp_buttonconfig_t *buttonconfig;
+				SCCP_RWLIST_RDLOCK(&GLOB(devices));
+				SCCP_LIST_TRAVERSE(&GLOB(devices), d, list) {
+					SCCP_LIST_LOCK(&d->buttonconfig);
+					SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
+						if (buttonconfig->type == LINE && !sccp_strlen_zero(buttonconfig->button.line.name) && !sccp_strequals(line->name, buttonconfig->button.line.name) ) {
+							d->pendingUpdate = TRUE;
+						}
+					}
+					SCCP_LIST_UNLOCK(&d->buttonconfig);
+				}
+				SCCP_RWLIST_UNLOCK(&GLOB(devices));
+			}
 
 			if (l->pendingDelete) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Deleting Line (post_reload)\n", l->name);

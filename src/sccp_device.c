@@ -324,7 +324,8 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 	boolean_t res = FALSE;
 
 	if (d) {
-		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "device: %s check_update, pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s (check_update) pendingUpdate: %s, pendingDelete: %s\n", d->id, d->pendingUpdate ? "TRUE" : "FALSE", d->pendingDelete ? "TRUE" : "FALSE");
+
 		if ((d->pendingUpdate || d->pendingDelete)) {
 			do {
 				if (sccp_device_numberOfChannels(d) > 0) {
@@ -340,23 +341,6 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 					sccp_dev_clean(d, TRUE, 0);
 				} else {
 					sccp_dev_clean(d, FALSE, 0);
-					sccp_buttonconfig_t *buttonconfig;
-
-					SCCP_LIST_LOCK(&d->buttonconfig);
-					SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, buttonconfig, list) {
-						if (!buttonconfig->pendingDelete && !buttonconfig->pendingUpdate) {
-							continue;
-						}
-						if (buttonconfig->pendingDelete) {
-							sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Remove Buttonconfig for %s from List\n", d->id);
-							SCCP_LIST_REMOVE_CURRENT(list);
-							sccp_free(buttonconfig);
-						} else {
-							buttonconfig->pendingUpdate = 0;
-						}
-					}
-					SCCP_LIST_TRAVERSE_SAFE_END;
-					SCCP_LIST_UNLOCK(&d->buttonconfig);
 				}
 				res = TRUE;
 			} while (0);
@@ -376,6 +360,7 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
 void sccp_device_post_reload(void)
 {
 	sccp_device_t *d;
+	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "SCCP: (post_reload)\n");
 
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(devices), d, list) {
 		if (!d->pendingDelete && !d->pendingUpdate) {
@@ -387,6 +372,7 @@ void sccp_device_post_reload(void)
 		if (!sccp_device_check_update(d)) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Device %s will receive reset after current call is completed\n", d->id);
 		}
+		/* should we re-check the device after hangup ? */
 	}
 	SCCP_LIST_TRAVERSE_SAFE_END;
 }
@@ -1932,30 +1918,9 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
 		}
 
-		/* cleanup dynamic allocated strings */
-
-		/** normaly we should only remove this when removing the device from globals,
-		 *  in this case we can do this also when device unregistered, so we do not set this multiple times -MC
-		 */
-		/*
-		if (d->backgroundImage) {
-			sccp_free(d->backgroundImage);
-			d->backgroundImage = NULL;
-		}
-		*/
-
-		/*
-		if (d->ringtone) {
-			sccp_free(d->ringtone);
-			d->ringtone = NULL;
-		}
-		*/
-		sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
-
 		/* hang up open channels and remove device from line */
-
 		SCCP_LIST_LOCK(&d->buttonconfig);
-		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
+		SCCP_LIST_TRAVERSE_SAFE_BEGIN(&d->buttonconfig, config, list) {
 			if (config->type == LINE) {
 				AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(config->button.line.name, FALSE);
 
@@ -1983,7 +1948,14 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 				sccp_line_removeDevice(line, d);
 			}
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
+			if (config->pendingDelete) {
+				SCCP_LIST_REMOVE_CURRENT(list);
+				sccp_free(config);
+				config = NULL;
+				
+			}
 		}
+		SCCP_LIST_TRAVERSE_SAFE_END;
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 		d->linesRegistered = FALSE;
 
@@ -2077,6 +2049,9 @@ int __sccp_device_destroy(const void *ptr)
 	}
 
 	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Destroying Device\n", d->id);
+
+	/* cleanup dynamic allocated during sccp_config (i.e. STRINGPTR) */
+	sccp_config_cleanup_dynamically_allocated_memory(d, SCCP_CONFIG_DEVICE_SEGMENT);
 
 	/* remove button config */
 	/* only generated on read config, so do not remove on reset/restart */
