@@ -343,14 +343,13 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 
 	char *name = NULL;
 	char *number = NULL;
-	sccp_channel_t *tmpChannel;
 
 	target = PBX(findPickupChannelByExtenLocked) (original, exten, context);
 	if (target) {
 		tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
 
 		/* fixup callinfo */
-		tmpChannel = CS_AST_CHANNEL_PVT(target);
+		AUTO_RELEASE sccp_channel_t *tmpChannel = get_sccp_channel_from_pbx_channel(target);
 		if (tmpChannel) {
 			if (PBX(get_callerid_name)) {
 				PBX(get_callerid_name) (tmpChannel, &name);
@@ -378,12 +377,21 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 			c->state = SCCP_CHANNELSTATE_PROCEED;
 			c->answered_elsewhere = TRUE;
 
+			AUTO_RELEASE sccp_device_t *orig_device = NULL;
+			AUTO_RELEASE sccp_channel_t *orig_channel = get_sccp_channel_from_pbx_channel(original);
+			if (orig_channel) {
+				orig_device = sccp_channel_getDevice_retained(orig_channel);
+			}
+
 			res = ast_do_pickup(original, target);
 			if (!res) {
 				/* directed pickup succeeded */
 				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
 				sccp_rtp_stop(c);								/* stop previous audio */
 				pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
+				if (orig_device && orig_channel) {
+					sccp_indicate(orig_device, orig_channel, SCCP_CHANNELSTATE_ONHOOK);
+				}
 				pbx_hangup(original);								/* hangup masqueraded zombie channel */
 
 				pbx_channel_set_hangupcause(c->owner, AST_CAUSE_NORMAL_CLEARING);		/* reset picked up channel */
