@@ -2790,7 +2790,7 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 MIN_ASTERISK_VERSION=106
-MAX_ASTERISK_VERSION=112
+MAX_ASTERISK_VERSION=113
 
 ac_aux_dir=
 for ac_dir in autoconf "$srcdir"/autoconf; do
@@ -21743,7 +21743,7 @@ if test "${with_changelog_oldest+set}" = set; then :
   withval=$with_changelog_oldest;
 fi
 
-	CHANGELOG_OLDEST=5500
+	CHANGELOG_OLDEST=5600
 	if test "x$with_changelog_oldest" != "x" ; then
 	  CHANGELOG_OLDEST=$with_changelog_oldest
 	fi
@@ -24121,7 +24121,7 @@ $as_echo "#define HAVE_PBX_FEATURES_H 1" >>confdefs.h
 fi
 
 
-    ast_pickup_h = 0;
+    ast_pickup_h=0
     ac_fn_c_check_header_compile "$LINENO" "asterisk/pickup.h" "ac_cv_header_asterisk_pickup_h" "
               	$HEADER_INCLUDE
 
@@ -24134,7 +24134,7 @@ $as_echo "#define HAVE_PBX_FEATURES_H 1" >>confdefs.h
 
 $as_echo "#define CS_AST_DO_PICKUP 1" >>confdefs.h
 
-		ast_pickup_h = 1;
+		ast_pickup_h=1
 
 fi
 
