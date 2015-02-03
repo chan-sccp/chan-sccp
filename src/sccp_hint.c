@@ -129,7 +129,6 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 #endif
 {
 	sccp_hint_list_t *hint = (sccp_hint_list_t *) data;
-	const struct ast_eid *eid;
 	const char *cidName;
 	const char *cidNumber;
 	//enum ast_device_state state;		/* maybe we should store the last state */
@@ -142,18 +141,20 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	if (dev_state->eid) {
 		return;
 	}
-	eid = dev_state->eid;
+	//eid = dev_state->eid;
 	//state = dev_state->state;
 	//cidName = dev_state->
 	//cidNumber = dev_state->
 	cidName = "";
 	cidNumber = "";
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL");
 #else
+	const struct ast_eid *eid;
 	eid = ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
 	//state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
 	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
 	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
-#endif
+
 	char eid_str[32] = "";
 	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
 	if (!ast_eid_cmp(&ast_eid_default, eid)) {
@@ -161,8 +162,9 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Skipping distribute devstate update from EID:'%s', MYEID:'%s' (i.e. myself)\n", eid_str, default_eid_str);
 		return;
 	}
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s, originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
+#endif
 	
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "Got new hint event %s, cidname: %s, cidnum: %s originated from EID:'%s'\n", hint->hint_dialplan, cidName ? cidName : "NULL", cidNumber ? cidNumber : "NULL", eid_str);
 
 	if (cidName) {
 		sccp_copy_string(hint->callInfo.partyName, cidName, sizeof(hint->callInfo.partyName));
