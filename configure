@@ -24108,6 +24108,37 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 fi
 
 
+    ac_fn_c_check_header_compile "$LINENO" "asterisk/parking.h" "ac_cv_header_asterisk_parking_h" "
+              	$HEADER_INCLUDE
+
+"
+if test "x$ac_cv_header_asterisk_parking_h" = xyes; then :
+
+
+$as_echo "#define HAVE_PBX_FEATURES_H 1" >>confdefs.h
+
+
+fi
+
+
+    ast_pickup_h = 0;
+    ac_fn_c_check_header_compile "$LINENO" "asterisk/pickup.h" "ac_cv_header_asterisk_pickup_h" "
+              	$HEADER_INCLUDE
+
+"
+if test "x$ac_cv_header_asterisk_pickup_h" = xyes; then :
+
+
+$as_echo "#define HAVE_PBX_FEATURES_H 1" >>confdefs.h
+
+
+$as_echo "#define CS_AST_DO_PICKUP 1" >>confdefs.h
+
+		ast_pickup_h = 1;
+
+fi
+
+
     ac_fn_c_check_header_compile "$LINENO" "asterisk/features.h" "ac_cv_header_asterisk_features_h" "
               	$HEADER_INCLUDE
 
@@ -24118,9 +24149,11 @@ if test "x$ac_cv_header_asterisk_features_h" = xyes; then :
 $as_echo "#define HAVE_PBX_FEATURES_H 1" >>confdefs.h
 
 
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ast_do_pickup'..." >&5
+			if test "${ast_pickup_h}" == 0; then :
+
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking  - availability 'ast_do_pickup'..." >&5
 $as_echo_n "checking  - availability 'ast_do_pickup'...... " >&6; }
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <asterisk/features.h>
 
@@ -24131,17 +24164,19 @@ if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
 
 $as_echo "#define CS_AST_DO_PICKUP 1" >>confdefs.h
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
 else
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 fi
 rm -f conftest*
 
+
+fi;
 
 fi
 

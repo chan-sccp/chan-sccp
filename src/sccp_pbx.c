@@ -964,10 +964,12 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				sccp_dev_displayprompt(d, instance, c->callid, SKINNY_DISP_CALL_PROCEED, GLOB(digittimeout));
 
 				if (!sccp_strlen_zero(shortenedNumber)) {
-					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
+ 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (sccp_pbx_softswitch) Asterisk request to pickup exten '%s'\n", shortenedNumber);
+					int res = sccp_feat_directed_pickup(c, shortenedNumber);
 					if (sccp_feat_directed_pickup(c, shortenedNumber)) {
 						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);
 					}
+					
 					PBX(set_callstate) (c, AST_STATE_UP);
 				} else {
 					// without a number we can also close the call. Isn't it true ?

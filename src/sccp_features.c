@@ -344,6 +344,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 	char *name = NULL;
 	char *number = NULL;
 
+	pbx_log(LOG_NOTICE, "SCCP: (directed_pickup)\n");
 	target = PBX(findPickupChannelByExtenLocked) (original, exten, context);
 	if (target) {
 		tmp = (CS_AST_BRIDGED_CHANNEL(target) ? CS_AST_BRIDGED_CHANNEL(target) : target);
