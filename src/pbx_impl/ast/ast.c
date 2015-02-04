@@ -742,7 +742,11 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 		redirecting.to.name.valid = 1;
 		redirecting.to.name.str = strdup(toName);
 	}
+#if ASTERISK_VERSION_GROUP >110
 	redirecting.reason.code = reason;
+#else
+	redirecting.reason = reason;
+#endif
 
 	ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
 	ast_party_redirecting_free(&redirecting);
