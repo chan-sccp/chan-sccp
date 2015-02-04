@@ -39,8 +39,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"possible categories: \n"
 																																					"core, sccp, hint, rtp, device, line, action, channel, cli, config, feature, feature_button, softkey, indicate, pbx\n"
 																																					"socket, mwi, event, adv_feature, conference, buttontemplate, speeddial, codec, realtime, lock, newcode, high, all, none\n"},
-	{"context", 			G_OBJ_REF(context), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				"pbx dialplan context\n"},
-	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"D.M.Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
+	{"context", 			G_OBJ_REF(context), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"default",			"pbx dialplan context\n"},
+	{"dateformat", 			G_OBJ_REF(dateformat), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"M/D/Y",			"M-D-Y in any order. Use M/D/YA (for 12h format)\n"},
 	{"bindaddr", 			G_OBJ_REF(bindaddr), 			TYPE_PARSER(sccp_config_parse_ipaddress),					SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NEEDDEVICERESET,		"0.0.0.0",			"replace with the ip address of the asterisk server (RTP important param)\n"}, 
 	{"port", 			G_OBJ_REF(bindaddr),			TYPE_PARSER(sccp_config_parse_port),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"2000",				"listen on port 2000 (Skinny, default)\n"},
 	{"disallow|allow", 		G_OBJ_REF(global_preferences),		TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_MULTI_ENTRY,	SCCP_CONFIG_NEEDDEVICERESET,		"",				"First disallow all codecs, for example 'all', then allow codecs in order of preference (Multiple lines allowed)\n"},

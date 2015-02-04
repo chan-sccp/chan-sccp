@@ -513,7 +513,11 @@ static void sccp_protocol_sendRegisterAckV3(const sccp_device_t * device, uint8_
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
-	memcpy(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	if (!sccp_strlen_zero(dateformat)) {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	} else {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, "M/D/Y", sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	}
 
 /* Temp Debugging for John T. Bittner (2015-01-22) */
 	char binstr[33] = "";
@@ -551,7 +555,11 @@ static void sccp_protocol_sendRegisterAckV4(const sccp_device_t * device, uint8_
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
-	memcpy(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	if (!sccp_strlen_zero(dateformat)) {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	} else {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, "M/D/Y", sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	}
 
 /* Temp Debugging for John T. Bittner (2015-01-22) */
 	char binstr[33] = "";
@@ -589,7 +597,11 @@ static void sccp_protocol_sendRegisterAckV11(const sccp_device_t * device, uint8
 	msg->data.RegisterAckMessage.lel_keepAliveInterval = htolel(keepAliveInterval);
 	msg->data.RegisterAckMessage.lel_secondaryKeepAliveInterval = htolel(secondaryKeepAlive);
 
-	memcpy(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	if (!sccp_strlen_zero(dateformat)) {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, dateformat, sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	} else {
+		sccp_copy_string(msg->data.RegisterAckMessage.dateTemplate, "M/D/Y", sizeof(msg->data.RegisterAckMessage.dateTemplate));
+	}
 
 /* Temp Debugging for John T. Bittner (2015-01-22) */
 	char binstr[33] = "";
