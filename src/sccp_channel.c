@@ -2208,7 +2208,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		pbx_log(LOG_WARNING, "SCCP: Failed to complete transfer. The channel is not ringing or connected. ChannelState: %s (%d)\n", sccp_channelstate2str(sccp_destination_local_channel->state), sccp_destination_local_channel->state);
 		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, instance, sccp_destination_local_channel->callid, 0);
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
-		return;
+		goto EXIT;
 	}
 
 	if (!sccp_destination_local_channel->owner || !sccp_source_local_channel || !sccp_source_local_channel->owner) {
@@ -2216,7 +2216,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 							      d->id,
 							      (sccp_destination_local_channel && sccp_destination_local_channel->line && sccp_destination_local_channel->line->name) ? sccp_destination_local_channel->line->name : "(null)",
 							      (sccp_destination_local_channel && sccp_destination_local_channel->callid) ? sccp_destination_local_channel->callid : 0, (sccp_source_local_channel && sccp_source_local_channel->line && sccp_source_local_channel->line->name) ? sccp_source_local_channel->line->name : "(null)", (sccp_source_local_channel && sccp_source_local_channel->callid) ? sccp_source_local_channel->callid : 0);
-		return;
+		goto EXIT;
 	}
 
 	pbx_source_local_channel = sccp_source_local_channel->owner;
@@ -2236,7 +2236,7 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		pbx_log(LOG_WARNING, "SCCP: Failed to complete transfer. Missing asterisk transferred or transferee channel\n");
 
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
-		return;
+		goto EXIT;
 	}
 
 	{
@@ -2312,25 +2312,23 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		}
 	}
 
-	if (PBX(attended_transfer) (sccp_destination_local_channel, sccp_source_local_channel)) {
+	if (!PBX(attended_transfer) (sccp_destination_local_channel, sccp_source_local_channel)) {
 		pbx_log(LOG_WARNING, "SCCP: Failed to masquerade %s into %s\n", pbx_channel_name(pbx_destination_local_channel), pbx_channel_name(pbx_source_remote_channel));
-
 		sccp_dev_displayprompt(d, instance, sccp_destination_local_channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
-		return;
+		goto EXIT;
 	}
-
-	if (!sccp_source_local_channel->owner) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
-		return;
-	}
-
-	sccp_channel_transfer_release(d, d->transferChannels.transferee);
-	//sccp_channel_transfer_release(d, sccp_source_local_channel);
-
+	
 	if (GLOB(transfer_tone) && sccp_destination_local_channel->state == SCCP_CHANNELSTATE_CONNECTED) {
 		/* while connected not all the tones can be played */
 		sccp_dev_starttone(d, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, 0);
 	}
+
+EXIT:
+	if (!sccp_source_local_channel->owner) {
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
+		return;
+	}
+	sccp_channel_transfer_release(d, d->transferChannels.transferee);
 }
 
 /*!

@@ -2575,17 +2575,23 @@ static void sccp_wrapper_asterisk112_updateConnectedLine(const sccp_channel_t * 
 	memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
 
+	if (!sccp_strlen_zero(connected.id.number.str)) {
+		ast_free(connected.id.number.str);
+	}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
-		connected.id.number.str = (char *) number;
+		connected.id.number.str = strdup(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 
+	if (!sccp_strlen_zero(connected.id.name.str)) {
+		ast_free(connected.id.name.str);
+	}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
-		connected.id.name.str = (char *) name;
+		connected.id.name.str = strdup(name);
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 	if (update_connected.id.number || update_connected.id.name) {
@@ -3249,6 +3255,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_getBridgeChannel(PBX_CHANNEL_T
 
 static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
 {
+	enum ast_transfer_result res;
 	// possibly move transfer related callinfo updates here
 	if (!destination_channel || !source_channel || !destination_channel->owner || !source_channel->owner) {
 		return FALSE;
@@ -3256,10 +3263,19 @@ static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * des
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = source_channel->owner;
 
-	if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel)) {
-		return TRUE;
+/*
+	ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
+	if (ast_channel_state(pbx_source_local_channel) == AST_STATE_RINGING) {
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_RINGING);
 	}
-	return FALSE;
+*/
+	res = ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel);
+	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
+		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_HOLD);		
+		return FALSE;
+	}
+	return TRUE;
 }
 
 /*!

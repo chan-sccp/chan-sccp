@@ -2322,24 +2322,34 @@ static void sccp_wrapper_asterisk110_updateConnectedLine(const sccp_channel_t * 
 	struct ast_set_party_connected_line update_connected;
 
 	memset(&update_connected, 0, sizeof(update_connected));
+	ast_party_connected_line_init(&connected);
 
+	if (!sccp_strlen_zero(connected.id.number.str)) {
+		ast_free(connected.id.number.str);
+	}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
-		connected.id.number.str = (char *) number;
+		connected.id.number.str = strdup(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 
+	if (!sccp_strlen_zero(connected.id.name.str)) {
+		ast_free(connected.id.name.str);
+	}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
-		connected.id.name.str = (char *) name;
+		connected.id.name.str = strdup(name);
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
-	connected.id.tag = NULL;
-	connected.source = reason;
-
-	ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
+	if (update_connected.id.number || update_connected.id.name) {
+		ast_set_party_id_all(&update_connected.priv);
+		// connected.id.tag = NULL;
+		connected.source = reason;
+		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
+		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "SCCP: do connected line for line '%s', name: %s ,num: %s\n", pbx_channel_name(channel->owner), name ? name : "(NULL)", number ? number : "(NULL)");
+	}
 }
 
 static int sccp_wrapper_asterisk110_sched_add(int when, sccp_sched_cb callback, const void *data)

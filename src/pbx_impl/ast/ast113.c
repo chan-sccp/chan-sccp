@@ -2685,17 +2685,23 @@ static void sccp_wrapper_asterisk113_updateConnectedLine(const sccp_channel_t * 
 	memset(&update_connected, 0, sizeof(update_connected));
 	ast_party_connected_line_init(&connected);
 
+	if (!sccp_strlen_zero(connected.id.number.str)) {
+		ast_free(connected.id.number.str);
+	}
 	if (number) {
 		update_connected.id.number = 1;
 		connected.id.number.valid = 1;
-		connected.id.number.str = (char *) number;
+		connected.id.number.str = strdup(number);
 		connected.id.number.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 
+	if (!sccp_strlen_zero(connected.id.name.str)) {
+		ast_free(connected.id.name.str);
+	}
 	if (name) {
 		update_connected.id.name = 1;
 		connected.id.name.valid = 1;
-		connected.id.name.str = (char *) name;
+		connected.id.name.str = strdup(name);
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 	if (update_connected.id.number || update_connected.id.name) {
@@ -3376,10 +3382,12 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * des
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = source_channel->owner;
 
-	if (AST_BRIDGE_TRANSFER_SUCCESS == ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel)) {
-		return TRUE;
+	if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel)) {
+		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
+		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_HOLD);		
+		return FALSE;
 	}
-	return FALSE;
+	return TRUE;
 }
 
 /*!
