@@ -61,7 +61,7 @@
 #define StationMaxDeviceNameSize			16
 #define StationMaxButtonTemplateSize			56
 #define StationMaxButtonTemplateNameSize		44
-#define StationDateTemplateSize 			6
+#define StationDateTemplateSize 			7
 #define StationMaxDisplayTextSize			32
 #define StationMaxDisplayNotifySize 			32
 #define StationMaxDirnumSize				24
@@ -1848,7 +1848,8 @@ typedef union {
 	struct {
 		uint32_t lel_keepAliveInterval;									/*!< Keep Alive Interval to the Primary Server */
 		char dateTemplate[StationDateTemplateSize];							/*!< Date Template */
-		uint16_t alignmentPadding;									/*!< Filler 1 */
+//		uint16_t alignmentPadding;									/*!< Filler 1 */
+		uint8_t alignmentPadding;									/*!< Filler 1 */
 		uint32_t lel_secondaryKeepAliveInterval;							/*!< Keep Alive Interval to the Secundairy Server */
 		uint8_t maxProtocolVer;										/*!< Protocol Version */
 		uint8_t ProtocolVer2;										/*!< Protocol Version Part 2 */

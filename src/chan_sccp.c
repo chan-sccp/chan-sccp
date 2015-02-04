@@ -535,9 +535,9 @@ boolean_t sccp_prePBXLoad(void)
 
 	GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_KEEPALIVE;
-	sccp_copy_string(GLOB(dateformat), "D/M/YA", sizeof(GLOB(dateformat)));
-	sccp_copy_string(GLOB(context), "default", sizeof(GLOB(context)));
-	sccp_copy_string(GLOB(servername), "Asterisk", sizeof(GLOB(servername)));
+	//sccp_copy_string(GLOB(dateformat), "M/D/YA", sizeof(GLOB(dateformat)));
+	//sccp_copy_string(GLOB(context), "default", sizeof(GLOB(context)));
+	//sccp_copy_string(GLOB(servername), "Asterisk", sizeof(GLOB(servername)));
 
 	/* Wait up to 16 seconds for first digit */
 	GLOB(firstdigittimeout) = 16;
