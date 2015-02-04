@@ -707,31 +707,45 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
 	memset(&update_redirecting, 0, sizeof(update_redirecting));
 
 	/* update redirecting info line for source part */
+	if (!sccp_strlen_zero(redirecting.from.number.str)) {
+		ast_free(redirecting.from.number.str );
+	}
 	if (fromNumber) {
 		update_redirecting.from.number = 1;
 		redirecting.from.number.valid = 1;
-		redirecting.from.number.str = strdupa(fromNumber);
+		redirecting.from.number.str = strdup(fromNumber);
 	}
 
+	if (!sccp_strlen_zero(redirecting.from.name.str)) {
+		ast_free(redirecting.from.name.str );
+	}
 	if (fromName) {
 		update_redirecting.from.name = 1;
 		redirecting.from.name.valid = 1;
-		redirecting.from.name.str = strdupa(fromName);
+		redirecting.from.name.str = strdup(fromName);
 	}
 
+	if (!sccp_strlen_zero(redirecting.to.number.str)) {
+		ast_free(redirecting.to.number.str );
+	}
 	if (toNumber) {
 		update_redirecting.to.number = 1;
 		redirecting.to.number.valid = 1;
-		redirecting.to.number.str = strdupa(toNumber);
+		redirecting.to.number.str = strdup(toNumber);
 	}
 
+	if (!sccp_strlen_zero(redirecting.to.name.str)) {
+		ast_free(redirecting.to.name.str );
+	}
 	if (toName) {
 		update_redirecting.to.name = 1;
 		redirecting.to.name.valid = 1;
-		redirecting.to.name.str = strdupa(toName);
+		redirecting.to.name.str = strdup(toName);
 	}
+	redirecting.reason.code = reason;
 
 	ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
+	ast_party_redirecting_free(&redirecting);
 #else
 	// set redirecting party (forwarder)
 	if (fromNumber) {

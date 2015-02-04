@@ -2926,7 +2926,7 @@ static boolean_t sccp_wrapper_asterisk106_attended_transfer(sccp_channel_t * des
 	if (!pbx_destination_local_channel || !pbx_source_remote_channel) {
 		return FALSE;
 	}
-	return pbx_channel_masquerade(pbx_destination_local_channel, pbx_source_remote_channel);
+	return !pbx_channel_masquerade(pbx_destination_local_channel, pbx_source_remote_channel);
 }
 
 /*!
