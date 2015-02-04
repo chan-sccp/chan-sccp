@@ -2344,7 +2344,7 @@ static void sccp_wrapper_asterisk110_updateConnectedLine(const sccp_channel_t * 
 		connected.id.name.presentation = AST_PRES_ALLOWED_NETWORK_NUMBER;
 	}
 	if (update_connected.id.number || update_connected.id.name) {
-		ast_set_party_id_all(&update_connected.priv);
+		//ast_set_party_id_all(&update_connected.priv);
 		// connected.id.tag = NULL;
 		connected.source = reason;
 		ast_channel_queue_connected_line_update(channel->owner, &connected, &update_connected);
