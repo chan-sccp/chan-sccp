@@ -3375,6 +3375,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_getBridgeChannel(PBX_CHANNEL_T
 
 static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
 {
+	enum ast_transfer_result res;
 	// possibly move transfer related callinfo updates here
 	if (!destination_channel || !source_channel || !destination_channel->owner || !source_channel->owner) {
 		return FALSE;
@@ -3382,7 +3383,8 @@ static boolean_t sccp_wrapper_asterisk113_attended_transfer(sccp_channel_t * des
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = source_channel->owner;
 
-	if (AST_BRIDGE_TRANSFER_SUCCESS != ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel)) {
+	res = ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel);
+	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
 		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
 		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_HOLD);		
 		return FALSE;
