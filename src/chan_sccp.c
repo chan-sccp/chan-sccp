@@ -458,6 +458,8 @@ int load_config(void)
 			}
 			ast_verbose(VERBOSE_PREFIX_3 "SCCP channel driver up and running on %s:%d\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)));
 
+			sccp_socket_setoptions(GLOB(descriptor));
+			
 			if (listen(GLOB(descriptor), DEFAULT_SCCP_BACKLOG)) {
 				pbx_log(LOG_WARNING, "Failed to start listening to %s:%d: %s\n", addrStr, sccp_socket_getPort(&GLOB(bindaddr)), strerror(errno));
 				close(GLOB(descriptor));
