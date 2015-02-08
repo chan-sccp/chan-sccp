@@ -8,8 +8,8 @@
  * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date$
- * $Revision$
+ * $Date: 2015-01-21 17:17:44 +0100 (wo, 21 jan 2015) $
+ * $Revision: 5873 $
  */
 
 #include <netinet/in.h>
@@ -19,7 +19,7 @@
 #include "sccp_device.h"
 #include "sccp_utils.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision$");
+SCCP_FILE_VERSION(__FILE__, "$Revision: 5873 $");
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
 #include <sys/poll.h>
@@ -491,7 +491,6 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	errno = 0;
 	int tries = 0;
-	int max_retries = READ_RETRIES;											/* arbitrairy number of tries to read a message */
 	int backoff = READ_BACKOFF;
 
 	// STAGE 1: read header
@@ -517,7 +516,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 	while (bytesToRead > 0) {
 		sccp_log_and((DEBUGCAT_SOCKET + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Reading %s (%d), msgDataSegmentSize: %d, UnreadBytesAccordingToPacket: %d, bytesToRead: %d, bytesReadSoFar: %d\n", DEV_ID_LOG(s->device), msgtype2str(letohl(msg->header.lel_messageId)), msg->header.lel_messageId, msgDataSegmentSize, UnreadBytesAccordingToPacket, bytesToRead, bytesReadSoFar);
 		readlen = read(socket, buffer, bytesToRead);						// use bufferptr instead
-		if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {
+		if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 			usleep(backoff);
 			backoff *= 2;
 			continue;
@@ -543,7 +542,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 		bytesToRead = UnreadBytesAccordingToPacket;
 		while (bytesToRead > 0) {
 			readlen = read(socket, discardBuffer, (bytesToRead > sizeof(discardBuffer)) ? sizeof(discardBuffer) : bytesToRead);
-			if ((readlen < 0) && (tries++ < max_retries) && (errno == EINTR || errno == EAGAIN)) {
+			if ((readlen < 0) && (tries++ < READ_RETRIES) && (errno == EINTR || errno == EAGAIN)) {
 				usleep(backoff);
 				backoff *= 2;
 				continue;
@@ -1176,7 +1175,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 	ssize_t bytesSent;
 	ssize_t bufLen;
 	uint8_t *bufAddr;
-	unsigned int try, maxTries, backoff;
+	unsigned int try, backoff;
 
 	if (s && s->session_stop) {
 		return -1;
@@ -1209,8 +1208,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 	}
 
 	try = 0;
-	maxTries = WRITE_BACKOFF;										/* arbitrairy number of tries */
-	backoff = WRITE_RETRIES;
+	backoff = WRITE_BACKOFF;
 	bytesSent = 0;
 	bufAddr = ((uint8_t *) msg);
 	bufLen = (ssize_t) (letohl(msg->header.length) + 8);
@@ -1220,7 +1218,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 		res = write(socket, bufAddr + bytesSent, bufLen - bytesSent);
 		pbx_mutex_unlock(&s->write_lock);
 		if (res < 0) {
-			if (errno == EINTR || errno == EAGAIN) {
+			if ((errno == EINTR || errno == EAGAIN) && try < WRITE_RETRIES) {
 				usleep(backoff);								/* back off to give network/other threads some time */
 				backoff *= 2;
 				continue;
@@ -1234,7 +1232,7 @@ int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg)
 			break;
 		}
 		bytesSent += res;
-	} while (bytesSent < bufLen && try < maxTries && s && !s->session_stop && socket > 0);
+	} while (bytesSent < bufLen && try < WRITE_RETRIES && s && !s->session_stop && socket > 0);
 
 	sccp_free(msg);
 	msg = NULL;
