@@ -491,6 +491,7 @@ static int sccp_read_data(sccp_session_t * s, sccp_msg_t * msg)
 
 	errno = 0;
 	int tries = 0;
+	int max_retries = READ_RETRIES;											/* arbitrairy number of tries to read a message */
 	int backoff = READ_BACKOFF;
 
 	// STAGE 1: read header
