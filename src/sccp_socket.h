@@ -79,6 +79,7 @@ static inline char *sccp_socket_stringify_port(const struct sockaddr_storage *so
 
 /* end sccp_socket_stringify_fmt short cuts */
 
+void sccp_socket_setoptions(int new_socket);
 void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t);
 int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg);
