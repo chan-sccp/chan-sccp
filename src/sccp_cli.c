@@ -2079,22 +2079,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-	if (!strcasecmp(argv[2], "enum") && argc > 2) {
-		pbx_cli(fd, "%s, %d\n", sccp_channelstate2str(SCCP_CHANNELSTATE_CONGESTION), SCCP_CHANNELSTATE_CONGESTION);
-		pbx_cli(fd, "%d, %d\n", sccp_channelstate_str2val("CONGESTION"), SCCP_CHANNELSTATE_CONGESTION);
-		pbx_cli(fd, "%d, %d\n", sccp_channelstate_str2intval("CONGESTION"), SCCP_CHANNELSTATE_CONGESTION);
-		pbx_cli(fd, "%s\n", sccp_channelstate_all_entries());
- 		char *all_entries = strdupa(sccp_channelstate_all_entries());
-		pbx_cli(fd, "%s (%d)\n", all_entries, (int)strlen(all_entries));
-		while (*all_entries) {
-			if (*all_entries == ',') {
-				*all_entries = '|';
-			}
-			all_entries++;
-		}
-		pbx_cli(fd, "%s\n", all_entries);
-		return RESULT_SUCCESS;
-	}
 #endif
 	return RESULT_FAILURE;
 }

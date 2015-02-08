@@ -214,7 +214,7 @@ dnl	AC_FUNC_STRERROR_R
 
 AC_DEFUN([CS_CC_VERSION_CHECK], [
 	CC_works=0
-	if [ test "${CC}" = "gcc" || test "${CC}" = "llvm-gcc" ]; then
+	if [ test "${CC}" == "gcc" || test "${CC}" == "llvm-gcc" ]; then
 		CC_VERSION=`${CC} -dumpversion`
 		CC_VERSION_MAJOR=$(echo $CC_VERSION | cut -d'.' -f1)
 		CC_VERSION_MINOR=$(echo $CC_VERSION | cut -d'.' -f2)
@@ -227,7 +227,7 @@ AC_DEFUN([CS_CC_VERSION_CHECK], [
 			echo "gcc: ${CC_VERSION}"
 		fi
 		GCC=yes
-	elif test "${CC}" = "clang"; then
+	elif test "${CC}" == "clang"; then
 				if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
 			CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
 			AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
@@ -513,8 +513,13 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
  	fi
 	if test "$enable_optimization" == "no"; then 
 		strip_binaries="no"
-		CFLAGS_saved="${CFLAGS_saved} -O0 "
-		CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
+		if test "${CC}" == "gcc"; then
+			CFLAGS_saved="${CFLAGS_saved} -Og "
+			CPPFLAGS_saved="${CPPFLAGS_saved} -Og"
+		else
+			CFLAGS_saved="${CFLAGS_saved} -O0 "
+			CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
+		fi		
 	else
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O2 "

@@ -10,20 +10,19 @@
  */
 
 /* dyn config */
-#define DATA_TYPE(_v,_w,_x,_y,_z) SCCP_CONFIG_DATATYPE_##_v, _w, _x, _y,_z						// make DataTypeParsers easier to extend when they need extra parameters
+#define DATA_TYPE(_w,_x,_y,_z) SCCP_CONFIG_DATATYPE_##_w, _x, _y,_z						// make DataTypeParsers easier to extend when they need extra parameters
 
 /* straight forward data types */
-#define TYPE_BOOLEAN DATA_TYPE(BOOLEAN, NULL, NULL, NULL, NULL)
-#define TYPE_INT DATA_TYPE(INT, NULL, NULL, NULL, NULL)
-#define TYPE_UINT DATA_TYPE(UINT, NULL, NULL, NULL, NULL)
-#define TYPE_STRING DATA_TYPE(STRING, NULL, NULL, NULL, NULL)
-#define TYPE_STRINGPTR DATA_TYPE(STRINGPTR, NULL, NULL, NULL, NULL)
-#define TYPE_CHAR DATA_TYPE(CHAR, NULL, NULL, NULL, NULL)
+#define TYPE_BOOLEAN DATA_TYPE(BOOLEAN, NULL, NULL, NULL)
+#define TYPE_INT DATA_TYPE(INT, NULL, NULL, NULL)
+#define TYPE_UINT DATA_TYPE(UINT, NULL, NULL, NULL)
+#define TYPE_STRING DATA_TYPE(STRING, NULL, NULL, NULL)
+#define TYPE_STRINGPTR DATA_TYPE(STRINGPTR, NULL, NULL, NULL)
+#define TYPE_CHAR DATA_TYPE(CHAR, NULL, NULL, NULL)
 
 /* custom parser */
-//#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, #_x)
-#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, NULL, #_x)
-#define TYPE_ENUM(_x,_y) DATA_TYPE(ENUM, NULL, _x##_##_y##_str2intval, _x##_##_y##_all_entries, NULL)
+#define TYPE_PARSER(_x) DATA_TYPE(PARSER, _x, NULL, #_x)
+#define TYPE_ENUM(_x,_y) DATA_TYPE(ENUM, NULL, _x##_##_y##_str2val , _x##_##_y##_all_entries)
 
 #define SCCP_CONFIG_REVISION "$Revision$"
 

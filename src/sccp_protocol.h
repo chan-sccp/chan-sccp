@@ -29,6 +29,12 @@
 
 #include "sccp_labels.h"
 
+#define ENUMMACRO_FILE "sccp_protocol_enums.hh"
+#define ENUMMACRO_GENERATE ENUMMACRO_GENHEADER
+#include "sccp_enum_macro.h"
+#undef  ENUMMACRO_GENERATE
+#undef  ENUMMACRO_FILE
+
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_LOW		3							/*!< At least we require protocol V.3 */
 #define SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH		22							/*!< We support up to protocol V.17 */
 

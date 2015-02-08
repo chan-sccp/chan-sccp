@@ -221,7 +221,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 		return;
 	}
 	// sccp_dump_msg(msg_in);
-	if (!skinny_devicetype_exists(deviceType)) {
+	if (!skinny_does_devicetype_exist(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a Token, Device Instance: %d, Type: %s (%d)\n", deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
@@ -377,7 +377,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 		return;
 	}
 
-	if (!skinny_devicetype_exists(deviceType)) {
+	if (!skinny_does_devicetype_exist(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_2 "%s: is requesting a token, Instance: %d, Type: %s (%d)\n", msg_in->data.SPCPRegisterTokenRequest.sId.deviceName, deviceInstance, skinny_devicetype2str(deviceType), deviceType);
@@ -489,7 +489,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 		return;
 	}
 
-	if (!skinny_devicetype_exists(deviceType)) {
+	if (!skinny_does_devicetype_exist(deviceType)) {
 		pbx_log(LOG_NOTICE, "%s: We currently do not (fully) support this device type (%d).\n" "Please send this device type number plus the information about the phone model you are using to one of our developers.\n" "Be Warned you should Expect Trouble Ahead\nWe will try to go ahead (Without any guarantees)\n", deviceName, deviceType);
 	}
 	sccp_log((DEBUGCAT_MESSAGE | DEBUGCAT_ACTION | DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: is registering, Instance: %d, UserId: %d, Type: %s (%d), Version: %d (loadinfo '%s')\n", deviceName, deviceInstance, userid, skinny_devicetype2str(deviceType), deviceType, protocolVer, msg_in->data.RegisterMessage.loadInfo);
@@ -3794,7 +3794,7 @@ void sccp_handle_device_to_user_response(sccp_session_t * s, sccp_device_t * d, 
  */
 void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	skinny_miscCommandType_t commandType;
+	sccp_miscCommandType_t commandType;
 	struct sockaddr_in sin = { 0 };
 	uint32_t conferenceId = letohl(msg_in->data.MiscellaneousCommandMessage.lel_conferenceId);
 	uint32_t callReference = letohl(msg_in->data.MiscellaneousCommandMessage.lel_callReference);

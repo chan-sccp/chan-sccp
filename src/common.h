@@ -44,7 +44,6 @@ extern "C" {
 #include <inttypes.h>
 #endif
 
-#include "sccp_enum.h"
 #include "sccp_refcount.h"
 #include "sccp_dllists.h"
 #include "sccp_threadpool.h"

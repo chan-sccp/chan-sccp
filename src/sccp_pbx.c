@@ -639,7 +639,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 					sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
 				}
 				break;
-			case SKINNY_CALLTYPE_SENTINEL:
+			case skinny_calltype_LOOKUPERROR:
 				break;
 		}
 	} else {
@@ -654,7 +654,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 				sprintf(c->callInfo.callingPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
 				sprintf(c->callInfo.callingPartyName, "%s%s", l->cid_name, (l->defaultSubscriptionId.name) ? l->defaultSubscriptionId.name : "");
 				break;
-			case SKINNY_CALLTYPE_SENTINEL:
+			case skinny_calltype_LOOKUPERROR:
 				break;
 		}
 	}

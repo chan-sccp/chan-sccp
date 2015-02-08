@@ -201,7 +201,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 						case EMPTY:
 							snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_config_buttontype2str(config->type));
 							break;
-						case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
+						case sccp_config_buttontype_LOOKUPERROR:
 							break;
 					}
 					if (strlen(lbuf)) {

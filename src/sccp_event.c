@@ -24,7 +24,11 @@
 #include "sccp_line.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
-
+#define ENUMMACRO_FILE "sccp_event_enums.hh"
+#define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
+#include "sccp_enum_macro.h"
+#undef  ENUMMACRO_GENERATE
+#undef  ENUMMACRO_FILE
 void sccp_event_destroy(sccp_event_t * event);
 
 /*!
@@ -79,7 +83,7 @@ void sccp_event_destroy(sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
-		case SCCP_EVENT_TYPE_SENTINEL:
+		case sccp_event_type_LOOKUPERROR:
 			break;
 	}
 	//pbx_log(LOG_NOTICE, "Event destroyed- %p type: %d\n", event, event->type);
@@ -262,7 +266,7 @@ void sccp_event_fire(const sccp_event_t * event)
 		case SCCP_EVENT_LINE_CHANGED:
 		case SCCP_EVENT_LINE_DELETED:
 			break;
-		case SCCP_EVENT_TYPE_SENTINEL:
+		case sccp_event_type_LOOKUPERROR:
 			break;
 	}
 

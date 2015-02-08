@@ -359,7 +359,7 @@ static int sccp_wrapper_asterisk113_devicestate(const char *data)
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			res = AST_DEVICE_INUSE;
 			break;
-		case SCCP_CHANNELSTATE_SENTINEL:
+		case sccp_channelstate_LOOKUPERROR:
 			break;
 	}
 
