@@ -518,8 +518,13 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 	} else {
 		/* emulate a new call so we end up in the same state as when a new call has been started */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Starting new channel\n", d->id);
-		c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
-		dest = c->owner;
+		if ((c = sccp_channel_newcall(l, d, NULL, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL))) {
+			dest = c->owner;
+		}
+	}
+	if (!dest) {
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (grouppickup) Failed to get offhook channel or create new channel\n", d->id);
+		return -2;
 	}
 	/* prepare for call pickup */
 	sccp_channel_stop_schedule_digittimout(c);
