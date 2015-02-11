@@ -513,13 +513,13 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
  	fi
 	if test "$enable_optimization" == "no"; then 
 		strip_binaries="no"
-		if test "${CC}" == "gcc"; then
-			CFLAGS_saved="${CFLAGS_saved} -Og "
-			CPPFLAGS_saved="${CPPFLAGS_saved} -Og"
-		else
+dnl		if test "${CC}" == "gcc"; then
+dnl			CFLAGS_saved="${CFLAGS_saved} -Og "
+dnl			CPPFLAGS_saved="${CPPFLAGS_saved} -Og"
+dnl		else
 			CFLAGS_saved="${CFLAGS_saved} -O0 "
 			CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
-		fi		
+dnl		fi		
 	else
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O2 "
