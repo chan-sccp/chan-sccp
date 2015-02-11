@@ -523,7 +523,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_addSubscription4Device) create new hint for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 		hint = sccp_hint_create(hint_exten, hint_context);
 		if (!hint) {
-			pbx_log(LOG_ERROR, "%s: (sccp_hint_addSubscription4Device) hint create failed for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
+			pbx_log(LOG_NOTICE, "%s: (sccp_hint_addSubscription4Device) hint create failed for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 			return;
 		}
 
