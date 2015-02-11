@@ -402,7 +402,7 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 			sccp_copy_string(channel->callInfo.calledPartyName, confstr, sizeof(channel->callInfo.calledPartyName));
 			channel->callInfo.calledParty_valid = 1;
 			break;
-		case skinny_calltype_LOOKUPERROR:
+		case SKINNY_CALLTYPE_SENTINEL:
 			break;
 	}
 
@@ -1092,7 +1092,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 					case SKINNY_CALLTYPE_FORWARD:
 						sprintf(xmlTmp, "%d:%s (%s)", part->id, part->channel->callInfo.originalCallingPartyName, part->channel->callInfo.originalCallingPartyName);
 						break;
-					case skinny_calltype_LOOKUPERROR:
+					case SKINNY_CALLTYPE_SENTINEL:
 						break;
 				}
 				strcat(xmlStr, xmlTmp);

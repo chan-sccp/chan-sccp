@@ -159,8 +159,9 @@ typedef struct SCCPConfigOption {
 	const size_t size;							/*!< Structure size */
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);	/*!< Conversion function */
-	int (*str2enumval) (const char *str);					/*!< generic convertor used for parsing OptionType: SCCP_CONFIG_DATATYPE_ENUM */
-	const char *enumentries;						/*!< Used by OptionType: SCCP_CONFIG_DATATYPE_ENUM, to get all possible values */
+        sccp_enum_str2intval_t str2intval;
+        sccp_enum_all_entries_t all_entries;
+        const char *parsername;
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
@@ -605,47 +606,46 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 		case SCCP_CONFIG_DATATYPE_ENUM:
 			{
 				int enumValue = 0;
-
 				if (!sccp_strlen_zero(value)) {
-					if ((enumValue = sccpConfigOption->str2enumval(value)) != -1) {
+					if ((enumValue = sccpConfigOption->str2intval(value)) != -1) {
 						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse Other Value: %s -> %d\n", value, enumValue);
-					} else if (sccp_true(value)) {
-						if (strcasestr(sccpConfigOption->enumentries, "|On|")) {
-							enumValue = sccpConfigOption->str2enumval("On");
-						} else if (strcasestr(sccpConfigOption->enumentries, "|Yes|")) {
-							enumValue = sccpConfigOption->str2enumval("Yes");
-						} else if (strcasestr(sccpConfigOption->enumentries, "|True|")) {
-							enumValue = sccpConfigOption->str2enumval("True");
+					} else {
+						char *all_entries = sccpConfigOption->all_entries();
+						if (sccp_true(value)) {
+							if (strcasestr(all_entries, "On")) {
+								enumValue = sccpConfigOption->str2intval("On");
+							} else if (strcasestr(all_entries, "Yes")) {
+								enumValue = sccpConfigOption->str2intval("Yes");
+							} else if (strcasestr(all_entries, "True")) {
+								enumValue = sccpConfigOption->str2intval("True");
+							}
+						} else if (!sccp_true(value)) {
+							if (strcasestr(all_entries, "Off")) {
+								enumValue = sccpConfigOption->str2intval("Off");
+							} else if (strcasestr(all_entries, "No")) {
+								enumValue = sccpConfigOption->str2intval("No");
+							} else if (strcasestr(all_entries, "False")) {
+								enumValue = sccpConfigOption->str2intval("False");
+							}
 						}
-						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse TRUE Value: %s -> %d\n", value, enumValue);
-					} else if (!sccp_true(value)) {
-						if (strcasestr(sccpConfigOption->enumentries, "|Off|")) {
-							enumValue = sccpConfigOption->str2enumval("Off");
-						} else if (strcasestr(sccpConfigOption->enumentries, "|No|")) {
-							enumValue = sccpConfigOption->str2enumval("No");
-						} else if (strcasestr(sccpConfigOption->enumentries, "|False|")) {
-							enumValue = sccpConfigOption->str2enumval("False");
-						}
-						sccp_log(DEBUGCAT_HIGH) ("SCCP: Parse FALSE Value: %s -> %d\n", value, enumValue);
 					}
-
 					if (enumValue != -1) {
 						if (*(int *) dst != enumValue) {
 							*(int *) dst = enumValue;
 							changed = SCCP_CONFIG_CHANGE_CHANGED;
 						}
 					} else {
-						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s. Allowed: [%s]\n", value, sccpConfigSegment->name, name, sccpConfigOption->enumentries);
+						pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s. Allowed: [%s]\n", value, sccpConfigSegment->name, name, sccpConfigOption->all_entries());
 						changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 					}
 					break;
 				}
-				pbx_log(LOG_WARNING, "SCCP: [%s]=>%s cannot be ''. Allowed: [%s]\n", sccpConfigSegment->name, name, sccpConfigOption->enumentries);
+				pbx_log(LOG_WARNING, "SCCP: [%s]=>%s cannot be ''. Allowed: [%s]\n", sccpConfigSegment->name, name, sccpConfigOption->all_entries());
 				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
 			}
 			break;
 
-		case sccp_config_buttontype_LOOKUPERROR:
+		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 			pbx_log(LOG_WARNING, "SCCP: Unknown param at %s='%s'\n", name, value);
 			return SCCP_CONFIG_NOUPDATENEEDED;
 	}
@@ -816,7 +816,7 @@ void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_conf
 			dst = ((uint8_t *) obj) + sccpConfigOption[i].offset;
 			str = *(void **) dst;
 			if (str) {
-				pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
+				//pbx_log(LOG_NOTICE, "SCCP: Freeing %s='%s'\n", sccpConfigOption[i].name, str);
 				sccp_free(str);
 				str = NULL;
 			}
@@ -1943,7 +1943,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			config->type = EMPTY;
 			config->index = index;
 			break;
-		case sccp_config_buttontype_LOOKUPERROR:
+		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Enum ButtonType SENTINEL\n");
 			break;
 	}
@@ -2874,6 +2874,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							case SCCP_CONFIG_DATATYPE_PARSER:
 								astman_append(s, "Type: PARSER\r\n");
 								astman_append(s, "possible_values: %s\r\n", "");
+								astman_append(s, "Parser:%s", config->parsername);
 								break;
 							case SCCP_CONFIG_DATATYPE_CHAR:
 								astman_append(s, "Type: CHAR\r\n");
@@ -2882,7 +2883,14 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							case SCCP_CONFIG_DATATYPE_ENUM:
 								astman_append(s, "Type: ENUM\r\n");
 								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
-								astman_append(s, "Possible Values: %s\r\n", config->enumentries);
+                                                                char *all_entries = strdupa(config->all_entries());
+                                                                while (*all_entries) {
+                                                                        if (*all_entries == ',') {
+                                                                                *all_entries = '|';
+                                                                        }
+                                                                        all_entries++;
+                                                                }
+								astman_append(s, "Possible Values: [%s]\r\n", all_entries);
 								break;
 						}
 						if (config->defaultValue && !strlen(config->defaultValue) == 0) {
@@ -3027,7 +3035,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								case SCCP_CONFIG_DATATYPE_PARSER:
 									astman_append(s, "\"Type\":\"PARSER\",");
 									astman_append(s, "\"Size\":0,");
-									astman_append(s, "\"Parser\":\"%s\"", config[cur_elem].enumentries);
+									astman_append(s, "\"Parser\":\"%s\"", config[cur_elem].parsername);
 									break;
 								case SCCP_CONFIG_DATATYPE_CHAR:
 									astman_append(s, "\"Type\":\"CHAR\",");
@@ -3036,23 +3044,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								case SCCP_CONFIG_DATATYPE_ENUM:
 									astman_append(s, "\"Type\":\"ENUM\",");
 									astman_append(s, "\"Size\":%d,", (int) config[cur_elem].size - 1);
-									astman_append(s, "\"PossibleValues\": [");
-									{
-										int comma2 = 0;
-										char *token = NULL;
-										char *tokens = strdupa(config[cur_elem].enumentries);
-
-										token = strtok(tokens, "|");
-										while (token != NULL) {
-											if (!sccp_strlen_zero(token)) {
-												astman_append(s, "%s", comma2 ? "," : "");
-												astman_append(s, "\"%s\"", token);
-												comma2 = 1;
-											}
-											token = strtok(NULL, "|");
-										}
-									}
-									astman_append(s, "]");
+									astman_append(s, "Possible Values: [%s]\r\n", config[cur_elem].all_entries());
 									break;
 							}
 							astman_append(s, ",");

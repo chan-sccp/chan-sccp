@@ -22,12 +22,6 @@
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
-#define ENUMMACRO_FILE "sccp_protocol_enums.hh"
-#define ENUMMACRO_GENERATE ENUMMACRO_GENFUNCTION
-#include "sccp_enum_macro.h"
-#undef  ENUMMACRO_GENERATE
-#undef  ENUMMACRO_FILE
-
 /* CallInfo Message */
 
 /* =================================================================================================================== Send Messages */
