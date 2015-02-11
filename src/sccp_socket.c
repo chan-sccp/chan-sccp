@@ -8,8 +8,8 @@
  * \note                This program is free software and may be modified and distributed under the terms of the GNU Public License.
  *              See the LICENSE file at the top of the source tree.
  *
- * $Date: 2015-01-21 17:17:44 +0100 (wo, 21 jan 2015) $
- * $Revision: 5873 $
+ * $Date$
+ * $Revision$
  */
 
 #include <netinet/in.h>
@@ -19,7 +19,7 @@
 #include "sccp_device.h"
 #include "sccp_utils.h"
 
-SCCP_FILE_VERSION(__FILE__, "$Revision: 5873 $");
+SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #ifndef CS_USE_POLL_COMPAT
 #include <poll.h>
 #include <sys/poll.h>
@@ -461,7 +461,7 @@ static void sccp_socket_get_error(sccp_session_t *s)
 	int socket = s->fds[0].fd;
 	int error = 0;
 	socklen_t error_len = sizeof(error);
-	if (socket && getsockopt(socket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) {
+	if ((socket && getsockopt(socket, SOL_SOCKET, SO_ERROR, &error, &error_len) == 0) && error != 0) {
 		pbx_log(LOG_ERROR, "%s: SOL_SOCKET:SO_ERROR: %s (%d)\n", DEV_ID_LOG(s->device), strerror(error), error);
 	}
 }
