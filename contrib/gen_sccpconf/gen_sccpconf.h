@@ -16,6 +16,8 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
 #undef offsize
 #define offsize(T, F) 0
 
+#include "../../src/sccp_enum.h"
+
 /*
 #define G_OBJ_REF(x) #x,offsize(struct sccp_global_vars,x)
 #define D_OBJ_REF(x) #x,offsize(struct sccp_device,x)
@@ -97,8 +99,9 @@ typedef struct SCCPConfigOption {
 	const size_t size;
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	const char *generic_parser;
-	const char *str2enumval;
-	const char *enumentries;
+        sccp_enum_str2intval_t str2intval;
+        sccp_enum_all_entries_t all_entries;
+        const char *parsername;
 	enum SCCPConfigOptionFlag flags;					/*!< Data type */
 	sccp_configurationchange_t change;					/*!< Does a change of this value needs a device restart */
 	const char *defaultValue;						/*!< Default value */
@@ -138,19 +141,24 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_deny_permit "(permit)=[[ipaddress]],internal | (deny)=[[ipaddress]],internal"
 //#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
 
-#define sccp_earlyrtp_str2val ""
-#define skinny_lampmode_str2val ""
-#define sccp_blindtransferindication_str2val ""
-#define sccp_call_answer_order_str2val ""
-#define sccp_dtmfmode_str2val ""
-#define sccp_dndmode_str2val ""
+int (sccp_enum_str2intval) (const char *lookup_str);
+char *(sccp_enum_all_entries) (void);
 
-#define sccp_earlyrtp_all_entries ""
-#define skinny_lampmode_all_entries ""
-#define sccp_blindtransferindication_all_entries ""
-#define sccp_call_answer_order_all_entries ""
-#define sccp_dtmfmode_all_entries ""
-#define sccp_dndmode_all_entries ""
+#define sccp_earlyrtp_str2intval sccp_enum_str2intval
+#define skinny_lampmode_str2intval sccp_enum_str2intval
+#define sccp_blindtransferindication_str2intval sccp_enum_str2intval
+#define sccp_call_answer_order_str2intval sccp_enum_str2intval
+#define sccp_dtmfmode_str2intval sccp_enum_str2intval
+#define sccp_dndmode_str2intval sccp_enum_str2intval
+#define sccp_nat_str2intval sccp_enum_str2intval
+
+#define sccp_earlyrtp_all_entries sccp_enum_all_entries
+#define skinny_lampmode_all_entries sccp_enum_all_entries
+#define sccp_blindtransferindication_all_entries sccp_enum_all_entries
+#define sccp_call_answer_order_all_entries sccp_enum_all_entries
+#define sccp_dtmfmode_all_entries sccp_enum_all_entries
+#define sccp_dndmode_all_entries sccp_enum_all_entries
+#define sccp_nat_all_entries sccp_enum_all_entries
    
 #include "../../src/sccp_config_entries.hh"
 
