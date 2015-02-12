@@ -526,6 +526,8 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 			pbx_log(LOG_NOTICE, "%s: (sccp_hint_addSubscription4Device) hint create failed for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 			return;
 		}
+		hint->previousState = SCCP_CHANNELSTATE_CONGESTION; 
+		hint->currentState = SCCP_CHANNELSTATE_ONHOOK; 
 
 		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_hint_subscriptions, hint, list);
@@ -858,7 +860,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 						sccp_copy_string(lineState->callInfo.partyNumber, "cfwd", sizeof(lineState->callInfo.partyNumber));
 						sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: set speedial partyName: cfwd\n", line->name);
 						break;
-					case skinny_calltype_LOOKUPERROR:
+					case SKINNY_CALLTYPE_SENTINEL:
 						break;
 				}
 				break;
@@ -867,7 +869,7 @@ static void sccp_hint_updateLineStateForSingleChannel(struct sccp_hint_lineState
 			case SCCP_CHANNELSTATE_ZOMBIE:
 			case SCCP_CHANNELSTATE_PROGRESS:
 			case SCCP_CHANNELSTATE_CONNECTEDCONFERENCE:
-			case sccp_channelstate_LOOKUPERROR:
+			case SCCP_CHANNELSTATE_SENTINEL:
 				/* unused states */
 				break;
 		}
@@ -965,7 +967,7 @@ static enum ast_device_state sccp_hint_hint2DeviceState(sccp_channelstate_t stat
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			newDeviceState = AST_DEVICE_INUSE;
 			break;
-		case sccp_channelstate_LOOKUPERROR:
+		case SCCP_CHANNELSTATE_SENTINEL:
 			break;
 	}
 	return newDeviceState;
@@ -1219,7 +1221,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_CALLCONFERENCE:
 						iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 						break;
-					case sccp_channelstate_LOOKUPERROR:
+					case SCCP_CHANNELSTATE_SENTINEL:
 						break;
 				}
 				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), sccp_channelstate2str(iconstate), iconstate);
