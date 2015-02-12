@@ -14,7 +14,7 @@ MOSTLYCLEANFILES 		= *.gcda *.gcno *.gcov revision.h
 nodist_chan_sccp_la_SOURCES 	= .revision
 CLEANFILES			= .revision
 #.PHONY: 			.revision sccp_enum
-.PHONY: 			.revision
+.PHONY: 			.revision gen_enum
 
 EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 
@@ -77,10 +77,12 @@ revision.h: Makefile .revision
 	fi
 
 sccp_enum.c: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@test "sccp_enum.in" -nt $@ || test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+	@test "sccp_enum.in" -nt $@ || $(MAKE) gen_enum
+	@test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ || $(MAKE) gen_enum
 
 sccp_enun.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@test "sccp_enum.in" -nt $@ || test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+	@test "sccp_enum.in" -nt $@ || $(MAKE) gen_enum
+	@test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ || $(MAKE) gen_enum
 
 gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	@echo "  GEN      sccp_enum.h"
