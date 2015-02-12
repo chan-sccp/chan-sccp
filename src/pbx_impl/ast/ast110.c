@@ -915,7 +915,7 @@ static int sccp_wrapper_asterisk110_setNativeAudioFormats(const sccp_channel_t *
 {
 	struct ast_format fmt;
 	int i;
-	if (!channel || !channel->owner || !channel->owner->nativeformats)) {
+	if (!channel || !channel->owner || !channel->owner->nativeformats) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_wrapper_asterisk111_setNativeAudioFormats) no channel provided!\n");
 		return 0;
 	}
