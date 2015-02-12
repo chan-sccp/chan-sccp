@@ -1,5 +1,7 @@
 /*
  * Auto-Generated File, do not modify.  Changes will be destroyed.
+ * $Date: $
+ * $Revision: $
  */
 #ifndef __SCCP_ENUM_GUARD_H
 #define __SCCP_ENUM_GUARD_H
