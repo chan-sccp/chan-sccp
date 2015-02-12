@@ -77,12 +77,12 @@ revision.h: Makefile .revision
 	fi
 
 sccp_enum.c: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@test "sccp_enum.in" -nt $@ && $(MAKE) gen_enum
-	@test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+	test sccp_enum.in -nt $@ || test @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ && $(MAKE) gen_enum
 
-sccp_enun.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@test "sccp_enum.in" -nt $@ && $(MAKE) gen_enum
-	@test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+#	test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+#sccp_enun.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+#	test "sccp_enum.in" -nt $@ && $(MAKE) gen_enum
+#	test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
 
 gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	@echo "  GEN      sccp_enum.h"
