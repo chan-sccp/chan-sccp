@@ -583,6 +583,15 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 		return NULL;
 	}
 
+	/* remove the end after comma (i.e. cutting of the CustomPresence part from 'exten => 143,hint,SCCP/143,CustomPresence:143') */
+	int i=0;
+	while (hint_dialplan[i++]) {
+		if (hint_dialplan[i] == ',') {
+			hint_dialplan[i] = '\0';
+			break;
+		}
+	}
+
 	hint = sccp_malloc(sizeof(sccp_hint_list_t));
 	if (!hint) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_hint_create) Memory Allocation Error while creating hint list for hint: %s@%s\n", hint_exten, hint_context);
@@ -985,12 +994,12 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 
 	sprintf(lineName, "SCCP/%s", lineState->line->name);
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
-	enum ast_device_state oldDeviceState = AST_DEVICE_NOT_INUSE;
+	enum ast_device_state oldDeviceState = AST_DEVICE_UNAVAILABLE;
 
 	/* Local Update */
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
 		if (!strncasecmp(lineName, hint->hint_dialplan, sizeof(lineName))) {
-			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_notifyPBX) %s <==> %s \n", lineName, hint->hint_dialplan);
+			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) %s <==> %s \n", lineName, hint->hint_dialplan);
 			sccp_copy_string(hint->callInfo.partyName, lineState->callInfo.partyName, sizeof(hint->callInfo.partyName));
 			sccp_copy_string(hint->callInfo.partyNumber, lineState->callInfo.partyNumber, sizeof(hint->callInfo.partyNumber));
 
@@ -999,7 +1008,8 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			break;
 		}
 	}
-	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate '%s' (%d) on line 'SCCP/%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineState->line->name);
+	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 	// if pbx devicestate does not change, no need to inform asterisk */
 	if (newDeviceState == oldDeviceState) {
@@ -1007,6 +1017,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about changes e.g. cid update */
 		}
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+	} else { 
 		/* Update Remote Servers Only (EID Will be checked upon Receipt of the CallBack / EID is added automatically)*/
 #if ASTERISK_VERSION_GROUP >= 112
 		/* needs work, to add the rest of the information, ast-13 has fixed templates for the events it seems. Maybe a celupdate wil work instead */
@@ -1061,7 +1072,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
 		/* this would send out another device state change, which should not be necessary */
-		//pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
+		pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
 #else
 	} else {
 		pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
