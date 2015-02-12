@@ -670,11 +670,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	/* This should definitely fix CDR */
 	//tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
 	PBX(alloc_pbxChannel) (c, ids, parentChannel, &tmp);
-	if (!tmp) {
+	if (!tmp || !c->owner) {
 		pbx_log(LOG_ERROR, "%s: Unable to allocate asterisk channel on line %s\n", l->id, l->name);
 		return 0;
 	}
-	sccp_channel_updateChannelCapability(c);
+       	sccp_channel_updateChannelCapability(c);
 	PBX(set_nativeAudioFormats) (c, c->preferences.audio, 1);
 
 	/* can be replaced with c->designator */
