@@ -76,9 +76,9 @@ codeSkip == 1			{ next }
 	}
 	
 	#print id "_" val "_" text
-	Entry[e][1] = id
-	Entry[e][2] = val
-	Entry[e][3] = text
+	Entry_id[e] = id
+	Entry_val[e] = val
+	Entry_text[e] = text
 	#string_size = string_size + length(text)
 	e++
 	prev_val = val;
@@ -111,8 +111,8 @@ codeSkip == 1			{ next }
         # typedef enum sccp_channelstate {
 	print "typedef enum " namespace "_" enum_name " {" >out_header_file
 	for ( i = 0; i < e; ++i) {
-		if (Entry[i][2] != "") print "\t" Entry[i][1] "=" Entry[i][2] "," > out_header_file
-		else print "\t" Entry[i][1] "," > out_header_file
+		if (Entry_val[i] != "") print "\t" Entry_id[i] "=" Entry_val[i] "," > out_header_file
+		else print "\t" Entry_id[i] "," > out_header_file
 	}
 	print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL" > out_header_file
 	print "} " namespace "_" enum_name "_t;" >out_header_file
@@ -147,14 +147,14 @@ codeSkip == 1			{ next }
         if (sparse == 0) {
 		print "static const char *" namespace "_" enum_name "_map[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			print "\t[" Entry[i][1] "] = \"" Entry[i][3] "\"," > out_source_file
+			print "\t[" Entry_id[i] "] = \"" Entry_text[i] "\"," > out_source_file
 		}
 		print "\t[" toupper(namespace) "_" toupper(enum_name) "_SENTINEL] = \"LOOKUPERROR\"" > out_source_file
 		print "};\n" > out_source_file
         } else {
 		printf "static const char *" namespace "_" enum_name "_map[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			printf "\"" Entry[i][3] "\"," > out_source_file
+			printf "\"" Entry_text[i] "\"," > out_source_file
 		}
 		print "};\n" > out_source_file
         }
@@ -163,13 +163,13 @@ codeSkip == 1			{ next }
 	# int sccp_does_channelstate_exist[int int_enum_value) {
 	print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value) {" > out_source_file
 	if (sparse == 0) {
-		print "\tif (("Entry[1][1]" <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value <= "Entry[e-1][1]")) {" >out_source_file
+		print "\tif ((" Entry_id[1] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value <= " Entry_id[e-1] ")) {" >out_source_file
 		print "\t\treturn 1;" > out_source_file
 		print "\t}" > out_source_file
 	} else {
 		printf "\tstatic const int " namespace "_" enum_name "s[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			printf "" Entry[i][1] "," > out_source_file
+			printf "" Entry_id[i] "," > out_source_file
 		}
 		print "};" >out_source_file
 		print "\tint idx;" >out_source_file
@@ -186,7 +186,7 @@ codeSkip == 1			{ next }
 	print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value) {" > out_source_file
 	if (sparse == 0) {
 #		print "\tif ("namespace "_" enum_name "_exists(enum_value)) {" >out_source_file
-		print "\tif (("Entry[0][1]" <= enum_value) && (enum_value <= "Entry[e-1][1]")) {" >out_source_file
+		print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " Entry_id[e-1] ")) {" >out_source_file
 		print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
 		print "\t}" >out_source_file
 		print "\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
@@ -194,7 +194,7 @@ codeSkip == 1			{ next }
 	} else {
 		print "\tswitch(enum_value) {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			print "\t\tcase " Entry[i][1] ": return " namespace "_" enum_name "_map[" i "];" > out_source_file
+			print "\t\tcase " Entry_id[i] ": return " namespace "_" enum_name "_map[" i "];" > out_source_file
 		}
 		print "\t\tdefault:" > out_source_file
 		print "\t\t\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
@@ -219,7 +219,7 @@ codeSkip == 1			{ next }
 			} else {
 				print "\t} else if (sccp_strcaseequals(" namespace "_" enum_name "_map[" i "], lookup_str)) {" > out_source_file
 			}
-			print "\t\treturn " Entry[i][1] ";" > out_source_file
+			print "\t\treturn " Entry_id[i] ";" > out_source_file
 		}
 		print "\t}" > out_source_file
 	}
@@ -238,9 +238,9 @@ codeSkip == 1			{ next }
 	long_str = ""
 	for ( i = 0; i < e; ++i) {
 		if (i < e-1) {
-			long_str = long_str Entry[i][3] ","
+			long_str = long_str Entry_text[i] ","
 		} else {
-			long_str = long_str Entry[i][3]
+			long_str = long_str Entry_text[i]
 		}
 	}
 	print "\tstatic char res[] = \"" long_str "\";" > out_source_file
