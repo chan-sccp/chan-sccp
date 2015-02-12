@@ -19,6 +19,7 @@
 #include <time.h>
 #include <sys/time.h>
 #include "../../src/config.h"
+#include "../../src/sccp_enum.h"
 #include "gen_sccpconf.h"
 
 #define CONFIG_TYPE_ALL 0
@@ -31,6 +32,16 @@
 #define CONFIG_TYPE_POSTGRES 7
 //#define CONFIG_TYPE_JSON 5
 char *replace(const char *s, const char *old, const char *new);
+
+int (sccp_enum_str2intval)(const char *lookup_str) 
+{
+	return 1;
+}
+
+char *(sccp_enum_all_entries)(void) 
+{
+	return NULL;
+}
 
 static int sccp_config_generate(const char *filename, size_t sizeof_filename, int config_type)
 {
