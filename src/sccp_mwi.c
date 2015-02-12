@@ -136,8 +136,7 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 {
 	sccp_mailbox_subscriber_list_t *subscription = userdata;
 
-	pbx_log(LOG_NOTICE, "Got mwi-event\n");
-
+	sccp_log(DEBUGCAT_MWI)(VERBOSE_PREFIX_1 "Got mwi-event\n");
 	if (!subscription || !sub) {
 		return;
 	}
