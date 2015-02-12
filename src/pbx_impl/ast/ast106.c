@@ -234,7 +234,7 @@ static int sccp_wrapper_asterisk16_devicestate(void *data)
 		case SCCP_CHANNELSTATE_CALLREMOTEMULTILINE:
 			res = AST_DEVICE_INUSE;
 			break;
-		case sccp_channelstate_LOOKUPERROR:
+		case SCCP_CHANNELSTATE_SENTINEL:
 			break;
 	}
 

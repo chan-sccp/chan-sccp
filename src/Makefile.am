@@ -13,24 +13,25 @@ MOSTLYCLEANFILES 		= *.gcda *.gcno *.gcov revision.h
 # revision.h
 nodist_chan_sccp_la_SOURCES 	= .revision
 CLEANFILES			= .revision
+#.PHONY: 			.revision sccp_enum
 .PHONY: 			.revision
 
 EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
 
-chan_sccp_la_SOURCES	=	chan_sccp.h		sccp_cli.h		sccp_threadpool.h	sccp_event.h		\
-                                sccp_labels.h		sccp_utils.h		sccp_adv_features.h	sccp_channel.h  	\
-                                sccp_softkeys.h		sccp_conference.h	sccp_featureButton.h	sccp_line.h		\
-                                sccp_actions.h		sccp_config.h		sccp_features.h		sccp_pbx.h		\
-                                pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h 		sccp_lock.h		\
-                                sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
-                                sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
-                                sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_devstate.h		\
-                                revision.h
+chan_sccp_la_SOURCES	=	sccp_enum.h		chan_sccp.h		sccp_cli.h		sccp_threadpool.h	\
+				sccp_event.h		sccp_labels.h		sccp_utils.h		sccp_adv_features.h	\
+				sccp_channel.h  	sccp_softkeys.h		sccp_conference.h	sccp_featureButton.h	\
+				sccp_line.h		sccp_actions.h		sccp_config.h		sccp_features.h		\
+				sccp_pbx.h		pbx_impl/pbx_impl.h	sccp_device.h		sccp_hint.h 		\
+				sccp_lock.h		sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		\
+				sccp_indicate.h		sccp_management.h	sccp_mwi.h		common.h		\
+				sccp_rtp.h 		sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	\
+				sccp_devstate.h		revision.h
                                                                 
-chan_sccp_la_SOURCES	+=	chan_sccp.c		sccp_channel.c		sccp_device.c		sccp_indicate.c 	\
-                                sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		sccp_featureButton.c	\
-                                sccp_line.c		sccp_utils.c		sccp_actions.c		sccp_cli.c		\
-                                sccp_features.c 	sccp_config.c		sccp_hint.c 					\
+chan_sccp_la_SOURCES	+=	sccp_enum.c 		chan_sccp.c		sccp_channel.c		sccp_device.c		\
+				sccp_indicate.c 	sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		\
+				sccp_featureButton.c	sccp_line.c		sccp_utils.c		sccp_actions.c		\
+				sccp_cli.c		sccp_features.c 	sccp_config.c		sccp_hint.c 		\
                                 sccp_refcount.c		sccp_event.c		sccp_adv_features.c	sccp_management.c	\
                                 sccp_mwi.c		sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	\
                                 sccp_protocol.c		sccp_socket.c		sccp_threadpool.c	sccp_devstate.c
@@ -74,6 +75,17 @@ revision.h: Makefile .revision
 	else 																							\
 		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null; 								\
 	fi
+
+sccp_enum.c: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+	@test "sccp_enum.in" -nt $@ || test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+
+sccp_enun.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+	@test "sccp_enum.in" -nt $@ || test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+
+gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+	@echo "  GEN      sccp_enum.h"
+	@echo "  GEN      sccp_enum.c"
+	@$(AWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
