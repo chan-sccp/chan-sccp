@@ -27626,8 +27626,48 @@ $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
  	fi
 	if test "$enable_optimization" == "no"; then
 		strip_binaries="no"
-			CFLAGS_saved="${CFLAGS_saved} -O0 "
-			CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
+		optimize_flag="-O0"
+		if test "${CC}" == "gcc"; then
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Og" >&5
+$as_echo_n "checking whether C compiler accepts -Og... " >&6; }
+if ${ax_cv_check_cflags___Og+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -Og"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ax_cv_check_cflags___Og=yes
+else
+  ax_cv_check_cflags___Og=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Og" >&5
+$as_echo "$ax_cv_check_cflags___Og" >&6; }
+if test x"$ax_cv_check_cflags___Og" = xyes; then :
+
+				optimize_flag="-Og"
+
+else
+  :
+fi
+
+		fi
+		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
+		CPPFLAGS_saved="${CPPFLAGS_saved} ${optimize_flag}"
 	else
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O2 "

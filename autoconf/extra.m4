@@ -499,6 +499,21 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
 ])
 
+AC_DEFUN([AX_CHECK_COMPILE_FLAG],
+[AC_PREREQ(2.59)dnl for _AC_LANG_PREFIX
+AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_[]_AC_LANG_ABBREV[]flags_$4_$1])dnl
+AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
+  ax_check_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
+  _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1"
+  AC_COMPILE_IFELSE([m4_default([$5],[AC_LANG_PROGRAM()])],
+    [AS_VAR_SET(CACHEVAR,[yes])],
+    [AS_VAR_SET(CACHEVAR,[no])])
+  _AC_LANG_PREFIX[]FLAGS=$ax_check_save_flags])
+AS_IF([test x"AS_VAR_GET(CACHEVAR)" = xyes],
+  [m4_default([$2], :)],
+  [m4_default([$3], :)])
+AS_VAR_POPDEF([CACHEVAR])dnl
+])dnl AX_CHECK_COMPILE_FLAGS
 
 AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_ARG_ENABLE(optimization, [AC_HELP_STRING([--enable-optimization],[no detection or tuning flags for cpu version])], enable_optimization=$enableval,[enable_optimization=no; if test "${REPOS_TYPE}" = "TGZ"; then enable_optimization=yes; fi])
@@ -513,13 +528,14 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
  	fi
 	if test "$enable_optimization" == "no"; then 
 		strip_binaries="no"
-dnl		if test "${CC}" == "gcc"; then
-dnl			CFLAGS_saved="${CFLAGS_saved} -Og "
-dnl			CPPFLAGS_saved="${CPPFLAGS_saved} -Og"
-dnl		else
-			CFLAGS_saved="${CFLAGS_saved} -O0 "
-			CPPFLAGS_saved="${CPPFLAGS_saved} -O0"
-dnl		fi		
+		optimize_flag="-O0"
+		if test "${CC}" == "gcc"; then
+			AX_CHECK_COMPILE_FLAG(-Og, [
+				optimize_flag="-Og"
+			])
+		fi		
+		CFLAGS_saved="${CFLAGS_saved} ${optimize_flag} "
+		CPPFLAGS_saved="${CPPFLAGS_saved} ${optimize_flag}"
 	else
 		strip_binaries="yes"
 		CFLAGS_saved="${CFLAGS_saved} -O2 "
