@@ -76,7 +76,7 @@ revision.h: Makefile .revision
 		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null; 								\
 	fi
 
-sccp_enum.c: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+sccp_enum.c:
 	@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then				\
 		$(MAKE) gen_enum;												\
 	fi
