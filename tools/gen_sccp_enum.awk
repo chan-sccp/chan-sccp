@@ -16,6 +16,8 @@ BEGIN {
         #
 	print "/*" > out_header_file
 	print " * Auto-Generated File, do not modify.  Changes will be destroyed." > out_header_file 
+        print " * $Date: $" > out_header_file
+        print " * $Revision: $" > out_header_file
 	print " */" >out_header_file 
 	print "#ifndef __SCCP_ENUM_GUARD_H" >out_header_file
 	print "#define __SCCP_ENUM_GUARD_H" >out_header_file 
@@ -27,6 +29,8 @@ BEGIN {
         #
 	print "/*" > out_source_file
 	print " * Auto-Generated File, do not modify. Changes will be destroyed." > out_source_file
+        print " * $Date: $" > out_source_file
+        print " * $Revision: $" > out_source_file
 	print " */" > out_source_file
 	#print "#define ARRAY_LEN(a) (size_t) (sizeof(a) / sizeof(0[a]))" >out_source_file
 	print "#include <config.h>" > out_source_file
