@@ -526,9 +526,6 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 			pbx_log(LOG_NOTICE, "%s: (sccp_hint_addSubscription4Device) hint create failed for %s@%s\n", DEV_ID_LOG(device), hint_exten, hint_context);
 			return;
 		}
-		hint->previousState = SCCP_CHANNELSTATE_CONGESTION; 
-		hint->currentState = SCCP_CHANNELSTATE_ONHOOK; 
-
 		SCCP_LIST_LOCK(&sccp_hint_subscriptions);
 		SCCP_LIST_INSERT_HEAD(&sccp_hint_subscriptions, hint, list);
 		SCCP_LIST_UNLOCK(&sccp_hint_subscriptions);
@@ -553,6 +550,7 @@ static void sccp_hint_addSubscription4Device(const sccp_device_t * device, const
 	SCCP_LIST_INSERT_HEAD(&hint->subscribers, subscriber, list);
 
 	sccp_dev_set_keyset(device, subscriber->instance, 0, KEYMODE_ONHOOK);
+
 	sccp_hint_notifySubscribers(hint);
 }
 
@@ -606,9 +604,11 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 	sccp_copy_string(hint->context, hint_context, sizeof(hint->context));
 	sccp_copy_string(hint->hint_dialplan, hint_dialplan, sizeof(hint_dialplan));
 
+	/* subscripbe to the hint */
 	hint->stateid = pbx_extension_state_add(hint->context, hint->exten, sccp_hint_devstate_cb, hint);
 
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
+	/* subscripbe to the distributed hint event */
 #if ASTERISK_VERSION_GROUP >= 112
 	//struct stasis_topic *devstate_specific_topic = ast_device_state_topic(strdup(buf)); /* create filter */
 	hint->device_state_sub = stasis_subscribe(ast_device_state_topic_all(), sccp_hint_distributed_devstate_cb, hint);
@@ -617,6 +617,7 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 #endif
 #endif
 
+	/* force hint update to get currentState */
 #if ASTERISK_VERSION_GROUP >= 111
 	struct ast_state_cb_info info;
 
@@ -994,7 +995,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 
 	sprintf(lineName, "SCCP/%s", lineState->line->name);
 	enum ast_device_state newDeviceState = sccp_hint_hint2DeviceState(lineState->state);
-	enum ast_device_state oldDeviceState = AST_DEVICE_UNAVAILABLE;
+	enum ast_device_state oldDeviceState = AST_DEVICE_NOT_INUSE;
 
 	/* Local Update */
 	SCCP_LIST_TRAVERSE(&sccp_hint_subscriptions, hint, list) {
@@ -1011,13 +1012,12 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX) Notify asterisk to set state to sccp channelstate '%s' (%d) on line 'SCCP/%s'\n", sccp_channelstate2str(lineState->state), lineState->state, lineState->line->name);
 	sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: => asterisk: '%s' (%d) => '%s' (%d) on line SCCP/%s\n", pbxsccp_devicestate2str(oldDeviceState), oldDeviceState, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
 
-	// if pbx devicestate does not change, no need to inform asterisk */
+	// if pbx devicestate does not change, no need to inform (local) asterisk */
 	if (newDeviceState == oldDeviceState) {
 		if (hint) {
 			sccp_hint_notifySubscribers(hint);								/* shortcut to inform sccp subscribers about changes e.g. cid update */
 		}
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
-	} else { 
 		/* Update Remote Servers Only (EID Will be checked upon Receipt of the CallBack / EID is added automatically)*/
 #if ASTERISK_VERSION_GROUP >= 112
 		/* needs work, to add the rest of the information, ast-13 has fixed templates for the events it seems. Maybe a celupdate wil work instead */
@@ -1055,7 +1055,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		}
 		ast_channel_publish_blob(chan, session_timeout_type(), blob);
 		*/
-		pbx_devstate_changed_literal(newDeviceState, lineName);
+		//pbx_devstate_changed_literal(newDeviceState, lineName);
 #else
 		pbx_event_t *event;
 		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE, 
@@ -1069,14 +1069,10 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 			AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);
 #endif
-		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
-
-		/* this would send out another device state change, which should not be necessary */
-		pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
-#else
-	} else {
-		pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
 #endif
+	} else  {
+		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "SCCP: (sccp_hint_notifyPBX!distributed) Notify asterisk to set state to sccp channelstate '%s' (%d) => asterisk: '%s' (%d) on channel SCCP/%s\n", sccp_channelstate2str(lineState->state), lineState->state, pbxsccp_devicestate2str(newDeviceState), newDeviceState, lineState->line->name);
+		pbx_devstate_changed_literal(newDeviceState, lineName);					/* come back via pbx callback and update subscribers */
 	}
 }
 
@@ -1416,7 +1412,7 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
  		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(subscription->currentState))	\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	subscription->callInfo.partyNumber)			\
  		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	subscription->callInfo.partyName)			\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(!SCCP_CHANNELSTATE_Idling(subscription->currentState) && subscription->callInfo.calltype) ? skinny_calltype2str(subscription->callInfo.calltype) : "INACTIVE")	\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(!SCCP_CHANNELSTATE_Idling(subscription->currentState) && subscription->callInfo.calltype) ? skinny_calltype2str(subscription->callInfo.calltype) : "")	\
  		CLI_AMI_TABLE_FIELD(Subs,		"-4d",		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
 
 #include "sccp_cli_table.h"
