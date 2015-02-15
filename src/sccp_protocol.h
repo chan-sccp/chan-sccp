@@ -1846,8 +1846,9 @@ typedef union {
 		uint8_t alignmentPadding;									/*!< Filler 1 */
 		uint32_t lel_secondaryKeepAliveInterval;							/*!< Keep Alive Interval to the Secundairy Server */
 		uint8_t maxProtocolVer;										/*!< Protocol Version */
-		uint8_t ProtocolVer2;										/*!< Protocol Version Part 2 */
-		uint16_t PhoneFeatures;										/*!< PhoneFeatures */
+		uint8_t protocolVer2;										/*!< Protocol Version Part 2 */
+		uint8_t phoneFeatures1;										/*!< Phone Features Part 1*/
+		uint8_t phoneFeatures2;										/*!< Phone Features Part 2 */
 	} RegisterAckMessage;											/*!< Register Acknowledgement Message Structure */
 
 	struct {
