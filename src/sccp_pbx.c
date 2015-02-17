@@ -1134,7 +1134,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					case AST_PBX_FAILED:
 						pbx_log(LOG_ERROR, "%s: (sccp_pbx_softswitch) channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
 						/* \todo change indicate to something more suitable */
-						sccp_indicate(d, c, SCCP_CHANNELSTATE_INVALIDNUMBER);		/* will auto hangup after SCCP_HANGUP_TIMEOUT */
+						sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);		/* will auto hangup after SCCP_HANGUP_TIMEOUT */
 						break;
 					case AST_PBX_CALL_LIMIT:
 						pbx_log(LOG_WARNING, "%s: (sccp_pbx_softswitch) call limit reached for channel %s-%08x failed to start new thread to dial %s\n", DEV_ID_LOG(d), l->name, c->callid, shortenedNumber);
