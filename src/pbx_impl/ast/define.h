@@ -24,6 +24,7 @@
 #define sccp_asprintf ast_asprintf
 #define sccp_vasprintf ast_vasprintf
 #define sccp_calloc_cache ast_calloc_cache
+#define sccp_alloca(size) __builtin_alloca(size)
 #define CS_BRIDGEPEERNAME "BRIDGEPEER"
 
 // codec / format redefinitions
