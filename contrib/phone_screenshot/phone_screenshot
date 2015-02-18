@@ -74,10 +74,11 @@ elif [[ ! -z "`grep -e 8941 -e 8945 DeviceInformationX`" ]]; then
 	echo "Saving Screenshot to ${OUTPUTFILE}.png..."
 	mv Screenshot ${OUTPUTFILE}.png
 else
-	echo "Saving Screenshot to $OUTPUTFILE.png..."
 	if [ -n "`which bmptopnm`" ]; then
+		echo "Saving Screenshot to $OUTPUTFILE.png..."
 		bmptopnm Screenshot 2>/dev/null|pnmtopng - >${OUTPUTFILE}.png 2>/dev/null
 	else
+		echo "Saving Screenshot to $OUTPUTFILE.bmp..."
 		mv Screenshot ${OUTPUTFILE}.bmp
 	fi     
 fi

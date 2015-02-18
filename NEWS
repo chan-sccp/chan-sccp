@@ -11,9 +11,14 @@ New Features in V4.2
  - Added support for earlyrtp=immediate
  - Added Scheduled Hangup (So that you can hear the hangupcause)
  - Reworked digittimeout
+ - Improved sccp.conf / buttonconfig button change detection on sccp reload
+ - Allow HASH() dialplan function when using SCCPDEVICE(), SCCPLINE() and SCCPCHANNEL()
+ - Added Audio Quality Statistics in CHANNEL() and SCCPDEVICE() / SCCPCHANNEL)()
+ - Updated hangup / queue_hangup handling
+ - Support for UTF-8 config file (allowing accented characters in labels and description on older phones)
 
 Bug Fixes
- - Numerous smaller / bigger fixes (Check ChangeLog for details)
+ - Serveral smaller / bigger fixes (Check ChangeLog for details)
  - Fixed RTP Handling
  - Replaced Asterisk Scheduled Macro Use
 

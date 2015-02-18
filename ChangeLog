@@ -1,4 +1,160 @@
+2015-02-17  ddegroot
+
+	* [r5933] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/sccp_pbx.c: Fix: sporadic indication of invalid number during
+	  pbx_pbx_start caused by AUTOLOOP check
+
+2015-02-15  ddegroot
+
+	* [r5932] src/sccp_protocol.c, src/sccp_protocol.h: Fix: regression
+	  in locale handling. Reported by Oliver Jaksch.
+
+2015-02-13  ddegroot
+
+	* [r5931] src/sccp_hint.c: Fix: sccp_hint.c (partial revert)
+
+2015-02-12  ddegroot
+
+	* [r5930] doc/Makefile.in, src/Makefile.am, src/Makefile.in: Fix:
+	  Makefile.am dependency
+
+	* [r5929] contrib/gen_sccpconf/Makefile.am,
+	  contrib/gen_sccpconf/Makefile.in,
+	  contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix: gen_sccpconf
+
+	* [r5928] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: Fix: compile against ast106-ast110
+	  extranous ']'
+
+	* [r5927] doc/Makefile.in, src/Makefile.am, src/Makefile.in:
+	  Travis: Still having difficulty with make file
+
+	* [r5926] doc/Makefile.in, src/Makefile.am, src/Makefile.in: Fix:
+	  Update makefiles
+
+	* [r5925] src/Makefile.am, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_pbx.c: Fix: prevent segfault
+	  when calling setNativeFormats with a non existent c->owner
+
+	* [r5924] src/sccp_hint.c: Fix: finding hint when hint is
+	  configured as 'exten => 143,hint,SCCP/143,CustomPresence:143' for
+	  example on elastix 2.5. Also references #250
+
+	* [r5923] src/sccp_enum.c, src/sccp_enum.h, src/sccp_enum.in:
+	  Enhancement: Added SVN revision header to sccp_enum.[c|h]. Added
+	  header to sccp_enum.in file.
+
+	* [r5922] tools/gen_sccp_enum.awk: Enhancement: Add SVN revision
+	  header to sccp_enum.[c|h]
+
+	* [r5921] tools/gen_sccp_enum.awk: Fix: make gen_sccp_enum.awk work
+	  with older awk versions
+
+	* [r5920] doc/Makefile.in, src/Makefile.am, src/Makefile.in: Fix:
+	  src/Makefile.am for gen_enum
+
+	* [r5919] src/Makefile.am, src/Makefile.in, src/chan_sccp.c,
+	  src/chan_sccp.h, src/chan_sccp_enums.hh[DEL], src/common.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_cli.c,
+	  src/sccp_conference.c, src/sccp_config.c,
+	  src/sccp_config_entries.hh, src/sccp_enum.c[ADD],
+	  src/sccp_enum.h[ADD], src/sccp_enum.in[ADD],
+	  src/sccp_enum_macro.h[DEL], src/sccp_event.c, src/sccp_event.h,
+	  src/sccp_event_enums.hh[DEL], src/sccp_hint.c, src/sccp_pbx.c,
+	  src/sccp_protocol.c, src/sccp_protocol.h,
+	  src/sccp_protocol_enums.hh[DEL], tools/gen_sccp_enum.awk[ADD]:
+	  Enhancement: Replace sccp_enum_macro.h with a more maintainable
+	  awk script. Fixes nasty chan_sccp.so bloated size from 20Mb back
+	  to 3Mb.
+
+	* [r5918] autoconf/extra.m4, configure: Fix: Checking gcc for -Og
+	  support, before using it.
+
+2015-02-11  ddegroot
+
+	* [r5917] autoconf/extra.m4, configure: Fix: Revert -O9 change,
+	  because gcc 4.1 can't handle it :-(.
+
+	* [r5916] src/sccp_hint.c, src/sccp_mwi.c: Fix: Reduce
+	  warning/error log levels
+
+	* [r5915] src/sccp_socket.c: Fix: Remove SO_ERROR Success(0)
+	  Warning
+
+2015-02-09  ddegroot
+
+	* [r5914] src/sccp_enum_macro.h, src/sccp_features.c: Fix: prevent
+	  segfault during grouppickup when channel could not be
+	  found/created. Reported by Cody Miller
+
+2015-02-08  ddegroot
+
+	* [r5913] configure: Enhancement: Reduce size of chan_sccp.so
+	  module by 50% by setting -Og when compiled with gcc. (mainly
+	  cause by multiple inclusion of identical const arrays (side
+	  effect of sccp_enum_macro)). clang automatically merges these
+	  constants already.
+
+	* [r5912] autoconf/extra.m4, src/sccp_enum_macro.h: Enhancement:
+	  Reduce size of chan_sccp.so module by 50% by setting -Og when
+	  compiled with gcc. (mainly cause by multiple inclusion of
+	  identical const arrays (side effect of sccp_enum_macro)). clang
+	  automatically merges these constants already.
+
+2015-02-08  marcelloceschia
+
+	* [r5911] src/chan_sccp.c, src/sccp_protocol.h, src/sccp_socket.c,
+	  src/sccp_socket.h: Merge pull request #254 from dkgroot/master
+	  
+	  Socket Handling Enhancements / TCP Keepalive Handling
+
+2015-02-08  ddegroot
+
+	* [r5910] src/Makefile.in: Cleanup: Remove debug messages from
+	  Makefile.in
+
+2015-02-05  ddegroot
+
+	* [r5909] src/Makefile.in, src/pbx_impl/ast/ast113.c: Fix: compile
+	  error attended_transfer : ast13.
+
+2015-02-04  ddegroot
+
+	* [r5908] src/chan_sccp.c, src/sccp_config_entries.hh,
+	  src/sccp_protocol.c, src/sccp_protocol.h: Cleanup: removed some
+	  hardcoded defaults in favor of using default value from
+	  sccp_config_entries.hh.
+
+	* [r5907] src/pbx_impl/ast/ast.c: Fix: Correct connected/redirected
+	  asterisk-11.
+
+	* [r5906] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c: Fix: Correct connected/redirected
+	  asterisk-18 and asterisk-10.
+
+	* [r5905] src/pbx_impl/ast/ast108.c: Fix: Free duplicated strings
+	  when updateing connected/redirected asterisk-18 callinfo.
+
+	* [r5904] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast106.c,
+	  src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_channel.c: Fix: transfer
+	  masquarade return value handling. Use goto exit during transfer
+	  completion to make sure transfered_channel_release happens. Free
+	  duplicated strings when updateing connected/redirected asterisk
+	  callinfo.
+
 2015-02-03  ddegroot
+
+	* [r5903] ChangeLog, autoconf/asterisk.m4, autoconf/extra.m4,
+	  configure, configure.ac, src/sccp_pbx.c: Fix: ast_do_pickup
+	  against asterisk-1.8 and below
 
 	* [r5902] src/sccp_hint.c: Fix: devstate eid with asterisk-12
 

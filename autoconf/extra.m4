@@ -264,6 +264,7 @@ dnl	])
 	AC_CHECK_HEADERS([sys/socket.h])
 	AC_CHECK_HEADERS([netinet/in.h])
 	AC_CHECK_HEADERS([pthread.h])
+	AC_CHECK_HEADERS([iconv.h])
 dnl	AC_CHECK_FUNCS([gethostbyname inet_ntoa memset mkdir select socket strsep strcasecmp strchr strdup strerror strncasecmp strchr malloc calloc realloc free]) 
 	AC_CHECK_FUNCS([gethostbyname inet_ntoa mkdir]) 
 	AC_HEADER_STDC    
