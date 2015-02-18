@@ -192,6 +192,26 @@ static void sccp_device_setRingtone(const sccp_device_t * device, const char *ur
 	device->protocol->sendUserToDeviceDataVersionMessage(device, 0, 0, 0, transactionID, xmlStr, 0);
 }
 
+static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
+{
+	sccp_log(DEBUGCAT_DEVICE) ("%s: No Conversion\n", DEV_ID_LOG(d));
+	sccp_copy_string(dst, src, dst_size);
+}
+
+#if HAVE_ICONV_H
+static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
+{
+	char *buf = ast_alloca(dst_size);
+	size_t buf_len = dst_size;
+	memset(buf, 0, dst_size);
+	if (sccp_utils_convUtf8toLatin1(src, buf, buf_len)) {
+		sccp_log(DEBUGCAT_DEVICE) ("%s: Converted UTF-8: '%s' to ISO8859-1: '%s'\n", DEV_ID_LOG(d), src, buf);
+		sccp_copy_string(dst, buf, dst_size);
+		return;
+	}
+}
+#endif
+
 static void sccp_device_setRingtoneNotSupported(const sccp_device_t * device, const char *url)
 {
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: does not support setting ringtone\n", device->id);
@@ -453,6 +473,8 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->retrieveDeviceCapabilities = sccp_device_retrieveDeviceCapabilities;
 	d->setRingTone = sccp_device_setRingtoneNotSupported;
 	d->getDtmfMode = sccp_device_getDtfmMode;
+	d->copyStr2Locale = sccp_device_copyStr2Locale_UTF8;
+
 	d->pendingUpdate = 0;
 	d->pendingDelete = 0;
 	return d;
@@ -514,8 +536,9 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 /*!
  * \brief set type of Indicate protocol by device type
  */
-void sccp_device_setIndicationProtocol(sccp_device_t * device)
+void sccp_device_preregistration(sccp_device_t * device)
 {
+	/*! \todo use device->device_features to detect devices capabilities, instead of hardcoded list of devices */
 	switch (device->skinny_type) {
 			// case SKINNY_DEVICETYPE_30SPPLUS:
 			// case SKINNY_DEVICETYPE_30VIP:
@@ -556,7 +579,11 @@ void sccp_device_setIndicationProtocol(sccp_device_t * device)
 			device->indicate = &sccp_device_indication_olderDevices;
 			break;
 	}
-	return;
+#if HAVE_ICONV_H
+	if (device && !(device->device_features & SKINNY_PHONE_FEATURES_UTF8)) {
+		device->copyStr2Locale = sccp_device_copyStr2Locale_Convert;
+	}
+#endif
 }
 
 /*!
@@ -996,7 +1023,6 @@ void sccp_dev_set_registered(sccp_device_t * d, uint8_t opt)
 			// d->mwilight &= ~(1 << 0);
 			sccp_dev_send(d, msg);
 		}
-
 		if (!d->linesRegistered) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device does not support RegisterAvailableLinesMessage, force this\n", DEV_ID_LOG(d));
 			sccp_handle_AvailableLines(d->session, d, NULL);

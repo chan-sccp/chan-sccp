@@ -647,7 +647,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Ask the phone to send keepalive message every %d seconds\n", DEV_ID_LOG(device), device->keepaliveinterval);
 
 	device->inuseprotocolversion = device->protocol->version;
-	sccp_device_setIndicationProtocol(device);
+	sccp_device_preregistration(device);
 	device->protocol->sendRegisterAck(device, device->keepaliveinterval, device->keepaliveinterval, GLOB(dateformat));
 
 	sccp_dev_set_registered(device, SKINNY_DEVICE_RS_PROGRESS);
@@ -1187,16 +1187,19 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 	}
 	msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 
-	sccp_copy_string(msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
+	//sccp_copy_string(msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
+	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
 
 	/* lets set the device description for the first line, so it will be display on top of device -MC */
 	if (lineNumber == 1) {
-		sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
+		//sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
+		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	} else {
-		sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
+		//sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
+		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	}
-
-	sccp_copy_string(msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
+	//sccp_copy_string(msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
+	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
 
 	sccp_dev_send(d, msg_out);
 
@@ -1238,8 +1241,10 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	sccp_dev_speed_find_byindex(s->device, wanted, FALSE, &k);
 	if (k.valid) {
-		sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
-		sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
+		//sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
+		//sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
+		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
+		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
 	} else {
 		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: speeddial %d unknown\n", DEV_ID_LOG(s->device), wanted);
 	}
@@ -3312,7 +3317,8 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 			msg_out->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 			msg_out->data.FeatureStatDynamicMessage.lel_status = 0;
 
-			sccp_copy_string(msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
+			//sccp_copy_string(msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
+			d->copyStr2Locale(d, msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
 			sccp_dev_send(d, msg_out);
 			return;
 		}
@@ -3347,7 +3353,8 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
 			REQ(msg_out, ServiceURLStatMessage);
 			msg_out->data.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
 			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, strlen(config->button.service.url) + 1);
-			sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
+			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
+			d->copyStr2Locale(d, msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
 		} else {
 			int URL_len = strlen(config->button.service.url);
 			int label_len = strlen(config->label);

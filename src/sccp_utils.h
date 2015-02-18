@@ -143,5 +143,6 @@ int sccp_strversioncmp(const char *s1, const char *s2);
 char *sccp_dec2binstr(char *buf, size_t size, int value);
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
 char *sccp_trimwhitespace(char *str);
+gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf, size_t len);
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

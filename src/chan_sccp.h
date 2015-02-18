@@ -1065,7 +1065,8 @@ struct sccp_device {
 	void (*setBackgroundImage) (const sccp_device_t * device, const char *url);				/*!< set device background image */
 	void (*displayBackgroundImagePreview) (const sccp_device_t * device, const char *url);			/*!< display background image as preview */
 	void (*setRingTone) (const sccp_device_t * device, const char *url);					/*!< set the default Ringtone */
-	 sccp_dtmfmode_t(*getDtmfMode) (const sccp_device_t * device);
+	
+	sccp_dtmfmode_t(*getDtmfMode) (const sccp_device_t * device);
 
 	char *(messageStack[SCCP_MAX_MESSAGESTACK]);								/*!< Message Stack Array */
 #ifndef SCCP_ATOMIC
@@ -1088,6 +1089,7 @@ struct sccp_device {
 #ifdef CS_EXPERIMENTAL
 	sccp_softKeySetConfiguration_t *softkeyset;
 #endif
+	void (*copyStr2Locale) (const sccp_device_t *d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
 
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
