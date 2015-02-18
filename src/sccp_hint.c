@@ -685,7 +685,7 @@ static void sccp_hint_updateLineState(struct sccp_hint_lineState *lineState)
 		/* no line, or line without devices */
 		if (0 == SCCP_LIST_GETSIZE(&line->devices)) {
 			lineState->state = SCCP_CHANNELSTATE_CONGESTION;
-			lineState->callInfo.calltype = SKINNY_CALLTYPE_OUTBOUND;
+			lineState->callInfo.calltype = SKINNY_CALLTYPE_SENTINEL;
 
 			sccp_copy_string(lineState->callInfo.partyName, SKINNY_DISP_TEMP_FAIL, sizeof(lineState->callInfo.partyName));
 			sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "SCCP: (sccp_hint_updateLineState) 0 devices register on linename: %s\n", line->name);
@@ -1194,7 +1194,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 				   With the old hint style we should only use SCCP_CHANNELSTATE_ONHOOK and SCCP_CHANNELSTATE_CALLREMOTEMULTILINE as callstate,
 				   otherwise we get a callplane on device -> set all states except onhook to SCCP_CHANNELSTATE_CALLREMOTEMULTILINE -MC
 				 */
-				uint32_t iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
+				skinny_callstate_t iconstate = SKINNY_CALLSTATE_CALLREMOTEMULTILINE;
 
 				switch (hint->currentState) {
 					case SCCP_CHANNELSTATE_DOWN:
@@ -1234,7 +1234,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					case SCCP_CHANNELSTATE_SENTINEL:
 						break;
 				}
-				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), sccp_channelstate2str(iconstate), iconstate);
+				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) setting icon to state %s (%d)\n", DEV_ID_LOG(d), skinny_callstate2str(iconstate), iconstate);
 
 				if (SCCP_CHANNELSTATE_RINGING == hint->previousState) {
 					/* we send a congestion to the phone, so call will not be marked as missed call */
@@ -1410,12 +1410,12 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 #define CLI_AMI_TABLE_FIELDS 														\
  		CLI_AMI_TABLE_FIELD(Exten,		"-10.10s",	10,	subscription->exten)					\
- 		CLI_AMI_TABLE_FIELD(Content,		"-10.10s",	10,	subscription->context)					\
+ 		CLI_AMI_TABLE_FIELD(Context,		"-10.10s",	10,	subscription->context)					\
  		CLI_AMI_TABLE_FIELD(Hint,		"-15.15s",	15,	subscription->hint_dialplan)				\
  		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(subscription->currentState))	\
  		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	subscription->callInfo.partyNumber)			\
  		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	subscription->callInfo.partyName)			\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(!SCCP_CHANNELSTATE_Idling(subscription->currentState) && subscription->callInfo.calltype) ? skinny_calltype2str(subscription->callInfo.calltype) : "")	\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(subscription->callInfo.calltype && subscription->callInfo.calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(subscription->callInfo.calltype) : "") \
  		CLI_AMI_TABLE_FIELD(Subs,		"-4d",		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
 
 #include "sccp_cli_table.h"
