@@ -486,8 +486,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-02-12 22:48:52 +0100 (do, 12 feb 2015) $
-# REVISION: $Revision: 5927 $
+# DATE:     $Date: 2015-02-13 00:26:14 +0100 (vr, 13 feb 2015) $
+# REVISION: $Revision: 5930 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 AUTOMAKE_OPTS = gnu silent-rules subdir-objects
 csmod_LTLIBRARIES = chan_sccp.la 
@@ -496,7 +496,7 @@ MOSTLYCLEANFILES = *.gcda *.gcno *.gcov revision.h
 # revision.h
 nodist_chan_sccp_la_SOURCES = .revision
 CLEANFILES = .revision
-EXTRA_DIST = sccp_config_entries.hh chan_sccp_enums.hh sccp_protocol_enums.hh sccp_event_enums.hh sccp_enum_macro.h
+EXTRA_DIST = sccp_enum.in revision.h
 chan_sccp_la_SOURCES = sccp_enum.h chan_sccp.h sccp_cli.h \
 	sccp_threadpool.h sccp_event.h sccp_labels.h sccp_utils.h \
 	sccp_adv_features.h sccp_channel.h sccp_softkeys.h \

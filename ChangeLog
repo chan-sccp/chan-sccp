@@ -1,3 +1,29 @@
+2015-02-18  ddegroot
+
+	* [r5937] src/sccp_hint.c: Fix: sccp show hint subscription display
+	  when device is offline. enum lookup error for iconstate.
+
+	* [r5936] ChangeLog, NEWS, autoconf/extra.m4, configure,
+	  contrib/phone_screenshot/phone_screenshot,
+	  contrib/phone_screenshot/scr2img, src/chan_sccp.h,
+	  src/config.h.in, src/sccp_actions.c, src/sccp_device.c,
+	  src/sccp_device.h, src/sccp_protocol.h, src/sccp_utils.c,
+	  src/sccp_utils.h: Enhancement: Support for UTF-8 (new devices)
+	  und ISO8859-1 (old devices) allowing accented characters in
+	  buttonlabels (in Latin1 format only) on older phones. You need to
+	  make sure the sccp.conf file is stored in UTF-8 format. Requested
+	  by Oliver Jaksch.
+
+	* [r5935] conf/sccp.conf, conf/sccp.conf.annotated,
+	  conf/sccp.conf.freepbx, conf/sccp_hardware.conf.freepbx,
+	  conf/sccp_templated.conf: Enhancement: Support for UTF-8 (new
+	  devices) und ISO8859-1 (old devices) allowing accented characters
+	  in buttonlabels (in Latin1 format only) on older phones. You need
+	  to make sure the sccp.conf file is stored in UTF-8 format.
+	  Requested by Oliver Jaksch.
+
+	* [r5934] src/sccp_hint.c: Fix: sccp_hint_notifyPBX
+
 2015-02-17  ddegroot
 
 	* [r5933] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
