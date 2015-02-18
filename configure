@@ -20957,6 +20957,18 @@ fi
 
 done
 
+	for ac_header in iconv.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "iconv.h" "ac_cv_header_iconv_h" "$ac_includes_default"
+if test "x$ac_cv_header_iconv_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ICONV_H 1
+_ACEOF
+
+fi
+
+done
+
 	for ac_func in gethostbyname inet_ntoa mkdir
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`

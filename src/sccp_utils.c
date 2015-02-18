@@ -17,7 +17,9 @@
 #include "sccp_device.h"
 #include "sccp_utils.h"
 #include "sccp_socket.h"
-
+#if HAVE_ICONV_H
+#include <iconv.h>
+#endif
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 /*!
@@ -1888,4 +1890,30 @@ char *sccp_trimwhitespace(char *str)
 	return str;
 }
 
+#if HAVE_ICONV_H
+gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf, size_t len) {
+	iconv_t cd;
+	size_t incount, outcount = len;
+	incount = strlen(utf8str);
+	if (incount) {
+		cd = iconv_open("ISO8859-1", "UTF-8");
+		if (cd == (iconv_t) -1) {
+			pbx_log(LOG_ERROR, "conversion from 'UTF-8' to 'ISO8859-1' not available.\n");
+			return FALSE;
+		}
+		if (iconv(cd, (void *) &utf8str, &incount, &buf, &outcount) == (size_t) -1) {
+			if (errno == E2BIG)
+				pbx_log(LOG_WARNING, "SCCP: Iconv: output buffer too small.\n");
+			else if (errno == EILSEQ)
+				pbx_log(LOG_WARNING,  "SCCP: Iconv: illegal character.\n");
+			else if (errno == EINVAL)
+				pbx_log(LOG_WARNING,  "SCCP: Iconv: incomplete character sequence.\n");
+			else
+				pbx_log(LOG_WARNING,  "SCCP: Iconv: error %d: %s.\n", errno, strerror(errno));
+		}
+		iconv_close(cd);
+	}
+	return TRUE;
+}
+#endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
