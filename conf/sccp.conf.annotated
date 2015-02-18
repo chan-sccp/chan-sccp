@@ -198,6 +198,7 @@ button = ""                                                                     
                                                                                   ; (MULTI-ENTRY) - button = line,98099@12:Phone2!silent
                                                                                   ; (MULTI-ENTRY) - button = speeddial,Phone 2 Line 1, 98021, 98021@hints
                                                                                   ; (MULTI-ENTRY) - button = feature,cfwdall,1234
+										  ; Buttons can contain special characters like 'Ã©' as long as the sccp.conf file is stored in UTF-8 format
 allowRinginNotification = no                                                      ; allow ringin notification for hinted extensions. experimental configuration param that may be removed in further version 
 conf_allow = yes                                                                  ; Allow the use of conference
 conf_play_general_announce = yes                                                  ; Playback General Announcements (like: 'You are Entering/Leaving the conference')
