@@ -201,7 +201,7 @@ static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, c
 #if HAVE_ICONV_H
 static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
 {
-	char *buf = ast_alloca(dst_size);
+	char *buf = sccp_alloca(dst_size);
 	size_t buf_len = dst_size;
 	memset(buf, 0, dst_size);
 	if (sccp_utils_convUtf8toLatin1(src, buf, buf_len)) {
