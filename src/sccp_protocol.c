@@ -39,28 +39,28 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 
 	REQ(msg, CallInfoMessage);
 
-	if (channel->callInfo.callingPartyName) {
+	if (!sccp_strlen_zero(channel->callInfo.callingPartyName)) {
 		sccp_copy_string(msg->data.CallInfoMessage.callingPartyName, channel->callInfo.callingPartyName, sizeof(msg->data.CallInfoMessage.callingPartyName));
 	}
-	if (channel->callInfo.callingPartyNumber) {
+	if (!sccp_strlen_zero(channel->callInfo.callingPartyNumber)) {
 		sccp_copy_string(msg->data.CallInfoMessage.callingParty, channel->callInfo.callingPartyNumber, sizeof(msg->data.CallInfoMessage.callingParty));
 	}
-	if (channel->callInfo.calledPartyName) {
+	if (!sccp_strlen_zero(channel->callInfo.calledPartyName)) {
 		sccp_copy_string(msg->data.CallInfoMessage.calledPartyName, channel->callInfo.calledPartyName, sizeof(msg->data.CallInfoMessage.calledPartyName));
 	}
-	if (channel->callInfo.calledPartyNumber) {
+	if (!sccp_strlen_zero(channel->callInfo.calledPartyNumber)) {
 		sccp_copy_string(msg->data.CallInfoMessage.calledParty, channel->callInfo.calledPartyNumber, sizeof(msg->data.CallInfoMessage.calledParty));
 	}
-	if (channel->callInfo.originalCalledPartyName) {
+	if (!sccp_strlen_zero(channel->callInfo.originalCalledPartyName)) {
 		sccp_copy_string(msg->data.CallInfoMessage.originalCalledPartyName, channel->callInfo.originalCalledPartyName, sizeof(msg->data.CallInfoMessage.originalCalledPartyName));
 	}
-	if (channel->callInfo.originalCalledPartyNumber) {
+	if (!sccp_strlen_zero(channel->callInfo.originalCalledPartyNumber)) {
 		sccp_copy_string(msg->data.CallInfoMessage.originalCalledParty, channel->callInfo.originalCalledPartyNumber, sizeof(msg->data.CallInfoMessage.originalCalledParty));
 	}
-	if (channel->callInfo.lastRedirectingPartyName) {
+	if (!sccp_strlen_zero(channel->callInfo.lastRedirectingPartyName)) {
 		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingPartyName, channel->callInfo.lastRedirectingPartyName, sizeof(msg->data.CallInfoMessage.lastRedirectingPartyName));
 	}
-	if (channel->callInfo.lastRedirectingPartyNumber) {
+	if (!sccp_strlen_zero(channel->callInfo.lastRedirectingPartyNumber)) {
 		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingParty, channel->callInfo.lastRedirectingPartyNumber, sizeof(msg->data.CallInfoMessage.lastRedirectingParty));
 	}
 	if (channel->callInfo.originalCdpnRedirectReason) {
@@ -69,16 +69,16 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 	if (channel->callInfo.lastRedirectingReason) {
 		msg->data.CallInfoMessage.lastRedirectingReason = htolel(channel->callInfo.lastRedirectingReason);
 	}
-	if (channel->callInfo.cgpnVoiceMailbox) {
+	if (!sccp_strlen_zero(channel->callInfo.cgpnVoiceMailbox)) {
 		sccp_copy_string(msg->data.CallInfoMessage.cgpnVoiceMailbox, channel->callInfo.cgpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.cgpnVoiceMailbox));
 	}
-	if (channel->callInfo.cdpnVoiceMailbox) {
+	if (!sccp_strlen_zero(channel->callInfo.cdpnVoiceMailbox)) {
 		sccp_copy_string(msg->data.CallInfoMessage.cdpnVoiceMailbox, channel->callInfo.cdpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.cdpnVoiceMailbox));
 	}
-	if (channel->callInfo.originalCdpnVoiceMailbox) {
+	if (!sccp_strlen_zero(channel->callInfo.originalCdpnVoiceMailbox)) {
 		sccp_copy_string(msg->data.CallInfoMessage.originalCdpnVoiceMailbox, channel->callInfo.originalCdpnVoiceMailbox, sizeof(msg->data.CallInfoMessage.originalCdpnVoiceMailbox));
 	}
-	if (channel->callInfo.lastRedirectingVoiceMailbox) {
+	if (!sccp_strlen_zero(channel->callInfo.lastRedirectingVoiceMailbox)) {
 		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox, channel->callInfo.lastRedirectingVoiceMailbox, sizeof(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox));
 	}
 

@@ -374,7 +374,7 @@ static void sccp_hint_eventListener(const sccp_event_t * event)
 		case SCCP_EVENT_DEVICE_UNREGISTERED:
 			device = event->event.deviceRegistered.device;
 
-			if (device && device->id) {
+			if (device) {
 				char *deviceName = strdupa(device->id);
 
 				sccp_hint_deviceUnRegistered(deviceName);
@@ -1101,7 +1101,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 		return;
 	}
 
-	if (!&GLOB(module_running) || SCCP_REF_RUNNING != sccp_refcount_isRunning()) {
+	if (!GLOB(module_running) || SCCP_REF_RUNNING != sccp_refcount_isRunning()) {
 		sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_3 "%s: (sccp_hint_notifySubscribers) Skip processing hint while we are shutting down.\n", hint->exten);
 		return;
 	}

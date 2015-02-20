@@ -366,17 +366,15 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 	/* remove call from transferee, transferer */
 	sccp_linedevices_t *linedevice = NULL;
 
-	if (&l->devices) {
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			AUTO_RELEASE sccp_device_t *tmpDevice = sccp_device_retain(linedevice->device);
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+		AUTO_RELEASE sccp_device_t *tmpDevice = sccp_device_retain(linedevice->device);
 
-			if (tmpDevice) {
-				sccp_channel_transfer_release(tmpDevice, c);
-			}
+		if (tmpDevice) {
+			sccp_channel_transfer_release(tmpDevice, c);
 		}
-		SCCP_LIST_UNLOCK(&l->devices);
 	}
+	SCCP_LIST_UNLOCK(&l->devices);
 	/* done - remove call from transferee, transferer */
 
 	sccp_line_removeChannel(l, c);
@@ -384,16 +382,14 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 	if (!d) {
 		/* channel is not answered, just ringin over all devices */
 		/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
-		if (&l->devices) {
-			SCCP_LIST_LOCK(&l->devices);
-			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-				if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
-					d = sccp_device_retain(linedevice->device);
-					break;
-				}
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
+				d = sccp_device_retain(linedevice->device);
+				break;
 			}
-			SCCP_LIST_UNLOCK(&l->devices);
 		}
+		SCCP_LIST_UNLOCK(&l->devices);
 	}
 	if (d) {
 		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
@@ -899,7 +895,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		}
 
 		/* we don't need to check for a device type but just if the device has an id, otherwise back home  -FS */
-		if (!d->id || sccp_strlen_zero(d->id)) {
+		if (sccp_strlen_zero(d->id)) {
 			pbx_log(LOG_ERROR, "SCCP: (sccp_pbx_softswitch) No <device> identifier available. Returning from dial thread. Exiting\n");
 			goto EXIT_FUNC;
 		}
@@ -1144,7 +1140,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 						sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_1 "%s: (sccp_pbx_softswitch) pbx started\n", DEV_ID_LOG(d));
 #ifdef CS_MANAGER_EVENTS
 						if (GLOB(callevents)) {
-							manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %08x\r\nSCCPCallDesignator: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l && l->name) ? l->name : "(null)", (c && c->callid) ? c->callid : 0,
+							manager_event(EVENT_FLAG_SYSTEM, "ChannelUpdate", "Channel: %s\r\nUniqueid: %s\r\nChanneltype: %s\r\nSCCPdevice: %s\r\nSCCPline: %s\r\nSCCPcallid: %08x\r\nSCCPCallDesignator: %s\r\n", (pbx_channel) ? pbx_channel_name(pbx_channel) : "(null)", (pbx_channel) ? pbx_channel_uniqueid(pbx_channel) : "(null)", "SCCP", (d) ? DEV_ID_LOG(d) : "(null)", (l) ? l->name : "(null)", (c && c->callid) ? c->callid : 0,
 								      c ? c->designator : "(null)");
 						}
 #endif														// CS_MANAGER_EVENTS

@@ -1768,7 +1768,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 	/** workaround for asterisk console log flooded
 	 channel.c:5080 ast_write: Codec mismatch on channel SCCP/xxx-0000002d setting write format to g722 from unknown native formats (nothing)
 	*/
-	if (!channel->capabilities.audio) {
+	if (!channel->capabilities.audio[0]) {
 		skinny_codec_t codecs[] = { SKINNY_CODEC_WIDEBAND_256K };
 		sccp_wrapper_asterisk113_setNativeAudioFormats(channel, codecs, 1);
 		sccp_wrapper_asterisk113_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
