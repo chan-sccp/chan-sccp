@@ -333,15 +333,14 @@ int skinny_codecs2pbx_codecs(skinny_codec_t * skinny_codecs);
 #define sccp_strndup(str, len) \
 	_sccp_strndup((str), (len), __FILE__, __LINE__, __PRETTY_FUNCTION__)
 
-extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func);
-
-extern inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func)
+static inline char *_sccp_strndup(const char *str, size_t len, const char *file, int lineno, const char *func)
 {
 	char *newstr = NULL;
 
 	if (str) {
-		if (!(newstr = strndup(str, len)))
+		if (!(newstr = strndup(str, len))) {
 			pbx_log(LOG_ERROR, "Memory Allocation Failure in function %s at line %d of %s\n", func, lineno, file);
+		}
 	}
 	return newstr;
 }
