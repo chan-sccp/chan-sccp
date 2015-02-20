@@ -90,7 +90,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
 					pbx_log(LOG_ERROR, "%s: 1\n", DEV_ID_LOG(device));
 					// if we have an outbound call, we can set callforward to dialed number -FS
-					if (c->dialedNumber && !sccp_strlen_zero(c->dialedNumber)) {		// checking if we have a number !
+					if (!sccp_strlen_zero(c->dialedNumber)) {		// checking if we have a number !
 						pbx_log(LOG_ERROR, "%s: 2\n", DEV_ID_LOG(device));
 						sccp_line_cfwd(l, device, type, c->dialedNumber);
 						// we are on call, so no tone has been played until now :)
@@ -216,7 +216,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 
 		if (c) {
 			// we have a channel, checking if
-			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
@@ -464,7 +464,7 @@ int sccp_feat_grouppickup(sccp_line_t * l, sccp_device_t * d)
 {
 	int res = 0;
 
-	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
+	if (!l || !d || sccp_strlen_zero(d->id)) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (grouppickup) no line or device\n");
 		return -1;
 	}
@@ -721,7 +721,7 @@ void sccp_feat_idivert(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c)
 void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance, sccp_channel_t * channel)
 {
 #ifdef CS_SCCP_CONFERENCE
-	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
+	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
@@ -978,7 +978,7 @@ void sccp_feat_conflist(sccp_device_t * d, sccp_line_t * l, uint8_t lineInstance
  */
 void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
-	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
+	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
@@ -989,7 +989,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 		if (c) {
 			// we have a channel, checking if
-			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
@@ -1185,7 +1185,7 @@ void sccp_feat_meetme_start(sccp_channel_t * c)
 void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
 
-	if (!l || !d || !d->id || sccp_strlen_zero(d->id)) {
+	if (!l || !d || sccp_strlen_zero(d->id)) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
@@ -1196,7 +1196,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 
 		if (c) {
 			// we have a channel, checking if
-			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
@@ -1289,7 +1289,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 
 		if (c) {
 			// we have a channel, checking if
-			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && (!c->dialedNumber || (c->dialedNumber && sccp_strlen_zero(c->dialedNumber)))) {
+			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
 				// changing SS_DIALING mode to SS_GETFORWARDEXTEN

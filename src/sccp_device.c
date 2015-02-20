@@ -194,7 +194,6 @@ static void sccp_device_setRingtone(const sccp_device_t * device, const char *ur
 
 static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
 {
-	sccp_log(DEBUGCAT_DEVICE) ("%s: No Conversion\n", DEV_ID_LOG(d));
 	sccp_copy_string(dst, src, dst_size);
 }
 
@@ -205,7 +204,6 @@ static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst
 	size_t buf_len = dst_size;
 	memset(buf, 0, dst_size);
 	if (sccp_utils_convUtf8toLatin1(src, buf, buf_len)) {
-		sccp_log(DEBUGCAT_DEVICE) ("%s: Converted UTF-8: '%s' to ISO8859-1: '%s'\n", DEV_ID_LOG(d), src, buf);
 		sccp_copy_string(dst, buf, dst_size);
 		return;
 	}
@@ -2126,7 +2124,7 @@ int __sccp_device_destroy(const void *ptr)
 	sccp_mutex_lock(&d->messageStackLock);
 #endif
 	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
-		if (d->messageStack && d->messageStack[i] != NULL) {
+		if (d->messageStack[i] != NULL) {
 			sccp_free(d->messageStack[i]);
 		}
 	}

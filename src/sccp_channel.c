@@ -400,7 +400,7 @@ void sccp_channel_updateChannelDesignator(sccp_channel_t * c)
 {
 	if (c) {
 		if (c->callid) {
-			if (c->line && c->line->name) {
+			if (c->line) {
 				snprintf(c->designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08x", c->line->name, c->callid);
 			} else {
 				snprintf(c->designator, CHANNEL_DESIGNATOR_SIZE, "SCCP/%s-%08x", "UNDEF", c->callid);
@@ -2027,13 +2027,13 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 	instance = sccp_device_find_index_for_line(d, channel->line->name);
 
 	if (!d->transfer || !channel->line->transfer) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", (d && d->id) ? d->id : "SCCP");
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer disabled on device or line\n", DEV_ID_LOG(d));
 		return;
 	}
 
 	/* are we in the middle of a transfer? */
 	if (d->transferChannels.transferee && d->transferChannels.transferer) {
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", (d && d->id) ? d->id : "SCCP");
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: In the middle of a Transfer. Going to transfer completion\n", DEV_ID_LOG(d));
 		sccp_channel_transfer_complete(d->transferChannels.transferer);
 		return;
 	}
@@ -2046,7 +2046,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 	}
 
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {								/** channel to be transfered */
-		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer request from line channel %s-%08X\n", DEV_ID_LOG(d), (channel->line) ? channel->line->name : "(null)", channel->callid);
 
 		prev_channel_state = channel->state;
 
@@ -2091,7 +2091,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				d->transferChannels.transferer = sccp_channel_retain(sccp_channel_new);
 			} else if (sccp_channel_new && (pbx_channel_appl(pbx_channel_owner) != NULL)) {
 				// giving up
-				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", DEV_ID_LOG(d), (channel->line) ? channel->line->name : "(null)", channel->callid);
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
@@ -2099,9 +2099,9 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			} else {
 				// giving up
 				if (!sccp_channel_new) {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: New channel could not be created to complete transfer for %s-%08X\n", DEV_ID_LOG(d), (channel->line) ? channel->line->name : "(null)", channel->callid);
 				} else {
-					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+					sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No bridged channel or application on %s-%08X\n", DEV_ID_LOG(d), (channel->line) ? channel->line->name : "(null)", channel->callid);
 				}
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
@@ -2111,7 +2111,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			pbx_channel_owner = pbx_channel_unref(pbx_channel_owner);
 		} else {
 			// giving up
-			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No pbx channel owner to transfer %s-%08X\n", (d && d->id) ? d->id : "SCCP", (channel->line && channel->line->name) ? channel->line->name : "(null)", channel->callid);
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No pbx channel owner to transfer %s-%08X\n", DEV_ID_LOG(d), (channel->line) ? channel->line->name : "(null)", channel->callid);
 			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 			channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 			sccp_indicate(d, channel, prev_channel_state);
@@ -2214,8 +2214,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	if (!sccp_destination_local_channel->owner || !sccp_source_local_channel || !sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Transfer error, asterisk channel error %s-%08X and %s-%08X\n",
 							      d->id,
-							      (sccp_destination_local_channel && sccp_destination_local_channel->line && sccp_destination_local_channel->line->name) ? sccp_destination_local_channel->line->name : "(null)",
-							      (sccp_destination_local_channel && sccp_destination_local_channel->callid) ? sccp_destination_local_channel->callid : 0, (sccp_source_local_channel && sccp_source_local_channel->line && sccp_source_local_channel->line->name) ? sccp_source_local_channel->line->name : "(null)", (sccp_source_local_channel && sccp_source_local_channel->callid) ? sccp_source_local_channel->callid : 0);
+							      (sccp_destination_local_channel && sccp_destination_local_channel->line) ? sccp_destination_local_channel->line->name : "(null)",
+							      (sccp_destination_local_channel && sccp_destination_local_channel->callid) ? sccp_destination_local_channel->callid : 0, (sccp_source_local_channel && sccp_source_local_channel->line) ? sccp_source_local_channel->line->name : "(null)", (sccp_source_local_channel && sccp_source_local_channel->callid) ? sccp_source_local_channel->callid : 0);
 		goto EXIT;
 	}
 
