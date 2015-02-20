@@ -16,7 +16,7 @@ CLEANFILES			= .revision
 #.PHONY: 			.revision sccp_enum
 .PHONY: 			.revision gen_enum
 
-EXTRA_DIST = sccp_enum.in revision.h
+EXTRA_DIST = sccp_enum.in revision.h sccp_config_entries.hh
 
 chan_sccp_la_SOURCES	=	sccp_enum.h		chan_sccp.h		sccp_cli.h		sccp_threadpool.h	\
 				sccp_event.h		sccp_labels.h		sccp_utils.h		sccp_adv_features.h	\

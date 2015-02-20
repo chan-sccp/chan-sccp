@@ -1,5 +1,12 @@
 2015-02-18  ddegroot
 
+	* [r5939] src/pbx_impl/ast/define.h, src/sccp_device.c: Fix:
+	  compile against asterisk-1.8 (missing ast_alloca, replace by
+	  gcc/clang buildin function)
+
+	* [r5938] ChangeLog, src/Makefile.am, src/Makefile.in: Update:
+	  Makefile.am to allow for make release
+
 	* [r5937] src/sccp_hint.c: Fix: sccp show hint subscription display
 	  when device is offline. enum lookup error for iconstate.
 
