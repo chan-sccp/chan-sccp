@@ -180,7 +180,7 @@ void sccp_dev_dbclean(void)
 
 			SCCP_RWLIST_RDLOCK(&GLOB(devices));
 			SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-				if (d->id && !strcasecmp(d->id, key)) {
+				if (!strcasecmp(d->id, key)) {
 					break;
 				}
 			}
@@ -1661,7 +1661,7 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
  */
 const char *sccp_channel_toString(sccp_channel_t * c)
 {
-	if (c && c->designator) {
+	if (c) {
 		return (const char *) c->designator;
 	} else {
 		return "";

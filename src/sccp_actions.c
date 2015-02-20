@@ -552,7 +552,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	device->linesRegistered = FALSE;
 
 	struct sockaddr_storage register_sas = { 0 };
-	if (msg_in->data.RegisterMessage.ipv6Address) {
+	if (!sccp_strlen_zero(msg_in->data.RegisterMessage.ipv6Address)) {
 		register_sas.ss_family = AF_INET6;
 		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *) &register_sas;
 
@@ -671,7 +671,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	btnlist *btn;
 	sccp_buttonconfig_t *buttonconfig;
 
-	if (!d || !&d->buttonconfig) {
+	if (!d) {
 		return NULL;
 	}
 	if (!(btn = sccp_malloc(sizeof(btnlist) * StationMaxButtonTemplateSize))) {
@@ -1209,7 +1209,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->instance == lineNumber) {
 				if (config->type == LINE) {
-					if (config->button.line.options && strcasestr(config->button.line.options, "default")) {
+					if (strcasestr(config->button.line.options, "default")) {
 						d->defaultLineInstance = lineNumber;
 						sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 					}
@@ -2600,7 +2600,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	event = softkeysmap[event - 1];
 
 	/* correct events for nokia icc client (Legacy Support -FS) */
-	if (d->config_type && !strcasecmp(d->config_type, "nokia-icc")) {
+	if (!strcasecmp(d->config_type, "nokia-icc")) {
 		switch (event) {
 			case SKINNY_LBL_DIRTRFR:
 				event = SKINNY_LBL_ENDCALL;
@@ -3174,12 +3174,8 @@ void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 	sccp_msg_t *msg_out;
 	sccp_buttonconfig_t *config = NULL;
 	uint8_t lines = 0;
-
 	uint8_t speeddials = 0;
-
-	if (!&d->buttonconfig) {
-		return;
-	}
+	
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == SPEEDDIAL) {
@@ -3429,7 +3425,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 	/* notice: we use this function for request and changing status -> so just change state if toggleState==TRUE -MC */
 	char featureOption[255];
 
-	if (config->button.feature.options) {
+	if (!sccp_strlen_zero(config->button.feature.options)) {
 		sccp_copy_string(featureOption, config->button.feature.options, sizeof(featureOption));
 	}
 
@@ -3468,7 +3464,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
 			}
 			// Ask for activation of the feature.
-			if (config->button.feature.options && !sccp_strlen_zero(config->button.feature.options)) {
+			if (!sccp_strlen_zero(config->button.feature.options)) {
 				// Now set the feature status. Note that the button status has already been toggled above.
 				if (config->button.feature.status) {
 					status = SCCP_CFWD_ALL;

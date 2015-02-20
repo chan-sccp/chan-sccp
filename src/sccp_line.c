@@ -720,7 +720,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 			} else {
 				/* un-register */
 
-				if (&l->devices && SCCP_LIST_GETSIZE(&l->devices) == 1) {			// only remove entry if it is the last one (shared line)
+				if (SCCP_LIST_GETSIZE(&l->devices) == 1) {			// only remove entry if it is the last one (shared line)
 					if (pbx_find_extension(NULL, NULL, &q, context, ext, 1, NULL, "", E_MATCH)) {
 						ast_context_remove_extension(context, ext, 1, NULL);
 						sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Unregistered RegContext: %s, Extension: %s\n", context, ext);
