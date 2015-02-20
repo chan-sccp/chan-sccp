@@ -871,14 +871,13 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
  */
 static int sccp_asterisk_managerHookHelper(int category, const char *event, char *content)
 {
-	struct message m = { 0 };
 	PBX_CHANNEL_TYPE *pbxchannel = NULL;
 	PBX_CHANNEL_TYPE *pbxBridge = NULL;
-
 	char *str, *dupStr;
 
 	if (EVENT_FLAG_CALL == category) {
 		if (!strcasecmp("MonitorStart", event) || !strcasecmp("MonitorStop", event)) {
+			struct message m = { 0 };
 
 			str = dupStr = sccp_strdupa(content); /** need a dup, because converter to message structure will modify the str */
 
