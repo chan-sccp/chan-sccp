@@ -76,9 +76,7 @@
 #define APPID_CONFERENCE_INVITE				9082
 #define APPID_PROVISION					9083
 #define APPID_DEVICECAPABILITIES			9084
-#ifdef CS_EXPERIMENTAL
 #define APPID_URIHOOK					9085
-#endif
 
 /*
  * \todo Merge sccp_button_type_t / sccp_buttontypes[] and this define

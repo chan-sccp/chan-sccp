@@ -1086,9 +1086,8 @@ struct sccp_device {
 #endif
 	uint16_t defaultLineInstance;										/*!< Default Line Instance */
 	char softkeyDefinition[50];										/*!< requested softKey configuration */
-#ifdef CS_EXPERIMENTAL
-	sccp_softKeySetConfiguration_t *softkeyset;
-#endif
+	sccp_softKeySetConfiguration_t *softkeyset;								/*!< Allow for a copy of the softkeyset, if any of the softkeys needs to be redefined, for example for urihook/uriaction */
+	
 	void (*copyStr2Locale) (const sccp_device_t *d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
 
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
@@ -1407,9 +1406,7 @@ struct softKeySetConfiguration {
 	char name[50];												/*!< Name for this configuration */
 	softkey_modes modes[16];										/*!< SoftKeySet modes, see KEYMODE_ */
 	uint8_t numberOfSoftKeySets;										/*!< Number of SoftKeySets we define */
-#ifdef CS_EXPERIMENTAL
 	sccp_softkeyMap_cb_t *softkeyCbMap;									/*!< Softkey Callback Map, ie handlers */
-#endif
 	unsigned int pendingDelete:1;
 	unsigned int pendingUpdate:1;
 	SCCP_LIST_ENTRY (sccp_softKeySetConfiguration_t) list;							/*!< Next list entry */

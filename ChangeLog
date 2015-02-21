@@ -1,3 +1,21 @@
+2015-02-20  ddegroot
+
+	* [r5943] src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
+	  src/pbx_impl/ast/ast113.c, src/sccp_actions.c,
+	  src/sccp_channel.c, src/sccp_device.c, src/sccp_features.c,
+	  src/sccp_hint.c, src/sccp_line.c, src/sccp_pbx.c,
+	  src/sccp_protocol.c, src/sccp_refcount.c, src/sccp_utils.c: Fix:
+	  address of array 'XXX' will always evaluate to 'true'
+	  [-Wpointer-bool-conversion]
+
+	* [r5942] src/pbx_impl/ast/ast.h: Fix: Prevent compiler warning
+	  about static/non-static
+
+	* [r5941] src/Makefile.in: Fix: automake Makefile.in
+
+	* [r5940] ChangeLog, src/Makefile.am: Fix: Makefile.am for make
+	  release
+
 2015-02-18  ddegroot
 
 	* [r5939] src/pbx_impl/ast/define.h, src/sccp_device.c: Fix:

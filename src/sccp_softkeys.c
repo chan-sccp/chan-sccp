@@ -870,7 +870,6 @@ static void sccp_sk_gpickup(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 #endif
 }
 
-#if CS_EXPERIMENTAL
 /*!
  * \brief Execute URI(s) 
  * \n Usage: \ref sk_uriaction
@@ -932,7 +931,6 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Send '%s' to Phone\n", DEV_ID_LOG(d), pbx_str_buffer(xmlStr));
 	d->protocol->sendUserToDeviceDataVersionMessage(d, APPID_URIHOOK, lineInstance, c ? c->callid : 0, transactionID, pbx_str_buffer(xmlStr), 0);
 }
-#endif
 
 /*!
  * \brief Softkey Function Callback by SKINNY LABEL
@@ -979,12 +977,10 @@ gcc_inline static const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent
 
 	const sccp_softkeyMap_cb_t *mySoftkeyCbMap = softkeyCbMap;
 
-#ifdef CS_EXPERIMENTAL
 	if (d->softkeyset && d->softkeyset->softkeyCbMap) {
 		mySoftkeyCbMap = d->softkeyset->softkeyCbMap;
 	}
 	sccp_log(DEBUGCAT_SOFTKEY) (VERBOSE_PREFIX_3 "%s: (sccp_getSoftkeyMap_by_SoftkeyEvent) default: %p, softkeyset: %p, softkeyCbMap: %p\n", d->id, softkeyCbMap, d->softkeyset, d->softkeyset ? d->softkeyset->softkeyCbMap : NULL);
-#endif
 
 	for (i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
 		if (mySoftkeyCbMap[i].event == event) {
@@ -1002,9 +998,7 @@ gcc_inline static const sccp_softkeyMap_cb_t *sccp_getSoftkeyMap_by_SoftkeyEvent
  */
 void sccp_softkey_pre_reload(void)
 {
-#ifdef CS_EXPERIMENTAL
 	sccp_softkey_clear();
-#endif
 }
 
 /*!
@@ -1012,7 +1006,6 @@ void sccp_softkey_pre_reload(void)
  */
 void sccp_softkey_post_reload(void)
 {
-#ifdef CS_EXPERIMENTAL
 	/* only required because softkeys are parsed after devices */
 	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
 	sccp_softKeySetConfiguration_t *softkeyset;
@@ -1033,7 +1026,6 @@ void sccp_softkey_post_reload(void)
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
 	}
 	SCCP_LIST_UNLOCK(&softKeySetConfig);
-#endif
 }
 
 /*!
@@ -1053,7 +1045,6 @@ void sccp_softkey_clear(void)
 				k->modes[i].count = 0;
 			}
 		}
-#ifdef CS_EXPERIMENTAL
 		if (k->softkeyCbMap) {
 			for (i = 0; i < ARRAY_LEN(softkeyCbMap); i++) {
 				if (!sccp_strlen_zero(k->softkeyCbMap[i].uriactionstr)) {
@@ -1062,7 +1053,6 @@ void sccp_softkey_clear(void)
 			}
 			sccp_free(k->softkeyCbMap);
 		}
-#endif
 		//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Softkeyset: %s removed\n", k->name);
 		sccp_free(k);
 	}
@@ -1085,7 +1075,6 @@ sccp_softkeyMap_cb_t __attribute__ ((malloc)) * sccp_softkeyMap_copyStaticallyMa
 	return newSoftKeyMap;
 }
 
-#if CS_EXPERIMENTAL
 /*!
  * \brief Replace a specific softkey callback entry by sccp_sk_uriaction and fill it's uriactionstr
  * \note strdup, needs to be freed
@@ -1104,7 +1093,6 @@ boolean_t sccp_softkeyMap_replaceCallBackByUriAction(sccp_softkeyMap_cb_t * soft
 	}
 	return FALSE;
 }
-#endif
 
 /*!
  * \brief Execute Softkey Callback by SofkeyEvent
