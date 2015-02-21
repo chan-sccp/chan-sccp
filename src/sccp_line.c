@@ -461,6 +461,12 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 	}
 	if ((linedevice = sccp_linedevice_find(device, line))) {
 		if (type == SCCP_CFWD_NONE) {
+			if (linedevice->cfwdAll.enabled) {
+				feature_type = SCCP_FEATURE_CFWDALL;
+			}
+			if (linedevice->cfwdBusy.enabled) {
+				feature_type = SCCP_FEATURE_CFWDBUSY;
+			}
 			linedevice->cfwdAll.enabled = 0;
 			linedevice->cfwdBusy.enabled = 0;
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Call Forward disabled on line %s\n", DEV_ID_LOG(device), line->name);
