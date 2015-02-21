@@ -2574,7 +2574,6 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeyset: %s \n", variable->name);
 		if (sccp_strcaseequals(variable->name, "type")) {
 
-#ifdef CS_EXPERIMENTAL
 		} else if (sccp_strcaseequals(variable->name, "uriaction")) {
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: UriAction softkey (%s) found\n", variable->value);
 			if (!softKeySetConfiguration->softkeyCbMap) {
@@ -2588,7 +2587,6 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			} else {
 				sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: UriAction softkey (%s) not found, or no uris (%s) specified\n", event, uriactionstr);
 			}
-#endif
 		} else if (sccp_strcaseequals(variable->name, "onhook")) {
 			keyMode = KEYMODE_ONHOOK;
 		} else if (sccp_strcaseequals(variable->name, "connected")) {
