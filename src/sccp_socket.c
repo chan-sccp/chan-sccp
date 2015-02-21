@@ -946,12 +946,14 @@ void sccp_socket_setoptions(int new_socket)
 	/* */
 	
 	/* thin-tcp */
+#ifdef TCP_THIN_LINEAR_TIMEOUTS
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on)) < 0) {		/* change all tcp behaviour into realtime-like tcp connections */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_THIN_LINEAR_TIMEOUTS: %s\n", strerror(errno));
 	}
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on)) < 0) {
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_THIN_DUPACK (Reduce number of duplicate Acks needed): %s\n", strerror(errno));
 	}
+#endif
 	/* */
 #endif
 	/* rcvbuf / sndbug */
