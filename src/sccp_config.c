@@ -2559,9 +2559,7 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 		sccp_copy_string(softKeySetConfiguration->name, name, sizeof(sccp_softKeySetConfiguration_t));
 		softKeySetConfiguration->numberOfSoftKeySets = 0;
-#ifdef CS_EXPERIMENTAL
 		softKeySetConfiguration->softkeyCbMap = NULL;							// defaults to static softkeyMapCb
-#endif
 
 		/* add new softkexSet to list */
 		SCCP_LIST_LOCK(&softKeySetConfig);
