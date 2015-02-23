@@ -63,7 +63,7 @@ CREATE TABLE sccpline (
   callgroup 			varchar(45) 	DEFAULT NULL,
   pickupgroup 			varchar(45) 	DEFAULT NULL,
   amaflags 			varchar(45) 	DEFAULT NULL,
-  dnd 				varchar(5) 	DEFAULT 'on',
+  dnd 				varchar(7) 	DEFAULT 'reject',
   defaultSubscriptionId_number 	varchar(5)	DEFAULT NULL,
   setvar 			varchar(50) 	DEFAULT NULL,
   name 				varchar(45) 	NOT NULL DEFAULT '',
