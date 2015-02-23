@@ -2,6 +2,7 @@
 DROP sccpdeviceconfig;
 
 ALTER TABLE sccpdevice alter earlyrtp type varchar(10);
+ALTER TABLE sccpline alter dnd type varchar(7) default "reject";
 ALTER TABLE `sccpdevice` DROP COLUMN `dtmfmode`;
 
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
