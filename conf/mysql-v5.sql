@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
   `callgroup` varchar(45) default NULL,
   `pickupgroup` varchar(45) default NULL,
   `amaflags` varchar(45) default NULL,
-  `dnd` varchar(5) default 'on',
+  `dnd` varchar(7) default 'reject',
   `setvar` varchar(50) default NULL,
   `name` varchar(45) NOT NULL default '',
   PRIMARY KEY  (`name`)

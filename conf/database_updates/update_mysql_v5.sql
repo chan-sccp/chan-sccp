@@ -10,7 +10,7 @@ ALTER TABLE `sccpdevice` DROP COLUMN `trustphoneip`;
 ALTER TABLE `sccpdevice` DROP COLUMN `dtmfmode`;
 
 ALTER TABLE `sccpline` CHANGE COLUMN `dnd` `dndFeature`;
-ALTER TABLE `sccpline` ADD `dnd` VARCHAR( 5 ) DEFAULT "on" AFTER `amaflags`;
+ALTER TABLE `sccpline` ADD `dnd` VARCHAR( 7 ) DEFAULT "reject" AFTER `amaflags`;
 ALTER TABLE `sccpline` DROP COLUMN `rtptos`;
 ALTER TABLE `sccpline` DROP COLUMN `audio_tos`;
 ALTER TABLE `sccpline` DROP COLUMN `audio_cos`;

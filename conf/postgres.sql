@@ -67,7 +67,7 @@ CREATE TABLE sccpline (
   silencesuppression varchar(45) default NULL,
   callgroup varchar(45) default NULL,
   pickupgroup varchar(45) default NULL,
-  dnd varchar(5) default 'on',
+  dnd varchar(7) default 'reject',
   amaflags varchar(45) default NULL,
   regexten character varying(20) DEFAULT NULL,
   setvar varchar(50) default NULL,

@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `sccplines` (
   `silencesuppression` varchar(45) default NULL,
   `callgroup` varchar(45) default NULL,
   `pickupgroup` varchar(45) default NULL,
-  `dnd` varchar(5) default 'on',
+  `dnd` varchar(7) default 'reject',
   `amaflags` varchar(45) default NULL,
   `setvar` varchar(50) default NULL,
   `name` varchar(45) NOT NULL,

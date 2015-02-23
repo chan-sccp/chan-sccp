@@ -76,7 +76,7 @@ CREATE TABLE sccpline (
   silencesuppression 		varchar(45) 	DEFAULT NULL,
   callgroup 			varchar(45) 	DEFAULT NULL,
   pickupgroup 			varchar(45) 	DEFAULT NULL,
-  dnd 				varchar(5) 	DEFAULT 'on',
+  dnd 				varchar(7) 	DEFAULT 'reject',
   amaflags 			varchar(45) 	DEFAULT NULL,
   defaultSubscriptionId_number 	varchar(5)	DEFAULT NULL,
   setvar 			varchar(50) 	DEFAULT NULL,
