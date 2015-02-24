@@ -689,7 +689,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 	if (!d->isAnonymous) {
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
-			sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "%s: searching for position for button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
+			sccp_log((DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "\n%s: searching for position of button type %d\n", DEV_ID_LOG(d), buttonconfig->type);
 			if (buttonconfig->instance > 0) {
 				continue;
 			}
@@ -736,7 +736,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				} else if (buttonconfig->type == SPEEDDIAL && !sccp_strlen_zero(buttonconfig->label)
 					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
 
-					buttonconfig->instance = btn[i].instance = i + 1;
+//					buttonconfig->instance = btn[i].instance = i + 1;
 					if (!sccp_strlen_zero(buttonconfig->button.speeddial.hint)
 					    && btn[i].type == SCCP_BUTTONTYPE_MULTI				/* we can set our feature */
 					    ) {
@@ -744,15 +744,12 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 						if (d->inuseprotocolversion >= 15) {
 							btn[i].type = 0x15;
 							buttonconfig->instance = btn[i].instance = speeddialInstance++;
-						} else {
+						} else 
+#endif
+						{
 							btn[i].type = SKINNY_BUTTONTYPE_LINE;
 							buttonconfig->instance = btn[i].instance = lineInstance++;
-
 						}
-#else
-						btn[i].type = SKINNY_BUTTONTYPE_LINE;
-						buttonconfig->instance = btn[i].instance = lineInstance++;
-#endif
 					} else {
 						btn[i].type = SKINNY_BUTTONTYPE_SPEEDDIAL;
 						buttonconfig->instance = btn[i].instance = speeddialInstance++;
@@ -763,19 +760,17 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				} else if (buttonconfig->type == FEATURE && !sccp_strlen_zero(buttonconfig->label)
 					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 
-					buttonconfig->instance = btn[i].instance = speeddialInstance++;
+					buttonconfig->instance = btn[i].instance = serviceInstance++;
 
 					switch (buttonconfig->button.feature.id) {
 						case SCCP_FEATURE_HOLD:
 							btn[i].type = SKINNY_BUTTONTYPE_HOLD;
 							break;
-
 #ifdef CS_DEVSTATE_FEATURE
 							// case SCCP_FEATURE_DEVSTATE:
 							//btn[i].type = SKINNY_BUTTONTYPE_MULTIBLINKFEATURE;
 							//break;
 #endif
-
 						case SCCP_FEATURE_TRANSFER:
 							btn[i].type = SKINNY_BUTTONTYPE_TRANSFER;
 							break;
@@ -879,8 +874,8 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					}
 					break;
 				}
-				sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->instance, "FEATURE", buttonconfig->label);
 			}
+			sccp_log((DEBUGCAT_BUTTONTEMPLATE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Configured %d Phone Button [%.2d] = %s (%s)\n", d->id, buttonconfig->index + 1, buttonconfig->instance, skinny_buttontype2str(btn[i].type), buttonconfig->label);
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
 
