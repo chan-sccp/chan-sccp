@@ -592,11 +592,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: try to allocate channel on line: %s\n", l->name);
 	/* Don't hold a sccp pvt lock while we allocate a channel */
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 
-	if (d) {
-		sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
+	AUTO_RELEASE sccp_device_t *d = NULL;
 
+	if ((d = sccp_channel_getDevice_retained(c))) {
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 			if (linedevice->device == d) {
@@ -604,7 +604,12 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
-
+        } else if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
+		SCCP_LIST_LOCK(&l->devices);
+		linedevice = SCCP_LIST_FIRST(&l->devices);
+		SCCP_LIST_UNLOCK(&l->devices);
+        }
+        if (linedevice) {		/* single line channel */
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
 				/* append subscriptionId to cid */
@@ -638,8 +643,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-	} else {
-
+		memcpy(c->capabilities.audio, linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
+		memcpy(c->capabilities.video, linedevice->device->capabilities.video, sizeof(c->capabilities.video));
+	} else {			/* shared line */
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
 				sprintf(c->callInfo.calledPartyNumber, "%s%s", l->cid_num, (l->defaultSubscriptionId.number) ? l->defaultSubscriptionId.number : "");
@@ -653,6 +659,18 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
+		/* combine all capabilities */
+		SCCP_LIST_LOCK(&l->devices);
+		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+			if (linedevice == SCCP_LIST_FIRST(&l->devices)) {
+				memcpy(c->capabilities.audio, linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
+				memcpy(c->capabilities.video, linedevice->device->capabilities.video, sizeof(c->capabilities.video));
+			} else {
+				sccp_utils_findBestCodec(c->capabilities.audio, ARRAY_LEN(c->capabilities.audio), linedevice->device->capabilities.audio, ARRAY_LEN(linedevice->device->capabilities.audio), c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
+				sccp_utils_findBestCodec(c->capabilities.video, ARRAY_LEN(c->capabilities.video), linedevice->device->capabilities.video, ARRAY_LEN(linedevice->device->capabilities.video), c->capabilities.video, ARRAY_LEN(c->capabilities.video));
+			}
+		}
+		SCCP_LIST_UNLOCK(&l->devices);
 	}
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
