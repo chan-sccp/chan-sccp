@@ -1778,7 +1778,11 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 				composedLineRegistrationId = sccp_parseComposedId(name, 80);
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", composedLineRegistrationId.mainId, composedLineRegistrationId.subscriptionId.number, composedLineRegistrationId.subscriptionId.name, composedLineRegistrationId.subscriptionId.aux);
 				if (LINE == config->type &&
-				    sccp_strequals(config->label, name) && sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
+				    sccp_strequals(config->label, name) && 
+				    sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && 
+				    sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && 
+				    sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && 
+				    sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
 				) {
 					if (!options || sccp_strequals(config->button.line.options, options)) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
@@ -1878,14 +1882,12 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		case LINE:
 		{
 			struct composedId composedLineRegistrationId;
-
 			memset(&composedLineRegistrationId, 0, sizeof(struct composedId));
 			composedLineRegistrationId = sccp_parseComposedId(name, 80);
+
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition\n");
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", composedLineRegistrationId.mainId, composedLineRegistrationId.subscriptionId.number, composedLineRegistrationId.subscriptionId.name, composedLineRegistrationId.subscriptionId.aux);
 			config->type = LINE;
-			config->index = index;
-
 			sccp_copy_string(config->label, name, sizeof(config->label));
 			sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
 			sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
@@ -1901,8 +1903,6 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		case SPEEDDIAL:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition\n");
 			config->type = SPEEDDIAL;
-			config->index = index;
-
 			sccp_copy_string(config->label, name, sizeof(config->label));
 			sccp_copy_string(config->button.speeddial.ext, options, sizeof(config->button.speeddial.ext));
 			if (args) {
@@ -1913,10 +1913,7 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			break;
 		case SERVICE:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Service Button Definition\n");
-			/* \todo check if values change */
 			config->type = SERVICE;
-			config->index = index;
-
 			sccp_copy_string(config->label, name, sizeof(config->label));
 			sccp_copy_string(config->button.service.url, options, sizeof(config->button.service.url));
 			break;
@@ -1924,11 +1921,8 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition\n");
 			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "featureID: %s\n", options);
 			config->type = FEATURE;
-			config->index = index;
-
 			sccp_copy_string(config->label, name, sizeof(config->label));
 			config->button.feature.id = sccp_featureStr2featureID(options);
-
 			if (args) {
 				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
@@ -1941,7 +1935,6 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		case EMPTY:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Empty Button Definition\n");
 			config->type = EMPTY;
-			config->index = index;
 			break;
 		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Enum ButtonType SENTINEL\n");
