@@ -858,8 +858,9 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_FIELDS 														\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->instance)					\
+#define CLI_AMI_TABLE_FIELDS 															\
+			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
+			CLI_AMI_TABLE_FIELD(Inst,		"-4d",		4,	buttonconfig->instance)					\
 			CLI_AMI_TABLE_FIELD(TypeStr,		"-30s",		30,	sccp_config_buttontype2str(buttonconfig->type))		\
 			CLI_AMI_TABLE_FIELD(Type,		"-24d",		24,	buttonconfig->type)					\
 			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8s",		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
@@ -874,23 +875,23 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 													\
-			if (buttonconfig->type == LINE) {										\
-				l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);					\
-				if (l) {												\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
+			if (buttonconfig->type == LINE) {											\
+				l = sccp_line_find_byname(buttonconfig->button.line.name, FALSE);						\
+				if (l) {													\
 					linedevice = sccp_linedevice_find(d, l);
-#define CLI_AMI_TABLE_AFTER_ITERATION 													\
-					linedevice = linedevice ? sccp_linedevice_release(linedevice) : NULL;				\
-				sccp_line_release(l);											\
-				}													\
+#define CLI_AMI_TABLE_AFTER_ITERATION 														\
+					linedevice = linedevice ? sccp_linedevice_release(linedevice) : NULL;					\
+				sccp_line_release(l);												\
+				}														\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 														\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->instance)					\
+#define CLI_AMI_TABLE_FIELDS 															\
+			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	l->name)						\
 			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6s",	6,	buttonconfig->button.line.subscriptionId.number)	\
-			CLI_AMI_TABLE_FIELD(Label,		"-24.24s",	24, l->label)						\
+			CLI_AMI_TABLE_FIELD(Label,		"-29.29s",	29, 	l->label)							\
 			CLI_AMI_TABLE_FIELD(CfwdType,		"-10s",		10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16s",	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
@@ -902,16 +903,17 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
-			if (buttonconfig->type == SPEEDDIAL) {
-#define CLI_AMI_TABLE_AFTER_ITERATION 											\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
+			if (buttonconfig->type == SPEEDDIAL) {											
+			
+#define CLI_AMI_TABLE_AFTER_ITERATION 														\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 												\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(Number,		"-31.31s",	31,	buttonconfig->button.speeddial.ext)			\
+#define CLI_AMI_TABLE_FIELDS 															\
+			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)						\
+			CLI_AMI_TABLE_FIELD(Number,		"-36.36s",	36,	buttonconfig->button.speeddial.ext)			\
 			CLI_AMI_TABLE_FIELD(Hint,		"-27.27s",	27, 	buttonconfig->button.speeddial.hint)
 		// CLI_AMI_TABLE_FIELD(HintStatus,      "-20.20s",      20,     ast_extension_state2str(ast_extension_state()))
 #include "sccp_cli_table.h"
@@ -923,16 +925,16 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 			if (buttonconfig->type == FEATURE) {
-#define CLI_AMI_TABLE_AFTER_ITERATION 											\
+#define CLI_AMI_TABLE_AFTER_ITERATION 														\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 												\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->instance)					\
+#define CLI_AMI_TABLE_FIELDS 															\
+			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(Options,		"-31.31s",	31,	buttonconfig->button.feature.options)			\
+			CLI_AMI_TABLE_FIELD(Options,		"-36.36s",	36,	buttonconfig->button.feature.options)			\
 			CLI_AMI_TABLE_FIELD(Status,		"-27d",		27, 	buttonconfig->button.feature.status)
 #include "sccp_cli_table.h"
 
@@ -943,16 +945,16 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
-#define CLI_AMI_TABLE_BEFORE_ITERATION 											\
+#define CLI_AMI_TABLE_BEFORE_ITERATION 														\
 			if (buttonconfig->type == SERVICE) {
-#define CLI_AMI_TABLE_AFTER_ITERATION 											\
+#define CLI_AMI_TABLE_AFTER_ITERATION 														\
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 												\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->instance)					\
+#define CLI_AMI_TABLE_FIELDS 															\
+			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(URL,		"-59.59s",	59,	buttonconfig->button.service.url)
+			CLI_AMI_TABLE_FIELD(URL,		"-64.64s",	64,	buttonconfig->button.service.url)
 #include "sccp_cli_table.h"
 	}
 
@@ -961,9 +963,9 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_NAME Variables
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Variable
 #define CLI_AMI_TABLE_ITERATOR for(v = d->variables;v;v = v->next)
-#define CLI_AMI_TABLE_FIELDS 												\
-			CLI_AMI_TABLE_FIELD(Name,		"-28.28s",	28,	v->name)				\
-			CLI_AMI_TABLE_FIELD(Value,		"-59.59s",	59,	v->value)
+#define CLI_AMI_TABLE_FIELDS 															\
+			CLI_AMI_TABLE_FIELD(Name,		"-28.28s",	28,	v->name)						\
+			CLI_AMI_TABLE_FIELD(Value,		"-64.64s",	64,	v->value)
 #include "sccp_cli_table.h"
 	}
 
