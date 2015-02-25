@@ -1209,6 +1209,33 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 	return 0;
 }
 
+
+/*!
+ * \brief get smallest common denominator codecset
+ */
+void sccp_utils_reduceCodecSet(skinny_codec_t **baseCodecs, const skinny_codec_t reduceByCodecs[])
+{
+	uint8_t i = 0, x, y;
+	skinny_codec_t reducedCodecs[SKINNY_MAX_CAPABILITIES] = {0};
+	skinny_codec_t *base = *((skinny_codec_t (*)[SKINNY_MAX_CAPABILITIES])baseCodecs);
+	
+	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
+		if (base[x] == SKINNY_CODEC_NONE) {
+			break;
+		}
+		for (y = 0; y < SKINNY_MAX_CAPABILITIES; y++) {
+			if (base[x] == reduceByCodecs[y]) {
+				reducedCodecs[i++] = base[x];
+				continue;
+			}
+			if (reduceByCodecs[y] == SKINNY_CODEC_NONE) {
+				break;
+			}
+		}
+	}
+	memcpy(baseCodecs, reducedCodecs, SKINNY_MAX_CAPABILITIES);
+}
+
 /*!
  * \brief Free a list of Host Access Rules
  * \param ha The head of the list of HAs to free

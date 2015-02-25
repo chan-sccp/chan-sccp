@@ -572,6 +572,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 {
 	PBX_CHANNEL_TYPE *tmp;
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain(channel);
+	AUTO_RELEASE sccp_device_t *d = NULL;
 
 	if (!c) {
 		return -1;
@@ -594,20 +595,20 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	/* Don't hold a sccp pvt lock while we allocate a channel */
 
 	sccp_linedevices_t *linedevice = NULL;
-	AUTO_RELEASE sccp_device_t *d = NULL;
-
-	if ((d = sccp_channel_getDevice_retained(c))) {
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device == d) {
-				break;
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
+        if ((d = sccp_channel_getDevice_retained(c))) {
+                SCCP_LIST_LOCK(&l->devices);
+                SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+                        if (linedevice->device == d) {
+                                break;
+                        }
+                }
+                SCCP_LIST_UNLOCK(&l->devices);
         } else if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
-		SCCP_LIST_LOCK(&l->devices);
-		linedevice = SCCP_LIST_FIRST(&l->devices);
-		SCCP_LIST_UNLOCK(&l->devices);
+                SCCP_LIST_LOCK(&l->devices);
+                linedevice = SCCP_LIST_FIRST(&l->devices);
+                d = sccp_device_retain(linedevice->device);
+		sccp_channel_setDevice(c, linedevice->device);		// will make sure capabilities and preferences are copied to the new channel
+                SCCP_LIST_UNLOCK(&l->devices);
         }
         if (linedevice) {		/* single line channel */
 		switch (c->calltype) {
@@ -643,8 +644,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		memcpy(c->capabilities.audio, linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
-		memcpy(c->capabilities.video, linedevice->device->capabilities.video, sizeof(c->capabilities.video));
 	} else {			/* shared line */
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
@@ -659,18 +658,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		/* combine all capabilities */
-		SCCP_LIST_LOCK(&l->devices);
-		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice == SCCP_LIST_FIRST(&l->devices)) {
-				memcpy(c->capabilities.audio, linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
-				memcpy(c->capabilities.video, linedevice->device->capabilities.video, sizeof(c->capabilities.video));
-			} else {
-				sccp_utils_findBestCodec(c->capabilities.audio, ARRAY_LEN(c->capabilities.audio), linedevice->device->capabilities.audio, ARRAY_LEN(linedevice->device->capabilities.audio), c->capabilities.audio, ARRAY_LEN(c->capabilities.audio));
-				sccp_utils_findBestCodec(c->capabilities.video, ARRAY_LEN(c->capabilities.video), linedevice->device->capabilities.video, ARRAY_LEN(linedevice->device->capabilities.video), c->capabilities.video, ARRAY_LEN(c->capabilities.video));
-			}
-		}
-		SCCP_LIST_UNLOCK(&l->devices);
+		sccp_line_copyMinimumCodecSetFromLineToChannel(l, c);
 	}
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
@@ -680,6 +668,9 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:     context: \"%s\"\n", l->context);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:    amaflags: \"%d\"\n", l->amaflags);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:   chan/call: \"%s-%08x\"\n", l->name, c->callid);
+	char s1[512], s2[512];
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:capabilities: \"%s\"\n", sccp_multiple_codecs2str(s1, sizeof(s1) - 1, channel->capabilities.audio, SKINNY_MAX_CAPABILITIES));
+	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP: preferences: \"%s\"\n", sccp_multiple_codecs2str(s2, sizeof(s2) - 1, channel->preferences.audio, SKINNY_MAX_CAPABILITIES));
 
 	/* This should definitely fix CDR */
 	//tmp = pbx_channel_alloc(1, AST_STATE_DOWN, c->callInfo.callingPartyNumber, c->callInfo.callingPartyName, l->accountcode, c->dialedNumber, l->context, l->amaflags, "SCCP/%s-%08x", l->name, c->callid);
