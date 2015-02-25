@@ -304,9 +304,12 @@ void sccp_channel_setDevice(sccp_channel_t * channel, const sccp_device_t * devi
 		channel->dtmfmode = channel->privateData->device->getDtmfMode(channel->privateData->device);
 		return;
 	}
-
+	/* \todo instead of copying caps / prefs from global */
 	memcpy(&channel->preferences.audio, &GLOB(global_preferences), sizeof(channel->preferences.audio));
 	memcpy(&channel->capabilities.audio, &GLOB(global_preferences), sizeof(channel->capabilities.audio));
+	/* \todo we should use */
+	// sccp_line_copyMinimumCodecSetFromLineToChannel(l, c); 
+	
 	sccp_copy_string(channel->currentDeviceId, "SCCP", sizeof(char[StationMaxDeviceNameSize]));
 	channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 }

@@ -438,6 +438,30 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 	sccp_line_clean(l, TRUE);
 }
 
+void sccp_line_copyMinimumCodecSetFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
+{
+	sccp_linedevices_t *linedevice;
+	if (!l || !c) {
+		return;
+	}
+	/* combine all capabilities */
+	SCCP_LIST_LOCK(&l->devices);
+	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+		if (linedevice == SCCP_LIST_FIRST(&l->devices)) {
+			memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, SKINNY_MAX_CAPABILITIES);
+			memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, SKINNY_MAX_CAPABILITIES);
+			memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , SKINNY_MAX_CAPABILITIES);
+			memcpy(&c->preferences.video , &linedevice->device->preferences.video , SKINNY_MAX_CAPABILITIES);
+		} else {
+			sccp_utils_reduceCodecSet((skinny_codec_t **)&c->capabilities.audio, linedevice->device->capabilities.audio);
+			sccp_utils_reduceCodecSet((skinny_codec_t **)&c->capabilities.video, linedevice->device->capabilities.video);
+			sccp_utils_reduceCodecSet((skinny_codec_t **)&c->preferences.audio , linedevice->device->preferences.audio);
+			sccp_utils_reduceCodecSet((skinny_codec_t **)&c->preferences.video , linedevice->device->preferences.video);
+		}
+	}
+	SCCP_LIST_UNLOCK(&l->devices);
+}
+
 /*!
  * \brief Set a Call Forward on a specific Line
  * \param line SCCP Line
