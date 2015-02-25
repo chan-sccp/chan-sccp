@@ -38,6 +38,7 @@ void sccp_line_clean(sccp_line_t * l, boolean_t destroy);
 void sccp_line_kill_channels(sccp_line_t * l);
 
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
+void sccp_line_copyMinimumCodecSetFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type, char *number);
 
 // find line
