@@ -127,6 +127,7 @@ gcc_inline boolean_t sccp_strcaseequals(const char *data1, const char *data2);
 int sccp_strIsNumeric(const char *s);
 skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], int pLength, const skinny_codec_t ourCapabilities[], int length1, const skinny_codec_t remotePeerCapabilities[], int length2);
 void sccp_utils_reduceCodecSet(skinny_codec_t *baseCodecs[SKINNY_MAX_CAPABILITIES], const skinny_codec_t reduceByCodecs[]);
+void sccp_utils_combineCodecSets(skinny_codec_t **baseCodecs, const skinny_codec_t addCodecs[]);
 
 void sccp_free_ha(struct sccp_ha *ha);
 int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);

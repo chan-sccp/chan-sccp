@@ -303,6 +303,7 @@ char *sccp_multiple_codecs2str(char *buf, size_t size, const skinny_codec_t * co
 /*!
  * \brief Remove Codec from Skinny Codec Preferences
  */
+/*
 static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
 {
 	int x = 0;
@@ -328,6 +329,22 @@ static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny
 		}
 	}
 }
+*/
+static void skinny_codec_pref_remove(skinny_codec_t * skinny_codec_prefs, skinny_codec_t skinny_codec)
+{
+	int x = 0;
+	boolean_t found = FALSE;
+
+	for (x = 0; x < SKINNY_MAX_CAPABILITIES && skinny_codec_prefs[x] != SKINNY_CODEC_NONE; x++) {
+		if (skinny_codec_prefs[x] == skinny_codec) {
+			found = TRUE;
+			break;
+		}
+		if (found) {
+			memmove(skinny_codec_prefs + x, skinny_codec_prefs + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move left
+		}
+	}
+}
 
 /*!
  * \brief Append Codec to Skinny Codec Preferences
@@ -340,14 +357,8 @@ static int skinny_codec_pref_append(skinny_codec_t * skinny_codec_pref, skinny_c
 	skinny_codec_pref_remove(skinny_codec_pref, skinny_codec);
 
 	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		// insert behaviour: skip if already there (cheaper)
-		/*
-		if (skinny_codec_pref[x] == skinny_codec) {
-			return x;
-		}
-		*/
 		if (SKINNY_CODEC_NONE == skinny_codec_pref[x]) {
-			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
+			//sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "inserting codec '%s (%d)' at pos %d\n", codec2name(skinny_codec), skinny_codec, x);
 			skinny_codec_pref[x] = skinny_codec;
 			return x;
 		}
@@ -416,6 +427,55 @@ boolean_t sccp_utils_isCodecCompatible(skinny_codec_t codec, const skinny_codec_
 		}
 	}
 	return FALSE;
+}
+
+/*!
+ * \brief get smallest common denominator codecset
+ */
+void sccp_utils_reduceCodecSet(skinny_codec_t **baseCodecs, const skinny_codec_t reduceByCodecs[])
+{
+	uint8_t x = 0, y;
+	skinny_codec_t *base = *((skinny_codec_t (*)[SKINNY_MAX_CAPABILITIES])baseCodecs);
+	boolean_t found = FALSE;
+
+	while (x < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE) {
+		found = FALSE;
+		for (y = 0; y < SKINNY_MAX_CAPABILITIES && reduceByCodecs[y] != SKINNY_CODEC_NONE; y++) {
+			if (base[x] == reduceByCodecs[y]) {
+				found = TRUE;
+				break;
+			}
+		}
+		if (!found) {
+			memmove(base + x, base + (x + 1), (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move left
+			continue;
+		}
+		x++;
+	}
+	
+	baseCodecs = &base;
+}
+
+void sccp_utils_combineCodecSets(skinny_codec_t **baseCodecs, const skinny_codec_t addCodecs[])
+{
+	uint8_t x, y;
+	skinny_codec_t *base = *((skinny_codec_t (*)[SKINNY_MAX_CAPABILITIES])baseCodecs);
+	boolean_t found = FALSE;
+	
+	for (y = 0; y < SKINNY_MAX_CAPABILITIES && addCodecs[y] != SKINNY_CODEC_NONE; y++) {
+		found = FALSE;
+		for (x = 0; x < SKINNY_MAX_CAPABILITIES && base[x] != SKINNY_CODEC_NONE; x++) {
+			if (addCodecs[y] == base[x]) {
+				found = TRUE;
+				break;
+			}
+		}
+		if (!found && (x + 1 < SKINNY_MAX_CAPABILITIES)) {
+			memmove(base + (x + 1), base + x, (SKINNY_MAX_CAPABILITIES - (x + 1)) * sizeof(skinny_codec_t));  // move right
+			base[x] = addCodecs[y];
+		}
+	}
+	baseCodecs = &base;
 }
 
 #ifndef HAVE_PBX_STRINGS_H
@@ -1210,31 +1270,6 @@ skinny_codec_t sccp_utils_findBestCodec(const skinny_codec_t ourPreferences[], i
 }
 
 
-/*!
- * \brief get smallest common denominator codecset
- */
-void sccp_utils_reduceCodecSet(skinny_codec_t **baseCodecs, const skinny_codec_t reduceByCodecs[])
-{
-	uint8_t i = 0, x, y;
-	skinny_codec_t reducedCodecs[SKINNY_MAX_CAPABILITIES] = {0};
-	skinny_codec_t *base = *((skinny_codec_t (*)[SKINNY_MAX_CAPABILITIES])baseCodecs);
-	
-	for (x = 0; x < SKINNY_MAX_CAPABILITIES; x++) {
-		if (base[x] == SKINNY_CODEC_NONE) {
-			break;
-		}
-		for (y = 0; y < SKINNY_MAX_CAPABILITIES; y++) {
-			if (base[x] == reduceByCodecs[y]) {
-				reducedCodecs[i++] = base[x];
-				continue;
-			}
-			if (reduceByCodecs[y] == SKINNY_CODEC_NONE) {
-				break;
-			}
-		}
-	}
-	memcpy(baseCodecs, reducedCodecs, SKINNY_MAX_CAPABILITIES);
-}
 
 /*!
  * \brief Free a list of Host Access Rules
