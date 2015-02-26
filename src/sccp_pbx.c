@@ -607,7 +607,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
                 SCCP_LIST_LOCK(&l->devices);
                 linedevice = SCCP_LIST_FIRST(&l->devices);
                 d = sccp_device_retain(linedevice->device);
-		sccp_channel_setDevice(c, linedevice->device);		// will make sure capabilities and preferences are copied to the new channel
                 SCCP_LIST_UNLOCK(&l->devices);
         }
         if (linedevice) {		/* single line channel */
@@ -644,6 +643,10 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
+		memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
+		memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
+		memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
+		memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
 	} else {			/* shared line */
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
