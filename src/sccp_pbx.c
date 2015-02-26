@@ -643,10 +643,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		memcpy(&c->capabilities.audio, &linedevice->device->capabilities.audio, sizeof(c->capabilities.audio));
-		memcpy(&c->capabilities.video, &linedevice->device->capabilities.video, sizeof(c->capabilities.video));
-		memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
-		memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
 	} else {			/* shared line */
 		switch (c->calltype) {
 			case SKINNY_CALLTYPE_INBOUND:
@@ -661,10 +657,11 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 			case SKINNY_CALLTYPE_SENTINEL:
 				break;
 		}
-		/* \todo we should be doing this when a device is attached to a line, and store the caps/prefs inside the sccp_line_t */
-		/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
-		sccp_line_copyCodecSetsFromLineToChannel(l, c);
 	}
+	memcpy(&c->capabilities.audio, &l->combined_capabilities.audio, sizeof(c->capabilities.audio));
+	memcpy(&c->capabilities.video, &l->combined_capabilities.video, sizeof(c->capabilities.video));
+	memcpy(&c->preferences.audio , &l->reduced_preferences.audio , sizeof(c->preferences.audio ));
+	memcpy(&c->preferences.video , &l->reduced_preferences.video , sizeof(c->preferences.video ));
 
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:              cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             cid_name: \"%s\"\n", c->callInfo.callingPartyName);
