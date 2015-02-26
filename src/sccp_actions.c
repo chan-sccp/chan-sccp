@@ -1288,7 +1288,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
  */
 static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t * l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus)
 {
-	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle (BLF) Speeddial Stimulus\n", d->id);
+	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle Speeddial Stimulus\n", d->id);
 
 	sccp_speed_t k;
 
@@ -1321,8 +1321,18 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 
 	/* for 7960's we use line keys to display hinted speeddials (Trick), without a hint it would have been a speeddial */
 	if (!l) {
-		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: No line for instance %d. Looking for a speeddial with hint\n", d->id, instance);
-		sccp_handle_stimulus_speeddial(d, l, instance, callId, stimulusstatus);
+		sccp_speed_t k;
+
+		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Handle (BLF) Speeddial Stimulus. Looking for a speeddial-instance:%d with hint\n", d->id, instance);
+//		sccp_handle_stimulus_speeddial(d, l, instance, callId, stimulusstatus);
+		sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
+		if (k.valid) {
+			sccp_handle_speeddial(d, &k);
+			return;
+		}
+		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to speeddial %d\n", d->id, instance);
+		sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+
 		return;
 	}
 
