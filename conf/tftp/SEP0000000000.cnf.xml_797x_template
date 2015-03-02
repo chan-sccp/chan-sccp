@@ -180,7 +180,7 @@
 		<vendor></vendor>
 		<version></version>
 	</phoneService>
-	<phoneService  type="1" category="0">
+	<phoneService  type="2" category="0">
 		<name>Voicemail</name>
 		<url>Application:Cisco/Voicemail</url>
 		<vendor></vendor>
