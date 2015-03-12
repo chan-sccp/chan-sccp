@@ -572,11 +572,19 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			if (sccp_strlen_zero(value)) {
 				boolean = FALSE;
 			} else {
-				boolean = sccp_true(value);
+				if (sccp_true(value)) {
+					boolean = TRUE;
+				} else if (!sccp_true(value)) {
+					boolean = FALSE;
+				} else {
+					pbx_log(LOG_NOTICE, "SCCP: Invalid value '%s' for [%s]->%s. Allowed: [TRUE/ON/YES or FALSE/OFF/NO]\n", value, sccpConfigSegment->name, name);
+					changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+					break;
+				}
 			}
 
 			if (*(boolean_t *) dst != boolean) {
-				*(boolean_t *) dst = sccp_true(value);
+				*(boolean_t *) dst = boolean;
 				changed = SCCP_CONFIG_CHANGE_CHANGED;
 			}
 			break;
