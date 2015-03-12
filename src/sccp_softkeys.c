@@ -299,25 +299,46 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_
 
 	if (!d->dndFeature.enabled) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Feature disabled\n", DEV_ID_LOG(d));
-		sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		sccp_dev_displayprompt(d, lineInstance, c ? c->callid : 0, SKINNY_DISP_DND " " SKINNY_DISP_SERVICE_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 		return;
 	}
 
-	if (!strcasecmp(d->dndFeature.configOptions, "reject")) {
-		/* config is set to: dnd=reject */
-		if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
-			d->dndFeature.status = SCCP_DNDMODE_REJECT;
+	do {
+		if (l) {
+			if (l->dndmode == SCCP_DNDMODE_REJECT) {
+				if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
+					d->dndFeature.status = SCCP_DNDMODE_REJECT;
+				} else {
+					d->dndFeature.status = SCCP_DNDMODE_OFF;
+				}
+				break;
+			} else if (l->dndmode == SCCP_DNDMODE_SILENT) {	
+				/* config is set to: dnd=silent */
+				if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
+					d->dndFeature.status = SCCP_DNDMODE_SILENT;
+				} else {
+					d->dndFeature.status = SCCP_DNDMODE_OFF;
+				}
+				break;
+			}
 		} else {
-			d->dndFeature.status = SCCP_DNDMODE_OFF;
+			if (d->dndmode == SCCP_DNDMODE_REJECT) {
+				if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
+					d->dndFeature.status = SCCP_DNDMODE_REJECT;
+				} else {
+					d->dndFeature.status = SCCP_DNDMODE_OFF;
+				}
+				break;
+			} else if (d->dndmode == SCCP_DNDMODE_SILENT) {	
+				/* config is set to: dnd=silent */
+				if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
+					d->dndFeature.status = SCCP_DNDMODE_SILENT;
+				} else {
+					d->dndFeature.status = SCCP_DNDMODE_OFF;
+				}
+				break;
+			}
 		}
-	} else if (!strcasecmp(d->dndFeature.configOptions, "silent")) {
-		/* config is set to: dnd=silent */
-		if (d->dndFeature.status == SCCP_DNDMODE_OFF) {
-			d->dndFeature.status = SCCP_DNDMODE_SILENT;
-		} else {
-			d->dndFeature.status = SCCP_DNDMODE_OFF;
-		}
-	} else {
 		/* for all other config us the toggle mode */
 		switch (d->dndFeature.status) {
 			case SCCP_DNDMODE_OFF:
@@ -333,7 +354,8 @@ static void sccp_sk_dnd(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_
 				d->dndFeature.status = SCCP_DNDMODE_OFF;
 				break;
 		}
-	}
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey DND Pressed (New Status: %s, Feature enabled: %s)\n", DEV_ID_LOG(d), sccp_dndmode2str(d->dndFeature.status), d->dndFeature.enabled ? "YES" : "NO");
+	} while (0);
 
 	sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);								/* notify the modules the the DND-feature changed state */
 	sccp_dev_check_displayprompt(d);									/*! \todo we should use the feature changed event to check displayprompt */
