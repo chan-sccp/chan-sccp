@@ -65,7 +65,6 @@ silencesuppression = no                                                         
 trustphoneip = no                                                                 ; The phone has a ip address. It could be private, so if the phone is behind NAT 
 earlyrtp = progress                                                               ; valid options: none, offhook, immediate, dial, ringout and progress.
                                                                                   ; The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.
-dnd = on                                                                          ; Turn on the dnd softkey for all devices. Valid values are 'off', 'on' (DEPRECATED in favor of 'dndFeature').
 dndFeature = on                                                                   ; Turn on the dnd softkey for all devices. Valid values are 'off', 'on'.
 private = yes                                                                     ; permit the private function softkey
 mwilamp = on                                                                      ; Set the MWI lamp style when MWI active to on, off, wink, flash or blink
@@ -148,8 +147,8 @@ park = yes                                                                      
 cfwdall = no                                                                      ; activate the call forward stuff and soft keys
 cfwdbusy = no                                                                     ; allow call forward when line is busy
 cfwdnoanswer = no                                                                 ; allow call forward when line if not being answered
-dnd = ""                                                                          ; parameter 'dnd' is obsolete. This setting has moved to the line definition. To allow/disallow dnd you should use dndFeature in device and setup dnd per line.
 dndFeature = yes                                                                  ; allow usage do not disturb button
+dnd = off                                                                         ; parameter 'dnd' device action. (off/reject/silent/userdefined). "Off" means it will cycle through off, busy and silent when the button is pressed. Default=off
 dtmfmode = ""                                                                     ; OBSOLETE (don't use) (Size: -1)
 force_dtmfmode = auto                                                             ; auto, skinny or rfc2833. Some phone models with bad firmware do send dtmf in a messed up order and need to be forced to skinny mode.
 deny = ""                                                                         ; (MULTI-ENTRY)Same as general

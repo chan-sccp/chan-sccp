@@ -539,7 +539,7 @@ typedef struct {
 	boolean_t initialized;											/*!< Feature Enabled */
 	uint32_t previousStatus;										/*!< Feature Previous State */
 	uint32_t status;											/*!< Feature State */
-	char configOptions[SCCP_MAX_EXTENSION];									/*!< space for config values */
+//	char configOptions[SCCP_MAX_EXTENSION];									/*!< space for config values */
 } sccp_featureConfiguration_t;											/*!< SCCP Feature Configuration */
 
 /*!
@@ -1022,6 +1022,7 @@ struct sccp_device {
 	sccp_featureConfiguration_t overlapFeature;								/*!< Overlap Dial Feature */
 	sccp_featureConfiguration_t monitorFeature;								/*!< Monitor (automon) Feature */
 	sccp_featureConfiguration_t dndFeature;									/*!< dnd Feature */
+	uint16_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	sccp_featureConfiguration_t priFeature;									/*!< priority Feature */
 	sccp_featureConfiguration_t mobFeature;									/*!< priority Feature */
 
