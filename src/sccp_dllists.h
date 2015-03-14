@@ -26,16 +26,17 @@ struct name {												\
 	uint16_t size;											\
 }
 
-#define SCCP_RWLIST_HEAD(name, type)								\
+#define SCCP_RWLIST_HEAD(name, type)									\
 struct name {												\
 	type *first;											\
 	type *last;											\
-	pbx_rwlock_t lock;										\
 	uint16_t size;											\
+	uint8_t pad[6];											\
+	pbx_rwlock_t lock;										\
 }
 
 /* Initialize list head */
-#define SCCP_LIST_HEAD_SET(head, entry) do {							\
+#define SCCP_LIST_HEAD_SET(head, entry) do {								\
 	(head)->first = (entry);									\
 	(head)->last = (entry);										\
 	if(entry)											\

@@ -76,6 +76,7 @@
 #include <asterisk/indications.h>
 
 #include "define.h"
+#include "sccp_protocol.h"
 #ifdef ASTERISK_CONF_1_2
 #include "ast102.h"
 #define PBXVER 10200
@@ -104,7 +105,6 @@
 #endif
 #include <asterisk/file.h>
 
-#include "sccp_protocol.h"
 
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #ifndef AST_CAUSE_ANSWERED_ELSEWHERE
