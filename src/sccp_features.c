@@ -84,7 +84,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 	AUTO_RELEASE sccp_channel_t *c = sccp_device_getActiveChannel(device);
 
 	if (c) {
-		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
+		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
 			// we have a channel, checking if
 			if (c->state == SCCP_CHANNELSTATE_RINGOUT || c->state == SCCP_CHANNELSTATE_CONNECTED || c->state == SCCP_CHANNELSTATE_PROCEED || c->state == SCCP_CHANNELSTATE_BUSY || c->state == SCCP_CHANNELSTATE_CONGESTION) {
 				if (c->calltype == SKINNY_CALLTYPE_OUTBOUND) {
@@ -127,8 +127,8 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 				pbx_log(LOG_ERROR, "%s: 5\n", DEV_ID_LOG(device));
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(device, linedevice->lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-				c->ss_action = SCCP_SS_GETFORWARDEXTEN;						/* Simpleswitch will catch a number to be dialed */
+				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
+				c->softswitch_action = SCCP_SOFTSWITCH_GETFORWARDEXTEN;				/* SoftSwitch will catch a number to be dialed */
 				c->ss_data = type;								/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				//sccp_indicate(device, c, SCCP_CHANNELSTATE_OFFHOOK);                          /* Removal requested by Antonio */
@@ -161,7 +161,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 	} else {
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 
-			/** we just opened a channel for cfwd, switch ss_action = SCCP_SS_GETFORWARDEXTEN */
+			/** we just opened a channel for cfwd, switch softswitch_action = SCCP_SOFTSWITCH_GETFORWARDEXTEN */
 			sccp_channel_stop_schedule_digittimout(c);
 			// we are dialing but without entering a number :D -FS
 			sccp_dev_stoptone(device, linedevice->lineInstance, c->callid);
@@ -177,7 +177,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 		}
 	}
 
-	c->ss_action = SCCP_SS_GETFORWARDEXTEN;									/* Simpleswitch will catch a number to be dialed */
+	c->softswitch_action = SCCP_SOFTSWITCH_GETFORWARDEXTEN;							/* SoftSwitch will catch a number to be dialed */
 	c->ss_data = type;											/* this should be found in thread */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
@@ -219,8 +219,8 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-				c->ss_action = SCCP_SS_GETPICKUPEXTEN;						/* Simpleswitch will catch a number to be dialed */
+				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
+				c->softswitch_action = SCCP_SOFTSWITCH_GETPICKUPEXTEN;				/* SoftSwitch will catch a number to be dialed */
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
@@ -242,7 +242,7 @@ void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, scc
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETPICKUPEXTEN;									/* Simpleswitch will catch a number to be dialed */
+	c->softswitch_action = SCCP_SOFTSWITCH_GETPICKUPEXTEN;							/* SoftSwitch will catch a number to be dialed */
 	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
@@ -748,7 +748,7 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_allocate(l, d);
 
 	if (c) {
-		c->ss_action = SCCP_SS_GETCONFERENCEROOM;							/* Simpleswitch will catch a number to be dialed */
+		c->softswitch_action = SCCP_SOFTSWITCH_GETCONFERENCEROOM;					/* SoftSwitch will catch a number to be dialed */
 		c->ss_data = 0;											/* not needed here */
 		c->calltype = SKINNY_CALLTYPE_OUTBOUND;
 		sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
@@ -992,8 +992,8 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-				c->ss_action = SCCP_SS_GETMEETMEROOM;						/* Simpleswitch will catch a number to be dialed */
+				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
+				c->softswitch_action = SCCP_SOFTSWITCH_GETMEETMEROOM;				/* SoftSwitch will catch a number to be dialed */
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
@@ -1014,7 +1014,7 @@ void sccp_feat_handle_meetme(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETMEETMEROOM;									/* Simpleswitch will catch a number to be dialed */
+	c->softswitch_action = SCCP_SOFTSWITCH_GETMEETMEROOM;							/* SoftSwitch will catch a number to be dialed */
 	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
@@ -1199,8 +1199,8 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-				c->ss_action = SCCP_SS_GETBARGEEXTEN;						/* Simpleswitch will catch a number to be dialed */
+				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
+				c->softswitch_action = SCCP_SOFTSWITCH_GETBARGEEXTEN;				/* SoftSwitch will catch a number to be dialed */
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
@@ -1221,7 +1221,7 @@ void sccp_feat_handle_barge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETBARGEEXTEN;									/* Simpleswitch will catch a number to be dialed */
+	c->softswitch_action = SCCP_SOFTSWITCH_GETBARGEEXTEN;							/* SoftSwitch will catch a number to be dialed */
 	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
@@ -1292,8 +1292,8 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 			if (c->state == SCCP_CHANNELSTATE_OFFHOOK && sccp_strlen_zero(c->dialedNumber)) {
 				// we are dialing but without entering a number :D -FS
 				sccp_dev_stoptone(d, lineInstance, (c && c->callid) ? c->callid : 0);
-				// changing SS_DIALING mode to SS_GETFORWARDEXTEN
-				c->ss_action = SCCP_SS_GETBARGEEXTEN;						/* Simpleswitch will catch a number to be dialed */
+				// changing SOFTSWITCH_DIALING mode to SOFTSWITCH_GETFORWARDEXTEN
+				c->softswitch_action = SCCP_SOFTSWITCH_GETBARGEEXTEN;				/* SoftSwitch will catch a number to be dialed */
 				c->ss_data = 0;									/* this should be found in thread */
 				// changing channelstate to GETDIGITS
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_GETDIGITS);
@@ -1314,7 +1314,7 @@ void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 		return;
 	}
 
-	c->ss_action = SCCP_SS_GETCBARGEROOM;									/* Simpleswitch will catch a number to be dialed */
+	c->softswitch_action = SCCP_SOFTSWITCH_GETCBARGEROOM;							/* SoftSwitch will catch a number to be dialed */
 	c->ss_data = 0;												/* not needed here */
 
 	c->calltype = SKINNY_CALLTYPE_OUTBOUND;
