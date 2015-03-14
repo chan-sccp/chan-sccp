@@ -959,6 +959,774 @@ char *sccp_event_type_all_entries(void) {
 /* = End =========================================================================================                sccp_event_type === */
 
 
+/* = Begin =======================================================================================                sccp_parkresult === */
+
+
+/*
+ * \brief enum sccp_parkresult
+ */
+static const char *sccp_parkresult_map[] = {
+	[PARK_RESULT_FAIL] = "Park Failed",
+	[PARK_RESULT_SUCCESS] = "Park Successfull",
+	[SCCP_PARKRESULT_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_parkresult_exists(int sccp_parkresult_int_value) {
+	if ((PARK_RESULT_SUCCESS <=sccp_parkresult_int_value) && (sccp_parkresult_int_value <= PARK_RESULT_SUCCESS)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_parkresult2str(sccp_parkresult_t enum_value) {
+	if ((PARK_RESULT_FAIL <= enum_value) && (enum_value <= PARK_RESULT_SUCCESS)) {
+		return sccp_parkresult_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_parkresult2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_parkresult2str\n";
+}
+
+sccp_parkresult_t sccp_parkresult_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_parkresult_map); idx++) {
+		if (sccp_strcaseequals(sccp_parkresult_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_parkresult_str2val(%s) not found\n", lookup_str);
+	return SCCP_PARKRESULT_SENTINEL;
+}
+
+int sccp_parkresult_str2intval(const char *lookup_str) {
+	int res = sccp_parkresult_str2val(lookup_str);
+	return (int)res != SCCP_PARKRESULT_SENTINEL ? res : -1;
+}
+
+char *sccp_parkresult_all_entries(void) {
+	static char res[] = "Park Failed,Park Successfull";
+	return res;
+}
+/* = End =========================================================================================                sccp_parkresult === */
+
+
+/* = Begin =======================================================================================          sccp_calleridpresence === */
+
+
+/*
+ * \brief enum sccp_calleridpresence
+ */
+static const char *sccp_calleridpresence_map[] = {
+	[CALLERID_PRESENCE_FORBIDDEN] = "CalledId Presence Forbidden",
+	[CALLERID_PRESENCE_ALLOWED] = "CallerId Presence Allowed",
+	[SCCP_CALLERIDPRESENCE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
+	if ((CALLERID_PRESENCE_ALLOWED <=sccp_calleridpresence_int_value) && (sccp_calleridpresence_int_value <= CALLERID_PRESENCE_ALLOWED)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value) {
+	if ((CALLERID_PRESENCE_FORBIDDEN <= enum_value) && (enum_value <= CALLERID_PRESENCE_ALLOWED)) {
+		return sccp_calleridpresence_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_calleridpresence2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_calleridpresence2str\n";
+}
+
+sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_calleridpresence_map); idx++) {
+		if (sccp_strcaseequals(sccp_calleridpresence_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_calleridpresence_str2val(%s) not found\n", lookup_str);
+	return SCCP_CALLERIDPRESENCE_SENTINEL;
+}
+
+int sccp_calleridpresence_str2intval(const char *lookup_str) {
+	int res = sccp_calleridpresence_str2val(lookup_str);
+	return (int)res != SCCP_CALLERIDPRESENCE_SENTINEL ? res : -1;
+}
+
+char *sccp_calleridpresence_all_entries(void) {
+	static char res[] = "CalledId Presence Forbidden,CallerId Presence Allowed";
+	return res;
+}
+/* = End =========================================================================================          sccp_calleridpresence === */
+
+
+/* = Begin =======================================================================================                sccp_rtp_status === */
+
+
+/*
+ * \brief enum sccp_rtp_status
+ */
+static const char *sccp_rtp_status_map[] = {
+	[SCCP_RTP_STATUS_INACTIVE] = "Rtp Inactive",
+	[SCCP_RTP_STATUS_PROGRESS] = "Rtp In Progress",
+	[SCCP_RTP_STATUS_ACTIVE] = "Rtp Active",
+	[SCCP_RTP_STATUS_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
+	if ((SCCP_RTP_STATUS_PROGRESS <=sccp_rtp_status_int_value) && (sccp_rtp_status_int_value <= SCCP_RTP_STATUS_ACTIVE)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_rtp_status2str(sccp_rtp_status_t enum_value) {
+	if ((SCCP_RTP_STATUS_INACTIVE <= enum_value) && (enum_value <= SCCP_RTP_STATUS_ACTIVE)) {
+		return sccp_rtp_status_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_status2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_rtp_status2str\n";
+}
+
+sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_status_map); idx++) {
+		if (sccp_strcaseequals(sccp_rtp_status_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_rtp_status_str2val(%s) not found\n", lookup_str);
+	return SCCP_RTP_STATUS_SENTINEL;
+}
+
+int sccp_rtp_status_str2intval(const char *lookup_str) {
+	int res = sccp_rtp_status_str2val(lookup_str);
+	return (int)res != SCCP_RTP_STATUS_SENTINEL ? res : -1;
+}
+
+char *sccp_rtp_status_all_entries(void) {
+	static char res[] = "Rtp Inactive,Rtp In Progress,Rtp Active";
+	return res;
+}
+/* = End =========================================================================================                sccp_rtp_status === */
+
+
+/* = Begin =======================================================================================          sccp_extension_status === */
+
+
+/*
+ * \brief enum sccp_extension_status
+ */
+static const char *sccp_extension_status_map[] = {
+	[SCCP_EXTENSION_NOTEXISTS] = "Extension does not exist",
+	[SCCP_EXTENSION_MATCHMORE] = "Matches more than one extension",
+	[SCCP_EXTENSION_EXACTMATCH] = "Exact Extension Match",
+	[SCCP_EXTENSION_STATUS_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_extension_status_exists(int sccp_extension_status_int_value) {
+	if ((SCCP_EXTENSION_MATCHMORE <=sccp_extension_status_int_value) && (sccp_extension_status_int_value <= SCCP_EXTENSION_EXACTMATCH)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_extension_status2str(sccp_extension_status_t enum_value) {
+	if ((SCCP_EXTENSION_NOTEXISTS <= enum_value) && (enum_value <= SCCP_EXTENSION_EXACTMATCH)) {
+		return sccp_extension_status_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_extension_status2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_extension_status2str\n";
+}
+
+sccp_extension_status_t sccp_extension_status_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_extension_status_map); idx++) {
+		if (sccp_strcaseequals(sccp_extension_status_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_extension_status_str2val(%s) not found\n", lookup_str);
+	return SCCP_EXTENSION_STATUS_SENTINEL;
+}
+
+int sccp_extension_status_str2intval(const char *lookup_str) {
+	int res = sccp_extension_status_str2val(lookup_str);
+	return (int)res != SCCP_EXTENSION_STATUS_SENTINEL ? res : -1;
+}
+
+char *sccp_extension_status_all_entries(void) {
+	static char res[] = "Extension does not exist,Matches more than one extension,Exact Extension Match";
+	return res;
+}
+/* = End =========================================================================================          sccp_extension_status === */
+
+
+/* = Begin =======================================================================================    sccp_channel_request_status === */
+
+
+/*
+ * \brief enum sccp_channel_request_status
+ */
+static const char *sccp_channel_request_status_map[] = {
+	[SCCP_REQUEST_STATUS_ERROR] = "Request Status Error",
+	[SCCP_REQUEST_STATUS_LINEUNKNOWN] = "Request Line Unknown",
+	[SCCP_REQUEST_STATUS_LINEUNAVAIL] = "Request Line Unavailable",
+	[SCCP_REQUEST_STATUS_SUCCESS] = "Request Success",
+	[SCCP_CHANNEL_REQUEST_STATUS_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value) {
+	if ((SCCP_REQUEST_STATUS_LINEUNKNOWN <=sccp_channel_request_status_int_value) && (sccp_channel_request_status_int_value <= SCCP_REQUEST_STATUS_SUCCESS)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_channel_request_status2str(sccp_channel_request_status_t enum_value) {
+	if ((SCCP_REQUEST_STATUS_ERROR <= enum_value) && (enum_value <= SCCP_REQUEST_STATUS_SUCCESS)) {
+		return sccp_channel_request_status_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_channel_request_status2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_channel_request_status2str\n";
+}
+
+sccp_channel_request_status_t sccp_channel_request_status_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_channel_request_status_map); idx++) {
+		if (sccp_strcaseequals(sccp_channel_request_status_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_channel_request_status_str2val(%s) not found\n", lookup_str);
+	return SCCP_CHANNEL_REQUEST_STATUS_SENTINEL;
+}
+
+int sccp_channel_request_status_str2intval(const char *lookup_str) {
+	int res = sccp_channel_request_status_str2val(lookup_str);
+	return (int)res != SCCP_CHANNEL_REQUEST_STATUS_SENTINEL ? res : -1;
+}
+
+char *sccp_channel_request_status_all_entries(void) {
+	static char res[] = "Request Status Error,Request Line Unknown,Request Line Unavailable,Request Success";
+	return res;
+}
+/* = End =========================================================================================    sccp_channel_request_status === */
+
+
+/* = Begin =======================================================================================          sccp_message_priority === */
+
+
+/*
+ * \brief enum sccp_message_priority
+ */
+static const char *sccp_message_priority_map[] = {
+	[SCCP_MESSAGE_PRIORITY_IDLE] = "Message Priority Idle",
+	[SCCP_MESSAGE_PRIORITY_VOICEMAIL] = "Message Priority Voicemail",
+	[SCCP_MESSAGE_PRIORITY_MONITOR] = "Message Priority Monitor",
+	[SCCP_MESSAGE_PRIORITY_PRIVACY] = "Message Priority Privacy",
+	[SCCP_MESSAGE_PRIORITY_DND] = "Message Priority Do not disturb",
+	[SCCP_MESSAGE_PRIORITY_CFWD] = "Message Priority Call Forward",
+	[SCCP_MESSAGE_PRIORITY_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_message_priority_exists(int sccp_message_priority_int_value) {
+	if ((SCCP_MESSAGE_PRIORITY_VOICEMAIL <=sccp_message_priority_int_value) && (sccp_message_priority_int_value <= SCCP_MESSAGE_PRIORITY_CFWD)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_message_priority2str(sccp_message_priority_t enum_value) {
+	if ((SCCP_MESSAGE_PRIORITY_IDLE <= enum_value) && (enum_value <= SCCP_MESSAGE_PRIORITY_CFWD)) {
+		return sccp_message_priority_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_message_priority2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_message_priority2str\n";
+}
+
+sccp_message_priority_t sccp_message_priority_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_message_priority_map); idx++) {
+		if (sccp_strcaseequals(sccp_message_priority_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_message_priority_str2val(%s) not found\n", lookup_str);
+	return SCCP_MESSAGE_PRIORITY_SENTINEL;
+}
+
+int sccp_message_priority_str2intval(const char *lookup_str) {
+	int res = sccp_message_priority_str2val(lookup_str);
+	return (int)res != SCCP_MESSAGE_PRIORITY_SENTINEL ? res : -1;
+}
+
+char *sccp_message_priority_all_entries(void) {
+	static char res[] = "Message Priority Idle,Message Priority Voicemail,Message Priority Monitor,Message Priority Privacy,Message Priority Do not disturb,Message Priority Call Forward";
+	return res;
+}
+/* = End =========================================================================================          sccp_message_priority === */
+
+
+/* = Begin =======================================================================================               sccp_push_result === */
+
+
+/*
+ * \brief enum sccp_push_result
+ */
+static const char *sccp_push_result_map[] = {
+	[SCCP_PUSH_RESULT_FAIL] = "Push Failed",
+	[SCCP_PUSH_RESULT_NOT_SUPPORTED] = "Push Not Supported",
+	[SCCP_PUSH_RESULT_SUCCESS] = "Pushed Successfully",
+	[SCCP_PUSH_RESULT_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_push_result_exists(int sccp_push_result_int_value) {
+	if ((SCCP_PUSH_RESULT_NOT_SUPPORTED <=sccp_push_result_int_value) && (sccp_push_result_int_value <= SCCP_PUSH_RESULT_SUCCESS)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_push_result2str(sccp_push_result_t enum_value) {
+	if ((SCCP_PUSH_RESULT_FAIL <= enum_value) && (enum_value <= SCCP_PUSH_RESULT_SUCCESS)) {
+		return sccp_push_result_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_push_result2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_push_result2str\n";
+}
+
+sccp_push_result_t sccp_push_result_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_push_result_map); idx++) {
+		if (sccp_strcaseequals(sccp_push_result_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_push_result_str2val(%s) not found\n", lookup_str);
+	return SCCP_PUSH_RESULT_SENTINEL;
+}
+
+int sccp_push_result_str2intval(const char *lookup_str) {
+	int res = sccp_push_result_str2val(lookup_str);
+	return (int)res != SCCP_PUSH_RESULT_SENTINEL ? res : -1;
+}
+
+char *sccp_push_result_all_entries(void) {
+	static char res[] = "Push Failed,Push Not Supported,Pushed Successfully";
+	return res;
+}
+/* = End =========================================================================================               sccp_push_result === */
+
+
+/* = Begin =======================================================================================                sccp_tokenstate === */
+
+
+/*
+ * \brief enum sccp_tokenstate
+ */
+static const char *sccp_tokenstate_map[] = {
+	[SCCP_TOKEN_STATE_NOTOKEN] = "No Token",
+	[SCCP_TOKEN_STATE_ACK] = "Token Acknowledged",
+	[SCCP_TOKEN_STATE_REJ] = "Token Rejected",
+	[SCCP_TOKENSTATE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_tokenstate_exists(int sccp_tokenstate_int_value) {
+	if ((SCCP_TOKEN_STATE_ACK <=sccp_tokenstate_int_value) && (sccp_tokenstate_int_value <= SCCP_TOKEN_STATE_REJ)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_tokenstate2str(sccp_tokenstate_t enum_value) {
+	if ((SCCP_TOKEN_STATE_NOTOKEN <= enum_value) && (enum_value <= SCCP_TOKEN_STATE_REJ)) {
+		return sccp_tokenstate_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_tokenstate2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_tokenstate2str\n";
+}
+
+sccp_tokenstate_t sccp_tokenstate_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_tokenstate_map); idx++) {
+		if (sccp_strcaseequals(sccp_tokenstate_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_tokenstate_str2val(%s) not found\n", lookup_str);
+	return SCCP_TOKENSTATE_SENTINEL;
+}
+
+int sccp_tokenstate_str2intval(const char *lookup_str) {
+	int res = sccp_tokenstate_str2val(lookup_str);
+	return (int)res != SCCP_TOKENSTATE_SENTINEL ? res : -1;
+}
+
+char *sccp_tokenstate_all_entries(void) {
+	static char res[] = "No Token,Token Acknowledged,Token Rejected";
+	return res;
+}
+/* = End =========================================================================================                sccp_tokenstate === */
+
+
+/* = Begin =======================================================================================                sccp_softswitch === */
+
+
+/*
+ * \brief enum sccp_softswitch
+ */
+static const char *sccp_softswitch_map[] = {
+	[SCCP_SOFTSWITCH_DIAL] = "Softswitch Dial",
+	[SCCP_SOFTSWITCH_GETFORWARDEXTEN] = "Softswitch Get Forward Extension",
+	[SCCP_SOFTSWITCH_GETPICKUPEXTEN] = "Softswitch Get Pickup Extension",
+	[SCCP_SOFTSWITCH_GETMEETMEROOM] = "Softswitch Get Meetme Room",
+	[SCCP_SOFTSWITCH_GETBARGEEXTEN] = "Softswitch Get Barge Extension",
+	[SCCP_SOFTSWITCH_GETCBARGEROOM] = "Softswitch Get CBarrge Room",
+	[SCCP_SOFTSWITCH_GETCONFERENCEROOM] = "Softswicth Get Conference Room",
+	[SCCP_SOFTSWITCH_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_softswitch_exists(int sccp_softswitch_int_value) {
+	if ((SCCP_SOFTSWITCH_GETFORWARDEXTEN <=sccp_softswitch_int_value) && (sccp_softswitch_int_value <= SCCP_SOFTSWITCH_GETCONFERENCEROOM)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_softswitch2str(sccp_softswitch_t enum_value) {
+	if ((SCCP_SOFTSWITCH_DIAL <= enum_value) && (enum_value <= SCCP_SOFTSWITCH_GETCONFERENCEROOM)) {
+		return sccp_softswitch_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_softswitch2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_softswitch2str\n";
+}
+
+sccp_softswitch_t sccp_softswitch_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_softswitch_map); idx++) {
+		if (sccp_strcaseequals(sccp_softswitch_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_softswitch_str2val(%s) not found\n", lookup_str);
+	return SCCP_SOFTSWITCH_SENTINEL;
+}
+
+int sccp_softswitch_str2intval(const char *lookup_str) {
+	int res = sccp_softswitch_str2val(lookup_str);
+	return (int)res != SCCP_SOFTSWITCH_SENTINEL ? res : -1;
+}
+
+char *sccp_softswitch_all_entries(void) {
+	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Softswicth Get Conference Room";
+	return res;
+}
+/* = End =========================================================================================                sccp_softswitch === */
+
+
+/* = Begin =======================================================================================                 sccp_phonebook === */
+
+
+/*
+ * \brief enum sccp_phonebook
+ */
+static const char *sccp_phonebook_map[] = {
+	[SCCP_PHONEBOOK_NONE] = "Phonebook None",
+	[SCCP_PHONEBOOK_MISSED] = "Phonebook Missed",
+	[SCCP_PHONEBOOK_RECEIVED] = "Phonebook Received",
+	[SCCP_PHONEBOOK_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_phonebook_exists(int sccp_phonebook_int_value) {
+	if ((SCCP_PHONEBOOK_MISSED <=sccp_phonebook_int_value) && (sccp_phonebook_int_value <= SCCP_PHONEBOOK_RECEIVED)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_phonebook2str(sccp_phonebook_t enum_value) {
+	if ((SCCP_PHONEBOOK_NONE <= enum_value) && (enum_value <= SCCP_PHONEBOOK_RECEIVED)) {
+		return sccp_phonebook_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_phonebook2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_phonebook2str\n";
+}
+
+sccp_phonebook_t sccp_phonebook_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_phonebook_map); idx++) {
+		if (sccp_strcaseequals(sccp_phonebook_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_phonebook_str2val(%s) not found\n", lookup_str);
+	return SCCP_PHONEBOOK_SENTINEL;
+}
+
+int sccp_phonebook_str2intval(const char *lookup_str) {
+	int res = sccp_phonebook_str2val(lookup_str);
+	return (int)res != SCCP_PHONEBOOK_SENTINEL ? res : -1;
+}
+
+char *sccp_phonebook_all_entries(void) {
+	static char res[] = "Phonebook None,Phonebook Missed,Phonebook Received";
+	return res;
+}
+/* = End =========================================================================================                 sccp_phonebook === */
+
+
+/* = Begin =======================================================================================     sccp_feature_monitor_state === */
+
+
+/*
+ * \brief enum sccp_feature_monitor_state
+ */
+static const char *sccp_feature_monitor_state_map[] = {
+	[SCCP_FEATURE_MONITOR_STATE_DISABLED] = "Feature Monitor Disabled",
+	[SCCP_FEATURE_MONITOR_STATE_ACTIVE] = "Feature Monitor Active",
+	[SCCP_FEATURE_MONITOR_STATE_REQUESTED] = "Feature Monitor Requested",
+	[SCCP_FEATURE_MONITOR_STATE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) {
+	if ((SCCP_FEATURE_MONITOR_STATE_ACTIVE <=sccp_feature_monitor_state_int_value) && (sccp_feature_monitor_state_int_value <= SCCP_FEATURE_MONITOR_STATE_REQUESTED)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value) {
+	if ((SCCP_FEATURE_MONITOR_STATE_DISABLED <= enum_value) && (enum_value <= SCCP_FEATURE_MONITOR_STATE_REQUESTED)) {
+		return sccp_feature_monitor_state_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_feature_monitor_state2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_feature_monitor_state2str\n";
+}
+
+sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_feature_monitor_state_map); idx++) {
+		if (sccp_strcaseequals(sccp_feature_monitor_state_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_feature_monitor_state_str2val(%s) not found\n", lookup_str);
+	return SCCP_FEATURE_MONITOR_STATE_SENTINEL;
+}
+
+int sccp_feature_monitor_state_str2intval(const char *lookup_str) {
+	int res = sccp_feature_monitor_state_str2val(lookup_str);
+	return (int)res != SCCP_FEATURE_MONITOR_STATE_SENTINEL ? res : -1;
+}
+
+char *sccp_feature_monitor_state_all_entries(void) {
+	static char res[] = "Feature Monitor Disabled,Feature Monitor Active,Feature Monitor Requested";
+	return res;
+}
+/* = End =========================================================================================     sccp_feature_monitor_state === */
+
+
+/* = Begin =======================================================================================               sccp_readingtype === */
+
+/*!
+ * \brief Config Reading Type Enum
+ */
+static const char *sccp_readingtype_map[] = {
+	[SCCP_CONFIG_READINITIAL] = "Read Initial Config",
+	[SCCP_CONFIG_READRELOAD] = "Reloading Config",
+	[SCCP_READINGTYPE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_readingtype_exists(int sccp_readingtype_int_value) {
+	if ((SCCP_CONFIG_READRELOAD <=sccp_readingtype_int_value) && (sccp_readingtype_int_value <= SCCP_CONFIG_READRELOAD)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_readingtype2str(sccp_readingtype_t enum_value) {
+	if ((SCCP_CONFIG_READINITIAL <= enum_value) && (enum_value <= SCCP_CONFIG_READRELOAD)) {
+		return sccp_readingtype_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_readingtype2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_readingtype2str\n";
+}
+
+sccp_readingtype_t sccp_readingtype_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_readingtype_map); idx++) {
+		if (sccp_strcaseequals(sccp_readingtype_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_readingtype_str2val(%s) not found\n", lookup_str);
+	return SCCP_READINGTYPE_SENTINEL;
+}
+
+int sccp_readingtype_str2intval(const char *lookup_str) {
+	int res = sccp_readingtype_str2val(lookup_str);
+	return (int)res != SCCP_READINGTYPE_SENTINEL ? res : -1;
+}
+
+char *sccp_readingtype_all_entries(void) {
+	static char res[] = "Read Initial Config,Reloading Config";
+	return res;
+}
+/* = End =========================================================================================               sccp_readingtype === */
+
+
+/* = Begin =======================================================================================       sccp_configurationchange === */
+
+/*!
+ * \brief Status of configuration change
+ */
+static const char *sccp_configurationchange_map[] = {
+	[SCCP_CONFIG_NOUPDATENEEDED] = "Config: No Update Needed",
+	[SCCP_CONFIG_NEEDDEVICERESET] = "Config: Device Reset Needed",
+	[SCCP_CONFIG_WARNING] = "Warning while reading Config",
+	[SCCP_CONFIG_ERROR] = "Error while reading Config",
+	[SCCP_CONFIGURATIONCHANGE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
+	if ((SCCP_CONFIG_NEEDDEVICERESET <=sccp_configurationchange_int_value) && (sccp_configurationchange_int_value <= SCCP_CONFIG_ERROR)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_configurationchange2str(sccp_configurationchange_t enum_value) {
+	if ((SCCP_CONFIG_NOUPDATENEEDED <= enum_value) && (enum_value <= SCCP_CONFIG_ERROR)) {
+		return sccp_configurationchange_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_configurationchange2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_configurationchange2str\n";
+}
+
+sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_configurationchange_map); idx++) {
+		if (sccp_strcaseequals(sccp_configurationchange_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_configurationchange_str2val(%s) not found\n", lookup_str);
+	return SCCP_CONFIGURATIONCHANGE_SENTINEL;
+}
+
+int sccp_configurationchange_str2intval(const char *lookup_str) {
+	int res = sccp_configurationchange_str2val(lookup_str);
+	return (int)res != SCCP_CONFIGURATIONCHANGE_SENTINEL ? res : -1;
+}
+
+char *sccp_configurationchange_all_entries(void) {
+	static char res[] = "Config: No Update Needed,Config: Device Reset Needed,Warning while reading Config,Error while reading Config";
+	return res;
+}
+/* = End =========================================================================================       sccp_configurationchange === */
+
+
+/* = Begin =======================================================================================      sccp_call_statistics_type === */
+
+
+/*
+ * \brief enum sccp_call_statistics_type
+ */
+static const char *sccp_call_statistics_type_map[] = {
+	[SCCP_CALLSTATISTIC_LAST] = "CallStatistics last Call",
+	[SCCP_CALLSTATISTIC_AVG] = "CallStatistics average",
+	[SCCP_CALL_STATISTICS_TYPE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value) {
+	if ((SCCP_CALLSTATISTIC_AVG <=sccp_call_statistics_type_int_value) && (sccp_call_statistics_type_int_value <= SCCP_CALLSTATISTIC_AVG)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_call_statistics_type2str(sccp_call_statistics_type_t enum_value) {
+	if ((SCCP_CALLSTATISTIC_LAST <= enum_value) && (enum_value <= SCCP_CALLSTATISTIC_AVG)) {
+		return sccp_call_statistics_type_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_call_statistics_type2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_call_statistics_type2str\n";
+}
+
+sccp_call_statistics_type_t sccp_call_statistics_type_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_call_statistics_type_map); idx++) {
+		if (sccp_strcaseequals(sccp_call_statistics_type_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_call_statistics_type_str2val(%s) not found\n", lookup_str);
+	return SCCP_CALL_STATISTICS_TYPE_SENTINEL;
+}
+
+int sccp_call_statistics_type_str2intval(const char *lookup_str) {
+	int res = sccp_call_statistics_type_str2val(lookup_str);
+	return (int)res != SCCP_CALL_STATISTICS_TYPE_SENTINEL ? res : -1;
+}
+
+char *sccp_call_statistics_type_all_entries(void) {
+	static char res[] = "CallStatistics last Call,CallStatistics average";
+	return res;
+}
+/* = End =========================================================================================      sccp_call_statistics_type === */
+
+
+/* = Begin =======================================================================================                  sccp_rtp_info === */
+
+
+/*
+ * \brief enum sccp_rtp_info
+ */
+static const char *sccp_rtp_info_map[] = {
+	[SCCP_RTP_INFO_NORTP] = "RTP Info: None",
+	[SCCP_RTP_INFO_AVAILABLE] = "RTP Info: Available",
+	[SCCP_RTP_INFO_ALLOW_DIRECTRTP] = "RTP Info: Allow DirectMedia",
+	[SCCP_RTP_INFO_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
+	if ((SCCP_RTP_INFO_AVAILABLE <=sccp_rtp_info_int_value) && (sccp_rtp_info_int_value <= SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
+		return 1;
+	}
+	return 0;
+}
+
+const char * sccp_rtp_info2str(sccp_rtp_info_t enum_value) {
+	if ((SCCP_RTP_INFO_NORTP <= enum_value) && (enum_value <= SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
+		return sccp_rtp_info_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_info2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_rtp_info2str\n";
+}
+
+sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_info_map); idx++) {
+		if (sccp_strcaseequals(sccp_rtp_info_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_rtp_info_str2val(%s) not found\n", lookup_str);
+	return SCCP_RTP_INFO_SENTINEL;
+}
+
+int sccp_rtp_info_str2intval(const char *lookup_str) {
+	int res = sccp_rtp_info_str2val(lookup_str);
+	return (int)res != SCCP_RTP_INFO_SENTINEL ? res : -1;
+}
+
+char *sccp_rtp_info_all_entries(void) {
+	static char res[] = "RTP Info: None,RTP Info: Available,RTP Info: Allow DirectMedia";
+	return res;
+}
+/* = End =========================================================================================                  sccp_rtp_info === */
+
+
 /* = Begin =======================================================================================                skinny_lampmode === */
 
 /*!

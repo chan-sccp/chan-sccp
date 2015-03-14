@@ -1655,7 +1655,6 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 	char k_button[256];
 	char *splitter;
 	sccp_config_buttontype_t type = EMPTY;									/* default to empty */
-	unsigned int i;
 	int buttonindex = 0;
 	
 	SCCP_LIST_HEAD (, sccp_buttonconfig_t) * buttonconfigList = dest;
@@ -1676,13 +1675,11 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			buttonOption = strsep(&splitter, ",");
 			buttonArgs = splitter;
 
-			for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
-			if (i >= ARRAY_LEN(sccp_buttontypes)) {
+			type = sccp_config_buttontype_str2val(buttonType);
+			if (type == SCCP_CONFIG_BUTTONTYPE_SENTINEL) {
 				pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
 				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-				/* will cause an empty button to be inserted */
-			} else {
-				type = sccp_buttontypes[i].buttontype;
+				type = EMPTY;
 			}
 			if ((changed = sccp_config_checkButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL))) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Button: %s changed. Giving up on checking buttonchanges, reloading all of them.\n", v->value);
@@ -1719,13 +1716,11 @@ sccp_value_changed_t sccp_config_parse_button(void *dest, const size_t size, PBX
 			buttonOption = strsep(&splitter, ",");
 			buttonArgs = splitter;
 
-			for (i = 0; i < ARRAY_LEN(sccp_buttontypes) && strcasecmp(buttonType, sccp_buttontypes[i].text); ++i);
-			if (i >= ARRAY_LEN(sccp_buttontypes)) {
-				pbx_log(LOG_WARNING, "Unknown button type '%s'.\n", buttonType);
+			type = sccp_config_buttontype_str2val(buttonType);
+			if (type == SCCP_CONFIG_BUTTONTYPE_SENTINEL) {
+				pbx_log(LOG_WARNING, "Unknown button type '%s'. Will insert an Empty button instead.\n", buttonType);
 				changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-				/* will cause an empty button to be inserted */
-			} else {
-				type = sccp_buttontypes[i].buttontype;
+				type = EMPTY;
 			}
 			sccp_config_addButton(dest, buttonindex, type, buttonName ? pbx_strip(buttonName) : NULL, buttonOption ? pbx_strip(buttonOption) : NULL, buttonArgs ? pbx_strip(buttonArgs) : NULL);
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Added button: %s\n", v->value);

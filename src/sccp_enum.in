@@ -175,6 +175,110 @@ enum event_type {
         SCCP_EVENT_LINESTATUS_CHANGED,			=1<<9,	"LineStatus Changed",
 }
 
+enum parkresult {
+	PARK_RESULT_FAIL,				,	"Park Failed", 
+	PARK_RESULT_SUCCESS,				,	"Park Successfull", 
+}
+
+enum calleridpresence {
+	CALLERID_PRESENCE_FORBIDDEN,			,	"CalledId Presence Forbidden",
+	CALLERID_PRESENCE_ALLOWED,			,	"CallerId Presence Allowed",
+}
+
+enum rtp_status {
+	SCCP_RTP_STATUS_INACTIVE, 			=0,	"Rtp Inactive",
+	SCCP_RTP_STATUS_PROGRESS, 			=1<<0,	"Rtp In Progress",
+	SCCP_RTP_STATUS_ACTIVE,				=1<<1,	"Rtp Active",
+}
+
+enum extension_status {
+	SCCP_EXTENSION_NOTEXISTS, 			,	"Extension does not exist",
+	SCCP_EXTENSION_MATCHMORE, 			,	"Matches more than one extension",
+	SCCP_EXTENSION_EXACTMATCH, 			,	"Exact Extension Match",
+}
+
+enum channel_request_status {
+	SCCP_REQUEST_STATUS_ERROR, 			,	"Request Status Error",
+	SCCP_REQUEST_STATUS_LINEUNKNOWN,		,	"Request Line Unknown",
+	SCCP_REQUEST_STATUS_LINEUNAVAIL,		,	"Request Line Unavailable",
+	SCCP_REQUEST_STATUS_SUCCESS,			,	"Request Success",
+}
+
+enum message_priority {
+	SCCP_MESSAGE_PRIORITY_IDLE,			,	"Message Priority Idle",
+	SCCP_MESSAGE_PRIORITY_VOICEMAIL,		,	"Message Priority Voicemail",
+	SCCP_MESSAGE_PRIORITY_MONITOR,			,	"Message Priority Monitor",
+	SCCP_MESSAGE_PRIORITY_PRIVACY,			,	"Message Priority Privacy",
+	SCCP_MESSAGE_PRIORITY_DND,			,	"Message Priority Do not disturb",
+	SCCP_MESSAGE_PRIORITY_CFWD,			,	"Message Priority Call Forward",
+}
+
+enum push_result {
+	SCCP_PUSH_RESULT_FAIL,				,	"Push Failed",
+	SCCP_PUSH_RESULT_NOT_SUPPORTED,			,	"Push Not Supported",
+	SCCP_PUSH_RESULT_SUCCESS,			,	"Pushed Successfully",
+}
+
+enum tokenstate {
+	SCCP_TOKEN_STATE_NOTOKEN,			,	"No Token",
+	SCCP_TOKEN_STATE_ACK,				,	"Token Acknowledged",
+	SCCP_TOKEN_STATE_REJ,				,	"Token Rejected",
+}
+
+enum softswitch {
+	SCCP_SOFTSWITCH_DIAL,				,	"Softswitch Dial",
+	SCCP_SOFTSWITCH_GETFORWARDEXTEN,		,	"Softswitch Get Forward Extension",
+	SCCP_SOFTSWITCH_GETPICKUPEXTEN,			,	"Softswitch Get Pickup Extension", 		
+	SCCP_SOFTSWITCH_GETMEETMEROOM,			,	"Softswitch Get Meetme Room", 		
+	SCCP_SOFTSWITCH_GETBARGEEXTEN,			,	"Softswitch Get Barge Extension", 		
+	SCCP_SOFTSWITCH_GETCBARGEROOM,			,	"Softswitch Get CBarrge Room", 		
+//#ifdef CS_SCCP_CONFERENCE
+	SCCP_SOFTSWITCH_GETCONFERENCEROOM,		,	"Softswicth Get Conference Room",
+//#endif
+}
+
+enum phonebook { 
+	SCCP_PHONEBOOK_NONE,				,	"Phonebook None",
+	SCCP_PHONEBOOK_MISSED,				,	"Phonebook Missed",
+	SCCP_PHONEBOOK_RECEIVED,			,	"Phonebook Received",
+	//SCCP_PHONEBOOK_PLACED,			,	"Phonebook Placed",
+}
+
+enum feature_monitor_state {
+	SCCP_FEATURE_MONITOR_STATE_DISABLED,		,	"Feature Monitor Disabled",
+	SCCP_FEATURE_MONITOR_STATE_ACTIVE,		,	"Feature Monitor Active",
+	SCCP_FEATURE_MONITOR_STATE_REQUESTED, 		,	"Feature Monitor Requested",
+}
+
+/*!
+ * \brief Config Reading Type Enum
+ */
+enum readingtype {
+	SCCP_CONFIG_READINITIAL,			,	"Read Initial Config",
+	SCCP_CONFIG_READRELOAD,				,	"Reloading Config",
+}
+
+/*!
+ * \brief Status of configuration change
+ */
+enum configurationchange {
+	SCCP_CONFIG_NOUPDATENEEDED,		 	= 0,	"Config: No Update Needed",
+	SCCP_CONFIG_NEEDDEVICERESET, 			= 1<<1,	"Config: Device Reset Needed",
+	SCCP_CONFIG_WARNING, 				= 1<<2,	"Warning while reading Config",
+	SCCP_CONFIG_ERROR, 				= 1<<3,	"Error while reading Config",
+}
+
+enum call_statistics_type {
+	SCCP_CALLSTATISTIC_LAST,			,	"CallStatistics last Call",
+	SCCP_CALLSTATISTIC_AVG,				,	"CallStatistics average",
+}
+
+enum rtp_info {
+	SCCP_RTP_INFO_NORTP,				=0,	"RTP Info: None",
+	SCCP_RTP_INFO_AVAILABLE,			=1<<1,	"RTP Info: Available",
+	SCCP_RTP_INFO_ALLOW_DIRECTRTP,			=1<<2,	"RTP Info: Allow DirectMedia",
+}
+
 } /* NAMESPACE sccp */
 
 namespace skinny {

@@ -648,7 +648,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
 		CLI_AMI_TABLE_FIELD(Mac,		"-16.16s",	16,	d->id)											\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	skinny_registrationstate2str(d->registrationState))						\
-		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Ack" : "Rej") : "None") \
+		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	sccp_tokenstate2str(d->status.token)) \
 		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
 		CLI_AMI_TABLE_FIELD(Lines, 		"-5d",		5, 	d->configurationStatistic.numberOfLines)
@@ -658,7 +658,7 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
 		CLI_AMI_TABLE_FIELD(Mac,		"-16.16s",	16,	d->id)											\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	skinny_registrationstate2str(d->registrationState))						\
-		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Ack" : "Rej") : "None") \
+		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	sccp_tokenstate2str(d->status.token)) \
 		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
 		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
 		CLI_AMI_TABLE_FIELD(Lines, 		"-5d",		5, 	d->configurationStatistic.numberOfLines)						\
@@ -772,7 +772,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
 	char binstr[33] = "";
 	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x,%s", d->device_features, sccp_dec2binstr(binstr, 40, d->device_features));
-	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", d->status.token ? ((d->status.token == SCCP_TOKEN_STATE_ACK) ? "Token acknowledged" : "Token rejected") : "no token requested");
+	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", sccp_tokenstate2str(d->status.token));
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_registrationstate2str(d->registrationState), d->registrationState);
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", sccp_devicestate2str(d->state), d->state);
@@ -1459,7 +1459,7 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(State,		"-14.14s",	14,	(d) ? sccp_devicestate2str(d->state) : "--")				\
 		CLI_AMI_TABLE_FIELD(Type,		"-15.15s",	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")			\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
-		CLI_AMI_TABLE_FIELD(Token,		"-10.10s",	10,	(d && d->status.token ) ?  (SCCP_TOKEN_STATE_ACK == d->status.token ? "Ack" : (SCCP_TOKEN_STATE_REJ == d->status.token ? "Reject" : "--")) : "--")
+		CLI_AMI_TABLE_FIELD(Token,		"-10.10s",	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
 #include "sccp_cli_table.h"
 
 	if (s) {

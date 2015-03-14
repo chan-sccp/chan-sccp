@@ -1394,7 +1394,7 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
 		return NULL;
 	}
 
-	channel->ss_action = SCCP_SS_DIAL;									/* softswitch will catch the number to be dialed */
+	channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;							/* softswitch will catch the number to be dialed */
 	channel->ss_data = 0;											/* nothing to pass to action */
 
 	channel->calltype = calltype;
@@ -2386,7 +2386,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 	}
 
 	sccp_forwarding_channel->parentChannel = sccp_channel_retain(sccp_channel_parent);
-	sccp_forwarding_channel->ss_action = SCCP_SS_DIAL;							/* softswitch will catch the number to be dialed */
+	sccp_forwarding_channel->softswitch_action = SCCP_SOFTSWITCH_DIAL;					/* softswitch will catch the number to be dialed */
 	sccp_forwarding_channel->ss_data = 0;									// nothing to pass to action
 	sccp_forwarding_channel->calltype = SKINNY_CALLTYPE_OUTBOUND;
 
