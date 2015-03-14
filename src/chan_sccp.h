@@ -259,99 +259,10 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses T
 #define TRUE B_TRUE
 #endif
 typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
-typedef enum { PARK_RESULT_FAIL = 0, PARK_RESULT_SUCCESS = 1 } sccp_parkresult_t;				/*!< Enum Park Result */
-typedef enum {
-	/* *INDENT-OFF* */
-	CALLERID_PRESENCE_FORBIDDEN 	= 0,
-	CALLERID_PRESENCE_ALLOWED 	= 1
-	/* *INDENT-ON* */
-} sccp_calleridpresence_t;											/*!< Enum Caller Id Presence */
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_RTP_STATUS_INACTIVE 	= 0,
-	SCCP_RTP_STATUS_PROGRESS 	= 1 << 0,
-	SCCP_RTP_STATUS_ACTIVE		= 1 << 1,
-	/* *INDENT-ON* */
-} sccp_rtp_status_t;												/*!< RTP status information */
 
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_EXTENSION_NOTEXISTS 	= 0,
-	SCCP_EXTENSION_MATCHMORE 	= 1,
-	SCCP_EXTENSION_EXACTMATCH 	= 2,
-	/* *INDENT-ON* */
-} sccp_extension_status_t;											/*!< extension status information */
-
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_REQUEST_STATUS_ERROR 	= 0,
-	SCCP_REQUEST_STATUS_LINEUNKNOWN = 1,
-	SCCP_REQUEST_STATUS_LINEUNAVAIL = 2,
-	SCCP_REQUEST_STATUS_SUCCESS 	= 3,
-	/* *INDENT-ON* */
-} sccp_channel_request_status_t;										/*!< channel request status */
-
-typedef enum {
-	SCCP_MESSAGE_PRIORITY_IDLE = 0,
-	SCCP_MESSAGE_PRIORITY_VOICEMAIL,
-	SCCP_MESSAGE_PRIORITY_MONITOR,
-	SCCP_MESSAGE_PRIORITY_PRIVACY,
-	SCCP_MESSAGE_PRIORITY_DND,
-	SCCP_MESSAGE_PRIORITY_CFWD,
-} sccp_message_priority_t;
-
-typedef enum {
-	SCCP_PUSH_RESULT_FAIL,
-	SCCP_PUSH_RESULT_NOT_SUPPORTED,
-	SCCP_PUSH_RESULT_SUCCESS,
-} sccp_push_result_t;
-
-typedef enum {
-	SCCP_TOKEN_STATE_NOTOKEN,
-	SCCP_TOKEN_STATE_ACK,
-	SCCP_TOKEN_STATE_REJ,
-} sccp_tokenstate_t;
-
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_SS_DIAL 			= 0,
-	SCCP_SS_GETFORWARDEXTEN 	= 1,
-	SCCP_SS_GETPICKUPEXTEN 		= 2,
-	SCCP_SS_GETMEETMEROOM 		= 3,
-	SCCP_SS_GETBARGEEXTEN 		= 4,
-	SCCP_SS_GETCBARGEROOM 		= 5,
-#ifdef CS_SCCP_CONFERENCE
-	SCCP_SS_GETCONFERENCEROOM 	= 6,
-#endif
-} sccp_softswitch_action_t;
-
-typedef enum { 
-	SCCP_PHONEBOOK_NONE		= 0, 
-	SCCP_PHONEBOOK_MISSED		= 1, 
-	SCCP_PHONEBOOK_RECEIVED		= 2, 
-	//SCCP_PHONEBOOK_PLACED = 3
-} sccp_phonebook_t;
-
-#include "sccp_protocol.h"
 #ifdef HAVE_ASTERISK
 #include "pbx_impl/ast/ast.h"
 #endif
-
-/*!
- * \brief SCCP ButtonType Structure
- */
-static const struct sccp_buttontype {
-	sccp_config_buttontype_t buttontype;
-	const char *const text;
-} sccp_buttontypes[] = {
-        /* *INDENT-OFF* */
-	{LINE, 				"LINE"},
-	{SPEEDDIAL, 			"SPEEDDIAL"},
-	{SERVICE, 			"SERVICE"},
-	{FEATURE, 			"FEATURE"},
-	{EMPTY, 			"EMPTY"}
-	/* *INDENT-ON* */
-};
 
 /*!
  * \brief SCCP Conference Structure
@@ -523,14 +434,6 @@ static const struct sccp_feature_type {
 	/* *INDENT-ON* */
 };
 
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_FEATURE_MONITOR_STATE_DISABLED 	= 0,
-	SCCP_FEATURE_MONITOR_STATE_ACTIVE	= 1 << 1,
-	SCCP_FEATURE_MONITOR_STATE_REQUESTED 	= 1 << 2,
-	/* *INDENT-ON* */
-} sccp_feature_monitor_state_t;											/*!< monitor feature state */
-
 /*!
  * \brief SCCP Feature Configuration Structure
  */
@@ -557,25 +460,6 @@ struct sccp_ha {
 	int sense;
 };
 
-/*!
- * \brief Reading Type Enum
- */
-typedef enum {
-	SCCP_CONFIG_READINITIAL,
-	SCCP_CONFIG_READRELOAD
-} sccp_readingtype_t;												/*!< Reading Type */
-
-/*!
- * \brief Status of configuration change
- */
-typedef enum {
-	/* *INDENT-OFF* */
-	SCCP_CONFIG_NOUPDATENEEDED 	= 0,
-	SCCP_CONFIG_NEEDDEVICERESET 	= 1 << 1,
-	SCCP_CONFIG_WARNING 		= 1 << 2,
-	SCCP_CONFIG_ERROR 		= 1 << 3
-	/* *INDENT-ON* */
-} sccp_configurationchange_t;											/*!< configuration state change */
 
 /*!
  * \brief SCCP Mailbox Type Definition
@@ -642,11 +526,6 @@ struct sccp_callinfo {
 	unsigned int lastRedirectingVoiceMailbox_valid:1;							/*!< TRUE if the name information is valid/present */
 	unsigned int lastRedirectingParty_valid:1;								/*!< TRUE if the name information is valid/present */
 };														/*!< SCCP CallInfo Structure */
-
-typedef enum {
-	SCCP_CALLSTATISTIC_LAST = 0,
-	SCCP_CALLSTATISTIC_AVG = 1
-} sccp_call_statistics_type_t;
 
 typedef struct sccp_call_statistic {
 	uint32_t num;
@@ -1235,7 +1114,7 @@ struct sccp_channel {
 	sccp_autoanswer_t autoanswer_type;									/*!< Auto Answer Type */
 
 	/* don't allow sccp phones to monitor (hint) this call */
-	sccp_softswitch_action_t ss_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
+	sccp_softswitch_t softswitch_action;									/*!< Simple Switch Action. This is used in dial thread to collect numbers for callforward, pickup and so on -FS */
 	uint16_t ss_data;											/*!< Simple Switch Integer param */
 	uint16_t subscribers;											/*!< Used to determine if a sharedline should be hungup immediately, if everybody declined the call */
 

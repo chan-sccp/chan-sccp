@@ -2548,7 +2548,7 @@ void sccp_handle_dialtone(sccp_channel_t * channel)
 		return;
 	}
 
-	if (channel->ss_action != SCCP_SS_DIAL || channel->scheduler.hangup) {
+	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup) {
 		return;
 	}
 

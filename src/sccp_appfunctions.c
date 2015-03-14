@@ -645,10 +645,10 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				sccp_copy_string(buf, c->answered_elsewhere ? "yes" : "no", len);
 			} else if (!strcasecmp(token, "privacy")) {
 				sccp_copy_string(buf, c->privacy ? "yes" : "no", len);
-			} else if (!strcasecmp(token, "ss_action")) {
-				snprintf(buf, buf_len, "%d", c->ss_action);
-				// } else if (!strcasecmp(token, "monitorEnabled")) {
-					//sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
+			} else if (!strcasecmp(token, "softswitch_action")) {
+				snprintf(buf, buf_len, "%s (%d)", sccp_softswitch2str(c->softswitch_action), c->softswitch_action);
+			// } else if (!strcasecmp(token, "monitorEnabled")) {
+				//sccp_copy_string(buf, c->monitorEnabled ? "yes" : "no", len);
 #ifdef CS_SCCP_CONFERENCE
 			} else if (!strcasecmp(token, "conference_id")) {
 				snprintf(buf, buf_len, "%d", c->conference_id);

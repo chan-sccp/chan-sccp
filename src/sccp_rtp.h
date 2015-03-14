@@ -10,13 +10,6 @@
  */
 #ifndef __SCCP_RTP_H
 #define __SCCP_RTP_H
-
-typedef enum {
-	SCCP_RTP_INFO_NORTP = 0,
-	SCCP_RTP_INFO_AVAILABLE = 1 << 1,
-	SCCP_RTP_INFO_ALLOW_DIRECTRTP = 1 << 2,
-} sccp_rtp_info_t;												/*!< RTP status information */
-
 int sccp_rtp_createAudioServer(const sccp_channel_t * c);
 int sccp_rtp_createVideoServer(const sccp_channel_t * c);
 void sccp_rtp_stop(sccp_channel_t * c);
