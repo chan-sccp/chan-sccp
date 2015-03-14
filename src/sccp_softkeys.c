@@ -56,7 +56,7 @@ static void sccp_sk_dial(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Dial Pressed\n", DEV_ID_LOG(d));
 	if (c && !PBX(getChannelPbx) (c)) {									// Prevent dialling if in an inappropriate state.
 		/* Only handle this in DIALING state. AFAIK GETDIGITS is used only for call forward and related input functions. (-DD) */
-		if (c->ss_action == SCCP_SS_GETFORWARDEXTEN) {
+		if (c->softswitch_action == SCCP_SOFTSWITCH_GETFORWARDEXTEN) {
 			sccp_pbx_softswitch(c);
 
 		} else if (c->state == SCCP_CHANNELSTATE_DIGITSFOLL) {

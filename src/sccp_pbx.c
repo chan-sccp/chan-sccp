@@ -818,9 +818,9 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 		}
 	}
 
-	if ((c->ss_action != SCCP_SS_GETCBARGEROOM) && (c->ss_action != SCCP_SS_GETMEETMEROOM)
+	if ((c->softswitch_action != SCCP_SOFTSWITCH_GETCBARGEROOM) && (c->softswitch_action != SCCP_SOFTSWITCH_GETMEETMEROOM)
 #ifdef CS_SCCP_CONFERENCE
-	    && (c->ss_action != SCCP_SS_GETCONFERENCEROOM)
+	    && (c->softswitch_action != SCCP_SOFTSWITCH_GETCONFERENCEROOM)
 #endif
 	    ) {
 
@@ -951,8 +951,8 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		}
 
 		/* This will choose what to do */
-		switch (c->ss_action) {
-			case SCCP_SS_GETFORWARDEXTEN:
+		switch (c->softswitch_action) {
+			case SCCP_SOFTSWITCH_GETFORWARDEXTEN:
 				{
 					sccp_callforward_t type = (sccp_callforward_t) c->ss_data;
 
@@ -964,7 +964,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					goto EXIT_FUNC;								// leave simple switch without dial
 				}
 #ifdef CS_SCCP_PICKUP
-			case SCCP_SS_GETPICKUPEXTEN:
+			case SCCP_SOFTSWITCH_GETPICKUPEXTEN:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Pickup Extension\n", d->id);
 				// like we're dialing but we're not :)
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -987,7 +987,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				goto EXIT_FUNC;									// leave simpleswitch without dial
 #endif														// CS_SCCP_PICKUP
 #ifdef CS_SCCP_CONFERENCE
-			case SCCP_SS_GETCONFERENCEROOM:
+			case SCCP_SOFTSWITCH_GETCONFERENCEROOM:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Conference request\n", d->id);
 				if (c->owner && !pbx_check_hangup(c->owner)) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1009,7 +1009,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 				}
 				goto EXIT_FUNC;
 #endif														// CS_SCCP_CONFERENCE
-			case SCCP_SS_GETMEETMEROOM:
+			case SCCP_SOFTSWITCH_GETMEETMEROOM:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request\n", d->id);
 				if (!sccp_strlen_zero(shortenedNumber) && !sccp_strlen_zero(c->line->meetmenum)) {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Meetme request for room '%s' on extension '%s'\n", d->id, shortenedNumber, c->line->meetmenum);
@@ -1029,7 +1029,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					goto EXIT_FUNC;
 				}
 				break;
-			case SCCP_SS_GETBARGEEXTEN:
+			case SCCP_SOFTSWITCH_GETBARGEEXTEN:
 				// like we're dialing but we're not :)
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Barge Extension\n", d->id);
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1048,7 +1048,7 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_channel_endcall(c);
 				}
 				goto EXIT_FUNC;									// leave simpleswitch without dial
-			case SCCP_SS_GETCBARGEROOM:
+			case SCCP_SOFTSWITCH_GETCBARGEROOM:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Get Conference Barge Extension\n", d->id);
 				// like we're dialing but we're not :)
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
@@ -1066,12 +1066,15 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					sccp_channel_endcall(c);
 				}
 				goto EXIT_FUNC;									// leave simpleswitch without dial
-			case SCCP_SS_DIAL:
+			case SCCP_SOFTSWITCH_DIAL:
 				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Dial Extension %s\n", d->id, shortenedNumber);
 
 				sccp_copy_string(c->callInfo.calledPartyNumber, shortenedNumber, sizeof(c->callInfo.calledPartyNumber));
 				sccp_indicate(d, c, SCCP_CHANNELSTATE_DIALING);
 				break;
+			case SCCP_SOFTSWITCH_SENTINEL:
+				sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: (sccp_pbx_softswitch) Unknown Softswitch Request\n", d->id);
+				goto EXIT_FUNC;
 		}
 
 		/* set private variable */

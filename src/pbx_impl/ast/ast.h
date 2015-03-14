@@ -104,6 +104,8 @@
 #endif
 #include <asterisk/file.h>
 
+#include "sccp_protocol.h"
+
 /* only trunk version has AST_CAUSE_ANSWERED_ELSEWHERE */
 #ifndef AST_CAUSE_ANSWERED_ELSEWHERE
 #define AST_CAUSE_ANSWERED_ELSEWHERE 200

@@ -561,11 +561,12 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 								remoteDevice->indicate->remoteOffhook(remoteDevice, linedevice, c);
 								remoteDevice->indicate->connected(remoteDevice, linedevice, c);
 								break;
-							case SCCP_PHONEBOOK_MISSED:
-								/* do nothing */
-								break;
 							case SCCP_PHONEBOOK_NONE:
 								sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+								break;
+							case SCCP_PHONEBOOK_MISSED:
+							case SCCP_PHONEBOOK_SENTINEL:
+								/* do nothing */
 								break;
 						}
 					}
@@ -613,11 +614,12 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 									remoteDevice->indicate->connected(remoteDevice, linedevice, &tmpChannel);
 
 									break;
-								case SCCP_PHONEBOOK_MISSED:
-
-									break;
 								case SCCP_PHONEBOOK_NONE:
 									sccp_device_sendcallstate(remoteDevice, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_LOW, SKINNY_CALLINFO_VISIBILITY_HIDDEN);
+									break;
+								case SCCP_PHONEBOOK_MISSED:
+								case SCCP_PHONEBOOK_SENTINEL:
+									/* do nothing */
 									break;
 							}
 							break;
