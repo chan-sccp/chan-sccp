@@ -548,7 +548,7 @@ static const char *asterisk_indication2str(int ind)
 		case AST_CONTROL_PROGRESS: return "Indicate PROGRESS";
 		case AST_CONTROL_PROCEEDING: return "Indicate CALL PROCEEDING";
 		case AST_CONTROL_HOLD: return "Indicate call is placed on hold";
-		case AST_CONTROL_UNHOLD: return "Indicate call is left from hold";
+		case AST_CONTROL_UNHOLD: return "Indicate call left hold";
 		case AST_CONTROL_VIDUPDATE: return "Indicate video frame update";
 		case _XXX_AST_CONTROL_T38: return "T38 state change request/notification. Deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.";
 		case AST_CONTROL_SRCUPDATE: return "Indicate source of media has changed";
