@@ -537,7 +537,9 @@ typedef enum sccp_softswitch {
 	SCCP_SOFTSWITCH_GETMEETMEROOM,
 	SCCP_SOFTSWITCH_GETBARGEEXTEN,
 	SCCP_SOFTSWITCH_GETCBARGEROOM,
+#ifdef CS_SCCP_CONFERENCE
 	SCCP_SOFTSWITCH_GETCONFERENCEROOM,
+#endif
 	SCCP_SOFTSWITCH_SENTINEL
 } sccp_softswitch_t;
 int sccp_softswitch_exists(int sccp_softswitch_int_value);
