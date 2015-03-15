@@ -6,17 +6,13 @@
 # DATE:     $Date$
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
-AUTOMAKE_OPTS			= gnu silent-rules subdir-objects
+#AUTOMAKE_OPTIONS		= gnu silent-rules subdir-objects
+AUTOMAKE_OPTIONS		= gnu
 csmod_LTLIBRARIES		= chan_sccp.la 
-MOSTLYCLEANFILES 		= *.gcda *.gcno *.gcov revision.h
+MOSTLYCLEANFILES 		= *.gcda *.gcno *.gcov revision.h .revision
+EXTRA_DIST 			= sccp_enum.in revision.h sccp_config_entries.hh
 
-# revision.h
-nodist_chan_sccp_la_SOURCES 	= .revision
-CLEANFILES			= .revision
-#.PHONY: 			.revision sccp_enum
 .PHONY: 			.revision gen_enum
-
-EXTRA_DIST = sccp_enum.in revision.h sccp_config_entries.hh
 
 chan_sccp_la_SOURCES	=	sccp_enum.h		chan_sccp.h		sccp_cli.h		sccp_threadpool.h	\
 				sccp_event.h		sccp_labels.h		sccp_utils.h		sccp_adv_features.h	\
@@ -59,32 +55,28 @@ chan_sccp_la_CFLAGS       = $(AM_CFLAGS) $(PBX_CFLAGS) $(GDB_FLAGS) $(PTHREAD_CF
 chan_sccp_la_CFLAGS      += -D_REENTRANT -D_GNU_SOURCE -DCRYPTO -fPIC -pipe -Wall 
 chan_sccp_la_LDFLAGS      = -avoid-version -module $(PBX_LDFLAGS) $(PTHREAD_LIBS) $(EVENT_LIBS) $(COVERAGE_CFLAGS) $(COVERAGE_LDFLAGS) $(LIBEXSLT_LIBS) $(LIBCURL_LIBS) $(EVENT_LIBS) $(CLANG_BLOCKS_LIBS)
 
-chan_sccp_la.$(OBJEXT): revision.h .revision
-
-revision.h: Makefile .revision
+revision.h: .revision
 	@cd "@abs_top_srcdir@/src"
 
-.revision: Makefile
+.revision:
 	@cd "@abs_top_srcdir@/src";																				\
 	if test -f @abs_builddir@/revision.h; then																		\
 		if test ! -z "`find @abs_builddir@/revision.h -mmin +60`"; then															\
-			if test "`@abs_top_srcdir@/tools/autorevision -t h -o @abs_top_srcdir@/.revision |grep VCS_SHORT_HASH`" != "`grep VCS_SHORT_HASH @abs_builddir@/revision.h`"; then 	\
-				@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;						\
-			fi 																					\
+			@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;						\
 		fi 																						\
-	else 																							\
-		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null; 								\
+	else																							\
+		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;								\
 	fi
 
-sccp_enum.c:
+sccp_enum.c: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then				\
 		$(MAKE) gen_enum;												\
 	fi
 
-#	test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
-#sccp_enun.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-#	test "sccp_enum.in" -nt $@ && $(MAKE) gen_enum
-#	test "@abs_top_srcdir@/tools/gen_sccp_enum.awk" -nt $@ && $(MAKE) gen_enum
+sccp_enum.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
+	@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then				\
+		$(MAKE) gen_enum;												\
+	fi
 
 gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	@echo "  GEN      sccp_enum.h"
