@@ -552,107 +552,42 @@ static void sccp_wrapper_asterisk113_connectedline(sccp_channel_t * channel, con
 static const char *asterisk_indication2str(int ind)
 {
 	switch (ind) {
-		case AST_CONTROL_HANGUP:
-			return "Other end has hungup";
-			break;
-		case AST_CONTROL_RING:
-			return "Local ring";
-			break;
-		case AST_CONTROL_RINGING:
-			return "Remote end is ringing";
-			break;
-		case AST_CONTROL_ANSWER:
-			return "Remote end has answered";
-			break;
-		case AST_CONTROL_BUSY:
-			return "Remote end is busy";
-			break;
-		case AST_CONTROL_TAKEOFFHOOK:
-			return "Make it go off hook";
-			break;
-		case AST_CONTROL_OFFHOOK:
-			return "Line is off hook";
-			break;
-		case AST_CONTROL_CONGESTION:
-			return "Congestion (circuits busy)";
-			break;
-		case AST_CONTROL_FLASH:
-			return "Flash hook";
-			break;
-		case AST_CONTROL_WINK:
-			return "Wink";
-			break;
-		case AST_CONTROL_OPTION:
-			return "Set a low-level option";
-			break;
-		case AST_CONTROL_RADIO_KEY:
-			return "Key Radio";
-			break;
-		case AST_CONTROL_RADIO_UNKEY:
-			return "Un-Key Radio";
-			break;
-		case AST_CONTROL_PROGRESS:
-			return "Indicate PROGRESS";
-			break;
-		case AST_CONTROL_PROCEEDING:
-			return "Indicate CALL PROCEEDING";
-			break;
-		case AST_CONTROL_HOLD:
-			return "Indicate call is placed on hold";
-			break;
-		case AST_CONTROL_UNHOLD:
-			return "Indicate call is left from hold";
-			break;
-		case AST_CONTROL_VIDUPDATE:
-			return "Indicate video frame update";
-			break;
-		case _XXX_AST_CONTROL_T38:
-			return "T38 state change request/notification. Deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.";
-			break;
-		case AST_CONTROL_SRCUPDATE:
-			return "Indicate source of media has changed";
-			break;
-		case AST_CONTROL_TRANSFER:
-			return "Indicate status of a transfer request";
-			break;
-		case AST_CONTROL_CONNECTED_LINE:
-			return "Indicate connected line has changed";
-			break;
-		case AST_CONTROL_REDIRECTING:
-			return "Indicate redirecting id has changed";
-			break;
-		case AST_CONTROL_T38_PARAMETERS:
-			return "T38 state change request/notification with parameters";
-			break;
-		case AST_CONTROL_CC:
-			return "Indication that Call completion service is possible";
-			break;
-		case AST_CONTROL_SRCCHANGE:
-			return "Media source has changed and requires a new RTP SSRC";
-			break;
-		case AST_CONTROL_READ_ACTION:
-			return "Tell ast_read to take a specific action";
-			break;
-		case AST_CONTROL_AOC:
-			return "Advice of Charge with encoded generic AOC payload";
-			break;
-		case AST_CONTROL_END_OF_Q:
-			return "Indicate that this position was the end of the channel queue for a softhangup.";
-			break;
-		case AST_CONTROL_INCOMPLETE:
-			return "Indication that the extension dialed is incomplete";
-			break;
-		case AST_CONTROL_MCID:
-			return "Indicate that the caller is being malicious.";
-			break;
-		case AST_CONTROL_UPDATE_RTP_PEER:
-			return "Interrupt the bridge and have it update the peer";
-			break;
-		case AST_CONTROL_PVT_CAUSE_CODE:
-			return "Contains an update to the protocol-specific cause-code stored for branching dials";
-			break;
+		case AST_CONTROL_HANGUP: return "Other end has hungup";
+		case AST_CONTROL_RING: return "Local ring";
+		case AST_CONTROL_RINGING: return "Remote end is ringing";
+		case AST_CONTROL_ANSWER: return "Remote end has answered";
+		case AST_CONTROL_BUSY: return "Remote end is busy";
+		case AST_CONTROL_TAKEOFFHOOK: return "Make it go off hook";
+		case AST_CONTROL_OFFHOOK: return "Line is off hook";
+		case AST_CONTROL_CONGESTION: return "Congestion (circuits busy)";
+		case AST_CONTROL_FLASH: return "Flash hook";
+		case AST_CONTROL_WINK: return "Wink";
+		case AST_CONTROL_OPTION: return "Set a low-level option";
+		case AST_CONTROL_RADIO_KEY: return "Key Radio";
+		case AST_CONTROL_RADIO_UNKEY: return "Un-Key Radio";
+		case AST_CONTROL_PROGRESS: return "Indicate PROGRESS";
+		case AST_CONTROL_PROCEEDING: return "Indicate CALL PROCEEDING";
+		case AST_CONTROL_HOLD: return "Indicate call is placed on hold";
+		case AST_CONTROL_UNHOLD: return "Indicate call left hold";
+		case AST_CONTROL_VIDUPDATE: return "Indicate video frame update";
+		case _XXX_AST_CONTROL_T38: return "T38 state change request/notification. Deprecated This is no longer supported. Use AST_CONTROL_T38_PARAMETERS instead.";
+		case AST_CONTROL_SRCUPDATE: return "Indicate source of media has changed";
+		case AST_CONTROL_TRANSFER: return "Indicate status of a transfer request";
+		case AST_CONTROL_CONNECTED_LINE: return "Indicate connected line has changed";
+		case AST_CONTROL_REDIRECTING: return "Indicate redirecting id has changed";
+		case AST_CONTROL_T38_PARAMETERS: return "T38 state change request/notification with parameters";
+		case AST_CONTROL_CC: return "Indication that Call completion service is possible";
+		case AST_CONTROL_SRCCHANGE: return "Media source has changed and requires a new RTP SSRC";
+		case AST_CONTROL_READ_ACTION: return "Tell ast_read to take a specific action";
+		case AST_CONTROL_AOC: return "Advice of Charge with encoded generic AOC payload";
+		case AST_CONTROL_END_OF_Q: return "Indicate that this position was the end of the channel queue for a softhangup.";
+		case AST_CONTROL_INCOMPLETE: return "Indication that the extension dialed is incomplete";
+		case AST_CONTROL_MCID: return "Indicate that the caller is being malicious.";
+		case AST_CONTROL_UPDATE_RTP_PEER: return "Interrupt the bridge and have it update the peer";
+		case AST_CONTROL_PVT_CAUSE_CODE: return "Contains an update to the protocol-specific cause-code stored for branching dials";
+		case -1: return "-1 / CHANNEL PROD";
 	}
-	return "Unknown Indication / IAX Indicatation";
+	return "Unknown/Unhandled/IAX Indication";
 }
 
 static void sccp_sync_capabilities_with_peer(sccp_channel_t *c, PBX_CHANNEL_TYPE * ast)
@@ -822,6 +757,14 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 		case AST_CONTROL_CONNECTED_LINE:
 			sccp_wrapper_asterisk113_connectedline(c, data, datalen);
 			sccp_indicate(d, c, c->state);
+
+			res = 0;
+			break;
+
+		case AST_CONTROL_TRANSFER:
+			ast_log(LOG_NOTICE, "%s: Ast Control Transfer: %d", c->designator, *(int *)data);
+			//sccp_wrapper_asterisk113_connectedline(c, data, datalen);
+			//sccp_indicate(d, c, c->state);
 
 			res = 0;
 			break;

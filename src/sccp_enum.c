@@ -13,7 +13,33 @@
 /*
  * SCCP Channel State
  */
-static const char *sccp_channelstate_map[] = {"DOWN","ONHOOK","OFFHOOK","GETDIGITS","DIGITSFOLL","SPEEDDIAL","DIALING","RINGOUT","RINGING","PROCEED","PROGRESS","CONNECTED","CONNECTEDCONFERENCE","HOLD","CALLWAITING","CALLPARK","CALLREMOTEMULTILINE","CALLCONFERENCE","CALLTRANSFER","BLINDTRANSFER","DND","BUSY","CONGESTION","INVALIDNUMBER","INVALIDCONFERENCE","ZOMBIE",};
+static const char *sccp_channelstate_map[] = {"DOWN",
+"ONHOOK",
+"OFFHOOK",
+"GETDIGITS",
+"DIGITSFOLL",
+"SPEEDDIAL",
+"DIALING",
+"RINGOUT",
+"RINGING",
+"PROCEED",
+"PROGRESS",
+"CONNECTED",
+"CONNECTEDCONFERENCE",
+"HOLD",
+"CALLWAITING",
+"CALLPARK",
+"CALLREMOTEMULTILINE",
+"CALLCONFERENCE",
+"CALLTRANSFER",
+"BLINDTRANSFER",
+"DND",
+"BUSY",
+"CONGESTION",
+"INVALIDNUMBER",
+"INVALIDCONFERENCE",
+"ZOMBIE",
+};
 
 int sccp_channelstate_exists(int sccp_channelstate_int_value) {
 	static const int sccp_channelstates[] = {SCCP_CHANNELSTATE_DOWN,SCCP_CHANNELSTATE_ONHOOK,SCCP_CHANNELSTATE_OFFHOOK,SCCP_CHANNELSTATE_GETDIGITS,SCCP_CHANNELSTATE_DIGITSFOLL,SCCP_CHANNELSTATE_SPEEDDIAL,SCCP_CHANNELSTATE_DIALING,SCCP_CHANNELSTATE_RINGOUT,SCCP_CHANNELSTATE_RINGING,SCCP_CHANNELSTATE_PROCEED,SCCP_CHANNELSTATE_PROGRESS,SCCP_CHANNELSTATE_CONNECTED,SCCP_CHANNELSTATE_CONNECTEDCONFERENCE,SCCP_CHANNELSTATE_HOLD,SCCP_CHANNELSTATE_CALLWAITING,SCCP_CHANNELSTATE_CALLPARK,SCCP_CHANNELSTATE_CALLREMOTEMULTILINE,SCCP_CHANNELSTATE_CALLCONFERENCE,SCCP_CHANNELSTATE_CALLTRANSFER,SCCP_CHANNELSTATE_BLINDTRANSFER,SCCP_CHANNELSTATE_DND,SCCP_CHANNELSTATE_BUSY,SCCP_CHANNELSTATE_CONGESTION,SCCP_CHANNELSTATE_INVALIDNUMBER,SCCP_CHANNELSTATE_INVALIDCONFERENCE,SCCP_CHANNELSTATE_ZOMBIE,};
@@ -144,7 +170,7 @@ static const char *sccp_channelstatereason_map[] = {
 };
 
 int sccp_channelstatereason_exists(int sccp_channelstatereason_int_value) {
-	if ((SCCP_CHANNELSTATEREASON_TRANSFER <=sccp_channelstatereason_int_value) && (sccp_channelstatereason_int_value <= SCCP_CHANNELSTATEREASON_CONFERENCE)) {
+	if ((SCCP_CHANNELSTATEREASON_TRANSFER <=sccp_channelstatereason_int_value) && (sccp_channelstatereason_int_value < SCCP_CHANNELSTATEREASON_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -198,7 +224,7 @@ static const char *sccp_earlyrtp_map[] = {
 };
 
 int sccp_earlyrtp_exists(int sccp_earlyrtp_int_value) {
-	if ((SCCP_EARLYRTP_OFFHOOK <=sccp_earlyrtp_int_value) && (sccp_earlyrtp_int_value <= SCCP_EARLYRTP_NONE)) {
+	if ((SCCP_EARLYRTP_OFFHOOK <=sccp_earlyrtp_int_value) && (sccp_earlyrtp_int_value < SCCP_EARLYRTP_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -251,7 +277,7 @@ static const char *sccp_devicestate_map[] = {
 };
 
 int sccp_devicestate_exists(int sccp_devicestate_int_value) {
-	if ((SCCP_DEVICESTATE_OFFHOOK <=sccp_devicestate_int_value) && (sccp_devicestate_int_value <= SCCP_DEVICESTATE_FWDALL)) {
+	if ((SCCP_DEVICESTATE_OFFHOOK <=sccp_devicestate_int_value) && (sccp_devicestate_int_value < SCCP_DEVICESTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -303,7 +329,7 @@ static const char *sccp_callforward_map[] = {
 };
 
 int sccp_callforward_exists(int sccp_callforward_int_value) {
-	if ((SCCP_CFWD_ALL <=sccp_callforward_int_value) && (sccp_callforward_int_value <= SCCP_CFWD_NOANSWER)) {
+	if ((SCCP_CFWD_ALL <=sccp_callforward_int_value) && (sccp_callforward_int_value < SCCP_CALLFORWARD_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -353,7 +379,7 @@ static const char *sccp_dtmfmode_map[] = {
 };
 
 int sccp_dtmfmode_exists(int sccp_dtmfmode_int_value) {
-	if ((SCCP_DTMFMODE_RFC2833 <=sccp_dtmfmode_int_value) && (sccp_dtmfmode_int_value <= SCCP_DTMFMODE_SKINNY)) {
+	if ((SCCP_DTMFMODE_RFC2833 <=sccp_dtmfmode_int_value) && (sccp_dtmfmode_int_value < SCCP_DTMFMODE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -403,7 +429,7 @@ static const char *sccp_autoanswer_map[] = {
 };
 
 int sccp_autoanswer_exists(int sccp_autoanswer_int_value) {
-	if ((SCCP_AUTOANSWER_1W <=sccp_autoanswer_int_value) && (sccp_autoanswer_int_value <= SCCP_AUTOANSWER_2W)) {
+	if ((SCCP_AUTOANSWER_1W <=sccp_autoanswer_int_value) && (sccp_autoanswer_int_value < SCCP_AUTOANSWER_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -454,7 +480,7 @@ static const char *sccp_dndmode_map[] = {
 };
 
 int sccp_dndmode_exists(int sccp_dndmode_int_value) {
-	if ((SCCP_DNDMODE_REJECT <=sccp_dndmode_int_value) && (sccp_dndmode_int_value <= SCCP_DNDMODE_USERDEFINED)) {
+	if ((SCCP_DNDMODE_REJECT <=sccp_dndmode_int_value) && (sccp_dndmode_int_value < SCCP_DNDMODE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -506,7 +532,7 @@ static const char *sccp_accessory_map[] = {
 };
 
 int sccp_accessory_exists(int sccp_accessory_int_value) {
-	if ((SCCP_ACCESSORY_HEADSET <=sccp_accessory_int_value) && (sccp_accessory_int_value <= SCCP_ACCESSORY_SPEAKER)) {
+	if ((SCCP_ACCESSORY_HEADSET <=sccp_accessory_int_value) && (sccp_accessory_int_value < SCCP_ACCESSORY_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -557,7 +583,7 @@ static const char *sccp_accessorystate_map[] = {
 };
 
 int sccp_accessorystate_exists(int sccp_accessorystate_int_value) {
-	if ((SCCP_ACCESSORYSTATE_ONHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value <= SCCP_ACCESSORYSTATE_OFFHOOK)) {
+	if ((SCCP_ACCESSORYSTATE_ONHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -610,7 +636,7 @@ static const char *sccp_config_buttontype_map[] = {
 };
 
 int sccp_config_buttontype_exists(int sccp_config_buttontype_int_value) {
-	if ((SPEEDDIAL <=sccp_config_buttontype_int_value) && (sccp_config_buttontype_int_value <= EMPTY)) {
+	if ((SPEEDDIAL <=sccp_config_buttontype_int_value) && (sccp_config_buttontype_int_value < SCCP_CONFIG_BUTTONTYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -660,7 +686,7 @@ static const char *sccp_devstate_state_map[] = {
 };
 
 int sccp_devstate_state_exists(int sccp_devstate_state_int_value) {
-	if ((SCCP_DEVSTATE_INUSE <=sccp_devstate_state_int_value) && (sccp_devstate_state_int_value <= SCCP_DEVSTATE_INUSE)) {
+	if ((SCCP_DEVSTATE_INUSE <=sccp_devstate_state_int_value) && (sccp_devstate_state_int_value < SCCP_DEVSTATE_STATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -710,7 +736,7 @@ static const char *sccp_blindtransferindication_map[] = {
 };
 
 int sccp_blindtransferindication_exists(int sccp_blindtransferindication_int_value) {
-	if ((SCCP_BLINDTRANSFER_MOH <=sccp_blindtransferindication_int_value) && (sccp_blindtransferindication_int_value <= SCCP_BLINDTRANSFER_MOH)) {
+	if ((SCCP_BLINDTRANSFER_MOH <=sccp_blindtransferindication_int_value) && (sccp_blindtransferindication_int_value < SCCP_BLINDTRANSFERINDICATION_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -760,7 +786,7 @@ static const char *sccp_call_answer_order_map[] = {
 };
 
 int sccp_call_answer_order_exists(int sccp_call_answer_order_int_value) {
-	if ((SCCP_ANSWER_LAST_FIRST <=sccp_call_answer_order_int_value) && (sccp_call_answer_order_int_value <= SCCP_ANSWER_LAST_FIRST)) {
+	if ((SCCP_ANSWER_LAST_FIRST <=sccp_call_answer_order_int_value) && (sccp_call_answer_order_int_value < SCCP_CALL_ANSWER_ORDER_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -813,7 +839,7 @@ static const char *sccp_nat_map[] = {
 };
 
 int sccp_nat_exists(int sccp_nat_int_value) {
-	if ((SCCP_NAT_OFF <=sccp_nat_int_value) && (sccp_nat_int_value <= SCCP_NAT_AUTO_ON)) {
+	if ((SCCP_NAT_OFF <=sccp_nat_int_value) && (sccp_nat_int_value < SCCP_NAT_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -864,7 +890,7 @@ static const char *sccp_video_mode_map[] = {
 };
 
 int sccp_video_mode_exists(int sccp_video_mode_int_value) {
-	if ((SCCP_VIDEO_MODE_USER <=sccp_video_mode_int_value) && (sccp_video_mode_int_value <= SCCP_VIDEO_MODE_AUTO)) {
+	if ((SCCP_VIDEO_MODE_USER <=sccp_video_mode_int_value) && (sccp_video_mode_int_value < SCCP_VIDEO_MODE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -922,7 +948,7 @@ static const char *sccp_event_type_map[] = {
 };
 
 int sccp_event_type_exists(int sccp_event_type_int_value) {
-	if ((SCCP_EVENT_LINE_CHANGED <=sccp_event_type_int_value) && (sccp_event_type_int_value <= SCCP_EVENT_LINESTATUS_CHANGED)) {
+	if ((SCCP_EVENT_LINE_CHANGED <=sccp_event_type_int_value) && (sccp_event_type_int_value < SCCP_EVENT_TYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -972,7 +998,7 @@ static const char *sccp_parkresult_map[] = {
 };
 
 int sccp_parkresult_exists(int sccp_parkresult_int_value) {
-	if ((PARK_RESULT_SUCCESS <=sccp_parkresult_int_value) && (sccp_parkresult_int_value <= PARK_RESULT_SUCCESS)) {
+	if ((PARK_RESULT_SUCCESS <=sccp_parkresult_int_value) && (sccp_parkresult_int_value < SCCP_PARKRESULT_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1022,7 +1048,7 @@ static const char *sccp_calleridpresence_map[] = {
 };
 
 int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
-	if ((CALLERID_PRESENCE_ALLOWED <=sccp_calleridpresence_int_value) && (sccp_calleridpresence_int_value <= CALLERID_PRESENCE_ALLOWED)) {
+	if ((CALLERID_PRESENCE_ALLOWED <=sccp_calleridpresence_int_value) && (sccp_calleridpresence_int_value < SCCP_CALLERIDPRESENCE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1073,7 +1099,7 @@ static const char *sccp_rtp_status_map[] = {
 };
 
 int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
-	if ((SCCP_RTP_STATUS_PROGRESS <=sccp_rtp_status_int_value) && (sccp_rtp_status_int_value <= SCCP_RTP_STATUS_ACTIVE)) {
+	if ((SCCP_RTP_STATUS_PROGRESS <=sccp_rtp_status_int_value) && (sccp_rtp_status_int_value < SCCP_RTP_STATUS_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1124,7 +1150,7 @@ static const char *sccp_extension_status_map[] = {
 };
 
 int sccp_extension_status_exists(int sccp_extension_status_int_value) {
-	if ((SCCP_EXTENSION_MATCHMORE <=sccp_extension_status_int_value) && (sccp_extension_status_int_value <= SCCP_EXTENSION_EXACTMATCH)) {
+	if ((SCCP_EXTENSION_MATCHMORE <=sccp_extension_status_int_value) && (sccp_extension_status_int_value < SCCP_EXTENSION_STATUS_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1176,7 +1202,7 @@ static const char *sccp_channel_request_status_map[] = {
 };
 
 int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value) {
-	if ((SCCP_REQUEST_STATUS_LINEUNKNOWN <=sccp_channel_request_status_int_value) && (sccp_channel_request_status_int_value <= SCCP_REQUEST_STATUS_SUCCESS)) {
+	if ((SCCP_REQUEST_STATUS_LINEUNKNOWN <=sccp_channel_request_status_int_value) && (sccp_channel_request_status_int_value < SCCP_CHANNEL_REQUEST_STATUS_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1230,7 +1256,7 @@ static const char *sccp_message_priority_map[] = {
 };
 
 int sccp_message_priority_exists(int sccp_message_priority_int_value) {
-	if ((SCCP_MESSAGE_PRIORITY_VOICEMAIL <=sccp_message_priority_int_value) && (sccp_message_priority_int_value <= SCCP_MESSAGE_PRIORITY_CFWD)) {
+	if ((SCCP_MESSAGE_PRIORITY_VOICEMAIL <=sccp_message_priority_int_value) && (sccp_message_priority_int_value < SCCP_MESSAGE_PRIORITY_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1281,7 +1307,7 @@ static const char *sccp_push_result_map[] = {
 };
 
 int sccp_push_result_exists(int sccp_push_result_int_value) {
-	if ((SCCP_PUSH_RESULT_NOT_SUPPORTED <=sccp_push_result_int_value) && (sccp_push_result_int_value <= SCCP_PUSH_RESULT_SUCCESS)) {
+	if ((SCCP_PUSH_RESULT_NOT_SUPPORTED <=sccp_push_result_int_value) && (sccp_push_result_int_value < SCCP_PUSH_RESULT_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1332,7 +1358,7 @@ static const char *sccp_tokenstate_map[] = {
 };
 
 int sccp_tokenstate_exists(int sccp_tokenstate_int_value) {
-	if ((SCCP_TOKEN_STATE_ACK <=sccp_tokenstate_int_value) && (sccp_tokenstate_int_value <= SCCP_TOKEN_STATE_REJ)) {
+	if ((SCCP_TOKEN_STATE_ACK <=sccp_tokenstate_int_value) && (sccp_tokenstate_int_value < SCCP_TOKENSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1382,12 +1408,14 @@ static const char *sccp_softswitch_map[] = {
 	[SCCP_SOFTSWITCH_GETMEETMEROOM] = "Softswitch Get Meetme Room",
 	[SCCP_SOFTSWITCH_GETBARGEEXTEN] = "Softswitch Get Barge Extension",
 	[SCCP_SOFTSWITCH_GETCBARGEROOM] = "Softswitch Get CBarrge Room",
-	[SCCP_SOFTSWITCH_GETCONFERENCEROOM] = "Softswicth Get Conference Room",
+#ifdef CS_SCCP_CONFERENCE
+	[SCCP_SOFTSWITCH_GETCONFERENCEROOM] = "Softswitch Get Conference Room",
+#endif
 	[SCCP_SOFTSWITCH_SENTINEL] = "LOOKUPERROR"
 };
 
 int sccp_softswitch_exists(int sccp_softswitch_int_value) {
-	if ((SCCP_SOFTSWITCH_GETFORWARDEXTEN <=sccp_softswitch_int_value) && (sccp_softswitch_int_value <= SCCP_SOFTSWITCH_GETCONFERENCEROOM)) {
+	if ((SCCP_SOFTSWITCH_GETFORWARDEXTEN <=sccp_softswitch_int_value) && (sccp_softswitch_int_value < SCCP_SOFTSWITCH_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1418,7 +1446,7 @@ int sccp_softswitch_str2intval(const char *lookup_str) {
 }
 
 char *sccp_softswitch_all_entries(void) {
-	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Softswicth Get Conference Room";
+	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Registered,Softswitch Get Conference Room";
 	return res;
 }
 /* = End =========================================================================================                sccp_softswitch === */
@@ -1438,7 +1466,7 @@ static const char *sccp_phonebook_map[] = {
 };
 
 int sccp_phonebook_exists(int sccp_phonebook_int_value) {
-	if ((SCCP_PHONEBOOK_MISSED <=sccp_phonebook_int_value) && (sccp_phonebook_int_value <= SCCP_PHONEBOOK_RECEIVED)) {
+	if ((SCCP_PHONEBOOK_MISSED <=sccp_phonebook_int_value) && (sccp_phonebook_int_value < SCCP_PHONEBOOK_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1489,7 +1517,7 @@ static const char *sccp_feature_monitor_state_map[] = {
 };
 
 int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) {
-	if ((SCCP_FEATURE_MONITOR_STATE_ACTIVE <=sccp_feature_monitor_state_int_value) && (sccp_feature_monitor_state_int_value <= SCCP_FEATURE_MONITOR_STATE_REQUESTED)) {
+	if ((SCCP_FEATURE_MONITOR_STATE_ACTIVE <=sccp_feature_monitor_state_int_value) && (sccp_feature_monitor_state_int_value < SCCP_FEATURE_MONITOR_STATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1538,7 +1566,7 @@ static const char *sccp_readingtype_map[] = {
 };
 
 int sccp_readingtype_exists(int sccp_readingtype_int_value) {
-	if ((SCCP_CONFIG_READRELOAD <=sccp_readingtype_int_value) && (sccp_readingtype_int_value <= SCCP_CONFIG_READRELOAD)) {
+	if ((SCCP_CONFIG_READRELOAD <=sccp_readingtype_int_value) && (sccp_readingtype_int_value < SCCP_READINGTYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1589,7 +1617,7 @@ static const char *sccp_configurationchange_map[] = {
 };
 
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
-	if ((SCCP_CONFIG_NEEDDEVICERESET <=sccp_configurationchange_int_value) && (sccp_configurationchange_int_value <= SCCP_CONFIG_ERROR)) {
+	if ((SCCP_CONFIG_NEEDDEVICERESET <=sccp_configurationchange_int_value) && (sccp_configurationchange_int_value < SCCP_CONFIGURATIONCHANGE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1639,7 +1667,7 @@ static const char *sccp_call_statistics_type_map[] = {
 };
 
 int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value) {
-	if ((SCCP_CALLSTATISTIC_AVG <=sccp_call_statistics_type_int_value) && (sccp_call_statistics_type_int_value <= SCCP_CALLSTATISTIC_AVG)) {
+	if ((SCCP_CALLSTATISTIC_AVG <=sccp_call_statistics_type_int_value) && (sccp_call_statistics_type_int_value < SCCP_CALL_STATISTICS_TYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1690,7 +1718,7 @@ static const char *sccp_rtp_info_map[] = {
 };
 
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
-	if ((SCCP_RTP_INFO_AVAILABLE <=sccp_rtp_info_int_value) && (sccp_rtp_info_int_value <= SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
+	if ((SCCP_RTP_INFO_AVAILABLE <=sccp_rtp_info_int_value) && (sccp_rtp_info_int_value < SCCP_RTP_INFO_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1742,7 +1770,7 @@ static const char *skinny_lampmode_map[] = {
 };
 
 int skinny_lampmode_exists(int skinny_lampmode_int_value) {
-	if ((SKINNY_LAMP_ON <=skinny_lampmode_int_value) && (skinny_lampmode_int_value <= SKINNY_LAMP_BLINK)) {
+	if ((SKINNY_LAMP_ON <=skinny_lampmode_int_value) && (skinny_lampmode_int_value < SKINNY_LAMPMODE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1792,7 +1820,7 @@ static const char *skinny_calltype_map[] = {
 };
 
 int skinny_calltype_exists(int skinny_calltype_int_value) {
-	if ((SKINNY_CALLTYPE_OUTBOUND <=skinny_calltype_int_value) && (skinny_calltype_int_value <= SKINNY_CALLTYPE_FORWARD)) {
+	if ((SKINNY_CALLTYPE_OUTBOUND <=skinny_calltype_int_value) && (skinny_calltype_int_value < SKINNY_CALLTYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1856,7 +1884,7 @@ static const char *skinny_callstate_map[] = {
 };
 
 int skinny_callstate_exists(int skinny_callstate_int_value) {
-	if ((SKINNY_CALLSTATE_ONHOOK <=skinny_callstate_int_value) && (skinny_callstate_int_value <= SKINNY_CALLSTATE_HOLDRED)) {
+	if ((SKINNY_CALLSTATE_ONHOOK <=skinny_callstate_int_value) && (skinny_callstate_int_value < SKINNY_CALLSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1908,7 +1936,7 @@ static const char *skinny_callpriority_map[] = {
 };
 
 int skinny_callpriority_exists(int skinny_callpriority_int_value) {
-	if ((SKINNY_CALLPRIORITY_HIGH <=skinny_callpriority_int_value) && (skinny_callpriority_int_value <= SKINNY_CALLPRIORITY_NORMAL)) {
+	if ((SKINNY_CALLPRIORITY_HIGH <=skinny_callpriority_int_value) && (skinny_callpriority_int_value < SKINNY_CALLPRIORITY_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -1958,7 +1986,7 @@ static const char *skinny_callinfo_visibility_map[] = {
 };
 
 int skinny_callinfo_visibility_exists(int skinny_callinfo_visibility_int_value) {
-	if ((SKINNY_CALLINFO_VISIBILITY_COLLAPSED <=skinny_callinfo_visibility_int_value) && (skinny_callinfo_visibility_int_value <= SKINNY_CALLINFO_VISIBILITY_HIDDEN)) {
+	if ((SKINNY_CALLINFO_VISIBILITY_COLLAPSED <=skinny_callinfo_visibility_int_value) && (skinny_callinfo_visibility_int_value < SKINNY_CALLINFO_VISIBILITY_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2008,7 +2036,7 @@ static const char *skinny_callsecuritystate_map[] = {
 };
 
 int skinny_callsecuritystate_exists(int skinny_callsecuritystate_int_value) {
-	if ((SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED <=skinny_callsecuritystate_int_value) && (skinny_callsecuritystate_int_value <= SKINNY_CALLSECURITYSTATE_AUTHENTICATED)) {
+	if ((SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED <=skinny_callsecuritystate_int_value) && (skinny_callsecuritystate_int_value < SKINNY_CALLSECURITYSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2060,7 +2088,7 @@ static const char *skinny_busylampfield_state_map[] = {
 };
 
 int skinny_busylampfield_state_exists(int skinny_busylampfield_state_int_value) {
-	if ((SKINNY_BLF_STATUS_IDLE <=skinny_busylampfield_state_int_value) && (skinny_busylampfield_state_int_value <= SKINNY_BLF_STATUS_ALERTING)) {
+	if ((SKINNY_BLF_STATUS_IDLE <=skinny_busylampfield_state_int_value) && (skinny_busylampfield_state_int_value < SKINNY_BUSYLAMPFIELD_STATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2102,7 +2130,15 @@ char *skinny_busylampfield_state_all_entries(void) {
 /*!
  * \brief Skinny Busy Lamp Field Status (ENUM)
  */
-static const char *skinny_alarm_map[] = {"Critical","Warning","Informational","Unknown","Major","Minor","Marginal","TraceInfo",};
+static const char *skinny_alarm_map[] = {"Critical",
+"Warning",
+"Informational",
+"Unknown",
+"Major",
+"Minor",
+"Marginal",
+"TraceInfo",
+};
 
 int skinny_alarm_exists(int skinny_alarm_int_value) {
 	static const int skinny_alarms[] = {SKINNY_ALARM_CRITICAL,SKINNY_ALARM_WARNING,SKINNY_ALARM_INFORMATIONAL,SKINNY_ALARM_UNKNOWN,SKINNY_ALARM_MAJOR,SKINNY_ALARM_MINOR,SKINNY_ALARM_MARGINAL,SKINNY_ALARM_TRACEINFO,};
@@ -2170,7 +2206,90 @@ char *skinny_alarm_all_entries(void) {
 /*!
  * \brief Skinny Tone (ENUM)
  */
-static const char *skinny_tone_map[] = {"Silence","DTMF 1","DTMF 2","DTMF 3","DTMF 4","DTMF 5","DTMF 6","DTMF 7","DTMF 8","DTMF 9","DTMF 0","DTMF Star","DTMF Pound","DTMF A","DTMF B","DTMF C","DTMF D","Inside Dial Tone","Outside Dial Tone","Line Busy Tone","Alerting Tone","Reorder Tone","Recorder Warning Tone","Recorder Detected Tone","Reverting Tone","Receiver OffHook Tone","Partial Dial Tone","No Such Number Tone","Busy Verification Tone","Call Waiting Tone","Confirmation Tone","Camp On Indication Tone","Recall Dial Tone","Zip Zip","Zip","Beep Bonk","Music Tone","Hold Tone","Test Tone","DT Monitor Warning Tone","Add Call Waiting","Priority Call Wait","Recall Dial","Barg In","Distinct Alert","Priority Alert","Reminder Ring","Precedence RingBank","Pre-EmptionTone","MF1","MF2","MF3","MF4","MF5","MF6","MF7","MF8","MF9","MF0","MFKP1","MFST","MFKP2","MFSTP","MFST3P","MILLIWATT","MILLIWATT TEST","HIGH TONE","FLASH OVERRIDE","FLASH","PRIORITY","IMMEDIATE","PRE-AMP WARN","2105 HZ","2600 HZ","440 HZ","300 HZ","MLPP Pala","MLPP Ica","MLPP Vca","MLPP Bpa","MLPP Bnea","MLPP Upa","No Tone",};
+static const char *skinny_tone_map[] = {"Silence",
+"DTMF 1",
+"DTMF 2",
+"DTMF 3",
+"DTMF 4",
+"DTMF 5",
+"DTMF 6",
+"DTMF 7",
+"DTMF 8",
+"DTMF 9",
+"DTMF 0",
+"DTMF Star",
+"DTMF Pound",
+"DTMF A",
+"DTMF B",
+"DTMF C",
+"DTMF D",
+"Inside Dial Tone",
+"Outside Dial Tone",
+"Line Busy Tone",
+"Alerting Tone",
+"Reorder Tone",
+"Recorder Warning Tone",
+"Recorder Detected Tone",
+"Reverting Tone",
+"Receiver OffHook Tone",
+"Partial Dial Tone",
+"No Such Number Tone",
+"Busy Verification Tone",
+"Call Waiting Tone",
+"Confirmation Tone",
+"Camp On Indication Tone",
+"Recall Dial Tone",
+"Zip Zip",
+"Zip",
+"Beep Bonk",
+"Music Tone",
+"Hold Tone",
+"Test Tone",
+"DT Monitor Warning Tone",
+"Add Call Waiting",
+"Priority Call Wait",
+"Recall Dial",
+"Barg In",
+"Distinct Alert",
+"Priority Alert",
+"Reminder Ring",
+"Precedence RingBank",
+"Pre-EmptionTone",
+"MF1",
+"MF2",
+"MF3",
+"MF4",
+"MF5",
+"MF6",
+"MF7",
+"MF8",
+"MF9",
+"MF0",
+"MFKP1",
+"MFST",
+"MFKP2",
+"MFSTP",
+"MFST3P",
+"MILLIWATT",
+"MILLIWATT TEST",
+"HIGH TONE",
+"FLASH OVERRIDE",
+"FLASH",
+"PRIORITY",
+"IMMEDIATE",
+"PRE-AMP WARN",
+"2105 HZ",
+"2600 HZ",
+"440 HZ",
+"300 HZ",
+"MLPP Pala",
+"MLPP Ica",
+"MLPP Vca",
+"MLPP Bpa",
+"MLPP Bnea",
+"MLPP Upa",
+"No Tone",
+};
 
 int skinny_tone_exists(int skinny_tone_int_value) {
 	static const int skinny_tones[] = {SKINNY_TONE_SILENCE,SKINNY_TONE_DTMF1,SKINNY_TONE_DTMF2,SKINNY_TONE_DTMF3,SKINNY_TONE_DTMF4,SKINNY_TONE_DTMF5,SKINNY_TONE_DTMF6,SKINNY_TONE_DTMF7,SKINNY_TONE_DTMF8,SKINNY_TONE_DTMF9,SKINNY_TONE_DTMF0,SKINNY_TONE_DTMFSTAR,SKINNY_TONE_DTMFPOUND,SKINNY_TONE_DTMFA,SKINNY_TONE_DTMFB,SKINNY_TONE_DTMFC,SKINNY_TONE_DTMFD,SKINNY_TONE_INSIDEDIALTONE,SKINNY_TONE_OUTSIDEDIALTONE,SKINNY_TONE_LINEBUSYTONE,SKINNY_TONE_ALERTINGTONE,SKINNY_TONE_REORDERTONE,SKINNY_TONE_RECORDERWARNINGTONE,SKINNY_TONE_RECORDERDETECTEDTONE,SKINNY_TONE_REVERTINGTONE,SKINNY_TONE_RECEIVEROFFHOOKTONE,SKINNY_TONE_PARTIALDIALTONE,SKINNY_TONE_NOSUCHNUMBERTONE,SKINNY_TONE_BUSYVERIFICATIONTONE,SKINNY_TONE_CALLWAITINGTONE,SKINNY_TONE_CONFIRMATIONTONE,SKINNY_TONE_CAMPONINDICATIONTONE,SKINNY_TONE_RECALLDIALTONE,SKINNY_TONE_ZIPZIP,SKINNY_TONE_ZIP,SKINNY_TONE_BEEPBONK,SKINNY_TONE_MUSICTONE,SKINNY_TONE_HOLDTONE,SKINNY_TONE_TESTTONE,SKINNY_TONE_DTMONITORWARNINGTONE,SKINNY_TONE_ADDCALLWAITING,SKINNY_TONE_PRIORITYCALLWAIT,SKINNY_TONE_RECALLDIAL,SKINNY_TONE_BARGIN,SKINNY_TONE_DISTINCTALERT,SKINNY_TONE_PRIORITYALERT,SKINNY_TONE_REMINDERRING,SKINNY_TONE_PRECEDENCE_RINGBACK,SKINNY_TONE_PREEMPTIONTONE,SKINNY_TONE_MF1,SKINNY_TONE_MF2,SKINNY_TONE_MF3,SKINNY_TONE_MF4,SKINNY_TONE_MF5,SKINNY_TONE_MF6,SKINNY_TONE_MF7,SKINNY_TONE_MF8,SKINNY_TONE_MF9,SKINNY_TONE_MF0,SKINNY_TONE_MFKP1,SKINNY_TONE_MFST,SKINNY_TONE_MFKP2,SKINNY_TONE_MFSTP,SKINNY_TONE_MFST3P,SKINNY_TONE_MILLIWATT,SKINNY_TONE_MILLIWATTTEST,SKINNY_TONE_HIGHTONE,SKINNY_TONE_FLASHOVERRIDE,SKINNY_TONE_FLASH,SKINNY_TONE_PRIORITY,SKINNY_TONE_IMMEDIATE,SKINNY_TONE_PREAMPWARN,SKINNY_TONE_2105HZ,SKINNY_TONE_2600HZ,SKINNY_TONE_440HZ,SKINNY_TONE_300HZ,SKINNY_TONE_MLPP_PALA,SKINNY_TONE_MLPP_ICA,SKINNY_TONE_MLPP_VCA,SKINNY_TONE_MLPP_BPA,SKINNY_TONE_MLPP_BNEA,SKINNY_TONE_MLPP_UPA,SKINNY_TONE_NOTONE,};
@@ -2463,7 +2582,15 @@ char *skinny_tone_all_entries(void) {
 /*!
  * \brief Skinny Video Format (ENUM)
  */
-static const char *skinny_videoformat_map[] = {"undefined","sqcif (128x96)","qcif (176x144)","cif (352x288)","4cif (704x576)","16cif (1408x1152)","custom_base","unknown",};
+static const char *skinny_videoformat_map[] = {"undefined",
+"sqcif (128x96)",
+"qcif (176x144)",
+"cif (352x288)",
+"4cif (704x576)",
+"16cif (1408x1152)",
+"custom_base",
+"unknown",
+};
 
 int skinny_videoformat_exists(int skinny_videoformat_int_value) {
 	static const int skinny_videoformats[] = {SKINNY_VIDEOFORMAT_UNDEFINED,SKINNY_VIDEOFORMAT_SQCIF,SKINNY_VIDEOFORMAT_QCIF,SKINNY_VIDEOFORMAT_CIF,SKINNY_VIDEOFORMAT_4CIF,SKINNY_VIDEOFORMAT_16CIF,SKINNY_VIDEOFORMAT_CUSTOM,SKINNY_VIDEOFORMAT_UNKNOWN,};
@@ -2547,7 +2674,7 @@ static const char *skinny_ringtype_map[] = {
 };
 
 int skinny_ringtype_exists(int skinny_ringtype_int_value) {
-	if ((SKINNY_RINGTYPE_INSIDE <=skinny_ringtype_int_value) && (skinny_ringtype_int_value <= SKINNY_RINGTYPE_BELLCORE_5)) {
+	if ((SKINNY_RINGTYPE_INSIDE <=skinny_ringtype_int_value) && (skinny_ringtype_int_value < SKINNY_RINGTYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2598,7 +2725,7 @@ static const char *skinny_receivetransmit_map[] = {
 };
 
 int skinny_receivetransmit_exists(int skinny_receivetransmit_int_value) {
-	if ((SKINNY_TRANSMITRECEIVE_RECEIVE <=skinny_receivetransmit_int_value) && (skinny_receivetransmit_int_value <= SKINNY_TRANSMITRECEIVE_BOTH)) {
+	if ((SKINNY_TRANSMITRECEIVE_RECEIVE <=skinny_receivetransmit_int_value) && (skinny_receivetransmit_int_value < SKINNY_RECEIVETRANSMIT_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2658,7 +2785,7 @@ static const char *skinny_keymode_map[] = {
 };
 
 int skinny_keymode_exists(int skinny_keymode_int_value) {
-	if ((KEYMODE_CONNECTED <=skinny_keymode_int_value) && (skinny_keymode_int_value <= KEYMODE_EMPTY)) {
+	if ((KEYMODE_CONNECTED <=skinny_keymode_int_value) && (skinny_keymode_int_value < SKINNY_KEYMODE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2711,7 +2838,7 @@ static const char *skinny_registrationstate_map[] = {
 };
 
 int skinny_registrationstate_exists(int skinny_registrationstate_int_value) {
-	if ((SKINNY_DEVICE_RS_TIMEOUT <=skinny_registrationstate_int_value) && (skinny_registrationstate_int_value <= SKINNY_DEVICE_RS_OK)) {
+	if ((SKINNY_DEVICE_RS_TIMEOUT <=skinny_registrationstate_int_value) && (skinny_registrationstate_int_value < SKINNY_REGISTRATIONSTATE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2771,7 +2898,7 @@ static const char *skinny_mediastatus_map[] = {
 };
 
 int skinny_mediastatus_exists(int skinny_mediastatus_int_value) {
-	if ((SKINNY_MEDIASTATUS_Unknown <=skinny_mediastatus_int_value) && (skinny_mediastatus_int_value <= SKINNY_MEDIASTATUS_DeviceOnHook)) {
+	if ((SKINNY_MEDIASTATUS_Unknown <=skinny_mediastatus_int_value) && (skinny_mediastatus_int_value < SKINNY_MEDIASTATUS_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -2814,7 +2941,63 @@ char *skinny_mediastatus_all_entries(void) {
  * \brief Skinny Stimulus (ENUM)
  * Almost the same as Skinny buttontype !!
  */
-static const char *skinny_stimulus_map[] = {"Unused","Last Number Redial","SpeedDial","Hold","Transfer","Forward All","Forward Busy","Forward No Answer","Display","Line","T120 Chat","T120 Whiteboard","T120 Application Sharing","T120 File Transfer","Video","Voicemail","Answer Release","Auto Answer","Select","Feature","ServiceURL","BusyLampField Speeddial","Malicious Call","Generic App B1","Generic App B2","Generic App B3","Generic App B4","Generic App B5","Monitor/Multiblink","Meet Me Conference","Conference","Call Park","Call Pickup","Group Call Pickup","Mobility","DoNotDisturb","ConfList","RemoveLastParticipant","QRT","CallBack","OtherPickup","VideoMode","NewCall","EndCall","HLog","Queuing","Test E","Test F","Test I","Messages","Directory","Application","Headset","Keypad","Aec","Undefined",};
+static const char *skinny_stimulus_map[] = {"Unused",
+"Last Number Redial",
+"SpeedDial",
+"Hold",
+"Transfer",
+"Forward All",
+"Forward Busy",
+"Forward No Answer",
+"Display",
+"Line",
+"T120 Chat",
+"T120 Whiteboard",
+"T120 Application Sharing",
+"T120 File Transfer",
+"Video",
+"Voicemail",
+"Answer Release",
+"Auto Answer",
+"Select",
+"Feature",
+"ServiceURL",
+"BusyLampField Speeddial",
+"Malicious Call",
+"Generic App B1",
+"Generic App B2",
+"Generic App B3",
+"Generic App B4",
+"Generic App B5",
+"Monitor/Multiblink",
+"Meet Me Conference",
+"Conference",
+"Call Park",
+"Call Pickup",
+"Group Call Pickup",
+"Mobility",
+"DoNotDisturb",
+"ConfList",
+"RemoveLastParticipant",
+"QRT",
+"CallBack",
+"OtherPickup",
+"VideoMode",
+"NewCall",
+"EndCall",
+"HLog",
+"Queuing",
+"Test E",
+"Test F",
+"Test I",
+"Messages",
+"Directory",
+"Application",
+"Headset",
+"Keypad",
+"Aec",
+"Undefined",
+};
 
 int skinny_stimulus_exists(int skinny_stimulus_int_value) {
 	static const int skinny_stimuluss[] = {SKINNY_STIMULUS_UNUSED,SKINNY_STIMULUS_LASTNUMBERREDIAL,SKINNY_STIMULUS_SPEEDDIAL,SKINNY_STIMULUS_HOLD,SKINNY_STIMULUS_TRANSFER,SKINNY_STIMULUS_FORWARDALL,SKINNY_STIMULUS_FORWARDBUSY,SKINNY_STIMULUS_FORWARDNOANSWER,SKINNY_STIMULUS_DISPLAY,SKINNY_STIMULUS_LINE,SKINNY_STIMULUS_T120CHAT,SKINNY_STIMULUS_T120WHITEBOARD,SKINNY_STIMULUS_T120APPLICATIONSHARING,SKINNY_STIMULUS_T120FILETRANSFER,SKINNY_STIMULUS_VIDEO,SKINNY_STIMULUS_VOICEMAIL,SKINNY_STIMULUS_ANSWERRELEASE,SKINNY_STIMULUS_AUTOANSWER,SKINNY_STIMULUS_SELECT,SKINNY_STIMULUS_FEATURE,SKINNY_STIMULUS_SERVICEURL,SKINNY_STIMULUS_BLFSPEEDDIAL,SKINNY_STIMULUS_MALICIOUSCALL,SKINNY_STIMULUS_GENERICAPPB1,SKINNY_STIMULUS_GENERICAPPB2,SKINNY_STIMULUS_GENERICAPPB3,SKINNY_STIMULUS_GENERICAPPB4,SKINNY_STIMULUS_GENERICAPPB5,SKINNY_STIMULUS_MULTIBLINKFEATURE,SKINNY_STIMULUS_MEETMECONFERENCE,SKINNY_STIMULUS_CONFERENCE,SKINNY_STIMULUS_CALLPARK,SKINNY_STIMULUS_CALLPICKUP,SKINNY_STIMULUS_GROUPCALLPICKUP,SKINNY_STIMULUS_MOBILITY,SKINNY_STIMULUS_DO_NOT_DISTURB,SKINNY_STIMULUS_CONF_LIST,SKINNY_STIMULUS_REMOVE_LAST_PARTICIPANT,SKINNY_STIMULUS_QRT,SKINNY_STIMULUS_CALLBACK,SKINNY_STIMULUS_OTHER_PICKUP,SKINNY_STIMULUS_VIDEO_MODE,SKINNY_STIMULUS_NEW_CALL,SKINNY_STIMULUS_END_CALL,SKINNY_STIMULUS_HLOG,SKINNY_STIMULUS_QUEUING,SKINNY_STIMULUS_TESTE,SKINNY_STIMULUS_TESTF,SKINNY_STIMULUS_TESTI,SKINNY_STIMULUS_MESSAGES,SKINNY_STIMULUS_DIRECTORY,SKINNY_STIMULUS_APPLICATION,SKINNY_STIMULUS_HEADSET,SKINNY_STIMULUS_KEYPAD,SKINNY_STIMULUS_AEC,SKINNY_STIMULUS_UNDEFINED,};
@@ -3027,7 +3210,61 @@ char *skinny_stimulus_all_entries(void) {
  * \brief Skinny ButtonType (ENUM)
  * Almost the same as Skinny Stimulus !!
  */
-static const char *skinny_buttontype_map[] = {"Unused","Last Number Redial","SpeedDial","Hold","Transfer","Forward All","Forward Busy","Forward No Answer","Display","Line","T120 Chat","T120 Whiteboard","T120 Application Sharing","T120 File Transfer","Video","Voicemail","Answer Release","Auto Answer","Feature","ServiceURL","BusyLampField Speeddial","Generic App B1","Generic App B2","Generic App B3","Generic App B4","Generic App B5","Monitor/Multiblink","Meet Me Conference","Conference","Call Park","Call Pickup","Group Call Pickup","Mobility","DoNotDisturb","ConfList","RemoveLastParticipant","QRT","CallBack","OtherPickup","VideoMode","NewCall","EndCall","HLog","Queuing","Test E","Test F","Test I","Messages","Directory","Application","Headset","Keypad","Aec","Undefined",};
+static const char *skinny_buttontype_map[] = {"Unused",
+"Last Number Redial",
+"SpeedDial",
+"Hold",
+"Transfer",
+"Forward All",
+"Forward Busy",
+"Forward No Answer",
+"Display",
+"Line",
+"T120 Chat",
+"T120 Whiteboard",
+"T120 Application Sharing",
+"T120 File Transfer",
+"Video",
+"Voicemail",
+"Answer Release",
+"Auto Answer",
+"Feature",
+"ServiceURL",
+"BusyLampField Speeddial",
+"Generic App B1",
+"Generic App B2",
+"Generic App B3",
+"Generic App B4",
+"Generic App B5",
+"Monitor/Multiblink",
+"Meet Me Conference",
+"Conference",
+"Call Park",
+"Call Pickup",
+"Group Call Pickup",
+"Mobility",
+"DoNotDisturb",
+"ConfList",
+"RemoveLastParticipant",
+"QRT",
+"CallBack",
+"OtherPickup",
+"VideoMode",
+"NewCall",
+"EndCall",
+"HLog",
+"Queuing",
+"Test E",
+"Test F",
+"Test I",
+"Messages",
+"Directory",
+"Application",
+"Headset",
+"Keypad",
+"Aec",
+"Undefined",
+};
 
 int skinny_buttontype_exists(int skinny_buttontype_int_value) {
 	static const int skinny_buttontypes[] = {SKINNY_BUTTONTYPE_UNUSED,SKINNY_BUTTONTYPE_LASTNUMBERREDIAL,SKINNY_BUTTONTYPE_SPEEDDIAL,SKINNY_BUTTONTYPE_HOLD,SKINNY_BUTTONTYPE_TRANSFER,SKINNY_BUTTONTYPE_FORWARDALL,SKINNY_BUTTONTYPE_FORWARDBUSY,SKINNY_BUTTONTYPE_FORWARDNOANSWER,SKINNY_BUTTONTYPE_DISPLAY,SKINNY_BUTTONTYPE_LINE,SKINNY_BUTTONTYPE_T120CHAT,SKINNY_BUTTONTYPE_T120WHITEBOARD,SKINNY_BUTTONTYPE_T120APPLICATIONSHARING,SKINNY_BUTTONTYPE_T120FILETRANSFER,SKINNY_BUTTONTYPE_VIDEO,SKINNY_BUTTONTYPE_VOICEMAIL,SKINNY_BUTTONTYPE_ANSWERRELEASE,SKINNY_BUTTONTYPE_AUTOANSWER,SKINNY_BUTTONTYPE_FEATURE,SKINNY_BUTTONTYPE_SERVICEURL,SKINNY_BUTTONTYPE_BLFSPEEDDIAL,SKINNY_BUTTONTYPE_GENERICAPPB1,SKINNY_BUTTONTYPE_GENERICAPPB2,SKINNY_BUTTONTYPE_GENERICAPPB3,SKINNY_BUTTONTYPE_GENERICAPPB4,SKINNY_BUTTONTYPE_GENERICAPPB5,SKINNY_BUTTONTYPE_MULTIBLINKFEATURE,SKINNY_BUTTONTYPE_MEETMECONFERENCE,SKINNY_BUTTONTYPE_CONFERENCE,SKINNY_BUTTONTYPE_CALLPARK,SKINNY_BUTTONTYPE_CALLPICKUP,SKINNY_BUTTONTYPE_GROUPCALLPICKUP,SKINNY_BUTTONTYPE_MOBILITY,SKINNY_BUTTONTYPE_DO_NOT_DISTURB,SKINNY_BUTTONTYPE_CONF_LIST,SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT,SKINNY_BUTTONTYPE_QRT,SKINNY_BUTTONTYPE_CALLBACK,SKINNY_BUTTONTYPE_OTHER_PICKUP,SKINNY_BUTTONTYPE_VIDEO_MODE,SKINNY_BUTTONTYPE_NEW_CALL,SKINNY_BUTTONTYPE_END_CALL,SKINNY_BUTTONTYPE_HLOG,SKINNY_BUTTONTYPE_QUEUING,SKINNY_BUTTONTYPE_TESTE,SKINNY_BUTTONTYPE_TESTF,SKINNY_BUTTONTYPE_TESTI,SKINNY_BUTTONTYPE_MESSAGES,SKINNY_BUTTONTYPE_DIRECTORY,SKINNY_BUTTONTYPE_APPLICATION,SKINNY_BUTTONTYPE_HEADSET,SKINNY_BUTTONTYPE_KEYPAD,SKINNY_BUTTONTYPE_AEC,SKINNY_BUTTONTYPE_UNDEFINED,};
@@ -3233,7 +3470,111 @@ char *skinny_buttontype_all_entries(void) {
 /*!
  * \brief Skinny DeviceType (ENUM)
  */
-static const char *skinny_devicetype_map[] = {"Undefined: Maybe you forgot the devicetype in your config","VGC","Cisco Ata 186","Cisco Ata 188","Virtual 30SP plus","Phone Application","Analog Access","Digital Access PRI","Digital Access T1","Digital Access Titan2","Analog Access Elvis","Digital Access Lennon","Conference Bridge","Conference Bridge Yoko","Conference Bridge Dixieland","Conference Bridge Summit","H225","H323 Phone","H323 Trunk","Music On Hold","Pilot","Tapi Port","Tapi Route Point","Voice In Box","Voice Inbox Admin","Line Annunciator","Line Annunciator","Line Annunciator","Line Annunciator","Route List","Load Simulator","Media Termination Point","Media Termination Point Yoko","Media Termination Point Dixieland","Media Termination Point Summit","MGCP Station","MGCP Trunk","RAS Proxy","Trunk","Annuciator","Monitor Bridge","Recorder","Monitor Bridge Yoko","Sip Trunk","Analog Gateway","BRI Gateway","30SP plus","12SP plus","12SP","12","30 VIP","Cisco 7902","Cisco 7905","Cisco 7906","Cisco 7910","Cisco 7911","Cisco 7912","Cisco 7920","Cisco 7921","Cisco 7925","Cisco 7931","Cisco 7935","Cisco 7936 Conference","Cisco 7937 Conference","Cisco 7940","Cisco 7941","Cisco 7941 GE","Cisco 7942","Cisco 7945","Cisco 7960","Cisco 7961","Cisco 7961 GE","Cisco 7962","Cisco 7965","Cisco 7970","Cisco 7971","Cisco 7975","Cisco 7985","Nokia E Series","Cisco IP Communicator","Nokia ICC client","Cisco 6901","Cisco 6911","Cisco 6921","Cisco 6941","Cisco 6945","Cisco 6961","Cisco 8941","Cisco 8945","Cisco SPA 303G","Cisco SPA 502G","Cisco SPA 504G","Cisco SPA 509G","Cisco SPA 521S","Cisco SPA 525G","Cisco SPA 525G2","Cisco 7914 AddOn","Cisco 7915 AddOn (12 Buttons)","Cisco 7915 AddOn (24 Buttons)","Cisco 7916 AddOn (12 Buttons)","Cisco 7916 AddOn (24 Buttons)","Cisco SPA500DS (32 Buttons)","Cisco SPA500DS (32 Buttons)","Cisco SPA932DS (32 Buttons)",};
+static const char *skinny_devicetype_map[] = {"Undefined: Maybe you forgot the devicetype in your config",
+"VGC",
+"Cisco Ata 186",
+"Cisco Ata 188",
+"Virtual 30SP plus",
+"Phone Application",
+"Analog Access",
+"Digital Access PRI",
+"Digital Access T1",
+"Digital Access Titan2",
+"Analog Access Elvis",
+"Digital Access Lennon",
+"Conference Bridge",
+"Conference Bridge Yoko",
+"Conference Bridge Dixieland",
+"Conference Bridge Summit",
+"H225",
+"H323 Phone",
+"H323 Trunk",
+"Music On Hold",
+"Pilot",
+"Tapi Port",
+"Tapi Route Point",
+"Voice In Box",
+"Voice Inbox Admin",
+"Line Annunciator",
+"Line Annunciator",
+"Line Annunciator",
+"Line Annunciator",
+"Route List",
+"Load Simulator",
+"Media Termination Point",
+"Media Termination Point Yoko",
+"Media Termination Point Dixieland",
+"Media Termination Point Summit",
+"MGCP Station",
+"MGCP Trunk",
+"RAS Proxy",
+"Trunk",
+"Annuciator",
+"Monitor Bridge",
+"Recorder",
+"Monitor Bridge Yoko",
+"Sip Trunk",
+"Analog Gateway",
+"BRI Gateway",
+"30SP plus",
+"12SP plus",
+"12SP",
+"12",
+"30 VIP",
+"Cisco 7902",
+"Cisco 7905",
+"Cisco 7906",
+"Cisco 7910",
+"Cisco 7911",
+"Cisco 7912",
+"Cisco 7920",
+"Cisco 7921",
+"Cisco 7925",
+"Cisco 7931",
+"Cisco 7935",
+"Cisco 7936 Conference",
+"Cisco 7937 Conference",
+"Cisco 7940",
+"Cisco 7941",
+"Cisco 7941 GE",
+"Cisco 7942",
+"Cisco 7945",
+"Cisco 7960",
+"Cisco 7961",
+"Cisco 7961 GE",
+"Cisco 7962",
+"Cisco 7965",
+"Cisco 7970",
+"Cisco 7971",
+"Cisco 7975",
+"Cisco 7985",
+"Nokia E Series",
+"Cisco IP Communicator",
+"Nokia ICC client",
+"Cisco 6901",
+"Cisco 6911",
+"Cisco 6921",
+"Cisco 6941",
+"Cisco 6945",
+"Cisco 6961",
+"Cisco 8941",
+"Cisco 8945",
+"Cisco SPA 303G",
+"Cisco SPA 502G",
+"Cisco SPA 504G",
+"Cisco SPA 509G",
+"Cisco SPA 521S",
+"Cisco SPA 525G",
+"Cisco SPA 525G2",
+"Cisco 7914 AddOn",
+"Cisco 7915 AddOn (12 Buttons)",
+"Cisco 7915 AddOn (24 Buttons)",
+"Cisco 7916 AddOn (12 Buttons)",
+"Cisco 7916 AddOn (24 Buttons)",
+"Cisco SPA500DS (32 Buttons)",
+"Cisco SPA500DS (32 Buttons)",
+"Cisco SPA932DS (32 Buttons)",
+};
 
 int skinny_devicetype_exists(int skinny_devicetype_int_value) {
 	static const int skinny_devicetypes[] = {SKINNY_DEVICETYPE_UNDEFINED,SKINNY_DEVICETYPE_VGC,SKINNY_DEVICETYPE_ATA186,SKINNY_DEVICETYPE_ATA188,SKINNY_DEVICETYPE_VIRTUAL30SPPLUS,SKINNY_DEVICETYPE_PHONEAPPLICATION,SKINNY_DEVICETYPE_ANALOGACCESS,SKINNY_DEVICETYPE_DIGITALACCESSPRI,SKINNY_DEVICETYPE_DIGITALACCESST1,SKINNY_DEVICETYPE_DIGITALACCESSTITAN2,SKINNY_DEVICETYPE_ANALOGACCESSELVIS,SKINNY_DEVICETYPE_DIGITALACCESSLENNON,SKINNY_DEVICETYPE_CONFERENCEBRIDGE,SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO,SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND,SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT,SKINNY_DEVICETYPE_H225,SKINNY_DEVICETYPE_H323PHONE,SKINNY_DEVICETYPE_H323TRUNK,SKINNY_DEVICETYPE_MUSICONHOLD,SKINNY_DEVICETYPE_PILOT,SKINNY_DEVICETYPE_TAPIPORT,SKINNY_DEVICETYPE_TAPIROUTEPOINT,SKINNY_DEVICETYPE_VOICEINBOX,SKINNY_DEVICETYPE_VOICEINBOXADMIN,SKINNY_DEVICETYPE_LINEANNUNCIATOR,SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND,SKINNY_DEVICETYPE_CISCOMEDIASERVER,SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT,SKINNY_DEVICETYPE_ROUTELIST,SKINNY_DEVICETYPE_LOADSIMULATOR,SKINNY_DEVICETYPE_MEDIA_TERM_POINT,SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO,SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND,SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT,SKINNY_DEVICETYPE_MGCPSTATION,SKINNY_DEVICETYPE_MGCPTRUNK,SKINNY_DEVICETYPE_RASPROXY,SKINNY_DEVICETYPE_TRUNK,SKINNY_DEVICETYPE_ANNUNCIATOR,SKINNY_DEVICETYPE_MONITORBRIDGE,SKINNY_DEVICETYPE_RECORDER,SKINNY_DEVICETYPE_MONITORBRIDGEYOKO,SKINNY_DEVICETYPE_SIPTRUNK,SKINNY_DEVICETYPE_ANALOG_GATEWAY,SKINNY_DEVICETYPE_BRI_GATEWAY,SKINNY_DEVICETYPE_30SPPLUS,SKINNY_DEVICETYPE_12SPPLUS,SKINNY_DEVICETYPE_12SP,SKINNY_DEVICETYPE_12,SKINNY_DEVICETYPE_30VIP,SKINNY_DEVICETYPE_CISCO7902,SKINNY_DEVICETYPE_CISCO7905,SKINNY_DEVICETYPE_CISCO7906,SKINNY_DEVICETYPE_CISCO7910,SKINNY_DEVICETYPE_CISCO7911,SKINNY_DEVICETYPE_CISCO7912,SKINNY_DEVICETYPE_CISCO7920,SKINNY_DEVICETYPE_CISCO7921,SKINNY_DEVICETYPE_CISCO7925,SKINNY_DEVICETYPE_CISCO7931,SKINNY_DEVICETYPE_CISCO7935,SKINNY_DEVICETYPE_CISCO7936,SKINNY_DEVICETYPE_CISCO7937,SKINNY_DEVICETYPE_CISCO7940,SKINNY_DEVICETYPE_CISCO7941,SKINNY_DEVICETYPE_CISCO7941GE,SKINNY_DEVICETYPE_CISCO7942,SKINNY_DEVICETYPE_CISCO7945,SKINNY_DEVICETYPE_CISCO7960,SKINNY_DEVICETYPE_CISCO7961,SKINNY_DEVICETYPE_CISCO7961GE,SKINNY_DEVICETYPE_CISCO7962,SKINNY_DEVICETYPE_CISCO7965,SKINNY_DEVICETYPE_CISCO7970,SKINNY_DEVICETYPE_CISCO7971,SKINNY_DEVICETYPE_CISCO7975,SKINNY_DEVICETYPE_CISCO7985,SKINNY_DEVICETYPE_NOKIA_E_SERIES,SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR,SKINNY_DEVICETYPE_NOKIA_ICC,SKINNY_DEVICETYPE_CISCO6901,SKINNY_DEVICETYPE_CISCO6911,SKINNY_DEVICETYPE_CISCO6921,SKINNY_DEVICETYPE_CISCO6941,SKINNY_DEVICETYPE_CISCO6945,SKINNY_DEVICETYPE_CISCO6961,SKINNY_DEVICETYPE_CISCO8941,SKINNY_DEVICETYPE_CISCO8945,SKINNY_DEVICETYPE_SPA_303G,SKINNY_DEVICETYPE_SPA_502G,SKINNY_DEVICETYPE_SPA_504G,SKINNY_DEVICETYPE_SPA_509G,SKINNY_DEVICETYPE_SPA_521S,SKINNY_DEVICETYPE_SPA_525G,SKINNY_DEVICETYPE_SPA_525G2,SKINNY_DEVICETYPE_CISCO_ADDON_7914,SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS,SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS,};
@@ -3599,7 +3940,7 @@ static const char *skinny_encryptiontype_map[] = {
 };
 
 int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value) {
-	if ((AES_128_HMAC_SHA1_32 <=skinny_encryptiontype_int_value) && (skinny_encryptiontype_int_value <= CCM_F8_128_HMAC_SHA1_80)) {
+	if ((AES_128_HMAC_SHA1_32 <=skinny_encryptiontype_int_value) && (skinny_encryptiontype_int_value < SKINNY_ENCRYPTIONTYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
@@ -3654,7 +3995,7 @@ static const char *skinny_miscCommandType_map[] = {
 };
 
 int skinny_miscCommandType_exists(int skinny_miscCommandType_int_value) {
-	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE <=skinny_miscCommandType_int_value) && (skinny_miscCommandType_int_value <= SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF)) {
+	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE <=skinny_miscCommandType_int_value) && (skinny_miscCommandType_int_value < SKINNY_MISCCOMMANDTYPE_SENTINEL )) {
 		return 1;
 	}
 	return 0;
