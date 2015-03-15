@@ -8,10 +8,9 @@
 # NOTE: Process this file with automake to produce a makefile.in script.
 include $(top_srcdir)/amdoxygen.am
 
-AUTOMAKE_OPTS			= gnu silent-rules
-#EXTRA_DIST 			= .version tools conf
+#AUTOMAKE_OPTIONS		= gnu silent-rules
+AUTOMAKE_OPTIONS		= gnu
 EXTRA_DIST 			= .version tools conf contrib/gen_sccpconf .revision
-#SUBDIRS 			= src doc contrib/gen_sccpconf
 SUBDIRS 			= src doc
 ACLOCAL_AMFLAGS			= -I autoconf
 AM_CPPFLAGS			= $(LTDLINCL)

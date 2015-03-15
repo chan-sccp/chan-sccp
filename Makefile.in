@@ -510,10 +510,10 @@ top_srcdir = @top_srcdir@
 # DATE:     $Date: 2014-08-21 16:26:31 +0200 (do, 21 aug 2014) $
 # REVISION: $Revision: 5690 $
 # NOTE: Process this file with automake to produce a makefile.in script.
-AUTOMAKE_OPTS = gnu silent-rules
-#EXTRA_DIST 			= .version tools conf
+
+#AUTOMAKE_OPTIONS		= gnu silent-rules
+AUTOMAKE_OPTIONS = gnu
 EXTRA_DIST = .version tools conf contrib/gen_sccpconf .revision
-#SUBDIRS 			= src doc contrib/gen_sccpconf
 SUBDIRS = src doc
 ACLOCAL_AMFLAGS = -I autoconf
 AM_CPPFLAGS = $(LTDLINCL)
