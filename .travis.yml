@@ -18,11 +18,11 @@ before_install:
  - echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list
  - echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list
  - sudo apt-get update -qq
- - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules autoconf automake
+ - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules
 
 # Prepare Configure Script
-#before_script:
-# - autoreconf -fi
+before_script:
+ - autoreconf -fi
 
 # Report Results
 notifications:

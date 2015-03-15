@@ -46,7 +46,8 @@ CONFIGURE_PART([Checking AutoMake:])
 AM_MAINTAINER_MODE([disable])								dnl Switches off auto-regeneration on configure.ac / Makefile.am changes
 											dnl make sure to run tool/bootstrap.sh before checking in configure changes to svn
 
-AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc subdir-objects])
+dnl AM_INIT_AUTOMAKE([1.14 -Wno-portability check-news dist-bzip2 nostdinc subdir-objects])
+AM_INIT_AUTOMAKE([1.10 -Wno-portability check-news dist-bzip2 nostdinc])
 m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
 AC_DISABLE_STATIC([])
 
