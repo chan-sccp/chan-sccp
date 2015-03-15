@@ -177,7 +177,7 @@ int sccp_channelstatereason_exists(int sccp_channelstatereason_int_value) {
 }
 
 const char * sccp_channelstatereason2str(sccp_channelstatereason_t enum_value) {
-	if ((SCCP_CHANNELSTATEREASON_NORMAL <= enum_value) && (enum_value <= SCCP_CHANNELSTATEREASON_CONFERENCE)) {
+	if ((SCCP_CHANNELSTATEREASON_NORMAL <= enum_value) && (enum_value <= SCCP_CHANNELSTATEREASON_SENTINEL)) {
 		return sccp_channelstatereason_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_channelstatereason2str\n", enum_value);
@@ -231,7 +231,7 @@ int sccp_earlyrtp_exists(int sccp_earlyrtp_int_value) {
 }
 
 const char * sccp_earlyrtp2str(sccp_earlyrtp_t enum_value) {
-	if ((SCCP_EARLYRTP_IMMEDIATE <= enum_value) && (enum_value <= SCCP_EARLYRTP_NONE)) {
+	if ((SCCP_EARLYRTP_IMMEDIATE <= enum_value) && (enum_value <= SCCP_EARLYRTP_SENTINEL)) {
 		return sccp_earlyrtp_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_earlyrtp2str\n", enum_value);
@@ -284,7 +284,7 @@ int sccp_devicestate_exists(int sccp_devicestate_int_value) {
 }
 
 const char * sccp_devicestate2str(sccp_devicestate_t enum_value) {
-	if ((SCCP_DEVICESTATE_ONHOOK <= enum_value) && (enum_value <= SCCP_DEVICESTATE_FWDALL)) {
+	if ((SCCP_DEVICESTATE_ONHOOK <= enum_value) && (enum_value <= SCCP_DEVICESTATE_SENTINEL)) {
 		return sccp_devicestate_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_devicestate2str\n", enum_value);
@@ -336,7 +336,7 @@ int sccp_callforward_exists(int sccp_callforward_int_value) {
 }
 
 const char * sccp_callforward2str(sccp_callforward_t enum_value) {
-	if ((SCCP_CFWD_NONE <= enum_value) && (enum_value <= SCCP_CFWD_NOANSWER)) {
+	if ((SCCP_CFWD_NONE <= enum_value) && (enum_value <= SCCP_CALLFORWARD_SENTINEL)) {
 		return sccp_callforward_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_callforward2str\n", enum_value);
@@ -386,7 +386,7 @@ int sccp_dtmfmode_exists(int sccp_dtmfmode_int_value) {
 }
 
 const char * sccp_dtmfmode2str(sccp_dtmfmode_t enum_value) {
-	if ((SCCP_DTMFMODE_AUTO <= enum_value) && (enum_value <= SCCP_DTMFMODE_SKINNY)) {
+	if ((SCCP_DTMFMODE_AUTO <= enum_value) && (enum_value <= SCCP_DTMFMODE_SENTINEL)) {
 		return sccp_dtmfmode_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_dtmfmode2str\n", enum_value);
@@ -436,7 +436,7 @@ int sccp_autoanswer_exists(int sccp_autoanswer_int_value) {
 }
 
 const char * sccp_autoanswer2str(sccp_autoanswer_t enum_value) {
-	if ((SCCP_AUTOANSWER_NONE <= enum_value) && (enum_value <= SCCP_AUTOANSWER_2W)) {
+	if ((SCCP_AUTOANSWER_NONE <= enum_value) && (enum_value <= SCCP_AUTOANSWER_SENTINEL)) {
 		return sccp_autoanswer_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_autoanswer2str\n", enum_value);
@@ -487,7 +487,7 @@ int sccp_dndmode_exists(int sccp_dndmode_int_value) {
 }
 
 const char * sccp_dndmode2str(sccp_dndmode_t enum_value) {
-	if ((SCCP_DNDMODE_OFF <= enum_value) && (enum_value <= SCCP_DNDMODE_USERDEFINED)) {
+	if ((SCCP_DNDMODE_OFF <= enum_value) && (enum_value <= SCCP_DNDMODE_SENTINEL)) {
 		return sccp_dndmode_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_dndmode2str\n", enum_value);
@@ -539,7 +539,7 @@ int sccp_accessory_exists(int sccp_accessory_int_value) {
 }
 
 const char * sccp_accessory2str(sccp_accessory_t enum_value) {
-	if ((SCCP_ACCESSORY_NONE <= enum_value) && (enum_value <= SCCP_ACCESSORY_SPEAKER)) {
+	if ((SCCP_ACCESSORY_NONE <= enum_value) && (enum_value <= SCCP_ACCESSORY_SENTINEL)) {
 		return sccp_accessory_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_accessory2str\n", enum_value);
@@ -590,7 +590,7 @@ int sccp_accessorystate_exists(int sccp_accessorystate_int_value) {
 }
 
 const char * sccp_accessorystate2str(sccp_accessorystate_t enum_value) {
-	if ((SCCP_ACCESSORYSTATE_NONE <= enum_value) && (enum_value <= SCCP_ACCESSORYSTATE_OFFHOOK)) {
+	if ((SCCP_ACCESSORYSTATE_NONE <= enum_value) && (enum_value <= SCCP_ACCESSORYSTATE_SENTINEL)) {
 		return sccp_accessorystate_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_accessorystate2str\n", enum_value);
@@ -643,7 +643,7 @@ int sccp_config_buttontype_exists(int sccp_config_buttontype_int_value) {
 }
 
 const char * sccp_config_buttontype2str(sccp_config_buttontype_t enum_value) {
-	if ((LINE <= enum_value) && (enum_value <= EMPTY)) {
+	if ((LINE <= enum_value) && (enum_value <= SCCP_CONFIG_BUTTONTYPE_SENTINEL)) {
 		return sccp_config_buttontype_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_config_buttontype2str\n", enum_value);
@@ -693,7 +693,7 @@ int sccp_devstate_state_exists(int sccp_devstate_state_int_value) {
 }
 
 const char * sccp_devstate_state2str(sccp_devstate_state_t enum_value) {
-	if ((SCCP_DEVSTATE_IDLE <= enum_value) && (enum_value <= SCCP_DEVSTATE_INUSE)) {
+	if ((SCCP_DEVSTATE_IDLE <= enum_value) && (enum_value <= SCCP_DEVSTATE_STATE_SENTINEL)) {
 		return sccp_devstate_state_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_devstate_state2str\n", enum_value);
@@ -743,7 +743,7 @@ int sccp_blindtransferindication_exists(int sccp_blindtransferindication_int_val
 }
 
 const char * sccp_blindtransferindication2str(sccp_blindtransferindication_t enum_value) {
-	if ((SCCP_BLINDTRANSFER_RING <= enum_value) && (enum_value <= SCCP_BLINDTRANSFER_MOH)) {
+	if ((SCCP_BLINDTRANSFER_RING <= enum_value) && (enum_value <= SCCP_BLINDTRANSFERINDICATION_SENTINEL)) {
 		return sccp_blindtransferindication_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_blindtransferindication2str\n", enum_value);
@@ -793,7 +793,7 @@ int sccp_call_answer_order_exists(int sccp_call_answer_order_int_value) {
 }
 
 const char * sccp_call_answer_order2str(sccp_call_answer_order_t enum_value) {
-	if ((SCCP_ANSWER_OLDEST_FIRST <= enum_value) && (enum_value <= SCCP_ANSWER_LAST_FIRST)) {
+	if ((SCCP_ANSWER_OLDEST_FIRST <= enum_value) && (enum_value <= SCCP_CALL_ANSWER_ORDER_SENTINEL)) {
 		return sccp_call_answer_order_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_call_answer_order2str\n", enum_value);
@@ -846,7 +846,7 @@ int sccp_nat_exists(int sccp_nat_int_value) {
 }
 
 const char * sccp_nat2str(sccp_nat_t enum_value) {
-	if ((SCCP_NAT_AUTO <= enum_value) && (enum_value <= SCCP_NAT_AUTO_ON)) {
+	if ((SCCP_NAT_AUTO <= enum_value) && (enum_value <= SCCP_NAT_SENTINEL)) {
 		return sccp_nat_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_nat2str\n", enum_value);
@@ -897,7 +897,7 @@ int sccp_video_mode_exists(int sccp_video_mode_int_value) {
 }
 
 const char * sccp_video_mode2str(sccp_video_mode_t enum_value) {
-	if ((SCCP_VIDEO_MODE_OFF <= enum_value) && (enum_value <= SCCP_VIDEO_MODE_AUTO)) {
+	if ((SCCP_VIDEO_MODE_OFF <= enum_value) && (enum_value <= SCCP_VIDEO_MODE_SENTINEL)) {
 		return sccp_video_mode_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_video_mode2str\n", enum_value);
@@ -955,7 +955,7 @@ int sccp_event_type_exists(int sccp_event_type_int_value) {
 }
 
 const char * sccp_event_type2str(sccp_event_type_t enum_value) {
-	if ((SCCP_EVENT_LINE_CREATED <= enum_value) && (enum_value <= SCCP_EVENT_LINESTATUS_CHANGED)) {
+	if ((SCCP_EVENT_LINE_CREATED <= enum_value) && (enum_value <= SCCP_EVENT_TYPE_SENTINEL)) {
 		return sccp_event_type_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_event_type2str\n", enum_value);
@@ -1005,7 +1005,7 @@ int sccp_parkresult_exists(int sccp_parkresult_int_value) {
 }
 
 const char * sccp_parkresult2str(sccp_parkresult_t enum_value) {
-	if ((PARK_RESULT_FAIL <= enum_value) && (enum_value <= PARK_RESULT_SUCCESS)) {
+	if ((PARK_RESULT_FAIL <= enum_value) && (enum_value <= SCCP_PARKRESULT_SENTINEL)) {
 		return sccp_parkresult_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_parkresult2str\n", enum_value);
@@ -1055,7 +1055,7 @@ int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
 }
 
 const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value) {
-	if ((CALLERID_PRESENCE_FORBIDDEN <= enum_value) && (enum_value <= CALLERID_PRESENCE_ALLOWED)) {
+	if ((CALLERID_PRESENCE_FORBIDDEN <= enum_value) && (enum_value <= SCCP_CALLERIDPRESENCE_SENTINEL)) {
 		return sccp_calleridpresence_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_calleridpresence2str\n", enum_value);
@@ -1106,7 +1106,7 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
 }
 
 const char * sccp_rtp_status2str(sccp_rtp_status_t enum_value) {
-	if ((SCCP_RTP_STATUS_INACTIVE <= enum_value) && (enum_value <= SCCP_RTP_STATUS_ACTIVE)) {
+	if ((SCCP_RTP_STATUS_INACTIVE <= enum_value) && (enum_value <= SCCP_RTP_STATUS_SENTINEL)) {
 		return sccp_rtp_status_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_status2str\n", enum_value);
@@ -1157,7 +1157,7 @@ int sccp_extension_status_exists(int sccp_extension_status_int_value) {
 }
 
 const char * sccp_extension_status2str(sccp_extension_status_t enum_value) {
-	if ((SCCP_EXTENSION_NOTEXISTS <= enum_value) && (enum_value <= SCCP_EXTENSION_EXACTMATCH)) {
+	if ((SCCP_EXTENSION_NOTEXISTS <= enum_value) && (enum_value <= SCCP_EXTENSION_STATUS_SENTINEL)) {
 		return sccp_extension_status_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_extension_status2str\n", enum_value);
@@ -1209,7 +1209,7 @@ int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value
 }
 
 const char * sccp_channel_request_status2str(sccp_channel_request_status_t enum_value) {
-	if ((SCCP_REQUEST_STATUS_ERROR <= enum_value) && (enum_value <= SCCP_REQUEST_STATUS_SUCCESS)) {
+	if ((SCCP_REQUEST_STATUS_ERROR <= enum_value) && (enum_value <= SCCP_CHANNEL_REQUEST_STATUS_SENTINEL)) {
 		return sccp_channel_request_status_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_channel_request_status2str\n", enum_value);
@@ -1263,7 +1263,7 @@ int sccp_message_priority_exists(int sccp_message_priority_int_value) {
 }
 
 const char * sccp_message_priority2str(sccp_message_priority_t enum_value) {
-	if ((SCCP_MESSAGE_PRIORITY_IDLE <= enum_value) && (enum_value <= SCCP_MESSAGE_PRIORITY_CFWD)) {
+	if ((SCCP_MESSAGE_PRIORITY_IDLE <= enum_value) && (enum_value <= SCCP_MESSAGE_PRIORITY_SENTINEL)) {
 		return sccp_message_priority_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_message_priority2str\n", enum_value);
@@ -1314,7 +1314,7 @@ int sccp_push_result_exists(int sccp_push_result_int_value) {
 }
 
 const char * sccp_push_result2str(sccp_push_result_t enum_value) {
-	if ((SCCP_PUSH_RESULT_FAIL <= enum_value) && (enum_value <= SCCP_PUSH_RESULT_SUCCESS)) {
+	if ((SCCP_PUSH_RESULT_FAIL <= enum_value) && (enum_value <= SCCP_PUSH_RESULT_SENTINEL)) {
 		return sccp_push_result_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_push_result2str\n", enum_value);
@@ -1365,7 +1365,7 @@ int sccp_tokenstate_exists(int sccp_tokenstate_int_value) {
 }
 
 const char * sccp_tokenstate2str(sccp_tokenstate_t enum_value) {
-	if ((SCCP_TOKEN_STATE_NOTOKEN <= enum_value) && (enum_value <= SCCP_TOKEN_STATE_REJ)) {
+	if ((SCCP_TOKEN_STATE_NOTOKEN <= enum_value) && (enum_value <= SCCP_TOKENSTATE_SENTINEL)) {
 		return sccp_tokenstate_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_tokenstate2str\n", enum_value);
@@ -1422,7 +1422,7 @@ int sccp_softswitch_exists(int sccp_softswitch_int_value) {
 }
 
 const char * sccp_softswitch2str(sccp_softswitch_t enum_value) {
-	if ((SCCP_SOFTSWITCH_DIAL <= enum_value) && (enum_value <= SCCP_SOFTSWITCH_GETCONFERENCEROOM)) {
+	if ((SCCP_SOFTSWITCH_DIAL <= enum_value) && (enum_value <= SCCP_SOFTSWITCH_SENTINEL)) {
 		return sccp_softswitch_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_softswitch2str\n", enum_value);
@@ -1473,7 +1473,7 @@ int sccp_phonebook_exists(int sccp_phonebook_int_value) {
 }
 
 const char * sccp_phonebook2str(sccp_phonebook_t enum_value) {
-	if ((SCCP_PHONEBOOK_NONE <= enum_value) && (enum_value <= SCCP_PHONEBOOK_RECEIVED)) {
+	if ((SCCP_PHONEBOOK_NONE <= enum_value) && (enum_value <= SCCP_PHONEBOOK_SENTINEL)) {
 		return sccp_phonebook_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_phonebook2str\n", enum_value);
@@ -1524,7 +1524,7 @@ int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) 
 }
 
 const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value) {
-	if ((SCCP_FEATURE_MONITOR_STATE_DISABLED <= enum_value) && (enum_value <= SCCP_FEATURE_MONITOR_STATE_REQUESTED)) {
+	if ((SCCP_FEATURE_MONITOR_STATE_DISABLED <= enum_value) && (enum_value <= SCCP_FEATURE_MONITOR_STATE_SENTINEL)) {
 		return sccp_feature_monitor_state_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_feature_monitor_state2str\n", enum_value);
@@ -1573,7 +1573,7 @@ int sccp_readingtype_exists(int sccp_readingtype_int_value) {
 }
 
 const char * sccp_readingtype2str(sccp_readingtype_t enum_value) {
-	if ((SCCP_CONFIG_READINITIAL <= enum_value) && (enum_value <= SCCP_CONFIG_READRELOAD)) {
+	if ((SCCP_CONFIG_READINITIAL <= enum_value) && (enum_value <= SCCP_READINGTYPE_SENTINEL)) {
 		return sccp_readingtype_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_readingtype2str\n", enum_value);
@@ -1624,7 +1624,7 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 }
 
 const char * sccp_configurationchange2str(sccp_configurationchange_t enum_value) {
-	if ((SCCP_CONFIG_NOUPDATENEEDED <= enum_value) && (enum_value <= SCCP_CONFIG_ERROR)) {
+	if ((SCCP_CONFIG_NOUPDATENEEDED <= enum_value) && (enum_value <= SCCP_CONFIGURATIONCHANGE_SENTINEL)) {
 		return sccp_configurationchange_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_configurationchange2str\n", enum_value);
@@ -1674,7 +1674,7 @@ int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value) {
 }
 
 const char * sccp_call_statistics_type2str(sccp_call_statistics_type_t enum_value) {
-	if ((SCCP_CALLSTATISTIC_LAST <= enum_value) && (enum_value <= SCCP_CALLSTATISTIC_AVG)) {
+	if ((SCCP_CALLSTATISTIC_LAST <= enum_value) && (enum_value <= SCCP_CALL_STATISTICS_TYPE_SENTINEL)) {
 		return sccp_call_statistics_type_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_call_statistics_type2str\n", enum_value);
@@ -1725,7 +1725,7 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 }
 
 const char * sccp_rtp_info2str(sccp_rtp_info_t enum_value) {
-	if ((SCCP_RTP_INFO_NORTP <= enum_value) && (enum_value <= SCCP_RTP_INFO_ALLOW_DIRECTRTP)) {
+	if ((SCCP_RTP_INFO_NORTP <= enum_value) && (enum_value <= SCCP_RTP_INFO_SENTINEL)) {
 		return sccp_rtp_info_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_info2str\n", enum_value);
@@ -1777,7 +1777,7 @@ int skinny_lampmode_exists(int skinny_lampmode_int_value) {
 }
 
 const char * skinny_lampmode2str(skinny_lampmode_t enum_value) {
-	if ((SKINNY_LAMP_OFF <= enum_value) && (enum_value <= SKINNY_LAMP_BLINK)) {
+	if ((SKINNY_LAMP_OFF <= enum_value) && (enum_value <= SKINNY_LAMPMODE_SENTINEL)) {
 		return skinny_lampmode_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_lampmode2str\n", enum_value);
@@ -1827,7 +1827,7 @@ int skinny_calltype_exists(int skinny_calltype_int_value) {
 }
 
 const char * skinny_calltype2str(skinny_calltype_t enum_value) {
-	if ((SKINNY_CALLTYPE_INBOUND <= enum_value) && (enum_value <= SKINNY_CALLTYPE_FORWARD)) {
+	if ((SKINNY_CALLTYPE_INBOUND <= enum_value) && (enum_value <= SKINNY_CALLTYPE_SENTINEL)) {
 		return skinny_calltype_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_calltype2str\n", enum_value);
@@ -1891,7 +1891,7 @@ int skinny_callstate_exists(int skinny_callstate_int_value) {
 }
 
 const char * skinny_callstate2str(skinny_callstate_t enum_value) {
-	if ((SKINNY_CALLSTATE_OFFHOOK <= enum_value) && (enum_value <= SKINNY_CALLSTATE_HOLDRED)) {
+	if ((SKINNY_CALLSTATE_OFFHOOK <= enum_value) && (enum_value <= SKINNY_CALLSTATE_SENTINEL)) {
 		return skinny_callstate_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_callstate2str\n", enum_value);
@@ -1943,7 +1943,7 @@ int skinny_callpriority_exists(int skinny_callpriority_int_value) {
 }
 
 const char * skinny_callpriority2str(skinny_callpriority_t enum_value) {
-	if ((SKINNY_CALLPRIORITY_HIGHEST <= enum_value) && (enum_value <= SKINNY_CALLPRIORITY_NORMAL)) {
+	if ((SKINNY_CALLPRIORITY_HIGHEST <= enum_value) && (enum_value <= SKINNY_CALLPRIORITY_SENTINEL)) {
 		return skinny_callpriority_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_callpriority2str\n", enum_value);
@@ -1993,7 +1993,7 @@ int skinny_callinfo_visibility_exists(int skinny_callinfo_visibility_int_value) 
 }
 
 const char * skinny_callinfo_visibility2str(skinny_callinfo_visibility_t enum_value) {
-	if ((SKINNY_CALLINFO_VISIBILITY_DEFAULT <= enum_value) && (enum_value <= SKINNY_CALLINFO_VISIBILITY_HIDDEN)) {
+	if ((SKINNY_CALLINFO_VISIBILITY_DEFAULT <= enum_value) && (enum_value <= SKINNY_CALLINFO_VISIBILITY_SENTINEL)) {
 		return skinny_callinfo_visibility_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_callinfo_visibility2str\n", enum_value);
@@ -2043,7 +2043,7 @@ int skinny_callsecuritystate_exists(int skinny_callsecuritystate_int_value) {
 }
 
 const char * skinny_callsecuritystate2str(skinny_callsecuritystate_t enum_value) {
-	if ((SKINNY_CALLSECURITYSTATE_UNKNOWN <= enum_value) && (enum_value <= SKINNY_CALLSECURITYSTATE_AUTHENTICATED)) {
+	if ((SKINNY_CALLSECURITYSTATE_UNKNOWN <= enum_value) && (enum_value <= SKINNY_CALLSECURITYSTATE_SENTINEL)) {
 		return skinny_callsecuritystate_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_callsecuritystate2str\n", enum_value);
@@ -2095,7 +2095,7 @@ int skinny_busylampfield_state_exists(int skinny_busylampfield_state_int_value) 
 }
 
 const char * skinny_busylampfield_state2str(skinny_busylampfield_state_t enum_value) {
-	if ((SKINNY_BLF_STATUS_UNKNOWN <= enum_value) && (enum_value <= SKINNY_BLF_STATUS_ALERTING)) {
+	if ((SKINNY_BLF_STATUS_UNKNOWN <= enum_value) && (enum_value <= SKINNY_BUSYLAMPFIELD_STATE_SENTINEL)) {
 		return skinny_busylampfield_state_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_busylampfield_state2str\n", enum_value);
@@ -2681,7 +2681,7 @@ int skinny_ringtype_exists(int skinny_ringtype_int_value) {
 }
 
 const char * skinny_ringtype2str(skinny_ringtype_t enum_value) {
-	if ((SKINNY_RINGTYPE_OFF <= enum_value) && (enum_value <= SKINNY_RINGTYPE_BELLCORE_5)) {
+	if ((SKINNY_RINGTYPE_OFF <= enum_value) && (enum_value <= SKINNY_RINGTYPE_SENTINEL)) {
 		return skinny_ringtype_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_ringtype2str\n", enum_value);
@@ -2732,7 +2732,7 @@ int skinny_receivetransmit_exists(int skinny_receivetransmit_int_value) {
 }
 
 const char * skinny_receivetransmit2str(skinny_receivetransmit_t enum_value) {
-	if ((SKINNY_TRANSMITRECEIVE_NONE <= enum_value) && (enum_value <= SKINNY_TRANSMITRECEIVE_BOTH)) {
+	if ((SKINNY_TRANSMITRECEIVE_NONE <= enum_value) && (enum_value <= SKINNY_RECEIVETRANSMIT_SENTINEL)) {
 		return skinny_receivetransmit_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_receivetransmit2str\n", enum_value);
@@ -2792,7 +2792,7 @@ int skinny_keymode_exists(int skinny_keymode_int_value) {
 }
 
 const char * skinny_keymode2str(skinny_keymode_t enum_value) {
-	if ((KEYMODE_ONHOOK <= enum_value) && (enum_value <= KEYMODE_EMPTY)) {
+	if ((KEYMODE_ONHOOK <= enum_value) && (enum_value <= SKINNY_KEYMODE_SENTINEL)) {
 		return skinny_keymode_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_keymode2str\n", enum_value);
@@ -2845,7 +2845,7 @@ int skinny_registrationstate_exists(int skinny_registrationstate_int_value) {
 }
 
 const char * skinny_registrationstate2str(skinny_registrationstate_t enum_value) {
-	if ((SKINNY_DEVICE_RS_FAILED <= enum_value) && (enum_value <= SKINNY_DEVICE_RS_OK)) {
+	if ((SKINNY_DEVICE_RS_FAILED <= enum_value) && (enum_value <= SKINNY_REGISTRATIONSTATE_SENTINEL)) {
 		return skinny_registrationstate_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_registrationstate2str\n", enum_value);
@@ -2905,7 +2905,7 @@ int skinny_mediastatus_exists(int skinny_mediastatus_int_value) {
 }
 
 const char * skinny_mediastatus2str(skinny_mediastatus_t enum_value) {
-	if ((SKINNY_MEDIASTATUS_Ok <= enum_value) && (enum_value <= SKINNY_MEDIASTATUS_DeviceOnHook)) {
+	if ((SKINNY_MEDIASTATUS_Ok <= enum_value) && (enum_value <= SKINNY_MEDIASTATUS_SENTINEL)) {
 		return skinny_mediastatus_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_mediastatus2str\n", enum_value);
@@ -3947,7 +3947,7 @@ int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value) {
 }
 
 const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value) {
-	if ((NO_ENCRYPTION <= enum_value) && (enum_value <= CCM_F8_128_HMAC_SHA1_80)) {
+	if ((NO_ENCRYPTION <= enum_value) && (enum_value <= SKINNY_ENCRYPTIONTYPE_SENTINEL)) {
 		return skinny_encryptiontype_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_encryptiontype2str\n", enum_value);
@@ -4002,7 +4002,7 @@ int skinny_miscCommandType_exists(int skinny_miscCommandType_int_value) {
 }
 
 const char * skinny_miscCommandType2str(skinny_miscCommandType_t enum_value) {
-	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE <= enum_value) && (enum_value <= SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF)) {
+	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE <= enum_value) && (enum_value <= SKINNY_MISCCOMMANDTYPE_SENTINEL)) {
 		return skinny_miscCommandType_map[enum_value];
 	}
 	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in skinny_miscCommandType2str\n", enum_value);
