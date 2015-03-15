@@ -150,13 +150,13 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 									} else {
 										fprintf(f, " BOOLEAN");
 									}
-									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+									if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 										fprintf(f, " DEFAULT '%s'", config[sccp_option].defaultValue);
 									}
 									break;
 								case SCCP_CONFIG_DATATYPE_INT:
 									fprintf(f, " INT");
-									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+									if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 										fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
 									}
 									break;
@@ -166,13 +166,13 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 									} else {	
 										fprintf(f, " INT UNSIGNED");
 									}
-									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+									if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 										fprintf(f, " DEFAULT %d", atoi(config[sccp_option].defaultValue));
 									}
 									break;
 								case SCCP_CONFIG_DATATYPE_STRINGPTR:
 								case SCCP_CONFIG_DATATYPE_STRING:
-									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+									if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 										fprintf(f, " VARCHAR(%d)", strlen(config[sccp_option].defaultValue) > 45 ? (int) strlen(config[sccp_option].defaultValue) * 2 : 45);
 										fprintf(f, " DEFAULT '%s'", config[sccp_option].defaultValue);
 									} else {
@@ -191,7 +191,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 									break;
 								case SCCP_CONFIG_DATATYPE_CHAR:
 									fprintf(f, " CHAR(1)");
-									if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+									if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 										fprintf(f, " DEFAULT '%-1s'", config[sccp_option].defaultValue);
 									}
 									break;
@@ -401,7 +401,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 									break;
 							}
 						}
-						if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+						if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 							fprintf(f, "        <default>%s</default>\n", config[sccp_option].defaultValue);
 						}
 						if (strlen(config[sccp_option].description) != 0) {
@@ -485,7 +485,7 @@ static int sccp_config_generate(const char *filename, size_t sizeof_filename, in
 									break;
 							}
 							printf("info:" "adding name: %s, default_value: %s\n", name, config[sccp_option].defaultValue);
-							if (config[sccp_option].defaultValue && !strlen(config[sccp_option].defaultValue) == 0) {
+							if (config[sccp_option].defaultValue && strlen(config[sccp_option].defaultValue) != 0) {
 								snprintf(name_and_value, sizeof(name_and_value), "%s = %s", name, config[sccp_option].defaultValue);
 							} else {
 								snprintf(name_and_value, sizeof(name_and_value), "%s = \"\"", name);

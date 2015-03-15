@@ -33,11 +33,6 @@ typedef enum { FALSE = 0, TRUE = 1 } boolean_t;
 
 /* dyn config */
 typedef enum {
-	SCCP_CONFIG_NOUPDATENEEDED = 0,
-	SCCP_CONFIG_NEEDDEVICERESET = 1 << 1
-} sccp_configurationchange_t;						/*!< configuration state change */
-
-typedef enum {
 /* *INDENT-OFF* */
 	SCCP_CONFIG_CHANGE_NOCHANGE			= 0,
 	SCCP_CONFIG_CHANGE_CHANGED,
