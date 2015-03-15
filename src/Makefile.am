@@ -7,7 +7,7 @@
 # REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
 #AUTOMAKE_OPTIONS		= gnu silent-rules subdir-objects
-AUTOMAKE_OPTIONS		= gnu subdir-objects
+AUTOMAKE_OPTIONS		= gnu
 csmod_LTLIBRARIES		= chan_sccp.la 
 MOSTLYCLEANFILES 		= *.gcda *.gcno *.gcov revision.h .revision
 EXTRA_DIST 			= sccp_enum.in revision.h sccp_config_entries.hh
