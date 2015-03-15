@@ -146,7 +146,6 @@ enum call_answer_order {
         SCCP_ANSWER_LAST_FIRST,				,	"LastFirst",
 }
 
-//#ifdef CS_EXPERIMENTAL
 enum nat {
         SCCP_NAT_AUTO,					= 0,	"Auto",
         SCCP_NAT_OFF,					,	"Off",
@@ -154,7 +153,6 @@ enum nat {
         SCCP_NAT_ON,					,	"On",
         SCCP_NAT_AUTO_ON,				,	"(Auto)On",
 }
-//#endif
 
 enum video_mode {
         SCCP_VIDEO_MODE_OFF,				=0,	"Off",
@@ -232,9 +230,9 @@ enum softswitch {
 	SCCP_SOFTSWITCH_GETMEETMEROOM,			,	"Softswitch Get Meetme Room", 		
 	SCCP_SOFTSWITCH_GETBARGEEXTEN,			,	"Softswitch Get Barge Extension", 		
 	SCCP_SOFTSWITCH_GETCBARGEROOM,			,	"Softswitch Get CBarrge Room", 		
-//#ifdef CS_SCCP_CONFERENCE
-	SCCP_SOFTSWITCH_GETCONFERENCEROOM,		,	"Softswicth Get Conference Room",
-//#endif
+#ifdef CS_SCCP_CONFERENCE
+	SCCP_SOFTSWITCH_GETCONFERENCEROOM,		,	"Softswitch Get Conference Room",
+#endif
 }
 
 enum phonebook { 
