@@ -361,7 +361,7 @@ typedef enum sccp_event_type {
 	SCCP_EVENT_DEVICE_UNREGISTERED=1<<7,
 	SCCP_EVENT_FEATURE_CHANGED=1<<8,
 	SCCP_EVENT_LINESTATUS_CHANGED=1<<9,
-	SCCP_EVENT_TYPE_SENTINEL
+	SCCP_EVENT_TYPE_SENTINEL = 1 << 10
 } sccp_event_type_t;
 int sccp_event_type_exists(int sccp_event_type_int_value);
 const char * sccp_event_type2str(sccp_event_type_t enum_value);
@@ -416,7 +416,7 @@ typedef enum sccp_rtp_status {
 	SCCP_RTP_STATUS_INACTIVE=0,
 	SCCP_RTP_STATUS_PROGRESS=1<<0,
 	SCCP_RTP_STATUS_ACTIVE=1<<1,
-	SCCP_RTP_STATUS_SENTINEL
+	SCCP_RTP_STATUS_SENTINEL = 1 << 2
 } sccp_rtp_status_t;
 int sccp_rtp_status_exists(int sccp_rtp_status_int_value);
 const char * sccp_rtp_status2str(sccp_rtp_status_t enum_value);
@@ -616,7 +616,7 @@ typedef enum sccp_configurationchange {
 	SCCP_CONFIG_NEEDDEVICERESET=1<<1,
 	SCCP_CONFIG_WARNING=1<<2,
 	SCCP_CONFIG_ERROR=1<<3,
-	SCCP_CONFIGURATIONCHANGE_SENTINEL
+	SCCP_CONFIGURATIONCHANGE_SENTINEL = 1 << 4
 } sccp_configurationchange_t;
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value);
 const char * sccp_configurationchange2str(sccp_configurationchange_t enum_value);
@@ -653,7 +653,7 @@ typedef enum sccp_rtp_info {
 	SCCP_RTP_INFO_NORTP=0,
 	SCCP_RTP_INFO_AVAILABLE=1<<1,
 	SCCP_RTP_INFO_ALLOW_DIRECTRTP=1<<2,
-	SCCP_RTP_INFO_SENTINEL
+	SCCP_RTP_INFO_SENTINEL = 1 << 3
 } sccp_rtp_info_t;
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value);
 const char * sccp_rtp_info2str(sccp_rtp_info_t enum_value);

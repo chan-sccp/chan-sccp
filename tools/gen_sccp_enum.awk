@@ -53,7 +53,7 @@ BEGIN {
 }
 
 # Look for start of enum / comment blocks, skip the rest
-/^enum[ \t]*[a-zA-Z]/		{ codeSkip = 0; sparse=0; enum_name=$2; next }
+/^enum[ \t]*[a-zA-Z]/		{ codeSkip = 0; bitfield = 0; sparse=0; enum_name=$2; next }
 /^\/\*/	 			{ Comment = $0; comment = 1; next}					# comment start
 comment == 1 			{ Comment = Comment "\n" $0; if ($0 ~ /^ \*\//) {comment = 0} }		# comment continuation
 codeSkip == 1			{ next }
@@ -65,6 +65,7 @@ codeSkip == 1			{ next }
 /^[ \t]*[A-Z]/ {
 	split($0, entries, ",")
 	id = entries[1]
+	bitval = ""
 	gsub(/^[ \t]+/, "", id);		# trim left
 	gsub(/[ \t]+$/, "", id);		# trim right
 
@@ -76,8 +77,9 @@ codeSkip == 1			{ next }
 	gsub(/[ \t"]+$/, "", text);		# trim right
 
 	# detect sparse / non-sparse enum
-	if (match(val, /1<</) != 0) {
+	if (match(val, /1<<[0-9]*/) != 0) {
 		# print "bitfield"		# skip bitfield
+		bitfield = 1
 	} else if (e > 0 && val && (strtonum(prev_val) + 1 != strtonum(val))) {
 		sparse = 1
 	}
@@ -96,6 +98,7 @@ codeSkip == 1			{ next }
 # end of definition -> generate code
 /^}/ {		
         codeSkip = 1
+        bitval = ""
         
         #
         # gen enum header
@@ -130,8 +133,16 @@ codeSkip == 1			{ next }
 			print "#endif" > out_header_file
 			ifdef = 0
 		}
+		if (bitfield) {
+			bitval = Entry_val[i]
+			gsub(/1<</, "", bitval);
+		}
 	}
-	print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL" > out_header_file
+	if (bitfield) {
+		print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL = 1<<" bitval + 1 > out_header_file
+	} else {
+		print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL" > out_header_file
+	}
 	print "} " namespace "_" enum_name "_t;" >out_header_file
 
 	print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value);" > out_header_file
@@ -223,7 +234,7 @@ codeSkip == 1			{ next }
 	print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value) {" > out_source_file
 	if (sparse == 0) {
 #		print "\tif ("namespace "_" enum_name "_exists(enum_value)) {" >out_source_file
-		print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " Entry_id[e-1] ")) {" >out_source_file
+		print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL)) {" >out_source_file
 		print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
 		print "\t}" >out_source_file
 		print "\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
@@ -279,6 +290,7 @@ codeSkip == 1			{ next }
 		} else {
 			long_str = long_str Entry_text[i]
 		}
+		Entry_bitval[e]=""
  	}
  	#gsub(/,$/,"",long_str
 	print "\tstatic char res[] = \"" long_str "\";" > out_source_file
@@ -290,6 +302,7 @@ codeSkip == 1			{ next }
         # reset values
         Comment = ""
         e = 0
+        bitfield = 0
         #string_size = 0
 	next
 }
