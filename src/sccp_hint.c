@@ -152,9 +152,13 @@ static void sccp_hint_distributed_devstate_cb(const pbx_event_t * event, void *d
 	const struct ast_eid *eid;
 	eid = ast_event_get_ie_raw(event, AST_EVENT_IE_EID);
 	//state = pbx_event_get_ie_uint(ast_event, AST_EVENT_IE_STATE);
+#if ASTERISK_VERSION_GROUP >= 108
 	cidName = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNAME);
 	cidNumber = pbx_event_get_ie_str(event, AST_EVENT_IE_CEL_CIDNUM);
-
+#else
+	cidName = "";
+	cidNumber = "";
+#endif
 	char eid_str[32] = "";
 	ast_eid_to_str(eid_str, sizeof(eid_str), (struct ast_eid *) eid);
 	if (!ast_eid_cmp(&ast_eid_default, eid)) {
@@ -1064,10 +1068,12 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 		event = pbx_event_new(AST_EVENT_DEVICE_STATE_CHANGE, 
 			AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, lineName, 
 			AST_EVENT_IE_STATE, AST_EVENT_IE_PLTYPE_UINT, newDeviceState, 
+#if ASTERISK_VERSION_GROUP >= 108
 			AST_EVENT_IE_CEL_CIDNAME, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyName, 
 			AST_EVENT_IE_CEL_CIDNUM, AST_EVENT_IE_PLTYPE_STR, lineState->callInfo.partyNumber, 
 			AST_EVENT_IE_CEL_USERFIELD, AST_EVENT_IE_PLTYPE_UINT, lineState->callInfo.calltype, 
 			AST_EVENT_IE_CEL_EXTRA, AST_EVENT_IE_PLTYPE_STR, sccp_channelstate2str(lineState->state),
+#endif
 			/* AST_EVENT_IE_PRESENCE_STATE, AST_EVENT_IE_PLTYPE_UINT, ->privacy ?? */
 			AST_EVENT_IE_END);
 		pbx_event_queue_and_cache(event);

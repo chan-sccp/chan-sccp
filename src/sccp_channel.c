@@ -2166,8 +2166,10 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
 		sccp_dev_set_activeline(d, NULL);
 		sccp_indicate(d, d->transferChannels.transferee, SCCP_CHANNELSTATE_HOLD);
 		sccp_channel_setDevice(d->transferChannels.transferee, NULL);
+#if ASTERISK_VERSION_GROUP >= 108
 		enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 		PBX(queue_control_data) (c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
+#endif
 		sccp_channel_transfer_release(d, d->transferChannels.transferee);
 	}
 }
@@ -2186,8 +2188,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	PBX_CHANNEL_TYPE *pbx_source_remote_channel = NULL;
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = NULL;
 	PBX_CHANNEL_TYPE *pbx_destination_remote_channel = NULL;
+#if ASTERISK_VERSION_GROUP >= 108
 	enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
-
+#endif
 	uint16_t instance;
 
 	if (!sccp_destination_local_channel) {
@@ -2329,13 +2332,17 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		sccp_dev_starttone(d, GLOB(autoanswer_tone), instance, sccp_destination_local_channel->callid, 0);
 	}
 
+#if ASTERISK_VERSION_GROUP >= 108
 	control_transfer_message = AST_TRANSFER_SUCCESS;
+#endif
 EXIT:
 	if (!sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
 		return;
 	}
+#if ASTERISK_VERSION_GROUP >= 108
 	PBX(queue_control_data) (sccp_source_local_channel->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
+#endif
 	sccp_channel_transfer_release(d, d->transferChannels.transferee);
 }
 
