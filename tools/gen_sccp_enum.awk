@@ -58,6 +58,9 @@ BEGIN {
 comment == 1 			{ Comment = Comment "\n" $0; if ($0 ~ /^ \*\//) {comment = 0} }		# comment continuation
 codeSkip == 1			{ next }
 
+/^#ifdef[ \t]*[a-zA-Z]/		{ Entry_ifdef[e++] = $2; next }
+/^#endif/			{ Entry_ifdef[e] = ""; next }
+
 # match enum entry line
 /^[ \t]*[A-Z]/ {
 	split($0, entries, ",")
@@ -83,6 +86,7 @@ codeSkip == 1			{ next }
 	Entry_id[e] = id
 	Entry_val[e] = val
 	Entry_text[e] = text
+	Entry_ifdef[e] = ""
 	#string_size = string_size + length(text)
 	e++
 	prev_val = val;
@@ -115,8 +119,17 @@ codeSkip == 1			{ next }
         # typedef enum sccp_channelstate {
 	print "typedef enum " namespace "_" enum_name " {" >out_header_file
 	for ( i = 0; i < e; ++i) {
-		if (Entry_val[i] != "") print "\t" Entry_id[i] "=" Entry_val[i] "," > out_header_file
-		else print "\t" Entry_id[i] "," > out_header_file
+		if (Entry_ifdef[i] != "") {
+			print "#ifdef " Entry_ifdef[i] > out_header_file
+			ifdef = 1
+		} else {
+			if (Entry_val[i] != "") print "\t" Entry_id[i] "=" Entry_val[i] "," > out_header_file
+			else print "\t" Entry_id[i] "," > out_header_file
+		}
+		if (ifdef && Entry_ifdef[i] == "") {
+			print "#endif" > out_header_file
+			ifdef = 0
+		}
 	}
 	print "\t" toupper(namespace) "_" toupper(enum_name) "_SENTINEL" > out_header_file
 	print "} " namespace "_" enum_name "_t;" >out_header_file
@@ -151,14 +164,32 @@ codeSkip == 1			{ next }
         if (sparse == 0) {
 		print "static const char *" namespace "_" enum_name "_map[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			print "\t[" Entry_id[i] "] = \"" Entry_text[i] "\"," > out_source_file
+			if (Entry_ifdef[i] != "") {
+				print "#ifdef " Entry_ifdef[i] > out_source_file
+				ifdef = 1
+			} else {
+				print "\t[" Entry_id[i] "] = \"" Entry_text[i] "\"," > out_source_file
+			}
+			if (ifdef && Entry_ifdef[i] == "") {
+				print "#endif" > out_source_file
+				ifdef = 0
+			}
 		}
 		print "\t[" toupper(namespace) "_" toupper(enum_name) "_SENTINEL] = \"LOOKUPERROR\"" > out_source_file
 		print "};\n" > out_source_file
         } else {
 		printf "static const char *" namespace "_" enum_name "_map[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			printf "\"" Entry_text[i] "\"," > out_source_file
+			if (Entry_ifdef[i] != "") {
+				print "#ifdef " Entry_ifdef[i] > out_source_file
+				ifdef = 1
+			} else {
+				print"\"" Entry_text[i] "\"," > out_source_file
+			}
+			if (ifdef && Entry_ifdef[i] == "") {
+				print "#endif" > out_source_file
+				ifdef = 0
+			}
 		}
 		print "};\n" > out_source_file
         }
@@ -167,13 +198,15 @@ codeSkip == 1			{ next }
 	# int sccp_does_channelstate_exist[int int_enum_value) {
 	print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value) {" > out_source_file
 	if (sparse == 0) {
-		print "\tif ((" Entry_id[1] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value <= " Entry_id[e-1] ")) {" >out_source_file
+		print "\tif ((" Entry_id[1] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL )) {" >out_source_file
 		print "\t\treturn 1;" > out_source_file
 		print "\t}" > out_source_file
 	} else {
 		printf "\tstatic const int " namespace "_" enum_name "s[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
-			printf "" Entry_id[i] "," > out_source_file
+			if (Entry_ifdef[i - 1] == "") {
+				printf "" Entry_id[i] "," > out_source_file
+			}
 		}
 		print "};" >out_source_file
 		print "\tint idx;" >out_source_file
@@ -246,7 +279,8 @@ codeSkip == 1			{ next }
 		} else {
 			long_str = long_str Entry_text[i]
 		}
-	}
+ 	}
+ 	#gsub(/,$/,"",long_str
 	print "\tstatic char res[] = \"" long_str "\";" > out_source_file
 	print "\treturn res;" > out_source_file
 	print "}" > out_source_file
