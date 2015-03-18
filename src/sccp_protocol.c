@@ -1240,7 +1240,7 @@ static void sccp_protocol_parseStartMultiMediaTransmissionAckV17(const sccp_msg_
 		ss->ss_family = AF_INET;
 		struct sockaddr_in *sin = (struct sockaddr_in *) ss;
 
-		memcpy(&sin->sin_addr, &msg->data.StartMultiMediaTransmissionAck.v17.bel_ipAddr, sizeof(sin->sin_addr));
+		memcpy(&sin->sin_addr, &msg->data.StartMultiMediaTransmissionAck.v17.bel_ipAddr, sizeof(struct in_addr));
 		sin->sin_port = htons(htolel(msg->data.StartMultiMediaTransmissionAck.v17.lel_portNumber));
 	} else {												// read ipv6 address
 		/* what to do with IPv4-mapped IPv6 addresses */

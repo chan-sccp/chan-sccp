@@ -211,7 +211,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 
 	char buffer[512];
 
-	sprintf(buffer, "%s@%s", subscription->mailbox, subscription->context);
+	snprintf(buffer, 512, "%s@%s", subscription->mailbox, subscription->context);
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
 	pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 
@@ -368,7 +368,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		{												/* Fall back on checking the mailbox directly */
 			char buffer[512];
 
-			sprintf(buffer, "%s@%s", subscription->mailbox, subscription->context);
+			snprintf(buffer, 512, "%s@%s", subscription->mailbox, subscription->context);
 			pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 		}
 
@@ -387,7 +387,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Adding STASIS Subscription for mailbox %s\n", subscription->mailbox);
 		char mailbox_context[512];
 
-		sprintf(mailbox_context, "%s@%s", subscription->mailbox, subscription->context);
+		snprintf(mailbox_context, 512, "%s@%s", subscription->mailbox, subscription->context);
 
 		struct stasis_topic *mailbox_specific_topic;
 
@@ -440,7 +440,7 @@ void sccp_mwi_checkLine(sccp_line_t * line)
 
 	SCCP_LIST_LOCK(&line->mailboxes);
 	SCCP_LIST_TRAVERSE(&line->mailboxes, mailbox, list) {
-		sprintf(buffer, "%s@%s", mailbox->mailbox, mailbox->context);
+		snprintf(buffer, 512, "%s@%s", mailbox->mailbox, mailbox->context);
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_checkLine) Line: %s, Mailbox: %s\n", line->name, buffer);
 		if (!sccp_strlen_zero(buffer)) {
 
@@ -615,7 +615,7 @@ void sccp_mwi_check(sccp_device_t * d)
 	if (newmsgs > 0) {
 		char buffer[StationMaxDisplayTextSize];
 
-		sprintf(buffer, "%s: (%d/%d)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, newmsgs, oldmsgs);
+		snprintf(buffer, StationMaxDisplayTextSize, "%s: (%u/%u)", SKINNY_DISP_YOU_HAVE_VOICEMAIL, newmsgs, oldmsgs);
 		sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL, buffer);
 	} else {
 		sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_VOICEMAIL);

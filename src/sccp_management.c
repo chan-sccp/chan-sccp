@@ -261,7 +261,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		if (device->session) {
 			sccp_copy_string(clientAddress, sccp_socket_stringify(&device->session->sin), sizeof(clientAddress));
 		} else {
-			sprintf(clientAddress, "--");
+			sccp_copy_string(clientAddress, "--", sizeof(clientAddress));
 		}
 
 		strftime(regtime, sizeof(regtime), "%c", timeinfo);
@@ -780,8 +780,7 @@ static int sccp_manager_holdCall(struct mansession *s, const struct message *m)
 	boolean_t errorMessage = TRUE;
 
 	if (atoi(channelId) == 0) {
-		sprintf(retValStr, "Channel Id has to be a number. You have provided: '%s'\r\n", channelId);
-		astman_send_error(s, m, retValStr);
+		astman_send_error(s, m, "Channel Id has to be a number\r\n");
 		return 0;
 	}
 
