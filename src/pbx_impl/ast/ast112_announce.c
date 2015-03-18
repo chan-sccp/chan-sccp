@@ -63,10 +63,9 @@ static struct ast_channel *announce_request(const char *type, struct ast_format_
 {
 	struct ast_channel *chan;
 	const char *conf_name = data;
-	struct announce_pvt *pvt = NULL;
 
 	/* Allocate a new private structure and then Asterisk channels */
-	pvt = (struct announce_pvt *) ast_unreal_alloc(sizeof(*pvt), announce_pvt_destructor, cap);
+	struct announce_pvt *pvt = (struct announce_pvt *) ast_unreal_alloc(sizeof(*pvt), announce_pvt_destructor, cap);
 	if (!pvt) {
 		return NULL;
 	}
