@@ -586,7 +586,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		fi		
 	fi
-	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
+	CFLAGS_saved="${CFLAGS_saved} -fPIC -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved}"
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 	AC_SUBST([DEBUG])
