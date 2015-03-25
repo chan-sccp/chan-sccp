@@ -279,6 +279,8 @@ typedef struct {
  */
 #define SCCP_MESSAGE_LOW_BOUNDARY			0x0000
 #define SCCP_MESSAGE_HIGH_BOUNDARY			0x8101
+#define SPCP_MESSAGE_OFFSET 				0x8000
+
 typedef enum {
 	/* *INDENT-OFF* */
 
@@ -476,13 +478,11 @@ typedef enum {
 	CallCountRespMessage				= 0x015F,	/*new (2013-12-9)*/
 	RecordingStatusMessage 				= 0x0160,	/*new (2013-12-9)*/
 
-	/* SPCP client -> server */
+	/* SPCP client -> server; */
 	SPCPRegisterTokenRequest 			= 0x8000,
-
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
-	
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -2655,7 +2655,6 @@ typedef union {
 	struct {
 		uint32_t lel_features;
 	} SPCPRegisterTokenReject;
-
 	/*
 	 * Unhandled SCCP Message: unknown(0x0159) 168 bytes length
 	 * 00000000 - 01 00 00 00 01 00 00 00 02 00 00 00 00 00 00 00 ................
@@ -2844,10 +2843,12 @@ typedef struct {
  * \brief SCCP Message Type Structure
  */
 #define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
-static const struct sccp_messagetype {
+struct messagetype {
 	const char *const text;
 	const size_t size;
-} sccp_messagetypes[] = {
+};
+
+static const struct messagetype sccp_messagetypes[] = {
 	/* *INDENT-OFF* */
 	[KeepAliveMessage] = { 				"Keep Alive Message", 				offsize(sccp_data_t, StationKeepAliveMessage)},
 	[RegisterMessage] = { 				"Register Message", 				offsize(sccp_data_t, RegisterMessage)},
@@ -3021,9 +3022,14 @@ static const struct sccp_messagetype {
 	[CallCountRespMessage] = {			"CallCount Response Message",			offsize(sccp_data_t, CallCountRespMessage)},
 	[RecordingStatusMessage] = {			"Recording Status Message",			offsize(sccp_data_t, RecordingStatusMessage)},
 
-	[SPCPRegisterTokenRequest] = { 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
-	[SPCPRegisterTokenAck] = { 			"SCPA RegisterMessageACK", 			offsize(sccp_data_t, SPCPRegisterTokenAck)},
-	[SPCPRegisterTokenReject] = { 			"SCPA RegisterMessageReject", 			offsize(sccp_data_t, SPCPRegisterTokenReject)},
+	/* *INDENT-ON* */
+};
+
+static const struct messagetype spcp_messagetypes[] = {
+	/* *INDENT-OFF* */
+	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET	] = {"SPCP Register Token Request", 		offsize(sccp_data_t, SPCPRegisterTokenRequest)},
+	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET	] = {"SCPA RegisterMessageACK", 		offsize(sccp_data_t, SPCPRegisterTokenAck)},
+	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET	] = {"SCPA RegisterMessageReject", 		offsize(sccp_data_t, SPCPRegisterTokenReject)},
 	/* *INDENT-ON* */
 };
 
