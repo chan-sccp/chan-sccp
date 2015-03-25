@@ -201,12 +201,20 @@ void sccp_dev_dbclean(void)
 
 gcc_inline const char *msgtype2str(sccp_mid_t type)
 {														/* sccp_protocol.h */
-	return sccp_messagetypes[type].text;
+	if (type >= SPCP_MESSAGE_OFFSET) {
+		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].text;
+	} else {
+		return sccp_messagetypes[type].text;
+	}
 }
 
 gcc_inline size_t msgtype2size(sccp_mid_t type)
 {														/* sccp_protocol.h */
-	return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
+	if (type >= SPCP_MESSAGE_OFFSET) {
+		return spcp_messagetypes[type - SPCP_MESSAGE_OFFSET].size + SCCP_PACKET_HEADER;
+	} else {
+		return sccp_messagetypes[type].size + SCCP_PACKET_HEADER;
+	}
 }
 
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)

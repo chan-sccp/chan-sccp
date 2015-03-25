@@ -227,13 +227,12 @@ EXIT:
  *
  * Used to map SKinny Message Id's to their Handling Implementations
  */
-struct sccp_messageMap_cb {
+struct messageMap_cb {
 	void (*const messageHandler_cb) (sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg);
 	boolean_t deviceIsNecessary;
 };
-typedef struct sccp_messageMap_cb sccp_messageMap_cb_t;
 
-static const struct sccp_messageMap_cb messagesCbMap[] = {
+static const struct messageMap_cb sccpMessagesCbMap[] = {
 	[KeepAliveMessage] = {sccp_handle_KeepAliveMessage, FALSE},						// on 7985,6911 phones and tokenmsg, a KeepAliveMessage is send before register/token 
 	[OffHookMessage] = {sccp_handle_offhook, TRUE},
 	[OnHookMessage] = {sccp_handle_onhook, TRUE},
@@ -276,12 +275,14 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
 	[RegisterMessage] = {sccp_handle_register, FALSE},
 	[AlarmMessage] = {sccp_handle_alarm, FALSE},
 	[XMLAlarmMessage] = {sccp_handle_XMLAlarmMessage, FALSE},
-	[SPCPRegisterTokenRequest] = {sccp_handle_SPCPTokenReq, FALSE},
 	[StartMultiMediaTransmissionAck] = {sccp_handle_startmultimediatransmission_ack, TRUE},
 	[MediaTransmissionFailure] = {sccp_handle_mediatransmissionfailure, TRUE},
 	[MiscellaneousCommandMessage] = {sccp_handle_miscellaneousCommandMessage, TRUE},
 };
 
+static const struct messageMap_cb spcpMessagesCbMap[] = {
+	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET] = {sccp_handle_SPCPTokenReq, FALSE},
+};
 /*!
  * \brief       Controller function to handle Received Messages
  * \param       msg Message as sccp_msg_t
@@ -289,7 +290,7 @@ static const struct sccp_messageMap_cb messagesCbMap[] = {
  */
 int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 {
-	const sccp_messageMap_cb_t *messageMap_cb = NULL;
+	const struct messageMap_cb *messageMap_cb = NULL;
 	uint32_t mid = 0;
 	sccp_device_t *device = NULL;
 
@@ -309,7 +310,11 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 	mid = letohl(msg->header.lel_messageId);
 
 	/* search for message handler */
-	messageMap_cb = &messagesCbMap[mid];
+	if (mid >= SPCP_MESSAGE_OFFSET) {
+		messageMap_cb = &spcpMessagesCbMap[mid - SPCP_MESSAGE_OFFSET]; 
+	} else {
+		messageMap_cb = &sccpMessagesCbMap[mid];
+	}
 	sccp_log((DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_3 "%s: >> Got message %s (%x)\n", DEV_ID_LOG(s->device), msgtype2str(mid), mid);
 
 	/* we dont know how to handle event */

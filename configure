@@ -28419,7 +28419,7 @@ esac
 
 		fi
 	fi
-	CFLAGS_saved="${CFLAGS_saved} -I."			CFLAGS="${CFLAGS_saved}"
+	CFLAGS_saved="${CFLAGS_saved} -fPIC -I."			CFLAGS="${CFLAGS_saved}"
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 
 
