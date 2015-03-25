@@ -438,10 +438,19 @@ static int sccp_dissect_header(sccp_session_t * s, sccp_header_t * header)
 	boolean_t Found = FALSE;
 	uint32_t x;
 
-	for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
-		if (messageId == x) {
-			Found = TRUE;
-			break;
+	if (messageId < SPCP_MESSAGE_OFFSET) {
+		for (x = 0; x < ARRAY_LEN(sccp_messagetypes); x++) {
+			if (messageId == x) {
+				Found = TRUE;
+				break;
+			}
+		}
+	} else {
+		for (x = 0; x < ARRAY_LEN(spcp_messagetypes); x++) {
+			if (messageId - SPCP_MESSAGE_OFFSET == x) {
+				Found = TRUE;
+				break;
+			}
 		}
 	}
 	if (!Found) {
