@@ -364,7 +364,7 @@ typedef enum sccp_event_type {
 	SCCP_EVENT_TYPE_SENTINEL = 1<<10
 } sccp_event_type_t;
 int sccp_event_type_exists(int sccp_event_type_int_value);
-const char * sccp_event_type2str(sccp_event_type_t enum_value);
+const char * sccp_event_type2str(int sccp_event_type_int_value);
 sccp_event_type_t sccp_event_type_str2val(const char *lookup_str);
 int sccp_event_type_str2intval(const char *lookup_str);
 char *sccp_event_type_all_entries(void);
@@ -419,7 +419,7 @@ typedef enum sccp_rtp_status {
 	SCCP_RTP_STATUS_SENTINEL = 1<<2
 } sccp_rtp_status_t;
 int sccp_rtp_status_exists(int sccp_rtp_status_int_value);
-const char * sccp_rtp_status2str(sccp_rtp_status_t enum_value);
+const char * sccp_rtp_status2str(int sccp_rtp_status_int_value);
 sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str);
 int sccp_rtp_status_str2intval(const char *lookup_str);
 char *sccp_rtp_status_all_entries(void);
@@ -619,7 +619,7 @@ typedef enum sccp_configurationchange {
 	SCCP_CONFIGURATIONCHANGE_SENTINEL = 1<<4
 } sccp_configurationchange_t;
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value);
-const char * sccp_configurationchange2str(sccp_configurationchange_t enum_value);
+const char * sccp_configurationchange2str(int sccp_configurationchange_int_value);
 sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_str);
 int sccp_configurationchange_str2intval(const char *lookup_str);
 char *sccp_configurationchange_all_entries(void);
@@ -656,7 +656,7 @@ typedef enum sccp_rtp_info {
 	SCCP_RTP_INFO_SENTINEL = 1<<3
 } sccp_rtp_info_t;
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value);
-const char * sccp_rtp_info2str(sccp_rtp_info_t enum_value);
+const char * sccp_rtp_info2str(int sccp_rtp_info_int_value);
 sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str);
 int sccp_rtp_info_str2intval(const char *lookup_str);
 char *sccp_rtp_info_all_entries(void);
