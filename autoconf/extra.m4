@@ -158,7 +158,7 @@ dnl	AC_HEADER_RESOLV
 dnl	AC_GNU_SOURCE
 
 	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-	if test -z "`gcc -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
+	if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then 
 		CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
 	fi
 
@@ -231,12 +231,12 @@ AC_DEFUN([CS_CC_VERSION_CHECK], [
 			GCC=yes
 			;;
 		clang*)
-			if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
+			if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - 2>&1`" = ""; then
 				CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
 				AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
 				CC_works=1
 			else			
-				if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
+				if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
 					CFLAGS_saved="${CFLAGS_saved} -fblocks"
 					AC_SUBST([CLANG_BLOCKS_LIBS],[-lBlocksRuntime])
 					AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
@@ -586,7 +586,7 @@ dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable
 			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
 		fi		
 	fi
-	CFLAGS_saved="${CFLAGS_saved} -fPIC -I."		dnl include our own directory first, so that we can find config.h when using a builddir
+	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
 	CFLAGS="${CFLAGS_saved}"
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 	AC_SUBST([DEBUG])
