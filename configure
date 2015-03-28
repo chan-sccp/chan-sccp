@@ -6406,7 +6406,7 @@ fi
 
 
 	CFLAGS_saved="$CFLAGS_saved -std=gnu89"
-	if test -z "`gcc -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then
+	if test -z "`${CC} -std=gnu99 -fgnu89-inline -dM -E - </dev/null 2>&1 |grep 'gnu89-inline'`"; then
 		CFLAGS_saved="$CFLAGS_saved -fgnu89-inline"
 	fi
 
@@ -19132,14 +19132,14 @@ $as_echo "#define GCC_NESTED 1" >>confdefs.h
 			GCC=yes
 			;;
 		clang*)
-			if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - 2>&1`" = ""; then
+			if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - 2>&1`" = ""; then
 				CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
 
 $as_echo "#define CLANG_BLOCKS 1" >>confdefs.h
 
 				CC_works=1
 			else
-				if test "`echo "int main(){return ^{return 42;}();}" | clang -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
+				if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
 					CFLAGS_saved="${CFLAGS_saved} -fblocks"
 					CLANG_BLOCKS_LIBS=-lBlocksRuntime
 
@@ -22369,6 +22369,9 @@ $as_echo "" >&6; }
 $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 
 
+  CFLAGS_backup={$CFLAGS}
+  CFLAGS="${CFLAGS_saved}"
+
   HEADER_INCLUDE="
 	#undef PACKAGE
 	#undef PACKAGE_BUGREPORT
@@ -25327,6 +25330,7 @@ $as_echo "#define HAVE_PBX_HTTP_H 1" >>confdefs.h
 fi
 
 
+  CFLAGS={$CFLAGS_backup}
 
 else
 
@@ -28419,7 +28423,7 @@ esac
 
 		fi
 	fi
-	CFLAGS_saved="${CFLAGS_saved} -fPIC -I."			CFLAGS="${CFLAGS_saved}"
+	CFLAGS_saved="${CFLAGS_saved} -I."			CFLAGS="${CFLAGS_saved}"
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 
 
