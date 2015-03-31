@@ -2322,6 +2322,7 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
 		if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
 			ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+			ast_rtp_instance_dtmf_mode_set(c->rtp.audio.rtp, AST_RTP_DTMF_MODE_INBAND);
 		}
 
 		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(c->rtp.audio.rtp, 0));
@@ -3912,8 +3913,10 @@ PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_findPickupChannelByExtenLocked(PBX_CH
 		return NULL;
 	}
 
+	//ast_log(LOG_NOTICE, "(findPickupChannelByExtenLocked) checking pickup of channel: %s, context: %s, exten: %s, iter: %p\n", pbx_channel_name(chan), exten, context, iter);
 	while ((target = ast_channel_iterator_next(iter))) {
 		ast_channel_lock(target);
+		//ast_log(LOG_NOTICE, "(findPickupChannelByExtenLocked) checking channel: %s, target:%s, can_pickup: %d\n", pbx_channel_name(chan), pbx_channel_name(target), ast_can_pickup(target));
 		if ((chan != target) && ast_can_pickup(target)) {
 			ast_log(LOG_NOTICE, "%s pickup by %s\n", ast_channel_name(target), ast_channel_name(chan));
 			break;
