@@ -1449,7 +1449,9 @@ char *sccp_tokenstate_all_entries(void) {
 static const char *sccp_softswitch_map[] = {
 	[SCCP_SOFTSWITCH_DIAL] = "Softswitch Dial",
 	[SCCP_SOFTSWITCH_GETFORWARDEXTEN] = "Softswitch Get Forward Extension",
+#ifdef CS_SCCP_PICKUP
 	[SCCP_SOFTSWITCH_GETPICKUPEXTEN] = "Softswitch Get Pickup Extension",
+#endif
 	[SCCP_SOFTSWITCH_GETMEETMEROOM] = "Softswitch Get Meetme Room",
 	[SCCP_SOFTSWITCH_GETBARGEEXTEN] = "Softswitch Get Barge Extension",
 	[SCCP_SOFTSWITCH_GETCBARGEROOM] = "Softswitch Get CBarrge Room",
@@ -1492,7 +1494,7 @@ int sccp_softswitch_str2intval(const char *lookup_str) {
 }
 
 char *sccp_softswitch_all_entries(void) {
-	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Registered,Softswitch Get Conference Room";
+	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Token Rejected,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Unregistered,Softswitch Get Conference Room";
 	return res;
 }
 /* = End =========================================================================================                sccp_softswitch === */
@@ -1677,11 +1679,11 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 }
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
-	static char res[262] = "";
+	static char res[246] = "";
 	int i, pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
 		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 262, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
+			pos += snprintf(res + pos, 246, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
 		}
 	}
 	if (!strlen(res)) {
@@ -1790,11 +1792,11 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 }
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
-	static char res[343] = "";
+	static char res[327] = "";
 	int i, pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
 		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
-			pos += snprintf(res + pos, 343, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
+			pos += snprintf(res + pos, 327, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
 		}
 	}
 	if (!strlen(res)) {
