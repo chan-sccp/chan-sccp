@@ -1282,7 +1282,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk16_extensionStatus(const scc
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (!pbx_channel || !pbx_channel->context) {
+	if (!pbx_channel || sccp_strlen_zero(pbx_channel->context)) {
 		pbx_log(LOG_ERROR, "%s: (extension_status) Either no pbx_channel or no valid context provided to lookup number\n", channel->designator);
 		return SCCP_EXTENSION_NOTEXISTS;
 	}
@@ -2016,7 +2016,7 @@ static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 	}
 
 	ast_debug(10, "asterisk requests format for channel %s, readFormat: %s(%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
-	if (channel->remoteCapabilities.audio) {
+	if (channel->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
 		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
 	} else {
 		return skinny_codecs2pbx_codecs(channel->capabilities.audio);

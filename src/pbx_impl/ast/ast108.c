@@ -1383,7 +1383,7 @@ static sccp_extension_status_t sccp_wrapper_asterisk18_extensionStatus(const scc
 {
 	PBX_CHANNEL_TYPE *pbx_channel = channel->owner;
 
-	if (!pbx_channel || !pbx_channel->context) {
+	if (!pbx_channel || sccp_strlen_zero(pbx_channel->context)) {
 		pbx_log(LOG_ERROR, "%s: (extension_status) Either no pbx_channel or no valid context provided to lookup number\n", channel->designator);
 		return SCCP_EXTENSION_NOTEXISTS;
 	}
@@ -2021,7 +2021,7 @@ static format_t sccp_wrapper_asterisk18_getCodec(PBX_CHANNEL_TYPE * ast)
 
 	ast_debug(10, "asterisk requests format for channel %s, readFormat: %s(%d)\n", ast->name, codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
 
-	if (channel->remoteCapabilities.audio) {
+	if (channel->remoteCapabilities.audio[0] != SKINNY_CODEC_NONE) {
 		return skinny_codecs2pbx_codecs(channel->remoteCapabilities.audio);
 	} else {
 		return skinny_codecs2pbx_codecs(channel->capabilities.audio);
@@ -2302,6 +2302,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 		ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF, 1);
 		if (c->dtmfmode == SCCP_DTMFMODE_SKINNY) {
 			ast_rtp_instance_set_prop(c->rtp.audio.rtp, AST_RTP_PROPERTY_DTMF_COMPENSATE, 1);
+			ast_rtp_instance_dtmf_mode_set(c->rtp.audio.rtp, AST_RTP_DTMF_MODE_INBAND);
 		}
 
 		ast_channel_set_fd(c->owner, 0, ast_rtp_instance_fd(c->rtp.audio.rtp, 0));
