@@ -162,7 +162,6 @@ video_cos = ""                                                                  
 trustphoneip = ""                                                                 ; The phone has a ip address. It could be private, so if the phone is behind NAT 
                                                                                   ; we don't have to trust the phone ip address, but the ip address of the connection
 nat = ""                                                                          ; Device NAT support. Currently nat is automatically detected in most cases.
-#endif
 directrtp = ""                                                                    ; This option allow devices to do direct RTP sessions.
 earlyrtp = ""                                                                     ; valid options: none, offhook, immediate, dial, ringout and progress.
                                                                                   ; The audio stream will be open in the progress and connected state by default. Immediate forces overlap dialing.

@@ -20,6 +20,7 @@ AC_DEFUN([CS_SETUP_BUILD],[
 	AC_PATH_PROGS(HEAD,head,No)
 	AC_PATH_PROGS(CUT,cut,No)
 	AC_PATH_PROGS(AWK,awk,No)
+	AC_PATH_PROGS(GAWK,gawk,No)
 	AC_PATH_PROGS(PKGCONFIG,pkg-config,No)
 
 	if test ! x"${UNAME}" = xNo; then
