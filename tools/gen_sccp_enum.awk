@@ -146,7 +146,11 @@ codeSkip == 1			{ next }
 	print "} " namespace "_" enum_name "_t;" >out_header_file
 
 	print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value);" > out_header_file
-	print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value);" > out_header_file
+	if (bitfield == 0) {
+		print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value);" > out_header_file
+	} else {
+		print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value);" > out_header_file
+	}
 	print namespace "_" enum_name "_t " namespace "_" enum_name "_str2val(const char *lookup_str);" > out_header_file
 	print "int " namespace "_" enum_name "_str2intval(const char *lookup_str);" > out_header_file
 	print "char *" namespace "_" enum_name "_all_entries(void);" > out_header_file
@@ -179,14 +183,22 @@ codeSkip == 1			{ next }
 				print "#ifdef " Entry_ifdef[i] > out_source_file
 				ifdef = 1
 			} else {
-				print "\t[" Entry_id[i] "] = \"" Entry_text[i] "\"," > out_source_file
+				if (bitfield == 0) {
+					print "\t[" Entry_id[i] "] = \"" Entry_text[i] "\"," > out_source_file
+				} else {
+					print "\t\"" Entry_text[i] "\"," > out_source_file
+				}
 			}
 			if (ifdef && Entry_ifdef[i] == "") {
 				print "#endif" > out_source_file
 				ifdef = 0
 			}
 		}
-		print "\t[" toupper(namespace) "_" toupper(enum_name) "_SENTINEL] = \"LOOKUPERROR\"" > out_source_file
+		if (bitfield == 0) {
+			print "\t[" toupper(namespace) "_" toupper(enum_name) "_SENTINEL] = \"LOOKUPERROR\"" > out_source_file
+		} else {
+			print "\t\"LOOKUPERROR\"" > out_source_file
+		}
 		print "};\n" > out_source_file
         } else {
 		printf "static const char *" namespace "_" enum_name "_map[] = {" > out_source_file
@@ -209,9 +221,20 @@ codeSkip == 1			{ next }
 	# int sccp_does_channelstate_exist[int int_enum_value) {
 	print "int " namespace "_" enum_name "_exists(int " namespace "_" enum_name "_int_value) {" > out_source_file
 	if (sparse == 0) {
-		print "\tif ((" Entry_id[1] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL )) {" >out_source_file
-		print "\t\treturn 1;" > out_source_file
-		print "\t}" > out_source_file
+		if (bitfield == 0) {
+			print "\tif ((" Entry_id[1] " <=" namespace "_" enum_name "_int_value) && (" namespace "_" enum_name "_int_value < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL )) {" >out_source_file
+			print "\t\treturn 1;" > out_source_file
+			print "\t}" > out_source_file
+			print "\treturn 0;" > out_source_file
+		} else {
+			print "\tint res = 0, i;" > out_source_file
+			print "\tfor (i = 0; i < " toupper(namespace) "_" toupper(enum_name) "_SENTINEL; i++) {" >out_source_file
+			print "\t\tif ((" namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" > out_source_file
+			print "\t\t\tres |= 1;" > out_source_file
+			print "\t\t}" > out_source_file
+			print "\t}" > out_source_file
+			print "\treturn res;" > out_source_file
+		}
 	} else {
 		printf "\tstatic const int " namespace "_" enum_name "s[] = {" > out_source_file
 		for ( i = 0; i < e; ++i) {
@@ -226,20 +249,40 @@ codeSkip == 1			{ next }
 		print "\t\t\treturn 1;" > out_source_file
 		print "\t\t}"> out_source_file
 		print "\t}"> out_source_file
+		print "\treturn 0;" > out_source_file
 	}
 	print "\treturn 0;" > out_source_file
 	print "}\n" > out_source_file
 
 	# const char * sccp_channelstate2str(sccp_channelstate_t enum_value) {
-	print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value) {" > out_source_file
 	if (sparse == 0) {
-#		print "\tif ("namespace "_" enum_name "_exists(enum_value)) {" >out_source_file
-		print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL)) {" >out_source_file
-		print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
-		print "\t}" >out_source_file
-		print "\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
-		print "\treturn \"SCCP: OutOfBounds Error during lookup of " namespace "_" enum_name "2str\\n\";" > out_source_file
+		if (bitfield == 0) {
+			print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value) {" > out_source_file
+			print "\tif ((" Entry_id[0] " <= enum_value) && (enum_value <= " toupper(namespace) "_" toupper(enum_name) "_SENTINEL)) {" >out_source_file
+			print "\t\treturn " namespace "_" enum_name "_map[enum_value];" >out_source_file
+			print "\t}" >out_source_file
+			print "\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", enum_value);" > out_source_file
+			print "\treturn \"SCCP: OutOfBounds Error during lookup of " namespace "_" enum_name "2str\\n\";" > out_source_file
+		} else {
+			for ( i = 0; i < e; i++) {
+				totlen += length(Entry_text[e]) + 1
+			}
+			print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value) {" > out_source_file
+			print "\tstatic char res[" totlen "] = \"\";" >out_source_file
+			print "\tint i, pos = 0;" >out_source_file
+			print "\tfor (i = 0; i < ARRAY_LEN(" namespace "_" enum_name "_map) - 1; i++) {" >out_source_file
+			print "\t\tif (("namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" >out_source_file
+			print "\t\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[i]);" >out_source_file
+			print "\t\t}" >out_source_file
+			print "\t}" >out_source_file
+			print "\tif (!strlen(res)) {" >out_source_file
+			print "\t\tpbx_log(LOG_ERROR, \"SCCP: Error during lookup of '%d' in " namespace "_" enum_name "2str\\n\", " namespace "_" enum_name "_int_value);" > out_source_file
+			print "\t\treturn \"SCCP: OutOfBounds Error during lookup of sparse " namespace "_" enum_name "2str\\n\";" > out_source_file
+			print "\t}" >out_source_file
+			print "\treturn res;" >out_source_file
+		}
 	} else {
+		print "const char * " namespace "_" enum_name "2str(" namespace "_" enum_name "_t enum_value) {" > out_source_file
 		print "\tswitch(enum_value) {" > out_source_file
 		for ( i = 0; i < e; ++i) {
 			print "\t\tcase " Entry_id[i] ": return " namespace "_" enum_name "_map[" i "];" > out_source_file
@@ -257,7 +300,11 @@ codeSkip == 1			{ next }
 		print "\tint idx;" > out_source_file
 		print "\tfor (idx = 0; idx < ARRAY_LEN(" namespace "_" enum_name "_map); idx++) {" > out_source_file
 		print "\t\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[idx], lookup_str)) {" > out_source_file
-		print "\t\t\treturn idx;" > out_source_file
+		if (bitfield == 0) {
+			print "\t\t\treturn idx;" > out_source_file
+		} else {
+			print "\t\t\treturn 1 << idx;" > out_source_file
+		}
 		print "\t\t}" > out_source_file
 		print "\t}" > out_source_file
 	} else {

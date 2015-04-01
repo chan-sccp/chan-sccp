@@ -196,7 +196,7 @@ typedef enum {
 /*!
  * \brief SKINNY Codec Structure
  */
-static const struct skinny_codec {
+struct skinny_codec {
 	skinny_codec_t codec;
 	skinny_payload_type_t codec_type;
 	const char *const key;											// used in sccp.conf
@@ -206,7 +206,7 @@ static const struct skinny_codec {
 	unsigned int sample_rate;
 	unsigned int sound_quality;
 	unsigned int rtp_payload_type;
-} skinny_codecs[] = {
+} static const skinny_codecs[] = {
 	/* *INDENT-OFF* */
 	{SKINNY_CODEC_NONE,		SKINNY_CODEC_TYPE_UNKNOWN, 	"",		"",		"No codec", 				NULL,		0,	0,	0},	//payload unknown
 	{SKINNY_CODEC_NONSTANDARD,	SKINNY_CODEC_TYPE_UNKNOWN,	"",		"",		"Non-standard codec", 			NULL,		0,	0,	0},	//payload unknown
@@ -279,6 +279,8 @@ typedef struct {
  */
 #define SCCP_MESSAGE_LOW_BOUNDARY			0x0000
 #define SCCP_MESSAGE_HIGH_BOUNDARY			0x8101
+#define SPCP_MESSAGE_OFFSET 				0x8000
+
 typedef enum {
 	/* *INDENT-OFF* */
 
@@ -476,13 +478,11 @@ typedef enum {
 	CallCountRespMessage				= 0x015F,	/*new (2013-12-9)*/
 	RecordingStatusMessage 				= 0x0160,	/*new (2013-12-9)*/
 
-	/* SPCP client -> server */
+	/* SPCP client -> server; */
 	SPCPRegisterTokenRequest 			= 0x8000,
-
 	/* SPCP server -> client */
 	SPCPRegisterTokenAck 				= 0x8100,
 	SPCPRegisterTokenReject 			= 0x8101,
-	
 /*
 	SPCPPlatformInfoGetReq				= 0xFF02,
 	SPCPPlatformInfoGetRsp				= 0xFF03,
@@ -2655,7 +2655,6 @@ typedef union {
 	struct {
 		uint32_t lel_features;
 	} SPCPRegisterTokenReject;
-
 	/*
 	 * Unhandled SCCP Message: unknown(0x0159) 168 bytes length
 	 * 00000000 - 01 00 00 00 01 00 00 00 02 00 00 00 00 00 00 00 ................
@@ -2844,10 +2843,12 @@ typedef struct {
  * \brief SCCP Message Type Structure
  */
 #define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
-static const struct sccp_messagetype {
+struct messagetype {
 	const char *const text;
 	const size_t size;
-} sccp_messagetypes[] = {
+};
+
+static const struct messagetype sccp_messagetypes[] = {
 	/* *INDENT-OFF* */
 	[KeepAliveMessage] = { 				"Keep Alive Message", 				offsize(sccp_data_t, StationKeepAliveMessage)},
 	[RegisterMessage] = { 				"Register Message", 				offsize(sccp_data_t, RegisterMessage)},
@@ -3021,9 +3022,14 @@ static const struct sccp_messagetype {
 	[CallCountRespMessage] = {			"CallCount Response Message",			offsize(sccp_data_t, CallCountRespMessage)},
 	[RecordingStatusMessage] = {			"Recording Status Message",			offsize(sccp_data_t, RecordingStatusMessage)},
 
-	[SPCPRegisterTokenRequest] = { 			"SPCP Register Token Request", 			offsize(sccp_data_t, SPCPRegisterTokenRequest)},
-	[SPCPRegisterTokenAck] = { 			"SCPA RegisterMessageACK", 			offsize(sccp_data_t, SPCPRegisterTokenAck)},
-	[SPCPRegisterTokenReject] = { 			"SCPA RegisterMessageReject", 			offsize(sccp_data_t, SPCPRegisterTokenReject)},
+	/* *INDENT-ON* */
+};
+
+static const struct messagetype spcp_messagetypes[] = {
+	/* *INDENT-OFF* */
+	[SPCPRegisterTokenRequest - SPCP_MESSAGE_OFFSET	] = {"SPCP Register Token Request", 		offsize(sccp_data_t, SPCPRegisterTokenRequest)},
+	[SPCPRegisterTokenAck - SPCP_MESSAGE_OFFSET	] = {"SPCP RegisterMessageACK", 		offsize(sccp_data_t, SPCPRegisterTokenAck)},
+	[SPCPRegisterTokenReject - SPCP_MESSAGE_OFFSET	] = {"SPCP RegisterMessageReject", 		offsize(sccp_data_t, SPCPRegisterTokenReject)},
 	/* *INDENT-ON* */
 };
 
@@ -3075,188 +3081,7 @@ typedef struct {
 	uint8_t count;												/*!< Soft Key Count */
 } softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
 
-static uint8_t skSet_Onhook[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_DND,
-	//SKINNY_LBL_CFWDBUSY,
-	//SKINNY_LBL_CFWDNOANSWER,
-#ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#endif
-	SKINNY_LBL_PRIVATE,
-	//SKINNY_LBL_CONFLIST,
-};														/*!< SKINNY SoftKeys Set "Onhook" as INT */
-
-static uint8_t skSet_OnhookStealable[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_CFWDALL,
-#ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#endif
-	SKINNY_LBL_DND,
-	SKINNY_LBL_INTRCPT,
-};														/*!< SKINNY SoftKeys Set "Onhook" as INT */
-
-static uint8_t skSet_Connected[] = {
-	SKINNY_LBL_HOLD,
-	SKINNY_LBL_ENDCALL,
-#ifdef CS_SCCP_PARK
-	SKINNY_LBL_PARK,
-#endif
-#ifdef CS_SCCP_DIRTRFR
-	SKINNY_LBL_SELECT,
-#endif
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	//SKINNY_LBL_CFWDNOANSWER,
-	SKINNY_LBL_IDIVERT,
-};														/*!< SKINNY SoftKeys Set "Connected" as INT */
-
-static uint8_t skSet_Onhold[] = {
-	SKINNY_LBL_RESUME,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_NEWCALL,
-	SKINNY_LBL_TRANSFER,
-#ifdef CS_SCCP_CONFERENCE
-	//SKINNY_LBL_CONFLIST,
-	//SKINNY_LBL_CONFRN,
-#endif
-#ifdef CS_SCCP_DIRTRFR
-	SKINNY_LBL_SELECT,
-	SKINNY_LBL_DIRTRFR,
-#endif
-	SKINNY_LBL_IDIVERT,
-};														/*!< SKINNY SoftKeys Set "On Hold" as INT */
-
-static uint8_t skSet_Ringin[] = {
-	SKINNY_LBL_ANSWER,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRNSFVM,
-	SKINNY_LBL_IDIVERT,
-	//SKINNY_LBL_TRANSFER,
-	//SKINNY_LBL_DIRTRFR
-};														/*!< SKINNY SoftKeys Set "Ring-IN" as INT */
-
-static uint8_t skSet_Offhook[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_PRIVATE,
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	//SKINNY_LBL_CFWDNOANSWER,
-#ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#endif
-	SKINNY_LBL_MEETME,
-	SKINNY_LBL_BARGE,
-	//SKINNY_LBL_CBARGE,
-};														/*!< SKINNY SoftKeys Set "OffHook" as INT */
-
-static uint8_t skSet_Conntrans[] = {
-	SKINNY_LBL_HOLD,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRANSFER,
-#ifdef CS_SCCP_CONFERENCE
-	SKINNY_LBL_CONFRN,
-	SKINNY_LBL_JOIN,
-#endif
-#ifdef CS_SCCP_PARK
-	SKINNY_LBL_PARK,
-#endif
-#ifdef CS_SCCP_DIRTRFR
-	SKINNY_LBL_SELECT,
-	SKINNY_LBL_DIRTRFR,
-#endif
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-	SKINNY_LBL_VIDEO_MODE,
-	SKINNY_LBL_MONITOR,
-	//SKINNY_LBL_CFWDNOANSWER,
-};														/*!< SKINNY SoftKeys Set "Connected With Transfer" as INT */
-
-static uint8_t skSet_DigitsFoll[] = {
-	SKINNY_LBL_BACKSPACE,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_DIAL,
-};														/*!< SKINNY SoftKeys Set "Digits after dialing first digit" as INT */
-
-static uint8_t skSet_Connconf[] = {
-	SKINNY_LBL_HOLD,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_CONFLIST,
-	SKINNY_LBL_JOIN,
-};														/*!< SKINNY SoftKeys Set "Connected with Conference" as INT */
-
-static uint8_t skSet_RingOut[] = {
-	SKINNY_LBL_EMPTY,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_TRANSFER,
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_IDIVERT,
-	//SKINNY_LBL_CFWDBUSY,
-	//SKINNY_LBL_CFWDNOANSWER,
-};														/*!< SKINNY SoftKeys Set "Ring-Out" as INT */
-
-static uint8_t skSet_Offhookfeat[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_ENDCALL,
-	SKINNY_LBL_PRIVATE,
-	SKINNY_LBL_CFWDALL,
-	SKINNY_LBL_CFWDBUSY,
-#ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#endif
-	SKINNY_LBL_MEETME,
-	SKINNY_LBL_BARGE,
-};														/*!< SKINNY SoftKeys Set "Off Hook with Features" as INT */
-
-// in use hint keyset
-static uint8_t skSet_InUseHint[] = {
-	SKINNY_LBL_REDIAL,
-	SKINNY_LBL_NEWCALL,
-#ifdef CS_SCCP_PICKUP
-	SKINNY_LBL_PICKUP,
-	SKINNY_LBL_GPICKUP,
-#endif
-	SKINNY_LBL_BARGE,
-};														/*!< SKINNY SoftKeys Set "Hint In Use" as INT */
-
-static uint8_t skSet_Empty[] = {
-
-};
-
-/*! 
- */
-static const softkey_modes SoftKeyModes[] = {
-	/* According to CCM dump:
-	 *  OnHook(0), Connected(1), OnHold(2), RingIn(3)
-	 *  OffHook(4), ConnectedWithTransfer(5)
-	 *  Digitsafterdialingfirstdigit(6), Connected with Conference (7)
-	 *  RingOut (8), OffHookWithFeatures (9), InUseHint(10)
-	 */
-	/* *INDENT-OFF* */
-	{KEYMODE_ONHOOK, skSet_Onhook, sizeof(skSet_Onhook) / sizeof(uint8_t)},
-	{KEYMODE_CONNECTED, skSet_Connected, sizeof(skSet_Connected) / sizeof(uint8_t)},
-	{KEYMODE_ONHOLD, skSet_Onhold, sizeof(skSet_Onhold) / sizeof(uint8_t)},
-	{KEYMODE_RINGIN, skSet_Ringin, sizeof(skSet_Ringin) / sizeof(uint8_t)},
-	{KEYMODE_OFFHOOK, skSet_Offhook, sizeof(skSet_Offhook) / sizeof(uint8_t)},
-	{KEYMODE_CONNTRANS, skSet_Conntrans, sizeof(skSet_Conntrans) / sizeof(uint8_t)},
-	{KEYMODE_DIGITSFOLL, skSet_DigitsFoll, sizeof(skSet_DigitsFoll) / sizeof(uint8_t)},
-	{KEYMODE_CONNCONF, skSet_Connconf, sizeof(skSet_Connconf) / sizeof(uint8_t)},
-	{KEYMODE_RINGOUT, skSet_RingOut, sizeof(skSet_RingOut) / sizeof(uint8_t)},
-	{KEYMODE_OFFHOOKFEAT, skSet_Offhookfeat, sizeof(skSet_Offhookfeat) / sizeof(uint8_t)},
-	{KEYMODE_INUSEHINT, skSet_InUseHint, sizeof(skSet_InUseHint) / sizeof(uint8_t)},
-	{KEYMODE_ONHOOKSTEALABLE, skSet_OnhookStealable, sizeof(skSet_OnhookStealable) / sizeof(uint8_t)},
-	{KEYMODE_EMPTY, skSet_Empty, sizeof(skSet_Empty) / sizeof(uint8_t)},
-	/* *INDENT-ON* */
-};														/*!< SoftKey Modes Constants */
+static const softkey_modes SoftKeyModes[StationMaxSoftKeySetDefinition];
 
 /*!
  * \brief SCCP Device Protocol Callback Structure

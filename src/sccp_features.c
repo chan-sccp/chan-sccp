@@ -387,10 +387,11 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 			res = ast_do_pickup(original, target);
 			if (!res) {
 				/* directed pickup succeeded */
-				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) pickup succeeded on callid: %d\n", DEV_ID_LOG(d), c->callid);
+				sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) pickup succeeded on call: %s\n", DEV_ID_LOG(d), c->designator);
 				sccp_rtp_stop(c);								/* stop previous audio */
 				pbx_channel_set_hangupcause(original, AST_CAUSE_ANSWERED_ELSEWHERE);
 				if (orig_device && orig_channel) {
+					//sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) hangup: %s\n", DEV_ID_LOG(orig_device), orig_channel->designator);
 					sccp_indicate(orig_device, orig_channel, SCCP_CHANNELSTATE_ONHOOK);
 				}
 				pbx_hangup(original);								/* hangup masqueraded zombie channel */
@@ -400,6 +401,10 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 				sccp_channel_updateChannelCapability(c);
 				if (d->directed_pickup_modeanswer) {
 					sccp_indicate(d, c, SCCP_CHANNELSTATE_CONNECTED);
+					
+					/* force 7940/7960 to display the callplane (something is suppressing it along the way, have not been able to find what, yet) */
+					uint8_t instance = sccp_device_find_index_for_line(d, c->line->name);
+					sccp_device_sendcallstate(d, instance, c->callid, SKINNY_CALLSTATE_CONNECTED, SKINNY_CALLPRIORITY_NORMAL, SKINNY_CALLINFO_VISIBILITY_DEFAULT);
 				} else {
 					uint8_t instance;
 
@@ -430,7 +435,7 @@ int sccp_feat_directed_pickup(sccp_channel_t * c, char *exten)
 		pbx_channel_unlock(target);
 		target = pbx_channel_unref(target);
 	} else {
-		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %d\n", DEV_ID_LOG(d), c->callid);
+		sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (directed_pickup) findPickupChannelByExtenLocked failed on callid: %s\n", DEV_ID_LOG(d), c->designator);
 	}
 	if (!res) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: (directed_pickup) Exten '%s@%s' Picked up Succesfully\n", exten, context);

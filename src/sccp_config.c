@@ -2064,6 +2064,32 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 }
 
 /*!
+ * \brief Add 'default' softkeyset
+ */
+static void sccp_config_add_default_softkeyset()
+{
+	// create tempory "default" variable set to create "default" softkeyset, if not defined in sccp.conf
+	PBX_VARIABLE_TYPE * softkeyset_root = NULL;
+	PBX_VARIABLE_TYPE * tmp = NULL;
+	int cur_elem;
+	const SCCPConfigOption *sccpConfigOption = sccpSoftKeyConfigOptions;
+	for (cur_elem = 0; cur_elem < ARRAY_LEN(sccpSoftKeyConfigOptions); cur_elem++) {
+		if (sccpConfigOption[cur_elem].defaultValue != NULL) {
+			if (!softkeyset_root) {
+				softkeyset_root = pbx_variable_new(sccpConfigOption[cur_elem].name, sccpConfigOption[cur_elem].defaultValue, "");
+				tmp = softkeyset_root;
+			} else {
+				tmp->next = pbx_variable_new(sccpConfigOption[cur_elem].name, sccpConfigOption[cur_elem].defaultValue, "");
+				tmp = tmp->next;
+			}
+		}
+	}
+	pbx_log(LOG_NOTICE, "Adding ' default' softkeyset\n");
+	sccp_config_softKeySet(softkeyset_root, "default");
+	pbx_variables_destroy(softkeyset_root);
+}
+
+/*!
  * \brief Parse sccp.conf and Create General Configuration
  * \param readingtype SCCP Reading Type
  *
@@ -2130,9 +2156,10 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 		sccp_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
 		pbx_context_find_or_create(NULL, NULL, context, "SCCP");
 	}
-
+	
 	return TRUE;
 }
+
 
 /*!
  * \brief Cleanup Stale Contexts (regcontext)
@@ -2185,7 +2212,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	sccp_line_t *l = NULL;
 	sccp_device_t *d = NULL;
-
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
@@ -2273,12 +2299,17 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 		} else if (!strcasecmp(utype, "softkeyset")) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "read set %s\n", cat);
-			v = ast_variable_browse(GLOB(cfg), cat);
-			sccp_config_softKeySet(v, cat);
+			if (sccp_strcaseequals(cat, "default")) {
+				pbx_log(LOG_WARNING, "SCCP: (sccp_config_readDevicesLines) The 'default' softkeyset cannot be overriden, please use another name\n");
+			} else {
+				v = ast_variable_browse(GLOB(cfg), cat);
+				sccp_config_softKeySet(v, cat);
+			}
 		} else {
 			pbx_log(LOG_WARNING, "SCCP: (sccp_config_readDevicesLines) UNKNOWN SECTION / UTYPE, type: %s\n", utype);
 		}
 	}
+	sccp_config_add_default_softkeyset();
 
 #ifdef CS_SCCP_REALTIME
 	/* reload realtime lines */
@@ -2522,6 +2553,121 @@ FUNC_EXIT:
 }
 
 /*!
+ * \brief Soft Key Str to Label Mapping
+ */
+static const struct softkeyConfigurationTemplate {
+	const char configVar[15];										/*!< Config Variable as Character */
+	const int softkey;											/*!< Softkey as Int */
+} softKeyTemplate[] = {
+	/* *INDENT-OFF* */
+	{"redial", 			SKINNY_LBL_REDIAL},
+	{"newcall", 			SKINNY_LBL_NEWCALL},
+	{"cfwdall", 			SKINNY_LBL_CFWDALL},
+	{"cfwdbusy", 			SKINNY_LBL_CFWDBUSY},
+	{"cfwdnoanswer",		SKINNY_LBL_CFWDNOANSWER},
+	{"dnd", 			SKINNY_LBL_DND},
+	{"hold", 			SKINNY_LBL_HOLD},
+	{"endcall", 			SKINNY_LBL_ENDCALL},
+	{"idivert", 			SKINNY_LBL_IDIVERT},
+	{"resume", 			SKINNY_LBL_RESUME},
+	{"newcall", 			SKINNY_LBL_NEWCALL},
+	{"transfer", 			SKINNY_LBL_TRANSFER},
+	{"answer", 			SKINNY_LBL_ANSWER},
+	{"transvm", 			SKINNY_LBL_TRNSFVM},
+	{"private", 			SKINNY_LBL_PRIVATE},
+	{"meetme", 			SKINNY_LBL_MEETME},
+	{"barge", 			SKINNY_LBL_BARGE},
+	{"cbarge", 			SKINNY_LBL_CBARGE},
+	{"back", 			SKINNY_LBL_BACKSPACE},
+	{"join", 			SKINNY_LBL_JOIN},
+	{"intrcpt", 			SKINNY_LBL_INTRCPT},
+	{"monitor", 			SKINNY_LBL_MONITOR},  
+	{"dial", 			SKINNY_LBL_DIAL},
+	{"vidmode", 			SKINNY_LBL_VIDEO_MODE},
+#if CS_SCCP_PICKUP
+	{"pickup", 			SKINNY_LBL_PICKUP},
+	{"gpickup", 			SKINNY_LBL_GPICKUP},
+#else
+	{"pickup", 			-1},
+	{"gpickup", 			-1},
+#endif	
+#if CS_SCCP_PARK	
+	{"park", 			SKINNY_LBL_PARK},
+#else
+	{"park", 			-1},
+#endif
+#ifdef CS_SCCP_DIRTRFR	
+	{"select", 			SKINNY_LBL_SELECT},
+	{"dirtrfr", 			SKINNY_LBL_DIRTRFR},
+#else
+	{"select", 			-1},
+	{"dirtrfr", 			-1},
+#endif	
+#ifdef CS_SCCP_CONFERENCE
+	{"conf", 			SKINNY_LBL_CONFRN},
+	{"confrn",			SKINNY_LBL_CONFRN},
+	{"conflist", 			SKINNY_LBL_CONFLIST},
+#else
+	{"conf", 			-1},
+	{"confrn",			-1},
+	{"conflist", 			-1},
+#endif	
+	{"empty", 			SKINNY_LBL_EMPTY},
+	/* *INDENT-ON* */
+};
+
+/*!
+ * \brief Get softkey label as int
+ * \param key configuration value
+ * \return SoftKey label as int of SKINNY_LBL_*. returns an empty button if nothing matched
+ */
+static int sccp_config_getSoftkeyLbl(char *key)
+{
+	int i = 0;
+	int size = ARRAY_LEN(softKeyTemplate);
+
+	for (i = 0; i < size; i++) {
+		if (sccp_strcaseequals(softKeyTemplate[i].configVar, key)) {
+			return softKeyTemplate[i].softkey;
+		}
+	}
+	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeybutton: %s not defined", key);
+	return SKINNY_LBL_EMPTY;
+}
+
+/*!
+ * \brief Read a single SoftKeyMode (configuration values)
+ * \param softkeyset SoftKeySet
+ * \param data configuration values
+ * \return number of parsed softkeys
+ */
+static uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
+{
+	int i = 0, j;
+
+	char labels[256];
+	char *splitter;
+	char *label;
+	int softkey;
+
+	if (!data) {
+		return 0;
+	}
+	strcpy(labels, data);
+	splitter = labels;
+	while ((label = strsep(&splitter, ",")) != NULL && (i + 1) < StationMaxSoftKeySetDefinition) {
+		if ((softkey = sccp_config_getSoftkeyLbl(label)) != -1) {
+			softkeyset[i++] = sccp_config_getSoftkeyLbl(label);
+		}
+	}
+	/*! \todo we used calloc to create this structure, so setting EMPTY should not be required here */
+	for (j = i; j < StationMaxSoftKeySetDefinition; j++) {
+		softkeyset[j] = SKINNY_LBL_EMPTY;
+	}
+	return i;
+}
+
+/*!
  * \brief Read a SoftKey configuration context
  * \param variable list of configuration variables
  * \param name name of this configuration (context)
@@ -2535,7 +2681,7 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 	int keySetSize;
 	sccp_softKeySetConfiguration_t *softKeySetConfiguration = NULL;
 	int keyMode = -1;
-	unsigned int i = 0;
+//	unsigned int i = 0;
 
 	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "start reading softkeyset: %s\n", name);
 
@@ -2565,10 +2711,8 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 	while (variable) {
 		keyMode = -1;
-		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeyset: %s \n", variable->name);
-		if (sccp_strcaseequals(variable->name, "type")) {
-
-		} else if (sccp_strcaseequals(variable->name, "uriaction")) {
+		sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeyset: %s = %s\n", variable->name, variable->value);
+		if (sccp_strcaseequals(variable->name, "uriaction")) {
 			sccp_log(DEBUGCAT_CONFIG) (VERBOSE_PREFIX_3 "SCCP: UriAction softkey (%s) found\n", variable->value);
 			if (!softKeySetConfiguration->softkeyCbMap) {
 				softKeySetConfiguration->softkeyCbMap = sccp_softkeyMap_copyStaticallyMapped();
@@ -2601,44 +2745,36 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 			keyMode = KEYMODE_RINGOUT;
 		} else if (sccp_strcaseequals(variable->name, "offhookfeat")) {
 			keyMode = KEYMODE_OFFHOOKFEAT;
-		} else if (sccp_strcaseequals(variable->name, "onhint")) {
+		} else if (sccp_strcaseequals(variable->name, "inusehint") || sccp_strcaseequals(variable->name, "onhint")) {
 			keyMode = KEYMODE_INUSEHINT;
-		} else {
-			// do nothing
+		} else if (sccp_strcaseequals(variable->name, "onhookstealable") || sccp_strcaseequals(variable->name, "onstealable")) {
+			keyMode = KEYMODE_ONHOOKSTEALABLE;
 		}
 
-		if (keyMode == -1) {
-			variable = variable->next;
-			continue;
-		}
+		if (keyMode != -1) {
+			if (softKeySetConfiguration->numberOfSoftKeySets < (keyMode + 1)) {
+				softKeySetConfiguration->numberOfSoftKeySets = keyMode + 1;
+			}
 
-		if (softKeySetConfiguration->numberOfSoftKeySets < (keyMode + 1)) {
-			softKeySetConfiguration->numberOfSoftKeySets = keyMode + 1;
-		}
+			/* cleanup old value */
+			if (softKeySetConfiguration->modes[keyMode].ptr) {
+				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "KeyMode(%d) Ptr already defined in Softkeyset: %s. Freeing...\n", keyMode, name);
+				sccp_free(softKeySetConfiguration->modes[keyMode].ptr);
+			}
 
-		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
-			if (SoftKeyModes[i].id == keyMode) {
-
-				/* cleanup old value */
-				if (softKeySetConfiguration->modes[i].ptr) {
-					//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "KeyMode(%d) Ptr already defined in Softkeyset: %s. Freeing...\n", keyMode, name);
-					sccp_free(softKeySetConfiguration->modes[i].ptr);
-				}
-				uint8_t *softkeyset = sccp_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
-
-				keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
-				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding KeyMode(%d), with Size(%d), prt(%p) to Softkeyset: %s\n", keyMode, keySetSize, softkeyset, name);
-
-				if (keySetSize > 0) {
-					softKeySetConfiguration->modes[i].id = keyMode;
-					softKeySetConfiguration->modes[i].ptr = softkeyset;
-					softKeySetConfiguration->modes[i].count = keySetSize;
-				} else {
-					softKeySetConfiguration->modes[i].id = keyMode;
-					softKeySetConfiguration->modes[i].ptr = NULL;
-					softKeySetConfiguration->modes[i].count = 0;
-					sccp_free(softkeyset);
-				}
+			/* add new value */
+			uint8_t *softkeyset = sccp_calloc(StationMaxSoftKeySetDefinition, sizeof(uint8_t));
+			keySetSize = sccp_config_readSoftSet(softkeyset, variable->value);
+			//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Adding KeyMode(%d), with Size(%d), prt(%p) to Softkeyset: %s\n", keyMode, keySetSize, softkeyset, name);
+			if (keySetSize > 0) {
+				softKeySetConfiguration->modes[keyMode].id = keyMode;
+				softKeySetConfiguration->modes[keyMode].ptr = softkeyset;
+				softKeySetConfiguration->modes[keyMode].count = keySetSize;
+			} else {
+				softKeySetConfiguration->modes[keyMode].id = keyMode;
+				softKeySetConfiguration->modes[keyMode].ptr = NULL;
+				softKeySetConfiguration->modes[keyMode].count = 0;
+				sccp_free(softkeyset);
 			}
 		}
 
@@ -2647,53 +2783,6 @@ void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name)
 
 }
 
-/*!
- * \brief Read a single SoftKeyMode (configuration values)
- * \param softkeyset SoftKeySet
- * \param data configuration values
- * \return number of parsed softkeys
- */
-uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data)
-{
-	int i = 0, j;
-
-	char labels[256];
-	char *splitter;
-	char *label;
-
-	if (!data) {
-		return 0;
-	}
-	strcpy(labels, data);
-	splitter = labels;
-	while ((label = strsep(&splitter, ",")) != NULL && (i + 1) < StationMaxSoftKeySetDefinition) {
-		softkeyset[i++] = sccp_config_getSoftkeyLbl(label);
-	}
-
-	for (j = i + 1; j < StationMaxSoftKeySetDefinition; j++) {
-		softkeyset[j] = SKINNY_LBL_EMPTY;
-	}
-	return i;
-}
-
-/*!
- * \brief Get softkey label as int
- * \param key configuration value
- * \return SoftKey label as int of SKINNY_LBL_*. returns an empty button if nothing matched
- */
-int sccp_config_getSoftkeyLbl(char *key)
-{
-	int i = 0;
-	int size = sizeof(softKeyTemplate) / sizeof(softkeyConfigurationTemplate);
-
-	for (i = 0; i < size; i++) {
-		if (sccp_strcaseequals(softKeyTemplate[i].configVar, key)) {
-			return softKeyTemplate[i].softkey;
-		}
-	}
-	sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "softkeybutton: %s not defined", key);
-	return SKINNY_LBL_EMPTY;
-}
 
 /*!
  * \brief Restore feature status from ast-db
@@ -2932,6 +3021,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	int i;
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
+	int comma = 0;
 
 	if (strlen(req_segment) == 0) {										// return all segments
 		int sccp_config_revision = 0;
@@ -2949,9 +3039,63 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 		astman_append(s, "\"Version\":\"%s\",", SCCP_VERSION);
 		astman_append(s, "\"Revision\":\"%s\",", SCCP_REVISIONSTR);
 		astman_append(s, "\"ConfigRevision\":\"%d\",", sccp_config_revision);
+		char *conf_enabled_array[] = {
+#ifdef CS_SCCP_PARK
+			"park",
+#endif
+#ifdef CS_SCCP_PICKUP
+			"pickup",
+#endif 
+#ifdef CS_SCCP_REALTIME
+			"realtime",
+#endif 
+#ifdef CS_SCCP_VIDEO
+			"video",
+#endif 
+#ifdef CS_SCCP_CONFERENCE
+			"conferenence",
+#endif 
+#ifdef CS_SCCP_DIRTRFR
+			"dirtrfr",
+#endif 
+#ifdef CS_SCCP_FEATURE_MONITOR
+			"feature_monitor",
+#endif
+#ifdef CS_SCCP_FUNCTIONS
+			"functions",
+#endif
+#ifdef CS_MANAGER_EVENTS
+			"manager_events",
+#endif
+#ifdef CS_DEVICESTATE
+			"devicestate",
+#endif
+#ifdef CS_DEVSTATE_FEATURE
+			"devstate_feature",
+#endif
+#ifdef CS_DYNAMIC_SPEEDDIAL
+			"dynamic_speeddial",
+#endif
+#ifdef CS_DYNAMIC_SPEEDDIAL_CID
+			"dynamic_speeddial_cid",
+#endif
+#ifdef CS_EXPERIMENTAL
+			"experimental",
+#endif
+#ifdef DEBUG
+			"debug",
+#endif
+		};
+		comma = 0;
+		astman_append(s, "\"ConfigureEnabled\": [");
+		for (i = 0; i < ARRAY_LEN(conf_enabled_array); i++) {
+			astman_append(s, "%s\"%s\"", comma ? "," : "",conf_enabled_array[i]);
+			comma = 1;
+		}
+		astman_append(s, "],");
+		
+		comma = 0;
 		astman_append(s, "\"Segments\":[");
-		int comma = 0;
-
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
 			astman_append(s, "%s", comma ? "," : "");
 			astman_append(s, "\"%s\"", sccpConfigSegments[i].name);
@@ -3036,7 +3180,16 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								case SCCP_CONFIG_DATATYPE_ENUM:
 									astman_append(s, "\"Type\":\"ENUM\",");
 									astman_append(s, "\"Size\":%d,", (int) config[cur_elem].size - 1);
-									astman_append(s, "Possible Values: [%s]\r\n", config[cur_elem].all_entries());
+									char *all_entries = strdupa(config[cur_elem].all_entries());
+									char *possible_entry = "";
+
+									int subcomma = 0;
+									astman_append(s, "\"Possible Values\": [");
+									while (all_entries && (possible_entry = strsep(&all_entries, ","))) {
+										astman_append(s, "%s\"%s\"", subcomma ? "," : "", possible_entry);
+										subcomma = 1;
+									}
+									astman_append(s, "]");
 									break;
 							}
 							astman_append(s, ",");

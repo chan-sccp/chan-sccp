@@ -1202,12 +1202,10 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 		/* set default line on device if based on "default" config option */
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-			if (config->instance == lineNumber) {
-				if (config->type == LINE) {
-					if (strcasestr(config->button.line.options, "default")) {
-						d->defaultLineInstance = lineNumber;
-						sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
-					}
+			if (config->type == LINE && config->instance == lineNumber) {
+				if (strcasestr(config->button.line.options, "default")) {
+					d->defaultLineInstance = lineNumber;
+					sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 				}
 				break;
 			}
@@ -2114,11 +2112,11 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 				if (l->pickupgroup) {
 					pickupgroup = 1;
 				}
-#endif
 #ifdef CS_AST_HAS_NAMEDGROUP
 				if (!sccp_strlen_zero(l->namedpickupgroup)) {
 					pickupgroup = 1;
 				}
+#endif
 #endif
 			}
 		}

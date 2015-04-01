@@ -35,53 +35,6 @@ typedef enum {
 
 void sccp_copy_defaultValue(const char *name, void *obj, const sccp_device_t * device, const sccp_config_segment_t segment);
 int sccp_manager_config_metadata(struct mansession *s, const struct message *m);
-
-/*!
- * \brief Soft Key Configuration Template Structure
- */
-typedef struct {
-	const char configVar[50];										/*!< Config Variable as Character */
-	const int softkey;											/*!< Softkey as Int */
-} softkeyConfigurationTemplate;											/*!< Soft Key Configuration Template Structure */
-
-static const softkeyConfigurationTemplate softKeyTemplate[] = {
-	/* *INDENT-OFF* */
-	{"redial", 			SKINNY_LBL_REDIAL},
-	{"newcall", 			SKINNY_LBL_NEWCALL},
-	{"cfwdall", 			SKINNY_LBL_CFWDALL},
-	{"cfwdbusy", 			SKINNY_LBL_CFWDBUSY},
-	{"cfwdnoanswer",		SKINNY_LBL_CFWDNOANSWER},
-	{"pickup", 			SKINNY_LBL_PICKUP},
-	{"gpickup", 			SKINNY_LBL_GPICKUP},
-	{"conflist", 			SKINNY_LBL_CONFLIST},
-	{"dnd", 			SKINNY_LBL_DND},
-	{"hold", 			SKINNY_LBL_HOLD},
-	{"endcall", 			SKINNY_LBL_ENDCALL},
-	{"park", 			SKINNY_LBL_PARK},
-	{"select", 			SKINNY_LBL_SELECT},
-	{"idivert", 			SKINNY_LBL_IDIVERT},
-	{"resume", 			SKINNY_LBL_RESUME},
-	{"newcall", 			SKINNY_LBL_NEWCALL},
-	{"transfer", 			SKINNY_LBL_TRANSFER},
-	{"dirtrfr", 			SKINNY_LBL_DIRTRFR},
-	{"answer", 			SKINNY_LBL_ANSWER},
-	{"transvm", 			SKINNY_LBL_TRNSFVM},
-	{"private", 			SKINNY_LBL_PRIVATE},
-	{"meetme", 			SKINNY_LBL_MEETME},
-	{"barge", 			SKINNY_LBL_BARGE},
-	{"cbarge", 			SKINNY_LBL_CBARGE},
-	{"conf", 			SKINNY_LBL_CONFRN},
-	{"confrn",			SKINNY_LBL_CONFRN},
-	{"back", 			SKINNY_LBL_BACKSPACE},
-	{"join", 			SKINNY_LBL_JOIN},
-	{"intrcpt", 			SKINNY_LBL_INTRCPT},
-	{"monitor", 			SKINNY_LBL_MONITOR},  
-	{"dial", 			SKINNY_LBL_DIAL},
-	{"vidmode", 			SKINNY_LBL_VIDEO_MODE},
-	{"empty", 			SKINNY_LBL_EMPTY},
-	/* *INDENT-ON* */
-};
-
 void sccp_config_cleanup_dynamically_allocated_memory(void *obj, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
 boolean_t sccp_config_general(sccp_readingtype_t readingtype);
@@ -110,8 +63,6 @@ sccp_configurationchange_t sccp_config_applyDeviceConfiguration(sccp_device_t * 
 sccp_configurationchange_t sccp_config_applyDeviceDefaults(sccp_device_t * device, PBX_VARIABLE_TYPE * variable);
 
 void sccp_config_softKeySet(PBX_VARIABLE_TYPE * variable, const char *name);
-uint8_t sccp_config_readSoftSet(uint8_t * softkeyset, const char *data);
-int sccp_config_getSoftkeyLbl(char *key);
 void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device);
 
 int sccp_config_generate(char *filename, int configType);

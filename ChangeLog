@@ -1,4 +1,180 @@
+2015-03-18  ddegroot
+
+	* [r5979] src/pbx_impl/ast/ast112_announce.c,
+	  src/sccp_management.c, src/sccp_mwi.c, src/sccp_protocol.c: Fix:
+	  number of small/tiny fixes. Reported by Leonid Korokh
+
+2015-03-16  ddegroot
+
+	* [r5978] autoconf/extra.m4, configure, src/Makefile.am: Fix: Match
+	  gcc/clang when multiple versions are installed, ie detect 'gcc-5'
+	  instead of only 'gcc'
+
+2015-03-15  ddegroot
+
+	* [r5977] .travis.yml: Fix: revert travis change
+
+	* [r5976] configure, configure.ac, src/Makefile.am,
+	  src/Makefile.in: Fix: revert subdir-objects change to
+	  configure.ac which is not compatible with older version of
+	  automake, need to find another solution later
+
+	* [r5975] src/sccp_channel.c, src/sccp_hint.c: Fix: Compile against
+	  asterisk-1.6.2
+
+	* [r5974] contrib/gen_sccpconf/gen_sccpconf.c,
+	  contrib/gen_sccpconf/gen_sccpconf.h: Fix: gen_sccpconf
+
+	* [r5973] .travis.yml: Trying to fix travis with configure subdirs
+
+	* [r5972] Makefile.in, configure.ac, src/Makefile.am,
+	  src/Makefile.in, src/config.h.in: Fix: configure subdir-objects
+
+	* [r5971] Makefile.am, Makefile.in, autoconf/libtool.m4,
+	  autoconf/ltmain.sh, configure, src/Makefile.am, src/Makefile.in,
+	  src/config.h.in: Update: autoreconf -fi
+
+	* [r5970] src/Makefile.am, src/Makefile.in, src/sccp_enum.h: Fix:
+	  Makefile.am to update revision.h every 60 minutes, to make sure
+	  latest svn/git revision is represented in chan_sccp.so
+
+	* [r5969] src/sccp_enum.c, src/sccp_enum.h, src/sccp_pbx.c,
+	  tools/gen_sccp_enum.awk: Fix: sccp_enum.c to use SENTINEL as last
+	  value. Fix: Sentinel to calculated bitfield value instead of
+	  incr+1, otherwise it would match a whole range of values.
+
+	* [r5968] src/pbx_impl/ast/ast113.c, src/sccp_enum.c,
+	  src/sccp_enum.h, src/sccp_enum.in, tools/gen_sccp_enum.awk:
+	  Enhancement: Allow #ifdef / #endif in sccp_enum.in
+
+2015-03-14  ddegroot
+
+	* [r5967] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Fix: is
+	  left from hold
+
+	* [r5966] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_channel.c: Enhancment: Signal Transfer Success/Failure.
+	  Update indication2str
+
+	* [r5965] src/pbx_impl/ast/ast.h, src/sccp_dllists.h,
+	  src/sccp_pbx.c: Fix asterisk-18 compilation. Added padding for
+	  better dlinkedlist lignment
+
+	* [r5964] src/chan_sccp.h, src/pbx_impl/ast/ast.h,
+	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_channel.c,
+	  src/sccp_cli.c, src/sccp_config.c, src/sccp_enum.c,
+	  src/sccp_enum.h, src/sccp_enum.in, src/sccp_features.c,
+	  src/sccp_indicate.c, src/sccp_pbx.c, src/sccp_rtp.h,
+	  src/sccp_softkeys.c: Enhancement: Move several typedef enums to
+	  sccp_enum.in
+
+2015-03-12  ddegroot
+
+	* [r5963] conf/sccp.conf, conf/sccp.conf.annotated,
+	  src/chan_sccp.h, src/sccp_cli.c, src/sccp_config.c,
+	  src/sccp_config_entries.hh, src/sccp_softkeys.c: Fix: dnd always
+	  cycling through off/busy/silent. Reported by Steve Hanselman.
+	  (setting device->dnd=off maybe a little bit counter intuitive,
+	  but don't want to make any big changes at this moment).
+
+	* [r5962] conf/postgres.sql: Enhancement: extend size of
+	  disallow/allow in progress sql sample, to allow for multiple
+	  codecs
+
+2015-03-02  ddegroot
+
+	* [r5961] conf/tftp/SEP0000000000.cnf.xml_797x_template,
+	  conf/tftp/SEP0000000000.cnf.xml_annotated,
+	  conf/tftp/SEP0000000000.cnf.xml_ipv6_template: Fix: phoneServices
+	  Voicemail to connect to Messages Button
+
+2015-02-26  ddegroot
+
+	* [r5960] src/sccp_pbx.c: Fix: channel_answer regression on older
+	  devices. Reported by Rob WIlson.
+
+	* [r5959] src/sccp_actions.c: Fix: using the right instance number
+	  when dialing a speeddial. Reported by Rob Wilson.
+
+2015-02-25  ddegroot
+
+	* [r5958] src/sccp_line.c, src/sccp_line.h, src/sccp_pbx.c,
+	  src/sccp_protocol.h, src/sccp_utils.c, src/sccp_utils.h:
+	  Enhancement: Refined the codec combination and reduction,
+	  currently used by sccp_pbx_channel_allocate. Should possibly also
+	  be used in sccp_channel_setDevice aswell. But might actually be
+	  better if we would move audio preferences to be line based
+	  instead of device based, that would make shared line easier as
+	  well (combine/reduce codecs at linedevice_attach event).
+
+	* [r5957] src/sccp_channel.c, src/sccp_line.c, src/sccp_line.h,
+	  src/sccp_pbx.c, src/sccp_utils.c, src/sccp_utils.h: Enhancement:
+	  Refined the codec reduction (sccp_utils_reduceCodecSet /
+	  sccp_line_copyMinimumCodecSetFromLineToChannel), used by
+	  sccp_pbx_channel_allocate. Should possibly also be used in
+	  sccp_channel_setDevice.
+
+2015-02-24  ddegroot
+
+	* [r5956] src/sccp_actions.c: Enhancement: Updated buttontemplate
+	  parser to show debug results
+
+	* [r5955] src/sccp_cli.c: Enhancement: show buttonconfig->index
+	  instead of the buttonconfig->instance which might be confusing,
+	  added instance as a seperate column.
+
+	* [r5954] src/sccp_config.c: Enhancement: remove unnecessary lines
+
+	* [r5953] src/sccp_pbx.c: Enhancement: copy device capabilities to
+	  channel when allocating a new device (combine codecs when dealing
+	  with shared line)
+
+	* [r5952] src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c:
+	  Fix: sccp_asterisk112_getSkinnyFormatSingle
+
+2015-02-23  ddegroot
+
+	* [r5951] conf/database_updates/migrate_to_mysql-v5.sql,
+	  conf/database_updates/update_mysql_v4.sql,
+	  conf/database_updates/update_mysql_v5.sql,
+	  conf/database_updates/update_postgresql.sql, conf/mysql-v4.sql,
+	  conf/mysql-v5.sql, conf/postgres.sql, conf/sqlite.sql,
+	  conf/sqlite3.sql: Fix: database sample files for dnd field.
+	  Reported by Rob.
+
+2015-02-21  ddegroot
+
+	* [r5950] src/sccp_actions.c, src/sccp_config.c: Enhancement:
+	  Removed experimental status from softkey:uriaction (2)
+
+	* [r5949] src/sccp_actions.c, src/sccp_device.c: Fix:
+	  immediatedialing keyset change from offhook to digitsfoll at
+	  first digit. Reported/Patched by Pavel.
+
+	* [r5948] src/sccp_line.c: Fix: cfwdAll feature button toggle.
+	  Reported by Marco.
+
+	* [r5947] ChangeLog, src/chan_sccp.h, src/sccp_config.c,
+	  src/sccp_config_entries.hh, src/sccp_protocol.h,
+	  src/sccp_softkeys.c, src/sccp_softkeys.h: Enhancement: Removed
+	  experimental status from softkey:uriaction
+
+	* [r5946] src/sccp_socket.c: Fix: Check for TCP_THIN before using
+	  it in setsockopt. Reported by Pavel
+
+	* [r5945] src/pbx_impl/ast/ast.h: Removed: Used function
+	  sccp_strndup
+
 2015-02-20  ddegroot
+
+	* [r5944] src/sccp_management.c: Enhancement: Because
+	  managerHookHelper gets called repeatedly by asterisk, it is wise
+	  to move the memset into the loop, after category has been
+	  checked.
 
 	* [r5943] src/pbx_impl/ast/ast111.c, src/pbx_impl/ast/ast112.c,
 	  src/pbx_impl/ast/ast113.c, src/sccp_actions.c,

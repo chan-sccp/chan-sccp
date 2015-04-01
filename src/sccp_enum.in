@@ -226,7 +226,9 @@ enum tokenstate {
 enum softswitch {
 	SCCP_SOFTSWITCH_DIAL,				,	"Softswitch Dial",
 	SCCP_SOFTSWITCH_GETFORWARDEXTEN,		,	"Softswitch Get Forward Extension",
-	SCCP_SOFTSWITCH_GETPICKUPEXTEN,			,	"Softswitch Get Pickup Extension", 		
+#ifdef CS_SCCP_PICKUP
+	SCCP_SOFTSWITCH_GETPICKUPEXTEN,			,	"Softswitch Get Pickup Extension",
+#endif
 	SCCP_SOFTSWITCH_GETMEETMEROOM,			,	"Softswitch Get Meetme Room", 		
 	SCCP_SOFTSWITCH_GETBARGEEXTEN,			,	"Softswitch Get Barge Extension", 		
 	SCCP_SOFTSWITCH_GETCBARGEROOM,			,	"Softswitch Get CBarrge Room", 		

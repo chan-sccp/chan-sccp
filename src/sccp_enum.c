@@ -50,6 +50,7 @@ int sccp_channelstate_exists(int sccp_channelstate_int_value) {
 		}
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_channelstate2str(sccp_channelstate_t enum_value) {
@@ -174,6 +175,7 @@ int sccp_channelstatereason_exists(int sccp_channelstatereason_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_channelstatereason2str(sccp_channelstatereason_t enum_value) {
@@ -228,6 +230,7 @@ int sccp_earlyrtp_exists(int sccp_earlyrtp_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_earlyrtp2str(sccp_earlyrtp_t enum_value) {
@@ -281,6 +284,7 @@ int sccp_devicestate_exists(int sccp_devicestate_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_devicestate2str(sccp_devicestate_t enum_value) {
@@ -333,6 +337,7 @@ int sccp_callforward_exists(int sccp_callforward_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_callforward2str(sccp_callforward_t enum_value) {
@@ -382,6 +387,7 @@ int sccp_dtmfmode_exists(int sccp_dtmfmode_int_value) {
 	if ((SCCP_DTMFMODE_RFC2833 <=sccp_dtmfmode_int_value) && (sccp_dtmfmode_int_value < SCCP_DTMFMODE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -433,6 +439,7 @@ int sccp_autoanswer_exists(int sccp_autoanswer_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_autoanswer2str(sccp_autoanswer_t enum_value) {
@@ -483,6 +490,7 @@ int sccp_dndmode_exists(int sccp_dndmode_int_value) {
 	if ((SCCP_DNDMODE_REJECT <=sccp_dndmode_int_value) && (sccp_dndmode_int_value < SCCP_DNDMODE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -536,6 +544,7 @@ int sccp_accessory_exists(int sccp_accessory_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_accessory2str(sccp_accessory_t enum_value) {
@@ -586,6 +595,7 @@ int sccp_accessorystate_exists(int sccp_accessorystate_int_value) {
 	if ((SCCP_ACCESSORYSTATE_ONHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -640,6 +650,7 @@ int sccp_config_buttontype_exists(int sccp_config_buttontype_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_config_buttontype2str(sccp_config_buttontype_t enum_value) {
@@ -689,6 +700,7 @@ int sccp_devstate_state_exists(int sccp_devstate_state_int_value) {
 	if ((SCCP_DEVSTATE_INUSE <=sccp_devstate_state_int_value) && (sccp_devstate_state_int_value < SCCP_DEVSTATE_STATE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -740,6 +752,7 @@ int sccp_blindtransferindication_exists(int sccp_blindtransferindication_int_val
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_blindtransferindication2str(sccp_blindtransferindication_t enum_value) {
@@ -789,6 +802,7 @@ int sccp_call_answer_order_exists(int sccp_call_answer_order_int_value) {
 	if ((SCCP_ANSWER_LAST_FIRST <=sccp_call_answer_order_int_value) && (sccp_call_answer_order_int_value < SCCP_CALL_ANSWER_ORDER_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -843,6 +857,7 @@ int sccp_nat_exists(int sccp_nat_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_nat2str(sccp_nat_t enum_value) {
@@ -894,6 +909,7 @@ int sccp_video_mode_exists(int sccp_video_mode_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_video_mode2str(sccp_video_mode_t enum_value) {
@@ -934,39 +950,50 @@ char *sccp_video_mode_all_entries(void) {
  * \brief enum sccp_event_type
  */
 static const char *sccp_event_type_map[] = {
-	[SCCP_EVENT_LINE_CREATED] = "Line Created",
-	[SCCP_EVENT_LINE_CHANGED] = "Line Changed",
-	[SCCP_EVENT_LINE_DELETED] = "Line Deleted",
-	[SCCP_EVENT_DEVICE_ATTACHED] = "Device Attached",
-	[SCCP_EVENT_DEVICE_DETACHED] = "Device Detached",
-	[SCCP_EVENT_DEVICE_PREREGISTERED] = "Device Preregistered",
-	[SCCP_EVENT_DEVICE_REGISTERED] = "Device Registered",
-	[SCCP_EVENT_DEVICE_UNREGISTERED] = "Device Unregistered",
-	[SCCP_EVENT_FEATURE_CHANGED] = "Feature Changed",
-	[SCCP_EVENT_LINESTATUS_CHANGED] = "LineStatus Changed",
-	[SCCP_EVENT_TYPE_SENTINEL] = "LOOKUPERROR"
+	"Line Created",
+	"Line Changed",
+	"Line Deleted",
+	"Device Attached",
+	"Device Detached",
+	"Device Preregistered",
+	"Device Registered",
+	"Device Unregistered",
+	"Feature Changed",
+	"LineStatus Changed",
+	"LOOKUPERROR"
 };
 
 int sccp_event_type_exists(int sccp_event_type_int_value) {
-	if ((SCCP_EVENT_LINE_CHANGED <=sccp_event_type_int_value) && (sccp_event_type_int_value < SCCP_EVENT_TYPE_SENTINEL )) {
-		return 1;
+	int res = 0, i;
+	for (i = 0; i < SCCP_EVENT_TYPE_SENTINEL; i++) {
+		if ((sccp_event_type_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
 	}
+	return res;
 	return 0;
 }
 
-const char * sccp_event_type2str(sccp_event_type_t enum_value) {
-	if ((SCCP_EVENT_LINE_CREATED <= enum_value) && (enum_value <= SCCP_EVENT_TYPE_SENTINEL)) {
-		return sccp_event_type_map[enum_value];
+const char * sccp_event_type2str(int sccp_event_type_int_value) {
+	static char res[90] = "";
+	int i, pos = 0;
+	for (i = 0; i < ARRAY_LEN(sccp_event_type_map) - 1; i++) {
+		if ((sccp_event_type_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 90, "%s%s", pos ? "," : "", sccp_event_type_map[i]);
+		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_event_type2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_event_type2str\n";
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_event_type2str\n", sccp_event_type_int_value);
+		return "SCCP: OutOfBounds Error during lookup of sparse sccp_event_type2str\n";
+	}
+	return res;
 }
 
 sccp_event_type_t sccp_event_type_str2val(const char *lookup_str) {
 	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_event_type_map); idx++) {
 		if (sccp_strcaseequals(sccp_event_type_map[idx], lookup_str)) {
-			return idx;
+			return 1 << idx;
 		}
 	}
 	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_event_type_str2val(%s) not found\n", lookup_str);
@@ -1001,6 +1028,7 @@ int sccp_parkresult_exists(int sccp_parkresult_int_value) {
 	if ((PARK_RESULT_SUCCESS <=sccp_parkresult_int_value) && (sccp_parkresult_int_value < SCCP_PARKRESULT_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1052,6 +1080,7 @@ int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value) {
@@ -1092,32 +1121,43 @@ char *sccp_calleridpresence_all_entries(void) {
  * \brief enum sccp_rtp_status
  */
 static const char *sccp_rtp_status_map[] = {
-	[SCCP_RTP_STATUS_INACTIVE] = "Rtp Inactive",
-	[SCCP_RTP_STATUS_PROGRESS] = "Rtp In Progress",
-	[SCCP_RTP_STATUS_ACTIVE] = "Rtp Active",
-	[SCCP_RTP_STATUS_SENTINEL] = "LOOKUPERROR"
+	"Rtp Inactive",
+	"Rtp In Progress",
+	"Rtp Active",
+	"LOOKUPERROR"
 };
 
 int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
-	if ((SCCP_RTP_STATUS_PROGRESS <=sccp_rtp_status_int_value) && (sccp_rtp_status_int_value < SCCP_RTP_STATUS_SENTINEL )) {
-		return 1;
+	int res = 0, i;
+	for (i = 0; i < SCCP_RTP_STATUS_SENTINEL; i++) {
+		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
 	}
+	return res;
 	return 0;
 }
 
-const char * sccp_rtp_status2str(sccp_rtp_status_t enum_value) {
-	if ((SCCP_RTP_STATUS_INACTIVE <= enum_value) && (enum_value <= SCCP_RTP_STATUS_SENTINEL)) {
-		return sccp_rtp_status_map[enum_value];
+const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
+	static char res[138] = "";
+	int i, pos = 0;
+	for (i = 0; i < ARRAY_LEN(sccp_rtp_status_map) - 1; i++) {
+		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 138, "%s%s", pos ? "," : "", sccp_rtp_status_map[i]);
+		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_status2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_rtp_status2str\n";
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_status2str\n", sccp_rtp_status_int_value);
+		return "SCCP: OutOfBounds Error during lookup of sparse sccp_rtp_status2str\n";
+	}
+	return res;
 }
 
 sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str) {
 	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_status_map); idx++) {
 		if (sccp_strcaseequals(sccp_rtp_status_map[idx], lookup_str)) {
-			return idx;
+			return 1 << idx;
 		}
 	}
 	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_rtp_status_str2val(%s) not found\n", lookup_str);
@@ -1153,6 +1193,7 @@ int sccp_extension_status_exists(int sccp_extension_status_int_value) {
 	if ((SCCP_EXTENSION_MATCHMORE <=sccp_extension_status_int_value) && (sccp_extension_status_int_value < SCCP_EXTENSION_STATUS_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1205,6 +1246,7 @@ int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value
 	if ((SCCP_REQUEST_STATUS_LINEUNKNOWN <=sccp_channel_request_status_int_value) && (sccp_channel_request_status_int_value < SCCP_CHANNEL_REQUEST_STATUS_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1260,6 +1302,7 @@ int sccp_message_priority_exists(int sccp_message_priority_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_message_priority2str(sccp_message_priority_t enum_value) {
@@ -1310,6 +1353,7 @@ int sccp_push_result_exists(int sccp_push_result_int_value) {
 	if ((SCCP_PUSH_RESULT_NOT_SUPPORTED <=sccp_push_result_int_value) && (sccp_push_result_int_value < SCCP_PUSH_RESULT_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1362,6 +1406,7 @@ int sccp_tokenstate_exists(int sccp_tokenstate_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_tokenstate2str(sccp_tokenstate_t enum_value) {
@@ -1404,7 +1449,9 @@ char *sccp_tokenstate_all_entries(void) {
 static const char *sccp_softswitch_map[] = {
 	[SCCP_SOFTSWITCH_DIAL] = "Softswitch Dial",
 	[SCCP_SOFTSWITCH_GETFORWARDEXTEN] = "Softswitch Get Forward Extension",
+#ifdef CS_SCCP_PICKUP
 	[SCCP_SOFTSWITCH_GETPICKUPEXTEN] = "Softswitch Get Pickup Extension",
+#endif
 	[SCCP_SOFTSWITCH_GETMEETMEROOM] = "Softswitch Get Meetme Room",
 	[SCCP_SOFTSWITCH_GETBARGEEXTEN] = "Softswitch Get Barge Extension",
 	[SCCP_SOFTSWITCH_GETCBARGEROOM] = "Softswitch Get CBarrge Room",
@@ -1418,6 +1465,7 @@ int sccp_softswitch_exists(int sccp_softswitch_int_value) {
 	if ((SCCP_SOFTSWITCH_GETFORWARDEXTEN <=sccp_softswitch_int_value) && (sccp_softswitch_int_value < SCCP_SOFTSWITCH_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1446,7 +1494,7 @@ int sccp_softswitch_str2intval(const char *lookup_str) {
 }
 
 char *sccp_softswitch_all_entries(void) {
-	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Registered,Softswitch Get Conference Room";
+	static char res[] = "Softswitch Dial,Softswitch Get Forward Extension,Token Rejected,Softswitch Get Pickup Extension,Softswitch Get Meetme Room,Softswitch Get Barge Extension,Softswitch Get CBarrge Room,Device Unregistered,Softswitch Get Conference Room";
 	return res;
 }
 /* = End =========================================================================================                sccp_softswitch === */
@@ -1469,6 +1517,7 @@ int sccp_phonebook_exists(int sccp_phonebook_int_value) {
 	if ((SCCP_PHONEBOOK_MISSED <=sccp_phonebook_int_value) && (sccp_phonebook_int_value < SCCP_PHONEBOOK_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1521,6 +1570,7 @@ int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) 
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value) {
@@ -1570,6 +1620,7 @@ int sccp_readingtype_exists(int sccp_readingtype_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * sccp_readingtype2str(sccp_readingtype_t enum_value) {
@@ -1609,33 +1660,44 @@ char *sccp_readingtype_all_entries(void) {
  * \brief Status of configuration change
  */
 static const char *sccp_configurationchange_map[] = {
-	[SCCP_CONFIG_NOUPDATENEEDED] = "Config: No Update Needed",
-	[SCCP_CONFIG_NEEDDEVICERESET] = "Config: Device Reset Needed",
-	[SCCP_CONFIG_WARNING] = "Warning while reading Config",
-	[SCCP_CONFIG_ERROR] = "Error while reading Config",
-	[SCCP_CONFIGURATIONCHANGE_SENTINEL] = "LOOKUPERROR"
+	"Config: No Update Needed",
+	"Config: Device Reset Needed",
+	"Warning while reading Config",
+	"Error while reading Config",
+	"LOOKUPERROR"
 };
 
 int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
-	if ((SCCP_CONFIG_NEEDDEVICERESET <=sccp_configurationchange_int_value) && (sccp_configurationchange_int_value < SCCP_CONFIGURATIONCHANGE_SENTINEL )) {
-		return 1;
+	int res = 0, i;
+	for (i = 0; i < SCCP_CONFIGURATIONCHANGE_SENTINEL; i++) {
+		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
 	}
+	return res;
 	return 0;
 }
 
-const char * sccp_configurationchange2str(sccp_configurationchange_t enum_value) {
-	if ((SCCP_CONFIG_NOUPDATENEEDED <= enum_value) && (enum_value <= SCCP_CONFIGURATIONCHANGE_SENTINEL)) {
-		return sccp_configurationchange_map[enum_value];
+const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
+	static char res[246] = "";
+	int i, pos = 0;
+	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
+		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 246, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
+		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_configurationchange2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_configurationchange2str\n";
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_configurationchange2str\n", sccp_configurationchange_int_value);
+		return "SCCP: OutOfBounds Error during lookup of sparse sccp_configurationchange2str\n";
+	}
+	return res;
 }
 
 sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_str) {
 	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_configurationchange_map); idx++) {
 		if (sccp_strcaseequals(sccp_configurationchange_map[idx], lookup_str)) {
-			return idx;
+			return 1 << idx;
 		}
 	}
 	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_configurationchange_str2val(%s) not found\n", lookup_str);
@@ -1670,6 +1732,7 @@ int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value) {
 	if ((SCCP_CALLSTATISTIC_AVG <=sccp_call_statistics_type_int_value) && (sccp_call_statistics_type_int_value < SCCP_CALL_STATISTICS_TYPE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1711,32 +1774,43 @@ char *sccp_call_statistics_type_all_entries(void) {
  * \brief enum sccp_rtp_info
  */
 static const char *sccp_rtp_info_map[] = {
-	[SCCP_RTP_INFO_NORTP] = "RTP Info: None",
-	[SCCP_RTP_INFO_AVAILABLE] = "RTP Info: Available",
-	[SCCP_RTP_INFO_ALLOW_DIRECTRTP] = "RTP Info: Allow DirectMedia",
-	[SCCP_RTP_INFO_SENTINEL] = "LOOKUPERROR"
+	"RTP Info: None",
+	"RTP Info: Available",
+	"RTP Info: Allow DirectMedia",
+	"LOOKUPERROR"
 };
 
 int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
-	if ((SCCP_RTP_INFO_AVAILABLE <=sccp_rtp_info_int_value) && (sccp_rtp_info_int_value < SCCP_RTP_INFO_SENTINEL )) {
-		return 1;
+	int res = 0, i;
+	for (i = 0; i < SCCP_RTP_INFO_SENTINEL; i++) {
+		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
+			res |= 1;
+		}
 	}
+	return res;
 	return 0;
 }
 
-const char * sccp_rtp_info2str(sccp_rtp_info_t enum_value) {
-	if ((SCCP_RTP_INFO_NORTP <= enum_value) && (enum_value <= SCCP_RTP_INFO_SENTINEL)) {
-		return sccp_rtp_info_map[enum_value];
+const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
+	static char res[327] = "";
+	int i, pos = 0;
+	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
+		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
+			pos += snprintf(res + pos, 327, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
+		}
 	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_info2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_rtp_info2str\n";
+	if (!strlen(res)) {
+		pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_rtp_info2str\n", sccp_rtp_info_int_value);
+		return "SCCP: OutOfBounds Error during lookup of sparse sccp_rtp_info2str\n";
+	}
+	return res;
 }
 
 sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str) {
 	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_info_map); idx++) {
 		if (sccp_strcaseequals(sccp_rtp_info_map[idx], lookup_str)) {
-			return idx;
+			return 1 << idx;
 		}
 	}
 	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_rtp_info_str2val(%s) not found\n", lookup_str);
@@ -1773,6 +1847,7 @@ int skinny_lampmode_exists(int skinny_lampmode_int_value) {
 	if ((SKINNY_LAMP_ON <=skinny_lampmode_int_value) && (skinny_lampmode_int_value < SKINNY_LAMPMODE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1823,6 +1898,7 @@ int skinny_calltype_exists(int skinny_calltype_int_value) {
 	if ((SKINNY_CALLTYPE_OUTBOUND <=skinny_calltype_int_value) && (skinny_calltype_int_value < SKINNY_CALLTYPE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -1888,6 +1964,7 @@ int skinny_callstate_exists(int skinny_callstate_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_callstate2str(skinny_callstate_t enum_value) {
@@ -1940,6 +2017,7 @@ int skinny_callpriority_exists(int skinny_callpriority_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_callpriority2str(skinny_callpriority_t enum_value) {
@@ -1990,6 +2068,7 @@ int skinny_callinfo_visibility_exists(int skinny_callinfo_visibility_int_value) 
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_callinfo_visibility2str(skinny_callinfo_visibility_t enum_value) {
@@ -2039,6 +2118,7 @@ int skinny_callsecuritystate_exists(int skinny_callsecuritystate_int_value) {
 	if ((SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED <=skinny_callsecuritystate_int_value) && (skinny_callsecuritystate_int_value < SKINNY_CALLSECURITYSTATE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -2091,6 +2171,7 @@ int skinny_busylampfield_state_exists(int skinny_busylampfield_state_int_value) 
 	if ((SKINNY_BLF_STATUS_IDLE <=skinny_busylampfield_state_int_value) && (skinny_busylampfield_state_int_value < SKINNY_BUSYLAMPFIELD_STATE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -2148,6 +2229,7 @@ int skinny_alarm_exists(int skinny_alarm_int_value) {
 			return 1;
 		}
 	}
+	return 0;
 	return 0;
 }
 
@@ -2299,6 +2381,7 @@ int skinny_tone_exists(int skinny_tone_int_value) {
 			return 1;
 		}
 	}
+	return 0;
 	return 0;
 }
 
@@ -2601,6 +2684,7 @@ int skinny_videoformat_exists(int skinny_videoformat_int_value) {
 		}
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_videoformat2str(skinny_videoformat_t enum_value) {
@@ -2678,6 +2762,7 @@ int skinny_ringtype_exists(int skinny_ringtype_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_ringtype2str(skinny_ringtype_t enum_value) {
@@ -2728,6 +2813,7 @@ int skinny_receivetransmit_exists(int skinny_receivetransmit_int_value) {
 	if ((SKINNY_TRANSMITRECEIVE_RECEIVE <=skinny_receivetransmit_int_value) && (skinny_receivetransmit_int_value < SKINNY_RECEIVETRANSMIT_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -2789,6 +2875,7 @@ int skinny_keymode_exists(int skinny_keymode_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_keymode2str(skinny_keymode_t enum_value) {
@@ -2841,6 +2928,7 @@ int skinny_registrationstate_exists(int skinny_registrationstate_int_value) {
 	if ((SKINNY_DEVICE_RS_TIMEOUT <=skinny_registrationstate_int_value) && (skinny_registrationstate_int_value < SKINNY_REGISTRATIONSTATE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -2901,6 +2989,7 @@ int skinny_mediastatus_exists(int skinny_mediastatus_int_value) {
 	if ((SKINNY_MEDIASTATUS_Unknown <=skinny_mediastatus_int_value) && (skinny_mediastatus_int_value < SKINNY_MEDIASTATUS_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 
@@ -3007,6 +3096,7 @@ int skinny_stimulus_exists(int skinny_stimulus_int_value) {
 			return 1;
 		}
 	}
+	return 0;
 	return 0;
 }
 
@@ -3274,6 +3364,7 @@ int skinny_buttontype_exists(int skinny_buttontype_int_value) {
 			return 1;
 		}
 	}
+	return 0;
 	return 0;
 }
 
@@ -3584,6 +3675,7 @@ int skinny_devicetype_exists(int skinny_devicetype_int_value) {
 			return 1;
 		}
 	}
+	return 0;
 	return 0;
 }
 
@@ -3944,6 +4036,7 @@ int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value) {
 		return 1;
 	}
 	return 0;
+	return 0;
 }
 
 const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value) {
@@ -3998,6 +4091,7 @@ int skinny_miscCommandType_exists(int skinny_miscCommandType_int_value) {
 	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE <=skinny_miscCommandType_int_value) && (skinny_miscCommandType_int_value < SKINNY_MISCCOMMANDTYPE_SENTINEL )) {
 		return 1;
 	}
+	return 0;
 	return 0;
 }
 

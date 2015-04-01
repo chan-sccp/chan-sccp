@@ -67,8 +67,9 @@ CLI_AMI_TABLE_FIELDS
 		snprintf(UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME), sizeof(UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME)), "ActionID: %s\r\n", UNIQUE_VAR(id, CLI_AMI_TABLE_NAME));
 		astman_append(s, "%s\r\n", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
 		local_total++;
+	} else {
+	        astman_append(s, "\r\n");
 	}
-	astman_append(s, "\r\n");
 }
 
 	/* iterator through list */
@@ -127,8 +128,9 @@ if (!s) {
 	if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
 		astman_append(s, "%s\r\n", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
 		local_total++;
+	} else {
+	        astman_append(s, "\r\n");
 	}
-	astman_append(s, "\r\n");
 	local_total++;
 }
 

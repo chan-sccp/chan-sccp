@@ -483,8 +483,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-03-15 17:07:45 +0100 (zo, 15 mrt 2015) $
-# REVISION: $Revision: 5972 $
+# DATE:     $Date: 2015-03-16 21:22:21 +0100 (ma, 16 mrt 2015) $
+# REVISION: $Revision: 5978 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 #AUTOMAKE_OPTIONS		= gnu silent-rules subdir-objects	(if automake 1.14)
 AUTOMAKE_OPTIONS = gnu 
@@ -1140,11 +1140,6 @@ revision.h: .revision
 		fi 																						\
 	else																							\
 		@abs_top_srcdir@/tools/autorevision -t h -f -o @abs_top_srcdir@/.revision  >"@abs_builddir@/revision.h" 2>/dev/null;								\
-	fi
-
-sccp_enum.c: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@if [ sccp_enum.in -nt $@ ] || [ @abs_top_srcdir@/tools/gen_sccp_enum.awk -nt $@ ]; then				\
-		$(MAKE) gen_enum;												\
 	fi
 
 sccp_enum.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk

@@ -473,7 +473,8 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
 	} else {
-		astman_send_listack(s, m, argv[0], "start");
+		//astman_send_listack(s, m, argv[0], "start");
+		astman_send_listack(s, m, "SCCPShowGlobals", "start");
 		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPGlobalSettings");
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
@@ -756,7 +757,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
 	} else {
-		astman_send_listack(s, m, argv[0], "start");
+		astman_send_listack(s, m, "SCCPShowDevice", "start");
 		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPShowDevice");
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
@@ -1051,7 +1052,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		local_total++;
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
-			astman_append(s, "ActionID: %s\r\n", actionid);
+			astman_append(s, "ActionID: %s\r\n\r\n", actionid);
 		} else {
 			astman_append(s, "\r\n");
 		}
@@ -1136,7 +1137,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
 		} else {
-			astman_append(s, "\r\n");
+			astman_append(s, "");
 		}
 		local_total++;
 	}
@@ -1212,7 +1213,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver line settings ------------------------------------------------------------------------------------\n");
 	} else {
-		astman_send_listack(s, m, argv[0], "start");
+		astman_send_listack(s, m, "SCCPShowLine", "start");
 		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
 	}
 	CLI_AMI_OUTPUT_PARAM("Name", CLI_AMI_LIST_WIDTH, "%s", l->name ? l->name : "<not set>");

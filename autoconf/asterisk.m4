@@ -212,6 +212,9 @@ AC_DEFUN([AST_GET_VERSION], [
 dnl Find Asterisk Header Files
 AC_DEFUN([AST_CHECK_HEADERS],[
   CONFIGURE_PART([Checking Asterisk Headers:])
+
+  CFLAGS_backup={$CFLAGS}
+  CFLAGS="${CFLAGS_saved}"
   
   HEADER_INCLUDE="
 	#undef PACKAGE
@@ -1194,6 +1197,7 @@ dnl	    fi
 dnl	  fi
 dnl	fi
 dnl    fi
+  CFLAGS={$CFLAGS_backup}
   ],
   [
   	echo "Couldn't find asterisk/lock.h. No need to go any further. All will fail."
