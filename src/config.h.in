@@ -83,6 +83,9 @@
 /* building user */
 #undef BUILD_USER
 
+/* CLANG_BLOCKS Defined... */
+#undef CLANG_BLOCKS
+
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
@@ -266,6 +269,9 @@
 
 /* No Extra debugging. */
 #undef DEBUG
+
+/* GCC_Nested Defined... */
+#undef GCC_NESTED
 
 /* Enable extra garbage collection debugging. */
 #undef GC_DEBUG
@@ -674,16 +680,22 @@
 #undef PACKAGE
 
 /* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
 
 /* Define to the full name of this package. */
+#undef PACKAGE_NAME
 
 /* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
 
 /* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
 
 /* Define to the home page for this package. */
+#undef PACKAGE_URL
 
 /* Define to the version of this package. */
+#undef PACKAGE_VERSION
 
 /* Define PBX_CHANNEL_TYPE as 'struct ast_channel' */
 #undef PBX_CHANNEL_TYPE
