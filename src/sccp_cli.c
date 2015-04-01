@@ -1137,7 +1137,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
 		} else {
-			astman_append(s, "");
+			astman_append(s, "\r\n");
 		}
 		local_total++;
 	}
