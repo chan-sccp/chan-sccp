@@ -3021,6 +3021,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	int i;
 	const char *id = astman_get_header(m, "ActionID");
 	const char *req_segment = astman_get_header(m, "Segment");
+	int comma = 0;
 
 	if (strlen(req_segment) == 0) {										// return all segments
 		int sccp_config_revision = 0;
@@ -3038,102 +3039,63 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 		astman_append(s, "\"Version\":\"%s\",", SCCP_VERSION);
 		astman_append(s, "\"Revision\":\"%s\",", SCCP_REVISIONSTR);
 		astman_append(s, "\"ConfigRevision\":\"%d\",", sccp_config_revision);
-		astman_append(s, "\"ConfigureEnabled\": [");
-		int comma = 0;
-		int conf_intarray[] = {
+		char *conf_enabled_array[] = {
 #ifdef CS_SCCP_PARK
-			1,
-#else
-			0,
+			"park",
 #endif
-#ifdef CS_SCCP_PARK
-				1,
-#else
-				0,
-#endif 
 #ifdef CS_SCCP_PICKUP
-				1,
-#else
-				0,
+			"pickup",
 #endif 
 #ifdef CS_SCCP_REALTIME
-				1,
-#else
-				0,
+			"realtime",
 #endif 
 #ifdef CS_SCCP_VIDEO
-				1,
-#else
-				0,
+			"video",
 #endif 
 #ifdef CS_SCCP_CONFERENCE
-				1,
-#else
-				0,
+			"conferenence",
 #endif 
 #ifdef CS_SCCP_DIRTRFR
-				1,
-#else
-				0,
+			"dirtrfr",
 #endif 
 #ifdef CS_SCCP_FEATURE_MONITOR
-				1,
-#else
-				0,
+			"feature_monitor",
 #endif
 #ifdef CS_SCCP_FUNCTIONS
-				1,
-#else
-				0,
+			"functions",
 #endif
 #ifdef CS_MANAGER_EVENTS
-				1,
-#else
-				0,
+			"manager_events",
 #endif
 #ifdef CS_DEVICESTATE
-				1,
-#else
-				0,
+			"devicestate",
 #endif
 #ifdef CS_DEVSTATE_FEATURE
-				1,
-#else
-				0,
+			"devstate_feature",
 #endif
 #ifdef CS_DYNAMIC_SPEEDDIAL
-				1,
-#else
-				0,
+			"dynamic_speeddial",
 #endif
 #ifdef CS_DYNAMIC_SPEEDDIAL_CID
-				1,
-#else
-				0,
+			"dynamic_speeddial_cid",
 #endif
 #ifdef CS_EXPERIMENTAL
-				1,
-#else
-				0,
+			"experimental",
 #endif
 #ifdef DEBUG
-				1,
-#else
-				0,
+			"debug",
 #endif
 		};
-		char *conf_strarray[] = {"park", "pickup", "realtime", "video", "conference", "dirtrfr", "feature_monitor", "functions", "manager_events", "devicestate", "devstate_feature", "dynamic_speeddial", "dynamic_speeddial_cid", "experimental", "debug"};
-		for (i = 0; i < ARRAY_LEN(conf_intarray); i++) {
-			if (conf_intarray[i]) {
-				astman_append(s, "%s", comma ? "," : "");
-				astman_append(s, "\"%s\"", conf_strarray[i]);
-				comma = 1;
-			}
+		comma = 0;
+		astman_append(s, "\"ConfigureEnabled\": [");
+		for (i = 0; i < ARRAY_LEN(conf_enabled_array); i++) {
+			astman_append(s, "%s\"%s\"", comma ? "," : "",conf_enabled_array[i]);
+			comma = 1;
 		}
 		astman_append(s, "],");
 		
-		astman_append(s, "\"Segments\":[");
 		comma = 0;
+		astman_append(s, "\"Segments\":[");
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
 			astman_append(s, "%s", comma ? "," : "");
 			astman_append(s, "\"%s\"", sccpConfigSegments[i].name);
@@ -3218,7 +3180,16 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								case SCCP_CONFIG_DATATYPE_ENUM:
 									astman_append(s, "\"Type\":\"ENUM\",");
 									astman_append(s, "\"Size\":%d,", (int) config[cur_elem].size - 1);
-									astman_append(s, "Possible Values: [%s]\r\n", config[cur_elem].all_entries());
+									char *all_entries = strdupa(config[cur_elem].all_entries());
+									char *possible_entry = "";
+
+									int subcomma = 0;
+									astman_append(s, "\"Possible Values\": [");
+									while (all_entries && (possible_entry = strsep(&all_entries, ","))) {
+										astman_append(s, "%s\"%s\"", subcomma ? "," : "", possible_entry);
+										subcomma = 1;
+									}
+									astman_append(s, "]");
 									break;
 							}
 							astman_append(s, ",");
