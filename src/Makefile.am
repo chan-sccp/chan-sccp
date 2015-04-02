@@ -74,9 +74,11 @@ sccp_enum.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	fi
 
 gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@echo "  GEN      sccp_enum.h"
-	@echo "  GEN      sccp_enum.c"
-	@$(AWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null
+	@if [ "$(GAWK)" != "No" ]; then 												\
+		echo "  GEN      sccp_enum.h";											\
+		echo "  GEN      sccp_enum.c";											\
+		$(GAWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null ;	\
+	fi
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)

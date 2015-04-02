@@ -83,6 +83,9 @@
 /* building user */
 #undef BUILD_USER
 
+/* CLANG_BLOCKS Defined... */
+#undef CLANG_BLOCKS
+
 /* advanced functions enabled */
 #undef CS_ADV_FEATURES
 
@@ -266,6 +269,9 @@
 
 /* No Extra debugging. */
 #undef DEBUG
+
+/* GCC_Nested Defined... */
+#undef GCC_NESTED
 
 /* Enable extra garbage collection debugging. */
 #undef GC_DEBUG

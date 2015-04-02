@@ -317,6 +317,7 @@ EVENT_TYPE = @EVENT_TYPE@
 EXEEXT = @EXEEXT@
 FGREP = @FGREP@
 FINGER = @FINGER@
+GAWK = @GAWK@
 GDB = @GDB@
 GDB_FLAGS = @GDB_FLAGS@
 GIT = @GIT@
@@ -483,8 +484,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-03-16 21:22:21 +0100 (ma, 16 mrt 2015) $
-# REVISION: $Revision: 5978 $
+# DATE:     $Date: 2015-04-02 01:59:21 +0200 (do, 02 apr 2015) $
+# REVISION: $Revision: 5991 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 #AUTOMAKE_OPTIONS		= gnu silent-rules subdir-objects	(if automake 1.14)
 AUTOMAKE_OPTIONS = gnu 
@@ -1148,9 +1149,11 @@ sccp_enum.h: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
 	fi
 
 gen_enum: sccp_enum.in @abs_top_srcdir@/tools/gen_sccp_enum.awk
-	@echo "  GEN      sccp_enum.h"
-	@echo "  GEN      sccp_enum.c"
-	@$(AWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null
+	@if [ "$(GAWK)" != "No" ]; then 												\
+		echo "  GEN      sccp_enum.h";											\
+		echo "  GEN      sccp_enum.c";											\
+		$(GAWK) -v out_header_file="@abs_builddir@/src/sccp_enum.h" -v out_source_file="@abs_builddir@/src/sccp_enum.c" -f "@abs_top_srcdir@/tools/gen_sccp_enum.awk" @abs_top_srcdir@/src/sccp_enum.in >/dev/null ;	\
+	fi
 
 install-csmodLTLIBRARIES:
 	@$(NORMAL_INSTALL)
