@@ -3194,39 +3194,41 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							}
 							astman_append(s, ",");
 
-							astman_append(s, "\"Flags\":[");
-							{
-								int comma1 = 0;
+							if ((config[cur_elem].flags & (SCCP_CONFIG_FLAG_REQUIRED | SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_OBSOLETE | SCCP_CONFIG_FLAG_MULTI_ENTRY)) > 0 || (config[cur_elem].change & SCCP_CONFIG_NEEDDEVICERESET) == SCCP_CONFIG_NEEDDEVICERESET) {
+								astman_append(s, "\"Flags\":[");
+								{
+									int comma1 = 0;
 
-								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
-									astman_append(s, "%s", comma1 ? "," : "");
-									astman_append(s, "\"Required\"");
-									comma1 = 1;
+									if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) {
+										astman_append(s, "%s", comma1 ? "," : "");
+										astman_append(s, "\"Required\"");
+										comma1 = 1;
+									}
+									if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) {
+										astman_append(s, "%s", comma1 ? "," : "");
+										astman_append(s, "\"Deprecated\"");
+										comma1 = 1;
+									}
+									if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) {
+										astman_append(s, "%s", comma1 ? "," : "");
+										astman_append(s, "\"Obsolete\"");
+										comma1 = 1;
+									}
+									if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) {
+										astman_append(s, "%s", comma1 ? "," : "");
+										astman_append(s, "\"MultiEntry\"");
+										comma1 = 1;
+									}
+									if ((config[cur_elem].change & SCCP_CONFIG_NEEDDEVICERESET) == SCCP_CONFIG_NEEDDEVICERESET) {
+										astman_append(s, "%s", comma1 ? "," : "");
+										astman_append(s, "\"RestartRequiredOnUpdate\"");
+										comma1 = 1;
+									}
 								}
-								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) {
-									astman_append(s, "%s", comma1 ? "," : "");
-									astman_append(s, "\"Deprecated\"");
-									comma1 = 1;
-								}
-								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) {
-									astman_append(s, "%s", comma1 ? "," : "");
-									astman_append(s, "\"Obsolete\"");
-									comma1 = 1;
-								}
-								if ((config[cur_elem].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) {
-									astman_append(s, "%s", comma1 ? "," : "");
-									astman_append(s, "\"MultiEntry\"");
-									comma1 = 1;
-								}
-								if ((config[cur_elem].change & SCCP_CONFIG_NEEDDEVICERESET) == SCCP_CONFIG_NEEDDEVICERESET) {
-									astman_append(s, "%s", comma1 ? "," : "");
-									astman_append(s, "\"RestartRequiredOnUpdate\"");
-									comma1 = 1;
-								}
+								astman_append(s, "],");
 							}
-							astman_append(s, "]");
 
-							astman_append(s, ",\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
+							astman_append(s, "\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
 
 							if (strlen(config[cur_elem].description) != 0) {
 								char *description = strdupa(config[cur_elem].description);
