@@ -151,9 +151,27 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		ast_cli(fd, __VA_ARGS__);									\
 	}
 
-#define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) 							\
+#define CLI_AMI_CAMEL_PARAM(param, camelParam)									\
+	char *current = param;									\
+	char *ptr = camelParam;											\
+	int CapsNext = 0;											\
+	while (*current) {											\
+		if ((*current >= 48 && *current <= 57 /*num*/) || (*current >= 65 && *current <= 90 /*A-Z*/) || (*current >= 97 && *current <= 122 /*a-z*/)) {	\
+			if (CapsNext) 	*ptr++ = toupper(*current++);						\
+			else 		*ptr++ = *current++;								\
+			CapsNext = 0;										\
+		} else {											\
+			CapsNext = 1;										\
+			current++;										\
+		}												\
+	}													\
+	*ptr='\0';												
+
+#define CLI_AMI_OUTPUT_PARAM(param, width, fmt, ...) 								\
 	if (NULL != s) {											\
-		astman_append(s, "%s: " fmt "\r\n", param, __VA_ARGS__);					\
+		char *camelParam = ast_strdupa(param);								\
+		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
+		astman_append(s, "%s: " fmt "\r\n", camelParam, __VA_ARGS__);					\
 		local_total++;											\
 	} else {												\
 		ast_cli(fd, "%-*.*s %s " fmt "\n", width, width, param, ":", __VA_ARGS__);			\
@@ -161,7 +179,9 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define CLI_AMI_OUTPUT_BOOL(param, width, value) 								\
 	if (NULL != s) {											\
-		astman_append(s, "%s: %s\r\n", param, ((value) ? "on" : "off"));				\
+		char *camelParam = ast_strdupa(param);								\
+		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
+		astman_append(s, "%s: %s\r\n", camelParam, ((value) ? "on" : "off"));				\
 		local_total++;											\
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "on" : "off")); 		\
@@ -169,12 +189,13 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 
 #define CLI_AMI_OUTPUT_YES_NO(param, width, value) 								\
 	if (NULL != s) {											\
-		astman_append(s, "%s: %s\r\n", param, ((value) ? "yes" : "no"));				\
+		char *camelParam = ast_strdupa(param);								\
+		CLI_AMI_CAMEL_PARAM(param, camelParam);								\
+		astman_append(s, "%s: %s\r\n", camelParam, ((value) ? "yes" : "no"));				\
 		local_total++;											\
 	} else {												\
 		ast_cli(fd, "%-*.*s %s %s\n", width, width, param, ":", ((value) ? "yes" : "no")); 		\
 	}
-
 #define _CLI_AMI_RETURN_ERROR(fd, s, m, line, fmt, ...) 							\
         /*pbx_log(LOG_WARNING, "SCCP CLI ERROR: " fmt, __VA_ARGS__);*/						\
 	if (NULL != s) {											\
@@ -209,19 +230,19 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 		char idtext[256] = "";										\
 		int total = 0;											\
 		if (!pbx_strlen_zero(id)) {									\
-			snprintf(idtext, sizeof(idtext), "ActionID: %s", id);				\
+			snprintf(idtext, sizeof(idtext), "ActionID: %s", id);					\
 		}												\
+		astman_send_listack(s, m, AMI_COMMAND " list will follow", "start");				\
 		if (RESULT_SUCCESS==_CALLED_FUNCTION(-1, &total, s, m, ARRAY_LEN(arguments), arguments)) {	\
-		        astman_send_ack(s, m, AMI_COMMAND);							\
+			astman_append(s,									\
+			"Event: " AMI_COMMAND "Complete\r\n"							\
+			"EventList: Complete\r\n"								\
+			"ListItems: %d\r\n"									\
+			"%s"											\
+			"\r\n\r\n", total, idtext);  								\
                 } else {											\
                         astman_send_error(s, m, "Execution Failed\n");						\
                 }												\
-		astman_append(s,										\
-		"Event: " AMI_COMMAND "Complete\r\n"								\
-		"EventList: Complete\r\n"									\
-		"ListItems: %d\r\n"										\
-		"%s"												\
-		"\r\n\r\n", total, idtext);  									\
 		return 0;											\
 	}													\
 														\
