@@ -76,7 +76,7 @@
 #ifndef CS_BRIDGE_BASE_NEW
 #define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_new(_a, _b)
 #else
-#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new(_a, _b)
+#define pbx_bridge_new(_a,_b,_c,_d,_e) ast_bridge_base_new(_a, _b, _c, _d, _e)
 #endif
 #define pbx_bridge_remove ast_bridge_remove
 #define pbx_bridge_result ast_bridge_result
