@@ -96,7 +96,7 @@ if (!s) {
 #else
 	CLI_AMI_TABLE_ITERATOR {
 #endif
-		CLI_AMI_TABLE_BEFORE_ITERATION astman_append(s, "Event: %sEntry\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
+		CLI_AMI_TABLE_BEFORE_ITERATION astman_append(s, "Event: SCCP%sEntry\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
 
 		local_total++;
 		astman_append(s, "ChannelType: SCCP\r\n");
