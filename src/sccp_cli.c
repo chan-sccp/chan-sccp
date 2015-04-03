@@ -474,13 +474,13 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
 	} else {
 		//astman_send_listack(s, m, argv[0], "start");
-		astman_send_listack(s, m, "SCCPShowGlobals", "start");
+		//astman_send_listack(s, m, "SCCPShowGlobals", "start");
 		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPGlobalSettings");
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
 		} else {
-			astman_append(s, "\r\n");
+			astman_append(s, "");
 		}
 		local_total++;
 	}
@@ -490,12 +490,8 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 #else
 	CLI_AMI_OUTPUT_PARAM("Platform byte order", CLI_AMI_LIST_WIDTH, "%s", "BIG ENDIAN");
 #endif
-	// CLI_AMI_OUTPUT_PARAM("Protocol Version", CLI_AMI_LIST_WIDTH, "%d", GLOB(protocolversion));
 	CLI_AMI_OUTPUT_PARAM("Server Name", CLI_AMI_LIST_WIDTH, "%s", GLOB(servername));
 	CLI_AMI_OUTPUT_PARAM("Bind Address", CLI_AMI_LIST_WIDTH, "%s", sccp_socket_stringify(&GLOB(bindaddr)));
-	CLI_AMI_OUTPUT_BOOL("Nat", CLI_AMI_LIST_WIDTH, GLOB(nat));
-	//CLI_AMI_OUTPUT_PARAM("Extern Hostname", CLI_AMI_LIST_WIDTH, "%s", GLOB(externhost));                            // deprecated
-	//CLI_AMI_OUTPUT_PARAM("Extern Host Refresh", CLI_AMI_LIST_WIDTH, "%d", GLOB(externrefresh));                     // deprecated
 	CLI_AMI_OUTPUT_PARAM("Extern IP", CLI_AMI_LIST_WIDTH, "%s", !sccp_socket_is_any_addr(&GLOB(externip)) ? sccp_socket_stringify(&GLOB(externip)) : "Not Set -> Using Incoming IP-addres.");
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
@@ -757,13 +753,13 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
 	} else {
-		astman_send_listack(s, m, "SCCPShowDevice", "start");
+		//astman_send_listack(s, m, "SCCPShowDevice", "start");
 		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPShowDevice");
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
 		} else {
-			astman_append(s, "\r\n");
+			astman_append(s, "");
 		}
 		local_total++;
 	}
@@ -1083,7 +1079,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
 						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 				} else {
-					astman_append(s, "Event: LineEntry\r\n");
+					astman_append(s, "Event: SCCPLineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
 					astman_append(s, "ChannelObjectType: Line\r\n");
 					astman_append(s, "Exten: %s\r\n", l->name);
@@ -1108,7 +1104,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 			if (!s) {
 				pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n", l->name, "", l->label, "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 			} else {
-				astman_append(s, "Event: LineEntry\r\n");
+				astman_append(s, "Event: SCCPLineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
 				astman_append(s, "ChannelObjectType: Line\r\n");
 				astman_append(s, "Exten: %s\r\n", l->name);
@@ -1209,8 +1205,9 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver line settings ------------------------------------------------------------------------------------\n");
 	} else {
-		astman_send_listack(s, m, "SCCPShowLine", "start");
-		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
+		//astman_send_listack(s, m, "SCCPShowLine", "start");
+		//CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
+		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPShowLine");
 	}
 	CLI_AMI_OUTPUT_PARAM("Name", CLI_AMI_LIST_WIDTH, "%s", l->name ? l->name : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Description", CLI_AMI_LIST_WIDTH, "%s", l->description ? l->description : "<not set>");
