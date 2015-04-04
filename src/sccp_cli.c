@@ -641,25 +641,25 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 
 #ifndef CS_EXPERIMENTAL
 #define CLI_AMI_TABLE_FIELDS 																	\
-		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	d->description)										\
-		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
-		CLI_AMI_TABLE_FIELD(Mac,		"-16.16s",	16,	d->id)											\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	skinny_registrationstate2str(d->registrationState))						\
-		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	sccp_tokenstate2str(d->status.token)) \
-		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
-		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
-		CLI_AMI_TABLE_FIELD(Lines, 		"-5d",		5, 	d->configurationStatistic.numberOfLines)
+		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description)								\
+		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
+		CLI_AMI_TABLE_FIELD(Mac,		"-16.16",	s,	16,	d->id)									\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(d->registrationState))			\
+		CLI_AMI_TABLE_FIELD(Token,		"-5.5",		s,	5,	sccp_tokenstate2str(d->status.token)) 					\
+		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime)								\
+		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
+		CLI_AMI_TABLE_FIELD(Lines, 		"-5",		d,	5, 	d->configurationStatistic.numberOfLines)
 #else
 #define CLI_AMI_TABLE_FIELDS 																	\
-		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	d->description)										\
-		CLI_AMI_TABLE_FIELD(Address,		"44.44s",	44,	addrStr)										\
-		CLI_AMI_TABLE_FIELD(Mac,		"-16.16s",	16,	d->id)											\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10, 	skinny_registrationstate2str(d->registrationState))						\
-		CLI_AMI_TABLE_FIELD(Token,		"-5.5s",	5,	sccp_tokenstate2str(d->status.token)) \
-		CLI_AMI_TABLE_FIELD(RegTime,		"25.25s",	25, 	regtime)										\
-		CLI_AMI_TABLE_FIELD(Act,		"3.3s",		3, 	(d->active_channel) ? "Yes" : "No")							\
-		CLI_AMI_TABLE_FIELD(Lines, 		"-5d",		5, 	d->configurationStatistic.numberOfLines)						\
-		CLI_AMI_TABLE_FIELD(Nat,		"9.9s", 	9,	sccp_nat2str(d->nat))
+		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description)								\
+		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
+		CLI_AMI_TABLE_FIELD(Mac,		"-16.16",	s,	16,	d->id)									\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(d->registrationState))			\
+		CLI_AMI_TABLE_FIELD(Token,		"-5.5",		s,	5,	sccp_tokenstate2str(d->status.token)) 					\
+		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime)								\
+		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
+		CLI_AMI_TABLE_FIELD(Lines, 		"-5",		d,	5, 	d->configurationStatistic.numberOfLines)				\
+		CLI_AMI_TABLE_FIELD(Nat,		"9.9",		s, 	9,	sccp_nat2str(d->nat))
 #endif
 #include "sccp_cli_table.h"
 
@@ -859,14 +859,14 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_FIELD(Inst,		"-4d",		4,	buttonconfig->instance)					\
-			CLI_AMI_TABLE_FIELD(TypeStr,		"-30s",		30,	sccp_config_buttontype2str(buttonconfig->type))		\
-			CLI_AMI_TABLE_FIELD(Type,		"-24d",		24,	buttonconfig->type)					\
-			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8s",		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(pendDel,		"-8s",		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
-			CLI_AMI_TABLE_FIELD(Default,		"-9s",		9,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
+#define CLI_AMI_TABLE_FIELDS 																\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",	d,		4,	buttonconfig->index + 1)				\
+			CLI_AMI_TABLE_FIELD(Inst,		"-4",	d,		4,	buttonconfig->instance)					\
+			CLI_AMI_TABLE_FIELD(TypeStr,		"-30",	s,		30,	sccp_config_buttontype2str(buttonconfig->type))		\
+			CLI_AMI_TABLE_FIELD(Type,		"-24",	d,		24,	buttonconfig->type)					\
+			CLI_AMI_TABLE_FIELD(pendUpdt,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
+			CLI_AMI_TABLE_FIELD(pendDel,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
+			CLI_AMI_TABLE_FIELD(Default,		"-9",	s,		9,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
 #include "sccp_cli_table.h"
 
 		// LINES
@@ -888,13 +888,13 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			}
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	l->name)						\
-			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6s",	6,	buttonconfig->button.line.subscriptionId.number)	\
-			CLI_AMI_TABLE_FIELD(Label,		"-29.29s",	29, 	l->label)							\
-			CLI_AMI_TABLE_FIELD(CfwdType,		"-10s",		10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
-			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16s",	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
+#define CLI_AMI_TABLE_FIELDS 																\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)				\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
+			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6",		s,	6,	buttonconfig->button.line.subscriptionId.number)	\
+			CLI_AMI_TABLE_FIELD(Label,		"-29.29",	s,	29, 	l->label)						\
+			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
+			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
 
 		// SPEEDDIALS
@@ -912,11 +912,10 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)						\
-			CLI_AMI_TABLE_FIELD(Number,		"-36.36s",	36,	buttonconfig->button.speeddial.ext)			\
-			CLI_AMI_TABLE_FIELD(Hint,		"-27.27s",	27, 	buttonconfig->button.speeddial.hint)
-		// CLI_AMI_TABLE_FIELD(HintStatus,      "-20.20s",      20,     ast_extension_state2str(ast_extension_state()))
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
+			CLI_AMI_TABLE_FIELD(Number,		"-36.36",	s,	36,	buttonconfig->button.speeddial.ext)		\
+			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint)
 #include "sccp_cli_table.h"
 
 		// FEATURES
@@ -933,10 +932,10 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(Options,		"-36.36s",	36,	buttonconfig->button.feature.options)			\
-			CLI_AMI_TABLE_FIELD(Status,		"-27d",		27, 	buttonconfig->button.feature.status)
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
+			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options)		\
+			CLI_AMI_TABLE_FIELD(Status,		"-27",		d,	27, 	buttonconfig->button.feature.status)
 #include "sccp_cli_table.h"
 
 		// SERVICEURL
@@ -953,9 +952,9 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4d",		4,	buttonconfig->index + 1)				\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23s",	23,	buttonconfig->label)					\
-			CLI_AMI_TABLE_FIELD(URL,		"-64.64s",	64,	buttonconfig->button.service.url)
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,		4,	buttonconfig->index + 1)		\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
+			CLI_AMI_TABLE_FIELD(URL,		"-64.64",	s,	64,	buttonconfig->button.service.url)
 #include "sccp_cli_table.h"
 	}
 
@@ -965,8 +964,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Variable
 #define CLI_AMI_TABLE_ITERATOR for(v = d->variables;v;v = v->next)
 #define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Name,		"-28.28s",	28,	v->name)						\
-			CLI_AMI_TABLE_FIELD(Value,		"-64.64s",	64,	v->value)
+			CLI_AMI_TABLE_FIELD(Name,		"-28.28",	s,	28,	v->name)					\
+			CLI_AMI_TABLE_FIELD(Value,		"-64.64",	s,	64,	v->value)
 #include "sccp_cli_table.h"
 	}
 
@@ -977,20 +976,20 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceStatistics
 #define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
 #define CLI_AMI_TABLE_BEFORE_ITERATION stats = &d->call_statistics[callstattype];
-#define CLI_AMI_TABLE_FIELDS																\
-			CLI_AMI_TABLE_FIELD(Type,		"-8.8s",	8,	(callstattype == SCCP_CALLSTATISTIC_LAST) ? "LAST" : "AVG")	\
-			CLI_AMI_TABLE_FIELD(Calls,		"-8d",		8,	stats->num)							\
-			CLI_AMI_TABLE_FIELD(PcktSnd,		"-8d",		8,	stats->packets_sent)						\
-			CLI_AMI_TABLE_FIELD(PcktRcvd,		"-8d",		8,	stats->packets_received)					\
-			CLI_AMI_TABLE_FIELD(Lost,		"-8d",		8,	stats->packets_lost)						\
-			CLI_AMI_TABLE_FIELD(Jitter,		"-8d",		8,	stats->jitter)							\
-			CLI_AMI_TABLE_FIELD(Latency,		"-8d",		8,	stats->latency)							\
-			CLI_AMI_TABLE_FIELD(Quality,		"1.6f",		8,	stats->opinion_score_listening_quality)				\
-			CLI_AMI_TABLE_FIELD(avgQual,		"1.6f",		8,	stats->avg_opinion_score_listening_quality)			\
-			CLI_AMI_TABLE_FIELD(meanQual,		"1.6f",		8,	stats->mean_opinion_score_listening_quality)			\
-			CLI_AMI_TABLE_FIELD(maxQual,		"1.6f",		8,	stats->max_opinion_score_listening_quality)			\
-			CLI_AMI_TABLE_FIELD(rConceal,		"1.6f",		8,	stats->cumulative_concealement_ratio)				\
-			CLI_AMI_TABLE_FIELD(sConceal,		"-8d",		8,	stats->concealed_seconds)
+#define CLI_AMI_TABLE_FIELDS																	\
+			CLI_AMI_TABLE_FIELD(Type,		"-8.8",		s,	8,	(callstattype == SCCP_CALLSTATISTIC_LAST) ? "LAST" : "AVG")	\
+			CLI_AMI_TABLE_FIELD(Calls,		"-8",		d,	8,	stats->num)							\
+			CLI_AMI_TABLE_FIELD(PcktSnt,		"-8",		d,	8,	stats->packets_sent)						\
+			CLI_AMI_TABLE_FIELD(PcktRcvd,		"-8",		d,	8,	stats->packets_received)					\
+			CLI_AMI_TABLE_FIELD(Lost,		"-8",		d,	8,	stats->packets_lost)						\
+			CLI_AMI_TABLE_FIELD(Jitter,		"-8",		d,	8,	stats->jitter)							\
+			CLI_AMI_TABLE_FIELD(Latency,		"-8",		d,	8,	stats->latency)							\
+			CLI_AMI_TABLE_FIELD(Quality,		"1.6",		f,	8,	stats->opinion_score_listening_quality)				\
+			CLI_AMI_TABLE_FIELD(avgQual,		"1.6",		f,	8,	stats->avg_opinion_score_listening_quality)			\
+			CLI_AMI_TABLE_FIELD(meanQual,		"1.6",		f,	8,	stats->mean_opinion_score_listening_quality)			\
+			CLI_AMI_TABLE_FIELD(maxQual,		"1.6",		f,	8,	stats->max_opinion_score_listening_quality)			\
+			CLI_AMI_TABLE_FIELD(rConceal,		"1.6",		f,	8,	stats->cumulative_concealement_ratio)				\
+			CLI_AMI_TABLE_FIELD(sConceal,		"-8",		d,	8,	stats->concealed_seconds)
 #include "sccp_cli_table.h"
 
 	sccp_device_release(d);
@@ -1272,10 +1271,10 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 											\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"-15.15s",	15,	linedevice->device->id)		\
-		CLI_AMI_TABLE_FIELD(CfwdType,		"8s",		8,	linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : ""))					\
-		CLI_AMI_TABLE_FIELD(CfwdNumber,		"-20.20s",	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
+#define CLI_AMI_TABLE_FIELDS 												\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-15.15",	s,	15,	linedevice->device->id)		\
+		CLI_AMI_TABLE_FIELD(CfwdType,		"8",		s,	8,	linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : ""))	\
+		CLI_AMI_TABLE_FIELD(CfwdNumber,		"-20.20",	s,	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
 #include "sccp_cli_table.h"
 
 	// Mailboxes connected to this line
@@ -1288,8 +1287,8 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 											\
-		CLI_AMI_TABLE_FIELD(mailbox,		"15.15s",	15,	mailbox->mailbox)		\
-		CLI_AMI_TABLE_FIELD(context,		"-15.15s",	15,	mailbox->context)
+		CLI_AMI_TABLE_FIELD(mailbox,		"15.15",	s,	15,	mailbox->mailbox)	\
+		CLI_AMI_TABLE_FIELD(context,		"-15.15",	s,	15,	mailbox->context)
 #include "sccp_cli_table.h"
 
 	if (l->variables) {
@@ -1298,8 +1297,8 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Variable
 #define CLI_AMI_TABLE_ITERATOR for(v = l->variables;v;v = v->next)
 #define CLI_AMI_TABLE_FIELDS 											\
-		CLI_AMI_TABLE_FIELD(Name,		"15.15s",	15,	v->name)			\
-		CLI_AMI_TABLE_FIELD(Value,		"-29.29s",	29,	v->value)
+		CLI_AMI_TABLE_FIELD(Name,		"15.15",	s,	15,	v->name)		\
+		CLI_AMI_TABLE_FIELD(Value,		"-29.29",	s,	29,	v->value)
 #include "sccp_cli_table.h"
 	}
 	sccp_line_release(l);
@@ -1376,20 +1375,20 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 		SCCP_LIST_UNLOCK(&l->channels);											\
 		sccp_line_release(l);
 
-#define CLI_AMI_TABLE_FIELDS 													\
-		CLI_AMI_TABLE_FIELD(ID,			"-5d",		5,	channel->callid)					\
-		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	strdupa(tmpname))					\
-		CLI_AMI_TABLE_FIELD(LineName,		"-10.10s",	10,	channel->line->name)					\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"-16s",		16,	d ? d->id : "(unknown)")				\
-/*		CLI_AMI_TABLE_FIELD(DeviceDescr,	"-32.32s",	32,	d ? d->description : "(unknown)")		*/	\
-		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10s",	10,	channel->callInfo.calledPartyNumber)			\
-		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10s",	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
-		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10s",	10,	sccp_channelstate2str(channel->state))			\
-		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10s",	10,	codec2name(channel->rtp.audio.readFormat))		\
-		CLI_AMI_TABLE_FIELD(WriteCodec,		"-10.10s",	10,	codec2name(channel->rtp.audio.writeFormat))		\
-		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22s",	22,	addrStr)						\
-		CLI_AMI_TABLE_FIELD(Direct,		"-6.6s",	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
-		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8s",	8,	sccp_dtmfmode2str(channel->dtmfmode))
+#define CLI_AMI_TABLE_FIELDS 															\
+		CLI_AMI_TABLE_FIELD(ID,			"-5",		d,		5,	channel->callid)				\
+		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	strdupa(tmpname))					\
+		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,		16,	d ? d->id : "(unknown)")			\
+/*		CLI_AMI_TABLE_FIELD(DeviceDescr,	"-32.32",	s,	32,	d ? d->description : "(unknown)")		*/	\
+		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->callInfo.calledPartyNumber)			\
+		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
+		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
+		CLI_AMI_TABLE_FIELD(ReadCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.readFormat))		\
+		CLI_AMI_TABLE_FIELD(WriteCodec,		"-10.10",	s,	10,	codec2name(channel->rtp.audio.writeFormat))		\
+		CLI_AMI_TABLE_FIELD(RTPPeer,		"22.22",	s,	22,	addrStr)						\
+		CLI_AMI_TABLE_FIELD(Direct,		"-6.6",		s,	6,	channel->rtp.audio.directMedia ? "yes" : "no")		\
+		CLI_AMI_TABLE_FIELD(DTMFmode,		"-8.8",		s,	8,	sccp_dtmfmode2str(channel->dtmfmode))
 #include "sccp_cli_table.h"
 
 	if (s) {
@@ -1453,16 +1452,16 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		sccp_session_unlock(session);													\
 
 #define CLI_AMI_TABLE_FIELDS 															\
-		CLI_AMI_TABLE_FIELD(Socket,		"-6d",		6,	session->fds[0].fd)						\
-		CLI_AMI_TABLE_FIELD(IP,			"40.40s",	40,	clientAddress)                                			\
-		CLI_AMI_TABLE_FIELD(Port,		"-5d",		5,	sccp_socket_getPort(&session->sin) )    			\
-		CLI_AMI_TABLE_FIELD(KA,			"-4d",		4,	(uint32_t) (time(0) - session->lastKeepAlive))			\
-		CLI_AMI_TABLE_FIELD(KAI,		"-4d",		4,	(d) ? d->keepaliveinterval : 0)					\
-		CLI_AMI_TABLE_FIELD(DeviceName,		"15s",		15,	(d) ? d->id : "--")						\
-		CLI_AMI_TABLE_FIELD(State,		"-14.14s",	14,	(d) ? sccp_devicestate2str(d->state) : "--")				\
-		CLI_AMI_TABLE_FIELD(Type,		"-15.15s",	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")			\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
-		CLI_AMI_TABLE_FIELD(Token,		"-10.10s",	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
+		CLI_AMI_TABLE_FIELD(Socket,		"-6",		d,	6,	session->fds[0].fd)					\
+		CLI_AMI_TABLE_FIELD(IP,			"40.40",	s,	40,	clientAddress)                                		\
+		CLI_AMI_TABLE_FIELD(Port,		"-5",		d,	5,	sccp_socket_getPort(&session->sin) )    		\
+		CLI_AMI_TABLE_FIELD(KA,			"-4",		d,	4,	(uint32_t) (time(0) - session->lastKeepAlive))		\
+		CLI_AMI_TABLE_FIELD(KAI,		"-4",		d,	4,	(d) ? d->keepaliveinterval : 0)				\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"15",		s,	15,	(d) ? d->id : "--")					\
+		CLI_AMI_TABLE_FIELD(State,		"-14.14",	s,	14,	(d) ? sccp_devicestate2str(d->state) : "--")		\
+		CLI_AMI_TABLE_FIELD(Type,		"-15.15",	s,	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")	\
+		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
+		CLI_AMI_TABLE_FIELD(Token,		"-10.10",	s,	10,	d ? sccp_tokenstate2str(d->status.token) : "--")
 #include "sccp_cli_table.h"
 
 	if (s) {
@@ -2182,12 +2181,12 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 #define CLI_AMI_TABLE_AFTER_ITERATION												\
 			}													\
 		}
-#define CLI_AMI_TABLE_FIELDS													\
-				CLI_AMI_TABLE_FIELD(Set,		"-15.15s",	15,	softkeyset->name)		\
-				CLI_AMI_TABLE_FIELD(Mode,		"-12.12s",	12,	skinny_keymode2str(i))		\
-				CLI_AMI_TABLE_FIELD(Description,	"-40.40s",	40,	skinny_keymode2longstr(i))	\
-				CLI_AMI_TABLE_FIELD(LblID,		"-5d",		5,	c)				\
-				CLI_AMI_TABLE_FIELD(Label,              "-15.15s",	15,     label2str(b[c]))
+#define CLI_AMI_TABLE_FIELDS														\
+				CLI_AMI_TABLE_FIELD(Set,		"-15.15",	s,	15,	softkeyset->name)		\
+				CLI_AMI_TABLE_FIELD(Mode,		"-12.12",	s,	12,	skinny_keymode2str(i))		\
+				CLI_AMI_TABLE_FIELD(Description,	"-40.40",	s,	40,	skinny_keymode2longstr(i))	\
+				CLI_AMI_TABLE_FIELD(LblID,		"-5",		d,	5,	c)				\
+				CLI_AMI_TABLE_FIELD(Label,              "-15.15",	s,	15,     label2str(b[c]))
 #include "sccp_cli_table.h"
 
 	if (s) {
