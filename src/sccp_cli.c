@@ -844,12 +844,15 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	CLI_AMI_OUTPUT_BOOL("conf_show_conflist",       CLI_AMI_LIST_WIDTH, d->conf_show_conflist);
 	CLI_AMI_OUTPUT_BOOL("conflist_active",       CLI_AMI_LIST_WIDTH, d->conferencelist_active);
 #endif
+	if (s) {
+		astman_append(s, "\r\n");
+	}
 
 	/* *INDENT-ON* */
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
-#define CLI_AMI_TABLE_NAME Buttons
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Button
+#define CLI_AMI_TABLE_NAME DeviceButtons
+#define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceButton
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_buttonconfig_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -867,8 +870,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #include "sccp_cli_table.h"
 
 		// LINES
-#define CLI_AMI_TABLE_NAME Lines
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Line
+#define CLI_AMI_TABLE_NAME DeviceLines
+#define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
@@ -895,8 +898,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #include "sccp_cli_table.h"
 
 		// SPEEDDIALS
-#define CLI_AMI_TABLE_NAME Speeddials
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Speeddial
+#define CLI_AMI_TABLE_NAME DeviceSpeeddials
+#define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
@@ -917,8 +920,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #include "sccp_cli_table.h"
 
 		// FEATURES
-#define CLI_AMI_TABLE_NAME Features
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Feature
+#define CLI_AMI_TABLE_NAME DeviceFeatures
+#define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceFeature
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
@@ -937,8 +940,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 #include "sccp_cli_table.h"
 
 		// SERVICEURL
-#define CLI_AMI_TABLE_NAME ServiceURLs
-#define CLI_AMI_TABLE_PER_ENTRY_NAME ServiceURL
+#define CLI_AMI_TABLE_NAME DeviceServiceURLs
+#define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceServiceURL
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
@@ -970,8 +973,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	sccp_call_statistics_type_t callstattype;
 	sccp_call_statistics_t *stats = NULL;
 
-#define CLI_AMI_TABLE_NAME CallStatistics
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Statistics
+#define CLI_AMI_TABLE_NAME DeviceCallStatistics
+#define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceStatistics
 #define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
 #define CLI_AMI_TABLE_BEFORE_ITERATION stats = &d->call_statistics[callstattype];
 #define CLI_AMI_TABLE_FIELDS																\
@@ -1263,7 +1266,9 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	CLI_AMI_OUTPUT_BOOL("Adhoc Number Assigned", CLI_AMI_LIST_WIDTH, l->adhocNumber ? l->adhocNumber : "No");
 	CLI_AMI_OUTPUT_PARAM("Message Waiting New.", CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.newmsgs);
 	CLI_AMI_OUTPUT_PARAM("Message Waiting Old.", CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.oldmsgs);
-
+	if (s) {
+		astman_append(s, "\r\n");
+	}
 	// Line attached to these devices
 #define CLI_AMI_TABLE_NAME AttachedDevices
 #define CLI_AMI_TABLE_PER_ENTRY_NAME Device
