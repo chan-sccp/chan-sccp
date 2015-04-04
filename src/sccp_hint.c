@@ -1374,12 +1374,12 @@ int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_FIELDS 														\
- 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10s",	10,	lineState->line->name)					\
- 		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(lineState->state))		\
- 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	lineState->callInfo.partyNumber)			\
- 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	lineState->callInfo.partyName)				\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(!SCCP_CHANNELSTATE_Idling(lineState->state) && lineState->callInfo.calltype) ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
+#define CLI_AMI_TABLE_FIELDS 															\
+ 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	lineState->line->name)					\
+ 		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(lineState->state))		\
+ 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	lineState->callInfo.partyNumber)			\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20",	s,	20,	lineState->callInfo.partyName)				\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(!SCCP_CHANNELSTATE_Idling(lineState->state) && lineState->callInfo.calltype) ? skinny_calltype2str(lineState->callInfo.calltype) : "INACTIVE")
 
 #include "sccp_cli_table.h"
 
@@ -1414,15 +1414,15 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_FIELDS 														\
- 		CLI_AMI_TABLE_FIELD(Exten,		"-10.10s",	10,	subscription->exten)					\
- 		CLI_AMI_TABLE_FIELD(Context,		"-10.10s",	10,	subscription->context)					\
- 		CLI_AMI_TABLE_FIELD(Hint,		"-15.15s",	15,	subscription->hint_dialplan)				\
- 		CLI_AMI_TABLE_FIELD(State,		"-22.22s",	22,	sccp_channelstate2str(subscription->currentState))	\
- 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15s",	15,	subscription->callInfo.partyNumber)			\
- 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20s",	20,	subscription->callInfo.partyName)			\
- 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10s",	10,	(subscription->callInfo.calltype && subscription->callInfo.calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(subscription->callInfo.calltype) : "") \
- 		CLI_AMI_TABLE_FIELD(Subs,		"-4d",		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
+#define CLI_AMI_TABLE_FIELDS 															\
+ 		CLI_AMI_TABLE_FIELD(Exten,		"-10.10",	s,	10,	subscription->exten)					\
+ 		CLI_AMI_TABLE_FIELD(Context,		"-10.10",	s,	10,	subscription->context)					\
+ 		CLI_AMI_TABLE_FIELD(Hint,		"-15.15",	s,	15,	subscription->hint_dialplan)				\
+ 		CLI_AMI_TABLE_FIELD(State,		"-22.22",	s,	22,	sccp_channelstate2str(subscription->currentState))	\
+ 		CLI_AMI_TABLE_FIELD(CallInfoNumber,	"-15.15",	s,	15,	subscription->callInfo.partyNumber)			\
+ 		CLI_AMI_TABLE_FIELD(CallInfoName,	"-20.20",	s,	20,	subscription->callInfo.partyName)			\
+ 		CLI_AMI_TABLE_FIELD(Direction,		"-10.10",	s,	10,	(subscription->callInfo.calltype && subscription->callInfo.calltype != SKINNY_CALLTYPE_SENTINEL) ? skinny_calltype2str(subscription->callInfo.calltype) : "") \
+ 		CLI_AMI_TABLE_FIELD(Subs,		"-4",		d,		4,	SCCP_LIST_GETSIZE(&subscription->subscribers))
 
 #include "sccp_cli_table.h"
 
