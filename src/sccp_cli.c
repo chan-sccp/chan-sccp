@@ -1265,7 +1265,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	}
 	// Line attached to these devices
 #define CLI_AMI_TABLE_NAME AttachedDevices
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Device
+#define CLI_AMI_TABLE_PER_ENTRY_NAME AttachedDevice
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &l->devices
 #define CLI_AMI_TABLE_LIST_ITER_VAR linedevice
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
@@ -1273,7 +1273,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 											\
-		CLI_AMI_TABLE_FIELD(Device,		"-15.15s",	15,	linedevice->device->id)		\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-15.15s",	15,	linedevice->device->id)		\
 		CLI_AMI_TABLE_FIELD(CfwdType,		"8s",		8,	linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : ""))					\
 		CLI_AMI_TABLE_FIELD(CfwdNumber,		"-20.20s",	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
 #include "sccp_cli_table.h"
@@ -1379,8 +1379,8 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_FIELDS 													\
 		CLI_AMI_TABLE_FIELD(ID,			"-5d",		5,	channel->callid)					\
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25s",	25,	strdupa(tmpname))					\
-		CLI_AMI_TABLE_FIELD(Line,		"-10.10s",	10,	channel->line->name)					\
-		CLI_AMI_TABLE_FIELD(Device,		"-16s",		16,	d ? d->id : "(unknown)")				\
+		CLI_AMI_TABLE_FIELD(LineName,		"-10.10s",	10,	channel->line->name)					\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"-16s",		16,	d ? d->id : "(unknown)")				\
 /*		CLI_AMI_TABLE_FIELD(DeviceDescr,	"-32.32s",	32,	d ? d->description : "(unknown)")		*/	\
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10s",	10,	channel->callInfo.calledPartyNumber)			\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10s",	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
@@ -1458,7 +1458,7 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 		CLI_AMI_TABLE_FIELD(Port,		"-5d",		5,	sccp_socket_getPort(&session->sin) )    			\
 		CLI_AMI_TABLE_FIELD(KA,			"-4d",		4,	(uint32_t) (time(0) - session->lastKeepAlive))			\
 		CLI_AMI_TABLE_FIELD(KAI,		"-4d",		4,	(d) ? d->keepaliveinterval : 0)					\
-		CLI_AMI_TABLE_FIELD(Device,		"15s",		15,	(d) ? d->id : "--")						\
+		CLI_AMI_TABLE_FIELD(DeviceName,		"15s",		15,	(d) ? d->id : "--")						\
 		CLI_AMI_TABLE_FIELD(State,		"-14.14s",	14,	(d) ? sccp_devicestate2str(d->state) : "--")				\
 		CLI_AMI_TABLE_FIELD(Type,		"-15.15s",	15,	(d) ? skinny_devicetype2str(d->skinny_type) : "--")			\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10s",	10,	(d) ? skinny_registrationstate2str(d->registrationState) : "--")	\
