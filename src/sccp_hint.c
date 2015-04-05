@@ -1366,8 +1366,8 @@ int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const st
 {
 	int local_total = 0;
 
-#define CLI_AMI_TABLE_NAME Hint_LineStates
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Hint_lineState
+#define CLI_AMI_TABLE_NAME HintLineStates
+#define CLI_AMI_TABLE_PER_ENTRY_NAME HintLineState
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &lineStates
 #define CLI_AMI_TABLE_LIST_ITER_TYPE struct sccp_hint_lineState
 #define CLI_AMI_TABLE_LIST_ITER_VAR lineState
@@ -1406,8 +1406,8 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
 {
 	int local_total = 0;
 
-#define CLI_AMI_TABLE_NAME Hint_Subscriptions
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Hint_Subscription
+#define CLI_AMI_TABLE_NAME HintSubscriptions
+#define CLI_AMI_TABLE_PER_ENTRY_NAME HintSubscription
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_hint_subscriptions
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_hint_list_t
 #define CLI_AMI_TABLE_LIST_ITER_VAR subscription
