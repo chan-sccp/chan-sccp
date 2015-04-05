@@ -642,8 +642,8 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
 	char linebuf[31] = "";
 	int local_total = 0;
 
-#define CLI_AMI_TABLE_NAME MWI_Subscriptions
-#define CLI_AMI_TABLE_PER_ENTRY_NAME Mailbox_Subscriber
+#define CLI_AMI_TABLE_NAME MWISubscriptions
+#define CLI_AMI_TABLE_PER_ENTRY_NAME MailboxSubscriber
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &sccp_mailbox_subscriptions
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_mailbox_subscriber_list_t
 #define CLI_AMI_TABLE_LIST_ITER_VAR subscription
@@ -653,7 +653,7 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
 #define CLI_AMI_TABLE_BEFORE_ITERATION 															\
  		SCCP_LIST_TRAVERSE(&subscription->sccp_mailboxLine, mailboxLine, list) {								\
  			line = mailboxLine->line;													\
- 			snprintf(linebuf,sizeof(linebuf),"%30s",line->name);										\
+ 			snprintf(linebuf,sizeof(linebuf),"%s",line->name);										\
  		}
 
 #ifdef CS_AST_HAS_EVENT
