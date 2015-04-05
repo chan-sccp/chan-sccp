@@ -2196,11 +2196,11 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 }
 
 static char cli_show_softkeysets_usage[] = "Usage: sccp show softkeysets\n" "	Show the configured SoftKeySets.\n";
-static char ami_show_softkeysets_usage[] = "Usage: SCCPShowSoftkeySets\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: None\n";
+static char ami_show_softkeysets_usage[] = "Usage: SCCPShowSoftKeySets\n" "Show All SCCP Softkey Sets.\n\n" "PARAMS: None\n";
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define CLI_COMMAND "sccp", "show", "softkeyssets"
-#define AMI_COMMAND "SCCPShowSoftkeySets"
+#define AMI_COMMAND "SCCPShowSoftKeySets"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
 CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeySets", cli_show_softkeysets_usage, FALSE)
