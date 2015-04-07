@@ -1362,9 +1362,9 @@ sccp_channelstate_t sccp_hint_getLinestate(const char *linename, const char *dev
  * \called_from_asterisk
  */
 #include <asterisk/cli.h>
-int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_show_hint_lineStates(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int local_total = 0;
+	int local_line_total = 0;
 
 #define CLI_AMI_TABLE_NAME HintLineStates
 #define CLI_AMI_TABLE_PER_ENTRY_NAME HintLineState
@@ -1384,7 +1384,8 @@ int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const st
 #include "sccp_cli_table.h"
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1402,9 +1403,9 @@ int sccp_show_hint_lineStates(int fd, int *total, struct mansession *s, const st
  * \called_from_asterisk
  */
 //#include <asterisk/cli.h>
-int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_show_hint_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int local_total = 0;
+	int local_line_total = 0;
 
 #define CLI_AMI_TABLE_NAME HintSubscriptions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME HintSubscription
@@ -1427,7 +1428,8 @@ int sccp_show_hint_subscriptions(int fd, int *total, struct mansession *s, const
 #include "sccp_cli_table.h"
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }

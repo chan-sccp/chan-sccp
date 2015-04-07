@@ -447,11 +447,9 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
  * 
  */
 //static int sccp_show_globals(int fd, int argc, char *argv[])
-static int sccp_show_globals(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	char pref_buf[256];
-
-	//char addrStr[INET6_ADDRSTRLEN];
 	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 #ifdef CS_SCCP_PICKUP
@@ -460,7 +458,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	struct ast_str *ha_localnet_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	char *debugcategories;
-	int local_total = 0;
+	int local_line_total = 0;
 	const char *actionid = "";
 
 	sccp_globals_lock(lock);
@@ -473,16 +471,13 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver global settings ----------------------------------------------------------------------------------\n");
 	} else {
-		//astman_send_listack(s, m, argv[0], "start");
-		//astman_send_listack(s, m, "SCCPShowGlobals", "start");
-		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPGlobalSettings");
+		astman_append(s, "Response: Success\r\n");
+		astman_append(s, "Message: SCCPGlobalSettings\r\n");
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
-		} else {
-			astman_append(s, "");
 		}
-		local_total++;
+		local_line_total++;
 	}
 	CLI_AMI_OUTPUT_PARAM("Config File", CLI_AMI_LIST_WIDTH, "%s", GLOB(config_file_name));
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
@@ -571,8 +566,7 @@ static int sccp_show_globals(int fd, int *total, struct mansession *s, const str
 	sccp_globals_unlock(lock);
 
 	if (s) {
-		*total = local_total;
-		astman_append(s, "\r\n");
+		totals->lines = local_line_total;
 	}
 
 	return RESULT_SUCCESS;
@@ -586,7 +580,7 @@ static char ami_globals_usage[] = "Usage: SCCPShowGlobals\n" "       Lists globa
 #define AMI_COMMAND "SCCPShowGlobals"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global settings", cli_globals_usage, FALSE)
+CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global settings", cli_globals_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -607,11 +601,11 @@ CLI_AMI_ENTRY(show_globals, sccp_show_globals, "List defined SCCP global setting
      * 
      */
     //static int sccp_show_devices(int fd, int argc, char *argv[])
-static int sccp_show_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	struct tm *timeinfo;
 	char regtime[25];
-	int local_total = 0;
+	int local_line_total = 0;
 	sccp_device_t *d = NULL;
 	char addrStr[INET6_ADDRSTRLEN];
 
@@ -665,7 +659,8 @@ static int sccp_show_devices(int fd, int *total, struct mansession *s, const str
 
 	// end of table definition
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -678,7 +673,7 @@ static char ami_devices_usage[] = "Usage: SCCPShowDevices\n" "Lists defined SCCP
 #define AMI_COMMAND "SCCPShowDevices"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_devices_usage, FALSE)
+CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_devices_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -700,7 +695,7 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
      * \warning
      *   - device->buttonconfig is not always locked
      */
-static int sccp_show_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
 	sccp_line_t *l;
@@ -710,7 +705,8 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	struct ast_str *permithost_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	PBX_VARIABLE_TYPE *v = NULL;
 	sccp_linedevices_t *linedevice = NULL;
-	int local_total = 0;
+	int local_line_total = 0;
+	int local_table_total = 0;
 	const char *actionid = "";
 	char clientAddress[INET6_ADDRSTRLEN];
 	char serverAddress[INET6_ADDRSTRLEN];
@@ -753,15 +749,12 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver device settings ----------------------------------------------------------------------------------\n");
 	} else {
-		//astman_send_listack(s, m, "SCCPShowDevice", "start");
-		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPShowDevice");
+		astman_append(s, "Event: SCCPShowDevice\r\n");
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
-		} else {
-			astman_append(s, "");
 		}
-		local_total++;
+		local_line_total++;
 	}
 	/* *INDENT-OFF* */
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
@@ -868,7 +861,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(pendDel,		"-8",	s,		8, 	buttonconfig->pendingUpdate ? "Yes" : "No")		\
 			CLI_AMI_TABLE_FIELD(Default,		"-9",	s,		9,	(0!=buttonconfig->instance && d->defaultLineInstance == buttonconfig->instance && LINE==buttonconfig->type) ? "Yes" : "No")
 #include "sccp_cli_table.h"
-
+			local_table_total++;
 		// LINES
 #define CLI_AMI_TABLE_NAME DeviceLines
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
@@ -896,6 +889,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
+			local_table_total++;
 
 		// SPEEDDIALS
 #define CLI_AMI_TABLE_NAME DeviceSpeeddials
@@ -917,6 +911,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Number,		"-36.36",	s,	36,	buttonconfig->button.speeddial.ext)		\
 			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint)
 #include "sccp_cli_table.h"
+			local_table_total++;
 
 		// FEATURES
 #define CLI_AMI_TABLE_NAME DeviceFeatures
@@ -937,6 +932,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options)		\
 			CLI_AMI_TABLE_FIELD(Status,		"-27",		d,	27, 	buttonconfig->button.feature.status)
 #include "sccp_cli_table.h"
+			local_table_total++;
 
 		// SERVICEURL
 #define CLI_AMI_TABLE_NAME DeviceServiceURLs
@@ -956,6 +952,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
 			CLI_AMI_TABLE_FIELD(URL,		"-64.64",	s,	64,	buttonconfig->button.service.url)
 #include "sccp_cli_table.h"
+			local_table_total++;
 	}
 
 	if (d->variables) {
@@ -967,6 +964,7 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(Name,		"-28.28",	s,	28,	v->name)					\
 			CLI_AMI_TABLE_FIELD(Value,		"-64.64",	s,	64,	v->value)
 #include "sccp_cli_table.h"
+			local_table_total++;
 	}
 
 	sccp_call_statistics_type_t callstattype;
@@ -991,10 +989,12 @@ static int sccp_show_device(int fd, int *total, struct mansession *s, const stru
 			CLI_AMI_TABLE_FIELD(rConceal,		"1.6",		f,	8,	stats->cumulative_concealement_ratio)				\
 			CLI_AMI_TABLE_FIELD(sConceal,		"-8",		d,	8,	stats->concealed_seconds)
 #include "sccp_cli_table.h"
+			local_table_total++;
 
 	sccp_device_release(d);
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = local_table_total;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1007,7 +1007,7 @@ static char ami_device_usage[] = "Usage: SCCPShowDevice\n" "Lists device setting
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
 #define AMI_COMMAND "SCCPShowDevice"
 #define CLI_AMI_PARAMS "DeviceName"
-CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device_usage, FALSE)
+CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1028,7 +1028,7 @@ CLI_AMI_ENTRY(show_device, sccp_show_device, "Lists device settings", cli_device
      * 
      */
     //static int sccp_show_lines(int fd, int argc, char *argv[])
-static int sccp_show_lines(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l = NULL;
 	sccp_channel_t *channel = NULL;
@@ -1036,7 +1036,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 	boolean_t found_linedevice;
 	char cap_buf[512];
 	PBX_VARIABLE_TYPE *v = NULL;
-	int local_total = 0;
+	int local_line_total = 0;
 	const char *actionid = "";
 
 	if (!s) {
@@ -1045,16 +1045,15 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		pbx_cli(fd, "+ ============= ========= ============================== ================ ==== ==== ================================================= +\n");
 	} else {
 		astman_append(s, "Event: TableStart\r\n");
-		local_total++;
+		local_line_total++;
 		astman_append(s, "TableName: Lines\r\n");
-		local_total++;
+		local_line_total++;
 		actionid = astman_get_header(m, "ActionID");
 		if (!pbx_strlen_zero(actionid)) {
-			astman_append(s, "ActionID: %s\r\n\r\n", actionid);
-		} else {
-			astman_append(s, "\r\n");
+			astman_append(s, "ActionID: %s\r\n", actionid);
 		}
-		local_total++;
+		astman_append(s, "\r\n");
+		local_line_total++;
 	}
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -1084,6 +1083,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 					astman_append(s, "Event: SCCPLineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
 					astman_append(s, "ChannelObjectType: Line\r\n");
+					astman_append(s, "ActionId: %s\r\n", actionid);
 					astman_append(s, "Exten: %s\r\n", l->name);
 					astman_append(s, "SubscriptionNumber: %s\r\n", linedevice->subscriptionId.number);
 					astman_append(s, "Label: %s\r\n", l->label);
@@ -1109,6 +1109,7 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 				astman_append(s, "Event: SCCPLineEntry\r\n");
 				astman_append(s, "ChannelType: SCCP\r\n");
 				astman_append(s, "ChannelObjectType: Line\r\n");
+				astman_append(s, "ActionId: %s\r\n", actionid);
 				astman_append(s, "Exten: %s\r\n", l->name);
 				astman_append(s, "Label: %s\r\n", l->label);
 				astman_append(s, "Device: %s\r\n", "(null)");
@@ -1129,19 +1130,20 @@ static int sccp_show_lines(int fd, int *total, struct mansession *s, const struc
 		pbx_cli(fd, "+-------------------------------------------------------------------------------------------------------------------------------------+\n");
 	} else {
 		astman_append(s, "Event: TableEnd\r\n");
-		local_total++;
+		local_line_total++;
 		astman_append(s, "TableName: Lines\r\n");
-		local_total++;
+		local_line_total++;
 		if (!pbx_strlen_zero(actionid)) {
 			astman_append(s, "ActionID: %s\r\n", actionid);
 		} else {
 			astman_append(s, "\r\n");
 		}
-		local_total++;
+		local_line_total++;
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 		astman_append(s, "\r\n");
 	}
 
@@ -1156,7 +1158,7 @@ static char ami_lines_usage[] = "Usage: SCCPShowLines\n" "Lists all lines known 
 #define AMI_COMMAND "SCCPShowLines"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_usage, FALSE)
+CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1177,18 +1179,20 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
      * 
      */
     //static int sccp_show_line(int fd, int argc, char *argv[])
-static int sccp_show_line(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *l;
 	sccp_linedevices_t *linedevice;
 	sccp_mailbox_t *mailbox;
 	PBX_VARIABLE_TYPE *v = NULL;
 	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	const char *actionid = "";
 
 #ifdef CS_SCCP_PICKUP
 	struct ast_str *pickupgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 #endif
-	int local_total = 0;
+	int local_line_total = 0;
+	int local_table_total = 0;
 
 	const char *line;
 
@@ -1207,9 +1211,12 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver line settings ------------------------------------------------------------------------------------\n");
 	} else {
-		//astman_send_listack(s, m, "SCCPShowLine", "start");
-		//CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", argv[0]);
-		CLI_AMI_OUTPUT_PARAM("Event", CLI_AMI_LIST_WIDTH, "%s", "SCCPShowLine");
+		astman_append(s, "Event: SCCPShowLine\r\n");
+		actionid = astman_get_header(m, "ActionID");
+		if (!pbx_strlen_zero(actionid)) {
+			astman_append(s, "ActionID: %s\r\n", actionid);
+		}
+		local_line_total++;
 	}
 	CLI_AMI_OUTPUT_PARAM("Name", CLI_AMI_LIST_WIDTH, "%s", l->name ? l->name : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Description", CLI_AMI_LIST_WIDTH, "%s", l->description ? l->description : "<not set>");
@@ -1276,6 +1283,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 		CLI_AMI_TABLE_FIELD(CfwdType,		"8",		s,	8,	linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : ""))	\
 		CLI_AMI_TABLE_FIELD(CfwdNumber,		"-20.20",	s,	20,	linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : ""))
 #include "sccp_cli_table.h"
+		local_table_total++;
 
 	// Mailboxes connected to this line
 #define CLI_AMI_TABLE_NAME Mailboxes
@@ -1290,6 +1298,7 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 		CLI_AMI_TABLE_FIELD(mailbox,		"15.15",	s,	15,	mailbox->mailbox)	\
 		CLI_AMI_TABLE_FIELD(context,		"-15.15",	s,	15,	mailbox->context)
 #include "sccp_cli_table.h"
+		local_table_total++;
 
 	if (l->variables) {
 		// SERVICEURL
@@ -1300,10 +1309,12 @@ static int sccp_show_line(int fd, int *total, struct mansession *s, const struct
 		CLI_AMI_TABLE_FIELD(Name,		"15.15",	s,	15,	v->name)		\
 		CLI_AMI_TABLE_FIELD(Value,		"-29.29",	s,	29,	v->value)
 #include "sccp_cli_table.h"
+		local_table_total++;
 	}
 	sccp_line_release(l);
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = local_table_total;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1316,7 +1327,7 @@ static char ami_line_usage[] = "Usage: SCCPShowLine\n" "List defined SCCP line s
 #define CLI_COMPLETE SCCP_CLI_LINE_COMPLETER
 #define AMI_COMMAND "SCCPShowLine"
 #define CLI_AMI_PARAMS "LineName"
-CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_line_usage, FALSE)
+CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_line_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1337,12 +1348,12 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
      * 
      */
     //static int sccp_show_channels(int fd, int argc, char *argv[])
-static int sccp_show_channels(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *channel;
 	sccp_line_t *l;
 	sccp_device_t *d;
-	int local_total = 0;
+	int local_line_total = 0;
 	char tmpname[25];
 	char addrStr[INET6_ADDRSTRLEN] = "";
 
@@ -1392,7 +1403,8 @@ static int sccp_show_channels(int fd, int *total, struct mansession *s, const st
 #include "sccp_cli_table.h"
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1405,7 +1417,7 @@ static char ami_channels_usage[] = "Usage: SCCPShowChannels\n" "Lists active cha
 #define AMI_COMMAND "SCCPShowChannels"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", cli_channels_usage, FALSE)
+CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", cli_channels_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1426,10 +1438,10 @@ CLI_AMI_ENTRY(show_channels, sccp_show_channels, "Lists active SCCP channels", c
      * 
      */
     //static int sccp_show_sessions(int fd, int argc, char *argv[])
-static int sccp_show_sessions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_sessions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
-	int local_total = 0;
+	int local_line_total = 0;
 	char clientAddress[INET6_ADDRSTRLEN] = "";
 
 #define CLI_AMI_TABLE_NAME Sessions
@@ -1465,7 +1477,8 @@ static int sccp_show_sessions(int fd, int *total, struct mansession *s, const st
 #include "sccp_cli_table.h"
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1478,7 +1491,7 @@ static char ami_sessions_usage[] = "Usage: SCCPShowSessions\n" "Show [All] SCCP 
 #define AMI_COMMAND "SCCPShowSessions"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_sessions_usage, FALSE)
+CLI_AMI_ENTRY(show_sessions, sccp_show_sessions, "Show all SCCP sessions", cli_sessions_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1494,7 +1507,7 @@ static char ami_mwi_subscriptions_usage[] = "Usage: SCCPShowMWISubscriptions\n" 
 #define AMI_COMMAND "SCCPShowMWISubscriptions"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCCP MWI subscriptions", cli_mwi_subscriptions_usage, FALSE)
+CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCCP MWI subscriptions", cli_mwi_subscriptions_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1511,7 +1524,7 @@ static char ami_conferences_usage[] = "Usage: SCCPShowConferences\n" "Lists runn
 #define AMI_COMMAND "SCCPShowConferences"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_conferences, sccp_cli_show_conferences, "List running SCCP Conferences", cli_conferences_usage, FALSE)
+CLI_AMI_ENTRY(show_conferences, sccp_cli_show_conferences, "List running SCCP Conferences", cli_conferences_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1525,7 +1538,7 @@ static char ami_conference_usage[] = "Usage: SCCPShowConference\n" "Lists runnin
 #define AMI_COMMAND "SCCPShowConference"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS "ConferenceId"
-CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conference", cli_conference_usage, FALSE)
+CLI_AMI_ENTRY(show_conference, sccp_cli_show_conference, "List running SCCP Conference", cli_conference_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1540,7 +1553,7 @@ static char ami_conference_command_usage[] = "Usage: SCCPConference [conference 
 #define CLI_COMPLETE SCCP_CLI_CONFERENCE_COMPLETER
 #define AMI_COMMAND "SCCPConference"
 #define CLI_AMI_PARAMS "Command","ConferenceId","ParticipantId"
-CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Action", cli_conference_command_usage, TRUE)
+CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Action", cli_conference_command_usage, TRUE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1556,7 +1569,7 @@ static char ami_show_hint_lineStates_usage[] = "Usage: SCCPShowHintLineStates\n"
 #define AMI_COMMAND "SCCPShowHintLineStates"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_hint_lineStates, sccp_show_hint_lineStates, "Show all SCCP Hint Line States", cli_show_hint_lineStates_usage, FALSE)
+CLI_AMI_ENTRY(show_hint_lineStates, sccp_show_hint_lineStates, "Show all SCCP Hint Line States", cli_show_hint_lineStates_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -1571,7 +1584,7 @@ static char ami_show_hint_subscriptions_usage[] = "Usage: SCCPShowHintLineStates
 #define AMI_COMMAND "SCCPShowHintSubscriptions"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all SCCP Hint Subscriptions", cli_show_hint_subscriptions_usage, FALSE)
+CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all SCCP Hint Subscriptions", cli_show_hint_subscriptions_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -2157,12 +2170,12 @@ CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refc
      * 
      */
     //static int sccp_show_softkeysets(int fd, int argc, char *argv[])
-static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_show_softkeysets(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	uint8_t i = 0;
 	uint8_t v_count = 0;
 	uint8_t c = 0;
-	int local_total = 0;
+	int local_line_total = 0;
 
 #define CLI_AMI_TABLE_NAME SoftKeySets
 #define CLI_AMI_TABLE_PER_ENTRY_NAME SoftKeySet
@@ -2190,7 +2203,7 @@ static int sccp_show_softkeysets(int fd, int *total, struct mansession *s, const
 #include "sccp_cli_table.h"
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return RESULT_SUCCESS;
 }
@@ -2203,7 +2216,7 @@ static char ami_show_softkeysets_usage[] = "Usage: SCCPShowSoftKeySets\n" "Show 
 #define AMI_COMMAND "SCCPShowSoftKeySets"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS ""
-CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeySets", cli_show_softkeysets_usage, FALSE)
+CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeySets", cli_show_softkeysets_usage, FALSE, TRUE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -2223,12 +2236,12 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
      * \called_from_asterisk
      * 
      */
-static int sccp_message_devices(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
 	int timeout = 10;
 	boolean_t beep = FALSE;
-	int local_total = 0;
+	int local_line_total = 0;
 
 	if (argc < 4) {
 		pbx_log(LOG_WARNING, "More parameters needed for sccp_message_devices\n");
@@ -2259,7 +2272,7 @@ static int sccp_message_devices(int fd, int *total, struct mansession *s, const 
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return RESULT_SUCCESS;
 }
@@ -2272,7 +2285,7 @@ static char ami_message_devices_usage[] = "Usage: SCCPMessageDevices\n" "Show Al
 #define AMI_COMMAND "SCCPMessageDevices"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS "MessageText", "Beep", "Timeout"
-CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP devices", cli_message_devices_usage, FALSE)
+CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP devices", cli_message_devices_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
@@ -2293,12 +2306,12 @@ CLI_AMI_ENTRY(message_devices, sccp_message_devices, "Send a message to all SCCP
      *
      * \todo TO BE IMPLEMENTED: sccp message device
      */
-static int sccp_message_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_message_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
 	int timeout = 10;
 	boolean_t beep = FALSE;
-	int local_total = 0;
+	int local_line_total = 0;
 	int res = RESULT_FAILURE;
 
 	if (argc < 5) {
@@ -2329,7 +2342,7 @@ static int sccp_message_device(int fd, int *total, struct mansession *s, const s
 	}
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return res;
 }
@@ -2342,7 +2355,7 @@ static char ami_message_device_usage[] = "Usage: SCCPMessageDevice\n" "Send a me
 #define AMI_COMMAND "SCCPMessageDevice"
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER
 #define CLI_AMI_PARAMS "DeviceId", "MessageText", "Beep", "Timeout"
-CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE)
+CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Device", cli_message_device_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
 #undef CLI_COMPLETE
@@ -2361,13 +2374,13 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
      * 
      * \called_from_asterisk
      */
-static int sccp_system_message(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
 	int timeout = 0;
 	char timeoutStr[5] = "";
 	boolean_t beep = FALSE;
-	int local_total = 0;
+	int local_line_total = 0;
 	int res = RESULT_FAILURE;
 
 	if (argc == 3) {
@@ -2416,7 +2429,7 @@ static int sccp_system_message(int fd, int *total, struct mansession *s, const s
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return res;
 }
@@ -2429,7 +2442,7 @@ static char ami_system_message_usage[] = "Usage: SCCPSystemMessage\n" "Set a sys
 #define AMI_COMMAND "SCCPSystemMessage"
 #define CLI_COMPLETE SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS "MessageText", "Beep", "Timeout"
-CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", cli_system_message_usage, FALSE)
+CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message to all SCCP Devices", cli_system_message_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
 #undef CLI_COMPLETE
@@ -2449,12 +2462,12 @@ CLI_AMI_ENTRY(system_message, sccp_system_message, "Send a system wide message t
      * \called_from_asterisk
      * 
      */
-static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_dnd_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d = NULL;
 	int res = RESULT_SUCCESS;
 
-	int local_total = 0;
+	int local_line_total = 0;
 
 	if (3 > argc || argc > 5) {
 		return RESULT_SHOWUSAGE;
@@ -2492,7 +2505,7 @@ static int sccp_dnd_device(int fd, int *total, struct mansession *s, const struc
 	}
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return res;
 }
@@ -2505,7 +2518,7 @@ static char ami_dnd_device_usage[] = "Usage: SCCPDndDevice\n" "Set/Unset DND sta
 #define AMI_COMMAND "SCCPDndDevice"
 #define CLI_COMPLETE SCCP_CLI_DEVICE_COMPLETER, SCCP_CLI_NULL_COMPLETER
 #define CLI_AMI_PARAMS "DeviceId, State"
-CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cli_dnd_device_usage, FALSE)
+CLI_AMI_ENTRY(dnd_device, sccp_dnd_device, "Set/Unset DND on an SCCP Device", cli_dnd_device_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
 #undef CLI_COMPLETE
@@ -3411,12 +3424,12 @@ CLI_ENTRY(cli_set_object, sccp_set_object, "Set channel|device settings", set_ob
      * 
      * \called_from_asterisk
      */
-static int sccp_answercall(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_answercall(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_channel_t *c = NULL;
 	sccp_device_t *d = NULL;
 
-	int local_total = 0;
+	int local_line_total = 0;
 	int res = RESULT_SUCCESS;
 	char error[100] = "";
 
@@ -3466,7 +3479,7 @@ static int sccp_answercall(int fd, int *total, struct mansession *s, const struc
 	}
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 
 	return res;
@@ -3480,7 +3493,7 @@ static char ami_answercall_usage[] = "Usage: SCCPAsnwerCall1\n" "Answer a ringin
 #define AMI_COMMAND "SCCPAsnwerCall1"
 #define CLI_COMPLETE SCCP_CLI_CHANNEL_COMPLETER, SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 #define CLI_AMI_PARAMS "ChannelId", "DeviceId"
-CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on device", cli_answercall_usage, FALSE)
+CLI_AMI_ENTRY(answercall, sccp_answercall, "Answer a ringing incoming channel on device", cli_answercall_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef AMI_COMMAND
 #undef CLI_COMPLETE
@@ -3547,10 +3560,10 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
      * 
      * \called_from_asterisk
      */
-static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_device_t *d;
-	int local_total = 0;
+	int local_line_total = 0;
 	const char *dev;
 
 	if (argc < 3 || sccp_strlen_zero(argv[2])) {
@@ -3577,7 +3590,7 @@ static int sccp_tokenack(int fd, int *total, struct mansession *s, const struct 
 	}
 	sccp_device_release(d);
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return RESULT_SUCCESS;
 }
@@ -3590,7 +3603,7 @@ static char ami_tokenack_usage[] = "Usage: SCCPTokenAck\n" "Send Token Acknowled
 #define CLI_COMPLETE SCCP_CLI_CONNECTED_DEVICE_COMPLETER
 #define AMI_COMMAND "SCCPTokenAck"
 #define CLI_AMI_PARAMS "DeviceId"
-CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALSE)
+CLI_AMI_ENTRY(tokenack, sccp_tokenack, "Send TokenAck", cli_tokenack_usage, FALSE, FALSE)
 #undef CLI_AMI_PARAMS
 #undef CLI_COMPLETE
 #undef AMI_COMMAND
