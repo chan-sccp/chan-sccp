@@ -635,12 +635,12 @@ void sccp_mwi_check(sccp_device_t * d)
  * \called_from_asterisk
  */
 #include <asterisk/cli.h>
-int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	sccp_line_t *line = NULL;
 	sccp_mailboxLine_t *mailboxLine = NULL;
 	char linebuf[31] = "";
-	int local_total = 0;
+	int local_line_total = 0;
 
 #define CLI_AMI_TABLE_NAME MWISubscriptions
 #define CLI_AMI_TABLE_PER_ENTRY_NAME MailboxSubscriber
@@ -676,7 +676,8 @@ int sccp_show_mwi_subscriptions(int fd, int *total, struct mansession *s, const 
 #endif
 
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
