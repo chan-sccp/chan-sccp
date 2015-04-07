@@ -15,6 +15,10 @@
 #define __SCCP_CLI_H
 
 #define CLI_AMI_LIST_WIDTH 46
+typedef struct sccp_cli_totals {
+	int lines;
+	int tables;
+} sccp_cli_totals_t;
 void sccp_register_cli(void);
 void sccp_unregister_cli(void);
 

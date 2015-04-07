@@ -1602,9 +1602,9 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
  * 
  * \called_from_asterisk
  */
-int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_show_conferences(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int local_total = 0;
+	int local_line_total = 0;
 	sccp_conference_t *conference = NULL;
 
 	// table definition
@@ -1626,7 +1626,8 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 
 #include "sccp_cli_table.h"
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1643,9 +1644,9 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
  * 
  * \called_from_asterisk
  */
-int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int local_total = 0;
+	int local_line_total = 0;
 	int confid = 0;
 
 	if (argc < 4 || argc > 5 || sccp_strlen_zero(argv[3])) {
@@ -1690,7 +1691,8 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_RETURN_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 	}
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1707,10 +1709,10 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
  * 
  * \called_from_asterisk
  */
-int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int confid = 0, partid = 0;
-	int local_total = 0;
+	int local_line_total = 0;
 	int res = RESULT_SUCCESS;
 	char error[100];
 
@@ -1781,7 +1783,7 @@ int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const 
 		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
 	}
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return res;
 }
