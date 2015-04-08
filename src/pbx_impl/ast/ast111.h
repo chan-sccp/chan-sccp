@@ -221,7 +221,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 				"ListItems: %d\r\n"								\
 				"ListTableItems: %d\r\n"							\
 				"%s"										\
-				"\r\n\r\n", totals.lines, totals.tables, idtext);  				\
+				"\r\n", totals.lines, totals.tables, idtext);  				\
 			} else {										\
 				astman_append(s, "\r\n");							\
 			}											\
