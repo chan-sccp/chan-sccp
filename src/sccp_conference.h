@@ -14,6 +14,8 @@
 
 #ifdef CS_SCCP_CONFERENCE
 
+#include "sccp_cli.h"
+
 #if defined(__cplusplus) || defined(c_plusplus)
 extern "C" {
 /* *INDENT-OFF* */
@@ -85,9 +87,9 @@ void sccp_conference_demode_participant(sccp_conference_t * conference, sccp_cha
 
 /* cli functions */
 char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos, int state);
-int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
-int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
-int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[]);
+int sccp_cli_show_conferences(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
+int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[]);
 
 #if defined(__cplusplus) || defined(c_plusplus)
 /* *INDENT-ON* */

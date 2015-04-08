@@ -1602,9 +1602,9 @@ char *sccp_complete_conference(OLDCONST char *line, OLDCONST char *word, int pos
  * 
  * \called_from_asterisk
  */
-int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_show_conferences(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int local_total = 0;
+	int local_line_total = 0;
 	sccp_conference_t *conference = NULL;
 
 	// table definition
@@ -1617,16 +1617,17 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
-#define CLI_AMI_TABLE_FIELDS 																		\
-		CLI_AMI_TABLE_FIELD(Id,			"3.3d",		3,	conference->id)										\
-		CLI_AMI_TABLE_FIELD(Participants,	"-12.12d",	12,	SCCP_LIST_GETSIZE(&conference->participants))						\
-		CLI_AMI_TABLE_FIELD(Moderators,		"-12.12d",	12,	conference->num_moderators)								\
-		CLI_AMI_TABLE_FIELD(Announce,		"-12.12s",	12,	conference->playback_announcements ? "Yes" : "No")					\
-		CLI_AMI_TABLE_FIELD(MuteOnEntry,	"-12.12s",	12,	conference->mute_on_entry ? "Yes" : "No")						\
+#define CLI_AMI_TABLE_FIELDS 																			\
+		CLI_AMI_TABLE_FIELD(Id,			"3.3",		d,		3,	conference->id)									\
+		CLI_AMI_TABLE_FIELD(Participants,	"-12.12",	d,	12,	SCCP_LIST_GETSIZE(&conference->participants))						\
+		CLI_AMI_TABLE_FIELD(Moderators,		"-12.12",	d,	12,	conference->num_moderators)								\
+		CLI_AMI_TABLE_FIELD(Announce,		"-12.12",	s,	12,	conference->playback_announcements ? "Yes" : "No")					\
+		CLI_AMI_TABLE_FIELD(MuteOnEntry,	"-12.12",	s,	12,	conference->mute_on_entry ? "Yes" : "No")						\
 
 #include "sccp_cli_table.h"
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1643,9 +1644,9 @@ int sccp_cli_show_conferences(int fd, int *total, struct mansession *s, const st
  * 
  * \called_from_asterisk
  */
-int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_show_conference(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	int local_total = 0;
+	int local_line_total = 0;
 	int confid = 0;
 
 	if (argc < 4 || argc > 5 || sccp_strlen_zero(argv[3])) {
@@ -1676,13 +1677,13 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 #define CLI_AMI_TABLE_LIST_LOCK SCCP_LIST_LOCK
 #define CLI_AMI_TABLE_LIST_ITERATOR SCCP_LIST_TRAVERSE
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
-#define CLI_AMI_TABLE_FIELDS 																					\
-			CLI_AMI_TABLE_FIELD(Id,			"3.3d",		3,	participant->id)											\
-			CLI_AMI_TABLE_FIELD(ChannelName,	"-20.20s",	20,	participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL")	\
-			CLI_AMI_TABLE_FIELD(Moderator,		"-11.11s",	11,	participant->isModerator ? "Yes" : "No")								\
-			CLI_AMI_TABLE_FIELD(Muted,		"-5.5s",	5,	participant->features.mute ? "Yes" : "No")								\
-			CLI_AMI_TABLE_FIELD(Announce,		"-8.8s",	8,	participant->playback_announcements ? "Yes" : "No")							\
-			CLI_AMI_TABLE_FIELD(ConfList,		"-8.8s",	8,	(participant->device && participant->device->conferencelist_active) ? "YES" : "NO")
+#define CLI_AMI_TABLE_FIELDS 																						\
+			CLI_AMI_TABLE_FIELD(Id,			"3.3",		d,		3,	participant->id)										\
+			CLI_AMI_TABLE_FIELD(ChannelName,	"-20.20",	s,	20,	participant->conferenceBridgePeer ? pbx_channel_name(participant->conferenceBridgePeer) : "NULL")	\
+			CLI_AMI_TABLE_FIELD(Moderator,		"-11.11",	s,	11,	participant->isModerator ? "Yes" : "No")								\
+			CLI_AMI_TABLE_FIELD(Muted,		"-5.5",		s,	5,	participant->features.mute ? "Yes" : "No")								\
+			CLI_AMI_TABLE_FIELD(Announce,		"-8.8",		s,	8,	participant->playback_announcements ? "Yes" : "No")							\
+			CLI_AMI_TABLE_FIELD(ConfList,		"-8.8",		s,	8,	(participant->device && participant->device->conferencelist_active) ? "YES" : "NO")
 
 #include "sccp_cli_table.h"
 	} else {
@@ -1690,7 +1691,8 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
 		CLI_AMI_RETURN_ERROR(fd, s, m, "At least valid ConferenceId needs to be supplied\n %s", "");
 	}
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
+		totals->tables = 1;
 	}
 	return RESULT_SUCCESS;
 }
@@ -1707,10 +1709,10 @@ int sccp_cli_show_conference(int fd, int *total, struct mansession *s, const str
  * 
  * \called_from_asterisk
  */
-int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const struct message *m, int argc, char *argv[])
+int sccp_cli_conference_command(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
 	int confid = 0, partid = 0;
-	int local_total = 0;
+	int local_line_total = 0;
 	int res = RESULT_SUCCESS;
 	char error[100];
 
@@ -1781,7 +1783,7 @@ int sccp_cli_conference_command(int fd, int *total, struct mansession *s, const 
 		CLI_AMI_RETURN_ERROR(fd, s, m, "%s\n", error);
 	}
 	if (s) {
-		*total = local_total;
+		totals->lines = local_line_total;
 	}
 	return res;
 }

@@ -35,10 +35,11 @@ CLI_AMI_TABLE_LIST_ITER_TYPE *CLI_AMI_TABLE_LIST_ITER_VAR = NULL;
 
 	/* print headers */
 int UNIQUE_VAR(table_width_, CLI_AMI_TABLE_NAME) = 0;
+int UNIQUE_VAR(table_entries_, CLI_AMI_TABLE_NAME) = 0;
 const char *UNIQUE_VAR(id, CLI_AMI_TABLE_NAME);
 char UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME)[256] = "";
 
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) UNIQUE_VAR(table_width_,CLI_AMI_TABLE_NAME)=UNIQUE_VAR(table_width_,CLI_AMI_TABLE_NAME) + _c+ 1;
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) UNIQUE_VAR(table_width_,CLI_AMI_TABLE_NAME)=UNIQUE_VAR(table_width_,CLI_AMI_TABLE_NAME) + _d+ 1;
 CLI_AMI_TABLE_FIELDS
 #undef CLI_AMI_TABLE_FIELD
     if (!s)
@@ -46,27 +47,27 @@ CLI_AMI_TABLE_FIELDS
 pbx_cli(fd, "+--- %s %.*s+\n", STRINGIFY(CLI_AMI_TABLE_NAME), UNIQUE_VAR(table_width_, CLI_AMI_TABLE_NAME) - (int) strlen(STRINGIFY(CLI_AMI_TABLE_NAME)) - 4, "------------------------------------------------------------------------------------------------------------------------------------------------------------------");
 
 pbx_cli(fd, "| ");
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,"%*s ",-_c,#_a);
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) pbx_cli(fd,"%*s ",-_d,#_a);
 CLI_AMI_TABLE_FIELDS
 #undef CLI_AMI_TABLE_FIELD
     pbx_cli(fd, "|\n");
 
 pbx_cli(fd, "+ ");
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,"%." STRINGIFY(_c) "s ",	"==================================================================================================================================================================");
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) pbx_cli(fd,"%." STRINGIFY(_d) "s ",	"==================================================================================================================================================================");
 CLI_AMI_TABLE_FIELDS
 #undef CLI_AMI_TABLE_FIELD
     pbx_cli(fd, "+\n");
 } else {
 	astman_append(s, "Event: TableStart\r\n");
-	local_total++;
+	local_line_total++;
 	astman_append(s, "TableName: %s\r\n", STRINGIFY(CLI_AMI_TABLE_NAME));
-	local_total++;
+	local_line_total++;
 
 	UNIQUE_VAR(id, CLI_AMI_TABLE_NAME) = astman_get_header(m, "ActionID");
 	if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
 		snprintf(UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME), sizeof(UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME)), "ActionID: %s\r\n", UNIQUE_VAR(id, CLI_AMI_TABLE_NAME));
 		astman_append(s, "%s\r\n", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
-		local_total++;
+		local_line_total++;
 	} else {
 	        astman_append(s, "\r\n");
 	}
@@ -74,7 +75,7 @@ CLI_AMI_TABLE_FIELDS
 
 	/* iterator through list */
 if (!s) {
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) pbx_cli(fd,"%" _b " ",_d);
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) pbx_cli(fd,"%" _b #_c " ",_e);
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_LOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
 	_CLI_AMI_TABLE_LIST_ITERATOR(CLI_AMI_TABLE_LIST_ITER_HEAD, CLI_AMI_TABLE_LIST_ITER_VAR, list) {
@@ -89,7 +90,8 @@ if (!s) {
 #endif
 #undef CLI_AMI_TABLE_FIELD
 } else {
-#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d) astman_append(s, "%s: %" _b "\r\n",#_a,_d); local_total++;
+//#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) astman_append(s, "%s: %" #_c "\r\n",#_a,_e); local_line_total++;
+#define CLI_AMI_TABLE_FIELD(_a,_b,_c,_d,_e) CLI_AMI_OUTPUT_PARAM(#_a, 0, "%" #_c, _e);
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_LOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
 	_CLI_AMI_TABLE_LIST_ITERATOR(CLI_AMI_TABLE_LIST_ITER_HEAD, CLI_AMI_TABLE_LIST_ITER_VAR, list) {
@@ -97,18 +99,19 @@ if (!s) {
 	CLI_AMI_TABLE_ITERATOR {
 #endif
 		CLI_AMI_TABLE_BEFORE_ITERATION astman_append(s, "Event: SCCP%sEntry\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
+		UNIQUE_VAR(table_entries_, CLI_AMI_TABLE_NAME)++;
 
-		local_total++;
+		local_line_total++;
 		astman_append(s, "ChannelType: SCCP\r\n");
-		local_total++;
+		local_line_total++;
 		astman_append(s, "ChannelObjectType: %s\r\n", STRINGIFY(CLI_AMI_TABLE_PER_ENTRY_NAME));
-		local_total++;
+		local_line_total++;
 		if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
 			astman_append(s, "%s", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
 		}
 		CLI_AMI_TABLE_FIELDS astman_append(s, "\r\n");
 
-		local_total++;
+		local_line_total++;
 	CLI_AMI_TABLE_AFTER_ITERATION}
 #ifdef CLI_AMI_TABLE_LIST_ITERATOR
 	_CLI_AMI_TABLE_LIST_UNLOCK(CLI_AMI_TABLE_LIST_ITER_HEAD);
@@ -122,16 +125,18 @@ if (!s) {
 
 } else {
 	astman_append(s, "Event: TableEnd\r\n");
-	local_total++;
+	local_line_total++;
 	astman_append(s, "TableName: %s\r\n", STRINGIFY(CLI_AMI_TABLE_NAME));
-	local_total++;
+	local_line_total++;
+	astman_append(s, "TableEntries: %d\r\n", UNIQUE_VAR(table_entries_, CLI_AMI_TABLE_NAME));
+	local_line_total++;
 	if (!pbx_strlen_zero(UNIQUE_VAR(id, CLI_AMI_TABLE_NAME))) {
 		astman_append(s, "%s\r\n", UNIQUE_VAR(idtext, CLI_AMI_TABLE_NAME));
-		local_total++;
+		local_line_total++;
 	} else {
 	        astman_append(s, "\r\n");
 	}
-	local_total++;
+	local_line_total++;
 }
 
 #ifdef CLI_AMI_TABLE_NAME
