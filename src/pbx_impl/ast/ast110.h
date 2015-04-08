@@ -145,7 +145,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
 				"ListItems: %d\r\n"								\
 				"ListTableItems: %d\r\n"							\
 				"%s"										\
-				"\r\n\r\n", totals.lines, totals.tables, idtext);  				\
+				"\r\n", totals.lines, totals.tables, idtext);  				\
 			} else {										\
 				astman_append(s, "\r\n");							\
 			}											\
