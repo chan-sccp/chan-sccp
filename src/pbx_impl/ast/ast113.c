@@ -1142,16 +1142,17 @@ static void masqueradeHelper_after_bridge_move_channel_fail(enum ast_bridge_afte
  * In asterisk-12 we need to setup a callback and then kick the channel out of the bridge (kick can be send from any thread). After the channel leaves the bridge it will be under our
  * control to do with as we please.
  */
+#define BRIDGE_CHANNEL_ACTION_DEFERRED_DISSOLVING 1001
 static boolean_t sccp_wrapper_asterisk113_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PBX_CHANNEL_TYPE * pbxTmpChannel)
 {
 	pbx_moh_stop(pbxChannel);
 
 	// To gain control of a bridged channel which is executing inside another thread we need to kick it from the bridge and have a callback function finish the masquerade
 	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper) %s -> %s\n", ast_channel_name(pbxChannel), ast_channel_name(pbxTmpChannel));
+
 	pbx_channel_lock(pbxChannel);
 	struct ast_bridge *bridge = ast_channel_get_bridge(pbxChannel);						// returns reffed
 	struct ast_bridge_channel *bridge_channel = ast_channel_get_bridge_channel(pbxChannel);			// returns not reffed
-
 	pbx_channel_unlock(pbxChannel);
 
 	struct ast_channel *chan_target = ast_channel_ref(pbxTmpChannel);
@@ -1169,8 +1170,13 @@ static boolean_t sccp_wrapper_asterisk113_masqueradeHelper(PBX_CHANNEL_TYPE * pb
 	ast_bridge_channel_kick(bridge_channel, AST_CAUSE_NORMAL_CLEARING);
 
 	// hangup old bridge, which is not needed any more
-	ast_bridge_destroy(bridge, AST_CAUSE_NORMAL_CLEARING);
+	//ast_bridge_destroy(bridge, AST_CAUSE_NORMAL_CLEARING);		(causes !frack, replaced by bridge_dissolve)
 
+	// dissolve the old bridge (taken from bridge.c:bridge_dissolve)
+	struct ast_bridge_channel *other_bridge_channel;
+	AST_LIST_TRAVERSE(&bridge->channels, other_bridge_channel, entry) {
+		ast_bridge_depart(other_bridge_channel->chan);
+	}
 	ao2_cleanup(bridge);
 
 	return TRUE;
