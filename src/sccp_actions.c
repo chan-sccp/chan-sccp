@@ -715,7 +715,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 							defaultLineSet = TRUE;
 						}
 					} else {
-						btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
+						btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 						buttonconfig->instance = btn[i].instance = 0;
 						pbx_log(LOG_WARNING, "%s: line %s does not exists\n", DEV_ID_LOG(d), buttonconfig->button.line.name);
 					}
@@ -724,7 +724,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					break;
 
 				} else if (buttonconfig->type == EMPTY && (btn[i].type == SCCP_BUTTONTYPE_MULTI || btn[i].type == SCCP_BUTTONTYPE_LINE || btn[i].type == SCCP_BUTTONTYPE_SPEEDDIAL)) {
-					btn[i].type = SKINNY_BUTTONTYPE_UNDEFINED;
+					btn[i].type = SKINNY_BUTTONTYPE_UNUSED;
 					buttonconfig->instance = btn[i].instance = 0;
 					break;
 
@@ -743,7 +743,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if (d->inuseprotocolversion >= 15) {
 							btn[i].type = 0x15;
-							buttonconfig->instance = btn[i].instance = speeddialInstance++;
+							buttonconfig->instance = btn[i].instance = serviceInstance++;
 						} else 
 #endif
 						{
