@@ -863,7 +863,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #include "sccp_cli_table.h"
 			local_table_total++;
 		// LINES
-#define CLI_AMI_TABLE_NAME DeviceLines
+#define CLI_AMI_TABLE_NAME DeviceLineButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -892,7 +892,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// SPEEDDIALS
-#define CLI_AMI_TABLE_NAME DeviceSpeeddials
+#define CLI_AMI_TABLE_NAME DeviceSpeeddialButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -914,7 +914,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// FEATURES
-#define CLI_AMI_TABLE_NAME DeviceFeatures
+#define CLI_AMI_TABLE_NAME DeviceFeatureButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceFeature
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -935,7 +935,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// SERVICEURL
-#define CLI_AMI_TABLE_NAME DeviceServiceURLs
+#define CLI_AMI_TABLE_NAME DeviceServiceURLButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceServiceURL
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
