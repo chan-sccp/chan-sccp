@@ -2383,44 +2383,6 @@ static void sccp_wrapper_asterisk111_updateConnectedLine(const sccp_channel_t * 
 
 }
 
-/* // moved to ast.c
-   static void sccp_wrapper_asterisk111_sendRedirectedUpdate(const sccp_channel_t * channel, const char *fromNumber, const char *fromName, const char *toNumber, const char *toName, uint8_t reason){
-
-   struct ast_party_redirecting redirecting;
-   struct ast_set_party_redirecting update_redirecting;
-
-   ast_party_redirecting_init(&redirecting);
-   memset(&update_redirecting, 0, sizeof(update_redirecting));
-
-   // update redirecting info line for source part
-   if(fromNumber){
-   update_redirecting.from.number = 1;
-   redirecting.from.number.valid = 1;
-   redirecting.from.number.str = strdupa(fromNumber);
-   }
-
-   if(fromName){
-   update_redirecting.from.name = 1;
-   redirecting.from.name.valid = 1;
-   redirecting.from.name.str = strdupa(fromName);
-   }
-
-   if(toNumber){
-   update_redirecting.to.number = 1;
-   redirecting.to.number.valid = 1;
-   redirecting.to.number.str = strdupa(toNumber);
-   }
-
-   if(toName){
-   update_redirecting.to.name = 1;
-   redirecting.to.name.valid = 1;
-   redirecting.to.name.str = strdupa(toName);
-   }
-
-   ast_channel_queue_redirecting_update(channel->owner, &redirecting, &update_redirecting);
-   }
- */
-
 static int sccp_wrapper_asterisk111_sched_add(int when, sccp_sched_cb callback, const void *data)
 {
 	if (sched) {
@@ -3104,7 +3066,6 @@ sccp_pbx_cb sccp_pbx = {
 	set_callerid_redirectedParty:	sccp_wrapper_asterisk111_setRedirectedParty,
 	set_callerid_presence:		sccp_wrapper_asterisk111_setCalleridPresence,
 	set_connected_line:		sccp_wrapper_asterisk111_updateConnectedLine,
-//	sendRedirectedUpdate:		sccp_wrapper_asterisk111_sendRedirectedUpdate,
 	sendRedirectedUpdate:		sccp_asterisk_sendRedirectedUpdate,
 
 	/* feature section */
@@ -3233,7 +3194,6 @@ struct sccp_pbx_cb sccp_pbx = {
 	.set_callerid_redirectedParty 	= sccp_wrapper_asterisk111_setRedirectedParty,
 	.set_callerid_presence 		= sccp_wrapper_asterisk111_setCalleridPresence,
 	.set_connected_line		= sccp_wrapper_asterisk111_updateConnectedLine,
-//	.sendRedirectedUpdate		= sccp_wrapper_asterisk111_sendRedirectedUpdate,
 	.sendRedirectedUpdate		= sccp_asterisk_sendRedirectedUpdate,
 
 	/* database */
