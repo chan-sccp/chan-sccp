@@ -45,8 +45,10 @@
 #ifdef HAVE_PBX_EVENT_H
 #include <asterisk/event.h>
 #endif
+#ifdef HAVE_PBX_CHANNEL_pvt_H
 #ifndef CS_AST_HAS_TECH_PVT
 #include <asterisk/channel_pvt.h>
+#endif
 #endif
 #ifdef HAVE_PBX_DEVICESTATE_H
 #include <asterisk/devicestate.h>
