@@ -491,9 +491,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Localnet", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_localnet_buf));
 	CLI_AMI_OUTPUT_PARAM("Deny/Permit", CLI_AMI_LIST_WIDTH, "%s", pbx_str_buffer(ha_buf));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP", CLI_AMI_LIST_WIDTH, GLOB(directrtp));
-#ifdef CS_EXPERIMENTAL
 	CLI_AMI_OUTPUT_PARAM("Nat", CLI_AMI_LIST_WIDTH, "%s", sccp_nat2str(GLOB(nat)));
-#endif
 	CLI_AMI_OUTPUT_PARAM("Keepalive", CLI_AMI_LIST_WIDTH, "%d", GLOB(keepalive));
 	CLI_AMI_OUTPUT_PARAM("Debug", CLI_AMI_LIST_WIDTH, "(%d) %s", GLOB(debug), debugcategories);
 	CLI_AMI_OUTPUT_PARAM("Date format", CLI_AMI_LIST_WIDTH, "%s", GLOB(dateformat));
@@ -633,17 +631,6 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 	//#define CLI_AMI_TABLE_BEFORE_ITERATION timeinfo = localtime(&d->registrationTime); strftime(regtime, sizeof(regtime), "%c ", timeinfo);
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
 
-#ifndef CS_EXPERIMENTAL
-#define CLI_AMI_TABLE_FIELDS 																	\
-		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description)								\
-		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
-		CLI_AMI_TABLE_FIELD(Mac,		"-16.16",	s,	16,	d->id)									\
-		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(d->registrationState))			\
-		CLI_AMI_TABLE_FIELD(Token,		"-5.5",		s,	5,	sccp_tokenstate2str(d->status.token)) 					\
-		CLI_AMI_TABLE_FIELD(RegTime,		"25.25",	s,	25, 	regtime)								\
-		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
-		CLI_AMI_TABLE_FIELD(Lines, 		"-5",		d,	5, 	d->configurationStatistic.numberOfLines)
-#else
 #define CLI_AMI_TABLE_FIELDS 																	\
 		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description)								\
 		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
@@ -654,7 +641,6 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 		CLI_AMI_TABLE_FIELD(Act,		"3.3",		s,	3, 	(d->active_channel) ? "Yes" : "No")					\
 		CLI_AMI_TABLE_FIELD(Lines, 		"-5",		d,	5, 	d->configurationStatistic.numberOfLines)				\
 		CLI_AMI_TABLE_FIELD(Nat,		"9.9",		s, 	9,	sccp_nat2str(d->nat))
-#endif
 #include "sccp_cli_table.h"
 
 	// end of table definition
@@ -772,11 +758,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
 	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_devicetype2str(d->skinny_type), d->skinny_type);
 	CLI_AMI_OUTPUT_YES_NO("Softkey support",	CLI_AMI_LIST_WIDTH, d->softkeysupport);
-#ifndef CS_EXPERIMENTAL
-	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s", d->softkeyDefinition);
-#else
 	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s (%p)", d->softkeyDefinition, d->softkeyset);
-#endif
 	CLI_AMI_OUTPUT_YES_NO("BTemplate support",	CLI_AMI_LIST_WIDTH, d->buttonTemplate);
 	CLI_AMI_OUTPUT_YES_NO("linesRegistered",	CLI_AMI_LIST_WIDTH, d->linesRegistered);
 	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->loadedimageversion);
@@ -799,11 +781,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_BOOL("Private softkey",		CLI_AMI_LIST_WIDTH, d->privacyFeature.enabled);
 	CLI_AMI_OUTPUT_PARAM("Dtmf mode",		CLI_AMI_LIST_WIDTH, "%s", sccp_dtmfmode2str(d->getDtmfMode(d)));
 //	CLI_AMI_OUTPUT_PARAM("digit timeout",		CLI_AMI_LIST_WIDTH, "%d", d->digittimeout);
-#ifndef CS_EXPERIMENTAL
-	CLI_AMI_OUTPUT_BOOL("Nat",			CLI_AMI_LIST_WIDTH, d->nat);
-#else
 	CLI_AMI_OUTPUT_PARAM("Nat",			CLI_AMI_LIST_WIDTH, "%s", sccp_nat2str(d->nat));
-#endif
 	CLI_AMI_OUTPUT_YES_NO("Videosupport?",		CLI_AMI_LIST_WIDTH, sccp_device_isVideoSupported(d));
 	CLI_AMI_OUTPUT_BOOL("Direct RTP",		CLI_AMI_LIST_WIDTH, d->directrtp);
 	CLI_AMI_OUTPUT_BOOL("Trust phone ip (deprecated)", CLI_AMI_LIST_WIDTH, d->trustphoneip);
@@ -844,7 +822,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	/* *INDENT-ON* */
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
-#define CLI_AMI_TABLE_NAME DeviceButtons
+#define CLI_AMI_TABLE_NAME Buttons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceButton
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_buttonconfig_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
@@ -863,7 +841,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #include "sccp_cli_table.h"
 			local_table_total++;
 		// LINES
-#define CLI_AMI_TABLE_NAME DeviceLineButtons
+#define CLI_AMI_TABLE_NAME LineButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -892,7 +870,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// SPEEDDIALS
-#define CLI_AMI_TABLE_NAME DeviceSpeeddialButtons
+#define CLI_AMI_TABLE_NAME SpeeddialButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -914,7 +892,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// FEATURES
-#define CLI_AMI_TABLE_NAME DeviceFeatureButtons
+#define CLI_AMI_TABLE_NAME FeatureButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceFeature
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -935,7 +913,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// SERVICEURL
-#define CLI_AMI_TABLE_NAME DeviceServiceURLButtons
+#define CLI_AMI_TABLE_NAME ServiceURLButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceServiceURL
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -970,7 +948,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	sccp_call_statistics_type_t callstattype;
 	sccp_call_statistics_t *stats = NULL;
 
-#define CLI_AMI_TABLE_NAME DeviceCallStatistics
+#define CLI_AMI_TABLE_NAME CallStatistics
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceStatistics
 #define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
 #define CLI_AMI_TABLE_BEFORE_ITERATION stats = &d->call_statistics[callstattype];
@@ -1519,7 +1497,7 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(DEBUG) || defined(CS_EXPERIMENTAL)
+
     /* ---------------------------------------------------------------------------------------------CONFERENCE FUNCTIONS- */
 #ifdef CS_SCCP_CONFERENCE
 static char cli_conferences_usage[] = "Usage: sccp show conferences\n" "       Lists running SCCP conferences.\n";
@@ -1565,6 +1543,7 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
 #endif														/* CS_SCCP_CONFERENCE */
     /* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
 static char cli_show_hint_lineStates_usage[] = "Usage: sccp show hint linestates\n" "	Show All SCCP HINT LineStates.\n";
@@ -1653,8 +1632,6 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	return 0;
 }
 
-#endif
-
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1672,7 +1649,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 	if (sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
 	}
-#ifdef CS_EXPERIMENTAL
 	// OpenReceiveChannel TEST
 	if (!strcasecmp(argv[2], "openreceivechannel")) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
@@ -1983,7 +1959,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-#ifdef CS_EXPERIMENTAL
 	if (!strcasecmp(argv[2], "remove_reference")) {								/*  WIP */
 		long findobj = 0;
 
@@ -1994,7 +1969,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 			}
 		}
 	}
-#endif
 	if (!strcasecmp(argv[2], "labels")) {
 		sccp_device_t *d = NULL;
 
@@ -2119,7 +2093,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		pbx_cli(fd, "%s\n", all_entries);
 		return RESULT_SUCCESS;
 	}
-#endif
 	return RESULT_FAILURE;
 }
 
@@ -2132,6 +2105,8 @@ CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
+#endif														// CS_EXPERIMENTAL
     /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
     /*!
      * \brief Print Refcount Hash Table
@@ -2160,7 +2135,6 @@ CLI_ENTRY(cli_show_refcount, sccp_show_refcount, "Test a Message", cli_show_refc
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif														//defined(DEBUG) || defined(CS_EXPERIMENTAL)
     /* --------------------------------------------------------------------------------------------------SHOW_SOKFTKEYSETS- */
     /*!
      * \brief Show Sessions
@@ -3654,10 +3628,10 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
 	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
 	AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
-#if defined(DEBUG) || defined(CS_EXPERIMENTAL)
+#ifdef CS_EXPERIMENTAL
 	AST_CLI_DEFINE(cli_test, "Test message."),
-	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 #endif
+	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
 #ifdef CS_SCCP_CONFERENCE
 	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
