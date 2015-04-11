@@ -1905,15 +1905,6 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
-#ifdef CS_EXPERIMENTAL
-	/*alternative implementation */
-	/*
-	if (size > 1) {
-		*((char *)mempcpy(dst, src, size-1)) = '\0';
-	} else {
-		*dst = '\0';
-	}
-	*/
 	if (size != 0) {
 		while (--size != 0) {
 			if ((*dst++ = *src++) == '\0') {
@@ -1921,14 +1912,7 @@ gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 			}
 		}
 	}
-	// always end string with \0
 	*dst = '\0';
-
-#else
-	if (size != 0) {
-		ast_copy_string(dst, src, size);
-	}
-#endif
 }
 
 /* 
