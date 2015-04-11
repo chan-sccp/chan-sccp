@@ -1491,7 +1491,7 @@ CLI_AMI_ENTRY(show_mwi_subscriptions, sccp_show_mwi_subscriptions, "Show all SCC
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#if defined(CS_SCCP_CONFERENCE)
+
     /* ---------------------------------------------------------------------------------------------CONFERENCE FUNCTIONS- */
 #ifdef CS_SCCP_CONFERENCE
 static char cli_conferences_usage[] = "Usage: sccp show conferences\n" "       Lists running SCCP conferences.\n";
@@ -1537,6 +1537,7 @@ CLI_AMI_ENTRY(conference_command, sccp_cli_conference_command, "Conference Actio
 #undef AMI_COMMAND
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
+
 #endif														/* CS_SCCP_CONFERENCE */
     /* ---------------------------------------------------------------------------------------------SHOW_HINT LINESTATES - */
 static char cli_show_hint_lineStates_usage[] = "Usage: sccp show hint linestates\n" "	Show All SCCP HINT LineStates.\n";
@@ -1625,8 +1626,6 @@ static void *sccp_cli_threadpool_test_thread(void *data)
 	return 0;
 }
 
-#endif
-
 /*!
  * \brief Test Message
  * \param fd Fd as int
@@ -1644,7 +1643,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 	if (sccp_strlen_zero(argv[2])) {
 		return RESULT_SHOWUSAGE;
 	}
-#ifdef CS_EXPERIMENTAL
 	// OpenReceiveChannel TEST
 	if (!strcasecmp(argv[2], "openreceivechannel")) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
@@ -1955,7 +1953,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		}
 		return RESULT_SUCCESS;
 	}
-#ifdef CS_EXPERIMENTAL
 	if (!strcasecmp(argv[2], "remove_reference")) {								/*  WIP */
 		long findobj = 0;
 
@@ -1966,7 +1963,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 			}
 		}
 	}
-#endif
 	if (!strcasecmp(argv[2], "labels")) {
 		sccp_device_t *d = NULL;
 
@@ -2091,7 +2087,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		pbx_cli(fd, "%s\n", all_entries);
 		return RESULT_SUCCESS;
 	}
-#endif
 	return RESULT_FAILURE;
 }
 
@@ -2104,7 +2099,8 @@ CLI_ENTRY(cli_test, sccp_test, "Test", cli_test_usage, FALSE)
 #undef CLI_COMPLETE
 #undef CLI_COMMAND
 #endif														/* DOXYGEN_SHOULD_SKIP_THIS */
-#endif														//defined(DEBUG) || defined(CS_EXPERIMENTAL)
+
+#endif														// CS_EXPERIMENTAL
     /* ------------------------------------------------------------------------------------------------------- REFCOUNT - */
     /*!
      * \brief Print Refcount Hash Table
@@ -3626,10 +3622,10 @@ static struct pbx_cli_entry cli_entries[] = {
 	AST_CLI_DEFINE(cli_end_call, "End a Call."),
 	AST_CLI_DEFINE(cli_set_object, "Change channel/device settings."),
 	AST_CLI_DEFINE(cli_answercall, "Remotely answer a call."),
-#if defined(DEBUG) || defined(CS_EXPERIMENTAL)
+#ifdef CS_EXPERIMENTAL
 	AST_CLI_DEFINE(cli_test, "Test message."),
-	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 #endif
+	AST_CLI_DEFINE(cli_show_refcount, "Test message."),
 	AST_CLI_DEFINE(cli_tokenack, "Send Token Acknowledgement."),
 #ifdef CS_SCCP_CONFERENCE
 	AST_CLI_DEFINE(cli_show_conferences, "Show running SCCP Conferences."),
