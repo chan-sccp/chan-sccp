@@ -844,7 +844,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	/* *INDENT-ON* */
 	if (SCCP_LIST_FIRST(&d->buttonconfig)) {
 		// BUTTONS
-#define CLI_AMI_TABLE_NAME DeviceButtons
+#define CLI_AMI_TABLE_NAME Buttons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceButton
 #define CLI_AMI_TABLE_LIST_ITER_TYPE sccp_buttonconfig_t
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
@@ -863,7 +863,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #include "sccp_cli_table.h"
 			local_table_total++;
 		// LINES
-#define CLI_AMI_TABLE_NAME DeviceLineButtons
+#define CLI_AMI_TABLE_NAME LineButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceLine
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -892,7 +892,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// SPEEDDIALS
-#define CLI_AMI_TABLE_NAME DeviceSpeeddialButtons
+#define CLI_AMI_TABLE_NAME SpeeddialButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceSpeeddial
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -914,7 +914,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// FEATURES
-#define CLI_AMI_TABLE_NAME DeviceFeatureButtons
+#define CLI_AMI_TABLE_NAME FeatureButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceFeature
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -935,7 +935,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			local_table_total++;
 
 		// SERVICEURL
-#define CLI_AMI_TABLE_NAME DeviceServiceURLButtons
+#define CLI_AMI_TABLE_NAME ServiceURLButtons
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceServiceURL
 #define CLI_AMI_TABLE_LIST_ITER_HEAD &d->buttonconfig
 #define CLI_AMI_TABLE_LIST_ITER_VAR buttonconfig
@@ -970,7 +970,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	sccp_call_statistics_type_t callstattype;
 	sccp_call_statistics_t *stats = NULL;
 
-#define CLI_AMI_TABLE_NAME DeviceCallStatistics
+#define CLI_AMI_TABLE_NAME CallStatistics
 #define CLI_AMI_TABLE_PER_ENTRY_NAME DeviceStatistics
 #define CLI_AMI_TABLE_ITERATOR for(callstattype = SCCP_CALLSTATISTIC_LAST; callstattype <= SCCP_CALLSTATISTIC_AVG; callstattype++)
 #define CLI_AMI_TABLE_BEFORE_ITERATION stats = &d->call_statistics[callstattype];
