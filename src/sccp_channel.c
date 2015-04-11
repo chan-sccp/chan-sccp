@@ -2243,7 +2243,6 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		int connectedLineUpdateReason = (sccp_destination_local_channel->state == SCCP_CHANNELSTATE_RINGOUT) ? AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER_ALERTING : AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER;
 
 		/* update redirecting info line for source part */
-
 		fromNumber = sccp_destination_local_channel->callInfo.callingPartyNumber;
 		fromName = sccp_destination_local_channel->callInfo.callingPartyName;
 
@@ -2282,9 +2281,9 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 		/* update ringin channel directly */
 		PBX(set_connected_line) (sccp_destination_local_channel, originalCallingPartyNumber, originalCallingPartyName, connectedLineUpdateReason);
 #if ASTERISK_VERSION_GROUP > 106										/*! \todo change to SCCP_REASON Codes, using mapping table */
-		if (PBX(sendRedirectedUpdate)) {
-			PBX(sendRedirectedUpdate) (sccp_destination_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
-		}
+//		if (PBX(sendRedirectedUpdate)) {
+//			PBX(sendRedirectedUpdate) (sccp_destination_local_channel, fromNumber, fromName, toNumber, toName, AST_REDIRECTING_REASON_UNCONDITIONAL);
+//		}
 #endif
 	}
 
