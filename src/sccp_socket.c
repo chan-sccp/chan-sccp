@@ -925,7 +925,6 @@ void sccp_socket_setoptions(int new_socket)
 	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {				/* timeout after seven seconds when trying to read from a socket */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_RCVTIMEO: %s\n", strerror(errno));
 	}
-#if CS_EXPERIMENTAL
 	if (setsockopt(new_socket, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {				/* timeout after seven seconds when trying to write to a socket */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_SNDTIMEO: %s\n", strerror(errno));
 	}
@@ -964,7 +963,6 @@ void sccp_socket_setoptions(int new_socket)
 	}
 #endif
 	/* */
-#endif
 	/* rcvbuf / sndbug */
 	int so_rcvbuf = SOCKET_RCVBUF;
 	int so_sndbuf = SOCKET_SNDBUF;
