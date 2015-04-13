@@ -933,10 +933,9 @@ typedef union {
 	} FeatureStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {
-		uint32_t lel_instance;										/*!< Instance */
-		uint32_t lel_type;										/*!< always 0x15 */
-		uint32_t lel_status;										/*!< status */
-		char DisplayName[StationMaxNameSize];								/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+		uint32_t lel_Number;
+		char DirNumber[StationMaxDirnumSize];
+		char DisplayName[StationMaxNameSize];
 	} SpeedDialStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {												// OK

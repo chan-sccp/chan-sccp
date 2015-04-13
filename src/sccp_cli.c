@@ -1695,8 +1695,6 @@ static int sccp_test(int fd, int argc, char *argv[])
 		sccp_device_t *d = NULL;
 		sccp_buttonconfig_t *buttonconfig = NULL;
 		uint8_t instance = 0;
-		uint8_t buttonID = SKINNY_BUTTONTYPE_SPEEDDIAL;
-		uint32_t state = 66306;										// 0, 66306, 131589, 
 		sccp_msg_t *msg1;
 
 		if (argc < 5) {
@@ -1710,10 +1708,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 				if (buttonconfig->type == SPEEDDIAL) {
 					instance = buttonconfig->instance;
 					REQ(msg1, SpeedDialStatDynamicMessage);
-					msg1->data.SpeedDialStatDynamicMessage.lel_instance = htolel(instance);
-					msg1->data.SpeedDialStatDynamicMessage.lel_type = htolel(buttonID);
-					msg1->data.SpeedDialStatDynamicMessage.lel_status = htolel(state ? state : 0);
-					sccp_copy_string(msg1->data.SpeedDialStatDynamicMessage.DisplayName, "NEW TEXT", strlen("NEW_TEXT") + 1);
+					msg1->data.SpeedDialStatDynamicMessage.lel_Number = htolel(instance);
+					sccp_copy_string(msg1->data.SpeedDialStatDynamicMessage.DirNumber, argv[5], sizeof(msg1->data.SpeedDialStatDynamicMessage.DirNumber));
+					sccp_copy_string(msg1->data.SpeedDialStatDynamicMessage.DisplayName, argv[6], sizeof(msg1->data.SpeedDialStatDynamicMessage.DisplayName));					
 					sccp_dev_send(d, msg1);
 				}
 			}
@@ -2040,10 +2037,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 		if (d) {
 			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat\n");
 			sccp_msg_t *msg;
-
 			msg = sccp_utils_buildLineStatDynamicMessage(1, 0x01 & 0x08, "1234", "name", "disp1");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat1 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat1 0x01=OrigDialed & 0x08=CallingPartyName Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(2, 2, "98011", "Diederik de Groot", "CfwdAll: 1234");
 			sccp_dev_send(d, msg);
@@ -2052,19 +2048,20 @@ static int sccp_test(int fd, int argc, char *argv[])
 				sleep(1);
 				sccp_dev_deactivate_cplane(d);
 			}
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat2 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat2 2=RedirDialed Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(3, 4, "1234", "name", "disp4");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat4 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat4 4=CallingPartyNumber Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(4, 8, "1234", "name", "disp8");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat8 Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat8 8=CallinPartyName Sent\n");
 			sleep(2);
 			msg = sccp_utils_buildLineStatDynamicMessage(5, 0x0f, "1234", "name", "disp");
 			sccp_dev_send(d, msg);
-			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat 0x0f Sent\n");
+			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat 0x0f All of the Above Sent\n");		// This explaines the 0x15 we always send for these buttons
+														// I think this type flag might be used to influence what the cplane may will show
 			sleep(2);
 			d = sccp_device_release(d);
 			return RESULT_SUCCESS;
