@@ -696,6 +696,7 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					sccp_wrapper_asterisk13_setDialedNumber(c, c->dialedNumber);
 				}
 				PBX(set_callstate) (c, AST_STATE_RING);
+				sccp_sync_capabilities_with_peer(c, ast);
 			}
 			break;
 		case AST_CONTROL_BUSY:
