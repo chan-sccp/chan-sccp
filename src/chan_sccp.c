@@ -266,7 +266,6 @@ static const struct messageMap_cb sccpMessagesCbMap[] = {
 	[MediaPathCapabilityMessage] = {sccp_handle_unknown_message, TRUE},
 	[DisplayDynamicNotifyMessage] = {sccp_handle_unknown_message, TRUE},
 	[DisplayDynamicPriNotifyMessage] = {sccp_handle_unknown_message, TRUE},
-	[SpeedDialStatDynamicMessage] = {sccp_handle_speed_dial_stat_req, TRUE},
 	[ExtensionDeviceCaps] = {sccp_handle_unknown_message, TRUE},
 	[DeviceToUserDataVersion1Message] = {sccp_handle_device_to_user, TRUE},
 	[DeviceToUserDataResponseVersion1Message] = {sccp_handle_device_to_user_response, TRUE},
