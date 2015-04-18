@@ -1100,6 +1100,7 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
 	char displayMessage[80] = "";
+	int status;
 #endif
 
 	if (!hint) {
@@ -1126,18 +1127,17 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 
 				REQ(msg, FeatureStatDynamicMessage);
 				if (msg) {
-					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					
 
 					switch (hint->currentState) {
 						case SCCP_CHANNELSTATE_ONHOOK:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_IDLE);
+							status = SKINNY_BLF_STATUS_IDLE;
 							break;
 
 						case SCCP_CHANNELSTATE_DOWN:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_UNKNOWN);	/* default state */
+							status = SKINNY_BLF_STATUS_UNKNOWN;	/* default state */
 							break;
 
 						case SCCP_CHANNELSTATE_RINGING:
@@ -1152,17 +1152,17 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_ALERTING);	/* ringin */
+							status = SKINNY_BLF_STATUS_ALERTING;	/* ringin */
 							break;
 
 						case SCCP_CHANNELSTATE_DND:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_DND);	/* dnd */
+							status = SKINNY_BLF_STATUS_DND;	/* dnd */
 							break;
 
 						case SCCP_CHANNELSTATE_CONGESTION:
 							snprintf(displayMessage, sizeof(displayMessage), k.name, sizeof(displayMessage));
-							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_UNKNOWN);	/* device/line not found */
+							status = SKINNY_BLF_STATUS_UNKNOWN;	/* device/line not found */
 							break;
 
 						default:
@@ -1177,12 +1177,26 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							} else {
 								snprintf(displayMessage, sizeof(displayMessage), "%s", k.name);
 							}
-							msg->data.FeatureStatDynamicMessage.lel_status = htolel(SKINNY_BLF_STATUS_INUSE);	/* connected */
+							status = SKINNY_BLF_STATUS_INUSE;	/* connected */
 							break;
 					}
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
 					sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.DisplayName));
+					msg->data.FeatureStatDynamicMessage.DisplayName[strlen(displayMessage)-1] = '\0';
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, msg->data.FeatureStatDynamicMessage.lel_status);
+					
+					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					msg->data.FeatureStatDynamicMessage.lel_status = htolel(status);
+					sccp_dev_send(d, msg); /* we send this message with string.length -1 to fix the font background issue */
+					
+					
+					REQ(msg, FeatureStatDynamicMessage);
+					sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.DisplayName));
+					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					msg->data.FeatureStatDynamicMessage.lel_status = htolel(status);
+					
 					sccp_dev_send(d, msg);
 				} else {
 					sccp_free(msg);
