@@ -1188,7 +1188,13 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
 					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 					msg->data.FeatureStatDynamicMessage.lel_status = htolel(status);
-					sccp_dev_send(d, msg); /* we send this message with string.length -1 to fix the font background issue */
+					
+					/* !
+					* hack to fix the white text without shadow issue -MC
+					*
+					* fist send a label that is 1-character shorter than the correct on, so the next message with the longer label (correct label) will force an update (in white)
+					*/
+					sccp_dev_send(d, msg);
 					
 					
 					REQ(msg, FeatureStatDynamicMessage);
