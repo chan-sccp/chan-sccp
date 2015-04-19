@@ -37,7 +37,6 @@
 #include "sccp_conference.h"
 #include "sccp_labels.h"
 #include "sccp_softkeys.h"
-#include "sccp_adv_features.h"
 #include "sccp_cli.h"
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
