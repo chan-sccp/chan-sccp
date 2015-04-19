@@ -180,16 +180,6 @@ extern struct sccp_pbx_cb sccp_pbx;
 
 #define CS_AST_CHANNEL_PVT_IS_SCCP(x) CS_AST_CHANNEL_PVT_CMP_TYPE(x,"SCCP")
 
-#ifdef CS_AST_HAS_CHANNEL_BRIDGE_PEER
-#define CS_AST_BRIDGED_CHANNEL(x) ast_channel_bridge_peer(x)
-#else
-#ifdef CS_AST_HAS_BRIDGED_CHANNEL
-#define CS_AST_BRIDGED_CHANNEL(x) ast_bridged_channel(x)
-#else
-#define CS_AST_BRIDGED_CHANNEL(x) x->bridge
-#endif
-#endif
-
 #ifdef AST_MAX_EXTENSION
 #define SCCP_MAX_EXTENSION AST_MAX_EXTENSION
 #else
