@@ -79,14 +79,6 @@
 
 #include "define.h"
 #include "sccp_protocol.h"
-#ifdef ASTERISK_CONF_1_2
-#include "ast102.h"
-#define PBXVER 10200
-#endif
-#ifdef ASTERISK_CONF_1_4
-#include "ast104.h"
-#define PBXVER 10400
-#endif
 #ifdef ASTERISK_CONF_1_6
 #include "ast106.h"
 #endif
