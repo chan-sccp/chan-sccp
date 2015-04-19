@@ -658,7 +658,13 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			} else if (!strcasecmp(token, "parent")) {
 				snprintf(buf, buf_len, "%d", c->parentChannel->callid);
 			} else if (!strcasecmp(token, "bridgepeer")) {
-				snprintf(buf, buf_len, "%s", (c->owner && CS_AST_BRIDGED_CHANNEL(c->owner)) ? pbx_channel_name(CS_AST_BRIDGED_CHANNEL(c->owner)) : "<unknown>");
+				PBX_CHANNEL_TYPE *bridgechannel;
+				if (c->owner && (bridgechannel = PBX(get_bridged_channel)(c->owner))) {
+					snprintf(buf, buf_len, "%s", pbx_channel_name(bridgechannel));
+					pbx_channel_unref(bridgechannel);
+				} else {
+					snprintf(buf, buf_len, "<unknown>");
+				}
 			} else if (!strcasecmp(token, "peerip")) {							// NO-NAT (Ip-Address Associated with the Session->sin)
 				AUTO_RELEASE sccp_device_t *d = NULL;
 				if ((d = sccp_channel_getDevice_retained(c))) {

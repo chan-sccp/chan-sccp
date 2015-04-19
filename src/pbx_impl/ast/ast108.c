@@ -3136,12 +3136,10 @@ static boolean_t sccp_wrapper_asterisk108_channelIsBridged(sccp_channel_t * chan
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk108_getBridgeChannel(PBX_CHANNEL_TYPE * pbx_channel)
 {
-	PBX_CHANNEL_TYPE *bridged_channel = NULL;
-
-	if (pbx_channel && pbx_channel_tech(pbx_channel)) {
-		bridged_channel = pbx_channel_tech(pbx_channel)->bridged_channel(pbx_channel, NULL);
-		return ast_channel_ref(bridged_channel);
-	}
+	PBX_CHANNEL_TYPE *bridgePeer = NULL;
+	if (pbx_channel && (bridgePeer = ast_bridged_channel(pbx_channel))) {
+		return pbx_channel_ref(bridgePeer);
+	};
 	return NULL;
 }
 
@@ -3152,7 +3150,7 @@ static boolean_t sccp_wrapper_asterisk108_attended_transfer(sccp_channel_t * des
 		return FALSE;
 	}
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
-	PBX_CHANNEL_TYPE *pbx_source_remote_channel = CS_AST_BRIDGED_CHANNEL(source_channel->owner);
+	PBX_CHANNEL_TYPE *pbx_source_remote_channel = sccp_wrapper_asterisk108_getBridgeChannel(source_channel->owner);
 
 	if (!pbx_destination_local_channel || !pbx_source_remote_channel) {
 		return FALSE;

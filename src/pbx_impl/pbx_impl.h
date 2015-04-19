@@ -36,13 +36,14 @@
 struct sccp_pbx_cb {
 	/* *INDENT-OFF* */
 	/* channels */
-	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, const void * ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);
+	boolean_t(*const alloc_pbxChannel) (sccp_channel_t * channel, const void * ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** pbxDstChannel);	/* returns a new channel with pbx_channel_ref and ast_module_info_ref*/
 	int (*const set_callstate) (const sccp_channel_t * pbx_channel, int state);
 	boolean_t(*const checkhangup) (const sccp_channel_t * channel);
 	int (*const hangup) (PBX_CHANNEL_TYPE * channel);
 	sccp_extension_status_t(*const extension_status) (const sccp_channel_t * channel);
 
 	void (*const setPBXChannelLinkedId) (PBX_CHANNEL_TYPE *pbxchannel, const char *linkedid);
+
 	const char *(*const getChannelName) (const sccp_channel_t *channel);
 	void (*const setChannelName) (const sccp_channel_t *channel, const char *name);
 	const char *(*const getChannelUniqueID) (const sccp_channel_t *channel);
@@ -159,8 +160,8 @@ struct sccp_pbx_cb {
         void (*const set_owner)(sccp_channel_t *channel, PBX_CHANNEL_TYPE *pbx_channel);
 	int (*const dumpchan) (PBX_CHANNEL_TYPE *pbx_channel, char *buf, size_t size);
 	boolean_t (*const channel_is_bridged) (sccp_channel_t *channel);
-	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);
-	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);
+	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);					/* takes pbx_channel_ref */
+	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);	/* takes pbx_channel_ref on source_channel */
 	/* *INDENT-ON* */
 };
 
