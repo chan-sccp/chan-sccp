@@ -614,8 +614,12 @@ static sccp_hint_list_t *sccp_hint_create(char *hint_exten, char *hint_context)
 #ifdef CS_USE_ASTERISK_DISTRIBUTED_DEVSTATE
 	/* subscripbe to the distributed hint event */
 #if ASTERISK_VERSION_GROUP >= 112
-	//struct stasis_topic *devstate_specific_topic = ast_device_state_topic(strdup(buf)); /* create filter */
+#if CS_EXPERIMENTAL
+	struct stasis_topic *devstate_hint_dialplan = ast_device_state_topic(hint->hint_dialplan));
+	hint->device_state_sub = stasis_subscribe(devstate_hint_dialplan, sccp_hint_distributed_devstate_cb, hint);
+#else
 	hint->device_state_sub = stasis_subscribe(ast_device_state_topic_all(), sccp_hint_distributed_devstate_cb, hint);
+#endif
 #else
 	hint->device_state_sub = pbx_event_subscribe(AST_EVENT_DEVICE_STATE_CHANGE, sccp_hint_distributed_devstate_cb, "sccp_hint_distributed_devstate_cb", hint, AST_EVENT_IE_DEVICE, AST_EVENT_IE_PLTYPE_STR, hint->hint_dialplan, AST_EVENT_IE_END);
 #endif
@@ -1189,10 +1193,11 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
 					msg->data.FeatureStatDynamicMessage.lel_status = htolel(status);
 					
-					/* !
+					/*!
 					* hack to fix the white text without shadow issue -MC
 					*
-					* fist send a label that is 1-character shorter than the correct on, so the next message with the longer label (correct label) will force an update (in white)
+					* first send a label which is 1-character shorter than the correct one. 
+					* then send another message with a longer label (correct/final label) will force an update (in white over the back drop in black)
 					*/
 					sccp_dev_send(d, msg);
 					
