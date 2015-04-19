@@ -279,13 +279,28 @@ dnl			fi
                         #include <asterisk/buildopts.h>
                         #ifdef LOW_MEMORY
                         	yes
-                        #endif],                            
-                        [                                                                                         
-                                AC_DEFINE([CS_LOW_MEMORY],1,[asterisk compiled with 'LOW_MEMORY'])                  
-                                AC_MSG_RESULT(yes)                                                                
-                        ],[                                                                                       
-                                AC_MSG_RESULT(no)                                                                 
-                        ])                
+                        #endif],
+                        [
+                                AC_DEFINE([CS_LOW_MEMORY],1,[asterisk compiled with 'LOW_MEMORY'])
+                                AC_MSG_RESULT(yes)
+                        ],[
+                                AC_MSG_RESULT(no)
+                        ])             
+
+                        AC_EGREP_HEADER([yes], [
+                        #include <asterisk/buildopts.h>
+                        #ifdef TEST_FRAMEWORK
+                        	yes
+                        #endif],
+                        [
+                                AC_DEFINE([CS_TEST_FRAMEWORK],1,[asterisk compiled with 'TEST_FRAMEWORK'])
+                                TEST_FRAMEWORK=yes
+                                AC_MSG_RESULT(yes)
+                        ],[
+                                AC_MSG_RESULT(no)
+                                TEST_FRAMEWORK=no
+                        ])
+                        AC_SUBST([TEST_FRAMEWORK])
 		],,[
 	               	$HEADER_INCLUDE
 		]

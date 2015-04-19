@@ -584,6 +584,9 @@ boolean_t sccp_postPBX_load(void)
 #endif
 	sprintf(SCCP_VERSIONSTR, "Skinny Client Control Protocol (SCCP). Release: %s %s - %s (built by '%s' on '%s')\n", SCCP_VERSION, SCCP_BRANCH, SCCP_REVISIONSTR, BUILD_USER, BUILD_DATE);
 
+#if CS_TEST_FRAMEWORK
+	sccp_utils_register_tests();
+#endif
 	GLOB(module_running) = TRUE;
 	sccp_refcount_schedule_cleanup((const void *) 0);
 	pbx_mutex_unlock(&GLOB(lock));
@@ -620,6 +623,10 @@ int sccp_preUnload(void)
 	sccp_session_t *s;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
+
+#if CS_TEST_FRAMEWORK
+	sccp_utils_unregister_tests();
+#endif
 
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay);
 	sccp_event_unsubscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend);

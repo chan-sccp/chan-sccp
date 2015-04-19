@@ -133,9 +133,6 @@ void sccp_free_ha(struct sccp_ha *ha);
 int sccp_apply_ha(const struct sccp_ha *ha, const struct sockaddr_storage *addr);
 int sccp_apply_ha_default(const struct sccp_ha *ha, const struct sockaddr_storage *addr, int defaultValue);
 
-#if 0
-int sccp_sockaddr_cmp_addr(const struct sockaddr_storage *a, const struct sockaddr_storage *b);
-#endif
 int sccp_sockaddr_split_hostport(char *str, char **host, char **port, int flags);
 int sccp_sockaddr_storage_parse(struct sockaddr_storage *addr, const char *str, int flags);
 struct sccp_ha *sccp_append_ha(const char *sense, const char *stuff, struct sccp_ha *path, int *error);
@@ -146,5 +143,10 @@ char *sccp_dec2binstr(char *buf, size_t size, int value);
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size);
 char *sccp_trimwhitespace(char *str);
 gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf, size_t len);
+#if CS_TEST_FRAMEWORK
+void sccp_utils_register_tests(void);
+void sccp_utils_unregister_tests(void);
+#endif
+
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

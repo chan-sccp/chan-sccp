@@ -1724,6 +1724,140 @@ void sccp_print_ha(struct ast_str *buf, int buflen, struct sccp_ha *path)
 	}
 }
 
+#if CS_TEST_FRAMEWORK
+AST_TEST_DEFINE(chan_sccp_ha_tests)
+{
+	struct sccp_ha *ha = NULL;
+	struct sockaddr_storage sas10, sas1015, sas172;
+	int error;
+
+	switch (cmd) {
+	case TEST_INIT:
+		info->name = "chan_sccp_ha_tests";
+		info->category = "/channels/chan_sccp/ha/";
+		info->summary = "chan-sccp-b ha test";
+		info->description = "chan-sccp-b ha tests";
+		return AST_TEST_NOT_RUN;
+	case TEST_EXECUTE:
+		break;
+	}
+
+	ast_test_status_update(test, "Executing chan-sccp-b ha path tests...\n");
+
+	ast_test_status_update(test, "Setting up sockaddr_storage...\n");
+	sccp_sockaddr_storage_parse(&sas10, "10.0.0.1", PARSE_PORT_FORBID);
+	if (!sccp_socket_is_IPv4(&sas10)) {
+		ast_test_status_update(test, "creating sas10 failed'\n");
+		goto RETURN_FAILURE;
+	}
+	sccp_sockaddr_storage_parse(&sas1015, "10.15.15.1", PARSE_PORT_FORBID);
+	if (!sccp_socket_is_IPv4(&sas1015)) {
+		ast_test_status_update(test, "creating sas1015 failed'\n");
+		goto RETURN_FAILURE;
+	}
+	sccp_sockaddr_storage_parse(&sas172, "172.16.0.1", PARSE_PORT_FORBID);
+	if (!sccp_socket_is_IPv4(&sas172)) {
+		ast_test_status_update(test, "creating sas172 failed'\n");
+		goto RETURN_FAILURE;
+	}
+
+	// test 1
+	ast_test_status_update(test, "test 1: ha deny all\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+
+	// test 2
+	ast_test_status_update(test, "test 2: added permit 10.15.15.0/255.255.255.0\n");
+	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+
+	// test 3
+	ast_test_status_update(test, "test 3: added second permit 10.15.15.0/255.255.255.0\n");
+	ha = sccp_append_ha("permit", "10.15.15.0/255.255.255.0", ha, &error);
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	sccp_free_ha(ha);
+	ha = NULL;
+
+	// test 4
+	ast_test_status_update(test, "test 4: deny all + permit 10.15.15.0/255.255.255.0\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	ha = sccp_append_ha("permit", "10.0.0.0/255.0.0.0", ha, &error);
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) == AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) == AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+
+	// test 5
+	ast_test_status_update(test, "test 5: add deny_all at the end\n");
+	ha = sccp_append_ha("deny", "0.0.0.0/0.0.0.0", ha, &error);
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas10) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.0.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas1015) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '10.15.15.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+	if (sccp_apply_ha(ha, (struct sockaddr_storage *) &sas172) != AST_SENSE_DENY) {
+		ast_test_status_update(test, "sccp_apply_ha(ha, '172.16.0.1) failed'\n");
+		goto RETURN_FAILURE;
+	}
+
+	sccp_free_ha(ha);
+	ha = NULL;
+	return AST_TEST_PASS;
+
+RETURN_FAILURE:
+	if (ha) {
+		sccp_free_ha(ha);
+		ha = NULL;
+	}
+	return AST_TEST_FAIL;
+}
+
+#endif
+
 /*!
  * \brief Yields string representation from channel (for debug).
  * \param c SCCP channel
@@ -1968,6 +2102,18 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 		iconv_close(cd);
 	}
 	return TRUE;
+}
+#endif
+
+#if CS_TEST_FRAMEWORK
+void sccp_utils_register_tests(void)
+{
+        AST_TEST_REGISTER(chan_sccp_ha_tests);
+}
+
+void sccp_utils_unregister_tests(void)
+{
+        AST_TEST_UNREGISTER(chan_sccp_ha_tests);
 }
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

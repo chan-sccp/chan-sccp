@@ -77,8 +77,12 @@
 #endif
 #include <asterisk/indications.h>
 
+#if CS_TEST_FRAMEWORK
+#include "asterisk/test.h"
+#endif
+
 #include "define.h"
-#include "sccp_protocol.h"
+#include "../../sccp_protocol.h"
 #ifdef ASTERISK_CONF_1_6
 #include "ast106.h"
 #endif
