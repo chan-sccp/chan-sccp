@@ -1571,6 +1571,7 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
 			if (!sccp_strlen_zero(config->button.speeddial.hint)) {
 				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
 			}
+			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
