@@ -69,7 +69,9 @@
 #define ServerMaxNameSize				48
 #define StationMaxServiceURLSize			256
 #define StationMaxPorts					16
+#define StationMaxAlarmMessage				80
 #define StationMaxXMLMessage				2000
+#define StationMaxXMLAlarmMessage			2048
 #define StationMaxImageVersionSize			32
 
 #define APPID_CONFERENCE				9081
@@ -1265,7 +1267,7 @@ typedef union {
 
 	struct {
 		uint32_t lel_alarmSeverity;									/*!< Alarm Severity Level */
-		char text[80];											/*!< Alarm Text */
+		char text[StationMaxAlarmMessage];								/*!< Alarm Text */
 		uint32_t lel_parm1;										/*!< Alarm Parameter 1 */
 		uint32_t lel_parm2;										/*!< Alarm Parameter 2 */
 	} AlarmMessage;												/*!< Alarm Message - Client -> Server */
@@ -2632,7 +2634,7 @@ typedef union {
 
 	/* SCCP Firmware version > 9.1 */
 	struct {
-		char le_data[2000];										/*!< XML Alarm Message Data */
+		char le_data[StationMaxXMLAlarmMessage];							/*!< XML Alarm Message Data */
 	} XMLAlarmMessage;											/*!< XML Alarm Message Structure */
 
 	struct {
