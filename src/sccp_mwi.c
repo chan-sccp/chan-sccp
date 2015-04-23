@@ -67,7 +67,7 @@ void sccp_mwi_module_stop(void)
 		if (subscription->event_sub) {
 			pbx_event_unsubscribe(subscription->event_sub);
 		}
-#elif defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
+#elif defined(CS_AST_HAS_STASIS)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (sccp_mwi_module_stop) STASIS Unsubscribe\n");
 		if (subscription->event_sub) {
 			stasis_unsubscribe(subscription->event_sub);
@@ -125,7 +125,35 @@ static void sccp_mwi_updatecount(sccp_mailbox_subscriber_list_t * subscription)
 	SCCP_LIST_UNLOCK(&subscription->sccp_mailboxLine);
 }
 
-#if defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
+#if defined(CS_AST_HAS_EVENT)
+/*!
+ * \brief Receive MWI Event from Asterisk
+ * \param event Asterisk Event
+ * \param data Asterisk Data
+ */
+void sccp_mwi_event(const struct ast_event *event, void *data)
+{
+	sccp_mailbox_subscriber_list_t *subscription = data;
+
+	pbx_log(LOG_NOTICE, "Got mwi-event\n");
+	if (!subscription || !event) {
+		return;
+	}
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", (subscription->mailbox) ? subscription->mailbox : "NULL", (subscription->context) ? subscription->context : "NULL");
+
+	/* for calculation store previous voicemail counts */
+	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
+	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
+
+	subscription->currentVoicemailStatistic.newmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
+	subscription->currentVoicemailStatistic.oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
+
+	if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
+		sccp_mwi_updatecount(subscription);
+	}
+}
+
+#elif defined(CS_AST_HAS_STASIS)
 /*!
  * \brief Receive MWI Event from Asterisk
  * \param event Asterisk Event
@@ -157,38 +185,9 @@ void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stas
 	} else {
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received STASIS Message that did not contain mwi state\n");
 	}
-
 }
 
-#elif defined(CS_AST_HAS_EVENT)
-/*!
- * \brief Receive MWI Event from Asterisk
- * \param event Asterisk Event
- * \param data Asterisk Data
- */
-void sccp_mwi_event(const struct ast_event *event, void *data)
-{
-	sccp_mailbox_subscriber_list_t *subscription = data;
-
-	pbx_log(LOG_NOTICE, "Got mwi-event\n");
-	if (!subscription || !event) {
-		return;
-	}
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "Received PBX mwi event for %s@%s\n", (subscription->mailbox) ? subscription->mailbox : "NULL", (subscription->context) ? subscription->context : "NULL");
-
-	/* for calculation store previous voicemail counts */
-	subscription->previousVoicemailStatistic.newmsgs = subscription->currentVoicemailStatistic.newmsgs;
-	subscription->previousVoicemailStatistic.oldmsgs = subscription->currentVoicemailStatistic.oldmsgs;
-
-	subscription->currentVoicemailStatistic.newmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_NEWMSGS);
-	subscription->currentVoicemailStatistic.oldmsgs = pbx_event_get_ie_uint(event, AST_EVENT_IE_OLDMSGS);
-
-	if (subscription->previousVoicemailStatistic.newmsgs != subscription->currentVoicemailStatistic.newmsgs) {
-		sccp_mwi_updatecount(subscription);
-	}
-}
 #else
-
 /*!
  * \brief MWI Progress
  * \param ptr Pointer to Mailbox Subscriber list Entry
@@ -212,7 +211,7 @@ int sccp_mwi_checksubscription(const void *ptr)
 	char buffer[512];
 
 	snprintf(buffer, 512, "%s@%s", subscription->mailbox, subscription->context);
-	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "SCCP: ckecking mailbox: %s\n", buffer);
+	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_4 "SCCP: checking mailbox: %s\n", buffer);
 	pbx_app_inboxcount(buffer, &subscription->currentVoicemailStatistic.newmsgs, &subscription->currentVoicemailStatistic.oldmsgs);
 
 	/* update devices if something changed */
@@ -226,7 +225,6 @@ int sccp_mwi_checksubscription(const void *ptr)
 	}
 	return 0;
 }
-
 #endif
 
 /*!
@@ -375,15 +373,15 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
 #if defined( CS_AST_HAS_EVENT)
 		/* register asterisk event */
 		//struct pbx_event_sub *pbx_event_subscribe(enum ast_event_type event_type, ast_event_cb_t cb, char *description, void *userdata, ...);
-#if ASTERISK_VERSION_NUMBER >= 10800
+#  if ASTERISK_VERSION_NUMBER >= 10800
 		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, "mailbox subscription", subscription, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, AST_EVENT_IE_NEWMSGS, AST_EVENT_IE_PLTYPE_EXISTS, AST_EVENT_IE_END);
-#else
+#  else
 		subscription->event_sub = pbx_event_subscribe(AST_EVENT_MWI, sccp_mwi_event, subscription, AST_EVENT_IE_MAILBOX, AST_EVENT_IE_PLTYPE_STR, subscription->mailbox, AST_EVENT_IE_CONTEXT, AST_EVENT_IE_PLTYPE_STR, subscription->context, AST_EVENT_IE_END);
-#endif
+#  endif
 		if (!subscription->event_sub) {
 			pbx_log(LOG_ERROR, "SCCP: PBX MWI event could not be subscribed to for mailbox %s@%s\n", subscription->mailbox, subscription->context);
 		}
-#elif defined(CS_AST_HAS_STASIS) && defined(CS_EXPERIMENTAL)
+#elif defined(CS_AST_HAS_STASIS)
 		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "SCCP: (mwi_addMailboxSubscription) Adding STASIS Subscription for mailbox %s\n", subscription->mailbox);
 		char mailbox_context[512];
 
@@ -661,8 +659,8 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
  		CLI_AMI_TABLE_FIELD(Mailbox,		"-10.10",	s,	10,	subscription->mailbox)						\
  		CLI_AMI_TABLE_FIELD(LineName,		"-30.30",	s,	30,	linebuf)							\
  		CLI_AMI_TABLE_FIELD(Context,		"-15.15",	s,	15,	subscription->context)						\
- 		CLI_AMI_TABLE_FIELD(New,		"3.3",		d,		3,	subscription->currentVoicemailStatistic.newmsgs)	\
- 		CLI_AMI_TABLE_FIELD(Old,		"3.3",		d,		3,	subscription->currentVoicemailStatistic.oldmsgs)	\
+ 		CLI_AMI_TABLE_FIELD(New,		"3.3",		d,	3,	subscription->currentVoicemailStatistic.newmsgs)		\
+ 		CLI_AMI_TABLE_FIELD(Old,		"3.3",		d,	3,	subscription->currentVoicemailStatistic.oldmsgs)		\
  		CLI_AMI_TABLE_FIELD(Sub,		"-3.3",		s,	3,	subscription->event_sub ? "YES" : "NO")
 #include "sccp_cli_table.h"
 #else
@@ -670,8 +668,8 @@ int sccp_show_mwi_subscriptions(int fd, sccp_cli_totals_t *totals, struct manses
  		CLI_AMI_TABLE_FIELD(Mailbox,		"-10.10",	s,	10,	subscription->mailbox)						\
  		CLI_AMI_TABLE_FIELD(LineName,		"-30.30",	s,	30,	linebuf)							\
  		CLI_AMI_TABLE_FIELD(Context,		"-15.15",	s,	15,	subscription->context)						\
- 		CLI_AMI_TABLE_FIELD(New,		"3.3",		d,		3,	subscription->currentVoicemailStatistic.newmsgs)	\
- 		CLI_AMI_TABLE_FIELD(Old,		"3.3",		d,		3,	subscription->currentVoicemailStatistic.oldmsgs)
+ 		CLI_AMI_TABLE_FIELD(New,		"3.3",		d,	3,	subscription->currentVoicemailStatistic.newmsgs)		\
+ 		CLI_AMI_TABLE_FIELD(Old,		"3.3",		d,	3,	subscription->currentVoicemailStatistic.oldmsgs)
 #include "sccp_cli_table.h"
 #endif
 
