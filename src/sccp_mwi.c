@@ -477,7 +477,7 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 	d->mwilight = newState;
 
 	/* no need to call sccp_mwi_check, will be called by sccp_mwi_lineStatusChangedEvent */
-	//sccp_mwi_check(d);
+	sccp_mwi_check(d);
 }
 
 /*!
