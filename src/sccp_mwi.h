@@ -60,7 +60,7 @@ struct sccp_mailbox_subscriber_list {
 	struct {
 		int newmsgs;											/*!< New Messages */
 		int oldmsgs;											/*!< Old Messages */
-	} currentVoicemailStatistic;										/*!< Current Voicemail Statistic Structure */
+	} currentVoicemailStatistic;								/*!< Current Voicemail Statistic Structure */
 
 	/*!
 	 * \brief Previous Voicemail Statistic Structure
@@ -68,9 +68,9 @@ struct sccp_mailbox_subscriber_list {
 	struct {
 		int newmsgs;											/*!< New Messages */
 		int oldmsgs;											/*!< Old Messages */
-	} previousVoicemailStatistic;										/*!< Previous Voicemail Statistic Structure */
+	} previousVoicemailStatistic;								/*!< Previous Voicemail Statistic Structure */
 
-#if defined ( CS_AST_HAS_EVENT ) || (defined( CS_AST_HAS_STASIS ) && defined(CS_EXPERIMENTAL))
+#if defined ( CS_AST_HAS_EVENT ) || (defined( CS_AST_HAS_STASIS ))
 	/*!
 	 * \brief Asterisk Event Subscribers Structure
 	 */
@@ -78,7 +78,7 @@ struct sccp_mailbox_subscriber_list {
 #else
 	int schedUpdate;
 #endif
-};														/*!< SCCP Mailbox Subscriber List Structure */
+};																/*!< SCCP Mailbox Subscriber List Structure */
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);
