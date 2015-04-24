@@ -507,7 +507,6 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 	int instance = 0;
 	uint8_t status = 0;
 	uint32_t mask;
-	uint32_t newState = 0;
 
 	/* when l is defined we are switching on/off the button icon, otherwise the main mwi light */
 	if (l) {
@@ -515,24 +514,16 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 		status = l->voicemailStatistic.newmsgs ? 1 : 0;
 	}
 
-	mask = 1 << instance;
-	newState = d->mwilight;
-
-	/* update status */
-	if (status) {			/* activate mwi line icon */
-		newState |= mask;
-	} else {			/* deactivate mwi line icon */
-		newState &= ~mask;
-	}
-
-	/* Help DEBUGGING process */
-	//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) line:%s, instance: %d, new status: %s\n",  DEV_ID_LOG(d), l->name, instance, status ? "on" : "off");
-	//char binstr[33] = "";
-	//sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) line:%s, previousState:%s (%#1x), newState: %s (%#1x)\n",  DEV_ID_LOG(d), l->name, sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight, sccp_dec2binstr(binstr, 32, newState), newState);
+	mask = 1 << instance;			/* mask the bit field for this line instance */
 
 	/* check if we need to update line status */
-	if ((d->mwilight & ~(1 << instance)) != (newState & ~(1 << instance))) {
-		d->mwilight = newState;
+	if ( (d->mwilight & mask) != (status << instance)) {
+		
+		if (status) {			/* activate mwi line icon */
+			d->mwilight |= mask;
+		} else {			/* deactivate mwi line icon */
+			d->mwilight &= ~mask;
+		}
 
 		REQ(msg, SetLampMessage);
 		msg->data.SetLampMessage.lel_stimulus = htolel(SKINNY_STIMULUS_VOICEMAIL);
@@ -540,9 +531,9 @@ void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 		msg->data.SetLampMessage.lel_lampMode = status ? htolel(SKINNY_LAMP_ON) : htolel(SKINNY_LAMP_OFF);
 
 		sccp_dev_send(d, msg);
-		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Turn %s the MWI on line %s (%d)\n", DEV_ID_LOG(d), (mask > 0) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Turn %s the MWI on line %s (%d)\n", DEV_ID_LOG(d), status ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	} else {
-		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Device already knows status %s on line %s (%d)\n", DEV_ID_LOG(d), (newState & ~(1 << 0)) ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
+		sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_3 "%s: (mwi_setMWILineStatus) Device already knows status %s on line %s (%d)\n", DEV_ID_LOG(d), status ? "ON" : "OFF", (l ? l->name : "unknown"), instance);
 	}
 
 	sccp_mwi_check(d); /* we need to check mwi status again, to enable/disable mwi light */
