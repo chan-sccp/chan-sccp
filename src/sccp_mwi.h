@@ -88,9 +88,8 @@ void sccp_mwi_unsubscribeMailbox(sccp_mailbox_t ** mailbox);
 
 #if defined( CS_AST_HAS_EVENT )
 void sccp_mwi_event(const struct ast_event *event, void *data);
-#elif defined(CS_AST_HAS_STASIS)  && defined(CS_EXPERIMENTAL)
+#elif defined(CS_AST_HAS_STASIS)
 void sccp_mwi_event(void *userdata, struct stasis_subscription *sub, struct stasis_message *msg);
-
 #else
 int sccp_mwi_checksubscription(const void *ptr);
 #endif
