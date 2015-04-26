@@ -88,6 +88,7 @@ am__aclocal_m4_deps = $(top_srcdir)/autoconf/acinclude.m4 \
 	$(top_srcdir)/autoconf/acx_pthread.m4 \
 	$(top_srcdir)/autoconf/asterisk.m4 \
 	$(top_srcdir)/autoconf/check_atomics.m4 \
+	$(top_srcdir)/autoconf/check_raii.m4 \
 	$(top_srcdir)/autoconf/extra.m4 \
 	$(top_srcdir)/autoconf/libtool.m4 \
 	$(top_srcdir)/autoconf/ltoptions.m4 \
@@ -212,6 +213,10 @@ ARGZ_H = @ARGZ_H@
 ASTERISK_REPOS_LOCATION = @ASTERISK_REPOS_LOCATION@
 ASTERISK_VERSION_NUMBER = @ASTERISK_VERSION_NUMBER@
 ASTERISK_VER_GROUP = @ASTERISK_VER_GROUP@
+AST_CLANG_BLOCKS = @AST_CLANG_BLOCKS@
+AST_CLANG_BLOCKS_LIBS = @AST_CLANG_BLOCKS_LIBS@
+AST_C_COMPILER_FAMILY = @AST_C_COMPILER_FAMILY@
+AST_NESTED_FUNCTIONS = @AST_NESTED_FUNCTIONS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -226,10 +231,8 @@ CAT = @CAT@
 CC = @CC@
 CCACHE = @CCACHE@
 CCDEPMODE = @CCDEPMODE@
-CC_works = @CC_works@
 CFLAGS = @CFLAGS@
 CHANGELOG_OLDEST = @CHANGELOG_OLDEST@
-CLANG_BLOCKS_LIBS = @CLANG_BLOCKS_LIBS@
 COVERAGE_CFLAGS = @COVERAGE_CFLAGS@
 COVERAGE_LDFLAGS = @COVERAGE_LDFLAGS@
 CPP = @CPP@

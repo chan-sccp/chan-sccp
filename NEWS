@@ -2,6 +2,7 @@ Version: 4.2.0_RC3
 ==================
 New Features in V4.2
  - Same as RC2
+ - Enums processed using awk generation script
 
 Bug Fixes
  - Fixed Some asterisk-12 / asterisk-13 issues
