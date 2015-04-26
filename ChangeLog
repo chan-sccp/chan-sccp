@@ -1,5 +1,9 @@
 2015-04-26  ddegroot
 
+	* [r6042] .version, ChangeLog, NEWS, configure, debian/changelog,
+	  src/Makefile.am, src/Makefile.in, src/config.h.in: Release
+	  V4.2.0_RC3
+
 	* [r6041] configure, configure.ac, src/config.h.in,
 	  src/pbx_impl/ast/include_asterisk_autoconfig.h[ADD]: Enhancement:
 	  Replace the old method to remove PACKAGE variable, which where
