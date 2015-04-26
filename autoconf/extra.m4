@@ -213,46 +213,6 @@ dnl	AC_FUNC_STRERROR_R
 	AC_SUBST(GDB)
 ])
 
-AC_DEFUN([CS_CC_VERSION_CHECK], [
-	CC_works=0
-
-	case "${CC}" in
-		*gcc*)
-			CC_VERSION=`${CC} -dumpversion`
-			CC_VERSION_MAJOR=$(echo $CC_VERSION | cut -d'.' -f1)
-			CC_VERSION_MINOR=$(echo $CC_VERSION | cut -d'.' -f2)
-			if test ${CC_VERSION_MAJOR:-0} -ge 4; then
-				if test ${CC_VERSION_MINOR:-0} -ge 3; then
-					CC_works=1
-					AC_DEFINE([GCC_NESTED],1,[GCC_Nested Defined...])
-				fi
-			else
-				echo "gcc: ${CC_VERSION}"
-			fi
-			GCC=yes
-			;;
-		clang*)
-			if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - 2>&1`" = ""; then
-				CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
-				AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
-				CC_works=1
-			else			
-				if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
-					CFLAGS_saved="${CFLAGS_saved} -fblocks"
-					AC_SUBST([CLANG_BLOCKS_LIBS],[-lBlocksRuntime])
-					AC_DEFINE([CLANG_BLOCKS],1,[CLANG_BLOCKS Defined...])
-					CC_works=1
-				fi
-			fi
-			clang=yes
-			;;
-	esac
-	AC_SUBST([CC_works])
-	if test CC_works = 0; then
-		AC_MSG_ERROR([Compiler ${CC} not supported (minimum required gcc > 4.3 / llvm-gcc > 4.3 / clang > 3.3 + libblocksruntime-dev])
-	fi
-])
-
 AC_DEFUN([CS_FIND_LIBRARIES], [
 	LIBS_save=$LIBS
 	LIBS="$LIBS"

@@ -762,8 +762,10 @@ PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC
 acx_pthread_config
-CC_works
-CLANG_BLOCKS_LIBS
+AST_C_COMPILER_FAMILY
+AST_CLANG_BLOCKS
+AST_CLANG_BLOCKS_LIBS
+AST_NESTED_FUNCTIONS
 CXXCPP
 OTOOL64
 OTOOL
@@ -19160,50 +19162,92 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 
-	CC_works=0
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for RAII support" >&5
+$as_echo_n "checking for RAII support... " >&6; }
+	AST_C_COMPILER_FAMILY=""
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
 
-	case "${CC}" in
-		*gcc*)
-			CC_VERSION=`${CC} -dumpversion`
-			CC_VERSION_MAJOR=$(echo $CC_VERSION | cut -d'.' -f1)
-			CC_VERSION_MINOR=$(echo $CC_VERSION | cut -d'.' -f2)
-			if test ${CC_VERSION_MAJOR:-0} -ge 4; then
-				if test ${CC_VERSION_MINOR:-0} -ge 3; then
-					CC_works=1
 
-$as_echo "#define GCC_NESTED 1" >>confdefs.h
+int
+main ()
+{
 
-				fi
-			else
-				echo "gcc: ${CC_VERSION}"
-			fi
-			GCC=yes
-			;;
-		clang*)
+				#if defined(__clang__)
+				choke
+				#endif
+
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+
+						{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gcc -fnested-functions" >&5
+$as_echo_n "checking for gcc -fnested-functions... " >&6; }
+			AST_NESTED_FUNCTIONS=""
+			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+
+int
+main ()
+{
+auto void foo(void); void foo(void) {}
+  ;
+  return 0;
+}
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+else
+
+					AST_NESTED_FUNCTIONS="-fnested-functions"
+					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+			AST_C_COMPILER_FAMILY="gcc"
+
+else
+
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for clang -fblocks" >&5
+$as_echo_n "checking for clang -fblocks... " >&6; }
+			AST_CLANG_BLOCKS_LIBS=""
+			AST_CLANG_BLOCKS=""
 			if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - 2>&1`" = ""; then
-				CFLAGS_saved="${CFLAGS_saved} -fblocks -Wunreachable-code"
-
-$as_echo "#define CLANG_BLOCKS 1" >>confdefs.h
-
-				CC_works=1
+				AST_CLANG_BLOCKS="-Wno-unknown-warning-option -fblocks"
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+			elif test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c -lBlocksRuntime - 2>&1`" = ""; then
+				AST_CLANG_BLOCKS_LIBS="-lBlocksRuntime"
+				AST_CLANG_BLOCKS="-fblocks"
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 			else
-				if test "`echo "int main(){return ^{return 42;}();}" | ${CC} -o /dev/null -fblocks -x c - -lBlocksRuntime 2>&1`" = ""; then
-					CFLAGS_saved="${CFLAGS_saved} -fblocks"
-					CLANG_BLOCKS_LIBS=-lBlocksRuntime
-
-
-$as_echo "#define CLANG_BLOCKS 1" >>confdefs.h
-
-					CC_works=1
-				fi
+				as_fn_error $? "BlocksRuntime is required for clang, please install libblocksruntime" "$LINENO" 5
 			fi
-			clang=yes
-			;;
-	esac
+			CFLAGS_saved="${CFLAGS_saved} ${AST_CLANG_BLOCKS}"
 
-	if test CC_works = 0; then
-		as_fn_error $? "Compiler ${CC} not supported (minimum required gcc > 4.3 / llvm-gcc > 4.3 / clang > 3.3 + libblocksruntime-dev" "$LINENO" 5
+
+			AST_C_COMPILER_FAMILY="clang"
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	if test -z "${AST_C_COMPILER_FAMILY}"; then
+		as_fn_error $? "Compiler ${CC} not supported. Mminimum required gcc-4.3 / llvm-gcc-4.3 / clang-3.3 + libblocksruntime-dev" "$LINENO" 5
 	fi
+
 
 
 
@@ -32176,7 +32220,7 @@ echo "         HOST_CC : ${CC}"
 fi
 echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"
