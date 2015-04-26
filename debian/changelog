@@ -1,3 +1,15 @@
+chan-sccp-b (4.2.0-2ppa5836~vividubuntu1) UNRELEASED; urgency=medium
+
+  * New Features in V4.2
+    - Same as RC2
+
+  * Bug Fixes
+    - Fixed Some asterisk-12 / asterisk-13 issues
+     - Fixed buttontemplate instance issue
+     - Serveral smaller / bigger fixes (Check ChangeLog for details)
+
+ -- Diederik de Groot <dkgroot@moviebox.talon.local>  Sun, 26 Apr 2015 14:53:29 +0200
+
 chan-sccp-b (4.2.0-2ppa5836~vivid) vivid; urgency=high
   [ Diederik de Groot ]
   * Changes
