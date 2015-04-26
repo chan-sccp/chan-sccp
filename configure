@@ -32159,14 +32159,6 @@ if test -n "$ac_unrecognized_opts" && test "$enable_option_checking" != no; then
 $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
 fi
 
-
-# Fix PACKAGE_??? redefinition by asterisk/autoconfig.h
-cp src/config.h src/config.h.bak
-grep -v PACKAGE_ src/config.h.bak > src/config.h
-if test -f src/config.h.in; then
-	cp src/config.h.in src/config.h.in.bak
-	grep -v PACKAGE_ src/config.h.in.bak > src/config.h.in
-fi
 touch src/stamp-h1
 
 echo
