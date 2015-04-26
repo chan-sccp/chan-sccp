@@ -745,6 +745,12 @@ void sccp_feat_handle_conference(sccp_device_t * d, sccp_line_t * l, uint8_t lin
 		return;
 	}
 
+/*	if (sccp_device_numberOfChannels(d) < 2) {
+		sccp_dev_displayprompt(d, lineInstance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_CONFERENCE, SCCP_DISPLAYSTATUS_TIMEOUT);
+		pbx_log(LOG_NOTICE, "%s: You need at least 2 participant to start a conference\n", DEV_ID_LOG(d));
+		return;
+	}*/
+
 	/* look if we have a call */
 	if (channel) {
 		if (!sccp_channel_hold(channel)) {
@@ -810,7 +816,7 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
 	uint8_t num = sccp_device_numberOfChannels(d);
 	int instance = sccp_device_find_index_for_line(d, l->name);
 
-	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
+	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp_device_numberOfChannels %d.\n", DEV_ID_LOG(d), num);
 
 	if (d->conference /* && num > 3 */ ) {
 		/* if we have selected channels, add this to conference */
@@ -822,7 +828,9 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
 				if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 					if ((bridged_channel = PBX(get_bridged_channel)(channel->owner))) {
 						sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(channel->state));
-						sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel);
+						if (!sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel)) {
+							sccp_dev_displayprompt(device, lineInstance, c->callid, SKINNY_DISP_INVALID_CONFERENCE_PARTICIPANT, SCCP_DISPLAYSTATUS_TIMEOUT);
+						}
 						pbx_channel_unref(bridged_channel);
 					} else {
 						pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
@@ -850,7 +858,9 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
 							if (channel != d->active_channel && channel->state == SCCP_CHANNELSTATE_HOLD) {
 								if ((bridged_channel = PBX(get_bridged_channel)(channel->owner))) {
 									sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(channel->state));
-									sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel);
+									if (!sccp_conference_addParticipatingChannel(d->conference, c, channel, bridged_channel)) {
+										sccp_dev_displayprompt(device, lineInstance, c->callid, SKINNY_DISP_INVALID_CONFERENCE_PARTICIPANT, SCCP_DISPLAYSTATUS_TIMEOUT);
+									}
 									pbx_channel_unref(bridged_channel);
 								} else {
 									pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(channel->owner));
@@ -874,6 +884,7 @@ void sccp_feat_conference_start(sccp_device_t * device, sccp_line_t * l, const u
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: conference not enabled\n", DEV_ID_LOG(d));
 	sccp_dev_displayprompt(d, lineInstance, c->callid, SKINNY_DISP_KEY_IS_NOT_ACTIVE, SCCP_DISPLAYSTATUS_TIMEOUT);
 #endif
+	return;
 }
 
 /*!
@@ -929,7 +940,9 @@ void sccp_feat_join(sccp_device_t * device, sccp_line_t * l, uint8_t lineInstanc
 				pbx_log(LOG_NOTICE, "%s: Joining new participant to conference %d.\n", DEV_ID_LOG(d), d->conference->id);
 				if ((bridged_channel = PBX(get_bridged_channel)(newparticipant_channel->owner))) {
 					sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: sccp conference: channel %s, state: %s.\n", DEV_ID_LOG(d), pbx_channel_name(bridged_channel), sccp_channelstate2str(newparticipant_channel->state));
-					sccp_conference_addParticipatingChannel(d->conference, moderator_channel, newparticipant_channel, bridged_channel);
+					if (!sccp_conference_addParticipatingChannel(d->conference, moderator_channel, newparticipant_channel, bridged_channel)) {
+						sccp_dev_displayprompt(device, lineInstance, c->callid, SKINNY_DISP_INVALID_CONFERENCE_PARTICIPANT, SCCP_DISPLAYSTATUS_TIMEOUT);
+					}
 					pbx_channel_unref(bridged_channel);
 				} else {
 					pbx_log(LOG_ERROR, "%s: sccp conference: bridgedchannel for channel %s could not be found\n", DEV_ID_LOG(d), pbx_channel_name(newparticipant_channel->owner));
