@@ -1582,11 +1582,11 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 			/* do we need this ? -FS */
 #ifdef CS_AST_HAS_FLAG_MOH
 			sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Stop Music On Hold\n", d->id);
-			PBX_CHANNEL_TYPE *pbx_bridged_channel = CS_AST_BRIDGED_CHANNEL(channel->owner);
-
+			PBX_CHANNEL_TYPE *pbx_bridged_channel = PBX(get_bridged_channel)(channel->owner);
 			if (pbx_bridged_channel && pbx_test_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH)) {
 				PBX(moh_stop) (pbx_bridged_channel);						//! \todo use pbx impl
 				pbx_clear_flag(pbx_channel_flags(pbx_bridged_channel), AST_FLAG_MOH);
+				pbx_channel_unref(pbx_bridged_channel);
 			}
 #endif
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Answering channel with state '%s' (%d)\n", DEV_ID_LOG(device), pbx_state2str(pbx_channel_state(channel->owner)), pbx_channel_state(channel->owner));
@@ -2057,7 +2057,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			}
 			AUTO_RELEASE sccp_channel_t *sccp_channel_new = sccp_channel_newcall(channel->line, d, NULL, SKINNY_CALLTYPE_OUTBOUND, pbx_channel_owner, NULL);
 
-			if (sccp_channel_new && (pbx_channel_bridgepeer = CS_AST_BRIDGED_CHANNEL(pbx_channel_owner))) {
+			if (sccp_channel_new && (pbx_channel_bridgepeer = PBX(get_bridged_channel)(pbx_channel_owner))) {
 				pbx_builtin_setvar_helper(sccp_channel_new->owner, "TRANSFEREE", pbx_channel_name(pbx_channel_bridgepeer));
 
 				sccp_dev_set_keyset(d, instance, channel->callid, KEYMODE_OFFHOOKFEAT);
@@ -2067,7 +2067,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && pbx_channel_owner && pbx_channel_bridgepeer)) {
 					//! \todo use pbx impl
 					pbx_builtin_setvar_helper(sccp_channel_new->owner, "BLINDTRANSFER", pbx_channel_name(pbx_channel_bridgepeer));
-					pbx_builtin_setvar_helper(CS_AST_BRIDGED_CHANNEL(channel->owner), "BLINDTRANSFER", pbx_channel_name(sccp_channel_new->owner));
+					pbx_builtin_setvar_helper(pbx_channel_bridgepeer, "BLINDTRANSFER", pbx_channel_name(sccp_channel_new->owner));
 				}
 #else
 				if (blindTransfer || (sccp_channel_new && sccp_channel_new->owner && pbx_channel_owner && pbx_channel_bridgepeer)) {
@@ -2076,6 +2076,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 #endif
 				// should go on, even if there is no bridged channel (yet/anymore) ?
 				d->transferChannels.transferer = sccp_channel_retain(sccp_channel_new);
+				pbx_channel_unref(pbx_channel_bridgepeer);
 			} else if (sccp_channel_new && (pbx_channel_appl(pbx_channel_owner) != NULL)) {
 				// giving up
 				sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Cannot transfer a dialplan application, bridged channel is required on %s-%08X\n", DEV_ID_LOG(d), (channel->line) ? channel->line->name : "(null)", channel->callid);
@@ -2213,8 +2214,8 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	}
 
 	pbx_source_local_channel = sccp_source_local_channel->owner;
-	pbx_source_remote_channel = CS_AST_BRIDGED_CHANNEL(sccp_source_local_channel->owner);
-	pbx_destination_remote_channel = CS_AST_BRIDGED_CHANNEL(sccp_destination_local_channel->owner);
+	pbx_source_remote_channel = PBX(get_bridged_channel)(sccp_source_local_channel->owner);
+	pbx_destination_remote_channel = PBX(get_bridged_channel)(sccp_destination_local_channel->owner);
 	pbx_destination_local_channel = sccp_destination_local_channel->owner;
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: pbx_source_local_channel       %s\n", d->id, pbx_source_local_channel ? pbx_channel_name(pbx_source_local_channel) : "NULL");
@@ -2319,6 +2320,12 @@ void sccp_channel_transfer_complete(sccp_channel_t * sccp_destination_local_chan
 	control_transfer_message = AST_TRANSFER_SUCCESS;
 #endif
 EXIT:
+	if (pbx_source_remote_channel) {
+		pbx_channel_unref(pbx_source_remote_channel);
+	}
+	if (pbx_destination_remote_channel) {
+		pbx_channel_unref(pbx_destination_remote_channel);
+	}
 	if (!sccp_source_local_channel->owner) {
 		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Peer owner disappeared! Can't free resources\n");
 		return;

@@ -746,14 +746,15 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("MAC-Address",		CLI_AMI_LIST_WIDTH, "%s", d->id);
 	CLI_AMI_OUTPUT_PARAM("Protocol Version",	CLI_AMI_LIST_WIDTH, "Supported '%d', In Use '%d'", d->protocolversion, d->inuseprotocolversion);
 	CLI_AMI_OUTPUT_PARAM("Protocol In Use",		CLI_AMI_LIST_WIDTH, "%s Version %d", d->protocol ? d->protocol->name : "NONE", d->protocol ? d->protocol->version : 0);
-	char binstr[33] = "";
+	char binstr[41] = "";
 	CLI_AMI_OUTPUT_PARAM("Device Features",		CLI_AMI_LIST_WIDTH, "%#1x,%s", d->device_features, sccp_dec2binstr(binstr, 40, d->device_features));
 	CLI_AMI_OUTPUT_PARAM("Tokenstate",		CLI_AMI_LIST_WIDTH, "%s", sccp_tokenstate2str(d->status.token));
 	CLI_AMI_OUTPUT_PARAM("Keepalive",		CLI_AMI_LIST_WIDTH, "%d", d->keepalive);
 	CLI_AMI_OUTPUT_PARAM("Registration state",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_registrationstate2str(d->registrationState), d->registrationState);
 	CLI_AMI_OUTPUT_PARAM("State",			CLI_AMI_LIST_WIDTH, "%s(%d)", sccp_devicestate2str(d->state), d->state);
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
-	CLI_AMI_OUTPUT_BOOL("MWI handset light", 	CLI_AMI_LIST_WIDTH, d->mwilight);
+	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s (%d)", sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
+	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
 	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description);
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
 	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_devicetype2str(d->skinny_type), d->skinny_type);

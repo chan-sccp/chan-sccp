@@ -1614,7 +1614,7 @@ sccp_value_changed_t sccp_config_parse_variables(void *dest, const size_t size, 
 		if ((var_value = strchr(var_name, '='))) {
 			*var_value++ = '\0';
 		}
-		if (!sccp_strlen_zero(var_name)) {
+		if (!sccp_strlen_zero(var_name) && !sccp_strlen_zero(var_value)) {
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new variable: %s=%s\n", var_name, var_value);
 			if (!variable) {
 				if (!(variableList = pbx_variable_new(var_name, var_value, ""))) {

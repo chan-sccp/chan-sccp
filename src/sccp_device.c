@@ -812,6 +812,8 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_VGC:
+		case SKINNY_DEVICETYPE_ANALOG_GATEWAY:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			d->hasDisplayPrompt = sccp_device_falseResult;
 			break;
 		case SKINNY_DEVICETYPE_ATA188:
@@ -1571,6 +1573,7 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
 			if (!sccp_strlen_zero(config->button.speeddial.hint)) {
 				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
 			}
+			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);

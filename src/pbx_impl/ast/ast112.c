@@ -3118,7 +3118,8 @@ static int sccp_wrapper_asterisk112_dumpchan(struct ast_channel *c, char *buf, s
 		 min,
 		 sec,
 		 bridge ? bridge->uniqueid : "(Not bridged)",
-		 ast_channel_context(c), ast_channel_exten(c), ast_channel_priority(c), ast_print_group(cgrp, sizeof(cgrp), ast_channel_callgroup(c)), ast_print_group(pgrp, sizeof(pgrp), ast_channel_pickupgroup(c)), ast_channel_appl(c) ? ast_channel_appl(c) : "(N/A)", ast_channel_data(c) ? S_OR(ast_channel_data(c), "(Empty)") : "(None)", (ast_test_flag(ast_channel_flags(c), AST_FLAG_BLOCKING) ? ast_channel_blockproc(c) : "(Not Blocking)"), ast_str_buffer(vars));
+		 ast_channel_context(c), ast_channel_exten(c), ast_channel_priority(c), ast_print_group(cgrp, sizeof(cgrp), ast_channel_callgroup(c)), ast_print_group(pgrp, sizeof(pgrp), ast_channel_pickupgroup(c)), ast_channel_appl(c) ? ast_channel_appl(c) : "(N/A)", ast_channel_data(c) ? S_OR(ast_channel_data(c), "(Empty)") : "(None)", (ast_test_flag(ast_channel_flags(c), AST_FLAG_BLOCKING) ? ast_channel_blockproc(c) : "(Not Blocking)"), ast_str_buffer(vars)
+	);
 
 	ao2_cleanup(bridge);
 	return 0;
@@ -3139,18 +3140,11 @@ static boolean_t sccp_wrapper_asterisk112_channelIsBridged(sccp_channel_t * chan
 
 static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_getBridgeChannel(PBX_CHANNEL_TYPE * pbx_channel)
 {
-	struct ast_bridge_channel *bridge_channel;
-	PBX_CHANNEL_TYPE *bridged_channel = NULL;
-
+	PBX_CHANNEL_TYPE *bridgePeer = NULL;
 	if (pbx_channel) {
-		ast_channel_lock(pbx_channel);
-		bridge_channel = ast_channel_get_bridge_channel(pbx_channel);
-		bridged_channel = ast_channel_ref(bridge_channel->chan);
-		ast_channel_unref(bridge_channel);
-		ast_channel_unlock(pbx_channel);
-		return bridged_channel;
+		bridgePeer = ast_channel_bridge_peer(pbx_channel);		/* return pbx_channel_ref +1 */
 	}
-	return NULL;
+	return bridgePeer;
 }
 
 static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
@@ -3163,12 +3157,6 @@ static boolean_t sccp_wrapper_asterisk112_attended_transfer(sccp_channel_t * des
 	PBX_CHANNEL_TYPE *pbx_destination_local_channel = destination_channel->owner;
 	PBX_CHANNEL_TYPE *pbx_source_local_channel = source_channel->owner;
 
-/*
-	ast_queue_control(pbx_destination_local_channel, AST_CONTROL_UNHOLD);
-	if (ast_channel_state(pbx_source_local_channel) == AST_STATE_RINGING) {
-		ast_queue_control(pbx_destination_local_channel, AST_CONTROL_RINGING);
-	}
-*/
 	res = ast_bridge_transfer_attended(pbx_destination_local_channel, pbx_source_local_channel);
 	if (res != AST_BRIDGE_TRANSFER_SUCCESS) {
 		pbx_log(LOG_ERROR, "%s: Failed to transfer %s to %s (%u)\n", source_channel->designator, source_channel->designator, destination_channel->designator, res);
@@ -3542,7 +3530,6 @@ struct sccp_pbx_cb sccp_pbx = {
 };
 #endif
 
-#ifdef CS_SCCP_CONFERENCE
 static int register_channel_tech(struct ast_channel_tech *tech)
 {
 	tech->capabilities = ast_format_cap_alloc(0);
@@ -3562,7 +3549,6 @@ static void unregister_channel_tech(struct ast_channel_tech *tech)
 	ast_channel_unregister(tech);
 	tech->capabilities = ast_format_cap_destroy(tech->capabilities);
 }
-#endif
 
 #if defined(__cplusplus) || defined(c_plusplus)
 static ast_module_load_result load_module(void)
@@ -3610,7 +3596,7 @@ static int load_module(void)
 		return AST_MODULE_LOAD_FAILURE;
 	}
 	if (!load_config()) {
-		if (ast_channel_register(&sccp_tech)) {
+		if (register_channel_tech(&sccp_tech)) {
 			pbx_log(LOG_ERROR, "Unable to register channel class SCCP\n");
 			return AST_MODULE_LOAD_FAILURE;
 		}
@@ -3645,7 +3631,7 @@ static int unload_module(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Unregister SCCP Channel Tech\n");
 
 	sccp_tech.capabilities = ast_format_cap_destroy(sccp_tech.capabilities);
-	ast_channel_unregister(&sccp_tech);
+	unregister_channel_tech(&sccp_tech);
 	sccp_unregister_dialplan_functions();
 	sccp_unregister_cli();
 	sccp_mwi_module_stop();

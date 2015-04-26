@@ -731,7 +731,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 #ifdef CS_DYNAMIC_SPEEDDIAL
 						if (d->inuseprotocolversion >= 15) {
 							btn[i].type = 0x15;
-							buttonconfig->instance = btn[i].instance = serviceInstance++;
+							buttonconfig->instance = btn[i].instance = speeddialInstance++;
 						} else 
 #endif
 						{
@@ -748,7 +748,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 				} else if (buttonconfig->type == FEATURE && !sccp_strlen_zero(buttonconfig->label)
 					   && (btn[i].type == SCCP_BUTTONTYPE_MULTI)) {
 
-					buttonconfig->instance = btn[i].instance = serviceInstance++;
+					buttonconfig->instance = btn[i].instance = speeddialInstance++;
 
 					switch (buttonconfig->button.feature.id) {
 						case SCCP_FEATURE_HOLD:
