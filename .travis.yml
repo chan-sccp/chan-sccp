@@ -18,14 +18,14 @@ before_install:
  - echo "deb http://archive.ubuntu.com/ubuntu ${REPOS}-updates main restricted universe multiverse"    | sudo tee -a /etc/apt/sources.list.d/trusty.list
  - echo "deb http://security.ubuntu.com/ubuntu/ ${REPOS}-security main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list.d/trusty.list
  - echo "deb http://archive.canonical.com/ubuntu/ ${REPOS} partner"                                    | sudo tee -a /etc/apt/sources.list.d/trusty.list
- if (${REPOS} = 'trusty13') {
-   - sudo add-apt-repository 'ppa:jan-hoffmann/asterisk13' -y
-   - sudo apt-get update -qq
-   - sudo apt-get install -qq libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg
- } else {
-   - sudo apt-get update -qq
-   - sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules
- }
+ - if [${REPOS} != "trusty13"]; then
+     sudo apt-get update -qq
+     sudo apt-get install -qq asterisk asterisk-dev asterisk-config asterisk-modules
+   else
+     sudo add-apt-repository 'ppa:jan-hoffmann/asterisk13' -y
+     sudo apt-get update -qq
+     sudo apt-get install -qq libpj2 libpjmedia2 libpjnath2 libpjproject-dev libpjsip2 libpjsua2 libpjsua2-2 asterisk asterisk-dev asterisk-config asterisk-modules asterisk-dbg
+   fi
 
 # Prepare Configure Script
 before_script:
