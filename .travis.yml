@@ -27,7 +27,7 @@ before_install:
      echo "deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted universe multiverse"      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
      echo "deb http://security.ubuntu.com/ubuntu/ trusty-security main restricted universe multiverse"   | sudo tee -a /etc/apt/sources.list.d/trusty.list;
      echo "deb http://archive.canonical.com/ubuntu/ trusty partner"                                      | sudo tee -a /etc/apt/sources.list.d/trusty.list;
-     apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 9C245DE2;
+     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 9C245DE2;
      echo "deb http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"                      | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      echo "deb-src http://ppa.launchpad.net/jan-hoffmann/asterisk13/ubuntu trusty main"			 | sudo tee -a /etc/apt/sources.list.d/asterisk13.list;
      sudo apt-get update -qq;
