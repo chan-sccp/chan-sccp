@@ -12,8 +12,7 @@
 #ifndef CHAN_SCCP_CONFIG_H
 #define CHAN_SCCP_CONFIG_H
 
-#include <asterisk/autoconfig.h>
-#include "pbx_impl/ast/undefine_asterisk_package.h"
+#include "pbx_impl/ast/include_asterisk_autoconfig.h"
 
 
 /* Define if building universal (internal helper macro) */
