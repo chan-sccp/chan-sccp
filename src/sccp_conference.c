@@ -350,16 +350,22 @@ static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participan
 	if (participant) {
 		if (!(PBX(allocTempPBXChannel) (participant_ast_channel, &participant->conferenceBridgePeer))) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Creation of Temp Channel Failed. Exiting.\n", conference->id);
+			pbx_hangup(participant->conferenceBridgePeer);
+			pbx_channel_unref(participant_ast_channel);
 			return FALSE;
+		}
+		if (!sccp_strlen_zero(conference->playback_language)) {
+			PBX(set_language) (conference->playback_channel, conference->playback_language);
 		}
 		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
 			pbx_hangup(participant->conferenceBridgePeer);
-			//participant_ast_channel = pbx_channel_unref(participant_ast_channel);
+			pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
 		if (pbx_pthread_create_background(&participant->joinThread, NULL, sccp_conference_thread, participant) < 0) {
 			pbx_hangup(participant->conferenceBridgePeer);
+			pbx_channel_unref(participant->conferenceBridgePeer);
 			return FALSE;
 		}
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Added Participant %d (Channel: %s)\n", conference->id, participant->id, pbx_channel_name(participant->conferenceBridgePeer));
@@ -459,8 +465,9 @@ void pbx_builtin_setvar_int_helper(PBX_CHANNEL_TYPE * channel, const char *var_n
 #if HAVE_PBX_CEL_H
 #include <asterisk/cel.h>
 #endif
-void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * conferenceSCCPChannel, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel)
+boolean_t sccp_conference_addParticipatingChannel(sccp_conference_t * conference, sccp_channel_t * conferenceSCCPChannel, sccp_channel_t * originalSCCPChannel, PBX_CHANNEL_TYPE * pbxChannel)
 {
+	boolean_t res = FALSE;
 	if (!conference->isLocked) {
 		/* \todo Missing either a participant release or a specific retain to cary it over to global the participant list */
 		sccp_conference_participant_t *participant = sccp_conference_createParticipant(conference);
@@ -480,7 +487,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
 			}
-
+			pbx_channel_ref(pbxChannel);
 			if (sccp_conference_masqueradeChannel(pbxChannel, conference, participant)) {
 				sccp_conference_addParticipant_toList(conference, participant);
 				if (channel && device) {							// SCCP Channel
@@ -501,6 +508,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 #if ASTERISK_VERSION_GROUP>106
 				pbx_indicate(participant->conferenceBridgePeer, AST_CONTROL_CONNECTED_LINE);
 #endif
+				res = TRUE;
 			} else {
 				// Masq Error
 				participant = sccp_participant_release(participant);
@@ -512,6 +520,7 @@ void sccp_conference_addParticipatingChannel(sccp_conference_t * conference, scc
 			pbx_stream_and_wait(pbxChannel, "conf-locked", "");
 		}
 	}
+	return res;
 }
 
 /*!

@@ -1080,117 +1080,32 @@ static boolean_t sccp_wrapper_asterisk113_allocPBXChannel(sccp_channel_t * chann
 	return TRUE;
 }
 
-/*
- * \brief 'after_bridge' callback function used by masqueradeHelper to move/masquerade a channel out of a running bridge, which is not owned by our current thread
+/*!
+ * \brief Uses ast_channel_move instead of the old masquerade procedure to force a channel into a bridge and hangup the peer channel
  */
-static void masqueradeHelper_after_bridge_move_channel(struct ast_channel *chan_bridged, void *data)
-{
-	// now that chan_bridged is no longer part of a bridge, we can masquarade/move it into our temp channel (in our thread)
-	struct ast_channel *chan_target = data;
-	struct ast_party_connected_line connected_target;
-	unsigned char connected_line_data[1024];
-	int payload_size;
-
-	ast_party_connected_line_init(&connected_target);
-
-	ast_channel_lock(chan_target);
-	ast_party_connected_line_copy(&connected_target, ast_channel_connected(chan_target));
-	ast_channel_unlock(chan_target);
-	ast_party_id_reset(&connected_target.priv);
-
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper 'after_bridge' callback) executing. Masquerade Channels %s -> %s\n", ast_channel_name(chan_bridged), ast_channel_name(chan_target));
-	if (ast_channel_move(chan_target, chan_bridged)) {
-		ast_log(LOG_WARNING, "(masqueradeHelper 'after' callback) Channel Move failed for '%s'\n", ast_channel_name(chan_bridged));
-		ast_softhangup(chan_target, AST_SOFTHANGUP_DEV);
-		ast_party_connected_line_free(&connected_target);
-		ao2_cleanup(chan_target);
-		return;
-	}
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper 'after_bridge' callback) Channels have been switched. New Channel: %s. Old Channel: %s\n", ast_channel_name(chan_target), ast_channel_name(chan_bridged));
-
-	// not sure if required ??
-	if ((payload_size = ast_connected_line_build_data(connected_line_data, sizeof(connected_line_data), &connected_target, NULL)) != -1) {
-		struct ast_control_read_action_payload *frame_payload;
-		int frame_size;
-
-		frame_size = payload_size + sizeof(*frame_payload);
-		frame_payload = ast_alloca(frame_size);
-		frame_payload->action = AST_FRAME_READ_ACTION_CONNECTED_LINE_MACRO;
-		frame_payload->payload_size = payload_size;
-		memcpy(frame_payload->payload, connected_line_data, payload_size);
-		ast_queue_control_data(chan_target, AST_CONTROL_READ_ACTION, frame_payload, frame_size);
-	}
-	// hangup masquerade channel
-	ast_hangup(chan_bridged);
-
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper 'after_bridge' callback) finished. %s has been send a hangup.\n", ast_channel_name(chan_bridged));
-
-	ast_party_connected_line_free(&connected_target);
-	ao2_cleanup(chan_target);
-}
-
-/*
- * \brief 'after_bridge' callback function used by masqueradeHelper to handle failure during kicking of the bridged channel
- */
-static void masqueradeHelper_after_bridge_move_channel_fail(enum ast_bridge_after_cb_reason reason, void *data)
-{
-	struct ast_channel *chan_target = data;
-
-	ast_log(LOG_WARNING, "(masqueradeHelper 'after_bridge' failure handling callback) Unable to complete transfer: %s\n", ast_bridge_after_cb_reason_string(reason));
-	ast_softhangup(chan_target, AST_SOFTHANGUP_DEV);
-	ao2_cleanup(chan_target);
-}
-
-/*
- * \brief masqueradeHelper function used by sccp_conference to gain control over a bridged channel, which is not currently controlled by the running thread.
- * We used to be able to masquerade a channel out of such a 'remote' bridge, to gain control.
- * In asterisk-12 we need to setup a callback and then kick the channel out of the bridge (kick can be send from any thread). After the channel leaves the bridge it will be under our
- * control to do with as we please.
- */
-#define BRIDGE_CHANNEL_ACTION_DEFERRED_DISSOLVING 1001
 static boolean_t sccp_wrapper_asterisk113_masqueradeHelper(PBX_CHANNEL_TYPE * pbxChannel, PBX_CHANNEL_TYPE * pbxTmpChannel)
 {
-	pbx_moh_stop(pbxChannel);
+	boolean_t res = FALSE;
+	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) answer temp: %s\n", ast_channel_name(pbxTmpChannel));
 
-	// To gain control of a bridged channel which is executing inside another thread we need to kick it from the bridge and have a callback function finish the masquerade
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper) %s -> %s\n", ast_channel_name(pbxChannel), ast_channel_name(pbxTmpChannel));
-
-	pbx_channel_lock(pbxChannel);
-	struct ast_bridge *bridge = ast_channel_get_bridge(pbxChannel);						// returns reffed
-	struct ast_bridge_channel *bridge_channel = ast_channel_get_bridge_channel(pbxChannel);			// returns not reffed
-	pbx_channel_unlock(pbxChannel);
-
-	struct ast_channel *chan_target = ast_channel_ref(pbxTmpChannel);
-
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper) setup 'after' callback %s -> %s\n", ast_channel_name(pbxChannel), ast_channel_name(pbxTmpChannel));
-	if (ast_bridge_set_after_callback(pbxChannel, masqueradeHelper_after_bridge_move_channel, masqueradeHelper_after_bridge_move_channel_fail, ast_channel_ref(chan_target))) {
-		ast_softhangup(chan_target, AST_SOFTHANGUP_DEV);
-
-		/* Release the ref we tried to pass to ast_bridge_set_after_callback(). */
-		ast_channel_unref(chan_target);
+	ast_raw_answer(pbxTmpChannel);
+//	ast_cdr_reset(ast_channel_name(pbxTmpChannel), 0);
+	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) replace pbxTmpChannel: %s with %s (move)\n", ast_channel_name(pbxTmpChannel), ast_channel_name(pbxChannel));
+	if (!ast_channel_move(pbxTmpChannel, pbxChannel)) {
+		pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) move succeeded. Hanging up orphan: %s\n", ast_channel_name(pbxChannel));
+		/* Chan is now an orphaned zombie.  Destroy it. */
+		ast_hangup(pbxChannel);
+		res = TRUE;
 	}
-	sccp_log(DEBUGCAT_CONFERENCE) (VERBOSE_PREFIX_2 "(masqueradeHelper) kick %s from bridge\n", ast_channel_name(pbxChannel));
-
-	// time to kick the channel from the original bridge and catch it on the other side
-	ast_bridge_channel_kick(bridge_channel, AST_CAUSE_NORMAL_CLEARING);
-
-	// hangup old bridge, which is not needed any more
-	//ast_bridge_destroy(bridge, AST_CAUSE_NORMAL_CLEARING);		(causes !frack, replaced by bridge_dissolve)
-
-	// dissolve the old bridge (taken from bridge.c:bridge_dissolve)
-	struct ast_bridge_channel *other_bridge_channel;
-	AST_LIST_TRAVERSE(&bridge->channels, other_bridge_channel, entry) {
-		ast_bridge_depart(other_bridge_channel->chan);
-	}
-	ao2_cleanup(bridge);
-
-	return TRUE;
+	pbx_log(LOG_NOTICE, "SCCP: (masqueradeHelper) remove reference from pbxTmpChannel: %s\n", ast_channel_name(pbxTmpChannel));
+	pbxTmpChannel = ast_channel_unref(pbxTmpChannel);
+	return res;
 }
 
 static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
-	// struct ast_format tmpfmt;
 	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
+	struct ast_assigned_ids assignedids = {NULL, NULL};
 
 	struct ast_format *ast_format;
 	unsigned int framing;
@@ -1199,9 +1114,19 @@ static boolean_t sccp_wrapper_asterisk113_allocTempPBXChannel(PBX_CHANNEL_TYPE *
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) no pbx channel provided\n");
 		return FALSE;
 	}
+/*
+	assignedids.uniqueid = ast_channel_uniqueid(pbxSrcChannel);
+	{
+		char *uniqueid2;
+		uniqueid2 = ast_alloca(strlen(assignedids.uniqueid) + 3);
+		strcpy(uniqueid2, assignedids.uniqueid);
+		strcat(uniqueid2, ";2");
+		assignedids.uniqueid2 = uniqueid2;
+	}
+*/
 
 	ast_channel_lock(pbxSrcChannel);
-	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), NULL, pbxSrcChannel, ast_channel_amaflags(pbxSrcChannel), "%s-TMP", ast_channel_name(pbxSrcChannel));
+	pbxDstChannel = ast_channel_alloc(0, AST_STATE_DOWN, 0, 0, ast_channel_accountcode(pbxSrcChannel), pbx_channel_exten(pbxSrcChannel), pbx_channel_context(pbxSrcChannel), &assignedids, pbxSrcChannel, ast_channel_amaflags(pbxSrcChannel), "%s-TMP", ast_channel_name(pbxSrcChannel));
 	if (pbxDstChannel == NULL) {
 		pbx_log(LOG_ERROR, "SCCP: (alloc_conferenceTempPBXChannel) ast_channel_alloc failed\n");
 		return FALSE;
@@ -1261,7 +1186,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_requestAnnouncementChannel(pbx
 	cap = NULL;
 
 	if (!chan) {
-		pbx_log(LOG_ERROR, "SCCP: Requested channel could not be created, cause: %d\n", cause);
+		pbx_log(LOG_ERROR, "SCCP: Requested Unreal channel could not be created, cause: %d\n", cause);
 	 	return NULL;
 	}
 	/* To make sure playback_chan has the same language of that profile */
@@ -1271,9 +1196,10 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_requestAnnouncementChannel(pbx
 		ast_channel_unlock(chan);
 	}
 
-	ast_debug(1, "Created announcer channel '%s' for conference bridge '%s'\n", ast_channel_name(chan), (char *) data);
+	ast_debug(1, "Created Unreal channel '%s' related to '%s'\n", ast_channel_name(chan), (char *) data);
 	return chan;
 }
+
 
 int sccp_wrapper_asterisk113_hangup(PBX_CHANNEL_TYPE * ast_channel)
 {
