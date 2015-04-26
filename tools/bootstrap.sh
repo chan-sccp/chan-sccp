@@ -63,7 +63,7 @@ autoconf${MY_AC_VER}
 
 echo "Running configure script..."
 echo
-if test -f config.log; then
+if test -f config.status; then
 	make
 else
 	./configure
