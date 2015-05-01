@@ -799,6 +799,7 @@ enum devicetype {
 //	SKINNY_DEVICETYPE_SPA_512G,			=?????,"Cisco SPA 512G",		// 1 line  / 1Gb
 //	SKINNY_DEVICETYPE_SPA_514G,			=?????,"Cisco SPA 514G",		// 4 lines / 1Gb
 	SKINNY_DEVICETYPE_SPA_521S,			=80000,"Cisco SPA 521S",
+	SKINNY_DEVICETYPE_SPA_524SG,			=80001,"Cisco SPA 524SG",		// 4 lines
 	SKINNY_DEVICETYPE_SPA_525G,			=80005,"Cisco SPA 525G",		// 5 lines / color / wifi / bluetooth
 	SKINNY_DEVICETYPE_SPA_525G2, 			=80009,"Cisco SPA 525G2",		// 5 lines / color / wifi / bluetooth
 

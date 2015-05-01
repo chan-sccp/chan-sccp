@@ -865,6 +865,7 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_SPA_504G:
+		case SKINNY_DEVICETYPE_SPA_524SG:
 			for (i = 0; i < 4; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
