@@ -1878,9 +1878,9 @@ void sccp_dev_postregistration(void *data)
 	}
 
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
-
-	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", lastNumber, sizeof(lastNumber))) {
-		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, 1);
+	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", buffer, sizeof(buffer))) {
+		sscanf(buffer,"%80[^;];lineInstance=%d", lastNumber, &instance);
+		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, instance);
 		if(linedevice){ 
 			sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
 		}
@@ -1947,8 +1947,10 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 		d->linesRegistered = FALSE;
 		sprintf(family, "SCCP/%s", d->id);
 		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
+		char buffer[SCCP_MAX_EXTENSION+16] = "\0";
 		if (!sccp_strlen_zero(d->redialInformation.number)) {
-			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->redialInformation.number);
+			sprintf (buffer, "%s;lineInstance=%d", d->redialInformation.number, d->redialInformation.lineInstance);
+			PBX(feature_addToDatabase) (family, "lastDialedNumber", buffer);
 		}
 
 		/* hang up open channels and remove device from line */
