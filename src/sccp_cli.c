@@ -793,7 +793,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Early RTP",		CLI_AMI_LIST_WIDTH, "%s", sccp_earlyrtp2str(d->earlyrtp));
 	CLI_AMI_OUTPUT_PARAM("Device State (Acc.)",	CLI_AMI_LIST_WIDTH, "%s", sccp_accessorystate2str(d->accessorystatus));
 	CLI_AMI_OUTPUT_PARAM("Last Used Accessory",	CLI_AMI_LIST_WIDTH, "%s", sccp_accessory2str(d->accessoryused));
-	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s", d->lastNumber);
+	CLI_AMI_OUTPUT_PARAM("Last dialed number",	CLI_AMI_LIST_WIDTH, "%s (%d)", d->redialInformation.number, d->redialInformation.lineInstance);
 	CLI_AMI_OUTPUT_PARAM("Default line instance",	CLI_AMI_LIST_WIDTH, "%d", d->defaultLineInstance);
 	CLI_AMI_OUTPUT_PARAM("Custom Background Image",	CLI_AMI_LIST_WIDTH, "%s", d->backgroundImage ? d->backgroundImage : "---");
 	CLI_AMI_OUTPUT_PARAM("Custom Ring Tone",	CLI_AMI_LIST_WIDTH, "%s", d->ringtone ? d->ringtone : "---");
@@ -814,7 +814,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_BOOL("conf_mute_on_entry",	CLI_AMI_LIST_WIDTH, d->conf_mute_on_entry);
 	CLI_AMI_OUTPUT_PARAM("conf_music_on_hold_class",CLI_AMI_LIST_WIDTH, "%s", d->conf_music_on_hold_class);
 	CLI_AMI_OUTPUT_BOOL("conf_show_conflist",       CLI_AMI_LIST_WIDTH, d->conf_show_conflist);
-	CLI_AMI_OUTPUT_BOOL("conflist_active",       CLI_AMI_LIST_WIDTH, d->conferencelist_active);
+	CLI_AMI_OUTPUT_BOOL("conflist_active",		CLI_AMI_LIST_WIDTH, d->conferencelist_active);
 #endif
 	if (s) {
 		astman_append(s, "\r\n");
@@ -1197,54 +1197,58 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 		}
 		local_line_total++;
 	}
-	CLI_AMI_OUTPUT_PARAM("Name", CLI_AMI_LIST_WIDTH, "%s", l->name ? l->name : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Description", CLI_AMI_LIST_WIDTH, "%s", l->description ? l->description : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Label", CLI_AMI_LIST_WIDTH, "%s", l->label ? l->label : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("ID", CLI_AMI_LIST_WIDTH, "%s", l->id ? l->id : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Pin", CLI_AMI_LIST_WIDTH, "%s", l->pin ? l->pin : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("VoiceMail number", CLI_AMI_LIST_WIDTH, "%s", l->vmnum ? l->vmnum : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Transfer to Voicemail", CLI_AMI_LIST_WIDTH, "%s", l->trnsfvm ? l->trnsfvm : "No");
-	CLI_AMI_OUTPUT_BOOL("MeetMe enabled", CLI_AMI_LIST_WIDTH, l->meetme);
-	CLI_AMI_OUTPUT_PARAM("MeetMe number", CLI_AMI_LIST_WIDTH, "%s", l->meetmenum);
-	CLI_AMI_OUTPUT_PARAM("MeetMe Options", CLI_AMI_LIST_WIDTH, "%s", l->meetmeopts);
-	CLI_AMI_OUTPUT_PARAM("Context", CLI_AMI_LIST_WIDTH, "%s (%s)", l->context ? l->context : "<not set>", pbx_context_find(l->context) ? "exists" : "does not exist !!");
-	CLI_AMI_OUTPUT_PARAM("Language", CLI_AMI_LIST_WIDTH, "%s", l->language ? l->language : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Account Code", CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Musicclass", CLI_AMI_LIST_WIDTH, "%s", l->musicclass ? l->musicclass : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("AmaFlags", CLI_AMI_LIST_WIDTH, "%d", l->amaflags);
+	/* *INDENT-OFF* */
+	CLI_AMI_OUTPUT_PARAM("Name", 			CLI_AMI_LIST_WIDTH, "%s", l->name ? l->name : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Description", 		CLI_AMI_LIST_WIDTH, "%s", l->description ? l->description : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Label", 			CLI_AMI_LIST_WIDTH, "%s", l->label ? l->label : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("ID", 			CLI_AMI_LIST_WIDTH, "%s", l->id ? l->id : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Pin", 			CLI_AMI_LIST_WIDTH, "%s", l->pin ? l->pin : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("VoiceMail number", 	CLI_AMI_LIST_WIDTH, "%s", l->vmnum ? l->vmnum : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Transfer to Voicemail",	CLI_AMI_LIST_WIDTH, "%s", l->trnsfvm ? l->trnsfvm : "No");
+	CLI_AMI_OUTPUT_BOOL("MeetMe enabled",		CLI_AMI_LIST_WIDTH, l->meetme);
+	CLI_AMI_OUTPUT_PARAM("MeetMe number",		CLI_AMI_LIST_WIDTH, "%s", l->meetmenum);
+	CLI_AMI_OUTPUT_PARAM("MeetMe Options",		CLI_AMI_LIST_WIDTH, "%s", l->meetmeopts);
+	CLI_AMI_OUTPUT_PARAM("Context",			CLI_AMI_LIST_WIDTH, "%s (%s)", l->context ? l->context : "<not set>", pbx_context_find(l->context) ? "exists" : "does not exist !!");
+	CLI_AMI_OUTPUT_PARAM("Language",		CLI_AMI_LIST_WIDTH, "%s", l->language ? l->language : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Account Code",		CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Musicclass",		CLI_AMI_LIST_WIDTH, "%s", l->musicclass ? l->musicclass : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("AmaFlags",		CLI_AMI_LIST_WIDTH, "%d", l->amaflags);
+	
 	sccp_print_group(callgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, l->callgroup);
-	CLI_AMI_OUTPUT_PARAM("Call Group", CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
+	CLI_AMI_OUTPUT_PARAM("Call Group",		CLI_AMI_LIST_WIDTH, "%s", callgroup_buf ? pbx_str_buffer(callgroup_buf) : "");
 #ifdef CS_SCCP_PICKUP
 	sccp_print_group(pickupgroup_buf, DEFAULT_PBX_STR_BUFFERSIZE, l->pickupgroup);
-	CLI_AMI_OUTPUT_PARAM("Pickup Group", CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
+	CLI_AMI_OUTPUT_PARAM("Pickup Group", 		CLI_AMI_LIST_WIDTH, "%s", pickupgroup_buf ? pbx_str_buffer(pickupgroup_buf) : "");
 #endif
+	
 #ifdef CS_AST_HAS_NAMEDGROUP
-	CLI_AMI_OUTPUT_PARAM("Named Call Group", CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE");
-	CLI_AMI_OUTPUT_PARAM("Named Pickup Group", CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
+	CLI_AMI_OUTPUT_PARAM("Named Call Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedcallgroup ? l->namedcallgroup : "NONE");
+	CLI_AMI_OUTPUT_PARAM("Named Pickup Group",	CLI_AMI_LIST_WIDTH, "%s", l->namedpickupgroup ? l->namedpickupgroup : "NONE");
 #endif
-	CLI_AMI_OUTPUT_PARAM("ParkingLot", CLI_AMI_LIST_WIDTH, "%s", !sccp_strlen_zero(l->parkinglot) ? l->parkinglot : "default");
-	CLI_AMI_OUTPUT_PARAM("Caller ID name", CLI_AMI_LIST_WIDTH, "%s", l->cid_name ? l->cid_name : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Caller ID number", CLI_AMI_LIST_WIDTH, "%s", l->cid_num ? l->cid_num : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Incoming Calls limit", CLI_AMI_LIST_WIDTH, "%d", l->incominglimit);
-	CLI_AMI_OUTPUT_PARAM("Active Channel Count", CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
-	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits", CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
-	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone", CLI_AMI_LIST_WIDTH, "0x%02x", l->secondary_dialtone_tone);
-	CLI_AMI_OUTPUT_BOOL("Echo Cancellation", CLI_AMI_LIST_WIDTH, l->echocancel);
-	CLI_AMI_OUTPUT_BOOL("Silence Suppression", CLI_AMI_LIST_WIDTH, l->silencesuppression);
-	CLI_AMI_OUTPUT_BOOL("Can Transfer", CLI_AMI_LIST_WIDTH, l->transfer);
-	CLI_AMI_OUTPUT_PARAM("DND Action", CLI_AMI_LIST_WIDTH, "%s", (l->dndmode) ? sccp_dndmode2str(l->dndmode) : "Disabled");
+	CLI_AMI_OUTPUT_PARAM("ParkingLot",		CLI_AMI_LIST_WIDTH, "%s", !sccp_strlen_zero(l->parkinglot) ? l->parkinglot : "default");
+	CLI_AMI_OUTPUT_PARAM("Caller ID name",		CLI_AMI_LIST_WIDTH, "%s", l->cid_name ? l->cid_name : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Caller ID number",	CLI_AMI_LIST_WIDTH, "%s", l->cid_num ? l->cid_num : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Incoming Calls limit",	CLI_AMI_LIST_WIDTH, "%d", l->incominglimit);
+	CLI_AMI_OUTPUT_PARAM("Active Channel Count",	CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
+	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits",	CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone",		CLI_AMI_LIST_WIDTH, "0x%02x", l->secondary_dialtone_tone);
+	CLI_AMI_OUTPUT_BOOL("Echo Cancellation",	CLI_AMI_LIST_WIDTH, l->echocancel);
+	CLI_AMI_OUTPUT_BOOL("Silence Suppression",	CLI_AMI_LIST_WIDTH, l->silencesuppression);
+	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, l->transfer);
+	CLI_AMI_OUTPUT_PARAM("DND Action",		CLI_AMI_LIST_WIDTH, "%s", (l->dndmode) ? sccp_dndmode2str(l->dndmode) : "Disabled");
 #ifdef CS_SCCP_REALTIME
-	CLI_AMI_OUTPUT_BOOL("Is Realtime Line", CLI_AMI_LIST_WIDTH, l->realtime);
+	CLI_AMI_OUTPUT_BOOL("Is Realtime Line",		CLI_AMI_LIST_WIDTH, l->realtime);
 #endif
-	CLI_AMI_OUTPUT_BOOL("Pending Delete", CLI_AMI_LIST_WIDTH, l->pendingUpdate);
-	CLI_AMI_OUTPUT_BOOL("Pending Update", CLI_AMI_LIST_WIDTH, l->pendingDelete);
+	CLI_AMI_OUTPUT_BOOL("Pending Delete",		CLI_AMI_LIST_WIDTH, l->pendingUpdate);
+	CLI_AMI_OUTPUT_BOOL("Pending Update",		CLI_AMI_LIST_WIDTH, l->pendingDelete);
 
-	CLI_AMI_OUTPUT_PARAM("Registration Extension", CLI_AMI_LIST_WIDTH, "%s", l->regexten ? l->regexten : "Unset");
-	CLI_AMI_OUTPUT_PARAM("Registration Context", CLI_AMI_LIST_WIDTH, "%s", l->regcontext ? l->regcontext : "Unset");
+	CLI_AMI_OUTPUT_PARAM("Registration Extension",	CLI_AMI_LIST_WIDTH, "%s", l->regexten ? l->regexten : "Unset");
+	CLI_AMI_OUTPUT_PARAM("Registration Context",	CLI_AMI_LIST_WIDTH, "%s", l->regcontext ? l->regcontext : "Unset");
 
-	CLI_AMI_OUTPUT_BOOL("Adhoc Number Assigned", CLI_AMI_LIST_WIDTH, l->adhocNumber ? l->adhocNumber : "No");
-	CLI_AMI_OUTPUT_PARAM("Message Waiting New.", CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.newmsgs);
-	CLI_AMI_OUTPUT_PARAM("Message Waiting Old.", CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.oldmsgs);
+	CLI_AMI_OUTPUT_BOOL("Adhoc Number Assigned",	CLI_AMI_LIST_WIDTH, l->adhocNumber ? l->adhocNumber : "No");
+	CLI_AMI_OUTPUT_PARAM("Message Waiting New.",	CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.newmsgs);
+	CLI_AMI_OUTPUT_PARAM("Message Waiting Old.",	CLI_AMI_LIST_WIDTH, "%i", l->voicemailStatistic.oldmsgs);
+	/* *INDENT-ON* */
 	if (s) {
 		astman_append(s, "\r\n");
 	}

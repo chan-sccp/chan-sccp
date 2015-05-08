@@ -806,7 +806,11 @@ struct sccp_device {
 	char config_type[10];											/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
 	uint16_t maxstreams;											/*!< Maximum number of Stream supported by the device */
 	int tz_offset;												/*!< Timezone OffSet */
-	char lastNumber[SCCP_MAX_EXTENSION];									/*!< Last Dialed Number */
+										
+	struct {
+		char number[SCCP_MAX_EXTENSION];
+		uint16_t lineInstance;
+	} redialInformation;											/*!< Last Dialed Number */
 	boolean_t realtime;											/*!< is it a realtime configuration */
 	char *backgroundImage;											/*!< backgroundimage we will set after device registered */
 	char *ringtone;												/*!< ringtone we will set after device registered */

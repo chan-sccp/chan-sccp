@@ -1222,8 +1222,6 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	sccp_dev_speed_find_byindex(s->device, wanted, FALSE, &k);
 	if (k.valid) {
-		//sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
-		//sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
 		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
 		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
 	} else {
@@ -1245,7 +1243,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle LastNumber Redial Stimulus\n", d->id);
 
-	if (sccp_strlen_zero(d->lastNumber)) {
+	if (sccp_strlen_zero(d->redialInformation.number)) {
 		pbx_log(LOG_NOTICE, "%s: (lastnumberredial) No last number stored to dial\n", d->id);
 		return;
 	}
@@ -1253,14 +1251,14 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 
 	if (channel) {
 		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
-			sccp_copy_string(channel->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
+			sccp_copy_string(channel->dialedNumber, d->redialInformation.number, sizeof(d->redialInformation.number));
 			sccp_pbx_softswitch(channel);
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->redialInformation.number);
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 		}
 	} else {
-		channel = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+		channel = sccp_channel_newcall(l, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 }
 

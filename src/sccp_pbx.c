@@ -533,7 +533,10 @@ int sccp_pbx_answer(sccp_channel_t * channel)
 				* remembers the last dialed number in the same cases, where the dialed number
 				* is being sent - after receiving of RINGOUT -Pavel Troller
 				*/
-				sccp_device_setLastNumberDialed(d, c->dialedNumber); 
+				AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				if(linedevice){ 
+					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+				}
 				if (PBX(set_dialed_number)){
 					PBX(set_dialed_number) (c, c->dialedNumber);
 				}
@@ -1167,7 +1170,10 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 					/* 
 					 * too early to set last dialed number for immediate mode -Pavel Troller
 					 */
-					sccp_device_setLastNumberDialed(d, shortenedNumber);
+					AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					if(linedevice){ 
+						sccp_device_setLastNumberDialed(d, shortenedNumber, linedevice);
+					}
 					if (PBX(set_dialed_number)){
 						PBX(set_dialed_number) (c, shortenedNumber);
 					}

@@ -119,30 +119,36 @@ static void sccp_sk_redial(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_devi
 	}
 #endif
 
-	if (sccp_strlen_zero(d->lastNumber)) {
+	if (sccp_strlen_zero(d->redialInformation.number)) {
 		sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: No number to redial\n", d->id);
 		return;
 	}
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s\n", d->id, d->lastNumber);
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Get ready to redial number %s lineInstance: %d\n", d->id, d->redialInformation.number, d->redialInformation.lineInstance);
 	if (c) {
 		if (c->state == SCCP_CHANNELSTATE_OFFHOOK) {
 			/* we have a offhook channel */
-			sccp_copy_string(c->dialedNumber, d->lastNumber, sizeof(c->dialedNumber));
+			sccp_copy_string(c->dialedNumber, d->redialInformation.number, sizeof(c->dialedNumber));
 			sccp_pbx_softswitch(c);
 		}
 		/* here's a KEYMODE error. nothing to do */
 		return;
 	} else {
-		if (l) {
+		if (l && !(d->redialInformation.lineInstance > 0)) {
 			line = sccp_line_retain(l);
 		} else {
-			line = sccp_dev_get_activeline(d);
+			if (d->redialInformation.lineInstance > 0){ 						/* try to get line by instance */
+				line = sccp_line_find_byid(d, d->redialInformation.lineInstance);
+			}
+			
+			if(!line){
+				line = sccp_dev_get_activeline(d);
+			}
 		}
 		if (line) {
 			AUTO_RELEASE sccp_channel_t *new_channel = NULL;
 
-			new_channel = sccp_channel_newcall(line, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+			new_channel = sccp_channel_newcall(line, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 			line = sccp_line_release(line);
 		} else {
 			sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: Redial pressed on a device without a registered line\n", d->id);
