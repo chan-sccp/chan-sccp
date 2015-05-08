@@ -607,7 +607,10 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					 * remembers the last dialed number in the same cases, where the dialed number
 					 * is being sent - after receiving of RINGOUT -Pavel Troller
 					 */
-					sccp_device_setLastNumberDialed(d, c->dialedNumber);
+					AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					if(linedevice){ 
+						sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+					}
 					sccp_wrapper_asterisk11_setDialedNumber(c, c->dialedNumber);
 				}
 				PBX(set_callstate) (c, AST_STATE_RING);
@@ -682,7 +685,10 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					* remembers the last dialed number in the same cases, where the dialed number
 					* is being sent - after receiving of PROCEEDING -Pavel Troller
 					*/
-				sccp_device_setLastNumberDialed(d, c->dialedNumber);
+				AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				if(linedevice){ 
+					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+				}
 				sccp_wrapper_asterisk11_setDialedNumber(c, c->dialedNumber);
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
