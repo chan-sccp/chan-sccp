@@ -261,7 +261,7 @@ static boolean_t sccp_device_checkACL(sccp_device_t * device)
 	}
 
 	if (sccp_apply_ha(device->ha, &sas) != AST_SENSE_ALLOW) {
-		// checking permithosts 
+		// checking permithosts
 		struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 
 		sccp_print_ha(ha_buf, DEFAULT_PBX_STR_BUFFERSIZE, GLOB(ha));
@@ -373,7 +373,7 @@ boolean_t sccp_device_check_update(sccp_device_t * device)
  *
  * \callgraph
  * \callergraph
- * 
+ *
  */
 void sccp_device_post_reload(void)
 {
@@ -500,7 +500,7 @@ sccp_device_t *sccp_device_createAnonymous(const char *name)
 	return d;
 }
 
-void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNumberDialed)
+void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNumberDialed, const sccp_linedevices_t *linedevice)
 {
 	boolean_t ResetNoneLineInstance = FALSE;
 
@@ -513,13 +513,15 @@ void sccp_device_setLastNumberDialed(sccp_device_t * device, const char *lastNum
 
 	sccp_log(DEBUGCAT_DEVICE) (VERBOSE_PREFIX_3 "%s: Update last number dialed to %s.\n", DEV_ID_LOG(device), lastNumberDialed);
 	if (lastNumberDialed && !sccp_strlen_zero(lastNumberDialed)) {
-		if (sccp_strlen_zero(device->lastNumber)) {
+		if (sccp_strlen_zero(device->redialInformation.number)) {
 			ResetNoneLineInstance = TRUE;
 		}
-		sccp_copy_string(device->lastNumber, lastNumberDialed, sizeof(device->lastNumber));
+		sccp_copy_string(device->redialInformation.number, lastNumberDialed, sizeof(device->redialInformation.number));
+		device->redialInformation.lineInstance = linedevice->lineInstance;
 		redial_active = TRUE;
 	} else {
-		sccp_copy_string(device->lastNumber, "", sizeof(device->lastNumber));
+		sccp_copy_string(device->redialInformation.number, "", sizeof(device->redialInformation.number));
+		device->redialInformation.lineInstance = 0;
 		redial_active = FALSE;
 	}
 	sccp_softkey_setSoftkeyState(device, KEYMODE_ONHOOK, SKINNY_LBL_REDIAL, redial_active);
@@ -588,7 +590,7 @@ void sccp_device_preregistration(sccp_device_t * device)
  * \brief Add a device to the global sccp_device list
  * \param device SCCP Device
  * \return SCCP Device
- * 
+ *
  * \note needs to be called with a retained device
  * \note adds a retained device to the list (refcount + 1)
  */
@@ -609,7 +611,7 @@ void sccp_device_addToGlobals(sccp_device_t * device)
  * \brief Removes a device from the global sccp_device list
  * \param device SCCP Device
  * \return device or NULL
- * 
+ *
  * \note needs to be called with a retained device
  * \note removes the retained device withing the list (refcount - 1)
  */
@@ -1092,7 +1094,7 @@ void sccp_dev_set_keyset(const sccp_device_t * d, uint8_t lineInstance, uint32_t
 	msg->data.SelectSoftKeysMessage.lel_softKeySetIndex = htolel(softKeySetIndex);
 
 	if (softKeySetIndex == KEYMODE_ONHOOK || softKeySetIndex == KEYMODE_OFFHOOK || softKeySetIndex == KEYMODE_OFFHOOKFEAT) {
-		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_REDIAL, (sccp_strlen_zero(d->lastNumber) && !d->useRedialMenu) ? FALSE : TRUE);
+		sccp_softkey_setSoftkeyState((sccp_device_t *) d, softKeySetIndex, SKINNY_LBL_REDIAL, (sccp_strlen_zero(d->redialInformation.number) && !d->useRedialMenu) ? FALSE : TRUE);
 	}
 #if CS_SCCP_CONFERENCE
 	if (d->allow_conference) {
@@ -1377,7 +1379,7 @@ void sccp_dev_clearprompt(const sccp_device_t * d, const uint8_t lineInstance, c
  * \param msg Msg as char
  * \param timeout Timeout as int
  * \param file Source File
- * \param lineno Source Line 
+ * \param lineno Source Line
  * \param pretty_function CB Function to Print
  *
  * \callgraph
@@ -1416,7 +1418,7 @@ void sccp_dev_cleardisplay(const sccp_device_t * d)
  * \param d SCCP Device
  * \param msgstr Msg as char
  * \param file Source File
- * \param lineno Source Line 
+ * \param lineno Source Line
  * \param pretty_function CB Function to Print
  *
  * \callgraph
@@ -1468,7 +1470,7 @@ void sccp_dev_cleardisplaynotify(const sccp_device_t * d)
  * \param msg Msg as char
  * \param timeout Timeout as uint8_t
  * \param file Source File
- * \param lineno Source Line 
+ * \param lineno Source Line
  * \param pretty_function CB Function to Print
  *
  * \callgraph
@@ -1517,7 +1519,7 @@ void sccp_dev_cleardisplayprinotify(const sccp_device_t * d, const uint8_t prior
  * \param priority Priority as uint8_t
  * \param timeout Timeout as uint8_t
  * \param file Source File
- * \param lineno Source Line 
+ * \param lineno Source Line
  * \param pretty_function CB Function to Print
  *
  * \callgraph
@@ -1544,7 +1546,7 @@ void sccp_dev_displayprinotify_debug(const sccp_device_t * d, const char *msg, c
  * \param withHint With Hint as boolean_t
  * \param k SCCP Speeddial (Returned by Ref)
  * \return Void
- * 
+ *
  */
 void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t withHint, sccp_speed_t * k)
 {
@@ -1584,7 +1586,7 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
  * \brief Send Get Activeline to Device
  * \param d SCCP Device
  * \return Retained SCCP Line
- * 
+ *
  * \warning
  *   - device->buttonconfig is not locked
  * \return_ref d->currentLine
@@ -1600,7 +1602,7 @@ sccp_line_t *sccp_dev_get_activeline(const sccp_device_t * d)
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: The active line is %s\n", d->id, d->currentLine->name);
 		return sccp_line_retain(d->currentLine);
 	}
-	// else try to set an new currentLine   
+	// else try to set an new currentLine
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, buttonconfig, list) {
 		if (buttonconfig->type == LINE) {
 			sccp_device_t *device = (sccp_device_t *) d;						// need non-const device
@@ -1812,7 +1814,7 @@ int sccp_device_check_ringback(sccp_device_t * device)
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \note adds a retained device to the event.deviceRegistered.device
  */
 void sccp_dev_postregistration(void *data)
@@ -1878,7 +1880,10 @@ void sccp_dev_postregistration(void *data)
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
 
 	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", lastNumber, sizeof(lastNumber))) {
-		sccp_device_setLastNumberDialed(d, lastNumber);
+		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, 1);
+		if(linedevice){ 
+			sccp_device_setLastNumberDialed(d, lastNumber, linedevice);
+		}
 	}
 
 	if (d->backgroundImage) {
@@ -1914,7 +1919,7 @@ void sccp_dev_postregistration(void *data)
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \note adds a retained device to the event.deviceRegistered.device
  */
 void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_t cleanupTime)
@@ -1942,8 +1947,8 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 		d->linesRegistered = FALSE;
 		sprintf(family, "SCCP/%s", d->id);
 		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
-		if (!sccp_strlen_zero(d->lastNumber)) {
-			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->lastNumber);
+		if (!sccp_strlen_zero(d->redialInformation.number)) {
+			PBX(feature_addToDatabase) (family, "lastDialedNumber", d->redialInformation.number);
 		}
 
 		/* hang up open channels and remove device from line */
@@ -1980,7 +1985,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 				SCCP_LIST_REMOVE_CURRENT(list);
 				sccp_free(config);
 				config = NULL;
-				
+
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
@@ -2060,9 +2065,9 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \called_from_asterisk
- * 
+ *
  */
 int __sccp_device_destroy(const void *ptr)
 {
@@ -2158,9 +2163,9 @@ int __sccp_device_destroy(const void *ptr)
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \called_from_asterisk
- * 
+ *
  */
 int sccp_device_destroy(const void *ptr)
 {
@@ -2192,7 +2197,7 @@ boolean_t sccp_device_isVideoSupported(const sccp_device_t * device)
  * \param d SCCP Device
  * \param instance Instance as uint8_t
  * \return SCCP Service
- * 
+ *
  */
 sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_t instance)
 {
@@ -2222,7 +2227,7 @@ sccp_buttonconfig_t *sccp_dev_serviceURL_find_byindex(sccp_device_t * d, uint16_
  * \param lineName Line Name as char
  * \return Status as int
  * \note device should be locked by parent fuction
- * 
+ *
  * \warning
  *   - device->buttonconfig is not always locked
  */
@@ -2300,7 +2305,7 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
  * \brief Get the number of channels that the device owns
  * \param device sccp device
  * \note device should be locked by parent functions
- * 
+ *
  * \warning
  *   - device-buttonconfig is not always locked
  */
@@ -2591,7 +2596,7 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
  *
  * \callgraph
  * \callergraph
- * 
+ *
  * \warning
  *   - device->buttonconfig is not always locked
  *   - line->devices is not always locked
@@ -2720,8 +2725,8 @@ static sccp_push_result_t sccp_device_pushURL(const sccp_device_t * device, cons
  *
  * \note
  * title field can be max 32 characters long
- * protocolversion < 17 allows for maximum of 1024 characters in the text block / maximum 2000 characted in overall message 
- * protocolversion > 17 allows variable sized messages up to 4000 char in the text block (using multiple messages if necessary) 
+ * protocolversion < 17 allows for maximum of 1024 characters in the text block / maximum 2000 characted in overall message
+ * protocolversion > 17 allows variable sized messages up to 4000 char in the text block (using multiple messages if necessary)
  */
 static sccp_push_result_t sccp_device_pushTextMessage(const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone)
 {
