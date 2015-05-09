@@ -2583,7 +2583,9 @@ static const struct softkeyConfigurationTemplate {
 	{"intrcpt", 			SKINNY_LBL_INTRCPT},
 	{"monitor", 			SKINNY_LBL_MONITOR},  
 	{"dial", 			SKINNY_LBL_DIAL},
+#if CS_SCCP_VIDEO
 	{"vidmode", 			SKINNY_LBL_VIDEO_MODE},
+#endif
 #if CS_SCCP_PICKUP
 	{"pickup", 			SKINNY_LBL_PICKUP},
 	{"gpickup", 			SKINNY_LBL_GPICKUP},
