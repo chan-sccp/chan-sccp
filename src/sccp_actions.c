@@ -3816,7 +3816,7 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: media statistic for %s, value1: %u, value2: %u, value3: %u, value4: %u\n",
 							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 				    );
-/*			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
 			case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
 			case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
@@ -3825,7 +3825,7 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 					PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
 				}
 				break;
-			case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:*/
+			case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
 			default:
 				break;
 		}
