@@ -82,8 +82,8 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
 		sccp_copy_string(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox, channel->callInfo.lastRedirectingVoiceMailbox, sizeof(msg->data.CallInfoMessage.lastRedirectingVoiceMailbox));
 	}
 
-	msg->data.CallInfoMessage.lel_lineId = htolel(instance);
-	msg->data.CallInfoMessage.lel_callRef = htolel(channel->callid);
+	msg->data.CallInfoMessage.lel_lineInstance = htolel(instance);
+	msg->data.CallInfoMessage.lel_callReference = htolel(channel->callid);
 	msg->data.CallInfoMessage.lel_callType = htolel(channel->calltype);
 	msg->data.CallInfoMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_UNKNOWN);
 
@@ -140,8 +140,8 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
 
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
 
-	msg->data.CallInfoDynamicMessage.lel_lineId = htolel(instance);
-	msg->data.CallInfoDynamicMessage.lel_callRef = htolel(channel->callid);
+	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(instance);
+	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(channel->callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(channel->calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = 0;
 	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
@@ -226,8 +226,8 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
 
 	msg = sccp_build_packet(CallInfoDynamicMessage, hdr_len + dummy_len + padding);
 
-	msg->data.CallInfoDynamicMessage.lel_lineId = htolel(instance);
-	msg->data.CallInfoDynamicMessage.lel_callRef = htolel(channel->callid);
+	msg->data.CallInfoDynamicMessage.lel_lineInstance = htolel(instance);
+	msg->data.CallInfoDynamicMessage.lel_callReference = htolel(channel->callid);
 	msg->data.CallInfoDynamicMessage.lel_callType = htolel(channel->calltype);
 	msg->data.CallInfoDynamicMessage.partyPIRestrictionBits = 0;
 	msg->data.CallInfoDynamicMessage.lel_callSecurityStatus = htolel(SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED);
@@ -274,33 +274,32 @@ static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const
 	REQ(msg, DialedNumberMessage);
 
 	instance = sccp_device_find_index_for_line(device, channel->line->name);
-	sccp_copy_string(msg->data.DialedNumberMessage.calledParty, channel->dialedNumber, sizeof(msg->data.DialedNumberMessage.calledParty));
+	sccp_copy_string(msg->data.DialedNumberMessage.v3.calledParty, channel->dialedNumber, sizeof(msg->data.DialedNumberMessage.v3.calledParty));
 
-	msg->data.DialedNumberMessage.lel_lineId = htolel(instance);
-	msg->data.DialedNumberMessage.lel_callRef = htolel(channel->callid);
+	msg->data.DialedNumberMessage.v3.lel_lineInstance = htolel(instance);
+	msg->data.DialedNumberMessage.v3.lel_callReference = htolel(channel->callid);
 
 	sccp_dev_send(device, msg);
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
 }
 
 /*!
- * \brief Send DialedNumber Message (V19)
+ * \brief Send DialedNumber Message (V18)
  *
- * \todo this message is wrong, but we get 'Placed Calls' working on V >= 19
  */
-static void sccp_protocol_sendDialedNumberV19(const sccp_device_t * device, const sccp_channel_t * channel)
+static void sccp_protocol_sendDialedNumberV18(const sccp_device_t * device, const sccp_channel_t * channel)
 {
 	sccp_msg_t *msg;
 	uint8_t instance;
 
-	REQ(msg, DialedNumberMessageV19);
+	REQ(msg, DialedNumberMessage);
 
 	instance = sccp_device_find_index_for_line(device, channel->line->name);
 
-	sccp_copy_string(msg->data.DialedNumberMessageV19.calledParty, channel->dialedNumber, sizeof(msg->data.DialedNumberMessage.calledParty));
+	sccp_copy_string(msg->data.DialedNumberMessage.v18.calledParty, channel->dialedNumber, sizeof(msg->data.DialedNumberMessage.v18.calledParty));
 
-	msg->data.DialedNumberMessageV19.lel_lineId = htolel(instance);
-	msg->data.DialedNumberMessageV19.lel_callRef = htolel(channel->callid);
+	msg->data.DialedNumberMessage.v18.lel_lineInstance = htolel(instance);
+	msg->data.DialedNumberMessage.v18.lel_callReference = htolel(channel->callid);
 
 	sccp_dev_send(device, msg);
 	sccp_log(DEBUGCAT_CHANNEL) (VERBOSE_PREFIX_3 "%s: Send the dialed number %s for %s channel %d\n", device->id, channel->callInfo.calledPartyNumber, skinny_calltype2str(channel->calltype), channel->callid);
@@ -1312,25 +1311,25 @@ static const sccp_deviceProtocol_t *sccpProtocolDefinition[] = {
 	&(sccp_deviceProtocol_t) {"SCCP", 17, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17, sccp_protocol_sendConnectionStatisticsReqV3,
 				  sccp_protocol_parseOpenReceiveChannelAckV17, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17, sccp_protocol_parseStartMediaTransmissionAckV17, sccp_protocol_parseStartMultiMediaTransmissionAckV17, sccp_protocol_parseEnblocCallV17},
-	&(sccp_deviceProtocol_t) {"SCCP", 18, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV3, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
+	&(sccp_deviceProtocol_t) {"SCCP", 18, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV18, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatus, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17, sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17, sccp_protocol_sendConnectionStatisticsReqV3,
 				  sccp_protocol_parseOpenReceiveChannelAckV17, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17, sccp_protocol_parseStartMediaTransmissionAckV17, sccp_protocol_parseStartMultiMediaTransmissionAckV17, sccp_protocol_parseEnblocCallV17},
-	&(sccp_deviceProtocol_t) {"SCCP", 19, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17,
+	&(sccp_deviceProtocol_t) {"SCCP", 19, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV18, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17,
 				  sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17, sccp_protocol_sendConnectionStatisticsReqV19,
 				  sccp_protocol_parseOpenReceiveChannelAckV17, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17, sccp_protocol_parseStartMediaTransmissionAckV17, sccp_protocol_parseStartMultiMediaTransmissionAckV17, sccp_protocol_parseEnblocCallV17},
-	&(sccp_deviceProtocol_t) {"SCCP", 20, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17,
+	&(sccp_deviceProtocol_t) {"SCCP", 20, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV18, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17,
 				  sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17, sccp_protocol_sendConnectionStatisticsReqV19,
 				  sccp_protocol_parseOpenReceiveChannelAckV17, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17, sccp_protocol_parseStartMediaTransmissionAckV17, sccp_protocol_parseStartMultiMediaTransmissionAckV17, sccp_protocol_parseEnblocCallV17},
-	&(sccp_deviceProtocol_t) {"SCCP", 21, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV19, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17,
+	&(sccp_deviceProtocol_t) {"SCCP", 21, TimeDateReqMessage, sccp_protocol_sendCallinfoV16, sccp_protocol_sendDialedNumberV18, sccp_protocol_sendRegisterAckV11, sccp_protocol_sendDynamicDisplayprompt, sccp_protocol_sendDynamicDisplayNotify, sccp_protocol_sendDynamicDisplayPriNotify, sccp_protocol_sendCallForwardStatusV19, sccp_protocol_sendUserToDeviceDataVersion1Message, sccp_protocol_sendFastPictureUpdate, sccp_protocol_sendOpenReceiveChannelV17,
 				  sccp_protocol_sendOpenMultiMediaChannelV17,
 				  sccp_protocol_sendStartMultiMediaTransmissionV17, sccp_protocol_sendStartMediaTransmissionV17, sccp_protocol_sendConnectionStatisticsReqV19,
 				  sccp_protocol_parseOpenReceiveChannelAckV17, sccp_protocol_parseOpenMultiMediaReceiveChannelAckV17, sccp_protocol_parseStartMediaTransmissionAckV17, sccp_protocol_parseStartMultiMediaTransmissionAckV17, sccp_protocol_parseEnblocCallV17},
 	&(sccp_deviceProtocol_t) {"SCCP", 22,
 				  TimeDateReqMessage,
 				  sccp_protocol_sendCallinfoV16,
-				  sccp_protocol_sendDialedNumberV19,
+				  sccp_protocol_sendDialedNumberV18,
 				  sccp_protocol_sendRegisterAckV11,
 				  sccp_protocol_sendDynamicDisplayprompt,
 				  sccp_protocol_sendDynamicDisplayNotify,

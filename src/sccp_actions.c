@@ -2252,48 +2252,50 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 	sccp_msg_t *msg_out = NULL;
 
 	// sccp_BFLState_t state;
-	uint32_t state;
 
-	uint32_t unknown1 = 0;											/* just 4 bits filled */
-	uint32_t index = 0;											/* just 28 bits used */
-	uint32_t unknown2 = 0;											/* all 32 bits used */
-	uint32_t lineInstance = 0;										/* */
-	char *number;
+	uint32_t transactionID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_transactionID);										
+	uint32_t featureID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_featureID);		/* LineInstance / BLF: 0x01 */
+	uint32_t timer = letohl(msg_in->data.SubscriptionStatReqMessage.lel_timer);			/* all 32 bits used */
+	char *subscriptionID = msg_in->data.SubscriptionStatReqMessage.subscriptionID;
 
-	index = letohl(msg_in->data.DialedPhoneBookMessage.lel_NumberIndex);
-	unknown1 = (index | 0xFFFFFFF0) ^ 0xFFFFFFF0;
-	index = index >> 4;
-
-	unknown2 = letohl(msg_in->data.DialedPhoneBookMessage.lel_unknown);					// i don't understand this :)
-	lineInstance = letohl(msg_in->data.DialedPhoneBookMessage.lel_lineinstance);
-
-	number = msg_in->data.DialedPhoneBookMessage.phonenumber;
+	/* take transactionID apart */
+	uint32_t index = transactionID >> 4;								/* just 28 bits filled */
+	uint32_t unknown1 = (transactionID | 0xFFFFFFF0) ^ 0xFFFFFFF0;					/* just 4 bits filled */
 
 	// Sending 0x152 Ack Message.
-	REQ(msg_out, DialedPhoneBookAckMessage);
-	msg_out->data.DialedPhoneBookAckMessage.lel_NumberIndex = msg_in->data.DialedPhoneBookMessage.lel_NumberIndex;
-	msg_out->data.DialedPhoneBookAckMessage.lel_lineinstance = msg_in->data.DialedPhoneBookMessage.lel_lineinstance;
-	msg_out->data.DialedPhoneBookAckMessage.lel_unknown = msg_in->data.DialedPhoneBookMessage.lel_unknown;
-	msg_out->data.DialedPhoneBookAckMessage.lel_unknown2 = 0;
+	REQ(msg_out, SubscriptionStatMessage);
+	msg_out->data.SubscriptionStatMessage.lel_transactionID = htolel(transactionID);
+	msg_out->data.SubscriptionStatMessage.lel_featureID = htolel(featureID);
+	msg_out->data.SubscriptionStatMessage.lel_timer = htolel(timer);
+	/* we could actually run a match against the pbx dialplan if we had a context (default line ?), and return OK / RouteFail depending on the outcome */
+	msg_out->data.SubscriptionStatMessage.lel_cause = 0;						/*!< Cause (Enum): 
+														OK: 0x00, 
+														RouteFail:0x01, 
+														AuthFail:0x02, 
+														Timeout:0x03, 
+														TrunkTerm:0x04, 
+														TrunkForbidden:0x05, 
+														Throttle:0x06
+													*/
 	sccp_dev_send(d, msg_out);
 
 	/* sometimes a phone sends an ' ' entry, I think we can ignore this one */
-	if (strlen(msg_in->data.DialedPhoneBookMessage.phonenumber) <= 1) {
+	if (strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
 		return;
 	}
 
-	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byid(d, lineInstance);
+	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byid(d, featureID);				
 
 	if (line) {
-		REQ(msg_out, CallListStateUpdate);
-		state = PBX(getExtensionState) (number, line->context);
+		REQ(msg_out, NotificationMessage);
+		uint32_t status = PBX(getExtensionState) (subscriptionID, line->context);
 
-		msg_out->data.CallListStateUpdate.lel_NumberIndex = htolel(msg_in->data.DialedPhoneBookMessage.lel_NumberIndex);
-		msg_out->data.CallListStateUpdate.lel_lineinstance = htolel(msg_in->data.DialedPhoneBookMessage.lel_lineinstance);
-		msg_out->data.CallListStateUpdate.lel_state = htolel(state);
+		msg_out->data.NotificationMessage.lel_transactionID = htolel(transactionID);
+		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
+		msg_out->data.NotificationMessage.lel_status = htolel(status);
 		sccp_dev_send(d, msg_out);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send CallListStateUpdate for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), number, line->context, state);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, msg_in->data.DialedPhoneBookMessage.phonenumber, unknown2, lineInstance);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context, status);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, subscriptionID, timer, featureID);
 	}
 }
 
@@ -3279,10 +3281,10 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 {
 	sccp_buttonconfig_t *config = NULL;
 
-	int instance = letohl(msg_in->data.FeatureStatReqMessage.lel_featureInstance);
-	int unknown = letohl(msg_in->data.FeatureStatReqMessage.lel_unknown);
+	int index = letohl(msg_in->data.FeatureStatReqMessage.lel_featureIndex);
+	int capabilities = letohl(msg_in->data.FeatureStatReqMessage.lel_featureCapabilities);
 
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, index, capabilities);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/*
@@ -3291,19 +3293,19 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 	 */
 	sccp_speed_t k;
 
-	if ((unknown == 1 && d->inuseprotocolversion >= 15)) {
-		sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
+	if ((capabilities == 1 && d->inuseprotocolversion >= 15)) {
+		sccp_dev_speed_find_byindex(d, index, TRUE, &k);
 
 		if (k.valid) {
 			sccp_msg_t *msg_out;
 
 			REQ(msg_out, FeatureStatDynamicMessage);
-			msg_out->data.FeatureStatDynamicMessage.lel_instance = htolel(instance);
-			msg_out->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-			msg_out->data.FeatureStatDynamicMessage.lel_status = 0;
+			msg_out->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(index);
+			msg_out->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+			msg_out->data.FeatureStatDynamicMessage.lel_featureStatus = 0;
 
 			//sccp_copy_string(msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
-			d->copyStr2Locale(d, msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
+			d->copyStr2Locale(d, msg_out->data.FeatureStatDynamicMessage.featureTextLabel, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.featureTextLabel));
 			sccp_dev_send(d, msg_out);
 			return;
 		}
@@ -3311,7 +3313,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 #endif
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->instance == instance && config->type == FEATURE) {
+		if (config->instance == index && config->type == FEATURE) {
 			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}
 	}
