@@ -749,6 +749,34 @@ typedef struct {
 	uint32_t lel_deviceTone;
 } skinny_announcementList_t;											/*!< SKINNY AnnouncementList Structure */
 
+typedef struct {
+	uint32_t lel_active;
+	struct {
+		uint32_t lel_capsAndVersion;
+		uint32_t lel_2833Support;
+	} modemRelay;
+	struct {
+		uint16_t lel_chan0MaxPayload;
+		uint16_t lel_chan2MaxPayload;
+		uint16_t lel_chan3MaxPayload;
+		uint16_t lel_chan2MaxWindow;
+	} sptrPayload;
+	struct {
+		uint32_t lel_standardSupportField;
+		uint32_t lel_vendorSupportField;
+	} sse;
+	struct {
+		uint8_t nse;
+		uint8_t rfc2833;
+		uint8_t sse;
+		uint8_t v150sptr;
+		uint8_t noaudio;
+		uint8_t FutureUse1;
+		uint8_t FutureUse2;
+		uint8_t FutureUse3;
+	} dynamicPayload;
+} skinny_latentCapsInfo_t;
+
 /*!
  * \brief SKINNY Protocol Message Data Union
  */
@@ -1793,7 +1821,7 @@ typedef union {
 		uint32_t lel_stationIpAddr;									/*!< Station IP Address */
 		uint32_t lel_deviceType;									/*!< Device Type as part of SKINNY_DEVICETYPE_* */
 		char ipv6Address[16];
-		uint32_t unknown;
+		uint32_t unknown;										/*!< Active Call ?? */
 	} RegisterTokenRequest;											/*!< Register Token Request */
 
 	struct {
@@ -1811,7 +1839,6 @@ typedef union {
 	struct {
 		uint32_t lel_keepAliveInterval;									/*!< Keep Alive Interval to the Primary Server */
 		char dateTemplate[StationDateTemplateSize];							/*!< Date Template */
-//		uint16_t alignmentPadding;									/*!< Filler 1 */
 		uint8_t alignmentPadding;									/*!< Filler 1 */
 		uint32_t lel_secondaryKeepAliveInterval;							/*!< Keep Alive Interval to the Secundairy Server */
 		uint8_t maxProtocolVer;										/*!< Protocol Version */
@@ -1821,22 +1848,23 @@ typedef union {
 	} RegisterAckMessage;											/*!< Register Acknowledgement Message Structure */
 
 	struct {
-		uint32_t lel_tone;										/*!< Tone */
+		uint32_t lel_tone;										/*!< Tone (SKINNY_TONE ENUM)*/
 		uint32_t lel_toneTimeout;									/*!< Tone Timeout */
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
 	} StartToneMessage;											/*!< Start Tone Message Structure */
 
 	struct {
+		/* protocol v3 */
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
-		/* protocol v12 mod */
-		uint32_t lel_unknown1;										/*!< Unknown */
+		/* protocol > v11 */
+		uint32_t lel_tone;										/*!< Tone (SKINNY_TONE ENUM)*/
 	} StopToneMessage;
 
 	struct {
 		uint32_t lel_ringMode;										/*!< Ring Mode */
-		uint32_t lel_unknown1;										/*!< Unknown (always 1) */
+		uint32_t lel_ringDuration;									/*!< Ring Duration (Normal:0x01 /Single:0x02) */
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
 	} SetRingerMessage;											/*!< Set Ringer Message Structure */
@@ -1942,17 +1970,7 @@ typedef union {
 				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is set to 0x0A) */
 				uint32_t lel_mixingMode;
 				uint32_t lel_direction;
-				uint32_t lel_unknown18;								/*!< Unknown */
-				uint32_t lel_unknown19;								/*!< Unknown */
-				uint32_t lel_unknown20;								/*!< Unknown */
-				uint32_t lel_unknown21;								/*!< Unknown */
-				uint32_t lel_unknown22;								/*!< Unknown */
-				uint32_t lel_unknown23;								/*!< Unknown */
-				uint32_t lel_unknown24;								/*!< Unknown */
-				uint32_t lel_unknown25;								/*!< Unknown */
-				uint32_t lel_unknown26;								/*!< Unknown */
-				uint32_t lel_unknown27;								/*!< Unknown */
-				uint32_t lel_unknown28;								/*!< Unknown */
+				skinny_latentCapsInfo_t latentCapsInfo;
 			} v22;
 		};
 	} StartMediaTransmission;										/*!< Start Media Transmission Structure */

@@ -1142,9 +1142,9 @@ void sccp_dev_set_ringer(const sccp_device_t * d, uint8_t opt, uint8_t lineInsta
 	}
 	msg->data.SetRingerMessage.lel_ringMode = htolel(opt);
 	/* Note that for distinctive ringing to work with the higher protocol versions
-	   the following actually needs to be set to 1 as the original comment says.
+ 	   the following actually needs to be set to 1 as the original comment says.
 	   Curiously, the variable is not set to 1 ... */
-	msg->data.SetRingerMessage.lel_unknown1 = htolel(1);							/* always 1 */
+	msg->data.SetRingerMessage.lel_ringDuration = htolel(1);							/* Normal:1 / Single:2 */
 	msg->data.SetRingerMessage.lel_lineInstance = htolel(lineInstance);
 	msg->data.SetRingerMessage.lel_callReference = htolel(callid);
 	sccp_dev_send(d, msg);
