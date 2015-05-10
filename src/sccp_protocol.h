@@ -873,11 +873,6 @@ typedef union {
 		char data[StationMaxXMLMessage];
 	} DeviceToUserDataResponseVersion1Message;
 
-	/*
-	   struct {
-	   uint32_t lel_unknown[533];
-	   } Unknown_0x0044_Message;
-	 */
 	struct {
 		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
 		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
@@ -911,7 +906,6 @@ typedef union {
 	struct {
 		uint32_t lel_AccessoryID;									/*!< Accessory ID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) (MediaPathID) */
 		uint32_t lel_AccessoryStatus;									/*!< Accessory Status (0x1=On, 0x2=Off) (MediaPathEvent) */
-		//uint32_t lel_unknown;                                                                         /*!< Unknown */
 	} AccessoryStatusMessage;										/*!< Accessory Status Message Structure (MediaPathEventMessage) */
 
 	// Message 0x4A len 12 (cisco ip communicator uses it)
@@ -920,7 +914,6 @@ typedef union {
 	struct {
 		uint32_t lel_MediaPathID;									/*!< mediaPathID (0x1=HeadSet, 0x2=HandSet, 0x3=Speaker) */
 		uint32_t lel_MediaPathCapabilities;								/*!< mediaPathCapabilities (0x1=Enable, 0x2=Disable, 0x3=Monitor) */
-		//uint32_t lel_unknown3;                                                                        /*!< Unknown */
 	} MediaPathCapabilityMessage;										/*!< \todo MediaPath Capability Message Structure */
 
 	struct {												// INCOMPLETE
@@ -1119,13 +1112,6 @@ typedef union {
 		   ce f1 00 00 // == (61092 / 206 / 241) 1668 dn-size 420
 		 */
 	} RegisterMessage;											/*!< Register Message Structure */
-
-	struct {
-		StationIdentifier sId;										/*!< Station Identifier */
-		uint8_t protocolVer;										/*!< Maximum Protocol Version */
-		uint32_t lel_deviceType;									/*!< Device Type as part of SKINNY_DEVICETYPE_* */
-		uint8_t lel_unknown3;
-	} RegisterMessage36;											/*!< Register Message Structure */
 
 	struct {
 		// All char arrays are in multiples of 32bit
@@ -1577,40 +1563,22 @@ typedef union {
 	struct {
 		union {
 			struct {
-				uint32_t lel_mediastatus;							/*!< receiveChanStatus */
+				uint32_t lel_mediastatus;							/*!< receiveChanStatus (OK:0x00 / Error: 0x01)*/
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
-				uint32_t lel_unknown_1;
-				uint32_t lel_unknown_2;
-				uint32_t lel_unknown_3;
-				uint32_t lel_unknown_4;
 				uint32_t lel_callReference;							/*!< Call Reference */
 			} v3;
-			/*      this is v17 open receive channel ack
-			 *      0000   28 00 00 00 11 00 00 00 22 00 00 00 ST AT US xx  (.......".......
-			 *      0010   00 00 00 00 IP IP IP IP 00 00 00 00 00 00 00 00  ......."........
-			 *      0020   00 00 00 00 3a 4c 00 00 53 00 00 01 54 ae 9d 01  ....:L..S...T...
-			 */
-			/*      7961 / 7970 / 7962 with protocolVer=22
-			   00000000 - 00 00 00 00 00 00 00 00  0A 0F 0F D1 00 00 00 00  - ................
-			   00000010 - 00 00 00 00 00 00 00 00  CE 64 00 00 FE FF FF FF  - .........d......
-			   00000020 - 01 00 00 00 00 00 00 00                           - ........
-			 */
 			struct {
-				uint32_t lel_mediastatus;							/*!< Receive Channel Status */
+				uint32_t lel_mediastatus;							/*!< Receive Channel Status (OK:0x00 / Error: 0x01)*/
 				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
-				uint32_t lel_unknown_1;
-				uint32_t lel_unknown_2;
-				uint32_t lel_unknown_3;
-				uint32_t lel_unknown_4;
 				uint32_t lel_callReference;							/*!< Call Reference */
 			} v17;
 		};
@@ -1619,7 +1587,7 @@ typedef union {
 	struct {
 		union {
 			struct {
-				uint32_t lel_mediastatus;							/*!< receiveChanStatus */
+				uint32_t lel_mediastatus;							/*!< receiveChanStatus (OK:0x00 / Error: 0x01)*/
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
 														   little-endian format. */
@@ -1629,8 +1597,7 @@ typedef union {
 			} v3;
 
 			struct {
-				uint32_t lel_mediastatus;							/*!< status */
-				/* include IPv6 support */
+				uint32_t lel_mediastatus;							/*!< status (OK:0x00 / Error: 0x01)*/
 				uint32_t lel_ipv46;								/*!< ipv4 (0)/ ipv6 (1) */
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format,
 														   even though most other fields are in
