@@ -2093,8 +2093,43 @@ typedef union {
 	} DefineTimeDate;											/*!< Definition of Date/Time Structure */
 
 	struct {
+		union {
+			struct {
+				uint32_t bel_ipAddr;
+				uint32_t lel_sessionType;							/*!< SKINNY SESSION TYPE: 
+															Chat:0x01, 
+															Whiteboard:0x02, 
+															ApplicationSharing: 0x04, 
+															FileTransfer:0x08, 
+															Video:0x10 // 10 !??!
+														*/
+			} v3;
+			struct {
+				uint32_t lel_ipv46;
+				char bel_ipAddr[16];
+				uint32_t lel_sessionType;							/*!< SKINNY SESSION TYPE: Chat:0x01, Whiteboard:0x02, ApplicationSharing: 0x04, FileTransfer:0x08, Video:0x10 */
+			} v16;
+		};
 	} StartSessionTransmission;										/*!< Start Session Transmission Structure */
+
 	struct {
+		union {
+			struct {
+				uint32_t bel_ipAddr;
+				uint32_t lel_sessionType;							/*!< SKINNY SESSION TYPE: 
+															Chat:0x01, 
+															Whiteboard:0x02, 
+															ApplicationSharing: 0x04, 
+															FileTransfer:0x08, 
+															Video:0x10 // 10 !??!
+														*/
+			} v3;
+			struct {
+				uint32_t lel_ipv46;
+				char bel_ipAddr[16];
+				uint32_t lel_sessionType;							/*!< SKINNY SESSION TYPE: Chat:0x01, Whiteboard:0x02, ApplicationSharing: 0x04, FileTransfer:0x08, Video:0x10 */
+			} v16;
+		};
 	} StopSessionTransmission;										/*!< Stop Session Transmission Structure */
 
 	struct {
@@ -2109,15 +2144,7 @@ typedef union {
 		uint32_t lel_buttonCount;									/*!< Button Count */
 		uint32_t lel_totalButtonCount;									/*!< Total Number of Buttons */
 		uint32_t dummy;											/*!< Station Button Definition */
-	} ButtonTemplateMessageDynamic;
-
-	// never used & special case of ButtonTemplateMessage
-	//struct {
-	//      uint32_t lel_buttonOffset;                                                                              /*!< Button OffSet */
-	//      uint32_t lel_buttonCount;                                                                               /*!< Button Count */
-	//      uint32_t lel_totalButtonCount;                                                                          /*!< Total Number of Buttons */
-	//      StationButtonDefinition definition[1];                                                                  /*!< Station Button Definition */
-	//} ButtonTemplateMessageSingle;                                                                                /*!< Button Template Message Structure */
+	} ButtonTemplateMessageDynamic;										/*!< Identical to ButtonTemplateMessage */
 
 	struct {
 		char requiredVersion[StationMaxVersionSize];							/*!< Required Version */
@@ -2134,6 +2161,7 @@ typedef union {
 
 	struct {
 	} CapabilitiesReqMessage;										/*!< Capabilities Reqest Message Structure */
+
 	struct {
 	} EnunciatorCommandMessage;										/*!< Enunciator Command Message Structure */
 
@@ -2155,27 +2183,59 @@ typedef union {
 	} KeepAliveAckMessage;											/*!< Keep Aliver Acknowledgement Message Structure */
 
 	struct {
-		uint32_t lel_conferenceID;									/*!< Conference ID */
-		uint32_t lel_passThruPartyID;									/*!< Pass Through Party ID */
-		uint32_t lel_multicastIpAddress;								/*!< Multicast IP Address */
-		uint32_t lel_multicastPort;									/*!< Multicast Port */
-		uint32_t lel_millisecondPacketSize;								/*!< Millisecond Packet Size */
-		skinny_codec_t lel_payloadCapability;								/*!< PayLoad Capability */
-		uint32_t lel_echoCancelType;									/*!< Echo Cancelation Type */
-		uint32_t lel_g723BitRate;									/*!< G.723 Bit Rate (only applies to G.723 */
+		union {
+			struct {
+				uint32_t lel_conferenceID;							/*!< Conference ID */
+				uint32_t lel_passThruPartyID;							/*!< Pass Through Party ID */
+				uint32_t bel_ipAddr;								/*!< Multicast IP Address */
+				uint32_t lel_Port;								/*!< Multicast Port */
+				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
+				skinny_codec_t lel_payloadCapability;						/*!< PayLoad Capability */
+				uint32_t lel_echoCancelType;							/*!< Echo Cancelation Type */
+				uint32_t lel_g723BitRate;							/*!< G.723 Bit Rate (only applies to G.723 */
+			} v3;
+			struct {
+				uint32_t lel_conferenceID;							/*!< Conference ID */
+				uint32_t lel_passThruPartyID;							/*!< Pass Through Party ID */
+				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
+				char bel_ipAddr[16];								/*!< Multicast IP Address */
+				uint32_t lel_Port;								/*!< Multicast Port */
+				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
+				skinny_codec_t lel_payloadCapability;						/*!< PayLoad Capability */
+				uint32_t lel_echoCancelType;							/*!< Echo Cancelation Type */
+				uint32_t lel_g723BitRate;							/*!< G.723 Bit Rate (only applies to G.723 */
+			} v16;
+		};
 	} StartMulticastMediaReception;										/*!< Start Multicast Media Reception Message Structure */
 
 	struct {
-		uint32_t lel_conferenceID;									/*!< Conference ID */
-		uint32_t lel_passThruPartyID;									/*!< Pass Through Party ID */
-		uint32_t lel_multicastIpAddress;								/*!< Multicast IP Address */
-		uint32_t lel_multicastPort;									/*!< Multicast Port */
-		uint32_t lel_millisecondPacketSize;								/*!< Millisecond Packet Size */
-		skinny_codec_t lel_payloadCapability;								/*!< PayLoad Capability */
-		uint32_t lel_precedenceValue;									/*!< Precedence Value */
-		uint32_t lel_silenceSuppression;								/*!< Silence Suppression */
-		uint32_t lel_maxFramesPerPacket;								/*!< Max Frames Per Packet */
-		uint32_t lel_g723BitRate;									/*!< G.723 Bit Rate (only applies to G.723 */
+		union {
+			struct {
+				uint32_t lel_conferenceID;							/*!< Conference ID */
+				uint32_t lel_passThruPartyID;							/*!< Pass Through Party ID */
+				uint32_t bel_ipAddr;								/*!< Multicast IP Address */
+				uint32_t lel_Port;								/*!< Multicast Port */
+				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
+				skinny_codec_t lel_payloadCapability;						/*!< PayLoad Capability */
+				uint32_t lel_precedenceValue;							/*!< Precedence Value */
+				uint32_t lel_silenceSuppression;						/*!< Silence Suppression */
+				uint32_t lel_maxFramesPerPacket;						/*!< Max Frames Per Packet */
+				uint32_t lel_g723BitRate;							/*!< G.723 Bit Rate (only applies to G.723 */
+			} v3;
+			struct {
+				uint32_t lel_conferenceID;							/*!< Conference ID */
+				uint32_t lel_passThruPartyID;							/*!< Pass Through Party ID */
+				uint32_t lel_ipv46;								/*!< ipv4 / ipv6 */
+				char bel_ipAddr[16];								/*!< Multicast IP Address */
+				uint32_t lel_Port;								/*!< Multicast Port */
+				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
+				skinny_codec_t lel_payloadCapability;						/*!< PayLoad Capability */
+				uint32_t lel_precedenceValue;							/*!< Precedence Value */
+				uint32_t lel_silenceSuppression;						/*!< Silence Suppression */
+				uint32_t lel_maxFramesPerPacket;						/*!< Max Frames Per Packet */
+				uint32_t lel_g723BitRate;							/*!< G.723 Bit Rate (only applies to G.723 */
+			} v16;
+		};
 	} StartMulticastMediaTransmission;									/*!< Start Multicast Media Transmission Message Structure */
 
 	/*
@@ -2187,10 +2247,20 @@ typedef union {
 		uint32_t lel_conferenceId;									/*!< Conference ID */
 		uint32_t lel_passThruPartyId;									/*!< Pass Through Party ID */
 		uint32_t lel_callReference;									/*!< Call Reference */
-		uint32_t lel_miscCommandType;									/*!< Miscellaneous Command Type */
+		uint32_t lel_miscCommandType;									/*!< Miscellaneous Command Type 
+															videoFreezePicture: 		0x00
+															videoFastUpdatePicture:		0x01
+															videoFastUpdateGOB: 		0x02
+															videoFastUpdateMB: 		0x03
+															lostPicture: 			0x04
+															lostPartialPicture: 		0x05
+															recoveryReferencePicture:	0x06
+															temporalSpatialTradeOff:	0x07
+														*/
 		union {
-			uint32_t unknown[10];
-			struct {
+			uint32_t lel_none;
+			
+			struct {										/* this one does not seem to exist */
 				uint32_t bel_remoteIpAddr;
 				uint32_t unknown1;
 				uint32_t unknown2;
@@ -2219,11 +2289,23 @@ typedef union {
 			} lostPicture;
 
 			struct {
-				uint32_t lel_pictureNumber;
-				uint32_t lel_longTermPictureIndex;
+				struct {
+					uint32_t lel_pictureNumber;
+					uint32_t lel_longTermPictureIndex;
+				} pictureReference;
 				uint32_t lel_firstMB;
 				uint32_t lel_numberOfMBs;
 			} lostPartialPicture;
+			
+			struct {
+				uint32_t lel_PictureCount;
+				struct {
+					uint32_t lel_pictureNumber;
+					uint32_t lel_longTermPictureIndex;
+				} pictureReference[4];
+			} recoveryReferencePicture;
+			
+			uint32_t lel_temporalSpatialTradeOff;
 		} data;
 	} MiscellaneousCommandMessage;										/*!< Miscellaneous Command Message Structure */
 
@@ -2326,16 +2408,8 @@ typedef union {
 				char bel_remoteIpAddr[16];
 				uint32_t lel_remotePortNumber;							/*!< this is always 0xFA0 */
 				uint32_t lel_requestedIpAddrType;						/*!< Unknown */
-				uint32_t unknown19;								/*!< Unknown */
-				uint32_t unknown20;								/*!< Unknown */
-				uint32_t unknown21;								/*!< Unknown */
-				uint32_t unknown22;								/*!< Unknown */
-				uint32_t unknown23;								/*!< Unknown */
-				uint32_t unknown24;								/*!< Unknown */
-				uint32_t unknown25;								/*!< Unknown */
-				uint32_t unknown26;								/*!< Unknown */
-				uint32_t unknown27;								/*!< Unknown */
-				uint32_t unknown28;								/*!< Unknown */
+				uint32_t lel_audioLevelAdjustment;
+				skinny_latentCapsInfo_t latentCapsInfo;
 			} v22;
 		};
 	} OpenReceiveChannel;											/*!< Open Receive Channel Message Structure */
