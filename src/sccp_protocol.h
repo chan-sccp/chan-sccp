@@ -60,6 +60,7 @@
 #define StationMaxDisplayNotifySize 			32
 #define StationMaxDirnumSize				24
 #define StationMaxNameSize				40
+#define StationMaxDynamicNameSize			121
 #define StationMaxSoftKeyDefinition 			32
 #define StationMaxSoftKeySetDefinition			16
 #define StationMaxSoftKeyIndex				16
@@ -345,7 +346,7 @@ typedef enum {
 	QoSErrorNotifyMessage 				= 0x0047,	/*new (2013-12-9)*/
 
 	/* This are from protocol V 11 CCM7 */
-	DialedPhoneBookMessage 				= 0x0048,	/* Subscription Stat Request */
+	SubscriptionStatReqMessage			= 0x0048,	/* Subscription Stat Request */
 	AccessoryStatusMessage 				= 0x0049,	/* MediaPath Event Message */
 	MediaPathCapabilityMessage			= 0x004A,	/*new name (2013-12-9)*/
 	MwiNotificationMessage 				= 0x004C,
@@ -467,8 +468,8 @@ typedef enum {
 	QoSModifyMessage 				= 0x0151,	/*new (2013-12-9)*/
 
 	/* received from phone */
-	DialedPhoneBookAckMessage 			= 0x0152,	/* Subscription Stat Message */
-	CallListStateUpdate 				= 0x0153,	/* Notification Message */
+	SubscriptionStatMessage 			= 0x0152,	/* Subscription Stat Message */
+	NotificationMessage 				= 0x0153,	/* Notification Message  / CallListStateUpdate*/
 	StartMediaTransmissionAck 			= 0x0154,
 	StartMultiMediaTransmissionAck 			= 0x0155,
 	CallHistoryInfoMessage 				= 0x0156,
@@ -778,27 +779,29 @@ typedef union {
 	 * Second DWORD is line instance related to the call
 	 * Third DWORD is unknown, Next there is the phone number [260 bytes]
 	 */
+	struct {
+		uint32_t lel_transactionID;									/*!< TransactionID */ /*Number Index (this must be shifted 4 bits right) */
+		uint32_t lel_featureID;										/*!< LineInstance / BLF: 0x0001 */
+		uint32_t lel_timer;										/*!< Timer */
+		char subscriptionID[256];									/*!< SubscriptionID */
+	} SubscriptionStatReqMessage;										/*!< SubscriptionStatReqMessage Message Structure */
+	//} DialedPhoneBookMessage;										/*!< Dialed Phone Book Message Structure */
 
 	struct {
-		uint32_t lel_NumberIndex;									/*!< Number Index (this must be shifted 4 bits right) */
-		uint32_t lel_lineinstance;									/*!< Line Instance */
-		uint32_t lel_unknown;										/*!< \todo Unknown */
-		char phonenumber[260];										/*!< \todo I don't know if this is exact */
-	} DialedPhoneBookMessage;										/*!< Dialed Phone Book Message Structure */
+		uint32_t lel_transactionID;									/*!< TransactionID */ /*!< Number Index (this must be shifted 4 bits right) */
+		uint32_t lel_featureID;										/*!< LineInstance / BLF: 0x00001 */
+		uint32_t lel_timer;										/*!< Timer */
+		uint32_t lel_cause;										/*!< Cause (Enum): OK: 0x00, RouteFail:0x01, AuthFail:0x02, Timeout:0x03, TrunkTerm:0x04, TrunkForbidden:0x05, Throttle:0x06 */
+	} SubscriptionStatMessage;										/*!< SubscriptionStatMessage */
+	//} DialedPhoneBookAckMessage;										/*!< Dialed Phone Book Acknowledgement Structure */
 
 	struct {
-		uint32_t lel_NumberIndex;									/*!< Number Index (this must be shifted 4 bits right) */
-		uint32_t lel_lineinstance;									/*!< Line Instance */
-		uint32_t lel_unknown;										/*!< \todo Unknown */
-		uint32_t lel_unknown2;										/*!< \todo Unknown2 */
-	} DialedPhoneBookAckMessage;										/*!< Dialed Phone Book Acknowledgement Structure */
-
-	struct {
-		uint32_t lel_NumberIndex;									/*!< Number Index (this must be shifted 4 bits right) */
-		uint32_t lel_lineinstance;									/*!< Line Instance */
-		uint32_t lel_state;										/*!< Line Instance */
-		uint32_t lel_unknown[25];
-	} CallListStateUpdate;
+		uint32_t lel_transactionID;									/*!< TransactionID */ /*!< Number Index (this must be shifted 4 bits right) */
+		uint32_t lel_featureID;										/*!< LineInstance / BLF: 0x01*/
+		uint32_t lel_status;										/*!< Status */
+		uint32_t lel_text[97];										/*~< Text */
+	} NotificationMessage;											/*!< NotificationMessage / CallListStatusUpdate */
+	//}CallListStateUpdate
 
 	struct {
 		uint32_t lel_appID;
@@ -928,10 +931,10 @@ typedef union {
 	} FlowControlNotifyMessage;										/*!< \todo FlowControlNotify Message Structure */
 
 	struct {
-		uint32_t lel_instance;										/*!< Instance */
-		uint32_t lel_type;										/*!< always 0x15 */
-		uint32_t lel_status;										/*!< skinny_busylampfield_state_t */
-		char DisplayName[StationMaxNameSize];								/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+		uint32_t lel_featureIndex;									/*!< Instance */
+		uint32_t lel_featureID;										/*!< always 0x15 */
+		uint32_t lel_featureStatus;									/*!< skinny_busylampfield_state_t */
+		char featureTextLabel[StationMaxDynamicNameSize];									/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {
@@ -976,8 +979,8 @@ typedef union {
 	} LineStatDynamicMessage;										/*!< Line Stat Dynmic Message Structure */
 
 	struct {
-		uint32_t lel_lineId;										/*!< Line ID */
-		uint32_t lel_callRef;										/*!< Call Reference */
+		uint32_t lel_lineInstance;									/*!< Line Instance */
+		uint32_t lel_callReference;									/*!< Call Reference */
 		uint32_t lel_callType;										/*!< Call Type (INBOUND=1, OUTBOUND=2, FORWARD=3) */
 		uint32_t lel_originalCdpnRedirectReason;							/*!< Original CalledParty Redirect Reason */
 		uint32_t lel_lastRedirectingReason;								/*!< Last Redirecting Reason */
@@ -1274,8 +1277,8 @@ typedef union {
 
 	/* 0x34 FeatureStatReqMessage */
 	struct {
-		uint32_t lel_featureInstance;									/*!< instance on device */
-		uint32_t lel_unknown;										/*!< unknown */
+		uint32_t lel_featureIndex;									/*!< index on device */
+		uint32_t lel_featureCapabilities;								/*!< feature capabilities */
 	} FeatureStatReqMessage;										/*!< Feature Stat Request Message - Client -> Server */
 
 	struct {
@@ -2014,8 +2017,8 @@ typedef union {
 		char callingParty[StationMaxDirnumSize];							/*!< Calling Party ID */
 		char calledPartyName[StationMaxNameSize];							/*!< Called Party Name */
 		char calledParty[StationMaxDirnumSize];								/*!< Called Party ID */
-		uint32_t lel_lineId;										/*!< Line ID */
-		uint32_t lel_callRef;										/*!< Call Reference */
+		uint32_t lel_lineInstance;									/*!< Line Instance */
+		uint32_t lel_callReference;									/*!< Call Reference */
 		uint32_t lel_callType;										/*!< Call Type (INBOUND=1, OUTBOUND=2, FORWARD=3) */
 		char originalCalledPartyName[StationMaxNameSize];						/*!< Original Calling Party Name */
 		char originalCalledParty[StationMaxDirnumSize];							/*!< Original Calling Party ID */
@@ -2041,17 +2044,19 @@ typedef union {
 	} CallInfoMessage;											/*!< Call Info Message Structure */
 
 	struct {
-		char calledParty[StationMaxDirnumSize];								/*!< Called Party */
-		uint32_t lel_lineId;										/*!< Line ID */
-		uint32_t lel_callRef;										/*!< Call Reference */
+		union {
+			struct {
+				char calledParty[StationMaxDirnumSize];								/*!< Called Party */
+				uint32_t lel_lineInstance;									/*!< Line Instance */
+				uint32_t lel_callReference;									/*!< Call Reference */
+			} v3;
+			struct {
+				char calledParty[25]		;								/*!< Called Party */
+				uint32_t lel_lineInstance;									/*!< Line Instance */
+				uint32_t lel_callReference;									/*!< Call Reference */
+			} v18;
+		};
 	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
-
-	struct {
-		char calledParty[25];										/*!< Called Party */
-		uint32_t lel_lineId;										/*!< Line ID */
-		uint32_t lel_callRef;										/*!< Call Reference */
-		uint8_t padding1[3];
-	} DialedNumberMessageV19;										/*!< Dialed Number Message Structure -TEST */
 
 	struct {
 		uint32_t lel_status;										/*!< Status (0=inactive, 1=active) */
@@ -2433,7 +2438,7 @@ typedef union {
 
 	/* 0x11F FeatureStatMessage */
 	struct {
-		uint32_t lel_featureInstance;									/*!< Feature Instance */
+		uint32_t lel_featureIndex;									/*!< Feature Instance */
 		uint32_t lel_featureID;										/*!< Feature ID */
 		char featureTextLabel[StationMaxNameSize];							/*!< Feature Text Label */
 		uint32_t lel_featureStatus;									/*!< Feature Status */
@@ -2899,7 +2904,7 @@ static const struct messagetype sccp_messagetypes[] = {
 	[AuditParticipantResMessage] = { 		"Audit Participant Response", 			offsize(sccp_data_t, AuditParticipantResMessage)},
 	[DeviceToUserDataVersion1Message] = { 		"Device To User Data Version1 Message", 	offsize(sccp_data_t, DeviceToUserDataVersion1Message)},
 	[DeviceToUserDataResponseVersion1Message] = { 	"Device To User Data Version1 Response", 	offsize(sccp_data_t, DeviceToUserDataResponseVersion1Message)},
-	[DialedPhoneBookMessage] = { 			"Dialed PhoneBook Message", 			offsize(sccp_data_t, DialedPhoneBookMessage)},
+	[SubscriptionStatReqMessage] = { 		"Subscription Status Request (DialedPhoneBook)", offsize(sccp_data_t, SubscriptionStatReqMessage)},
 	[AccessoryStatusMessage] = { 			"Accessory Status Message", 			offsize(sccp_data_t, AccessoryStatusMessage)},
 	[RegisterAckMessage] = { 			"Register Acknowledge", 			offsize(sccp_data_t, RegisterAckMessage)},
 	[StartToneMessage] = { 				"Start Tone Message", 				offsize(sccp_data_t, StartToneMessage)},
@@ -2995,8 +3000,8 @@ static const struct messagetype sccp_messagetypes[] = {
 	[ServiceURLStatDynamicMessage] = { 		"Service URL Stat Dynamic Messages", 		offsize(sccp_data_t, ServiceURLStatDynamicMessage)},
 	[SpeedDialStatDynamicMessage] = { 		"SpeedDial Stat Dynamic Message", 		offsize(sccp_data_t, SpeedDialStatDynamicMessage)},
 	[CallInfoDynamicMessage] = { 			"Call Information Dynamic Message", 		offsize(sccp_data_t, CallInfoDynamicMessage)},
-	[DialedPhoneBookAckMessage] = { 		"Dialed PhoneBook Ack Message", 		offsize(sccp_data_t, DialedPhoneBookAckMessage)},
-	[CallListStateUpdate] = { 			"CallList Status Update Message", 		offsize(sccp_data_t, CallListStateUpdate)},
+	[SubscriptionStatMessage] = { 			"Subscription Status Response (Dialed Number)", offsize(sccp_data_t, SubscriptionStatMessage)},
+	[NotificationMessage] = { 			"Notify Call List (CallListStatusUpdate)",	offsize(sccp_data_t, NotificationMessage)},
 	[StartMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMediaTransmissionAck)},
 	[StartMultiMediaTransmissionAck] = { 		"Start Media Transmission Acknowledge", 	offsize(sccp_data_t, StartMultiMediaTransmissionAck)},
 	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},

@@ -48,7 +48,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 {
 	sccp_msg_t *msg = NULL;
 	sccp_buttonconfig_t *config = NULL, *buttonconfig = NULL;
-	uint8_t instance = 0;
+	uint8_t index = 0;
 	uint8_t buttonID = SKINNY_BUTTONTYPE_FEATURE;								// Default feature type.
 	boolean_t lineFound = FALSE;
 
@@ -60,7 +60,7 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 	SCCP_LIST_TRAVERSE(&device->buttonconfig, config, list) {
 		if (config->type == FEATURE && config->button.feature.id == featureType) {
 			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: FeatureID = %d, Option: %s\n", DEV_ID_LOG(device), config->button.feature.id, (config->button.feature.options) ? config->button.feature.options : "(none)");
-			instance = config->instance;
+			index = config->index;
 
 			switch (config->button.feature.id) {
 				case SCCP_FEATURE_PRIVACY:
@@ -282,19 +282,19 @@ void sccp_featButton_changed(sccp_device_t * device, sccp_feature_type_t feature
 			/* send status using new message */
 			if (device->inuseprotocolversion >= 15) {
 				REQ(msg, FeatureStatDynamicMessage);
-				msg->data.FeatureStatDynamicMessage.lel_instance = htolel(instance);
-				msg->data.FeatureStatDynamicMessage.lel_type = htolel(buttonID);
-				msg->data.FeatureStatDynamicMessage.lel_status = htolel(config->button.feature.status);
-				sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, config->label, strlen(config->label) + 1);
+				msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(index);
+				msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(buttonID);
+				msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(config->button.feature.status);
+				sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
 			} else {
 				REQ(msg, FeatureStatMessage);
-				msg->data.FeatureStatMessage.lel_featureInstance = htolel(instance);
+				msg->data.FeatureStatMessage.lel_featureIndex = htolel(index);
 				msg->data.FeatureStatMessage.lel_featureID = htolel(buttonID);
 				msg->data.FeatureStatMessage.lel_featureStatus = htolel(config->button.feature.status);
-				sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, config->label, strlen(config->label) + 1);
+				sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, config->label, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
 			}
 			sccp_dev_send(device, msg);
-			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d, Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), instance, config->label, config->button.feature.status, config);
+			sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: (sccp_featButton_changed) Got Feature Status Request. Instance = %d, Label: '%s', Status: %d, Nota bene: Config pointer: %p\n", DEV_ID_LOG(device), index, config->label, config->button.feature.status, config);
 		}
 	}
 	SCCP_LIST_UNLOCK(&device->buttonconfig);
