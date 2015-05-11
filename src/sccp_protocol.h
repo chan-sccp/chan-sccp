@@ -2467,12 +2467,14 @@ typedef union {
 	} SelectSoftKeysMessage;										/*!< Select Soft Keys Message Structure */
 
 	struct {
-		uint32_t lel_callState;										/*!< Call State */
+		uint32_t lel_callState;										/*!< Call State: ENUM: skinny_callstate_ */
 		uint32_t lel_lineInstance;									/*!< Line Instance */
 		uint32_t lel_callReference;									/*!< Call Reference */
-		uint32_t lel_visibility;									/*!< Visibility */
-		uint32_t lel_priority;										/*!< Priority */
-		uint32_t lel_unknown3;										/*!< Unknown */
+		uint32_t lel_visibility;									/*!< Visibility / Privacy: ENUM : skinny_callinfo_ */
+		struct {
+			uint32_t lel_level;									/*!< Level */
+			uint32_t lel_domain;									/*!< Domain */
+		} precedence;											/*!< Precedency / Priority */
 	} CallStateMessage;											/*!< Call State Message Structure */
 
 	struct {

@@ -2282,7 +2282,7 @@ int sccp_device_sendReset(sccp_device_t * d, uint8_t reset_type)
  * \callgraph
  * \callergraph
  */
-void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t priority, skinny_callinfo_visibility_t visibility)
+void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32_t callid, skinny_callstate_t state, skinny_callpriority_t precedence_level, skinny_callinfo_visibility_t visibility)
 {
 	sccp_msg_t *msg;
 
@@ -2297,8 +2297,8 @@ void sccp_device_sendcallstate(const sccp_device_t * d, uint8_t instance, uint32
 	msg->data.CallStateMessage.lel_lineInstance = htolel(instance);
 	msg->data.CallStateMessage.lel_callReference = htolel(callid);
 	msg->data.CallStateMessage.lel_visibility = htolel(visibility);
-	msg->data.CallStateMessage.lel_priority = htolel(priority);
-	/*r->data.CallStateMessage.lel_unknown3 = htolel(2); */
+	msg->data.CallStateMessage.precedence.lel_level = htolel(precedence_level);
+	/*msg->data.CallStateMessage.precedency.lel_domain = htolel(2); */
 	sccp_dev_send(d, msg);
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Send and Set the call state %s(%d) on call %d\n", d->id, skinny_callstate2str(state), state, callid);
 }
