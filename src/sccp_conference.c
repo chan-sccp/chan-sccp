@@ -880,8 +880,6 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 					pbx_channel_unref(underlying_channel);
 					underlying_channel = NULL;		
 				}
-			} else {
-				pbx_log(LOG_ERROR, "SCCPCONF/%04d: Could not impart Underlying channel to conf-bridge\n", conference->id);
 			}
 		} else {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Could not get Underlying channel via bridge\n", conference->id);
