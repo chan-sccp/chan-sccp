@@ -59,8 +59,9 @@
 #define StationMaxDisplayTextSize			32
 #define StationMaxDisplayNotifySize 			32
 #define StationMaxDirnumSize				24
+#define StationDynamicDirnumSize			25
 #define StationMaxNameSize				40
-#define StationMaxDynamicNameSize			121
+#define StationDynamicNameSize				121
 #define StationMaxSoftKeyDefinition 			32
 #define StationMaxSoftKeySetDefinition			16
 #define StationMaxSoftKeyIndex				16
@@ -336,10 +337,7 @@ typedef enum {
 	AuditParticipantResMessage 			= 0x0040,
 	DeviceToUserDataVersion1Message 		= 0x0041,
 	DeviceToUserDataResponseVersion1Message 	= 0x0042,
-	
-	UpdateCapabilitiesV2Message 			= 0x0043,	/*new (2013-12-9)*/
-	/*UpdateCapabilitiesV3Message 			= 0x0044,*/	/*new (2013-12-9)*/
-	DynamicUpdateCapabilitiesMessage		= 0x0044,	/* UpdateCapabilitiesV3Message */	/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181/ */
+	DynamicUpdateCapabilitiesMessage		= 0x0044,
 	
 	PortResMessage 					= 0x0045,	/*new (2013-12-9)*/
 	QoSResvNotifyMessage 				= 0x0046,	/*new (2013-12-9)*/
@@ -596,6 +594,15 @@ typedef struct {
 } serviceResource_t;												/*!< SKINNY Service Resource Structure */
 
 /*!
+ * \brief SKINNY Conference Resource
+ */
+typedef struct {
+	uint32_t lel_activeStreamsOnRegistration;
+	uint32_t lel_maxBW;
+	uint32_t lel_serviceResourceCount;
+	serviceResource_t serviceResource[MAX_SERVICE_TYPE];
+} confResource_t ;
+/*!
  * \brief SKINNY Picture Format Structure
  */
 typedef struct {
@@ -606,13 +613,37 @@ typedef struct {
 	uint32_t customPictureFormatpixelclockDivisor;								/*!< Picture Pixel Divisor */
 } customPictureFormat_t;											/*!< SKINNY Picture Format Structure */
 
+typedef union {
+	uint32_t lel_g723BitRate;										/*!< G723 Bit Rate : Enum(5.3: 0x01, 6.3: 0x02) */
+	struct {
+		uint32_t lel_capabilityAndVersion;
+		uint32_t lel_modulationAndModem2833Support;
+	} modemRelay;
+	struct {
+		uint32_t lel_chan0MaxPayload;
+		uint32_t lel_chan2MaxPayload;
+		uint32_t lel_chan3MaxPayload;
+		uint32_t lel_chan2MaxWindow;
+	} sprtPayload;
+	struct {
+		uint32_t lel_standardSupportField;
+		uint32_t lel_vendorSupportField;
+	} SupportEntry;
+	struct {
+		uint8_t codecMode ;
+		uint8_t dynamicPayload;
+		uint8_t codecParam1;
+		uint8_t codecParam2;
+	} codecParams;
+} payload_t;
+
 /*!
  * \brief SKINNY Audio Capabilities Structure
  */
 typedef struct {
 	skinny_codec_t lel_payloadCapability;									/*!< PayLoad Capability */
 	uint32_t lel_maxFramesPerPacket;									/*!< Maximum Number of Frames per IP Packet */
-	uint32_t lel_unknown[2];										/*!< this are related to G.723 */
+	payload_t payloads;											/*!< this are related to G.723 */
 } audioCap_t;													/*!< SKINNY Audio Capabilities Structure */
 
 /*!
@@ -907,20 +938,13 @@ typedef union {
 		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
 		uint32_t RTPPayloadFormat;									/*!< RTP Payload Format */
 		uint32_t customPictureFormatCount;								/*!< Custom Picture Format Count */
-
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
-
-		uint32_t activeStreamsOnRegistration;								/*!< Active Streams on Registration */
-		uint32_t maxBW;											/*!< Max BW ?? */
-
-		uint32_t serviceResourceCount;									/*!< Service Resource Count */
-		serviceResource_t serviceResource[MAX_SERVICE_TYPE];						/*!< Service Resource */
-
+		confResource_t confResources;									/*!< Conference Resource */
 		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
 		videoCap_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
 		dataCap_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
 
-		uint32_t unknown[70];										/*!< Unknown */
+		uint32_t unknown[70];										/*!< Unknown (Should Be removed / Should not Exist) */
 	} DynamicUpdateCapabilitiesMessage;									/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
 
 	/* AccessoryStatusMessage (0x0073):
@@ -955,7 +979,7 @@ typedef union {
 		uint32_t lel_featureIndex;									/*!< Instance */
 		uint32_t lel_featureID;										/*!< always 0x15 */
 		uint32_t lel_featureStatus;									/*!< skinny_busylampfield_state_t */
-		char featureTextLabel[StationMaxDynamicNameSize];									/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+		char featureTextLabel[StationDynamicNameSize];									/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {
@@ -1017,24 +1041,22 @@ typedef union {
 														   6 RestrictLastRedirectPartyName
 														   7 RestrictLastRedirectPartyNumber */
 		uint32_t dummy;											/*!< Dummy */
-		/*
-		 *      Here there are the following informations:
-		 *
-		 char callingParty[StationMaxDirnumSize];
-		 char calledParty[StationMaxDirnumSize];
-		 char originalCalledParty[StationMaxDirnumSize];
-		 char lastRedirectingParty[StationMaxDirnumSize];
-		 char cgpnVoiceMailbox[StationMaxDirnumSize];
-		 char cdpnVoiceMailbox[StationMaxDirnumSize];
-		 char originalCdpnVoiceMailbox[StationMaxDirnumSize];
-		 char lastRedirectingVoiceMailbox[StationMaxDirnumSize];
-		 char callingPartyName[StationMaxNameSize];
-		 char calledPartyName[StationMaxNameSize];
-		 char originalCalledPartyName[StationMaxNameSize];
-		 char lastRedirectingPartyName[StationMaxNameSize];
-		 char HuntPilotNumber[25];
-		 char HuntPilotName[121];
-		 */
+														/* Dummy: Consists of:						// v3 - >v18
+														 char callingParty[StationDynamicDirnumSize];		 	// 24 - 25
+														 char calledParty[StationDynamicDirnumSize];			// 24 - 25
+														 char originalCalledParty[StationDynamicDirnumSize];		// 24 - 25
+														 char lastRedirectingParty[StationDynamicDirnumSize];		// 24 - 25
+														 char cgpnVoiceMailbox[StationDynamicDirnumSize];		// 24 - 25
+														 char cdpnVoiceMailbox[StationDynamicDirnumSize];		// 24 - 25
+														 char originalCdpnVoiceMailbox[StationDynamicDirnumSize];	// 24 - 25	
+														 char lastRedirectingVoiceMailbox[StationDynamicDirnumSize];	// 24 - 25
+														 char callingPartyName[StationDynamicNameSize];			// 40 - 121
+														 char calledPartyName[StationDynamicNameSize];			// 40 - 121
+														 char originalCalledPartyName[StationDynamicNameSize];		// 40 - 121
+														 char lastRedirectingPartyName[StationDynamicNameSize];		// 40 - 121
+														 char HuntPilotNumber[StationDynamicDirnumSize];		// 24 - 25
+														 char HuntPilotName[StationDynamicNameSize];			// 40 - 121
+														 */
 	} CallInfoDynamicMessage;										/*!< Call Information Dynamic Message Structure */
 
 	struct {
@@ -1189,7 +1211,7 @@ typedef union {
 				uint32_t lel_lineInstance;
 			} v17;
 			struct __attribute__ ((__packed__)) {							/* packing needed because of char[25] */
-				char calledParty[25];								/*!< Called Party */
+				char calledParty[StationDynamicDirnumSize];					/*!< Called Party */
 				uint32_t lel_lineInstance;
 			} v18;
 		};
@@ -1567,20 +1589,12 @@ typedef union {
 		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
 		uint32_t RTPPayloadFormat;									/*!< RTP Payload Format */
 		uint32_t customPictureFormatCount;								/*!< Custom Picture Format Count */
-
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
-
-		uint32_t activeStreamsOnRegistration;								/*!< Active Streams on Registration */
-		uint32_t maxBW;											/*!< Max BW ?? */
-
-		uint32_t serviceResourceCount;									/*!< Service Resource Count */
-		serviceResource_t serviceResource[MAX_SERVICE_TYPE];						/*!< Service Resource */
-
+		confResource_t confResources;									/*!< Conference Resource */
 		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
 		videoCap_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
 		dataCap_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
-
-		uint32_t unknown;										/*!< Unknown */
+		uint32_t unknown;										/*!< Unknown (Should be removed / Should not exist)*/
 	} UpdateCapabilitiesMessage;										/*!< Update Capabilities Message Structure */
 
 	struct {
@@ -1778,7 +1792,6 @@ typedef union {
 #pragma pack(push)
 #pragma pack(1)
 			struct {
-				//char DirectoryNumber[25];
 				char DirectoryNumber[28];
 				uint32_t lel_CallIdentifier;							/*!< Call Identifier */
 				uint8_t lel_StatsProcessingType;						/*!< Stats Processing Type */
@@ -2031,40 +2044,42 @@ typedef union {
 	struct {
 		union {
 			struct {
-				char calledParty[StationMaxDirnumSize];								/*!< Called Party */
-				uint32_t lel_lineInstance;									/*!< Line Instance */
-				uint32_t lel_callReference;									/*!< Call Reference */
+				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
+				uint32_t lel_lineInstance;							/*!< Line Instance */
+				uint32_t lel_callReference;							/*!< Call Reference */
 			} v3;
 			struct {
-				char calledParty[25]		;								/*!< Called Party */
-				uint32_t lel_lineInstance;									/*!< Line Instance */
-				uint32_t lel_callReference;									/*!< Call Reference */
+				char calledParty[StationDynamicDirnumSize];					/*!< Called Party */
+				uint32_t lel_lineInstance;							/*!< Line Instance */
+				uint32_t lel_callReference;							/*!< Call Reference */
 			} v18;
 		};
 	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
 
 	struct {
-		uint32_t lel_status;										/*!< Status (0=inactive, 1=active) */
-		uint32_t lel_lineNumber;									/*!< Line Number */
-		uint32_t lel_cfwdallstatus;									/*!< Call Forward All Status */
-		char cfwdallnumber[StationMaxDirnumSize];							/*!< Call Forward All Number */
-		uint32_t lel_cfwdbusystatus;									/*!< Call Forward on Busy Status */
-		char cfwdbusynumber[StationMaxDirnumSize];							/*!< Call Forward on Busy Number */
-		uint32_t lel_cfwdnoanswerstatus;								/*!< Call Forward on No-Answer Status */
-		char cfwdnoanswernumber[StationMaxDirnumSize];							/*!< Call Forward on No-Answer Number */
+		union {
+			struct {
+				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_lineNumber;							/*!< Line Number */
+				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
+				char cfwdallnumber[StationMaxDirnumSize];					/*!< Call Forward All Number */
+				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
+				char cfwdbusynumber[StationMaxDirnumSize];					/*!< Call Forward on Busy Number */
+				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				char cfwdnoanswernumber[StationMaxDirnumSize];					/*!< Call Forward on No-Answer Number */
+			} v3;
+			struct {
+				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_lineNumber;							/*!< Line Number */
+				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
+				char cfwdallnumber[StationDynamicDirnumSize];				/*!< Call Forward All Number */
+				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
+				char cfwdbusynumber[StationDynamicDirnumSize];				/*!< Call Forward on Busy Number */
+				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				char cfwdnoanswernumber[StationDynamicDirnumSize];				/*!< Call Forward on No-Answer Number */
+			} v18;											
+		};
 	} ForwardStatMessage;											/*!< Forward Status Message Structure */
-
-	struct {
-		uint32_t lel_status;										/*!< Status (0=inactive, 1=active) */
-		uint32_t lel_lineNumber;									/*!< Line Number */
-		uint32_t lel_cfwdallstatus;									/*!< Call Forward All Status */
-		char cfwdallnumber[StationMaxDirnumSize];							/*!< Call Forward All Number */
-		uint32_t lel_cfwdbusystatus;									/*!< Call Forward on Busy Status */
-		char cfwdbusynumber[StationMaxDirnumSize];							/*!< Call Forward on Busy Number */
-		uint32_t lel_cfwdnoanswerstatus;								/*!< Call Forward on No-Answer Status */
-		char cfwdnoanswernumber[StationMaxDirnumSize];							/*!< Call Forward on No-Answer Number */
-		uint32_t lel_unknown;										/*!< 00 00 00 ff */
-	} ForwardStatMessageV19;										/*!< Forward Status Message Structure */
 
 	struct {
 		uint32_t lel_speedDialNumber;									/*!< SpeedDial Number */
@@ -2438,7 +2453,7 @@ typedef union {
 				uint32_t lel_StatsProcessing;							/*!< Statistics Processing */
 			} v3;
 			struct {
-				char DirectoryNumber[25];							/*!< Directory Number */
+				char DirectoryNumber[StationDynamicDirnumSize];				/*!< Directory Number */
 				uint32_t lel_callReference;							/*!< Call Reference */
 				uint32_t lel_StatsProcessing;							/*!< Statistics Processing */
 			} v19;
@@ -2682,21 +2697,6 @@ typedef union {
 		uint32_t maxBitRate;										/*!< Maximum BitRate */
 	} FlowControlCommandMessage;
 
-	struct {
-		uint32_t lel_conferenceID;									/*!< Conference ID */
-		uint32_t lel_numberOfReservedParticipants;							/*!< Number of Reserved Participants */
-		uint32_t lel_resourceTypes;									/*!< Resource Types */
-		uint32_t lel_appID;										/*!< Application ID */
-		uint8_t lel_appConfID;										/*!< Conference Application ID */
-		char lel_unknown[31];										/*!< Unknown */
-		char lel_appData[24];										/*!< Application Data */
-		uint32_t lel_data_length;									/*!< Application Data Length */
-		uint8_t lel__passThruData;									/*!< Pass Through Data */
-	} CreateConferenceReqMessage;										/*!< Create Conference Request Message Structure */
-
-	struct {
-		uint32_t lel_conferenceID;									/*!< Conference ID */
-	} DeleteConferenceReqMessage;										/*!< Delete Conference Request Message Structure */
 
 	/* SCCP Firmware version > 9.1 */
 	struct {
@@ -2757,43 +2757,7 @@ typedef union {
 	} RegisterAvailableLinesMessage;
 
 	struct {
-	} CreateConferenceResMessage;
-
-	struct {
-	} DeleteConferenceResMessage;
-
-	struct {
-	} ModifyConferenceResMessage;
-
-	struct {
-	} AddParticipantResMessage;
-
-	struct {
-	} AuditConferenceResMessage;
-
-	struct {
-	} AuditParticipantResMessage;
-
-	struct {
 	} StartMediaFailureDetection;
-
-	struct {
-		skinny_announcementList_t announcements[SKINNY_MaxAnnouncementList];
-		uint32_t lel_endOfAnnAck;
-		uint32_t lel_conferenceID;
-		uint32_t lel_matrixConfPartyID[SKINNY_StationMaxMonitorParties];
-		uint32_t lel_hearingConfPartyMask;
-		uint32_t lel_annPlayMode;
-	} StartAnnouncementMessage;
-
-	struct {
-		uint32_t lel_conferenceID;
-	} StopAnnouncementMessage;
-
-	struct {
-		uint32_t lel_conferenceID;
-		uint32_t lel_annPlayStatus;
-	} AnnouncementFinishMessage;
 
 	struct {
 	} NotifyDtmfToneMessage;
@@ -2820,26 +2784,141 @@ typedef union {
 	} UnSubscribeDtmfPayloadErrMessage;
 
 	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_numberOfReservedParticipants;							/*!< Number of Reserved Participants */
+		uint32_t lel_resourceType;									/*!< Resource Type: Conf:0x00, IVR:0x01 */
+		uint32_t lel_appID;										/*!< Application ID */
+		char appConfID[32];										/*!< Application ConfID */
+		char lel_appData[24];										/*!< Application Data */
+		uint32_t lel_dataLength;									/*!< Application DataLength */
+		char lel_passThruData[];									/*!< Pass Through Data (variable size / max 2000)*/
+	} CreateConferenceReqMessage;										/*!< Create Conference Request Message Structure */
+
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_result;										/*!< Result ENUM(OK:0x00, ResourceNotAvailable: 0x01, ConferenceAlreadyExists: 0x02, SystemErr:0x03) */
+		uint32_t lel_dataLength;									/*!< Application DataLength */
+		char lel_passThruData[];									/*!< Pass Through Data (variable size / max 2000)*/
+	} CreateConferenceResMessage;
+
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+	} DeleteConferenceReqMessage;										/*!< Delete Conference Request Message Structure */
+
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_result;										/*!< Result ENUM(OK:0x00, ConferenceDoesNotExist: 0x01, SystemErr: 0x02)*/
+	} DeleteConferenceResMessage;
+
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_numberOfReservedParticipants;							/*!< Number of Participants to be reserved */
+		uint32_t lel_appID;										/*!< App ID */
+		char appConfID[StationMaxDisplayTextSize];							/*!< app Conf ID */
+		char appData[StationMaxDirnumSize];								/*!< Add Data */
+		uint32_t lel_dataLength;									/*!< Application DataLength */
+		char lel_passThruData[];									/*!< Pass Through Data (variable size / max 2000)*/
 	} ModifyConferenceReqMessage;
 
 	struct {
-	} AddParticipantReqMessage;
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_result;										/*!< Result ENUM(OK:0x00, ResourceNotAvailable: 0x01, ConferenceDoesNotExist: 0x02, InvalidParameter: 0x03, MoreActiveCallsThanReserved: 0x04, InvalidResourceType:0x05, SystemErr:0x06) */
+		uint32_t lel_dataLength;									/*!< Application DataLength */
+		char lel_passThruData[];									/*!< Pass Through Data (variable size / max 2000)*/
+	} ModifyConferenceResMessage;
 
 	struct {
-	} DropParticipantReqMessage;
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_callReference;									/*!< Call Reference */
+		uint32_t partyPIRestrictionBits;								/*!< Party PI Restriction Bits Structure
+														   0 RestrictCallingPartyName
+														   1 RestrictCallingPartyNumber
+														   2 RestrictCalledPartyName
+														   3 RestrictCalledPartyNumber
+														   4 RestrictOriginalCalledPartyName
+														   5 RestrictOriginalCalledPartyNumber
+														   6 RestrictLastRedirectPartyName
+														   7 RestrictLastRedirectPartyNumber */
+		char participantName[StationMaxNameSize];							/*!< Participant Name */
+		char participantNumber[StationMaxDirnumSize];							/*!< Participant Number */
+		char conferenceName[StationMaxDisplayTextSize];							/*!< Conference Name*/
+	} AddParticipantReqMessage;										/*!< Add Participent to Conference Request Message*/
+
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_callReference;									/*!< Call Reference */
+		uint32_t lel_result;										/*!< Result ENUM(OK:0x00, ResourceNotAvailable: 0x01, ConferenceDoesNotExist: 0x02, DeplicateCallReference:0x03, SystemErr:0x04) */
+		uint32_t lel_bridgeParticipantID;								/*!< Birdge Participant ID */
+	} AddParticipantResMessage;
 
 	struct {
 	} AuditConferenceReqMessage;
 
 	struct {
+		uint32_t lel_last;										/*!< last */
+		uint32_t lel_numberOfEntries;									/*!< Number Of Entries */
+		struct {
+			uint32_t lel_conferenceID;								/*!< Conference ID */
+			uint32_t lel_resourceType;								/*!< Resource Type. Enum(Conf:0x00, IVR:0x01) */
+			uint32_t lel_numberOfReservedParticipants;						/*!< Number of Reserved Participants */
+			uint32_t lel_numberOfActiveParticipants;						/*!< Number of Active Participants */
+			uint32_t lel_appID;									/*!< App ID */
+			char appConfID[StationMaxDisplayTextSize];						/*!< app Conf ID */
+			char appData[StationMaxDirnumSize];							/*!< Add Data */
+		} conferenceEntry[];										/*!< variable size / max 32*/
+	} AuditConferenceResMessage;
+
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
 	} AuditParticipantReqMessage;
 
-	/* new */
 	struct {
-	} UpdateCapabilitiesV2Message;										/*!< Update Capabilities V2 Structure */
+		uint32_t lel_result;										/*!< Result. Enum(OK:0x00, ConferenceDoesNotExist:0x01) */
+		uint32_t lel_last;										/*!< last */
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_numberOfEntries;									/*!< Number Of Entries */
+		char participantEntry[];									/*!< variable size: max 256 */
+	} AuditParticipantResMessage;
 
-	//struct {
-	//} UpdateCapabilitiesV3Message;                                                                        /*!< Update Capabilities V3 Structure */
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_callReference;									/*!< Call Reference */
+		uint32_t partyPIRestrictionBits;								/*!< Party PI Restriction Bits Structure
+														   0 RestrictCallingPartyName
+														   1 RestrictCallingPartyNumber
+														   2 RestrictCalledPartyName
+														   3 RestrictCalledPartyNumber
+														   4 RestrictOriginalCalledPartyName
+														   5 RestrictOriginalCalledPartyNumber
+														   6 RestrictLastRedirectPartyName
+														   7 RestrictLastRedirectPartyNumber */
+		char participantName[StationMaxNameSize];							/*!< Participant Name */
+		char participantNumber[StationMaxDirnumSize];							/*!< Participant Number */
+		char conferenceName[StationMaxDisplayTextSize];							/*!< Conference Name*/
+	} ChangeParticipantReqMessage;
+	
+	struct {
+		uint32_t lel_conferenceID;									/*!< Conference ID */
+		uint32_t lel_callReference;									/*!< Call Reference */
+	} DropParticipantReqMessage;
+
+	struct {
+		skinny_announcementList_t announcements[SKINNY_MaxAnnouncementList];
+		uint32_t lel_endOfAnnAck;
+		uint32_t lel_conferenceID;
+		uint32_t lel_matrixConfPartyID[SKINNY_StationMaxMonitorParties];
+		uint32_t lel_hearingConfPartyMask;
+		uint32_t lel_annPlayMode;
+	} StartAnnouncementMessage;
+
+	struct {
+		uint32_t lel_conferenceID;
+	} StopAnnouncementMessage;
+
+	struct {
+		uint32_t lel_conferenceID;
+		uint32_t lel_annPlayStatus;
+	} AnnouncementFinishMessage;
 
 	struct {
 	} PortResMessage;											/*!< Port Response Message Structure */
@@ -3072,9 +3151,6 @@ static const struct messagetype sccp_messagetypes[] = {
 	[MediaPathCapabilityMessage] = {		"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},
 	[FlowControlNotifyMessage] = { 			"FlowControl Notify Message", 			offsize(sccp_data_t, FlowControlNotifyMessage)},
 	[CallCountReqMessage] = {			"CallCount Request Message", 			offsize(sccp_data_t, CallCountReqMessage)},
-/*new*/
-	[UpdateCapabilitiesV2Message] = {		"Update Capabilities V2",			offsize(sccp_data_t, UpdateCapabilitiesV2Message)},
-/*	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},*/
 	[PortResMessage] = {				"Port Response Message",			offsize(sccp_data_t, PortResMessage)},
 	[QoSResvNotifyMessage] = {			"QoS Resv Notify Message",			offsize(sccp_data_t, QoSResvNotifyMessage)},
 	[QoSErrorNotifyMessage] = {			"QoS Error Notify Message",			offsize(sccp_data_t, QoSErrorNotifyMessage)},
