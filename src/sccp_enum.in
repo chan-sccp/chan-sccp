@@ -545,19 +545,19 @@ enum registrationstate {
  * \brief Skinny Media Status (Enum)
  */
 enum mediastatus {
-	SKINNY_MEDIASTATUS_Ok,				,	"Media Status: OK", 
-	SKINNY_MEDIASTATUS_Unknown,			,	"Media Error: Unknown", 
-	SKINNY_MEDIASTATUS_OutOfChannels,		,	"Media Error: Out of Channels", 
-	SKINNY_MEDIASTATUS_CodecTooComplex,		,	"Media Error: Codec Too Complex", 
-	SKINNY_MEDIASTATUS_InvalidPartyId,		,	"Media Error: Invalid Party ID", 
-	SKINNY_MEDIASTATUS_InvalidCallReference,	,	"Media Error: Invalid Call Reference", 
-	SKINNY_MEDIASTATUS_InvalidCodec,		,	"Media Error: Invalid Codec", 
-	SKINNY_MEDIASTATUS_InvalidPacketSize,		,	"Media Error: Invalid Packet Size", 
-	SKINNY_MEDIASTATUS_OutOfSockets,		,	"Media Error: Out of Sockets", 
-	SKINNY_MEDIASTATUS_EncoderOrDecoderFailed,	,	"Media Error: Encoder Or Decoder Failed", 
-	SKINNY_MEDIASTATUS_InvalidDynPayloadType,	,	"Media Error: Invalid Dynamic Payload Type", 
+	SKINNY_MEDIASTATUS_Ok,					,	"Media Status: OK", 
+	SKINNY_MEDIASTATUS_Unknown,				,	"Media Error: Unknown", 
+	SKINNY_MEDIASTATUS_OutOfChannels,			,	"Media Error: Out of Channels", 
+	SKINNY_MEDIASTATUS_CodecTooComplex,			,	"Media Error: Codec Too Complex", 
+	SKINNY_MEDIASTATUS_InvalidPartyId,			,	"Media Error: Invalid Party ID", 
+	SKINNY_MEDIASTATUS_InvalidCallReference,		,	"Media Error: Invalid Call Reference", 
+	SKINNY_MEDIASTATUS_InvalidCodec,			,	"Media Error: Invalid Codec", 
+	SKINNY_MEDIASTATUS_InvalidPacketSize,			,	"Media Error: Invalid Packet Size", 
+	SKINNY_MEDIASTATUS_OutOfSockets,			,	"Media Error: Out of Sockets", 
+	SKINNY_MEDIASTATUS_EncoderOrDecoderFailed,		,	"Media Error: Encoder Or Decoder Failed", 
+	SKINNY_MEDIASTATUS_InvalidDynPayloadType,		,	"Media Error: Invalid Dynamic Payload Type", 
 	SKINNY_MEDIASTATUS_RequestedIpAddrTypeUnavailable, 	,	"Media Error: Requested IP Address Type if not available", 
-	SKINNY_MEDIASTATUS_DeviceOnHook,		,	"Media Error: Device is on hook", 
+	SKINNY_MEDIASTATUS_DeviceOnHook,			,	"Media Error: Device is on hook", 
 }
 
 /*!

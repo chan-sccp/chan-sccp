@@ -1904,8 +1904,8 @@ typedef union {
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
 				EncryptionInfo encryptioninfo;
 				/* protocol v11 mods */
-				uint32_t lel_streamPassThroughID;						/*!< Unknown */
-				uint32_t lel_assocStreamID;							/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_dtmfType;								/*!< RTP Type */
 				/* protocol v11 fields */
@@ -1940,8 +1940,8 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
 				EncryptionInfo encryptioninfo;
-				uint32_t lel_streamPassThroughID;						/*!< Unknown */
-				uint32_t lel_assocStreamID;							/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is set to 0x0A) */
 				uint32_t lel_mixingMode;
@@ -1964,8 +1964,8 @@ typedef union {
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
 				EncryptionInfo encryptioninfo;
-				uint32_t lel_streamPassThroughID;						/*!< Unknown */
-				uint32_t lel_assocStreamID;							/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMP PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is set to 0x0A) */
 				uint32_t lel_mixingMode;
@@ -2342,8 +2342,8 @@ typedef union {
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
 				EncryptionInfo encryptioninfo;
-				uint32_t lel_streamPassThroughID;						/*!< Unknown */
-				uint32_t lel_assocStreamID;							/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
@@ -2374,8 +2374,8 @@ typedef union {
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
 				EncryptionInfo encryptioninfo;
-				uint32_t lel_streamPassThroughID;						/*!< Unknown */
-				uint32_t lel_assocStreamID;							/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
@@ -2397,8 +2397,8 @@ typedef union {
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
 				EncryptionInfo encryptioninfo;
-				uint32_t lel_streamPassThroughID;						/*!< Unknown */
-				uint32_t lel_assocStreamID;							/*!< Unknown */
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 				uint32_t lel_RFC2833Type;							/*!< RTP DTMF PayLoad (this is often set to 0x65 (101)) */
 				uint32_t lel_dtmfType;								/*!< RTP Timeout (this is always 0x0A) */
 				/* protocol version 15 fields */
@@ -2607,8 +2607,8 @@ typedef union {
 
 				videoParameter_t videoParameter;						/*!< Data Parameter */
 				EncryptionInfo encryptionInfo;
-				uint32_t unknown1;
-				uint32_t unknown2;
+				uint32_t lel_streamPassThroughID;						/*!< Stream Pass-Through ID */
+				uint32_t lel_assocStreamID;							/*!< Associated Stream ID */
 			} v17;
 		};
 	} StartMultiMediaTransmission;										/*!< Start MultiMedia Transmission Message Structure */
@@ -2622,7 +2622,7 @@ typedef union {
 				uint32_t bel_ipAddr;								/*!< This field is apparently in big-endian format, even though most other fields are little-endian. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_mediastatus;							/*!< Start Media Transmission Status */
-				uint32_t lel_unknown2;								/*!< Unknown 2 */
+				uint32_t lel_unknown;								/*!< Unknown (Does this actually Exist) */
 			} v3;
 
 			struct {
@@ -2633,7 +2633,7 @@ typedef union {
 				char bel_ipAddr[16];								/*!< This field is apparently in big-endian format, even though most other fields are in little-endian format. */
 				uint32_t lel_portNumber;							/*!< Port Number */
 				uint32_t lel_mediastatus;							/*!< startmediatransmission status */
-				uint32_t lel_unknown2;								/*!< Unknown */
+				uint32_t lel_unknown;								/*!< Unknown (Does this actually Exist)*/
 			} v17;
 		};
 	} StartMultiMediaTransmissionAck;									/*!< Start Media Transmission Acknowledgement Structure */
