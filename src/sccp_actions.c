@@ -2678,7 +2678,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
 	if (mediastatus) {
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, mediastatus ? "Error" : "Ok", mediastatus);
+		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
 		if (channel) {
 			sccp_channel_endcall(channel);
 		}
@@ -2866,7 +2866,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		return;
 	}
 	if (mediastatus) {
-		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: '%s' (%d))\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
+		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call. '%s' (%d))\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
 			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
 		}
@@ -2904,20 +2904,27 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 {
 	struct sockaddr_storage ss = { 0 };
 
-	skinny_mediastatus_t status = SKINNY_MEDIASTATUS_Unknown;
+	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
 	uint32_t partyID = 0, callID = 0, callID1 = 0;
 
-	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &status, &ss);
+	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &mediastatus, &ss);
 	if (ss.ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
 		return;
 	}
 
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_bypassthrupartyid(partyID);
+	if (mediastatus) {
+		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
+		if (c) {
+			sccp_channel_endcall(c);
+		}
+		return;
+	}
 
 	if (c) {
-		if (status) {
-			pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %d Ending call\n", DEV_ID_LOG(d), status);
+		if (mediastatus) {
+			pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %s (%d) Ending call\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 			sccp_dump_msg(msg_in);
 			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 			return;
@@ -2925,7 +2932,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 		/* update status */
 		c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, sccp_socket_stringify(&ss), callID, callID1, partyID);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_socket_stringify(&ss), callID, callID1, partyID);
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), partyID);
@@ -2941,10 +2948,22 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_dump_msg(msg_in);
+	/*
+	
+	struct sockaddr_storage ss = { 0 };
+	uint32_t confID = 0, partyID = 0, callRef = 0;
+	d->protocol->parseMediaTransmissionFailure((const sccp_msg_t *) msg_in, &confID, &partyID, &ss, &callRef);
+	
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_bypassthrupartyid(partyID);
 
-	// if directrtp: switch back to indirect rtp
-	// else
-	// stop all media transmission
+	if (c) {
+		pbx_log(LOG_ERROR, "%s: MediaFailure on Channel '%s'!. Ending Call.\n", d->id, c->designator);
+		// if directrtp: switch back to indirect rtp
+		// else
+		// 	hangup
+			sccp_channel_endcall(c);
+	}
+	*/
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
 }
@@ -3685,7 +3704,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	uint32_t callReference;
 	uint32_t transactionID;
 	uint32_t dataLength;
-	char data[StationMaxXMLMessage];
+	char data[StationMaxXMLMessage] = "";
 
 #ifdef CS_SCCP_CONFERENCE
 	uint32_t lineInstance;
@@ -3706,7 +3725,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for %d '%s'\n", d->id, appID, data);
+	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for AppID:%d, data:'%s', length:%d\n", d->id, appID, data, dataLength);
 	if (0 != appID && 0 != callReference && 0 != transactionID) {
 		switch (appID) {
 			case APPID_CONFERENCE:									// Handle Conference App
