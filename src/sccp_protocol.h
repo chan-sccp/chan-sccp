@@ -613,6 +613,13 @@ typedef struct {
 	uint32_t customPictureFormatpixelclockDivisor;								/*!< Picture Pixel Divisor */
 } customPictureFormat_t;											/*!< SKINNY Picture Format Structure */
 
+typedef struct {
+		uint8_t codecMode ;
+		uint8_t dynamicPayload;
+		uint8_t codecParam1;
+		uint8_t codecParam2;
+} codecParams_t;
+
 typedef union {
 	uint32_t lel_g723BitRate;										/*!< G723 Bit Rate : Enum(5.3: 0x01, 6.3: 0x02) */
 	struct {
@@ -629,12 +636,7 @@ typedef union {
 		uint32_t lel_standardSupportField;
 		uint32_t lel_vendorSupportField;
 	} SupportEntry;
-	struct {
-		uint8_t codecMode ;
-		uint8_t dynamicPayload;
-		uint8_t codecParam1;
-		uint8_t codecParam2;
-	} codecParams;
+	codecParams_t codecParams;
 } payload_t;
 
 /*!
@@ -2753,11 +2755,23 @@ typedef union {
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7962 -- 6 buttons
 	// 00000000 - 08 00 00 00 16 00 00 00  2D 00 00 00 02 00 00 00  // 7970 -- 8 buttons
 	struct {
-		uint32_t maxAvailLines;
+		uint32_t lel_maxAvailLines;
 	} RegisterAvailableLinesMessage;
 
 	struct {
-	} StartMediaFailureDetection;
+		uint32_t lel_conferenceID;									/*!< Conference ID*/
+		uint32_t lel_passThruPartyID;									/*!< PassThrough Party ID */
+		uint32_t lel_millisecondPacketSize;								/*!< MilliSecond PacketSize*/
+		uint32_t lel_compressionType;									/*!< Enum (SKINNY_CODEC_..)*/
+		struct {
+			uint32_t lel_echoCancellation;								/*!< Echo Cancellation */
+			union {											/*!< Depends on compressionType */
+				uint32_t lel_g723BitRate;							/*!< */
+				codecParams_t codecParams;							/*!< */
+			};
+		} qualifierIn;											/*!< Quelifier */
+		uint32_t lel_callReference;									/*!< Call Reference */
+	} StartMediaFailureDetection;										/*!< Start Media Failure Detection Message */
 
 	struct {
 	} NotifyDtmfToneMessage;
