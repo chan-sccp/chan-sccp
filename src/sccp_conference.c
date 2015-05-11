@@ -93,11 +93,11 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference playback channel\n", conference->id);
 #if ASTERISK_VERSION_GROUP < 112
 		PBX_CHANNEL_TYPE *underlying_channel = NULL;
-
-		underlying_channel = PBX(get_bridged_channel) (conference->playback_channel);
-		pbx_hangup(underlying_channel);
-		pbx_hangup(conference->playback_channel);
-		pbx_channel_unref(underlying_channel);
+		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback_channel))) {
+			pbx_hangup(underlying_channel);
+			pbx_hangup(conference->playback_channel);
+			pbx_channel_unref(underlying_channel);
+		}
 #else
 		sccpconf_announce_channel_depart(conference->playback_channel);
 		pbx_hangup(conference->playback_channel);
@@ -859,33 +859,46 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		}
 
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Created Playback Channel\n", conference->id);
-		underlying_channel = PBX(get_bridged_channel) (conference->playback_channel);
-
-		// Update CDR to prevent nasty ast warning when hanging up this channel (confbridge does not set the cdr correctly)
-		pbx_cdr_start(pbx_channel_cdr(conference->playback_channel));
+		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback_channel))) {
+			// Update CDR to prevent nasty ast warning when hanging up this channel (confbridge does not set the cdr correctly)
+			pbx_cdr_start(pbx_channel_cdr(conference->playback_channel));
 #if ASTERISK_VERSION_GROUP < 110
-		conference->playback_channel->cdr->answer = ast_tvnow();
-		underlying_channel->cdr->answer = ast_tvnow();
+			conference->playback_channel->cdr->answer = ast_tvnow();
+			underlying_channel->cdr->answer = ast_tvnow();
 #endif
-		pbx_cdr_update(conference->playback_channel);
-		pbx_channel_unref(underlying_channel);
+			pbx_cdr_update(conference->playback_channel);
+		} else {
+			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Could not get Underlying channel from newly created playback channel\n", conference->id);
+		}
 	} else {
 		/* Channel was already available so we just need to add it back into the bridge */
-		underlying_channel = PBX(get_bridged_channel) (conference->playback_channel);
-		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
-		if (pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0)) {
-			sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Impart playback channel failed\n", conference->id);
+		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback_channel))) {
+			sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
+			if (pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0)) {
+				sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Impart playback channel failed\n", conference->id);
+				if (underlying_channel) {
+					pbx_channel_unref(underlying_channel);
+					underlying_channel = NULL;		
+				}
+			} else {
+				pbx_log(LOG_ERROR, "SCCPCONF/%04d: Could not impart Underlying channel to conf-bridge\n", conference->id);
+			}
+		} else {
+			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Could not get Underlying channel via bridge\n", conference->id);
 		}
+	}
+	if (underlying_channel) {
+		if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
+			ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
+		} else {
+			res = 1;
+		}
+		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Detaching '%s' from Conference\n", conference->id, pbx_channel_name(underlying_channel));
+		pbx_bridge_depart(conference->bridge, underlying_channel);
 		pbx_channel_unref(underlying_channel);
-	}
-
-	if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
-		ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
 	} else {
-		res = 1;
+		pbx_log(LOG_ERROR, "SCCPCONF/%04d: No Underlying channel available to use for playback\n", conference->id);
 	}
-	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Detaching '%s' from Conference\n", conference->id, pbx_channel_name(underlying_channel));
-	pbx_bridge_depart(conference->bridge, underlying_channel);
 	pbx_mutex_unlock(&conference->playback_lock);
 	return res;
 }
@@ -1051,7 +1064,7 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		//sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
 		if (participant->device->protocolversion >= 15) {
-			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\">", appID);
+			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\" onAppClosed=\"%d\">", appID, appID);
 			strcat(xmlStr, xmlTmp);
 			if (conference->isLocked) {
 				sprintf(xmlTmp, "<Title IconIndex=\"5\">Conference %d</Title>\n", conference->id);
@@ -1205,9 +1218,14 @@ void __sccp_conference_hide_list(sccp_conference_participant_t * participant)
 	if (participant->channel && participant->device && participant->conference) {
 		if (participant->device->conferencelist_active) {
 			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hide Conf List for participant: %d\n", participant->conference->id, participant->id);
-			char *data = "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"App:Close:0\"/></CiscoIPPhoneExecute>";
+			char xmlData[512] = "";
+			if (participant->device->protocolversion >= 15) {
+				sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"App:Close:0\"/></CiscoIPPhoneExecute>");
+			} else {
+				sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Init:Services\"/></CiscoIPPhoneExecute>");
+			}
 
-			participant->device->protocol->sendUserToDeviceDataVersionMessage(participant->device, appID, participant->callReference, participant->lineInstance, participant->transactionID, data, 2);
+			participant->device->protocol->sendUserToDeviceDataVersionMessage(participant->device, appID, participant->callReference, participant->lineInstance, participant->transactionID, xmlData, 2);
 			participant->device->conferencelist_active = FALSE;
 		}
 	}
