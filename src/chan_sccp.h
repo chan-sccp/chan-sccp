@@ -930,7 +930,8 @@ struct sccp_device {
 	boolean_t (*checkACL) (sccp_device_t * device);								/*!< check ACL callback function */
 	sccp_push_result_t (*pushURL) (const sccp_device_t * device, const char *url, uint8_t priority, uint8_t tone);
 	sccp_push_result_t (*pushTextMessage) (const sccp_device_t * device, const char *messageText, const char *from, uint8_t priority, uint8_t tone);
-	boolean_t (*hasDisplayPrompt) (void);									/*!< had Display Prompt callback function (derived from devicetype and protocol) */
+	boolean_t (*hasDisplayPrompt) (void);									/*!< has Display Prompt callback function (derived from devicetype and protocol) */
+	boolean_t (*hasEnhancedIconMenuSupport) (void);								/*!< has Enhanced IconMenu Support (derived from devicetype and protocol) */
 	void (*retrieveDeviceCapabilities) (const sccp_device_t * device);					/*!< set device background image */
 	void (*setBackgroundImage) (const sccp_device_t * device, const char *url);				/*!< set device background image */
 	void (*displayBackgroundImagePreview) (const sccp_device_t * device, const char *url);			/*!< display background image as preview */

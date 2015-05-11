@@ -466,6 +466,7 @@ sccp_device_t *sccp_device_create(const char *id)
 	d->pushTextMessage = sccp_device_pushTextMessageNotSupported;
 	d->checkACL = sccp_device_checkACL;
 	d->hasDisplayPrompt = sccp_device_trueResult;
+	d->hasEnhancedIconMenuSupport = sccp_device_falseResult;
 	d->setBackgroundImage = sccp_device_setBackgroundImageNotSupported;
 	d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreviewNotSupported;
 	d->retrieveDeviceCapabilities = sccp_device_retrieveDeviceCapabilities;
@@ -690,14 +691,39 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			}
 			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
 			break;
-		case SKINNY_DEVICETYPE_CISCO7912:
-		case SKINNY_DEVICETYPE_CISCO7911:
+		case SKINNY_DEVICETYPE_CISCO7910:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
+			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
+			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
+			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
+			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
+			for (i = 0; i < 2; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			}
+			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
+			break;
 		case SKINNY_DEVICETYPE_CISCO7906:
-		case SKINNY_DEVICETYPE_CISCO7905:
 			(btn++)->type = SCCP_BUTTONTYPE_LINE;
 			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
 			for (i = 0; i < 9; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			}
+			break;
+		case SKINNY_DEVICETYPE_CISCO7911:
+		case SKINNY_DEVICETYPE_CISCO7905:
+		case SKINNY_DEVICETYPE_CISCO7912:
+			(btn++)->type = SCCP_BUTTONTYPE_LINE;
+			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
+			for (i = 0; i < 9; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+			}
+			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
+			break;
+		case SKINNY_DEVICETYPE_CISCO7920:
+			for (i = 0; i < 4; i++) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7931:
@@ -712,30 +738,13 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			btn[22].instance = 23;
 			btn[23].type = SKINNY_BUTTONTYPE_APPLICATION;
 			btn[23].instance = 24;
+			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
 			break;
 		case SKINNY_DEVICETYPE_CISCO7935:
 		case SKINNY_DEVICETYPE_CISCO7936:
 		case SKINNY_DEVICETYPE_CISCO7937:
 			for (i = 0; i < 2; i++) {
 				(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			}
-			break;
-		case SKINNY_DEVICETYPE_CISCO7910:
-			(btn++)->type = SCCP_BUTTONTYPE_LINE;
-			(btn++)->type = SKINNY_BUTTONTYPE_HOLD;
-			(btn++)->type = SKINNY_BUTTONTYPE_TRANSFER;
-			(btn++)->type = SKINNY_BUTTONTYPE_DISPLAY;
-			(btn++)->type = SKINNY_BUTTONTYPE_VOICEMAIL;
-			(btn++)->type = SKINNY_BUTTONTYPE_CONFERENCE;
-			(btn++)->type = SKINNY_BUTTONTYPE_FORWARDALL;
-			for (i = 0; i < 2; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			}
-			(btn++)->type = SKINNY_BUTTONTYPE_LASTNUMBERREDIAL;
-			break;
-		case SKINNY_DEVICETYPE_CISCO7920:
-			for (i = 0; i < 4; i++) {
-				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7921:
@@ -745,10 +754,6 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 			}
 			break;
 		case SKINNY_DEVICETYPE_CISCO7940:
-		case SKINNY_DEVICETYPE_CISCO7941:
-		case SKINNY_DEVICETYPE_CISCO7941GE:
-		case SKINNY_DEVICETYPE_CISCO7942:
-		case SKINNY_DEVICETYPE_CISCO7945:
 			/* add text message support */
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
@@ -757,11 +762,20 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
+		case SKINNY_DEVICETYPE_CISCO7941:
+		case SKINNY_DEVICETYPE_CISCO7941GE:
+		case SKINNY_DEVICETYPE_CISCO7942:
+		case SKINNY_DEVICETYPE_CISCO7945:
+			/* add text message support */
+			d->pushTextMessage = sccp_device_pushTextMessage;
+			d->pushURL = sccp_device_pushURL;
+			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
+
+			for (i = 2 + sccp_addons_taps(d); i > 0; i--) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
 		case SKINNY_DEVICETYPE_CISCO7960:
-		case SKINNY_DEVICETYPE_CISCO7961:
-		case SKINNY_DEVICETYPE_CISCO7961GE:
-		case SKINNY_DEVICETYPE_CISCO7962:
-		case SKINNY_DEVICETYPE_CISCO7965:
 			/* add text message support */
 			d->pushTextMessage = sccp_device_pushTextMessage;
 			d->pushURL = sccp_device_pushURL;
@@ -773,9 +787,42 @@ void sccp_dev_build_buttontemplate(sccp_device_t * d, btnlist * btn)
 				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
 			}
 			break;
+		case SKINNY_DEVICETYPE_CISCO7961:
+		case SKINNY_DEVICETYPE_CISCO7961GE:
+		case SKINNY_DEVICETYPE_CISCO7962:
+		case SKINNY_DEVICETYPE_CISCO7965:
+			/* add text message support */
+			d->pushTextMessage = sccp_device_pushTextMessage;
+			d->pushURL = sccp_device_pushURL;
+			d->setBackgroundImage = sccp_device_setBackgroundImage;
+			d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
+			d->setRingTone = sccp_device_setRingtone;
+			d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
+
+			for (i = 6 + sccp_addons_taps(d); i > 0; i--) {
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			}
+			break;
 		case SKINNY_DEVICETYPE_CISCO7970:
 		case SKINNY_DEVICETYPE_CISCO7971:
 		case SKINNY_DEVICETYPE_CISCO7975:
+			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
+			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
+				(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+			} else {
+				for (i = 8 + sccp_addons_taps(d); i > 0; i--) {
+					(btn++)->type = SCCP_BUTTONTYPE_MULTI;
+				}
+
+				/* add text message support */
+				d->pushTextMessage = sccp_device_pushTextMessage;
+				d->pushURL = sccp_device_pushURL;
+				d->setBackgroundImage = sccp_device_setBackgroundImage;
+				d->displayBackgroundImagePreview = sccp_device_displayBackgroundImagePreview;
+				d->setRingTone = sccp_device_setRingtone;
+				d->hasEnhancedIconMenuSupport = sccp_device_trueResult;
+			}
+			break;
 		case SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR:
 			/* the nokia icc client identifies it self as SKINNY_DEVICETYPE_CISCO7970, but it can only have one line  */
 			if (!strcasecmp(d->config_type, "nokia-icc")) {						// this is for nokia icc legacy support (Old releases) -FS
