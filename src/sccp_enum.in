@@ -321,9 +321,9 @@ enum callstate {
 	SKINNY_CALLSTATE_PROCEED,			,	"proceed",
 	SKINNY_CALLSTATE_CALLREMOTEMULTILINE,		,	"call remote multiline",
 	SKINNY_CALLSTATE_INVALIDNUMBER,			,	"invalid number",
-	SKINNY_CALLSTATE_HOLDYELLOW,			,	"hold yellow",
-	SKINNY_CALLSTATE_INTERCOMONEWAY,		,	"intercom one-way", 
-	SKINNY_CALLSTATE_HOLDRED,			,	"hold red",
+	SKINNY_CALLSTATE_HOLDYELLOW,			,	"hold yellow",		/* Hold Revert*/
+	SKINNY_CALLSTATE_INTERCOMONEWAY,		,	"intercom one-way",	/* Whisper */
+	SKINNY_CALLSTATE_HOLDRED,			,	"hold red",		/* RemoteHold */
 }
 
 /*!
@@ -341,9 +341,9 @@ enum callpriority {
  * \brief Skinny Protocol CallInfo Visibility (ENUM)
  */
 enum callinfo_visibility {
-	SKINNY_CALLINFO_VISIBILITY_DEFAULT,		,	"default",
-	SKINNY_CALLINFO_VISIBILITY_COLLAPSED,		,	"collapsed",
-	SKINNY_CALLINFO_VISIBILITY_HIDDEN,		,	"hidden",
+	SKINNY_CALLINFO_VISIBILITY_DEFAULT,		,	"default",		/* None */
+	SKINNY_CALLINFO_VISIBILITY_COLLAPSED,		,	"collapsed",		/* Limited */
+	SKINNY_CALLINFO_VISIBILITY_HIDDEN,		,	"hidden",		/* Full */
 }
 
 /*!
