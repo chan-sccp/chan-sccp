@@ -2869,6 +2869,15 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_getBridgeChannel(PBX_CHANNEL_T
 	return NULL;
 }
 
+static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_getUnderlyingChannel(PBX_CHANNEL_TYPE * pbx_channel)
+{
+	PBX_CHANNEL_TYPE *bridgePeer = NULL;
+	if (pbx_channel && (bridgePeer = pbx_channel_tech(pbx_channel)->bridged_channel(pbx_channel, NULL))) {
+		return pbx_channel_ref(bridgePeer);
+	}
+	return NULL;
+}
+
 static boolean_t sccp_wrapper_asterisk111_attended_transfer(sccp_channel_t * destination_channel, sccp_channel_t * source_channel)
 {
 	// possibly move transfer related callinfo updates here
@@ -3105,6 +3114,7 @@ sccp_pbx_cb sccp_pbx = {
 	dumpchan:			NULL,
 	channel_is_bridged:		sccp_wrapper_asterisk111_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk111_getBridgeChannel,
+	get_underlying_channel:		sccp_wrapper_asterisk111_getUnderlyingChannel,
 	attended_transfer:		sccp_wrapper_asterisk111_attended_transfer,
 	/* *INDENT-ON* */
 };
@@ -3232,6 +3242,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.dumpchan			= NULL,
 	.channel_is_bridged		= sccp_wrapper_asterisk111_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk111_getBridgeChannel,
+	.get_underlying_channel		= sccp_wrapper_asterisk111_getUnderlyingChannel,
 	.attended_transfer		= sccp_wrapper_asterisk111_attended_transfer,
 	/* *INDENT-ON* */
 };

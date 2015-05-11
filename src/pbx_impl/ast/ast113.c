@@ -3463,6 +3463,7 @@ sccp_pbx_cb sccp_pbx = {
 	dumpchan:			sccp_wrapper_asterisk113_dumpchan,
 	channel_is_bridged:		sccp_wrapper_asterisk113_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
+	get_underlying_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
 	attended_transfer:		sccp_wrapper_asterisk113_attended_transfer,
 	/* *INDENT-ON* */
 };
@@ -3596,6 +3597,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.dumpchan			= sccp_wrapper_asterisk113_dumpchan,
 	.channel_is_bridged		= sccp_wrapper_asterisk113_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
+	.get_underlying_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
 	.attended_transfer		= sccp_wrapper_asterisk113_attended_transfer,
 	/* *INDENT-ON* */
 };
