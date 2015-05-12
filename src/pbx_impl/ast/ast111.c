@@ -639,7 +639,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 									}
 								}
 							}
-#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO)
 							for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.video[x] != 0; x++) {
 								for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.video[y] != 0; y++) {
 									if (remoteSccpChannel->preferences.video[x] == remoteSccpChannel->capabilities.video[y]) {
@@ -652,7 +652,7 @@ static int sccp_wrapper_asterisk111_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 						} else {
 							sccp_log(DEBUGCAT_CODEC) (VERBOSE_PREFIX_4 "remote nativeformats: %s\n", pbx_getformatname_multiple(buf, sizeof(buf) - 1, ast_channel_nativeformats(remotePeer)));
 							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.audio, ARRAY_LEN(c->remoteCapabilities.audio), AST_FORMAT_TYPE_AUDIO);
-#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO)
 							sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(remotePeer), c->remoteCapabilities.video, ARRAY_LEN(c->remoteCapabilities.video), AST_FORMAT_TYPE_VIDEO);
 #endif
 						}
@@ -1404,7 +1404,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 					}
 				}
 			}
-#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO)
 			for (x = 0; x < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->preferences.video[x] != 0; x++) {
 				for (y = 0; y < SKINNY_MAX_CAPABILITIES && remoteSccpChannel->capabilities.video[y] != 0; y++) {
 					if (remoteSccpChannel->preferences.video[x] == remoteSccpChannel->capabilities.video[y]) {
@@ -1417,7 +1417,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk111_request(const char *type, stru
 			remoteSccpChannel = sccp_channel_release(remoteSccpChannel);
 		} else {
 			sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), audioCapabilities, ARRAY_LEN(audioCapabilities), AST_FORMAT_TYPE_AUDIO);
-#if defined(CS_SCCP_VIDEO) && defined(CS_EXPERIMENTAL)
+#if defined(CS_SCCP_VIDEO)
 			sccp_asterisk111_getSkinnyFormatMultiple(ast_channel_nativeformats(requestor), videoCapabilities, ARRAY_LEN(videoCapabilities), AST_FORMAT_TYPE_VIDEO);
 #endif
 		}
@@ -1814,15 +1814,10 @@ static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			instance = trtp;
 		}
 
-#ifndef CS_EXPERIMENTAL
-		if (d->directrtp && !d->nat && !nat_active && !c->conference) {					// asume directrtp
-#else
 		if (d->directrtp && d->nat < SCCP_NAT_ON && !nat_active && !c->conference) {			// asume directrtp
-#endif
 			ast_rtp_instance_get_remote_address(instance, &sin_tmp);
 			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
 			//ast_sockaddr_to_sin(&sin_tmp, &sin);
-#ifdef CS_EXPERIMENTAL
 			if (d->nat == SCCP_NAT_OFF) {								// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
 				struct ast_sockaddr sin_local;
 				struct sockaddr_storage localsas = { 0, };
@@ -1831,11 +1826,9 @@ static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 				if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW && sccp_apply_ha(d->ha, &localsas) == AST_SENSE_ALLOW) {
 					directmedia = TRUE;
 				}
-			} else
-#endif
-			if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
-				directmedia = TRUE;
-				//                ast_channel_defer_dtmf(ast);
+			} else if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
+					directmedia = TRUE;
+					//                ast_channel_defer_dtmf(ast);
 			}
 		}
 		if (!directmedia) {										// fallback to indirectrtp
@@ -1853,11 +1846,7 @@ static int sccp_wrapper_asterisk111_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk111_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_socket_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
-#ifndef CS_EXPERIMENTAL
-					  S_COR(!d->nat, "yes", "no"),
-#else
 					  sccp_nat2str(d->nat),
-#endif
 					  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
 		    );
 
