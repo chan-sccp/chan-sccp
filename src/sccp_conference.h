@@ -61,6 +61,9 @@ struct sccp_conference_participant {
 	uint32_t callReference;
 	uint32_t lineInstance;
 	uint32_t transactionID;
+	
+	char PartyName[StationMaxNameSize];
+	char PartyNumber[StationMaxDirnumSize];
 
 	SCCP_LIST_ENTRY (sccp_conference_participant_t) list;							/*!< Linked List Entry */
 };
