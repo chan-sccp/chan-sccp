@@ -923,6 +923,48 @@ static int sccp_asterisk_managerHookHelper(int category, const char *event, char
 	}
 	return 0;
 }
+
+/*!
+ * \brief Call an AMI/Manager Function and Wait for the Result
+ * 
+ * @param out 			allocated struct ast_str (created/destroyed by the calling function)
+ * @param manager_command	const char * containing Something like "Action: ParkedCalls\r\n"
+ * @return int (-1 on failure | return value from called function)
+ */
+int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_command) 
+{
+        int result = 0;
+        
+        if (!outStr || sccp_strlen_zero(manager_command)) {
+        	return -2;
+        }
+#if defined(GCC_NESTED) || defined(CLANG_BLOCKS)
+#  ifdef GCC_NESTED
+        int hookresult(int category, const char *event, char *content) {
+                ast_str_append(&outStr, 0, "%s", content);
+                return 0;
+        };
+#  else 
+        int (^hookresult)(int category, const char *event, char *content) = ^(int category, const char *event, char *content) {
+                ast_str_append(&outStr, 0, "%s", content);
+                return 0;
+        };
+#  endif
+        struct manager_custom_hook hook = {__FILE__, hookresult};
+        result = ast_hook_send_action(&hook, manager_command);							/* "Action: ParkedCalls\r\n" */
+#endif														/* defined(GCC_NESTED) || defined(CLANG_BLOCKS) */
+        return result;
+}
+/* example use
+void example_function() {
+	struct ast_str *outStr = ast_str_create(DEFAULT_PBX_STR_BUFFERSIZE);
+	char *manager_command = "Action: ParkedCalls\r\n";
+	if (sccp_manager_action2pbx_str(outStr, manager_command) >= 0) {
+		sccp_log(DEBUGCAT_CORE)("SCCP: hook result: %s\n", pbx_str_buffer(outStr));
+	}
+	sccp_free(outStr);
+}*/
+
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
 
 #endif														/* CS_SCCP_MANAGER */
