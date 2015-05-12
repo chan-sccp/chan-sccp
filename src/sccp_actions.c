@@ -1222,8 +1222,6 @@ void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	sccp_dev_speed_find_byindex(s->device, wanted, FALSE, &k);
 	if (k.valid) {
-		//sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
-		//sccp_copy_string(msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
 		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDirNumber, k.ext, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDirNumber));
 		d->copyStr2Locale(d, msg_out->data.SpeedDialStatMessage.speedDialDisplayName, k.name, sizeof(msg_out->data.SpeedDialStatMessage.speedDialDisplayName));
 	} else {
@@ -1245,7 +1243,7 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 {
 	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle LastNumber Redial Stimulus\n", d->id);
 
-	if (sccp_strlen_zero(d->lastNumber)) {
+	if (sccp_strlen_zero(d->redialInformation.number)) {
 		pbx_log(LOG_NOTICE, "%s: (lastnumberredial) No last number stored to dial\n", d->id);
 		return;
 	}
@@ -1253,14 +1251,14 @@ static void sccp_handle_stimulus_lastnumberredial(sccp_device_t * d, sccp_line_t
 
 	if (channel) {
 		if (channel->state == SCCP_CHANNELSTATE_OFFHOOK) {
-			sccp_copy_string(channel->dialedNumber, d->lastNumber, sizeof(d->lastNumber));
+			sccp_copy_string(channel->dialedNumber, d->redialInformation.number, sizeof(d->redialInformation.number));
 			sccp_pbx_softswitch(channel);
-			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->lastNumber);
+			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial the number %s\n", d->id, d->redialInformation.number);
 		} else {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Redial ignored as call in progress\n", d->id);
 		}
 	} else {
-		channel = sccp_channel_newcall(l, d, d->lastNumber, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
+		channel = sccp_channel_newcall(l, d, d->redialInformation.number, SKINNY_CALLTYPE_OUTBOUND, NULL, NULL);
 	}
 }
 
@@ -2253,48 +2251,50 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 	sccp_msg_t *msg_out = NULL;
 
 	// sccp_BFLState_t state;
-	uint32_t state;
 
-	uint32_t unknown1 = 0;											/* just 4 bits filled */
-	uint32_t index = 0;											/* just 28 bits used */
-	uint32_t unknown2 = 0;											/* all 32 bits used */
-	uint32_t lineInstance = 0;										/* */
-	char *number;
+	uint32_t transactionID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_transactionID);										
+	uint32_t featureID = letohl(msg_in->data.SubscriptionStatReqMessage.lel_featureID);		/* LineInstance / BLF: 0x01 */
+	uint32_t timer = letohl(msg_in->data.SubscriptionStatReqMessage.lel_timer);			/* all 32 bits used */
+	char *subscriptionID = msg_in->data.SubscriptionStatReqMessage.subscriptionID;
 
-	index = letohl(msg_in->data.DialedPhoneBookMessage.lel_NumberIndex);
-	unknown1 = (index | 0xFFFFFFF0) ^ 0xFFFFFFF0;
-	index = index >> 4;
-
-	unknown2 = letohl(msg_in->data.DialedPhoneBookMessage.lel_unknown);					// i don't understand this :)
-	lineInstance = letohl(msg_in->data.DialedPhoneBookMessage.lel_lineinstance);
-
-	number = msg_in->data.DialedPhoneBookMessage.phonenumber;
+	/* take transactionID apart */
+	uint32_t index = transactionID >> 4;								/* just 28 bits filled */
+	uint32_t unknown1 = (transactionID | 0xFFFFFFF0) ^ 0xFFFFFFF0;					/* just 4 bits filled */
 
 	// Sending 0x152 Ack Message.
-	REQ(msg_out, DialedPhoneBookAckMessage);
-	msg_out->data.DialedPhoneBookAckMessage.lel_NumberIndex = msg_in->data.DialedPhoneBookMessage.lel_NumberIndex;
-	msg_out->data.DialedPhoneBookAckMessage.lel_lineinstance = msg_in->data.DialedPhoneBookMessage.lel_lineinstance;
-	msg_out->data.DialedPhoneBookAckMessage.lel_unknown = msg_in->data.DialedPhoneBookMessage.lel_unknown;
-	msg_out->data.DialedPhoneBookAckMessage.lel_unknown2 = 0;
+	REQ(msg_out, SubscriptionStatMessage);
+	msg_out->data.SubscriptionStatMessage.lel_transactionID = htolel(transactionID);
+	msg_out->data.SubscriptionStatMessage.lel_featureID = htolel(featureID);
+	msg_out->data.SubscriptionStatMessage.lel_timer = htolel(timer);
+	/* we could actually run a match against the pbx dialplan if we had a context (default line ?), and return OK / RouteFail depending on the outcome */
+	msg_out->data.SubscriptionStatMessage.lel_cause = 0;						/*!< Cause (Enum): 
+														OK: 0x00, 
+														RouteFail:0x01, 
+														AuthFail:0x02, 
+														Timeout:0x03, 
+														TrunkTerm:0x04, 
+														TrunkForbidden:0x05, 
+														Throttle:0x06
+													*/
 	sccp_dev_send(d, msg_out);
 
 	/* sometimes a phone sends an ' ' entry, I think we can ignore this one */
-	if (strlen(msg_in->data.DialedPhoneBookMessage.phonenumber) <= 1) {
+	if (strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
 		return;
 	}
 
-	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byid(d, lineInstance);
+	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byid(d, featureID);				
 
 	if (line) {
-		REQ(msg_out, CallListStateUpdate);
-		state = PBX(getExtensionState) (number, line->context);
+		REQ(msg_out, NotificationMessage);
+		uint32_t status = PBX(getExtensionState) (subscriptionID, line->context);
 
-		msg_out->data.CallListStateUpdate.lel_NumberIndex = htolel(msg_in->data.DialedPhoneBookMessage.lel_NumberIndex);
-		msg_out->data.CallListStateUpdate.lel_lineinstance = htolel(msg_in->data.DialedPhoneBookMessage.lel_lineinstance);
-		msg_out->data.CallListStateUpdate.lel_state = htolel(state);
+		msg_out->data.NotificationMessage.lel_transactionID = htolel(transactionID);
+		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
+		msg_out->data.NotificationMessage.lel_status = htolel(status);
 		sccp_dev_send(d, msg_out);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send CallListStateUpdate for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), number, line->context, state);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, msg_in->data.DialedPhoneBookMessage.phonenumber, unknown2, lineInstance);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context, status);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, subscriptionID, timer, featureID);
 	}
 }
 
@@ -2677,7 +2677,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		channel = sccp_channel_find_on_device_bypassthrupartyid(d, passThruPartyId);
 	}
 	if (mediastatus) {
-		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, mediastatus ? "Error" : "Ok", mediastatus);
+		pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Device returned: '%s' (%d) !. Giving up.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
 		if (channel) {
 			sccp_channel_endcall(channel);
 		}
@@ -2865,7 +2865,7 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 		return;
 	}
 	if (mediastatus) {
-		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call (status: '%s' (%d))\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
+		pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Ending call. '%s' (%d))\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (mediastatus == SKINNY_MEDIASTATUS_OutOfChannels || mediastatus == SKINNY_MEDIASTATUS_OutOfSockets) {
 			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Please Reset this Device. It ran out of Channels and/or Sockets\n", d->id);
 		}
@@ -2903,20 +2903,27 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 {
 	struct sockaddr_storage ss = { 0 };
 
-	skinny_mediastatus_t status = SKINNY_MEDIASTATUS_Unknown;
+	skinny_mediastatus_t mediastatus = SKINNY_MEDIASTATUS_Unknown;
 	uint32_t partyID = 0, callID = 0, callID1 = 0;
 
-	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &status, &ss);
+	d->protocol->parseStartMultiMediaTransmissionAck((const sccp_msg_t *) msg_in, &partyID, &callID, &callID1, &mediastatus, &ss);
 	if (ss.ss_family == AF_INET6) {
 		pbx_log(LOG_ERROR, "SCCP: IPv6 not supported at this moment\n");
 		return;
 	}
 
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_bypassthrupartyid(partyID);
+	if (mediastatus) {
+		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
+		if (c) {
+			sccp_channel_endcall(c);
+		}
+		return;
+	}
 
 	if (c) {
-		if (status) {
-			pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %d Ending call\n", DEV_ID_LOG(d), status);
+		if (mediastatus) {
+			pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %s (%d) Ending call\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 			sccp_dump_msg(msg_in);
 			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 			return;
@@ -2924,7 +2931,7 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 		/* update status */
 		c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
-		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK.  Status: %d, Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), status, sccp_socket_stringify(&ss), callID, callID1, partyID);
+		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_socket_stringify(&ss), callID, callID1, partyID);
 		return;
 	}
 	pbx_log(LOG_WARNING, "%s: Channel with passthrupartyid %u could not be found, please report this to developer\n", DEV_ID_LOG(d), partyID);
@@ -2940,10 +2947,22 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_dump_msg(msg_in);
+	/*
+	
+	struct sockaddr_storage ss = { 0 };
+	uint32_t confID = 0, partyID = 0, callRef = 0;
+	d->protocol->parseMediaTransmissionFailure((const sccp_msg_t *) msg_in, &confID, &partyID, &ss, &callRef);
+	
+	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_bypassthrupartyid(partyID);
 
-	// if directrtp: switch back to indirect rtp
-	// else
-	// stop all media transmission
+	if (c) {
+		pbx_log(LOG_ERROR, "%s: MediaFailure on Channel '%s'!. Ending Call.\n", d->id, c->designator);
+		// if directrtp: switch back to indirect rtp
+		// else
+		// 	hangup
+			sccp_channel_endcall(c);
+	}
+	*/
 
 	sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Received a MediaTranmissionFailure (not being handled fully at this moment)\n", DEV_ID_LOG(d));
 }
@@ -3263,7 +3282,7 @@ void sccp_handle_forward_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 	/* speeddial with hint. Sending empty forward message */
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Send Forward Status. Instance: %d\n", d->id, instance);
 	REQ(msg_out, ForwardStatMessage);
-	msg_out->data.ForwardStatMessage.lel_lineNumber = msg_in->data.ForwardStatReqMessage.lel_lineNumber;
+	msg_out->data.ForwardStatReqMessage.lel_lineNumber = msg_in->data.ForwardStatReqMessage.lel_lineNumber;
 	sccp_dev_send(d, msg_out);
 }
 
@@ -3280,10 +3299,10 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 {
 	sccp_buttonconfig_t *config = NULL;
 
-	int instance = letohl(msg_in->data.FeatureStatReqMessage.lel_featureInstance);
-	int unknown = letohl(msg_in->data.FeatureStatReqMessage.lel_unknown);
+	int index = letohl(msg_in->data.FeatureStatReqMessage.lel_featureIndex);
+	int capabilities = letohl(msg_in->data.FeatureStatReqMessage.lel_featureCapabilities);
 
-	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, instance, unknown);
+	sccp_log((DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Got Feature Status Request.  Index = %d Unknown = %d \n", d->id, index, capabilities);
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	/*
@@ -3292,19 +3311,19 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 	 */
 	sccp_speed_t k;
 
-	if ((unknown == 1 && d->inuseprotocolversion >= 15)) {
-		sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
+	if ((capabilities == 1 && d->inuseprotocolversion >= 15)) {
+		sccp_dev_speed_find_byindex(d, index, TRUE, &k);
 
 		if (k.valid) {
 			sccp_msg_t *msg_out;
 
 			REQ(msg_out, FeatureStatDynamicMessage);
-			msg_out->data.FeatureStatDynamicMessage.lel_instance = htolel(instance);
-			msg_out->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-			msg_out->data.FeatureStatDynamicMessage.lel_status = 0;
+			msg_out->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(index);
+			msg_out->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+			msg_out->data.FeatureStatDynamicMessage.lel_featureStatus = 0;
 
 			//sccp_copy_string(msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
-			d->copyStr2Locale(d, msg_out->data.FeatureStatDynamicMessage.DisplayName, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.DisplayName));
+			d->copyStr2Locale(d, msg_out->data.FeatureStatDynamicMessage.featureTextLabel, k.name, sizeof(msg_out->data.FeatureStatDynamicMessage.featureTextLabel));
 			sccp_dev_send(d, msg_out);
 			return;
 		}
@@ -3312,7 +3331,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 #endif
 
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
-		if (config->instance == instance && config->type == FEATURE) {
+		if (config->instance == index && config->type == FEATURE) {
 			sccp_feat_changed(d, NULL, config->button.feature.id);
 		}
 	}
@@ -3684,7 +3703,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 	uint32_t callReference;
 	uint32_t transactionID;
 	uint32_t dataLength;
-	char data[StationMaxXMLMessage];
+	char data[StationMaxXMLMessage] = "";
 
 #ifdef CS_SCCP_CONFERENCE
 	uint32_t lineInstance;
@@ -3705,7 +3724,7 @@ void sccp_handle_device_to_user(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 		memcpy(data, msg_in->data.DeviceToUserDataVersion1Message.data, dataLength);
 	}
 
-	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for %d '%s'\n", d->id, appID, data);
+	sccp_log((DEBUGCAT_ACTION + DEBUGCAT_MESSAGE + DEBUGCAT_DEVICE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "%s: Handle DTU for AppID:%d, data:'%s', length:%d\n", d->id, appID, data, dataLength);
 	if (0 != appID && 0 != callReference && 0 != transactionID) {
 		switch (appID) {
 			case APPID_CONFERENCE:									// Handle Conference App
@@ -3810,25 +3829,70 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 	if (channel) {
 		switch (commandType) {
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFREEZEPICTURE:
-
 				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE:
 				memcpy(&sin.sin_addr, &msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.bel_remoteIpAddr, sizeof(sin.sin_addr));
 				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: media statistic for %s, value1: %u, value2: %u, value3: %u, value4: %u\n",
 							  channel ? channel->currentDeviceId : "--", pbx_inet_ntoa(sin.sin_addr), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value1), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value2), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value3), letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdatePicture.lel_value4)
 				    );
-/*			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+				break;
+			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEGOB:
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateGob, firstGOB: %d, numberOfGOBs: %d\n",
+							  channel ? channel->currentDeviceId : "--", 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_firstGOB),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateGOB.lel_numberOfGOBs)
+				    );
+				break;
 			case SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEMB:
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: VideoFastUpdateMB, firstGOB: %d, firstMB: %d, numberOfMBs: %d\n",
+							  channel ? channel->currentDeviceId : "--", 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_firstGOB), 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_firstMB), 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.videoFastUpdateMB.lel_numberOfMBs)
+				    );
+				break;
 			case SKINNY_MISCCOMMANDTYPE_LOSTPICTURE:
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: LostPicture, pictureNumber %d, longTermPictureIndex %d\n",
+							  channel ? channel->currentDeviceId : "--", 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPicture.lel_pictureNumber), 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPicture.lel_longTermPictureIndex)
+				    );
+				break;
 			case SKINNY_MISCCOMMANDTYPE_LOSTPARTIALPICTURE:
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: LostPartialPicture, picRef:pictureNumber %d, picRef:longTermPictureIndex %d, firstMB: %d, numberOfMBs: %d\n",
+							  channel ? channel->currentDeviceId : "--", 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.pictureReference.lel_pictureNumber), 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.pictureReference.lel_longTermPictureIndex),
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.lel_firstMB), 
+							  letohl(msg_in->data.MiscellaneousCommandMessage.data.lostPartialPicture.lel_numberOfMBs)
+				    );
+				break;
 			case SKINNY_MISCCOMMANDTYPE_RECOVERYREFERENCEPICTURE:
-				if (channel->owner) {
-					PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
+				{
+					int x = 0;
+					int pictureCount = letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.lel_PictureCount);
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture, pictureCount:%d\n",
+								  channel ? channel->currentDeviceId : "--", 
+								  pictureCount);
+					for (x = 0; x < pictureCount; x++) {
+						sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture[%d], pictureNumber %d, longTermPictureIndex %d\n",
+									channel ? channel->currentDeviceId : "--", 
+									x,
+									letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.pictureReference[x].lel_pictureNumber), 
+									letohl(msg_in->data.MiscellaneousCommandMessage.data.recoveryReferencePicture.pictureReference[x].lel_longTermPictureIndex)
+						    );
+					}
 				}
 				break;
-			case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:*/
+			case SKINNY_MISCCOMMANDTYPE_TEMPORALSPATIALTRADEOFF:
+				sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: recoveryReferencePicture, TemporalSpatialTradeOff:%d\n",
+							  channel ? channel->currentDeviceId : "--", 
+							   letohl(msg_in->data.MiscellaneousCommandMessage.data.lel_temporalSpatialTradeOff));
 			default:
 				break;
+		}
+		if (channel->owner) {
+			PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
 		}
 		return;
 	}

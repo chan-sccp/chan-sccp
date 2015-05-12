@@ -241,11 +241,19 @@ void sccp_devstate_notifySubscriber(sccp_devstate_deviceState_t * deviceState, c
 {
 	sccp_msg_t *msg = NULL;
 
-	REQ(msg, FeatureStatMessage);
-	msg->data.FeatureStatMessage.lel_featureInstance = htolel(subscriber->instance);
-	msg->data.FeatureStatMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_FEATURE);
-	msg->data.FeatureStatMessage.lel_featureStatus = htolel(deviceState->featureState);
-	sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, subscriber->label, sizeof(msg->data.FeatureStatMessage.featureTextLabel));
+	if (subscriber->device->inuseprotocolversion >= 15) {
+		REQ(msg, FeatureStatDynamicMessage);
+		msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(subscriber->instance);
+		msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_FEATURE);
+		msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(deviceState->featureState);
+		sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, subscriber->label, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
+	} else {
+		REQ(msg, FeatureStatMessage);
+		msg->data.FeatureStatMessage.lel_featureIndex = htolel(subscriber->instance);
+		msg->data.FeatureStatMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_FEATURE);
+		msg->data.FeatureStatMessage.lel_featureStatus = htolel(deviceState->featureState);
+		sccp_copy_string(msg->data.FeatureStatMessage.featureTextLabel, subscriber->label, sizeof(msg->data.FeatureStatMessage.featureTextLabel));
+	}
 
 	sccp_dev_send(subscriber->device, msg);
 }

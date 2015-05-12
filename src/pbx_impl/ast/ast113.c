@@ -695,7 +695,10 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					 * remembers the last dialed number in the same cases, where the dialed number
 					 * is being sent - after receiving of RINGOUT -Pavel Troller
 					 */
-					sccp_device_setLastNumberDialed(d, c->dialedNumber);
+					AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+					if(linedevice){ 
+						sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+					}
 					sccp_wrapper_asterisk13_setDialedNumber(c, c->dialedNumber);
 				}
 				PBX(set_callstate) (c, AST_STATE_RING);
@@ -721,7 +724,10 @@ static int sccp_wrapper_asterisk113_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
 					* remembers the last dialed number in the same cases, where the dialed number
 					* is being sent - after receiving of PROCEEDING -Pavel Troller
 					*/
-				sccp_device_setLastNumberDialed(d, c->dialedNumber);
+				AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, c->line);
+				if(linedevice){ 
+					sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
+				}
 				sccp_wrapper_asterisk13_setDialedNumber(c, c->dialedNumber);
 			}
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_PROCEED);
@@ -3460,6 +3466,7 @@ sccp_pbx_cb sccp_pbx = {
 	dumpchan:			sccp_wrapper_asterisk113_dumpchan,
 	channel_is_bridged:		sccp_wrapper_asterisk113_channelIsBridged,
 	get_bridged_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
+	get_underlying_channel:		sccp_wrapper_asterisk113_getBridgeChannel,
 	attended_transfer:		sccp_wrapper_asterisk113_attended_transfer,
 	/* *INDENT-ON* */
 };
@@ -3593,6 +3600,7 @@ struct sccp_pbx_cb sccp_pbx = {
 	.dumpchan			= sccp_wrapper_asterisk113_dumpchan,
 	.channel_is_bridged		= sccp_wrapper_asterisk113_channelIsBridged,
 	.get_bridged_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
+	.get_underlying_channel		= sccp_wrapper_asterisk113_getBridgeChannel,
 	.attended_transfer		= sccp_wrapper_asterisk113_attended_transfer,
 	/* *INDENT-ON* */
 };

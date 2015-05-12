@@ -161,6 +161,7 @@ struct sccp_pbx_cb {
 	int (*const dumpchan) (PBX_CHANNEL_TYPE *pbx_channel, char *buf, size_t size);
 	boolean_t (*const channel_is_bridged) (sccp_channel_t *channel);
 	PBX_CHANNEL_TYPE *(*const get_bridged_channel) (PBX_CHANNEL_TYPE *pbx_channel);					/* takes pbx_channel_ref */
+	PBX_CHANNEL_TYPE *(*const get_underlying_channel) (PBX_CHANNEL_TYPE *pbx_channel);				/* takes pbx_channel_ref */
 	boolean_t (*const attended_transfer) (sccp_channel_t *destination_channel, sccp_channel_t *source_channel);	/* takes pbx_channel_ref on source_channel */
 	/* *INDENT-ON* */
 };

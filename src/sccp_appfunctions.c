@@ -133,7 +133,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			} else if (!strcasecmp(token, "lines_count")) {
 				snprintf(buf, buf_len, "%d", d->linesCount);
 			} else if (!strcasecmp(token, "last_number")) {
-				sccp_copy_string(buf, d->lastNumber, buf_len);
+				sccp_copy_string(buf, d->redialInformation.number, buf_len);
 			} else if (!strcasecmp(token, "early_rtp")) {
 				snprintf(buf, buf_len, "%s", sccp_earlyrtp2str(d->earlyrtp));
 			} else if (!strcasecmp(token, "supported_protocol_version")) {

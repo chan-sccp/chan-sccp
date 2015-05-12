@@ -212,6 +212,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 
 	channel->peerIsSCCP = 0;
 	channel->maxBitRate = 15000;
+	channel->videomode = SCCP_VIDEO_MODE_AUTO;
 
 	sccp_channel_setDevice(channel, device);
 	sccp_line_addChannel(l, channel);

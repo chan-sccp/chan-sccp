@@ -1185,13 +1185,13 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 							break;
 					}
 					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) set display name to: \"%s\"\n", DEV_ID_LOG(d), displayMessage);
-					sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.DisplayName));
-					msg->data.FeatureStatDynamicMessage.DisplayName[strlen(displayMessage)-1] = '\0';
-					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, msg->data.FeatureStatDynamicMessage.lel_status);
+					sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
+					msg->data.FeatureStatDynamicMessage.featureTextLabel[strlen(displayMessage)-1] = '\0';
+					sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_4 "%s: (sccp_hint_notifySubscribers) notify device: %s@%d state: %d(%d)\n", DEV_ID_LOG(d), DEV_ID_LOG(d), subscriber->instance, hint->currentState, msg->data.FeatureStatDynamicMessage.lel_featureStatus);
 					
-					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-					msg->data.FeatureStatDynamicMessage.lel_status = htolel(status);
+					msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(status);
 					
 					/*!
 					* hack to fix the white text without shadow issue -MC
@@ -1203,10 +1203,10 @@ static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 					
 					
 					REQ(msg, FeatureStatDynamicMessage);
-					sccp_copy_string(msg->data.FeatureStatDynamicMessage.DisplayName, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.DisplayName));
-					msg->data.FeatureStatDynamicMessage.lel_instance = htolel(subscriber->instance);
-					msg->data.FeatureStatDynamicMessage.lel_type = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
-					msg->data.FeatureStatDynamicMessage.lel_status = htolel(status);
+					sccp_copy_string(msg->data.FeatureStatDynamicMessage.featureTextLabel, displayMessage, sizeof(msg->data.FeatureStatDynamicMessage.featureTextLabel));
+					msg->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(subscriber->instance);
+					msg->data.FeatureStatDynamicMessage.lel_featureID = htolel(SKINNY_BUTTONTYPE_BLFSPEEDDIAL);
+					msg->data.FeatureStatDynamicMessage.lel_featureStatus = htolel(status);
 					
 					sccp_dev_send(d, msg);
 				} else {
