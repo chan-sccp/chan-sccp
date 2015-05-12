@@ -45,7 +45,7 @@ static const uint32_t appID = APPID_CONFERENCE;
 static SCCP_LIST_HEAD (, sccp_conference_t) conferences;							/*!< our list of conferences */
 
 static void *sccp_conference_thread(void *data);
-void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel, uint32_t conferenceID);
+void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel, sccp_conference_participant_t *participant, uint32_t conferenceID);
 void __sccp_conference_addParticipant(sccp_conference_t * conference, sccp_channel_t * participantChannel);
 int playback_to_channel(sccp_conference_participant_t * participant, const char *filename, int say_number);
 int playback_to_conference(sccp_conference_t * conference, const char *filename, int say_number);
@@ -258,7 +258,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->playback_announcements = device->conf_play_part_announce;
 
 		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
-		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, conference->id);
+		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
 		participant->isModerator = TRUE;
 		device->conferencelist_active = device->conf_show_conflist;					// Activate conflist
 		// sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
@@ -390,7 +390,7 @@ static void sccp_conference_addParticipant_toList(sccp_conference_t * conference
 /*!
  * \brief Update the callinfo on the sccp channel
  */
-void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel, uint32_t conferenceID)
+void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE * pbxChannel, sccp_conference_participant_t *participant, uint32_t conferenceID)
 {
 	char confstr[StationMaxNameSize] = "";
 
@@ -399,6 +399,8 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 	switch (channel->calltype) {
 		case SKINNY_CALLTYPE_INBOUND:
 			sccp_copy_string(channel->callInfo.originalCallingPartyName, channel->callInfo.callingPartyName, sizeof(channel->callInfo.originalCallingPartyName));
+			sccp_copy_string(participant->PartyName, channel->callInfo.callingPartyName, sizeof(participant->PartyName));
+			sccp_copy_string(participant->PartyNumber, channel->callInfo.callingPartyNumber, sizeof(participant->PartyNumber));
 			channel->callInfo.originalCallingParty_valid = 1;
 			sccp_copy_string(channel->callInfo.callingPartyName, confstr, sizeof(channel->callInfo.callingPartyName));
 			channel->callInfo.callingParty_valid = 1;
@@ -406,6 +408,8 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 		case SKINNY_CALLTYPE_OUTBOUND:
 		case SKINNY_CALLTYPE_FORWARD:
 			sccp_copy_string(channel->callInfo.originalCalledPartyName, channel->callInfo.calledPartyName, sizeof(channel->callInfo.originalCallingPartyName));
+			sccp_copy_string(participant->PartyName, channel->callInfo.calledPartyName, sizeof(participant->PartyName));
+			sccp_copy_string(participant->PartyNumber, channel->callInfo.calledPartyNumber, sizeof(participant->PartyNumber));
 			channel->callInfo.originalCalledParty_valid = 1;
 			sccp_copy_string(channel->callInfo.calledPartyName, confstr, sizeof(channel->callInfo.calledPartyName));
 			channel->callInfo.calledParty_valid = 1;
@@ -472,7 +476,7 @@ boolean_t sccp_conference_addParticipatingChannel(sccp_conference_t * conference
 		if (participant) {
 			sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Adding participant %d (Channel %s)\n", conference->id, participant->id, pbx_channel_name(pbxChannel));
 
-			sccp_conference_update_callInfo(originalSCCPChannel, pbxChannel, conference->id);	// Update CallerId on originalChannel before masquerade
+			sccp_conference_update_callInfo(originalSCCPChannel, pbxChannel, participant, conference->id);	// Update CallerId on originalChannel before masquerade
 
 			// if peer is sccp then retain peer_sccp_channel
 			AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(pbxChannel);
@@ -1062,18 +1066,21 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 
 		//sprintf(xmlTmp, "<CiscoIPPhoneIconMenu appId=\"%d\" onAppFocusLost=\"\" onAppFocusGained=\"\" onAppClosed=\"\">", appID);
 		if (participant->device->protocolversion >= 15) {
-			sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\" onAppClosed=\"%d\">", appID, appID);
-			strcat(xmlStr, xmlTmp);
 			if (participant->device->hasEnhancedIconMenuSupport()) {
+				sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu appId=\"%d\" onAppClosed=\"%d\">", appID, appID);
+				strcat(xmlStr, xmlTmp);
 				if (conference->isLocked) {
 					sprintf(xmlTmp, "<Title IconIndex=\"5\">Conference %d</Title>\n", conference->id);
 				} else {
 					sprintf(xmlTmp, "<Title IconIndex=\"4\">Conference %d</Title>\n", conference->id);
 				}
+				strcat(xmlStr, xmlTmp);
 			} else {
+				sprintf(xmlTmp, "<CiscoIPPhoneIconFileMenu>");
+				strcat(xmlStr, xmlTmp);
 				sprintf(xmlTmp, "<Title>Conference %d</Title>\n", conference->id);
+				strcat(xmlStr, xmlTmp);
 			}
-			strcat(xmlStr, xmlTmp);
 		} else {
 			sprintf(xmlTmp, "<CiscoIPPhoneIconMenu>");
 			strcat(xmlStr, xmlTmp);
@@ -1107,31 +1114,8 @@ void sccp_conference_show_list(sccp_conference_t * conference, sccp_channel_t * 
 			strcat(xmlStr, "</IconIndex>");
 
 			strcat(xmlStr, "<Name>");
-			if (part->channel != NULL) {
-				switch (part->channel->calltype) {
-					case SKINNY_CALLTYPE_INBOUND:
-						sprintf(xmlTmp, "%d:%s (%s)", part->id, part->channel->callInfo.calledPartyName, part->channel->callInfo.calledPartyNumber);
-						break;
-					case SKINNY_CALLTYPE_OUTBOUND:
-						sprintf(xmlTmp, "%d:%s (%s)", part->id, part->channel->callInfo.callingPartyName, part->channel->callInfo.callingPartyNumber);
-						break;
-					case SKINNY_CALLTYPE_FORWARD:
-						sprintf(xmlTmp, "%d:%s (%s)", part->id, part->channel->callInfo.originalCallingPartyName, part->channel->callInfo.originalCallingPartyName);
-						break;
-					case SKINNY_CALLTYPE_SENTINEL:
-						break;
-				}
-				strcat(xmlStr, xmlTmp);
-			} else {										// Asterisk Channel
-#if ASTERISK_VERSION_GROUP > 110
-				sprintf(xmlTmp, "%d:%s (%s)", part->id, ast_channel_caller(part->conferenceBridgePeer)->id.name.str, ast_channel_caller(part->conferenceBridgePeer)->id.number.str);
-#elif ASTERISK_VERSION_GROUP > 106
-				sprintf(xmlTmp, "%d:%s (%s)", part->id, part->conferenceBridgePeer->caller.id.name.str, part->conferenceBridgePeer->caller.id.number.str);
-#else
-				sprintf(xmlTmp, "%d:%s (%s)", part->id, part->conferenceBridgePeer->cid.cid_name, part->conferenceBridgePeer->cid.cid_num);
-#endif
-				strcat(xmlStr, xmlTmp);
-			}
+			sprintf(xmlTmp, "%d:%s (%s)", part->id, part->PartyName, part->PartyNumber);
+			strcat(xmlStr, xmlTmp);
 			strcat(xmlStr, "</Name>");
 			sprintf(xmlTmp, "<URL>UserCallData:%d:%d:%d:%d:%d</URL>", appID, participant->lineInstance, participant->callReference, participant->transactionID, part->id);
 			strcat(xmlStr, xmlTmp);
@@ -1230,7 +1214,7 @@ void __sccp_conference_hide_list(sccp_conference_participant_t * participant)
 		if (participant->device->conferencelist_active) {
 			sccp_log((DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Hide Conf List for participant: %d\n", participant->conference->id, participant->id);
 			char xmlData[512] = "";
-			if (participant->device->protocolversion >= 15) {
+			if (participant->device->protocolversion >= 15 /* && participant->device->hasEnhancedIconMenuSupport() */) {
 				sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"App:Close:0\"/></CiscoIPPhoneExecute>");
 			} else {
 				sprintf(xmlData, "<CiscoIPPhoneExecute><ExecuteItem Priority=\"0\" URL=\"Init:Services\"/></CiscoIPPhoneExecute>");
