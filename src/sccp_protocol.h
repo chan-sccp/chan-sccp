@@ -59,8 +59,9 @@
 #define StationMaxDisplayTextSize			32
 #define StationMaxDisplayNotifySize 			32
 #define StationMaxDirnumSize				24
+#define StationDynamicDirnumSize			25
 #define StationMaxNameSize				40
-#define StationMaxDynamicNameSize			121
+#define StationDynamicNameSize				121
 #define StationMaxSoftKeyDefinition 			32
 #define StationMaxSoftKeySetDefinition			16
 #define StationMaxSoftKeyIndex				16
@@ -369,7 +370,6 @@ typedef enum {
 	CallInfoMessage 				= 0x008F,
 
 	ForwardStatMessage 				= 0x0090,
-	ForwardStatMessageV19 				= 0x0090,
 	SpeedDialStatMessage 				= 0x0091,
 	LineStatMessage 				= 0x0092,
 	ConfigStatMessage 				= 0x0093,
@@ -957,7 +957,7 @@ typedef union {
 		uint32_t lel_featureIndex;									/*!< Instance */
 		uint32_t lel_featureID;										/*!< always 0x15 */
 		uint32_t lel_featureStatus;									/*!< skinny_busylampfield_state_t */
-		char featureTextLabel[StationMaxDynamicNameSize];									/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
+		char featureTextLabel[StationDynamicNameSize];							/*!< SpeedDial Display Name \todo shoud be dynamic - readMessage - OVERRUN remaining bytes=29 messageType=0x146 */
 	} FeatureStatDynamicMessage;										/*!< Speed Dial Stat Dynamic Message Structure */
 
 	struct {
@@ -2045,28 +2045,30 @@ typedef union {
 		};
 	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
 
-	struct {
-		uint32_t lel_status;										/*!< Status (0=inactive, 1=active) */
-		uint32_t lel_lineNumber;									/*!< Line Number */
-		uint32_t lel_cfwdallstatus;									/*!< Call Forward All Status */
-		char cfwdallnumber[StationMaxDirnumSize];							/*!< Call Forward All Number */
-		uint32_t lel_cfwdbusystatus;									/*!< Call Forward on Busy Status */
-		char cfwdbusynumber[StationMaxDirnumSize];							/*!< Call Forward on Busy Number */
-		uint32_t lel_cfwdnoanswerstatus;								/*!< Call Forward on No-Answer Status */
-		char cfwdnoanswernumber[StationMaxDirnumSize];							/*!< Call Forward on No-Answer Number */
-	} ForwardStatMessage;											/*!< Forward Status Message Structure */
-
-	struct {
-		uint32_t lel_status;										/*!< Status (0=inactive, 1=active) */
-		uint32_t lel_lineNumber;									/*!< Line Number */
-		uint32_t lel_cfwdallstatus;									/*!< Call Forward All Status */
-		char cfwdallnumber[StationMaxDirnumSize];							/*!< Call Forward All Number */
-		uint32_t lel_cfwdbusystatus;									/*!< Call Forward on Busy Status */
-		char cfwdbusynumber[StationMaxDirnumSize];							/*!< Call Forward on Busy Number */
-		uint32_t lel_cfwdnoanswerstatus;								/*!< Call Forward on No-Answer Status */
-		char cfwdnoanswernumber[StationMaxDirnumSize];							/*!< Call Forward on No-Answer Number */
-		uint32_t lel_unknown;										/*!< 00 00 00 ff */
-	} ForwardStatMessageV19;										/*!< Forward Status Message Structure */
+ 	struct {
+		union {
+			struct {
+				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_lineNumber;							/*!< Line Number */
+				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
+				char cfwdallnumber[StationMaxDirnumSize];					/*!< Call Forward All Number */
+				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
+				char cfwdbusynumber[StationMaxDirnumSize];					/*!< Call Forward on Busy Number */
+				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				char cfwdnoanswernumber[StationMaxDirnumSize];					/*!< Call Forward on No-Answer Number */
+			} v3;
+			struct {
+				uint32_t lel_status;								/*!< Status (0=inactive, 1=active) */
+				uint32_t lel_lineNumber;							/*!< Line Number */
+				uint32_t lel_cfwdallstatus;							/*!< Call Forward All Status */
+				char cfwdallnumber[StationDynamicDirnumSize];				/*!< Call Forward All Number */
+				uint32_t lel_cfwdbusystatus;							/*!< Call Forward on Busy Status */
+				char cfwdbusynumber[StationDynamicDirnumSize];				/*!< Call Forward on Busy Number */
+				uint32_t lel_cfwdnoanswerstatus;						/*!< Call Forward on No-Answer Status */
+				char cfwdnoanswernumber[StationDynamicDirnumSize];				/*!< Call Forward on No-Answer Number */
+			} v18;											
+		};
+ 	} ForwardStatMessage;											/*!< Forward Status Message Structure */
 
 	struct {
 		uint32_t lel_speedDialNumber;									/*!< SpeedDial Number */
