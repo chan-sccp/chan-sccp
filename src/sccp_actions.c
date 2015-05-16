@@ -3651,8 +3651,16 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 				int h264_level = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h264.level);
 				int h264_profile = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h264.profile);
 
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s level: %d\n", DEV_ID_LOG(d), "", "", h264_level);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s profile: %d\n", DEV_ID_LOG(d), "", "", h264_profile);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h264-level: %d\n", DEV_ID_LOG(d), "", "", h264_level);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h264-profile: %d\n", DEV_ID_LOG(d), "", "", h264_profile);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+			if (d->capabilities.video[video_capability] == SKINNY_CODEC_H263) {
+				int h263_capabilityBitfield = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h263.lel_capabilityBitfield);
+				int h263_annexNandW = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h263.lel_annexNandWFutureUse);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263-capabilityBitfield: %d\n", DEV_ID_LOG(d), "", "", h263_capabilityBitfield);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263-annexNandW: %d\n", DEV_ID_LOG(d), "", "", h263_annexNandW);
 				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
 			}
 
