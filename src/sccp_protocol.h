@@ -2088,21 +2088,21 @@ typedef union {
 														   7 RestrictLastRedirectPartyNumber) */
 	} CallInfoMessage;											/*!< Call Info Message Structure */
 
-	struct {
-		union {
-			struct {
-				char calledParty[StationMaxDirnumSize];								/*!< Called Party */
-				uint32_t lel_lineInstance;									/*!< Line Instance */
-				uint32_t lel_callReference;									/*!< Call Reference */
-			} v3;
-			struct {
-				char calledParty[25]		;								/*!< Called Party */
-				uint32_t lel_lineInstance;									/*!< Line Instance */
-				uint32_t lel_callReference;									/*!< Call Reference */
-			} v18;
-		};
-	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
-
+ 	struct {
+ 		union {
+ 			struct {
+				char calledParty[StationMaxDirnumSize];						/*!< Called Party */
+				uint32_t lel_lineInstance;							/*!< Line Instance */
+				uint32_t lel_callReference;							/*!< Call Reference */
+ 			} v3;
+ 			struct {
+				char calledParty[StationDynamicDirnumSize];					/*!< Called Party */
+				uint32_t lel_lineInstance;							/*!< Line Instance */
+				uint32_t lel_callReference;							/*!< Call Reference */
+ 			} v18;
+ 		};
+ 	} DialedNumberMessage;											/*!< Dialed Number Message Structure */
+	
  	struct {
 		union {
 			struct {
