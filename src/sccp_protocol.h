@@ -1362,24 +1362,22 @@ typedef union {
 														   6 RestrictLastRedirectPartyName
 														   7 RestrictLastRedirectPartyNumber */
 		uint32_t dummy;											/*!< Dummy */
-		/*
-		 *      Here there are the following informations:
-		 *
-		 char callingParty[StationMaxDirnumSize];
-		 char calledParty[StationMaxDirnumSize];
-		 char originalCalledParty[StationMaxDirnumSize];
-		 char lastRedirectingParty[StationMaxDirnumSize];
-		 char cgpnVoiceMailbox[StationMaxDirnumSize];
-		 char cdpnVoiceMailbox[StationMaxDirnumSize];
-		 char originalCdpnVoiceMailbox[StationMaxDirnumSize];
-		 char lastRedirectingVoiceMailbox[StationMaxDirnumSize];
-		 char callingPartyName[StationMaxNameSize];
-		 char calledPartyName[StationMaxNameSize];
-		 char originalCalledPartyName[StationMaxNameSize];
-		 char lastRedirectingPartyName[StationMaxNameSize];
-		 char HuntPilotNumber[25];
-		 char HuntPilotName[121];
-		 */
+														/* Dummy: Consists of:						// v3 - >v18
+														 char callingParty[StationDynamicDirnumSize];		 	// 24 - 25
+														 char calledParty[StationDynamicDirnumSize];			// 24 - 25
+														 char originalCalledParty[StationDynamicDirnumSize];		// 24 - 25
+														 char lastRedirectingParty[StationDynamicDirnumSize];		// 24 - 25
+														 char cgpnVoiceMailbox[StationDynamicDirnumSize];		// 24 - 25
+														 char cdpnVoiceMailbox[StationDynamicDirnumSize];		// 24 - 25
+														 char originalCdpnVoiceMailbox[StationDynamicDirnumSize];	// 24 - 25	
+														 char lastRedirectingVoiceMailbox[StationDynamicDirnumSize];	// 24 - 25
+														 char callingPartyName[StationDynamicNameSize];			// 40 - 121
+														 char calledPartyName[StationDynamicNameSize];			// 40 - 121
+														 char originalCalledPartyName[StationDynamicNameSize];		// 40 - 121
+														 char lastRedirectingPartyName[StationDynamicNameSize];		// 40 - 121
+														 char HuntPilotNumber[StationDynamicDirnumSize];		// 24 - 25
+														 char HuntPilotName[StationDynamicNameSize];			// 40 - 121
+														 */
 	} CallInfoDynamicMessage;										/*!< Call Information Dynamic Message Structure */
 
 	struct {
