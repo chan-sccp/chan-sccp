@@ -3603,6 +3603,18 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 		}
 	}
 #ifdef CS_SCCP_VIDEO
+	uint8_t video_customPictureFormat = 0, video_customPictureFormats = 0;
+	video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesMessage.lel_customPictureFormatCount);
+	for (video_customPictureFormat = 0; video_customPictureFormat < video_customPictureFormats; video_customPictureFormat++) {
+		int width = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].lel_width);
+		int height = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].lel_height);
+		int pixelAspectRatio = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].lel_pixelAspectRatio);
+		int pixelClockConversion = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].lel_pixelclockConversionCode);
+		int pixelClockDivisor = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].lel_pixelclockDivisor);
+
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s customPictureFormat %d: width=%d, height=%d, pixelAspectRatio=%d, pixelClockConversion=%d, pixelClockDivisor=%d\n", DEV_ID_LOG(d), "", "", video_customPictureFormat, width, height, pixelAspectRatio, pixelClockConversion, pixelClockDivisor);
+	}
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
 	uint8_t video_capabilities = 0, video_capability = 0;
 	uint8_t video_codec = 0;
 	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
@@ -3626,54 +3638,14 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
 #if DEBUG
 			char transmitReceiveStr[5];
-
 			sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
 
-			uint8_t video_levels = 0, video_level = 0;
-			skinny_videoformat_t video_format = 0;
+			int protocolDependentData = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_protocolDependentData);
+			int maxBitRate = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_maxBitRate);
 
-			video_levels = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].lel_levelPreferenceCount);
-			for (video_level = 0; video_level < video_levels; video_level++) {
-				video_format = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].levelPreference[video_level].format);
-				int transmitPreference = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].levelPreference[video_level].transmitPreference);
-				int maxBitRate = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].levelPreference[video_level].maxBitRate);
-				int minBitRate = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].levelPreference[video_level].minBitRate);
-
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s transmitPreference: %d\n", DEV_ID_LOG(d), "", "", transmitPreference);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d: %s\n", DEV_ID_LOG(d), "", "", video_format, skinny_videoformat2str(video_format));
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s minBitRate: %d\n", DEV_ID_LOG(d), "", "", minBitRate);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
-			}
-
-			if (d->capabilities.video[video_capability] == SKINNY_CODEC_H264) {
-				int h264_level = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h264.level);
-				int h264_profile = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h264.profile);
-
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h264-level: %d\n", DEV_ID_LOG(d), "", "", h264_level);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h264-profile: %d\n", DEV_ID_LOG(d), "", "", h264_profile);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
-			}
-			if (d->capabilities.video[video_capability] == SKINNY_CODEC_H263) {
-				int h263_capabilityBitfield = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h263.lel_capabilityBitfield);
-				int h263_annexNandW = letohl(msg_in->data.UpdateCapabilitiesMessage.videoCaps[video_capability].codec_options.h263.lel_annexNandWFutureUse);
-
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263-capabilityBitfield: %d\n", DEV_ID_LOG(d), "", "", h263_capabilityBitfield);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263-annexNandW: %d\n", DEV_ID_LOG(d), "", "", h263_annexNandW);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
-			}
-
-			uint8_t video_customPictureFormat = 0, video_customPictureFormats = 0;
-
-			video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormatCount);
-			for (video_customPictureFormat = 0; video_customPictureFormat < video_customPictureFormats; video_customPictureFormat++) {
-				int width = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].customPictureFormatWidth);
-				int height = letohl(msg_in->data.UpdateCapabilitiesMessage.customPictureFormat[video_customPictureFormat].customPictureFormatHeight);
-
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s customPictureFormat %d: width=%d, height=%d\n", DEV_ID_LOG(d), "", "", video_customPictureFormat, width, height);
-				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
-			}
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s protocolDependentData: %d\n", DEV_ID_LOG(d), "", "", protocolDependentData);
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
 #endif
 		}
 	} else {
@@ -3685,6 +3657,263 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 		}
 	}
 #endif
+}
+
+static void sccp_handle_updatecapabilities_dissect_videocapabiltyunion(sccp_device_t *d, uint32_t video_codec, videoCapabilityUnion_t capability) {
+	switch (video_codec) {
+		case SKINNY_CODEC_H261:
+			{
+				int temporalSpatialTradeOffCapability = letohl(capability.h261.lel_temporalSpatialTradeOffCapability);
+				int stillImageTransmission = letohl(capability.h261.lel_stillImageTransmission);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h261-temporalSpatialTradeOff: %d\n", DEV_ID_LOG(d), "", "", temporalSpatialTradeOffCapability);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h261-stillImageTransmission: %d\n", DEV_ID_LOG(d), "", "", stillImageTransmission);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+			break;
+		case SKINNY_CODEC_H263:
+			{
+				int capabilityBitfield = letohl(capability.h263.lel_capabilityBitfield);
+				int annexNandW = letohl(capability.h263.lel_annexNandWFutureUse);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263-capabilityBitfield: %d\n", DEV_ID_LOG(d), "", "", capabilityBitfield);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263-annexNandW: %d\n", DEV_ID_LOG(d), "", "", annexNandW);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+			break;
+		case SKINNY_CODEC_H263P:		/* Vieo */
+			{
+				int modelNumber= letohl(capability.h263P.lel_modelNumber);
+				int bandwidth = letohl(capability.h263P.lel_bandwidth);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263P-model: %d\n", DEV_ID_LOG(d), "", "", modelNumber);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h263P-bandwidth: %d\n", DEV_ID_LOG(d), "", "", bandwidth);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+			break;
+		case SKINNY_CODEC_H264:
+			{
+				int level = letohl(capability.h264.lel_level);
+				int profile = letohl(capability.h264.lel_profile);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h264-level: %d\n", DEV_ID_LOG(d), "", "", level);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s h264-profile: %d\n", DEV_ID_LOG(d), "", "", profile);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+			break;
+	}
+}
+
+/*!
+ * \brief Handle Update Capabilities Message
+ *
+ * This message is often used to add video and data capabilities to client. Atm we just use it for audio and video caps.
+ * Will be better to store audio codec max packet size and video bandwidth and size.
+ * In future we will parse also data caps to support T.38 and NSE with ATA186/188 devices.
+ *
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param msg_in SCCP Message
+ */
+void sccp_handle_updatecapabilities_V2message(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
+{
+	uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
+
+	/* parsing audio caps */
+	audio_capabilities = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_audioCapCount);
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), audio_capabilities);
+
+	if (audio_capabilities > 0 && audio_capabilities <= SKINNY_MAX_CAPABILITIES) {
+		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
+			audio_codec = letohl(msg_in->data.UpdateCapabilitiesV2Message.audioCaps[audio_capability].lel_payloadCapability);
+
+			d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%7d %-25s\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec));
+		}
+	}
+#ifdef CS_SCCP_VIDEO
+	uint8_t video_customPictureFormat = 0, video_customPictureFormats = 0;
+	video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_customPictureFormatCount);
+	for (video_customPictureFormat = 0; video_customPictureFormat < video_customPictureFormats; video_customPictureFormat++) {
+		int width = letohl(msg_in->data.UpdateCapabilitiesV2Message.customPictureFormat[video_customPictureFormat].lel_width);
+		int height = letohl(msg_in->data.UpdateCapabilitiesV2Message.customPictureFormat[video_customPictureFormat].lel_height);
+		int pixelAspectRatio = letohl(msg_in->data.UpdateCapabilitiesV2Message.customPictureFormat[video_customPictureFormat].lel_pixelAspectRatio);
+		int pixelClockConversion = letohl(msg_in->data.UpdateCapabilitiesV2Message.customPictureFormat[video_customPictureFormat].lel_pixelclockConversionCode);
+		int pixelClockDivisor = letohl(msg_in->data.UpdateCapabilitiesV2Message.customPictureFormat[video_customPictureFormat].lel_pixelclockDivisor);
+
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s customPictureFormat %d: width=%d, height=%d, pixelAspectRatio=%d, pixelClockConversion=%d, pixelClockDivisor=%d\n", DEV_ID_LOG(d), "", "", video_customPictureFormat, width, height, pixelAspectRatio, pixelClockConversion, pixelClockDivisor);
+	}
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+	
+	uint8_t video_capabilities = 0, video_capability = 0;
+	uint8_t video_codec = 0;
+	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
+
+	/* parsing video caps */
+	video_capabilities = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_videoCapCount);
+
+	/* enable video mode button if device has video capability */
+	if (video_capabilities > 0 && video_capabilities <= SKINNY_MAX_VIDEO_CAPABILITIES) {
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: enable video mode softkey\n", DEV_ID_LOG(d));
+
+		if (previousVideoSupport == FALSE) {
+			sccp_dev_set_message(d, "Video support enabled", 5, FALSE, TRUE);
+		}
+
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), video_capabilities);
+		for (video_capability = 0; video_capability < video_capabilities; video_capability++) {
+			video_codec = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_payloadCapability);
+
+			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
+#if DEBUG
+			char transmitReceiveStr[5];
+
+			sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
+
+			uint8_t video_level = 0;
+			uint8_t video_levels = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_levelPreferenceCount);
+			for (video_level = 0; video_level < video_levels; video_level++) {
+				int transmitPreference = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_transmitPreference);
+				skinny_videoformat_t video_format = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_format);
+				int maxBitRate = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_maxBitRate);
+				int minBitRate = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_minBitRate);
+				int MPI = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_MPI);
+				int serviceNumber = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_serviceNumber);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s transmitPreference: %d\n", DEV_ID_LOG(d), "", "", transmitPreference);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d: %s\n", DEV_ID_LOG(d), "", "", video_format, skinny_videoformat2str(video_format));
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s minBitRate: %d\n", DEV_ID_LOG(d), "", "", minBitRate);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s MPI: %d\n", DEV_ID_LOG(d), "", "", MPI);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s serviceNumber: %d\n", DEV_ID_LOG(d), "", "", serviceNumber);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+			
+			sccp_handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].capability);
+#endif
+		}
+	} else {
+		d->capabilities.video[0] = 0;
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, FALSE);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: disable video mode softkey\n", DEV_ID_LOG(d));
+		if (previousVideoSupport == TRUE) {
+			sccp_dev_set_message(d, "Video support disabled", 5, FALSE, TRUE);
+		}
+	}
+#endif
+}
+
+/*!
+ * \brief Handle Update Capabilities Message
+ *
+ * This message is often used to add video and data capabilities to client. Atm we just use it for audio and video caps.
+ * Will be better to store audio codec max packet size and video bandwidth and size.
+ * In future we will parse also data caps to support T.38 and NSE with ATA186/188 devices.
+ *
+ * \param s SCCP Session
+ * \param d SCCP Device
+ * \param msg_in SCCP Message
+ */
+void sccp_handle_updatecapabilities_V3message(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
+{
+	uint8_t audio_capability = 0, audio_codec = 0, audio_capabilities = 0;
+
+	/* parsing audio caps */
+	audio_capabilities = letohl(msg_in->data.UpdateCapabilitiesV3Message.lel_audioCapCount);
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), audio_capabilities);
+
+	if (audio_capabilities > 0 && audio_capabilities <= SKINNY_MAX_CAPABILITIES) {
+		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
+			audio_codec = letohl(msg_in->data.UpdateCapabilitiesV3Message.audioCaps[audio_capability].lel_payloadCapability);
+
+			d->capabilities.audio[audio_capability] = audio_codec;		/** store our audio capabilities */
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%7d %-25s\n", DEV_ID_LOG(d), audio_codec, codec2str(audio_codec));
+		}
+	}
+
+	
+	
+#ifdef CS_SCCP_VIDEO
+	uint8_t video_customPictureFormat = 0, video_customPictureFormats = 0;
+	video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV3Message.lel_customPictureFormatCount);
+	for (video_customPictureFormat = 0; video_customPictureFormat < video_customPictureFormats; video_customPictureFormat++) {
+		int width = letohl(msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat[video_customPictureFormat].lel_width);
+		int height = letohl(msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat[video_customPictureFormat].lel_height);
+		int pixelAspectRatio = letohl(msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat[video_customPictureFormat].lel_pixelAspectRatio);
+		int pixelClockConversion = letohl(msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat[video_customPictureFormat].lel_pixelclockConversionCode);
+		int pixelClockDivisor = letohl(msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat[video_customPictureFormat].lel_pixelclockDivisor);
+
+		sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s customPictureFormat %d: width=%d, height=%d, pixelAspectRatio=%d, pixelClockConversion=%d, pixelClockDivisor=%d\n", DEV_ID_LOG(d), "", "", video_customPictureFormat, width, height, pixelAspectRatio, pixelClockConversion, pixelClockDivisor);
+	}
+	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+
+	uint8_t video_capabilities = 0, video_capability = 0;
+	uint8_t video_codec = 0;
+	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
+
+	/* parsing video caps */
+	video_capabilities = letohl(msg_in->data.UpdateCapabilitiesV3Message.lel_videoCapCount);
+
+	/* enable video mode button if device has video capability */
+	if (video_capabilities > 0 && video_capabilities <= SKINNY_MAX_VIDEO_CAPABILITIES) {
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, TRUE);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: enable video mode softkey\n", DEV_ID_LOG(d));
+
+		if (previousVideoSupport == FALSE) {
+			sccp_dev_set_message(d, "Video support enabled", 5, FALSE, TRUE);
+		}
+
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Video Capabilities\n", DEV_ID_LOG(d), video_capabilities);
+		for (video_capability = 0; video_capability < video_capabilities; video_capability++) {
+			video_codec = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_payloadCapability);
+
+			d->capabilities.video[video_capability] = video_codec;		/** store our video capabilities */
+#if DEBUG
+			char transmitReceiveStr[5];
+
+			sprintf(transmitReceiveStr, "%c-%c", (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_RECEIVE) ? '<' : ' ', (letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_transmitOrReceive) & SKINNY_TRANSMITRECEIVE_TRANSMIT) ? '>' : ' ');
+			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%-3s %3d %-25s\n", DEV_ID_LOG(d), transmitReceiveStr, video_codec, codec2str(video_codec));
+
+			uint8_t video_level = 0;
+			uint8_t video_levels = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_levelPreferenceCount);
+			for (video_level = 0; video_level < video_levels; video_level++) {
+				int transmitPreference = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_transmitPreference);
+				skinny_videoformat_t video_format = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_format);
+				int maxBitRate = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_maxBitRate);
+				int minBitRate = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_minBitRate);
+				int MPI = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_MPI);
+				int serviceNumber = letohl(msg_in->data.UpdateCapabilitiesV2Message.videoCaps[video_capability].levelPreference[video_level].lel_serviceNumber);
+
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s transmitPreference: %d\n", DEV_ID_LOG(d), "", "", transmitPreference);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s format: %d: %s\n", DEV_ID_LOG(d), "", "", video_format, skinny_videoformat2str(video_format));
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s maxBitRate: %d\n", DEV_ID_LOG(d), "", "", maxBitRate);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s minBitRate: %d\n", DEV_ID_LOG(d), "", "", minBitRate);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s MPI: %d\n", DEV_ID_LOG(d), "", "", MPI);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s serviceNumber: %d\n", DEV_ID_LOG(d), "", "", serviceNumber);
+				sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: SCCP:%6s %-5s %s\n", DEV_ID_LOG(d), "", "", "--");
+			}
+
+			int encryptionCapability = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_encryptionCapability);
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: EncryptionCapability: %s\n", DEV_ID_LOG(d), encryptionCapability ? "Yes" : "No");
+			
+			sccp_handle_updatecapabilities_dissect_videocapabiltyunion(d, video_codec, msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].capability);
+
+			int ipv46 = letohl(msg_in->data.UpdateCapabilitiesV3Message.videoCaps[video_capability].lel_ipv46);
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: IPV46 Setting: %s\n", DEV_ID_LOG(d), ipv46 == 0 ? "IPv4" : ipv46 == 1 ? "IPv6" : "Mixed Mode");
+#endif
+		}
+	} else {
+		d->capabilities.video[0] = 0;
+		sccp_softkey_setSoftkeyState(d, KEYMODE_CONNTRANS, SKINNY_LBL_VIDEO_MODE, FALSE);
+		sccp_log((DEBUGCAT_CORE + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: disable video mode softkey\n", DEV_ID_LOG(d));
+		if (previousVideoSupport == TRUE) {
+			sccp_dev_set_message(d, "Video support disabled", 5, FALSE, TRUE);
+		}
+	}
+#endif
+
 }
 
 /*!

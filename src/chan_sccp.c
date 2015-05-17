@@ -262,6 +262,7 @@ static const struct messageMap_cb sccpMessagesCbMap[] = {
 	[AccessoryStatusMessage] = {sccp_handle_accessorystatus_message, TRUE},
 	[SubscriptionStatReqMessage] = {sccp_handle_dialedphonebook_message, TRUE},
 	[UpdateCapabilitiesMessage] = {sccp_handle_updatecapabilities_message, TRUE},
+	[UpdateCapabilitiesV2Message] = {sccp_handle_updatecapabilities_V2message, TRUE},
 	[MediaPathCapabilityMessage] = {sccp_handle_unknown_message, TRUE},
 	[DisplayDynamicNotifyMessage] = {sccp_handle_unknown_message, TRUE},
 	[DisplayDynamicPriNotifyMessage] = {sccp_handle_unknown_message, TRUE},
