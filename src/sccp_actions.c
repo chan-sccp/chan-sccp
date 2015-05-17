@@ -3592,7 +3592,8 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 
 	/* parsing audio caps */
 	audio_capabilities = letohl(msg_in->data.UpdateCapabilitiesMessage.lel_audioCapCount);
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), audio_capabilities);
+	int RTPPayloadFormat = letohl(msg_in->data.UpdateCapabilitiesMessage.lel_RTPPayloadFormat);
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities, RTPPayloadFormat=%d\n", DEV_ID_LOG(d), audio_capabilities, RTPPayloadFormat);
 
 	if (audio_capabilities > 0 && audio_capabilities <= SKINNY_MAX_CAPABILITIES) {
 		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
@@ -3721,7 +3722,8 @@ void sccp_handle_updatecapabilities_V2message(sccp_session_t * s, sccp_device_t 
 
 	/* parsing audio caps */
 	audio_capabilities = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_audioCapCount);
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), audio_capabilities);
+	int RTPPayloadFormat = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_RTPPayloadFormat);
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities, RTPPayloadFormat=%d (V2)\n", DEV_ID_LOG(d), audio_capabilities, RTPPayloadFormat);
 
 	if (audio_capabilities > 0 && audio_capabilities <= SKINNY_MAX_CAPABILITIES) {
 		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {
@@ -3822,7 +3824,8 @@ void sccp_handle_updatecapabilities_V3message(sccp_session_t * s, sccp_device_t 
 
 	/* parsing audio caps */
 	audio_capabilities = letohl(msg_in->data.UpdateCapabilitiesV3Message.lel_audioCapCount);
-	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities\n", DEV_ID_LOG(d), audio_capabilities);
+	int RTPPayloadFormat = letohl(msg_in->data.UpdateCapabilitiesV3Message.lel_RTPPayloadFormat);
+	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Device has %d Audio Capabilities, RTPPayloadFormat=%d (V3)\n", DEV_ID_LOG(d), audio_capabilities, RTPPayloadFormat);
 
 	if (audio_capabilities > 0 && audio_capabilities <= SKINNY_MAX_CAPABILITIES) {
 		for (audio_capability = 0; audio_capability < audio_capabilities; audio_capability++) {

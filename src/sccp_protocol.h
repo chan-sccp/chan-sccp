@@ -595,6 +595,16 @@ typedef struct {
 } serviceResource_t;												/*!< SKINNY Service Resource Structure */
 
 /*!
+ * \brief SKINNY Conference Resource
+ */
+typedef struct {
+	uint32_t lel_activeStreamsOnRegistration;
+	uint32_t lel_maxBW;
+	uint32_t lel_serviceResourceCount;
+	serviceResource_t serviceResource[MAX_SERVICE_TYPE];
+} confResource_t ;
+
+/*!
  * \brief SKINNY Picture Format Structure
  */
 typedef struct {
@@ -612,35 +622,37 @@ typedef struct {
 		uint8_t codecParam2;
 } codecParams_t;
 
+typedef union {
+	uint32_t lel_g723BitRate;										/*!< G723 Bit Rate : Enum(5.3: 0x01, 6.3: 0x02) */
+	struct {
+		uint32_t lel_capabilityAndVersion;
+		uint32_t lel_modulationAndModem2833Support;
+	} modemRelay;
+	struct {
+		uint32_t lel_chan0MaxPayload;
+		uint32_t lel_chan2MaxPayload;
+		uint32_t lel_chan3MaxPayload;
+		uint32_t lel_chan2MaxWindow;
+	} sprtPayload;
+	struct {
+		uint32_t lel_standardSupportField;
+		uint32_t lel_vendorSupportField;
+	} SupportEntry;
+	struct {
+		uint8_t codecMode ;
+		uint8_t dynamicPayload;
+		uint8_t codecParam1;
+		uint8_t codecParam2;
+	} codecParams;
+} payload_t;
+
 /*!
  * \brief SKINNY Audio Capabilities Structure
  */
 typedef struct {
 	skinny_codec_t lel_payloadCapability;									/*!< PayLoad Capability */
 	uint32_t lel_maxFramesPerPacket;									/*!< Maximum Number of Frames per IP Packet */
-	union {
-		uint32_t lel_g723BitRate;
-		struct {
-			uint32_t lel_capabilityAndVersion;
-			uint32_t lel_modulationAnd2833Support;
-		} modemRelay;
-		struct {
-			uint16_t lel_chan0MaxPayload;
-			uint16_t lel_chan2MaxPayload;
-			uint16_t lel_chan3MaxPayload;
-			uint16_t lel_chan2MaxWindow;
-		}sprtPayload;
-		struct {
-			uint32_t lel_standardSupportField;
-			uint32_t lel_vendorSupportField;
-		} sse;
-		struct {
-			uint8_t codecMode;
-			uint8_t dynamicPayload;
-			uint8_t codecParam1;
-			uint8_t codecParam2;
-		}codecParams;
-	} payloads;
+	payload_t payloads;
 } audioCap_t;													/*!< SKINNY Audio Capabilities Structure */
 
 /*!
@@ -1217,44 +1229,27 @@ typedef union {
 	   >   000002E0 - 98 3A 00 00 F4 01 00 00 01 00 00 00 00 00 00 00 .:..............
 	   >   00000330 - 00 00 00 00 00 00 00 00 40 00 00 00 32 00 00 00 ........@...2...
 	 */
-
 	struct {
 		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
 		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
 		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
-		uint32_t RTPPayloadFormat;									/*!< RTP Payload Format */
+		uint32_t lel_RTPPayloadFormat;									/*!< RTP Payload Format */
 		uint32_t lel_customPictureFormatCount;								/*!< Custom Picture Format Count */
-
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
-
-		uint32_t activeStreamsOnRegistration;								/*!< Active Streams on Registration */
-		uint32_t maxBW;											/*!< Max BW ?? */
-
-		uint32_t serviceResourceCount;									/*!< Service Resource Count */
-		serviceResource_t serviceResource[MAX_SERVICE_TYPE];						/*!< Service Resource */
-
+		confResource_t confResources;
 		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
 		videoCapV1_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
 		dataCapV1_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
-
-		uint32_t unknown;										/*!< Unknown */
 	} UpdateCapabilitiesMessage;										/*!< Update Capabilities Message Structure */
 
 	struct {
 		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
 		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
 		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
-		uint32_t RTPPayloadFormat;									/*!< RTP Payload Format */
+		uint32_t lel_RTPPayloadFormat;									/*!< RTP Payload Format */
 		uint32_t lel_customPictureFormatCount;								/*!< Custom Picture Format Count */
-
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
-
-		uint32_t activeStreamsOnRegistration;								/*!< Active Streams on Registration */
-		uint32_t maxBW;											/*!< Max BW ?? */
-
-		uint32_t serviceResourceCount;									/*!< Service Resource Count */
-		serviceResource_t serviceResource[MAX_SERVICE_TYPE];						/*!< Service Resource */
-
+		confResource_t confResources;
 		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
 		videoCapV2_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities V2 */
 		dataCapV1_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
@@ -1264,17 +1259,10 @@ typedef union {
 		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
 		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
 		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
-		uint32_t RTPPayloadFormat;									/*!< RTP Payload Format */
+		uint32_t lel_RTPPayloadFormat;									/*!< RTP Payload Format */
 		uint32_t lel_customPictureFormatCount;								/*!< Custom Picture Format Count */
-
 		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
-
-		uint32_t activeStreamsOnRegistration;								/*!< Active Streams on Registration */
-		uint32_t maxBW;											/*!< Max BW ?? */
-
-		uint32_t serviceResourceCount;									/*!< Service Resource Count */
-		serviceResource_t serviceResource[MAX_SERVICE_TYPE];						/*!< Service Resource */
-
+		confResource_t confResources;
 		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
 		videoCapV3_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities V3 */
 		dataCapV2_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
