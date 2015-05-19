@@ -629,10 +629,10 @@ typedef union {
 		uint32_t lel_modulationAndModem2833Support;
 	} modemRelay;
 	struct {
-		uint32_t lel_chan0MaxPayload;
-		uint32_t lel_chan2MaxPayload;
-		uint32_t lel_chan3MaxPayload;
-		uint32_t lel_chan2MaxWindow;
+		uint16_t lel_chan0MaxPayload;
+		uint16_t lel_chan2MaxPayload;
+		uint16_t lel_chan3MaxPayload;
+		uint16_t lel_chan2MaxWindow;
 	} sprtPayload;
 	struct {
 		uint32_t lel_standardSupportField;
