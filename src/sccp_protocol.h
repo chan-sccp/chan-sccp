@@ -1266,6 +1266,7 @@ typedef union {
 		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
 		videoCapV3_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities V3 */
 		dataCapV2_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
+		uint32_t unknown[70];										/*!< Hmmm */
 	} UpdateCapabilitiesV3Message;									/*!< @see https://sourceforge.net/p/chan-sccp-b/bugs/181 */
 
 	/* AccessoryStatusMessage (0x0073):
