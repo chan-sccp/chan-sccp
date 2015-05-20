@@ -615,13 +615,6 @@ typedef struct {
 	uint32_t lel_pixelclockDivisor;										/*!< Picture Pixel Divisor */
 } customPictureFormat_t;											/*!< SKINNY Picture Format Structure */
 
-typedef struct {
-		uint8_t codecMode ;
-		uint8_t dynamicPayload;
-		uint8_t codecParam1;
-		uint8_t codecParam2;
-} codecParams_t;
-
 typedef union {
 	uint32_t lel_g723BitRate;										/*!< G723 Bit Rate : Enum(5.3: 0x01, 6.3: 0x02) */
 	struct {
