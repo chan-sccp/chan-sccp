@@ -3669,9 +3669,9 @@ void sccp_handle_updatecapabilities_message(sccp_session_t * s, sccp_device_t * 
 #endif
 }
 
+#if defined(CS_SCCP_VIDEO) && defined(DEBUG)
 static void sccp_handle_updatecapabilities_dissect_customPictureFormat(sccp_device_t *d, uint32_t customPictureFormatCount, customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES]) {
 	uint8_t video_customPictureFormat = 0;
-//	video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_customPictureFormatCount);
 	for (video_customPictureFormat = 0; video_customPictureFormat < customPictureFormatCount; video_customPictureFormat++) {
 		int width = letohl(customPictureFormat[video_customPictureFormat].lel_width);
 		int height = letohl(customPictureFormat[video_customPictureFormat].lel_height);
@@ -3749,6 +3749,7 @@ static void sccp_handle_updatecapabilities_dissect_videocapabiltyunion(sccp_devi
 			break;
 	}
 }
+#endif
 
 /*!
  * \brief Handle Update Capabilities Message
@@ -3788,9 +3789,11 @@ void sccp_handle_updatecapabilities_V2_message(sccp_session_t * s, sccp_device_t
 		}
 	}
 #ifdef CS_SCCP_VIDEO
+#if DEBUG
 	uint8_t video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_customPictureFormatCount);
 	sccp_handle_updatecapabilities_dissect_customPictureFormat(d, video_customPictureFormats, msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat);
-	
+#endif
+
 	uint8_t video_capabilities = 0, video_capability = 0;
 	uint8_t video_codec = 0;
 	boolean_t previousVideoSupport = sccp_device_isVideoSupported(d);					/* to check if this update changes the video capabilities */
@@ -3871,8 +3874,10 @@ void sccp_handle_updatecapabilities_V3_message(sccp_session_t * s, sccp_device_t
 	}
 	
 #ifdef CS_SCCP_VIDEO
+#if DEBUG
 	uint8_t video_customPictureFormats = letohl(msg_in->data.UpdateCapabilitiesV2Message.lel_customPictureFormatCount);
 	sccp_handle_updatecapabilities_dissect_customPictureFormat(d, video_customPictureFormats, msg_in->data.UpdateCapabilitiesV3Message.customPictureFormat);
+#endif
 
 	uint8_t video_capabilities = 0, video_capability = 0;
 	uint8_t video_codec = 0;
