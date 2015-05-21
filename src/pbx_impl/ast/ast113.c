@@ -1650,6 +1650,10 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk113_request(const char *type, stru
 		sccp_wrapper_asterisk113_setReadFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 		sccp_wrapper_asterisk113_setWriteFormat(channel, SKINNY_CODEC_WIDEBAND_256K);
 	}
+	
+	/* get remote codecs from channel driver */
+	//ast_rtp_instance_get_codecs(c->rtp.adio.rtp);
+	//ast_rtp_instance_get_codecs(c->rtp.video.rtp);
 	/** done */
 
 EXITFUNC:
@@ -1986,19 +1990,30 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			instance = rtp;
 		} else if (vrtp) {
 			instance = vrtp;
+#ifdef CS_SCCP_VIDEO			
+			/* video requested by remote side, let's see if we support video */ 
+ 			/* should be moved to sccp_rtp.c */
+/*
+			if (ast_format_cap_has_type(codecs, AST_MEDIA_TYPE_VIDEO) && sccp_device_isVideoSupported(d) && c->videomode == SCCP_VIDEO_MODE_AUTO) {
+				if (!c->rtp.video.rtp && !sccp_rtp_createVideoServer(c)) {
+					sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: can not start vrtp\n", DEV_ID_LOG(d));
+				} else {
+					if (!c->rtp.video.readState) {
+						sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: video rtp started\n", DEV_ID_LOG(d));
+						sccp_channel_startMultiMediaTransmission(c);
+					}
+				}
+			}
+*/
+#endif			
 		} else {
 			instance = trtp;
 		}
 
-#ifndef CS_EXPERIMENTAL
-		if (d->directrtp && !d->nat && !nat_active && !c->conference) {					// asume directrtp
-#else
 		if (d->directrtp && d->nat < SCCP_NAT_ON && !nat_active && !c->conference) {			// asume directrtp
-#endif
 			ast_rtp_instance_get_remote_address(instance, &sin_tmp);
 			memcpy(&sas, &sin_tmp, sizeof(struct sockaddr_storage));
 			//ast_sockaddr_to_sin(&sin_tmp, &sin);
-#ifdef CS_EXPERIMENTAL
 			if (d->nat == SCCP_NAT_OFF) {								// forced nat off to circumvent autodetection + direcrtp, requires checking both phone_ip and external session ip address against devices permit/deny
 				struct ast_sockaddr sin_local;
 				struct sockaddr_storage localsas = { 0, };
@@ -2007,10 +2022,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 				if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW && sccp_apply_ha(d->ha, &localsas) == AST_SENSE_ALLOW) {
 					directmedia = TRUE;
 				}
-			} else
-#endif
-				//ast_sockaddr_to_sin(&sin_tmp, &sin);
-			if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
+			} else if (sccp_apply_ha(d->ha, &sas) == AST_SENSE_ALLOW) {					// check remote sin against local device acl (to match netmask)
 				directmedia = TRUE;
 				// ast_channel_defer_dtmf(ast);
 			}
@@ -2030,11 +2042,7 @@ static int sccp_wrapper_asterisk113_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 		}
 
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk113_update_rtp_peer) new remote rtp ip = '%s'\n (d->directrtp: %s && !d->nat: %s && !remote->nat_active: %s && d->acl_allow: %s) => directmedia=%s\n", c->currentDeviceId, sccp_socket_stringify(&sas), S_COR(d->directrtp, "yes", "no"),
-#ifndef CS_EXPERIMENTAL
-					  S_COR(!d->nat, "yes", "no"),
-#else
 					  sccp_nat2str(d->nat),
-#endif
 					  S_COR(!nat_active, "yes", "no"), S_COR(directmedia, "yes", "no"), S_COR(directmedia, "yes", "no")
 		    );
 
@@ -2070,10 +2078,12 @@ static void sccp_wrapper_asterisk113_getCodec(PBX_CHANNEL_TYPE * ast, struct ast
 
 	ast_debug(10, "asterisk requests format for channel %s, readFormat: %s(%d)\n", pbx_channel_name(ast), codec2str(channel->rtp.audio.readFormat), channel->rtp.audio.readFormat);
 	for (i = 0; i < ARRAY_LEN(channel->preferences.audio); i++) {
-		// ast_format_set(&fmt, skinny_codec2pbx_codec(channel->preferences.audio[i]), 0);
-		// ast_format_cap_add(result, &fmt);
-
 		ast_format = sccp_asterisk13_skinny2ast_format(channel->preferences.audio[i]);
+		framing = ast_format_get_default_ms(ast_format);
+		ast_format_cap_append(result, ast_format, framing);
+	}
+	for (i = 0; i < ARRAY_LEN(channel->preferences.video); i++) {
+		ast_format = sccp_asterisk13_skinny2ast_format(channel->preferences.video[i]);
 		framing = ast_format_get_default_ms(ast_format);
 		ast_format_cap_append(result, ast_format, framing);
 	}
@@ -3248,7 +3258,9 @@ struct ast_rtp_glue sccp_rtp = {
 	type:	SCCP_TECHTYPE_STR,
 	mod:	NULL,
 	get_rtp_info:sccp_wrapper_asterisk113_get_rtp_info,
+	//allow_rtp_remote:sccp_wrapper_asterisk113_allow_rtp_remote, 		/* check c->directmedia and return 1 if ok */
 	get_vrtp_info:sccp_wrapper_asterisk113_get_vrtp_info,
+	//allow_vrtp_remote:sccp_wrapper_asterisk113_allow_vrtp_remote, 	/* check c->directmedia and return 1 if ok */
 	get_trtp_info:NULL,
 	update_peer:sccp_wrapper_asterisk113_update_rtp_peer,
 	get_codec:sccp_wrapper_asterisk113_getCodec,
@@ -3258,7 +3270,9 @@ struct ast_rtp_glue sccp_rtp = {
 struct ast_rtp_glue sccp_rtp = {
 	.type = SCCP_TECHTYPE_STR,
 	.get_rtp_info = sccp_wrapper_asterisk113_get_rtp_info,
+	//.allow_rtp_remote = sccp_wrapper_asterisk113_allow_rtp_remote, 	/* check c->directmedia and return 1 if ok */
 	.get_vrtp_info = sccp_wrapper_asterisk113_get_vrtp_info,
+	//.allow_vrtp_remote = sccp_wrapper_asterisk113_allow_vrtp_remote, 	/* check c->directmedia and return 1 if ok */
 	.update_peer = sccp_wrapper_asterisk113_update_rtp_peer,
 	.get_codec = sccp_wrapper_asterisk113_getCodec,
 };
