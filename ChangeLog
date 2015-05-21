@@ -1,4 +1,227 @@
+2015-05-20  ddegroot
+
+	* [r6092] src/sccp_actions.c: Fix: compile warning about unused
+	  functions. Reported by Cody Miller-Kelly
+
+	* [r6091] src/sccp_actions.c, src/sccp_protocol.h: Cleanup: remove
+	  unused codecParams_t. Enhancement: audioCodec Dissection for
+	  UpdateCapabilities
+
+2015-05-19  ddegroot
+
+	* [r6090] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_cli.c, src/sccp_protocol.h: Fix:
+	  UpdateCapabilitiesV3Message (reinserting unknown field).
+	  Enhancement: Display of UpdateCapabilities Messages.
+
+	* [r6089] src/sccp_protocol.h: Fix: UpdateCapabilities Message.
+	  Reported by Jim & Marco
+
+2015-05-18  ddegroot
+
+	* [r6088] src/pbx_impl/ast/ast113.c: Enhancement: Added comments
+	  about getting remote perr codecs
+
+2015-05-17  ddegroot
+
+	* [r6087] src/sccp_protocol.h: Fix: DialedNumber Message
+
+	* [r6086] src/sccp_protocol.h: Enhancement: Clarify
+	  CallInfoDynamicMessage
+
+	* [r6085] src/sccp_actions.c, src/sccp_protocol.h: Enhancement:
+	  Extend the dissection of UpdateCapabilitiesMessages (v2)
+
+	* [r6084] src/chan_sccp.c, src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_protocol.h: Enhancement: Extend the dissection of
+	  UpdateCapabilitiesMessages
+
+2015-05-16  ddegroot
+
+	* [r6083] src/sccp_protocol.h: Enhancement: Added Skinny Conference
+	  Messages
+
+	* [r6082] src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Enhancement: Integrated ForwardStat Message
+
+	* [r6081] src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Reversion of revision 6074.
+
+2015-05-13  ddegroot
+
+	* [r6080] src/sccp_featureButton.c: Fix: Feature Buttong
+	  Index->Instance Regression. Reported by Marco Paland
+
+2015-05-12  ddegroot
+
+	* [r6079] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Fix: Remove
+	  Experimental from pbx_impl/ast/ast???.c for video and nat auto
+	  detection. Video handling is still covered by CS_SCCP_VIDEO
+
+	* [r6078] src/sccp_management.c, src/sccp_management.h:
+	  Enhancement: Added sccp_manager_action2pbx_str function (for
+	  later use) (implemented using gcc-nested / clang-blocks / based
+	  on sample provided by Marcello)
+
+	* [r6077] src/sccp_conference.c, src/sccp_conference.h: Fix: Copy
+	  Calling/Called Party Information before Masquerading the Call and
+	  pushing it into the Conference Bridge. Fixes issue with showing
+	  '~~s~~' as conference participant, when dealing with foreign
+	  channels and dialing via macro. Reported by Cody Miller-Kelly.
+
+2015-05-11  ddegroot
+
+	* [r6076] src/chan_sccp.h, src/sccp_conference.c,
+	  src/sccp_device.c: Enhancement: Added
+	  d->hasEnhancedIconMenuSupport to specify which device supports w
+	  Embedded Icons in XML messages
+
+	* [r6075] src/sccp_conference.c, src/sccp_protocol.h: Fix:
+	  Conference, removed error message where it did not belong.
+	  Enhancement: Add definition for StartMediaFailureDetectionMessage
+
+	* [r6074] src/sccp_actions.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Enhancement: Integreated FormatStat Message
+	  Fixed FormatStat Message Using Parameter of Wrong Message
+	  Updated Capabilities Messages
+	  - Added confResource_t struct (UpdatedCapabilities)
+	  - Added payload_t struct used by audioCap_t (UpdatedCapabilities)
+	  Added Conference / Participant Message Definitions
+
+	* [r6073] src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/pbx_impl/pbx_impl.h, src/sccp_conference.c: Fix: Conference
+	  Playback Channel -> Caused a Segfault on Hangup. Reported by
+	  Jesus Tovar.
+
+	* [r6072] src/sccp_actions.c, src/sccp_enum.in,
+	  src/sccp_protocol.h: Enhancement: Use SKINNY_MEDIASTATUS when
+	  dealing with MediaTransmissionAck's. Enhancement: Initialize data
+	  string when dealing with DeviceToUserData Messages
+
+	* [r6071] src/sccp_device.c, src/sccp_device.h, src/sccp_enum.in,
+	  src/sccp_protocol.h: Enhancement: Replace Unknown Fields in
+	  CallStateMessage
+
+2015-05-10  ddegroot
+
+	* [r6070] src/sccp_actions.c, src/sccp_protocol.h: Enhancement:
+	  Extended MiscellaneousCommandMessage. Added Logging Output for
+	  MiscellaneousCommandMessage. Replaced unknowns in
+	  OpenReceiveChannel with lel_audioLevelAdjustment + latentCapsInfo
+
+	* [r6069] src/sccp_device.c, src/sccp_protocol.h:
+	  Enhancement/Cleanup: SetRingerMessage:unknown -> lel_ringDuration
+	  / StartMediaTransmission:unknowns->latenCapsInfo /
+	  StopToneMessage:unknown1 -> lel_tone
+
+	* [r6068] src/sccp_protocol.h: Fix: OpenReceiveAck Message, the
+	  unknown fields where a misinterpretation of the IPV6 field length
+
+	* [r6067] src/chan_sccp.c, src/sccp_actions.c, src/sccp_devstate.c,
+	  src/sccp_featureButton.c, src/sccp_hint.c, src/sccp_protocol.c,
+	  src/sccp_protocol.h: Enhancements:
+	  - Use Index instead of Instance where appropriate (i.e.
+	  FeatureStat Messages)
+	  - Synchronize FeatureStat and FeatureStatDynamic FieldNames
+	  - Integrate DialedNumberMessage (v3 and v18)
+	  - Renamed DialedPhoneBook -> SubscriptionStat
+	  - Renamed CallListStateUpdate -> NotificationMessage
+	  - Filled out Unknown fields, with their appropriate names,
+	  clarifying their use
+
+2015-05-09  ddegroot
+
+	* [r6066] src/sccp_actions.c: Add FastPicture Update -> queue
+	  control VIDUPDATE
+
+2015-05-09  marcelloceschia
+
+	* [r6065] src/sccp_config_entries.hh: add video mode button to
+	  connected
+
+	* [r6064] src/sccp_channel.c: set default video mode to auto
+
+2015-05-09  ddegroot
+
+	* [r6063] src/sccp_config.c, src/sccp_config_entries.hh: Cleanup:
+	  Add vidmode to softkeysets
+
+	* [r6062] src/sccp_config_entries.hh: Fix: Add vidmode to
+	  softkeysets
+
+2015-05-08  marcelloceschia
+
+	* [r6061] src/sccp_device.c: save and parse lineInstance for last
+	  dialed number
+
+	* [r6060] src/pbx_impl/ast/ast108.c, src/pbx_impl/ast/ast110.c,
+	  src/pbx_impl/ast/ast111.c: fix compile issue asterisk < 12
+
+	* [r6059] src/chan_sccp.h, src/config.h.in,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_appfunctions.c, src/sccp_cli.c,
+	  src/sccp_device.c, src/sccp_device.h, src/sccp_pbx.c,
+	  src/sccp_softkeys.c: save the line instance for redial
+
+2015-05-05  ddegroot
+
+	* [r6058] src/sccp_conference.c: Fix: conference
+
+2015-05-04  marcelloceschia
+
+	* [r6057] src/sccp_config_entries.hh: set the endcall softkey to
+	  the same position across all softkeysets
+
+2015-05-03  ddegroot
+
+	* [r6056] src/sccp_config_entries.hh: Fix: removed experimental
+	  flag around nat
+
+2015-05-01  ddegroot
+
+	* [r6055] src/sccp_device.c, src/sccp_enum.c, src/sccp_enum.h,
+	  src/sccp_enum.in: Enh: Added SPA524SG. Requested by Marco Paland.
+
+2015-04-29  ddegroot
+
+	* [r6054] src/sccp_config_entries.hh: Fix: Re-added 'dial' softkey
+	  to 'digitsfoll'. Reported by Nikola Ciprich.
+
 2015-04-26  ddegroot
+
+	* [r6053] .travis.yml: Fix .travis.yml if/then/else statement (#7)
+	  (Include libblocksruntime)
+
+	* [r6052] .travis.yml: Fix .travis.yml if/then/else statement (#6)
+	  (Include libblocksruntime
+
+	* [r6051] ChangeLog, Makefile.in, NEWS: Update ChangeLog / News
+	  file
+
+	* [r6050] tools/bootstrap.sh: Fix: bootstrap.sh should rerun
+	  configure if config.status is already there
+
+	* [r6049] aclocal.m4, autoconf/check_raii.m4[ADD],
+	  autoconf/extra.m4, configure, configure.ac,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.in, src/config.h.in: Enh: move RAII check to it's
+	  own file
+
+	* [r6048] .travis.yml: Fix .travis.yml if/then/else statement (#5)
+
+	* [r6047] .travis.yml: Fix .travis.yml if/then/else statement (#4)
+
+	* [r6046] .travis.yml: Fix .travis.yml if/then/else statement (#3)
+
+	* [r6045] .travis.yml: Fix .travis.yml if/then/else statement (#2)
+
+	* [r6044] .travis.yml: Fix .travis.yml if/then/else statement
+
+	* [r6043] .travis.yml: Travis: Added ppa with asterisk-13 on trusty
 
 	* [r6042] .version, ChangeLog, NEWS, configure, debian/changelog,
 	  src/Makefile.am, src/Makefile.in, src/config.h.in: Release
