@@ -324,7 +324,7 @@ typedef enum {
 	RegisterAvailableLinesMessage 			= 0x002D,
 	DeviceToUserDataMessage 			= 0x002E,
 	DeviceToUserDataResponseMessage 		= 0x002F,
-	UpdateCapabilitiesMessage 			= 0x0030,
+	UpdateCapabilitiesMessage			= 0x0030,
 	OpenMultiMediaReceiveChannelAckMessage 		= 0x0031,
 	ClearConferenceMessage 				= 0x0032,
 	ServiceURLStatReqMessage 			= 0x0033,
@@ -695,10 +695,10 @@ typedef struct {
 typedef struct {
 	uint32_t lel_profile;											/*!< H264 profile */
 	uint32_t lel_level;											/*!< H264 level */
-	uint32_t lel_customMaxMBPS;
-	uint32_t lel_customMaxFS;
-	uint32_t lel_customMaxDPB;
-	uint32_t lel_customMaxBRandCPB;
+	//uint32_t lel_customMaxMBPS;
+	//uint32_t lel_customMaxFS;
+	//uint32_t lel_customMaxDPB;
+	//uint32_t lel_customMaxBRandCPB;
 } h264_VideoCapability_t;
 
 
@@ -1223,16 +1223,32 @@ typedef union {
 	   >   00000330 - 00 00 00 00 00 00 00 00 40 00 00 00 32 00 00 00 ........@...2...
 	 */
 	struct {
-		uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
-		uint32_t lel_videoCapCount;									/*!< Video Capability Count */
-		uint32_t lel_dataCapCount;									/*!< Data Capability Count */
-		uint32_t lel_RTPPayloadFormat;									/*!< RTP Payload Format */
-		uint32_t lel_customPictureFormatCount;								/*!< Custom Picture Format Count */
-		customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
-		confResource_t confResources;
-		audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
-		videoCapV1_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
-		dataCapV1_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
+		union {
+			struct {
+				uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
+				uint32_t lel_videoCapCount;									/*!< Video Capability Count */
+				uint32_t lel_dataCapCount;									/*!< Data Capability Count */
+				uint32_t lel_RTPPayloadFormat;									/*!< RTP Payload Format */
+				uint32_t lel_customPictureFormatCount;								/*!< Custom Picture Format Count */
+				customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
+				confResource_t confResources;
+				audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
+				videoCapV1_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities */
+				dataCapV1_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
+			} v3;
+			struct {
+				uint32_t lel_audioCapCount;									/*!< Audio Capability Count */
+				uint32_t lel_videoCapCount;									/*!< Video Capability Count */
+				uint32_t lel_dataCapCount;									/*!< Data Capability Count */
+				uint32_t lel_RTPPayloadFormat;									/*!< RTP Payload Format */
+				uint32_t lel_customPictureFormatCount;								/*!< Custom Picture Format Count */
+				customPictureFormat_t customPictureFormat[MAX_CUSTOM_PICTURES];					/*!< Custom Picture Format */
+				confResource_t confResources;
+				audioCap_t audioCaps[SKINNY_MAX_CAPABILITIES];							/*!< Audio Capabilities */
+				videoCapV2_t videoCaps[SKINNY_MAX_VIDEO_CAPABILITIES];						/*!< Video Capabilities V2 */
+				dataCapV1_t dataCaps[SKINNY_MAX_DATA_CAPABILITIES];						/*!< Data Capabilities */
+			} v16;
+		};
 	} UpdateCapabilitiesMessage;										/*!< Update Capabilities Message Structure */
 
 	struct {
@@ -3188,13 +3204,12 @@ static const struct messagetype sccp_messagetypes[] = {
 	[CallHistoryInfoMessage] = { 			"Call History Info", 				offsize(sccp_data_t, CallHistoryInfoMessage)},
 	[ExtensionDeviceCaps] = { 			"Extension Device Capabilities Message", 	offsize(sccp_data_t, ExtensionDeviceCaps)},
 	[XMLAlarmMessage] = { 				"XML-AlarmMessage", 				offsize(sccp_data_t, XMLAlarmMessage)},
-	[UpdateCapabilitiesV3Message] = {		"Dynamic Update Capabilities Message",		offsize(sccp_data_t, UpdateCapabilitiesV3Message)},
 	[MediaPathCapabilityMessage] = {		"MediaPath Capability Message",			offsize(sccp_data_t, MediaPathCapabilityMessage)},
 	[FlowControlNotifyMessage] = { 			"FlowControl Notify Message", 			offsize(sccp_data_t, FlowControlNotifyMessage)},
 	[CallCountReqMessage] = {			"CallCount Request Message", 			offsize(sccp_data_t, CallCountReqMessage)},
 /*new*/
 	[UpdateCapabilitiesV2Message] = {		"Update Capabilities V2",			offsize(sccp_data_t, UpdateCapabilitiesV2Message)},
-/*	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},*/
+	[UpdateCapabilitiesV3Message] = {		"Update Capabilities V3",			offsize(sccp_data_t, UpdateCapabilitiesV3Message)},
 	[PortResMessage] = {				"Port Response Message",			offsize(sccp_data_t, PortResMessage)},
 	[QoSResvNotifyMessage] = {			"QoS Resv Notify Message",			offsize(sccp_data_t, QoSResvNotifyMessage)},
 	[QoSErrorNotifyMessage] = {			"QoS Error Notify Message",			offsize(sccp_data_t, QoSErrorNotifyMessage)},
