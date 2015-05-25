@@ -948,15 +948,19 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	char *featexten;
 
 	if (PBX(getFeatureExtension) (channel, &featexten)) {
-		struct ast_frame f = { AST_FRAME_DTMF, };
-		int j;
+		if (featexten && !sccp_strlen_zero(featexten)) {
+			struct ast_frame f = { AST_FRAME_DTMF, };
+			int j;
 
-		f.len = 100;
-		for (j = 0; j < strlen(featexten); j++) {
-			f.subclass.integer = featexten[j];
-			ast_queue_frame(channel->owner, &f);
+			f.len = 100;
+			for (j = 0; j < strlen(featexten); j++) {
+				f.subclass.integer = featexten[j];
+				ast_queue_frame(channel->owner, &f);
+			}
+			sccp_free(featexten);
+		} else {
+			pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
 		}
-		sccp_free(featexten);
 		return TRUE;
 	}
 #else

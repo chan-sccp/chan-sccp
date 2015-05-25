@@ -2915,21 +2915,16 @@ void sccp_handle_startmultimediatransmission_ack(sccp_session_t * s, sccp_device
 
 	AUTO_RELEASE sccp_channel_t *c = sccp_channel_find_bypassthrupartyid(partyID);
 	if (mediastatus) {
-		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", d->id, skinny_mediastatus2str(mediastatus), mediastatus);
+		pbx_log(LOG_ERROR, "%s: (StartMultiMediaTransmissionAck) Device returned: '%s' (%d) !. Ending Call.\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
 		if (c) {
 			sccp_channel_endcall(c);
 		}
+		sccp_dump_msg(msg_in);
+		c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
 		return;
 	}
 
 	if (c) {
-		if (mediastatus) {
-			pbx_log(LOG_WARNING, "%s: Error while opening MediaTransmission. Status: %s (%d) Ending call\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus);
-			sccp_dump_msg(msg_in);
-			c->rtp.video.readState = SCCP_RTP_STATUS_INACTIVE;
-			return;
-		}
-
 		/* update status */
 		c->rtp.video.readState = SCCP_RTP_STATUS_ACTIVE;
 		sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMultiMediaTranmission ACK. Remote TCP/IP '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), sccp_socket_stringify(&ss), callID, callID1, partyID);
