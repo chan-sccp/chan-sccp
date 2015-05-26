@@ -366,7 +366,7 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_mailbox_t *mailbox;
+	sccp_mailbox_t *mailbox = NULL;
 	sccp_line_t *line = event->event.lineCreated.line;
 
 	sccp_log((DEBUGCAT_MWI)) (VERBOSE_PREFIX_1 "SCCP: (mwi_linecreatedEvent) Get linecreatedEvent\n");
@@ -391,12 +391,16 @@ void sccp_mwi_linecreatedEvent(const sccp_event_t * event)
  */
 void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t * line)
 {
+	if (sccp_strlen_zero(mailbox) || sccp_strlen_zero(context) || !line) {
+		pbx_log(LOG_ERROR, "%s: (addMailboxSubscription) Not all parameter contain valid pointers, mailbox: %p, context: %p\n", line ? line->name : "SCCP", mailbox, context);
+		return;
+	}
 	sccp_mailbox_subscriber_list_t *subscription = NULL;
 	sccp_mailboxLine_t *mailboxLine = NULL;
 
 	SCCP_LIST_LOCK(&sccp_mailbox_subscriptions);
 	SCCP_LIST_TRAVERSE(&sccp_mailbox_subscriptions, subscription, list) {
-		if (strlen(mailbox) == strlen(subscription->mailbox) && strlen(context) == strlen(subscription->context) && !strcmp(mailbox, subscription->mailbox) && !strcmp(context, subscription->context)) {
+		if (sccp_strequals(mailbox, subscription->mailbox) && sccp_strequals(context, subscription->context)) {
 			break;
 		}
 	}

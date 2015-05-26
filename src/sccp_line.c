@@ -872,7 +872,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 #endif
 {
 	sccp_line_t *l = NULL;
-	PBX_VARIABLE_TYPE *v, *variable;
+	PBX_VARIABLE_TYPE *v = NULL, *variable = NULL;
 
 	if (sccp_strlen_zero(GLOB(realtimelinetable)) || sccp_strlen_zero(name)) {
 		return NULL;
