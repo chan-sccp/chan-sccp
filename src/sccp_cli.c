@@ -2727,7 +2727,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				}
 				if (v) {
 					change = sccp_config_applyDeviceConfiguration(device, v);
-					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart");
+					sccp_log((DEBUGCAT_CORE)) ("%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> skipping restart (minor changes applied)");
 					pbx_cli(fd, "%s: device has %s\n", device->id, change ? "major changes -> restarting device" : "no major changes -> restart not required");
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						device->pendingUpdate = 1;
@@ -2780,7 +2780,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 				}
 				if (v) {
 					change = sccp_config_applyLineConfiguration(line, v);
-					sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart");
+					sccp_log((DEBUGCAT_CORE)) ("%s: line has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> skipping restart (minor changes applied)");
 					pbx_cli(fd, "%s: device has %s\n", line->name, change ? "major changes -> restarting attached devices" : "no major changes -> restart not required");
 					if (change == SCCP_CONFIG_NEEDDEVICERESET) {
 						sccp_device_t *device = NULL;
