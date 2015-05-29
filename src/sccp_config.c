@@ -796,7 +796,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				continue;
 			}
 
-			if (type == SCCP_CONFIG_DATATYPE_STRINGPTR) {						/* If nothing was found, clear variable, incase of a STRINGPTR */
+			if (type == SCCP_CONFIG_DATATYPE_STRINGPTR || type==SCCP_CONFIG_DATATYPE_PARSER) {	/* If nothing was found, clear variable, incase of a STRINGPTR */
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Clearing parameter %s\n", sccpDstConfig[cur_elem].name);
 				sccp_config_object_setValue(obj, NULL, sccpDstConfig[cur_elem].name, "", __LINE__, segment, SetEntries);
 			}
