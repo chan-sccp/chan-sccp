@@ -1611,19 +1611,21 @@ void sccp_dev_speed_find_byindex(sccp_device_t * d, uint16_t instance, boolean_t
 		if (config->type == SPEEDDIAL && config->instance == instance) {
 
 			/* we are searching for hinted speeddials */
-			if (TRUE == withHint && sccp_strlen_zero(config->button.speeddial.hint)) {
-				continue;
-			}
-
-			k->valid = TRUE;
-			k->instance = instance;
-			k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
-			sccp_copy_string(k->name, config->label, sizeof(k->name));
-			sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
-			if (!sccp_strlen_zero(config->button.speeddial.hint)) {
+			if (TRUE == withHint && !sccp_strlen_zero(config->button.speeddial.hint)) {
+				k->valid = TRUE;
+				k->instance = instance;
+				k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				sccp_copy_string(k->name, config->label, sizeof(k->name));
+				sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
 				sccp_copy_string(k->hint, config->button.speeddial.hint, sizeof(k->hint));
+				
+			} else if(FALSE == withHint && sccp_strlen_zero(config->button.speeddial.hint)) {
+				k->valid = TRUE;
+				k->instance = instance;
+				k->type = SCCP_BUTTONTYPE_SPEEDDIAL;
+				sccp_copy_string(k->name, config->label, sizeof(k->name));
+				sccp_copy_string(k->ext, config->button.speeddial.ext, sizeof(k->ext));
 			}
-			break;
 		}
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
