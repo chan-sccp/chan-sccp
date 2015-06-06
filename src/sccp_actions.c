@@ -2349,9 +2349,12 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	char resp = '\0';
 	int len = 0;
 
-	digit = letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
-	lineInstance = letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
-	callid = letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+	digit 		= letohl(msg_in->data.KeypadButtonMessage.lel_kpButton);
+	callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
+	lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
+	
+	pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", DEV_ID_LOG(s->device), lineInstance);
+	pbx_log(LOG_NOTICE, "%s: callid %d\n", DEV_ID_LOG(s->device), callid);
 
 	if (!d) {												// should never be possible, d should have been retained in calling function
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(s->device));
@@ -2363,8 +2366,25 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	 */
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
+	AUTO_RELEASE sccp_linedevices_t *linedevice;
+	
+	
+	if ((channel = sccp_device_getActiveChannel(d)) && channel->callid == callid) {
+		l = sccp_line_retain(channel->line);
+		linedevice = sccp_linedevice_find(d, l);
+		
+		/* 
+		 * older devices like 7960 are sending button index instead of lineInstance 
+		 * so we can not trust lineInstance in this case
+		 * 
+		 */
+		if(linedevice->lineInstance != lineInstance){
+		    pbx_log(LOG_NOTICE, "%s: linedevice->lineInstance != lineInstance (%d != %d)\n", DEV_ID_LOG(s->device), linedevice->lineInstance, lineInstance);
+		}
+	}
+	
 
-	if (lineInstance) {
+	if (!channel && lineInstance) {
 		if (callid) {
 			if ((channel = sccp_find_channel_by_lineInstance_and_callid(d, lineInstance, callid)) && channel->line) {
 				l = sccp_line_retain(channel->line);
@@ -2382,7 +2402,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 				}
 			}
 		}
-	} else {
+	} else if(!l) {
 		if (callid) {
 			if ((channel = sccp_channel_find_byid(callid)) && channel->line) {
 				l = sccp_line_retain(channel->line);
