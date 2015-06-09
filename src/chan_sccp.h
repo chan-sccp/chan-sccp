@@ -920,15 +920,13 @@ struct sccp_device {
 		uint8_t size;											/*!< how many softkeysets are provided by modes */
 	} speeddialButtons;
 
-	/* unused */
-	#if 0
+	#if 0 /* unused */
 	struct {
 		int free;
 	} scheduleTasks;
 	#endif
 	
-	/* unused */
-	#if 0
+	#if 0 /* unused */
 	char videoSink[MAXHOSTNAMELEN];										/*!< sink to send video */
 	#endif
 	
@@ -1185,8 +1183,13 @@ struct sccp_global_vars {
 	uint8_t transfer_tone;											/*!< Transfer Tone */
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
-	boolean_t dndFeature;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
+	
+	uint8_t __padding[3];
+	#if 0	/* unused */
 	uint16_t protocolversion;										/*!< Skinny Protocol Version */
+	#endif
+	
+	boolean_t dndFeature;											/*!< Do Not Disturb (DND) Mode: \see SCCP_DNDMODE_* */
 	boolean_t transfer_on_hangup;										/*!< Complete transfer on hangup */
 
 #ifdef CS_MANAGER_EVENTS
