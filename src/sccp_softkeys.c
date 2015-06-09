@@ -40,8 +40,8 @@ struct softKeySetConfigList softKeySetConfig;									/*!< List of SoftKeySets *
  */
 struct sccp_softkeyMap_cb {
 	uint32_t event;
-	void (*softkeyEvent_cb) (const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 	boolean_t channelIsNecessary;
+	void (*softkeyEvent_cb) (const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c);
 	char *uriactionstr;
 };
 
@@ -964,36 +964,36 @@ static void sccp_sk_uriaction(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
  * \brief Softkey Function Callback by SKINNY LABEL
  */
 static const struct sccp_softkeyMap_cb softkeyCbMap[] = {
-	{SKINNY_LBL_NEWCALL, sccp_sk_newcall, FALSE, NULL},
-	{SKINNY_LBL_REDIAL, sccp_sk_redial, FALSE, NULL},
-	{SKINNY_LBL_MEETME, sccp_sk_meetme, TRUE, NULL},
-	{SKINNY_LBL_BARGE, sccp_sk_barge, TRUE, NULL},
-	{SKINNY_LBL_CBARGE, sccp_sk_cbarge, TRUE, NULL},
-	{SKINNY_LBL_HOLD, sccp_sk_hold, TRUE, NULL},
-	{SKINNY_LBL_TRANSFER, sccp_sk_transfer, TRUE, NULL},
-	{SKINNY_LBL_CFWDALL, sccp_sk_cfwdall, FALSE, NULL},
-	{SKINNY_LBL_CFWDBUSY, sccp_sk_cfwdbusy, FALSE, NULL},
-	{SKINNY_LBL_CFWDNOANSWER, sccp_sk_cfwdnoanswer, FALSE, NULL},
-	{SKINNY_LBL_BACKSPACE, sccp_sk_backspace, TRUE, NULL},
-	{SKINNY_LBL_ENDCALL, sccp_sk_endcall, TRUE, NULL},
-	{SKINNY_LBL_RESUME, sccp_sk_resume, TRUE, NULL},
-	{SKINNY_LBL_ANSWER, sccp_sk_answer, TRUE, NULL},
-	{SKINNY_LBL_TRNSFVM, sccp_sk_trnsfvm, TRUE, NULL},
-	{SKINNY_LBL_IDIVERT, sccp_sk_trnsfvm, TRUE, NULL},
-	{SKINNY_LBL_DND, sccp_sk_dnd, FALSE, NULL},
-	{SKINNY_LBL_DIRTRFR, sccp_sk_dirtrfr, TRUE, NULL},
-	{SKINNY_LBL_SELECT, sccp_sk_select, TRUE, NULL},
-	{SKINNY_LBL_PRIVATE, sccp_sk_private, FALSE, NULL},
-	{SKINNY_LBL_MONITOR, sccp_sk_monitor, TRUE, NULL},
-	{SKINNY_LBL_INTRCPT, sccp_sk_resume, TRUE, NULL},
-	{SKINNY_LBL_DIAL, sccp_sk_dial, TRUE, NULL},
-	{SKINNY_LBL_VIDEO_MODE, sccp_sk_videomode, TRUE, NULL},
-	{SKINNY_LBL_PARK, sccp_sk_park, TRUE, NULL},
-	{SKINNY_LBL_PICKUP, sccp_sk_pickup, FALSE, NULL},
-	{SKINNY_LBL_GPICKUP, sccp_sk_gpickup, FALSE, NULL},
-	{SKINNY_LBL_CONFRN, sccp_sk_conference, TRUE, NULL},
-	{SKINNY_LBL_JOIN, sccp_sk_join, TRUE, NULL},
-	{SKINNY_LBL_CONFLIST, sccp_sk_conflist, TRUE, NULL},
+	{SKINNY_LBL_NEWCALL, FALSE, sccp_sk_newcall, NULL},
+	{SKINNY_LBL_REDIAL, FALSE, sccp_sk_redial, NULL},
+	{SKINNY_LBL_MEETME, TRUE, sccp_sk_meetme, NULL},
+	{SKINNY_LBL_BARGE, TRUE, sccp_sk_barge, NULL},
+	{SKINNY_LBL_CBARGE, TRUE, sccp_sk_cbarge, NULL},
+	{SKINNY_LBL_HOLD, TRUE, sccp_sk_hold, NULL},
+	{SKINNY_LBL_TRANSFER, TRUE, sccp_sk_transfer, NULL},
+	{SKINNY_LBL_CFWDALL, FALSE, sccp_sk_cfwdall, NULL},
+	{SKINNY_LBL_CFWDBUSY, FALSE, sccp_sk_cfwdbusy, NULL},
+	{SKINNY_LBL_CFWDNOANSWER, FALSE, sccp_sk_cfwdnoanswer, NULL},
+	{SKINNY_LBL_BACKSPACE, TRUE, sccp_sk_backspace, NULL},
+	{SKINNY_LBL_ENDCALL, TRUE, sccp_sk_endcall, NULL},
+	{SKINNY_LBL_RESUME, TRUE, sccp_sk_resume, NULL},
+	{SKINNY_LBL_ANSWER, TRUE, sccp_sk_answer, NULL},
+	{SKINNY_LBL_TRNSFVM, TRUE, sccp_sk_trnsfvm, NULL},
+	{SKINNY_LBL_IDIVERT, TRUE, sccp_sk_trnsfvm, NULL},
+	{SKINNY_LBL_DND, FALSE, sccp_sk_dnd, NULL},
+	{SKINNY_LBL_DIRTRFR, TRUE, sccp_sk_dirtrfr, NULL},
+	{SKINNY_LBL_SELECT, TRUE, sccp_sk_select, NULL},
+	{SKINNY_LBL_PRIVATE, FALSE, sccp_sk_private, NULL},
+	{SKINNY_LBL_MONITOR, TRUE, sccp_sk_monitor, NULL},
+	{SKINNY_LBL_INTRCPT, TRUE, sccp_sk_resume, NULL},
+	{SKINNY_LBL_DIAL, TRUE, sccp_sk_dial, NULL},
+	{SKINNY_LBL_VIDEO_MODE, TRUE, sccp_sk_videomode, NULL},
+	{SKINNY_LBL_PARK, TRUE, sccp_sk_park, NULL},
+	{SKINNY_LBL_PICKUP, FALSE, sccp_sk_pickup, NULL},
+	{SKINNY_LBL_GPICKUP, FALSE, sccp_sk_gpickup, NULL},
+	{SKINNY_LBL_CONFRN, TRUE, sccp_sk_conference, NULL},
+	{SKINNY_LBL_JOIN, TRUE, sccp_sk_join, NULL},
+	{SKINNY_LBL_CONFLIST, TRUE, sccp_sk_conflist, NULL},
 };
 
 /*!
