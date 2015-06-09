@@ -36,11 +36,10 @@ struct sccp_event_aSyncEventProcessorThreadArg {
 };
 
 struct sccp_event_subscriptions {
-	int syncSize;
 	sccp_event_subscriber_t *sync;
-
-	int aSyncSize;
 	sccp_event_subscriber_t *async;
+	uint32_t syncSize;
+	uint32_t aSyncSize;
 };
 
 static struct sccp_event_subscriptions subscriptions[NUMBER_OF_EVENT_TYPES];
@@ -123,7 +122,7 @@ void sccp_event_module_start(void)
 
 void sccp_event_module_stop(void)
 {
-	int i;
+	uint32_t i;
 
 	if (sccp_event_running) {
 		sccp_event_running = FALSE;
@@ -150,7 +149,7 @@ void sccp_event_module_stop(void)
  */
 void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb, boolean_t allowASyncExecution)
 {
-	int i, n, size;
+	uint32_t i, n, size;
 
 	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES && sccp_event_running; i++, n = 1 << i) {
 		if (eventType & n) {
@@ -182,7 +181,7 @@ void sccp_event_subscribe(sccp_event_type_t eventType, sccp_event_callback_t cb,
  */
 void sccp_event_unsubscribe(sccp_event_type_t eventType, sccp_event_callback_t cb)
 {
-	int i, n, x;
+	uint32_t i, n, x;
 
 	for (i = 0, n = 1 << i; i < NUMBER_OF_EVENT_TYPES; i++, n = 1 << i) {
 		if (eventType & n) {
