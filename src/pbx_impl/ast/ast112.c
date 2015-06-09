@@ -3257,7 +3257,7 @@ int pbx_manager_register(const char *action, int authority, int (*func) (struct 
 	return ast_manager_register2(action, authority, func, ast_module_info->self, synopsis, description);
 }
 
-boolean_t sccp_wrapper_asterisk112_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *language)
+static boolean_t sccp_wrapper_asterisk112_setLanguage(PBX_CHANNEL_TYPE * pbxChannel, const char *language)
 {
 
 	ast_channel_language_set(pbxChannel, language);
