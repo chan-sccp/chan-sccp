@@ -27,20 +27,23 @@ typedef struct sccp_conference_participant sccp_conference_participant_t;					/*
 struct sccp_conference {
 	ast_mutex_t lock;											/*!< mutex */
 	uint32_t id;												/*!< conference id */
-	struct ast_bridge *bridge;										/*!< Shared Ast_Bridge used by this conference */
-	int num_moderators;											/*!< Number of moderators for this conference */
-	boolean_t finishing;											/*!< Indicates the conference is closing down */
-	boolean_t isLocked;											/*!< Indicates that no new participants are allowed */
-	boolean_t isOnHold;
-	PBX_CHANNEL_TYPE *playback_channel;									/*!< Channel to playback sound file on */
-	ast_mutex_t playback_lock;										/*!< Mutex Lock for playing back sound files */
-	char playback_language[SCCP_MAX_LANGUAGE];								/*!< Language to be used during playback */
-	boolean_t mute_on_entry;										/*!< Mute new participant when they enter the conference */
-	boolean_t playback_announcements;									/*!< general hear announcements */
+	int32_t num_moderators;											/*!< Number of moderators for this conference */
 	const char *linkedid;											/*!< Conference LinkedId */
+	struct ast_bridge *bridge;										/*!< Shared Ast_Bridge used by this conference */
+	struct {
+		ast_mutex_t lock;										/*!< Mutex Lock for playing back sound files */
+		char language[SCCP_MAX_LANGUAGE];								/*!< Language to be used during playback */
+		PBX_CHANNEL_TYPE *channel;									/*!< Channel to playback sound file on */
+	} playback;
 
 	SCCP_LIST_HEAD (, sccp_conference_participant_t) participants;						/*!< participants in conference */
 	SCCP_LIST_ENTRY (sccp_conference_t) list;								/*!< Linked List Entry */
+
+	boolean_t finishing;											/*!< Indicates the conference is closing down */
+	boolean_t isLocked;											/*!< Indicates that no new participants are allowed */
+	boolean_t isOnHold;
+	boolean_t mute_on_entry;										/*!< Mute new participant when they enter the conference */
+	boolean_t playback_announcements;									/*!< general hear announcements */
 };
 
 struct sccp_conference_participant {
