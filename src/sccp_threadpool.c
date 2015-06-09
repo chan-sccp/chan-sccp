@@ -32,9 +32,9 @@ typedef struct sccp_threadpool_thread sccp_threadpool_thread_t;
 
 struct sccp_threadpool_thread {
 	pthread_t thread;
-	int die;
 	sccp_threadpool_t *tp_p;
 	SCCP_LIST_ENTRY (sccp_threadpool_thread_t) list;
+	boolean_t die;
 };
 
 /* The threadpool */
@@ -118,7 +118,7 @@ void sccp_threadpool_grow(sccp_threadpool_t * tp_p, int amount)
 				pbx_log(LOG_ERROR, "sccp_threadpool_init(): Could not allocate memory for thread\n");
 				return;
 			}
-			tp_thread->die = 0;
+			tp_thread->die = FALSE;
 			tp_thread->tp_p = tp_p;
 
 			pthread_attr_init(&attr);
@@ -142,7 +142,7 @@ void sccp_threadpool_shrink(sccp_threadpool_t * tp_p, int amount)
 	if (tp_p && !sccp_threadpool_shuttingdown) {
 		for (t = 0; t < amount; t++) {
 			tp_thread = SCCP_LIST_FIRST(&(tp_p->threads));
-			tp_thread->die = 1;
+			tp_thread->die = TRUE;
 
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Sending die signal to thread %p in pool \n", (void *) tp_thread->thread);
 			// wake up all threads
@@ -292,7 +292,7 @@ void sccp_threadpool_destroy(sccp_threadpool_t * tp_p)
 	// shutdown is a kind of work too
 	SCCP_LIST_LOCK(&(tp_p->threads));
 	SCCP_LIST_TRAVERSE(&(tp_p->threads), tp_thread, list) {
-		tp_thread->die = 1;
+		tp_thread->die = TRUE;
 		ast_cond_broadcast(&(tp_p->work));
 	}
 	SCCP_LIST_UNLOCK(&(tp_p->threads));
