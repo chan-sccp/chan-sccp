@@ -106,11 +106,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #ifndef offsetof
 #endif
 #define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
-#define G_OBJ_REF(x) offsetof(struct sccp_global_vars,x), offsize(struct sccp_global_vars,x)
-#define D_OBJ_REF(x) offsetof(struct sccp_device,x), offsize(struct sccp_device,x)
-#define L_OBJ_REF(x) offsetof(struct sccp_line,x), offsize(struct sccp_line,x)
-#define S_OBJ_REF(x) offsetof(struct softKeySetConfiguration,x), offsize(struct softKeySetConfiguration,x)
-#define H_OBJ_REF(x) offsetof(struct sccp_hotline,x), offsize(struct sccp_hotline,x)
+#define G_OBJ_REF(x) offsize(struct sccp_global_vars,x), offsetof(struct sccp_global_vars,x)
+#define D_OBJ_REF(x) offsize(struct sccp_device,x), offsetof(struct sccp_device,x)
+#define L_OBJ_REF(x) offsize(struct sccp_line,x), offsetof(struct sccp_line,x)
+#define S_OBJ_REF(x) offsize(struct softKeySetConfiguration,x), offsetof(struct softKeySetConfiguration,x)
+#define H_OBJ_REF(x) offsize(struct sccp_hotline,x), offsetof(struct sccp_hotline,x)
 #define BITMASK(b) (1 << ((b) % CHAR_BIT))
 #define BITSLOT(b) ((b) / CHAR_BIT)
 #define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
@@ -155,8 +155,8 @@ enum SCCPConfigOptionFlag {
 typedef struct SCCPConfigOption {
 /* *INDENT-OFF* */
 	const char *name;							/*!< Configuration Parameter Name */
+	const size_t size;							/*!< The offsize of the element in the structure where the option value is stored */
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
-	const size_t size;							/*!< Structure size */
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);	/*!< Conversion function */
         sccp_enum_str2intval_t str2intval;
