@@ -204,7 +204,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"mwioncall", 			D_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI on call.\n"},
 	{"meetme", 			D_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable conferencing via app_meetme (on/off)\n"},
 	{"meetmeopts", 			D_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the app_meetme application (default 'qd' = quiet,dynamic pin)\n"																																					"Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation\n"},
-	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name softkeyset1\n"},
+	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name softkeyset1\n"},
 #ifdef CS_ADV_FEATURES
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"show the redial phone book list instead of dialing the last number (adv_feature)\n"},
 #endif
@@ -239,7 +239,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"conf_play_general_announce",	D_OBJ_REF(conf_play_general_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback General Announcements (like: 'You are Entering/Leaving the conference')"},
 	{"conf_play_part_announce",	D_OBJ_REF(conf_play_part_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked')"},
 	{"conf_mute_on_entry",		D_OBJ_REF(conf_mute_on_entry),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Mute new participants from the start"},
-	{"conf_music_on_hold_class",	D_OBJ_REF(conf_music_on_hold_class),	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played."},
+	{"conf_music_on_hold_class",	D_OBJ_REF(conf_music_on_hold_class),	TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played."},
 	{"conf_show_conflist",		D_OBJ_REF(conf_show_conflist),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically show conference list to the moderator"},
 #endif
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},

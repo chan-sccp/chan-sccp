@@ -185,7 +185,6 @@ extern struct sccp_pbx_cb sccp_pbx;
 #else
 #define SCCP_MAX_EXTENSION 80
 #endif
-
 #ifdef AST_MAX_CONTEXT
 #define SCCP_MAX_CONTEXT AST_MAX_CONTEXT
 #else
@@ -213,6 +212,19 @@ extern struct sccp_pbx_cb sccp_pbx;
 
 #define SCCP_MAX_HOSTNAME_LEN SCCP_MAX_EXTENSION 
 #define SCCP_MAX_MESSAGESTACK 10
+#define SCCP_MAX_SOFTKEYSET_NAME 48
+#define SCCP_MAX_SOFTKEY_MASK 16
+#define SCCP_MAX_SOFTKEY_MODES 16
+#define SCCP_MAX_DEVICE_DESCRIPTION 40
+#define SCCP_MAX_DEVICE_CONFIG_TYPE 16
+#define SCCP_MAX_LABEL SCCP_MAX_EXTENSION
+#define SCCP_MAX_BUTTON_OPTIONS 256
+#define SCCP_MAX_DEVSTATE_SPECIFIER 256
+#define SCCP_MAX_LINE_ID 8
+#define SCCP_MAX_LINE_PIN 8
+#define SCCP_MAX_SECONDARY_DIALTONE_DIGITS 10
+#define SCCP_MAX_DATE_FORMAT 8
+#define SCCP_MAX_REALTIME_TABLE_NAME 45
 
 #if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
 typedef unsigned long sccp_group_t;										/*!< SCCP callgroup / pickupgroup */
@@ -584,7 +596,7 @@ struct sccp_linedevices {
 	sccp_cfwd_information_t cfwdBusy;									/*!< cfwd information */
 
 	struct subscriptionId subscriptionId;									/*!< for addressing individual devices on shared line */
-	char label[80];												/*!<  */
+	char label[SCCP_MAX_LABEL];										/*!<  */
 };														/*!< SCCP Line-Device Structure */
 
 /*!
@@ -608,7 +620,7 @@ struct sccp_buttonconfig {
 		struct {
 			char name[StationMaxNameSize];								/*!< Button Name */
 			struct subscriptionId subscriptionId;
-			char options[256];
+			char options[SCCP_MAX_BUTTON_OPTIONS];
 		} line;												/*!< SCCP Button Line Structure */
 
 		/*!
@@ -632,7 +644,7 @@ struct sccp_buttonconfig {
 		struct sccp_feature {
 			uint8_t index;										/*!< Button Feature Index */
 			sccp_feature_type_t id;									/*!< Button Feature ID */
-			char options[256];									/*!< Button Feature Options */
+			char options[SCCP_MAX_BUTTON_OPTIONS];							/*!< Button Feature Options */
 			uint32_t status;									/*!< Button Feature Status */
 		} feature;											/*!< SCCP Button Feature Structure */
 	} button;												/*!< SCCP Button Structure */
@@ -655,7 +667,7 @@ struct sccp_hostname {
  */
 #ifdef CS_DEVSTATE_FEATURE
 struct sccp_devstate_specifier {
-	char specifier[256];											/*!< Name of the Custom  Devstate Extension */
+	char specifier[SCCP_MAX_DEVSTATE_SPECIFIER];								/*!< Name of the Custom  Devstate Extension */
 	struct ast_event_sub *sub;										/* Asterisk event Subscription related to the devstate extension. */
 	/* Note that the length of the specifier matches the length of "options" of the sccp_feature.options field,
 	   to which it corresponds. */
@@ -669,7 +681,7 @@ struct sccp_devstate_specifier {
  */
 struct sccp_line {
 	//sccp_mutex_t lock;                                                                                      /*!< Asterisk: Lock Me Up and Tie me Down */
-	char id[8];												/*!< This line's ID, used for logging into (for mobility) */
+	char id[SCCP_MAX_LINE_ID];										/*!< This line's ID, used for login (for mobility) */
 	char name[StationMaxNameSize];										/*!< The name of the line, so use in asterisk (i.e SCCP/[name]) */
 #ifdef CS_SCCP_REALTIME
 	boolean_t realtime;											/*!< is it a realtimeconfiguration */
@@ -685,7 +697,7 @@ struct sccp_line {
 
 	uint8_t incominglimit;											/*!< max incoming calls limit */
 	uint8_t secondary_dialtone_tone;									/*!< secondary dialtone tone */
-	char secondary_dialtone_digits[10];									/*!< secondary dialtone digits */
+	char secondary_dialtone_digits[SCCP_MAX_SECONDARY_DIALTONE_DIGITS];					/*!< secondary dialtone digits */
 
 	char *trnsfvm;												/*!< transfer to voicemail softkey. Basically a call forward */
 	sccp_group_t callgroup;											/*!< callgroups assigned (seperated by commas) to this lines */
@@ -727,7 +739,7 @@ struct sccp_line {
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this bit will tell the scheduler to update this line when unused */
 
-	char pin[8];												/*!< PIN number for mobility/roaming. */
+	char pin[SCCP_MAX_LINE_PIN];										/*!< PIN number for mobility/roaming. */
 
 	/* \todo next entries are not used much, should be changed into pointers, to preserve space */
 	char regexten[SCCP_MAX_EXTENSION];									/*!< Extension for auto-extension (DUNDI) */
@@ -793,17 +805,18 @@ struct sccp_device {
 	SCCP_LIST_HEAD (, sccp_addon_t) addons;									/*!< Add-Ons connect to this Device */
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
 
-	char description[40];											/*!< Internal Description. Skinny protocol does not use it */
+	char description[SCCP_MAX_DEVICE_DESCRIPTION];								/*!< Internal Description. Skinny protocol does not use it */
 
 	uint16_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
 	uint16_t accessorystatus;										/*!< Accessory Status */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
 	char loadedimageversion[StationMaxImageVersionSize];							/*!< Loaded version on the phone */
-	char config_type[10];											/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
-	uint16_t maxstreams;											/*!< Maximum number of Stream supported by the device */
-	int32_t tz_offset;												/*!< Timezone OffSet */
+	char config_type[SCCP_MAX_DEVICE_CONFIG_TYPE];								/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
+	int32_t tz_offset;											/*!< Timezone OffSet */
 	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
 	uint16_t linesCount;											/*!< Number of Lines */
+	uint16_t defaultLineInstance;										/*!< Default Line Instance */
+	uint16_t maxstreams;											/*!< Maximum number of Stream supported by the device */
 										
 	struct {
 		char number[SCCP_MAX_EXTENSION];
@@ -898,8 +911,8 @@ struct sccp_device {
 #endif
 	struct {
 		softkey_modes *modes;										/*!< used softkeySet */
+		uint32_t activeMask[SCCP_MAX_SOFTKEY_MASK];							/*!< enabled softkeys mask */
 		uint8_t size;											/*!< how many softkeysets are provided by modes */
-		uint32_t activeMask[16];									/*!< enabled softkeys mask */
 	} softKeyConfiguration;											/*!< SoftKeySet configuration */
 
 	struct {
@@ -951,22 +964,21 @@ struct sccp_device {
 	} messageStack;
 	
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
+	char *softkeyDefinition;										/*!< requested softKey configuration */
+	sccp_softKeySetConfiguration_t *softkeyset;								/*!< Allow for a copy of the softkeyset, if any of the softkeys needs to be redefined, for example for urihook/uriaction */
+	void (*copyStr2Locale) (const sccp_device_t *d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
+
+#ifdef CS_SCCP_CONFERENCE
 	sccp_conference_t *conference;										/*!< conference we are part of */ /*! \todo to be removed in favor of conference_id */
 	uint32_t conference_id;											/*!< Conference ID */
-#ifdef CS_SCCP_CONFERENCE
 	boolean_t conferencelist_active;									/*!< ConfList is being displayed on this device */
 	boolean_t allow_conference;										/*!< Allow use of conference */
 	boolean_t conf_play_general_announce;									/*!< Playback General Announcements (Entering/Leaving) */
 	boolean_t conf_play_part_announce;									/*!< Playback Personal Announcements (You have been Kicked/You are muted) */
 	boolean_t conf_mute_on_entry;										/*!< Mute participants when they enter */
-	char conf_music_on_hold_class[SCCP_MAX_MUSICCLASS];							/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
+	char *conf_music_on_hold_class;										/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
 	boolean_t conf_show_conflist;										/*!< Automatically show conference list to the moderator */
 #endif
-	uint16_t defaultLineInstance;										/*!< Default Line Instance */
-	char softkeyDefinition[50];										/*!< requested softKey configuration */
-	sccp_softKeySetConfiguration_t *softkeyset;								/*!< Allow for a copy of the softkeyset, if any of the softkeys needs to be redefined, for example for urihook/uriaction */
-	
-	void (*copyStr2Locale) (const sccp_device_t *d, char *dst, const char *src, size_t dst_size);		/*!< copy string to device converted to locale if necessary */
 
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
@@ -1028,14 +1040,12 @@ struct sccp_rtp {
  */
 struct sccp_channel {
 	uint32_t callid;											/*!< Call ID */
-#if ASTERISK_VERSION_GROUP >= 111
-	int pbx_callid_created;
-#endif
 	uint32_t passthrupartyid;										/*!< Pass Through ID */
 	sccp_channelstate_t state;										/*!< Internal channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstate_t previousChannelState;								/*!< Previous channel state SCCP_CHANNELSTATE_* */
 	sccp_channelstatereason_t channelStateReason;								/*!< Reason the new/current state was set (for example to handle HOLD differently for transfer then normal) */
 	skinny_calltype_t calltype;										/*!< Skinny Call Type as SKINNY_CALLTYPE_* */
+	
 	PBX_CHANNEL_TYPE *owner;										/*!< Asterisk Channel Owner */
 	sccp_line_t *line;											/*!< SCCP Line */
 	SCCP_LIST_ENTRY (sccp_channel_t) list;									/*!< Channel Linked List */
@@ -1043,6 +1053,7 @@ struct sccp_channel {
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	struct subscriptionId subscriptionId;
 	boolean_t answered_elsewhere;										/*!< Answered Elsewhere */
+	boolean_t privacy;											/*!< Private */
 
 #if DEBUG
 	sccp_device_t *(*getDevice_retained) (const sccp_channel_t * channel, const char *filename, int lineno, const char *func);	/*!< temporary function to retrieve refcounted device */
@@ -1085,7 +1096,6 @@ struct sccp_channel {
 		int hangup;											/*!< Automatic hangup after invalid/congested indication */
 	} scheduler;
 
-	boolean_t privacy;											/*!< Private */
 
 	struct {
 		struct sccp_rtp audio;										/*!< Asterisk RTP */
@@ -1109,7 +1119,7 @@ struct sccp_channel {
 	uint32_t conference_id;											/*!< Conference ID (might be safer to use instead of conference) */
 	uint32_t conference_participant_id;									/*!< Conference Participant ID */
 
-	unsigned int maxBitRate;
+	int32_t maxBitRate;
 	boolean_t peerIsSCCP;											/*!< Indicates that channel-peer is also SCCP */
 	void (*setMicrophone) (sccp_channel_t * channel, boolean_t on);
 	boolean_t (*hangupRequest) (sccp_channel_t * channel);
@@ -1120,6 +1130,10 @@ struct sccp_channel {
 	sccp_callinfo_t callInfo;
 	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
+
+#if ASTERISK_VERSION_GROUP >= 111
+	int16_t pbx_callid_created;
+#endif
 };														/*!< SCCP Channel Structure */
 
 /*!
@@ -1150,7 +1164,7 @@ struct sccp_global_vars {
 	pthread_t socket_thread;										/*!< Socket Thread */
 	pthread_t mwiMonitorThread;										/*!< MWI Monitor Thread */
 
-	char dateformat[8];											/*!< Date Format */
+	char dateformat[SCCP_MAX_DATE_FORMAT];									/*!< Date Format */
 
 	struct sockaddr_storage bindaddr;									/*!< Bind IP Address */
 	struct sccp_ha *ha;											/*!< Permit or deny connections to the main socket */
@@ -1179,12 +1193,12 @@ struct sccp_global_vars {
 	boolean_t callevents;											/*!< Call Events */
 #endif
 
-	unsigned int sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
-	unsigned int audio_tos;											/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
-	unsigned int video_tos;											/*!< Video Socket Type of Service (TOS) (QOS) (VRTP) */
-	unsigned int sccp_cos;											/*!< SCCP Socket Class of Service (COS) (QOS) (Signaling) */
-	unsigned int audio_cos;											/*!< Audio Socket Class of Service (COS) (QOS) (RTP) */
-	unsigned int video_cos;											/*!< Video Socket Class of Service (COS) (QOS) (VRTP) */
+	uint16_t sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
+	uint16_t audio_tos;											/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
+	uint16_t video_tos;											/*!< Video Socket Type of Service (TOS) (QOS) (VRTP) */
+	uint16_t sccp_cos;											/*!< SCCP Socket Class of Service (COS) (QOS) (Signaling) */
+	uint16_t audio_cos;											/*!< Audio Socket Class of Service (COS) (QOS) (RTP) */
+	uint16_t video_cos;											/*!< Video Socket Class of Service (COS) (QOS) (VRTP) */
 
 	boolean_t echocancel;											/*!< Echo Canel Support (Boolean, default=on) */
 	boolean_t silencesuppression;										/*!< Silence Suppression Support (Boolean, default=on)  */
@@ -1221,8 +1235,8 @@ struct sccp_global_vars {
 	char accountcode[SCCP_MAX_ACCOUNT_CODE];								/*!< Account Code */
 	char regcontext[SCCP_MAX_CONTEXT];									/*!< Context for auto-extension (DUNDI) */
 #ifdef CS_SCCP_REALTIME
-	char realtimedevicetable[45];										/*!< Database Table Name for SCCP Devices */
-	char realtimelinetable[45];										/*!< Database Table Name for SCCP Lines */
+	char realtimedevicetable[SCCP_MAX_REALTIME_TABLE_NAME];							/*!< Database Table Name for SCCP Devices */
+	char realtimelinetable[SCCP_MAX_REALTIME_TABLE_NAME];							/*!< Database Table Name for SCCP Lines */
 #endif
 	char used_context[SCCP_MAX_EXTENSION];									/*!< placeholder to check if context are already used in regcontext (DUNDI) */
 
@@ -1245,7 +1259,7 @@ struct sccp_global_vars {
  */
 struct sccp_hotline {
 	sccp_line_t *line;											/*!< Line */
-	char exten[50];												/*!< Extension */
+	char exten[AST_MAX_EXTENSION];										/*!< Extension */
 };														/*!< SCCP Hotline Structure */
 
 /*!
@@ -1277,13 +1291,13 @@ int sccp_sched_free(void *ptr);
  * \brief SCCP SoftKeySet Configuration Structure
  */
 struct softKeySetConfiguration {
-	char name[50];												/*!< Name for this configuration */
-	softkey_modes modes[16];										/*!< SoftKeySet modes, see KEYMODE_ */
-	uint8_t numberOfSoftKeySets;										/*!< Number of SoftKeySets we define */
+	char name[SCCP_MAX_SOFTKEYSET_NAME];									/*!< Name for this configuration */
+	softkey_modes modes[SCCP_MAX_SOFTKEY_MODES];								/*!< SoftKeySet modes, see KEYMODE_ */
 	sccp_softkeyMap_cb_t *softkeyCbMap;									/*!< Softkey Callback Map, ie handlers */
-	unsigned int pendingDelete:1;
-	unsigned int pendingUpdate:1;
 	SCCP_LIST_ENTRY (sccp_softKeySetConfiguration_t) list;							/*!< Next list entry */
+	boolean_t pendingDelete;
+	boolean_t pendingUpdate;
+	uint8_t numberOfSoftKeySets;										/*!< Number of SoftKeySets we define */
 };														/*!< SoftKeySet Configuration Structure */
 SCCP_LIST_HEAD (softKeySetConfigList, sccp_softKeySetConfiguration_t);						/*!< SCCP LIST HEAD for softKeySetConfigList (Structure) */
 extern struct softKeySetConfigList softKeySetConfig;								/*!< List of SoftKeySets */
