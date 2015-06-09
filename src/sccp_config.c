@@ -2066,7 +2066,7 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 /*!
  * \brief Add 'default' softkeyset
  */
-static void sccp_config_add_default_softkeyset()
+static void sccp_config_add_default_softkeyset(void)
 {
 	// create tempory "default" variable set to create "default" softkeyset, if not defined in sccp.conf
 	PBX_VARIABLE_TYPE * softkeyset_root = NULL;
