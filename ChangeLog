@@ -1,3 +1,87 @@
+2015-06-09  ddegroot
+
+	* [r6113] src/sccp_event.c: Fix: natural alignment for
+	  sccp_event_subscriptions -> elements rearranged.
+
+	* [r6112] src/sccp_config.c, src/sccp_config_entries.hh: Fix:
+	  natural alignment for SCCPConfigOption -> offsize and offsetof
+	  elements reversed in order.
+
+	* [r6111] src/sccp_softkeys.c: Fix: natural alignment for
+	  sccp_softkeyMap_cb -> elements rearranged.
+
+	* [r6110] src/chan_sccp.c, src/chan_sccp.h: Fix: natural alignment
+	  for sccp_global_vars -> elements rearranged. Removed unused
+	  GLOB(protocolversion)
+
+	* [r6109] src/sccp_conference.c, src/sccp_conference.h: Fix:
+	  natural alignment for sccp_conference -> elements rearranged.
+	  Make sure playback.lock lies on a natural boundary.
+
+	* [r6108] src/chan_sccp.h, src/sccp_config_entries.hh: Fix: natural
+	  alignment for softKeySetConfiguration /sccp_device / sccp_line
+	  entries -> elements rearranged.
+
+	* [r6107] src/sccp_dllists.h, src/sccp_threadpool.c: Fix: natural
+	  alignment for sccp_dllists entries -> elements rearranged
+	  (removed unnecessary padding. Fix: alignment of
+	  sccp_threadpool_thread to align naturally.
+
+	* [r6106] src/chan_sccp.h, src/sccp_device.c: Fix: natural
+	  alignment for sccp_device_t / access to messageStackLock caused
+	  alignment trap issues on sparc/alpha/arm ->rearranged
+
+	* [r6105] conf/sccp.conf: Fix: sccp.conf example for dnd
+
+2015-06-06  marcelloceschia
+
+	* [r6104] src/sccp_actions.c: change digit handling offhook, fixes
+	  issue on 79[4|6]0
+
+2015-06-05  marcelloceschia
+
+	* [r6103] src/sccp_device.c: fix speedial button issue
+
+2015-05-29  ddegroot
+
+	* [r6100] conf/sqlite3.sql: Fix: sccpdeviceconfig view in
+	  sqlite3.sql example file
+
+	* [r6099] src/sccp_config.c: Fix: parsing default value from
+	  realtime with NULL column -> call datatype_parser to clear
+	  value(s). Reported by Modulis.
+
+2015-05-28  ddegroot
+
+	* [r6098] src/sccp_cli.c: Extended cli output on sccp reload, to
+	  show that minor changes have been applied (if there where any)
+
+2015-05-27  ddegroot
+
+	* [r6097] src/sccp_actions.c, src/sccp_protocol.h: Fix:
+	  UpdateCapabilities on protocolVersion <= 15 phones
+
+2015-05-26  ddegroot
+
+	* [r6096] src/sccp_config_entries.hh, src/sccp_line.c,
+	  src/sccp_mwi.c: Fix: mailbox/mwi config parsing
+
+2015-05-25  ddegroot
+
+	* [r6095] src/pbx_impl/ast/ast.c, src/sccp_actions.c: Fix: segfault
+	  when calling monitor feature without monitor feature extension
+	  being set. Cleanup download mediastatus handling
+
+2015-05-24  ddegroot
+
+	* [r6094] src/sccp_actions.c, src/sccp_cli.c, src/sccp_protocol.h:
+	  Fix: UpdateCapabilities with Protocol >= V16 Should be handled
+	  like UpdateCapabilitiesV2
+
+2015-05-21  ddegroot
+
+	* [r6093] ChangeLog: Update ChangeLog
+
 2015-05-20  ddegroot
 
 	* [r6092] src/sccp_actions.c: Fix: compile warning about unused

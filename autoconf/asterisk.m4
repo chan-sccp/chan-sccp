@@ -158,7 +158,8 @@ AC_DEFUN([AST_GET_VERSION], [
 					
 					version_found=1
 					AC_MSG_RESULT([done])
-					AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'. Experimental at the moment. Anything might break.])
+					dnl AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'. Experimental at the moment. Anything might break.])
+					AC_MSG_RESULT([WARNING: Found 'Asterisk Version ${ASTERISK_VERSION_NUMBER}'.])
                                 ],
 				[
 					AC_CHECK_HEADER(
