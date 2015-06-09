@@ -20,19 +20,18 @@
 /* Main list head */
 #define SCCP_LIST_HEAD(name, type)									\
 struct name {												\
+	pbx_mutex_t lock;										\
 	type *first;											\
 	type *last;											\
-	pbx_mutex_t lock;										\
-	uint16_t size;											\
+	uint32_t size;											\
 }
 
 #define SCCP_RWLIST_HEAD(name, type)									\
 struct name {												\
+	pbx_rwlock_t lock;										\
 	type *first;											\
 	type *last;											\
-	uint16_t size;											\
-	uint8_t pad[6];											\
-	pbx_rwlock_t lock;										\
+	uint32_t size;											\
 }
 
 /* Initialize list head */
