@@ -442,16 +442,16 @@ sccp_device_t *sccp_device_create(const char *id)
 
 	/* initialize messageStack */
 #ifndef SCCP_ATOMIC
-	pbx_mutex_init(&d->messageStackLock);
-	sccp_mutex_lock(&d->messageStackLock);
+	pbx_mutex_init(&d->messageStack.lock);
+	sccp_mutex_lock(&d->messageStack.lock);
 #endif
 	uint8_t i;
 
-	for (i = 0; i < ARRAY_LEN(d->messageStack); i++) {
-		d->messageStack[i] = NULL;
+	for (i = 0; i < ARRAY_LEN(d->messageStack.messages); i++) {
+		d->messageStack.messages[i] = NULL;
 	}
 #ifndef SCCP_ATOMIC
-	sccp_mutex_unlock(&d->messageStackLock);
+	sccp_mutex_unlock(&d->messageStack.lock);
 #endif
 
 	// /* disable videomode and join softkey for all softkeysets */
@@ -1762,17 +1762,17 @@ void sccp_dev_check_displayprompt(const sccp_device_t * d)
 #ifndef SCCP_ATOMIC
 	sccp_device_t *device = (sccp_device_t *) d;								/* discard const */
 
-	sccp_mutex_lock(&device->messageStackLock);
+	sccp_mutex_lock(&device->messageStack.lock);
 #endif
 	for (i = SCCP_MAX_MESSAGESTACK - 1; i >= 0; i--) {
-		if (d->messageStack[i] != NULL && !sccp_strlen_zero(d->messageStack[i])) {
-			sccp_dev_displayprompt(d, 0, 0, d->messageStack[i], 0);
+		if (d->messageStack.messages[i] != NULL && !sccp_strlen_zero(d->messageStack.messages[i])) {
+			sccp_dev_displayprompt(d, 0, 0, d->messageStack.messages[i], 0);
 			message_set = TRUE;
 			break;
 		}
 	}
 #ifndef SCCP_ATOMIC
-	sccp_mutex_unlock(&device->messageStackLock);
+	sccp_mutex_unlock(&device->messageStack.lock);
 #endif
 	if (!message_set) {
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_YOUR_CURRENT_OPTIONS, 0);
@@ -2181,16 +2181,16 @@ int __sccp_device_destroy(const void *ptr)
 
 	/* cleanup message stack */
 #ifndef SCCP_ATOMIC
-	sccp_mutex_lock(&d->messageStackLock);
+	sccp_mutex_lock(&d->messageStack.lock);
 #endif
 	for (i = 0; i < SCCP_MAX_MESSAGESTACK; i++) {
-		if (d->messageStack[i] != NULL) {
-			sccp_free(d->messageStack[i]);
+		if (d->messageStack.messages[i] != NULL) {
+			sccp_free(d->messageStack.messages[i]);
 		}
 	}
 #ifndef SCCP_ATOMIC
-	sccp_mutex_unlock(&d->messageStackLock);
-	pbx_mutex_destroy(&d->messageStackLock);
+	sccp_mutex_unlock(&d->messageStack.lock);
+	pbx_mutex_destroy(&d->messageStack.lock);
 #endif
 
 	if (d->variables) {
@@ -2599,7 +2599,7 @@ static void sccp_device_indicate_proceed(const sccp_device_t * device, const uin
 void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priority, const char *message)
 {
 	// sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE + DEBUGCAT_MESSAGE)) (VERBOSE_PREFIX_1 "%s: (sccp_device_addMessageToStack), '%s' at priority %d \n", DEV_ID_LOG(device), message, priority);
-	if (ARRAY_LEN(device->messageStack) <= priority) {
+	if (ARRAY_LEN(device->messageStack.messages) <= priority) {
 		return;
 	}
 	char *newValue = NULL;
@@ -2608,8 +2608,8 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
 	newValue = strdup(message);
 
 	do {
-		oldValue = device->messageStack[priority];
-	} while (!CAS_PTR(&device->messageStack[priority], oldValue, newValue, &device->messageStackLock));
+		oldValue = device->messageStack.messages[priority];
+	} while (!CAS_PTR(&device->messageStack.messages[priority], oldValue, newValue, &device->messageStack.lock));
 
 	if (oldValue) {
 		sccp_free(oldValue);
@@ -2622,7 +2622,7 @@ void sccp_device_addMessageToStack(sccp_device_t * device, const uint8_t priorit
  */
 void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t priority)
 {
-	if (ARRAY_LEN(device->messageStack) <= priority) {
+	if (ARRAY_LEN(device->messageStack.messages) <= priority) {
 		return;
 	}
 
@@ -2632,8 +2632,8 @@ void sccp_device_clearMessageFromStack(sccp_device_t * device, const uint8_t pri
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_4 "%s: clear message stack %d\n", DEV_ID_LOG(device), priority);
 
 	do {
-		oldValue = device->messageStack[priority];
-	} while (!CAS_PTR(&device->messageStack[priority], oldValue, newValue, &device->messageStackLock));
+		oldValue = device->messageStack.messages[priority];
+	} while (!CAS_PTR(&device->messageStack.messages[priority], oldValue, newValue, &device->messageStack.lock));
 
 	if (oldValue) {
 		sccp_free(oldValue);
