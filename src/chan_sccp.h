@@ -795,17 +795,15 @@ struct sccp_device {
 
 	char description[40];											/*!< Internal Description. Skinny protocol does not use it */
 
-	uint16_t linesCount;											/*!< Number of Lines */
-	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
-	const struct sccp_device_indication_cb *indicate;
-
 	uint16_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
 	uint16_t accessorystatus;										/*!< Accessory Status */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
 	char loadedimageversion[StationMaxImageVersionSize];							/*!< Loaded version on the phone */
 	char config_type[10];											/*!< Model of this Phone used for setting up features/softkeys/buttons etc. */
 	uint16_t maxstreams;											/*!< Maximum number of Stream supported by the device */
-	int tz_offset;												/*!< Timezone OffSet */
+	int32_t tz_offset;												/*!< Timezone OffSet */
+	boolean_t linesRegistered;										/*!< did we answer the RegisterAvailableLinesMessage */
+	uint16_t linesCount;											/*!< Number of Lines */
 										
 	struct {
 		char number[SCCP_MAX_EXTENSION];
@@ -829,10 +827,10 @@ struct sccp_device {
 	time_t registrationTime;
 
 	struct sccp_ha *ha;											/*!< Permit or Deny Connections to the Main Socket */
-	unsigned int audio_tos;											/*!< audio stream type_of_service (TOS) (RTP) */
-	unsigned int video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
-	unsigned int audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
-	unsigned int video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
+	uint16_t audio_tos;											/*!< audio stream type_of_service (TOS) (RTP) */
+	uint16_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
+	uint16_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
+	uint16_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
 	boolean_t meetme;											/*!< Meetme on/off */
 	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
 
@@ -891,13 +889,9 @@ struct sccp_device {
 	sccp_featureConfiguration_t overlapFeature;								/*!< Overlap Dial Feature */
 	sccp_featureConfiguration_t monitorFeature;								/*!< Monitor (automon) Feature */
 	sccp_featureConfiguration_t dndFeature;									/*!< dnd Feature */
-	uint16_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
+	sccp_dndmode_t dndmode;											/*!< dnd mode: see SCCP_DNDMODE_* */
 	sccp_featureConfiguration_t priFeature;									/*!< priority Feature */
 	sccp_featureConfiguration_t mobFeature;									/*!< priority Feature */
-
-	struct {
-		sccp_tokenstate_t token;									/*!< token request state */
-	} status;												/*!< Status Structure */
 
 #ifdef CS_DEVSTATE_FEATURE
 	SCCP_LIST_HEAD (, sccp_devstate_specifier_t) devstateSpecifiers;					/*!< List of Custom DeviceState entries the phone monitors. */
@@ -913,12 +907,21 @@ struct sccp_device {
 		uint8_t size;											/*!< how many softkeysets are provided by modes */
 	} speeddialButtons;
 
+	/* unused */
+	#if 0
 	struct {
 		int free;
 	} scheduleTasks;
-
+	#endif
+	
+	/* unused */
+	#if 0
 	char videoSink[MAXHOSTNAMELEN];										/*!< sink to send video */
-
+	#endif
+	
+	struct {
+		sccp_tokenstate_t token;									/*!< token request state */
+	} status;												/*!< Status Structure */
 	boolean_t useRedialMenu;
 	btnlist *buttonTemplate;
 
@@ -936,13 +939,17 @@ struct sccp_device {
 	void (*setBackgroundImage) (const sccp_device_t * device, const char *url);				/*!< set device background image */
 	void (*displayBackgroundImagePreview) (const sccp_device_t * device, const char *url);			/*!< display background image as preview */
 	void (*setRingTone) (const sccp_device_t * device, const char *url);					/*!< set the default Ringtone */
+	const struct sccp_device_indication_cb *indicate;
 	
 	sccp_dtmfmode_t(*getDtmfMode) (const sccp_device_t * device);
-
-	char *(messageStack[SCCP_MAX_MESSAGESTACK]);								/*!< Message Stack Array */
+	
+	struct { 
 #ifndef SCCP_ATOMIC
-	sccp_mutex_t messageStackLock;										/*!< Message Stack Lock */
+		sccp_mutex_t lock;										/*!< Message Stack Lock */
 #endif
+		char *(messages[SCCP_MAX_MESSAGESTACK]);							/*!< Message Stack Array */
+	} messageStack;
+	
 	sccp_call_statistics_t call_statistics[2];								/*!< Call statistics */
 	sccp_conference_t *conference;										/*!< conference we are part of */ /*! \todo to be removed in favor of conference_id */
 	uint32_t conference_id;											/*!< Conference ID */
