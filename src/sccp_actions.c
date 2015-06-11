@@ -1286,6 +1286,29 @@ static void sccp_handle_stimulus_speeddial(sccp_device_t * d, sccp_line_t * l, u
 }
 
 /*!
+ * \brief Handle Speeddial Stimulus
+ * \param d SCCP Device
+ * \param l SCCP Line
+ * \param instance uint8_t
+ * \param callId uint32_t
+ * \param stimulusstatus uint32_t
+ */
+static void sccp_handle_stimulus_blfspeeddial(sccp_device_t * d, sccp_line_t * l, uint8_t instance, uint32_t callId, uint32_t stimulusstatus)
+{
+	sccp_log_and((DEBUGCAT_CORE + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Handle BlfSpeeddial Stimulus\n", d->id);
+
+	sccp_speed_t k;
+
+	sccp_dev_speed_find_byindex(d, instance, TRUE, &k);
+	if (k.valid) {
+		sccp_handle_speeddial(d, &k);
+		return;
+	}
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: No number assigned to BlfSpeeddial %d\n", d->id, instance);
+	sccp_dev_starttone(d, SKINNY_TONE_BEEPBONK, 0, 0, 0);
+}
+
+/*!
  * \brief Handle Line Stimulus
  * \param d SCCP Device
  * \param l SCCP Line
@@ -1616,7 +1639,7 @@ static const struct _skinny_stimulusMap_cb {
 	[SKINNY_STIMULUS_UNUSED] 			= {NULL, TRUE},
 	[SKINNY_STIMULUS_LASTNUMBERREDIAL] 		= {sccp_handle_stimulus_lastnumberredial, TRUE},
 	[SKINNY_STIMULUS_SPEEDDIAL] 			= {sccp_handle_stimulus_speeddial, FALSE},
-	[SKINNY_STIMULUS_BLFSPEEDDIAL] 			= {sccp_handle_stimulus_speeddial, FALSE},
+	[SKINNY_STIMULUS_BLFSPEEDDIAL] 			= {sccp_handle_stimulus_blfspeeddial, FALSE},
 	[SKINNY_STIMULUS_LINE] 				= {sccp_handle_stimulus_line, FALSE},
 	[SKINNY_STIMULUS_HOLD] 				= {sccp_handle_stimulus_hold, TRUE},
 	[SKINNY_STIMULUS_TRANSFER] 			= {sccp_handle_stimulus_transfer, TRUE},
