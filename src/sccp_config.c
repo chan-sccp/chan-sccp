@@ -991,11 +991,11 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	unsigned int tos;
+	uint16_t tos;
 
-	if (!pbx_str2tos(value, &tos)) {
+	if (pbx_str2tos(value, &tos)) {
 		/* value is tos */
-	} else if (sscanf(value, "%i", &tos) == 1) {
+	} else if (sscanf(value, "%" SCNu16, &tos) == 1) {
 		tos = tos & 0xff;
 	} else if (sccp_strcaseequals(value, "lowdelay")) {
 		tos = IPTOS_LOWDELAY;
@@ -1019,8 +1019,8 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 		tos = 0x68 & 0xff;
 	}
 
-	if ((*(unsigned int *) dest) != tos) {
-		*(unsigned int *) dest = tos;
+	if ((*(uint16_t *) dest) != tos) {
+		*(uint16_t *) dest = tos;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
@@ -1035,17 +1035,19 @@ sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VA
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	unsigned int cos;
+	uint16_t cos;
 
-	if (sscanf(value, "%d", &cos) == 1) {
+	if (pbx_str2cos(value, &cos)) {
+		/* value is tos */
+	} else if (sscanf(value, "%" SCNu16, &cos) == 1) {
 		if (cos > 7) {
 			pbx_log(LOG_WARNING, "Invalid cos %d value, refer to QoS documentation\n", cos);
 			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	}
 
-	if ((*(unsigned int *) dest) != cos) {
-		*(unsigned int *) dest = cos;
+	if ((*(uint16_t *) dest) != cos) {
+		*(uint16_t *) dest = cos;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 
@@ -1063,14 +1065,15 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
 	char *value = strdupa(v->value);
 	int amaflags;
 
-	amaflags = pbx_channel_string2amaflag(value);
-
-	if (amaflags < 0) {
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	} else {
-		if ((*(int *) dest) != amaflags) {
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-			*(int *) dest = amaflags;
+	if (!sccp_strlen_zero(value)) {
+		amaflags = pbx_channel_string2amaflag(value);
+		if (amaflags < 0) {
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		} else {
+			if ((*(int *) dest) != amaflags) {
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				*(int *) dest = amaflags;
+			}
 		}
 	}
 	return changed;

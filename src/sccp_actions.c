@@ -2376,8 +2376,8 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	callid 		= letohl(msg_in->data.KeypadButtonMessage.lel_callReference);
 	lineInstance 	= letohl(msg_in->data.KeypadButtonMessage.lel_lineInstance);
 	
-	pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", DEV_ID_LOG(s->device), lineInstance);
-	pbx_log(LOG_NOTICE, "%s: callid %d\n", DEV_ID_LOG(s->device), callid);
+	//pbx_log(LOG_NOTICE, "%s: lineInstance %d\n", DEV_ID_LOG(s->device), lineInstance);
+	//pbx_log(LOG_NOTICE, "%s: callid %d\n", DEV_ID_LOG(s->device), callid);
 
 	if (!d) {												// should never be possible, d should have been retained in calling function
 		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(s->device));
