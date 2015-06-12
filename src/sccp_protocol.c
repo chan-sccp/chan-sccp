@@ -765,7 +765,7 @@ static void sccp_protocol_sendStartMediaTransmissionV3(const sccp_device_t * dev
 	msg->data.StartMediaTransmission.v3.lel_callReference = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v3.lel_millisecondPacketSize = htolel(packetSize);
 	msg->data.StartMediaTransmission.v3.lel_payloadType = htolel(channel->rtp.audio.readFormat);
-	msg->data.StartMediaTransmission.v3.lel_precedenceValue = htolel(device->audio_tos);
+	msg->data.StartMediaTransmission.v3.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
 	msg->data.StartMediaTransmission.v3.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v3.lel_maxFramesPerPacket = htolel(0);
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
@@ -800,7 +800,7 @@ static void sccp_protocol_sendStartMediaTransmissionV17(const sccp_device_t * de
 	msg->data.StartMediaTransmission.v17.lel_callReference = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v17.lel_millisecondPacketSize = htolel(packetSize);
 	msg->data.StartMediaTransmission.v17.lel_payloadType = htolel(channel->rtp.audio.readFormat);
-	msg->data.StartMediaTransmission.v17.lel_precedenceValue = htolel(device->audio_tos);
+	msg->data.StartMediaTransmission.v17.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
 	msg->data.StartMediaTransmission.v17.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v17.lel_maxFramesPerPacket = htolel(0);
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {
@@ -837,7 +837,7 @@ static void sccp_protocol_sendStartMediaTransmissionv22(const sccp_device_t * de
 	msg->data.StartMediaTransmission.v22.lel_callReference = htolel(channel->callid);
 	msg->data.StartMediaTransmission.v22.lel_millisecondPacketSize = htolel(packetSize);
 	msg->data.StartMediaTransmission.v22.lel_payloadType = htolel(channel->rtp.audio.readFormat);
-	msg->data.StartMediaTransmission.v22.lel_precedenceValue = htolel(device->audio_tos);
+	msg->data.StartMediaTransmission.v22.lel_precedenceValue = htolel((uint32_t)device->audio_tos);
 	msg->data.StartMediaTransmission.v22.lel_ssValue = htolel(channel->line->silencesuppression);		// Silence supression
 	msg->data.StartMediaTransmission.v22.lel_maxFramesPerPacket = htolel(0);
 	if (SCCP_DTMFMODE_SKINNY == channel->dtmfmode) {

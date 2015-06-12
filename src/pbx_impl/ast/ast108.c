@@ -2310,7 +2310,7 @@ static boolean_t sccp_wrapper_asterisk18_create_audio_rtp(sccp_channel_t * c)
 	if (skinny_codecs2pbx_codec_pref(c->preferences.audio, &astCodecPref)) {
 		ast_rtp_codecs_packetization_set(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, &astCodecPref);
 	}
-	ast_rtp_instance_set_qos(c->rtp.audio.rtp, d->audio_tos, d->audio_cos, "SCCP RTP");
+	ast_rtp_instance_set_qos(c->rtp.audio.rtp, (uint32_t)d->audio_tos, (uint32_t)d->audio_cos, "SCCP RTP");
 
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
@@ -2385,7 +2385,7 @@ static boolean_t sccp_wrapper_asterisk18_create_video_rtp(sccp_channel_t * c)
 	//ast_codec_pref_string((struct ast_codec_pref *)&c->codecs, pref_buf, sizeof(pref_buf) - 1);
 	//sccp_log(2) (VERBOSE_PREFIX_3 "SCCP: SCCP/%s-%08x, set pef: %s\n", c->line->name, c->callid, pref_buf);
 
-	ast_rtp_instance_set_qos(c->rtp.video.rtp, d->video_tos, d->video_cos, "SCCP VRTP");
+	ast_rtp_instance_set_qos(c->rtp.video.rtp, (uint32_t)d->video_tos, (uint32_t)d->video_cos, "SCCP VRTP");
 
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
