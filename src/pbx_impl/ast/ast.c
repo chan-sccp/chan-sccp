@@ -231,7 +231,7 @@ static const struct dscp_codepoint dscp_pool1[] = {
 	{"EF", 0x2E},
 };
 
-int pbx_str2tos(const char *value, uint16_t *tos)
+int pbx_str2tos(const char *value, uint8_t *tos)
 {
 	int fval;
 
@@ -244,7 +244,7 @@ int pbx_str2tos(const char *value, uint16_t *tos)
 
 	for (x = 0; x < ARRAY_LEN(dscp_pool1); x++) {
 		if (!strcasecmp(value, dscp_pool1[x].name)) {
-			*tos = (uint16_t)dscp_pool1[x].space << 2;
+			*tos = (uint8_t)dscp_pool1[x].space << 2;
 			return *tos;
 		}
 	}
@@ -252,23 +252,23 @@ int pbx_str2tos(const char *value, uint16_t *tos)
 	return 0;
 }
 #else
-int pbx_str2tos(const char *value, uint16_t *tos)
+int pbx_str2tos(const char *value, uint8_t *tos)
 {
 	uint32_t tos_value = 0;
 	ast_str2tos(value, &tos_value);
-	*tos = (uint16_t) tos_value;
+	*tos = (uint8_t) tos_value;
 	return *tos;
 }
 #endif														// ASTERISK_VERSION_NUMBER
 
 #if ASTERISK_VERSION_NUMBER < 10600
-int pbx_str2cos(const char *value, uint16_t *cos)
+int pbx_str2cos(const char *value, uint8_t *cos)
 {
 	int fval;
 
 	if (sscanf(value, "%30d", &fval) == 1) {
 		if (fval < 8) {
-			*cos = (uint16_t)fval;
+			*cos = (uint8_t)fval;
 			return *cos;
 		}
 	}
@@ -276,11 +276,11 @@ int pbx_str2cos(const char *value, uint16_t *cos)
 	return 0;
 }
 #else
-int pbx_str2cos(const char *value, uint16_t *cos)
+int pbx_str2cos(const char *value, uint8_t *cos)
 {
 	uint32_t cos_value = 0;
 	ast_str2cos(value, &cos_value);
-	*cos = (uint16_t) cos_value;
+	*cos = (uint8_t) cos_value;
 	return *cos;
 }
 #endif														// ASTERISK_VERSION_NUMBER
