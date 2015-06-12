@@ -991,11 +991,11 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	uint16_t tos;
+	uint8_t tos;
 
 	if (pbx_str2tos(value, &tos)) {
 		/* value is tos */
-	} else if (sscanf(value, "%" SCNu16, &tos) == 1) {
+	} else if (sscanf(value, "%" SCNu8, &tos) == 1) {
 		tos = tos & 0xff;
 	} else if (sccp_strcaseequals(value, "lowdelay")) {
 		tos = IPTOS_LOWDELAY;
@@ -1019,8 +1019,8 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 		tos = 0x68 & 0xff;
 	}
 
-	if ((*(uint16_t *) dest) != tos) {
-		*(uint16_t *) dest = tos;
+	if ((*(uint8_t *) dest) != tos) {
+		*(uint8_t *) dest = tos;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
@@ -1035,19 +1035,19 @@ sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VA
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	uint16_t cos;
+	uint8_t cos;
 
 	if (pbx_str2cos(value, &cos)) {
 		/* value is tos */
-	} else if (sscanf(value, "%" SCNu16, &cos) == 1) {
+	} else if (sscanf(value, "%" SCNu8, &cos) == 1) {
 		if (cos > 7) {
 			pbx_log(LOG_WARNING, "Invalid cos %d value, refer to QoS documentation\n", cos);
 			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	}
 
-	if ((*(uint16_t *) dest) != cos) {
-		*(uint16_t *) dest = cos;
+	if ((*(uint8_t *) dest) != cos) {
+		*(uint8_t *) dest = cos;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 

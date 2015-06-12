@@ -840,10 +840,6 @@ struct sccp_device {
 	time_t registrationTime;
 
 	struct sccp_ha *ha;											/*!< Permit or Deny Connections to the Main Socket */
-	uint16_t audio_tos;											/*!< audio stream type_of_service (TOS) (RTP) */
-	uint16_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
-	uint16_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
-	uint16_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
 	boolean_t meetme;											/*!< Meetme on/off */
 	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
 
@@ -977,6 +973,10 @@ struct sccp_device {
 	char *conf_music_on_hold_class;										/*!< Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played. */
 	boolean_t conf_show_conflist;										/*!< Automatically show conference list to the moderator */
 #endif
+	uint8_t audio_tos;											/*!< audio stream type_of_service (TOS) (RTP) */
+	uint8_t video_tos;											/*!< video stream type_of_service (TOS) (VRTP) */
+	uint8_t audio_cos;											/*!< audio stream class_of_service (COS) (VRTP) */
+	uint8_t video_cos;											/*!< video stream class_of_service (COS) (VRTP) */
 
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */
 	boolean_t pendingUpdate;										/*!< this will contain the updated line struct once reloaded from config to update the line when unused */
@@ -1184,7 +1184,14 @@ struct sccp_global_vars {
 	uint8_t callwaiting_tone;										/*!< Call Waiting Tone */
 	uint8_t callwaiting_interval;										/*!< Call Waiting Ring Interval */
 	
-	uint8_t __padding[3];
+	uint8_t sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
+	uint8_t audio_tos;											/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
+	uint8_t video_tos;											/*!< Video Socket Type of Service (TOS) (QOS) (VRTP) */
+	uint8_t sccp_cos;											/*!< SCCP Socket Class of Service (COS) (QOS) (Signaling) */
+	uint8_t audio_cos;											/*!< Audio Socket Class of Service (COS) (QOS) (RTP) */
+	uint8_t video_cos;											/*!< Video Socket Class of Service (COS) (QOS) (VRTP) */
+
+	uint8_t __padding[1];
 	#if 0	/* unused */
 	uint16_t protocolversion;										/*!< Skinny Protocol Version */
 	#endif
@@ -1195,13 +1202,6 @@ struct sccp_global_vars {
 #ifdef CS_MANAGER_EVENTS
 	boolean_t callevents;											/*!< Call Events */
 #endif
-
-	uint16_t sccp_tos;											/*!< SCCP Socket Type of Service (TOS) (QOS) (Signaling) */
-	uint16_t audio_tos;											/*!< Audio Socket Type of Service (TOS) (QOS) (RTP) */
-	uint16_t video_tos;											/*!< Video Socket Type of Service (TOS) (QOS) (VRTP) */
-	uint16_t sccp_cos;											/*!< SCCP Socket Class of Service (COS) (QOS) (Signaling) */
-	uint16_t audio_cos;											/*!< Audio Socket Class of Service (COS) (QOS) (RTP) */
-	uint16_t video_cos;											/*!< Video Socket Class of Service (COS) (QOS) (VRTP) */
 
 	boolean_t echocancel;											/*!< Echo Canel Support (Boolean, default=on) */
 	boolean_t silencesuppression;										/*!< Silence Suppression Support (Boolean, default=on)  */

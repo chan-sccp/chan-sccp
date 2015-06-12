@@ -914,12 +914,12 @@ void sccp_socket_setoptions(int new_socket)
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {				/* Disabled the nagle algorithm and tries to send any messages as soon as possible */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 	}
-	value = GLOB(sccp_tos);
+	value = (uint32_t) GLOB(sccp_tos);
 	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &value, sizeof(value)) < 0) {				/* Set Socket TOS value */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", value, strerror(errno));
 	}
 #if defined(linux)
-	value = GLOB(sccp_cos);
+	value = (uint32_t) GLOB(sccp_cos);
 	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value)) < 0) {			/* Set Socket COS Priority */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", value, strerror(errno));
 	}
