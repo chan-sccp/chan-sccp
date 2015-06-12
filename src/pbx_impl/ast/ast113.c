@@ -2287,7 +2287,7 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 		ast_queue_frame(c->owner, &ast_null_frame);
 	}
 
-	ast_rtp_instance_set_qos(c->rtp.audio.rtp, d->audio_tos, d->audio_cos, "SCCP RTP");
+	ast_rtp_instance_set_qos(c->rtp.audio.rtp, (uint32_t)d->audio_tos, (uint32_t)d->audio_cos, "SCCP RTP");
 
 	/* add payload mapping for skinny codecs */
 	uint8_t i;
@@ -2362,7 +2362,7 @@ static boolean_t sccp_wrapper_asterisk113_create_video_rtp(sccp_channel_t * c)
 	}
 	*/
 
-	ast_rtp_instance_set_qos(c->rtp.video.rtp, d->video_tos, d->video_cos, "SCCP VRTP");
+	ast_rtp_instance_set_qos(c->rtp.video.rtp, (uint32_t)d->video_tos, (uint32_t)d->video_cos, "SCCP VRTP");
 
 	/* add payload mapping for skinny codecs */
 	uint8_t i;

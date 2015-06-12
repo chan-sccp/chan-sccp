@@ -906,6 +906,7 @@ void *sccp_socket_device_thread(void *session)
 void sccp_socket_setoptions(int new_socket) 
 {
 	int on = 1;
+	uint32_t value;
 
 	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {				/* allow chan-sccp-b to reuse and already open socket on port 2000 */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
@@ -913,12 +914,14 @@ void sccp_socket_setoptions(int new_socket)
 	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {				/* Disabled the nagle algorithm and tries to send any messages as soon as possible */
 		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
 	}
-	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {		/* Set Socket TOS value */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
+	value = GLOB(sccp_tos);
+	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &value, sizeof(value)) < 0) {				/* Set Socket TOS value */
+		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", value, strerror(errno));
 	}
 #if defined(linux)
-	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {	/* Set Socket COS Priority */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
+	value = GLOB(sccp_cos);
+	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value)) < 0) {			/* Set Socket COS Priority */
+		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", value, strerror(errno));
 	}
 
 	struct timeval tv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
