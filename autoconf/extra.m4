@@ -256,30 +256,19 @@ dnl	fi
 AC_DEFUN([CS_WITH_CCACHE],[
 	dnl Compile With CCACHE
 	AC_ARG_WITH(ccache,
-	  AC_HELP_STRING([--with-ccache[=PATH]], [use ccache during compile]), [ac_cv_use_ccache="${withval}"], [ac_cv_use_ccache="no"])
+	  AC_HELP_STRING([--with-ccache[=PATH]], [use ccache during compile]), [ac_cv_use_ccache="${withval}"], [ac_cv_use_ccache="yes"])
 	AS_IF([test "_${ac_cv_use_ccache}" != "_no"], [
-		if test "${ac_cv_use_ccache}" = "yes"; then
-			AC_PATH_PROGS(CCACHE,ccache,[echo ccache not found])
-			if test -n "${CCACHE}"; then
-				CC="$CCACHE $CC"    
-				CPP="$CCACHE $CPP"  
-				AC_SUBST([CC])
-				AC_SUBST([CPP])
-				AC_SUBST([CCACHE])
-			fi
+		AC_PATH_PROGS(CCACHE,ccache,[No],${withval}:${PATH})
+		if test "${CCACHE}" != "No"; then
+			CC="$CCACHE $CC"    
+			CPP="$CCACHE $CPP"  
+			AC_SUBST([CC])
+			AC_SUBST([CPP])
+			AC_SUBST([CCACHE])
+			AC_MSG_NOTICE([using ccache: ${ac_cv_use_ccache}])
 		else
-			if -f "${ac_cv_use_ccache}"; then
-				CCACHE="${ac_cv_use_ccache}"
-				CC="$CCACHE $CC"  
-				CPP="$CCACHE $CPP"
-				AC_SUBST([CC])
-				AC_SUBST([CPP])
-				AC_SUBST([CCACHE])
-				AC_MSG_NOTICE([using ccache: ${ac_cv_use_ccache}])
-			else
-				CCACHE=""
-				echo ccache not found
-			fi
+			CCACHE=""
+			dnl echo ccache not found
 		fi
 	])
 ])
