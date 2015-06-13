@@ -1554,15 +1554,17 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 	if (varCount == listCount) {										// list length equal
 		SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
 			for (v = vroot; v; v = v->next) {
-				mbox = context = sccp_strdupa(v->value);
-				strsep(&context, "@");
-				if (sccp_strlen_zero(context)) {
-					context = "default";
+				if (!sccp_strlen_zero(v->value)) {
+					mbox = context = sccp_strdupa(v->value);
+					strsep(&context, "@");
+					if (sccp_strlen_zero(context)) {
+						context = "default";
+					}
+					if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context)) {	// variable found
+						continue;
+					}
+					notfound |= TRUE;
 				}
-				if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context)) {	// variable found
-					continue;
-				}
-				notfound |= TRUE;
 			}
 		}
 	}
@@ -1573,19 +1575,21 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 			sccp_free(mailbox);
 		}
 		for (v = vroot; v; v = v->next) {								// create new list
-			mbox = context = sccp_strdupa(v->value);
-			strsep(&context, "@");
-			if (sccp_strlen_zero(context)) {
-				context = "default";
+			if (!sccp_strlen_zero(v->value)) {
+				mbox = context = sccp_strdupa(v->value);
+				strsep(&context, "@");
+				if (sccp_strlen_zero(context)) {
+					context = "default";
+				}
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
+				if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
+					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
+					break;
+				}
+				mailbox->mailbox = strdup(mbox);
+				mailbox->context = strdup(context);
+				SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
 			}
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
-			if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
-				pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
-				break;
-			}
-			mailbox->mailbox = strdup(mbox);
-			mailbox->context = strdup(context);
-			SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
 		}
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
