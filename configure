@@ -19904,13 +19904,12 @@ fi
 if test "${with_ccache+set}" = set; then :
   withval=$with_ccache; ac_cv_use_ccache="${withval}"
 else
-  ac_cv_use_ccache="no"
+  ac_cv_use_ccache="yes"
 fi
 
 	if test "_${ac_cv_use_ccache}" != "_no"; then :
 
-		if test "${ac_cv_use_ccache}" = "yes"; then
-			for ac_prog in ccache
+		for ac_prog in ccache
 do
   # Extract the first word of "$ac_prog", so it can be a program name with args.
 set dummy $ac_prog; ac_word=$2
@@ -19925,7 +19924,8 @@ else
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
+as_dummy="${withval}:${PATH}"
+for as_dir in $as_dummy
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
@@ -19954,30 +19954,19 @@ fi
 
   test -n "$CCACHE" && break
 done
-test -n "$CCACHE" || CCACHE="echo ccache not found"
+test -n "$CCACHE" || CCACHE="No"
 
-			if test -n "${CCACHE}"; then
-				CC="$CCACHE $CC"
-				CPP="$CCACHE $CPP"
-
-
-
-			fi
-		else
-			if -f "${ac_cv_use_ccache}"; then
-				CCACHE="${ac_cv_use_ccache}"
-				CC="$CCACHE $CC"
-				CPP="$CCACHE $CPP"
+		if test "${CCACHE}" != "No"; then
+			CC="$CCACHE $CC"
+			CPP="$CCACHE $CPP"
 
 
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: using ccache: ${ac_cv_use_ccache}" >&5
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: using ccache: ${ac_cv_use_ccache}" >&5
 $as_echo "$as_me: using ccache: ${ac_cv_use_ccache}" >&6;}
-			else
-				CCACHE=""
-				echo ccache not found
-			fi
-		fi
+		else
+			CCACHE=""
+					fi
 
 fi
 
