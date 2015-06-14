@@ -1,6 +1,10 @@
 CREATE SCHEMA IF NOT EXISTS sccp;
 
-
+--
+-- sccpdevice
+-- 
+-- Add/Remove columns if needed, check sccp.conf.annotated for valid column entries
+--
 DROP TABLE IF EXISTS sccpdevice;
 CREATE TABLE sccpdevice (
   type varchar(45) default NULL,
@@ -44,6 +48,11 @@ CREATE TABLE sccpdevice (
   PRIMARY KEY  (name)
 );
 
+--
+-- sccpline
+-- 
+-- Add/Remove columns if needed, check sccp.conf.annotated for valid column entries
+--
 DROP TABLE IF EXISTS sccpline;
 CREATE TABLE sccpline (
   id varchar(4) default NULL,
@@ -75,10 +84,37 @@ CREATE TABLE sccpline (
   PRIMARY KEY  (name)
 );
 
-DROP TYPE IF EXISTS sccpbuttontype;
-CREATE TYPE sccp.buttontype AS ENUM ('line','speeddial','service','feature','empty');
+--
+-- Enum buttontype
+--
+DROP TYPE IF EXISTS buttontype;
+CREATE TYPE buttontype AS ENUM ('line','speeddial','service','feature','empty');
 
-DROP TABLE IF EXISTS sccpbuttonconfig;
+--
+-- isTypeLine Using to check sccpline.name foreign key contraint if buttonconfig.type=='line'
+--
+CREATE OR REPLACE FUNCTION isTypeLine(buttontype, varchar) returns boolean as $$
+select exists(
+        select 1
+        from sccpline
+        where 
+                $1 <> 'line'
+        or
+                sccpline.name = $2
+);
+$$ language sql;
+
+--
+-- buttonconfig table
+-- foreign constrainst:
+--   device -> sccpdevice.name
+--   type -> buttontype enum
+--   name -> if type=='line' then sccpline.name
+--           else free field
+-- unique constraints:
+--   device, instance, type
+--
+DROP TABLE IF EXISTS buttonconfig;
 CREATE TABLE buttonconfig(
   device character varying(15) NOT NULL,
   instance integer NOT NULL DEFAULT 0,
@@ -86,22 +122,33 @@ CREATE TABLE buttonconfig(
   "name" character varying(36) DEFAULT NULL::character varying,
   options character varying(100) DEFAULT NULL::character varying,
   CONSTRAINT buttonconfig_pkey PRIMARY KEY (device, instance),
-  CONSTRAINT device FOREIGN KEY (device)
+  CONSTRAINT devicename FOREIGN KEY (device)
       REFERENCES sccpdevice ("name") MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
+  CONSTRAINT linename CHECK (isTypeLine("type", "name"))
+  UNIQUE (device, instance, "type")    
 );
 
-
+--
+-- concatenation/aggregation function
+-- used by sccpdeviceconfig view
+--
 DROP AGGREGATE IF EXISTS textcat_column("text");
 CREATE AGGREGATE textcat_column("text") (
   SFUNC=textcat,
   STYPE=text
 );
 
-
+--
+-- sccpdeviceconfig view
+--
+-- combines sccpdevice and buttonconfig on buttonconfig.device=sccpdevice.name to 
+-- produce a complete chan-sccp-b device entry including multiple buttons seperated by comma's
+--
+-- When altering sccpdevice or buttonconfig, this view needs to be dropped and recreated afterwards
+--
 CREATE OR REPLACE VIEW sccpdeviceconfig AS
         SELECT 
-
                 (SELECT textcat_column(bc.type || ',' || bc.name || COALESCE(',' || bc.options, '') || ';') FROM (SELECT * FROM buttonconfig WHERE device=sccpdevice.name ORDER BY instance) bc ) as button,
                 sccpdevice.*
         FROM sccpdevice
