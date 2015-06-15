@@ -109,7 +109,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 	{"directed_pickup_modeanswer", 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically Answer when using Directed Pickup."},
 	{"pickupmodeanswer",	 	G_OBJ_REF(directed_pickup_modeanswer), 	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE | SCCP_CONFIG_FLAG_DEPRECATED,		SCCP_CONFIG_NOUPDATENEEDED,		"",				"Automatically Answer when using Directed Pickup (Deprecated in favor of directed_pickup_modeanswer)."},
 #endif
-	{"amaflags", 			G_OBJ_REF(amaflags), 			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Sets the default AMA flag code stored in the CDR record\n"},
+	{"amaflags", 			G_OBJ_REF(amaflags), 			TYPE_PARSER(sccp_config_parse_amaflags),					SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Sets the default AMA flag code stored in the CDR record\n"},
 	{"protocolversion", 		0,				0,	TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE,					SCCP_CONFIG_NOUPDATENEEDED,		"20",				"skinny version protocol. (OBSOLETE)\n"},
 	{"callanswerorder", 		G_OBJ_REF(callanswerorder), 		TYPE_ENUM(sccp,call_answer_order),						SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"oldestfirst",			"oldestfirst or lastestfirst\n"},
 	{"regcontext", 			G_OBJ_REF(regcontext), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"",				"SCCP Lines will we added to this context in asterisk for Dundi lookup purposes.\n"
@@ -147,8 +147,8 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 																																					"set up. If hotline_enabled = yes, any device which is not included in the configuration explicitly will be allowed\n"
 																																					"to registered as a guest device. All such devices will register on a single shared line called 'hotline'.\n"},
 
-	{"hotline_context",	offsetof(struct sccp_global_vars,hotline), offsize(struct sccp_line,context),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				""},
-	{"hotline_extension", 	offsetof(struct sccp_global_vars,hotline), offsize(sccp_hotline_t,exten),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
+	{"hotline_context",	offsize(struct sccp_line,context),offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				""},
+	{"hotline_extension", 	offsize(sccp_hotline_t,exten), offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
 	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
 																																					"Possible values are: true/false/odd/even/script.\n" 
 																																					"active/passive cluster: true on active/false on passive\n" 
@@ -204,7 +204,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"mwioncall", 			D_OBJ_REF(mwioncall), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the MWI on call.\n"},
 	{"meetme", 			D_OBJ_REF(meetme), 			TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"enable/disable conferencing via app_meetme (on/off)\n"},
 	{"meetmeopts", 			D_OBJ_REF(meetmeopts), 			TYPE_STRING,									SCCP_CONFIG_FLAG_GET_GLOBAL_DEFAULT,				SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"options to send the app_meetme application (default 'qd' = quiet,dynamic pin)\n"																																					"Other options (A,a,b,c,C,d,D,E,e,F,i,I,l,L,m,M,o,p,P,q,r,s,S,t,T,w,x,X,1) see app_meetme documentation\n"},
-	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name softkeyset1\n"},
+	{"softkeyset", 			D_OBJ_REF(softkeyDefinition),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"default",			"use specified softkeyset with name softkeyset1\n"},
 #ifdef CS_ADV_FEATURES
 	{"useRedialMenu", 		D_OBJ_REF(useRedialMenu), 		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"show the redial phone book list instead of dialing the last number (adv_feature)\n"},
 #endif
@@ -239,7 +239,7 @@ static const SCCPConfigOption sccpDeviceConfigOptions[] = {
 	{"conf_play_general_announce",	D_OBJ_REF(conf_play_general_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback General Announcements (like: 'You are Entering/Leaving the conference')"},
 	{"conf_play_part_announce",	D_OBJ_REF(conf_play_part_announce),	TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Playback Personal/Participant Announcements, (like: 'You have been muted / You have been kicked')"},
 	{"conf_mute_on_entry",		D_OBJ_REF(conf_mute_on_entry),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Mute new participants from the start"},
-	{"conf_music_on_hold_class",	D_OBJ_REF(conf_music_on_hold_class),	TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played."},
+	{"conf_music_on_hold_class",	D_OBJ_REF(conf_music_on_hold_class),	TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"default",			"Play music on hold of this class when no moderator is listening on the conference. If set to an empty string, no music on hold will be played."},
 	{"conf_show_conflist",		D_OBJ_REF(conf_show_conflist),		TYPE_BOOLEAN,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"yes",				"Automatically show conference list to the moderator"},
 #endif
 	{"backgroundImage",		D_OBJ_REF(backgroundImage),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Set the Background Image after device registered. Image must be set as URI to a http served file."},
@@ -265,7 +265,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"defaultSubscriptionId_number",L_OBJ_REF(defaultSubscriptionId.number),TYPE_STRING,						 			SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number used on a shared line when no name is specified on the line button for the device\n"},
 	{"disallow|allow", 		L_OBJ_REF(reduced_preferences), 	TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				""},
 	{"callerid", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE, 					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"obsolete callerid param. Use cid_num and cid_name\n"},
-	{"mailbox", 			L_OBJ_REF(mailboxes), 			TYPE_PARSER(sccp_config_parse_mailbox),						SCCP_CONFIG_FLAG_NONE,	 					SCCP_CONFIG_NEEDDEVICERESET, 		NULL,				"Mailbox to store messages in. Format 'mailbox@context' or 'mailbox' when you use 'defualt' context\n"},
+	{"mailbox", 			L_OBJ_REF(mailboxes), 			TYPE_PARSER(sccp_config_parse_mailbox),						SCCP_CONFIG_FLAG_NONE,	 					SCCP_CONFIG_NEEDDEVICERESET, 		"",				"Mailbox to store messages in. Format 'mailbox@context' or 'mailbox' when you use 'default' context\n"},
 	{"vmnum", 			L_OBJ_REF(vmnum), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number to dial to get to the users Mailbox\n"},
 	{"adhocNumber", 		L_OBJ_REF(adhocNumber), 		TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"",				"Adhoc Number or Private-line automatic ring down (PLAR):\n"
 																																					"Adhoc/PLAR circuits have statically configured endpoints and do not require the user dialing to connect calls.\n"

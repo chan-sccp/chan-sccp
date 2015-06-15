@@ -453,10 +453,10 @@ void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
 			memcpy(&c->preferences.audio , &linedevice->device->preferences.audio , sizeof(c->preferences.audio));
 			memcpy(&c->preferences.video , &linedevice->device->preferences.video , sizeof(c->preferences.video));
 		} else {
-			sccp_utils_combineCodecSets((skinny_codec_t **)&c->capabilities.audio, linedevice->device->capabilities.audio);
-			sccp_utils_combineCodecSets((skinny_codec_t **)&c->capabilities.video, linedevice->device->capabilities.video);
-			sccp_utils_reduceCodecSet((skinny_codec_t **)&c->preferences.audio , linedevice->device->preferences.audio);
-			sccp_utils_reduceCodecSet((skinny_codec_t **)&c->preferences.video , linedevice->device->preferences.video);
+			sccp_utils_combineCodecSets(&c->capabilities.audio, linedevice->device->capabilities.audio);
+			sccp_utils_combineCodecSets(&c->capabilities.video, linedevice->device->capabilities.video);
+			sccp_utils_reduceCodecSet(&c->preferences.audio , linedevice->device->preferences.audio);
+			sccp_utils_reduceCodecSet(&c->preferences.video , linedevice->device->preferences.video);
 		}
 	}
 	SCCP_LIST_UNLOCK(&l->devices);
@@ -920,7 +920,7 @@ sccp_line_t *sccp_line_find_realtime_byname(const char *name)
 #endif
 {
 	sccp_line_t *l = NULL;
-	PBX_VARIABLE_TYPE *v, *variable;
+	PBX_VARIABLE_TYPE *v = NULL, *variable = NULL;
 
 	if (sccp_strlen_zero(GLOB(realtimelinetable)) || sccp_strlen_zero(name)) {
 		return NULL;

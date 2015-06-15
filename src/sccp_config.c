@@ -106,11 +106,11 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 #ifndef offsetof
 #endif
 #define offsize(TYPE, MEMBER) sizeof(((TYPE *)0)->MEMBER)
-#define G_OBJ_REF(x) offsetof(struct sccp_global_vars,x), offsize(struct sccp_global_vars,x)
-#define D_OBJ_REF(x) offsetof(struct sccp_device,x), offsize(struct sccp_device,x)
-#define L_OBJ_REF(x) offsetof(struct sccp_line,x), offsize(struct sccp_line,x)
-#define S_OBJ_REF(x) offsetof(struct softKeySetConfiguration,x), offsize(struct softKeySetConfiguration,x)
-#define H_OBJ_REF(x) offsetof(struct sccp_hotline,x), offsize(struct sccp_hotline,x)
+#define G_OBJ_REF(x) offsize(struct sccp_global_vars,x), offsetof(struct sccp_global_vars,x)
+#define D_OBJ_REF(x) offsize(struct sccp_device,x), offsetof(struct sccp_device,x)
+#define L_OBJ_REF(x) offsize(struct sccp_line,x), offsetof(struct sccp_line,x)
+#define S_OBJ_REF(x) offsize(struct softKeySetConfiguration,x), offsetof(struct softKeySetConfiguration,x)
+#define H_OBJ_REF(x) offsize(struct sccp_hotline,x), offsetof(struct sccp_hotline,x)
 #define BITMASK(b) (1 << ((b) % CHAR_BIT))
 #define BITSLOT(b) ((b) / CHAR_BIT)
 #define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
@@ -155,8 +155,8 @@ enum SCCPConfigOptionFlag {
 typedef struct SCCPConfigOption {
 /* *INDENT-OFF* */
 	const char *name;							/*!< Configuration Parameter Name */
+	const size_t size;							/*!< The offsize of the element in the structure where the option value is stored */
 	const int offset;							/*!< The offset relative to the context structure where the option value is stored. */
-	const size_t size;							/*!< Structure size */
 	enum SCCPConfigOptionType type;						/*!< Data type */
 	sccp_value_changed_t(*converter_f) (void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);	/*!< Conversion function */
         sccp_enum_str2intval_t str2intval;
@@ -796,7 +796,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				continue;
 			}
 
-			if (type == SCCP_CONFIG_DATATYPE_STRINGPTR) {						/* If nothing was found, clear variable, incase of a STRINGPTR */
+			if (type == SCCP_CONFIG_DATATYPE_STRINGPTR || type==SCCP_CONFIG_DATATYPE_PARSER) {	/* If nothing was found, clear variable, incase of a STRINGPTR */
 				sccp_log_and((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "Clearing parameter %s\n", sccpDstConfig[cur_elem].name);
 				sccp_config_object_setValue(obj, NULL, sccpDstConfig[cur_elem].name, "", __LINE__, segment, SetEntries);
 			}
@@ -991,11 +991,11 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	unsigned int tos;
+	uint8_t tos;
 
-	if (!pbx_str2tos(value, &tos)) {
+	if (pbx_str2tos(value, &tos)) {
 		/* value is tos */
-	} else if (sscanf(value, "%i", &tos) == 1) {
+	} else if (sscanf(value, "%" SCNu8, &tos) == 1) {
 		tos = tos & 0xff;
 	} else if (sccp_strcaseequals(value, "lowdelay")) {
 		tos = IPTOS_LOWDELAY;
@@ -1019,8 +1019,8 @@ sccp_value_changed_t sccp_config_parse_tos(void *dest, const size_t size, PBX_VA
 		tos = 0x68 & 0xff;
 	}
 
-	if ((*(unsigned int *) dest) != tos) {
-		*(unsigned int *) dest = tos;
+	if ((*(uint8_t *) dest) != tos) {
+		*(uint8_t *) dest = tos;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 	return changed;
@@ -1035,17 +1035,19 @@ sccp_value_changed_t sccp_config_parse_cos(void *dest, const size_t size, PBX_VA
 {
 	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	char *value = strdupa(v->value);
-	unsigned int cos;
+	uint8_t cos;
 
-	if (sscanf(value, "%d", &cos) == 1) {
+	if (pbx_str2cos(value, &cos)) {
+		/* value is tos */
+	} else if (sscanf(value, "%" SCNu8, &cos) == 1) {
 		if (cos > 7) {
 			pbx_log(LOG_WARNING, "Invalid cos %d value, refer to QoS documentation\n", cos);
 			return SCCP_CONFIG_CHANGE_INVALIDVALUE;
 		}
 	}
 
-	if ((*(unsigned int *) dest) != cos) {
-		*(unsigned int *) dest = cos;
+	if ((*(uint8_t *) dest) != cos) {
+		*(uint8_t *) dest = cos;
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
 
@@ -1063,14 +1065,15 @@ sccp_value_changed_t sccp_config_parse_amaflags(void *dest, const size_t size, P
 	char *value = strdupa(v->value);
 	int amaflags;
 
-	amaflags = pbx_channel_string2amaflag(value);
-
-	if (amaflags < 0) {
-		changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
-	} else {
-		if ((*(int *) dest) != amaflags) {
-			changed = SCCP_CONFIG_CHANGE_CHANGED;
-			*(int *) dest = amaflags;
+	if (!sccp_strlen_zero(value)) {
+		amaflags = pbx_channel_string2amaflag(value);
+		if (amaflags < 0) {
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		} else {
+			if ((*(int *) dest) != amaflags) {
+				changed = SCCP_CONFIG_CHANGE_CHANGED;
+				*(int *) dest = amaflags;
+			}
 		}
 	}
 	return changed;
@@ -1551,15 +1554,17 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 	if (varCount == listCount) {										// list length equal
 		SCCP_LIST_TRAVERSE(mailboxList, mailbox, list) {
 			for (v = vroot; v; v = v->next) {
-				mbox = context = sccp_strdupa(v->value);
-				strsep(&context, "@");
-				if (sccp_strlen_zero(context)) {
-					context = "default";
+				if (!sccp_strlen_zero(v->value)) {
+					mbox = context = sccp_strdupa(v->value);
+					strsep(&context, "@");
+					if (sccp_strlen_zero(context)) {
+						context = "default";
+					}
+					if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context)) {	// variable found
+						continue;
+					}
+					notfound |= TRUE;
 				}
-				if (sccp_strcaseequals(mailbox->mailbox, mbox) && sccp_strcaseequals(mailbox->context, context)) {	// variable found
-					continue;
-				}
-				notfound |= TRUE;
 			}
 		}
 	}
@@ -1570,19 +1575,21 @@ sccp_value_changed_t sccp_config_parse_mailbox(void *dest, const size_t size, PB
 			sccp_free(mailbox);
 		}
 		for (v = vroot; v; v = v->next) {								// create new list
-			mbox = context = sccp_strdupa(v->value);
-			strsep(&context, "@");
-			if (sccp_strlen_zero(context)) {
-				context = "default";
+			if (!sccp_strlen_zero(v->value)) {
+				mbox = context = sccp_strdupa(v->value);
+				strsep(&context, "@");
+				if (sccp_strlen_zero(context)) {
+					context = "default";
+				}
+				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
+				if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
+					pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
+					break;
+				}
+				mailbox->mailbox = strdup(mbox);
+				mailbox->context = strdup(context);
+				SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
 			}
-			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) ("add new mailbox: %s@%s\n", mbox, context);
-			if (!(mailbox = sccp_calloc(1, sizeof(sccp_mailbox_t)))) {
-				pbx_log(LOG_ERROR, "SCCP: Unable to allocate memory for a new mailbox\n");
-				break;
-			}
-			mailbox->mailbox = strdup(mbox);
-			mailbox->context = strdup(context);
-			SCCP_LIST_INSERT_TAIL(mailboxList, mailbox, list);
 		}
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 	}
@@ -2066,7 +2073,7 @@ sccp_configurationchange_t sccp_config_applyGlobalConfiguration(PBX_VARIABLE_TYP
 /*!
  * \brief Add 'default' softkeyset
  */
-static void sccp_config_add_default_softkeyset()
+static void sccp_config_add_default_softkeyset(void)
 {
 	// create tempory "default" variable set to create "default" softkeyset, if not defined in sccp.conf
 	PBX_VARIABLE_TYPE * softkeyset_root = NULL;

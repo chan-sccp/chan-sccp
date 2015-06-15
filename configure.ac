@@ -6,7 +6,7 @@ dnl          See the LICENSE file at the top of the source tree.
 dnl DATE: $Date$
 dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.63])
+AC_PREREQ([2.64])
 AC_INIT([Chan_SCCP],[4.2_TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
 
 MIN_ASTERISK_VERSION=106
@@ -59,6 +59,7 @@ AC_REVISION($Revision$)
 CONFIGURE_PART([Checking build environment:])
 CS_SETUP_BUILD
 CS_SETUP_DEFAULTS
+CS_ENABLE_OPTIMIZATION
 AX_CHECK_ALIGNED_ACCESS_REQUIRED	dnl sparc64 alignment required
 AX_CHECK_UNALIGNED_BUSERROR		dnl sparc64 unaligned access
 CS_GET_VERSION([.])
@@ -144,7 +145,7 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
 echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"

@@ -231,51 +231,57 @@ static const struct dscp_codepoint dscp_pool1[] = {
 	{"EF", 0x2E},
 };
 
-int pbx_str2tos(const char *value, unsigned int *tos)
+int pbx_str2tos(const char *value, uint8_t *tos)
 {
 	int fval;
 
 	unsigned int x;
 
 	if (sscanf(value, "%30i", &fval) == 1) {
-		*tos = fval & 0xFF;
-		return 0;
+		*tos = (uint16_t)fval & 0xFF;
+		return *tos;
 	}
 
 	for (x = 0; x < ARRAY_LEN(dscp_pool1); x++) {
 		if (!strcasecmp(value, dscp_pool1[x].name)) {
-			*tos = dscp_pool1[x].space << 2;
-			return 0;
+			*tos = (uint8_t)dscp_pool1[x].space << 2;
+			return *tos;
 		}
 	}
 
-	return -1;
+	return 0;
 }
 #else
-int pbx_str2tos(const char *value, unsigned int *tos)
+int pbx_str2tos(const char *value, uint8_t *tos)
 {
-	return ast_str2tos(value, tos);
+	uint32_t tos_value = 0;
+	ast_str2tos(value, &tos_value);
+	*tos = (uint8_t) tos_value;
+	return *tos;
 }
 #endif														// ASTERISK_VERSION_NUMBER
 
 #if ASTERISK_VERSION_NUMBER < 10600
-int pbx_str2cos(const char *value, unsigned int *cos)
+int pbx_str2cos(const char *value, uint8_t *cos)
 {
 	int fval;
 
 	if (sscanf(value, "%30d", &fval) == 1) {
 		if (fval < 8) {
-			*cos = fval;
-			return 0;
+			*cos = (uint8_t)fval;
+			return *cos;
 		}
 	}
 
-	return -1;
+	return 0;
 }
 #else
-int pbx_str2cos(const char *value, unsigned int *cos)
+int pbx_str2cos(const char *value, uint8_t *cos)
 {
-	return ast_str2cos(value, cos);
+	uint32_t cos_value = 0;
+	ast_str2cos(value, &cos_value);
+	*cos = (uint8_t) cos_value;
+	return *cos;
 }
 #endif														// ASTERISK_VERSION_NUMBER
 
@@ -948,15 +954,19 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 	char *featexten;
 
 	if (PBX(getFeatureExtension) (channel, &featexten)) {
-		struct ast_frame f = { AST_FRAME_DTMF, };
-		int j;
+		if (featexten && !sccp_strlen_zero(featexten)) {
+			struct ast_frame f = { AST_FRAME_DTMF, };
+			int j;
 
-		f.len = 100;
-		for (j = 0; j < strlen(featexten); j++) {
-			f.subclass.integer = featexten[j];
-			ast_queue_frame(channel->owner, &f);
+			f.len = 100;
+			for (j = 0; j < strlen(featexten); j++) {
+				f.subclass.integer = featexten[j];
+				ast_queue_frame(channel->owner, &f);
+			}
+			sccp_free(featexten);
+		} else {
+			pbx_log(LOG_ERROR, "SCCP: Monitor Feature Extension Not available\n");
 		}
-		sccp_free(featexten);
 		return TRUE;
 	}
 #else

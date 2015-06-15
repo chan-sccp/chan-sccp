@@ -89,20 +89,20 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 		return;
 	}
 
-	if (conference->playback_channel) {
+	if (conference->playback.channel) {
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference playback channel\n", conference->id);
 #if ASTERISK_VERSION_GROUP < 112
 		PBX_CHANNEL_TYPE *underlying_channel = NULL;
-		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback_channel))) {
+		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback.channel))) {
 			pbx_hangup(underlying_channel);
-			pbx_hangup(conference->playback_channel);
+			pbx_hangup(conference->playback.channel);
 			pbx_channel_unref(underlying_channel);
 		}
 #else
-		sccpconf_announce_channel_depart(conference->playback_channel);
-		pbx_hangup(conference->playback_channel);
+		sccpconf_announce_channel_depart(conference->playback.channel);
+		pbx_hangup(conference->playback.channel);
 #endif
-		conference->playback_channel = NULL;
+		conference->playback.channel = NULL;
 	}
 	sccp_log((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference\n", conference->id);
 	sccp_free(conference->linkedid);
@@ -110,7 +110,7 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 		pbx_bridge_destroy(conference->bridge, AST_CAUSE_NORMAL_CLEARING);
 	}
 	SCCP_LIST_HEAD_DESTROY(&conference->participants);
-	pbx_mutex_destroy(&conference->playback_lock);
+	pbx_mutex_destroy(&conference->playback.lock);
 
 #ifdef CS_MANAGER_EVENTS
 	if (GLOB(callevents)) {
@@ -192,7 +192,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		conference->mute_on_entry = device->conf_mute_on_entry;
 	}
 	conference->playback_announcements = device->conf_play_general_announce;
-	sccp_copy_string(conference->playback_language, pbx_channel_language(channel->owner), sizeof(conference->playback_language));
+	sccp_copy_string(conference->playback.language, pbx_channel_language(channel->owner), sizeof(conference->playback.language));
 	SCCP_LIST_HEAD_INIT(&conference->participants);
 
 	//bridgeCapabilities = AST_BRIDGE_CAPABILITY_1TO1MIX;                                                   /* bridge_multiplexed */
@@ -234,7 +234,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 	SCCP_LIST_UNLOCK(&conferences);
 
 	/* init playback lock */
-	pbx_mutex_init(&conference->playback_lock);
+	pbx_mutex_init(&conference->playback.lock);
 
 	/* create new conference moderator channel */
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Adding moderator channel to SCCPCONF/%04d\n", conferenceID);
@@ -785,42 +785,42 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		return 1;
 	}
 
-	pbx_mutex_lock(&conference->playback_lock);
+	pbx_mutex_lock(&conference->playback.lock);
 
 	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "File %s does not exists in any format\n", !sccp_strlen_zero(filename) ? filename : "<unknown>");
 		return 1;
 	}
 
-	if (!(conference->playback_channel)) {
+	if (!(conference->playback.channel)) {
 		char data[14];
 
 		snprintf(data, sizeof(data), "SCCPCONF/%04d", conference->id);
-		if (!(conference->playback_channel = PBX(requestAnnouncementChannel) (AST_FORMAT_ALAW, NULL, data))) {
-			pbx_mutex_unlock(&conference->playback_lock);
+		if (!(conference->playback.channel = PBX(requestAnnouncementChannel) (AST_FORMAT_ALAW, NULL, data))) {
+			pbx_mutex_unlock(&conference->playback.lock);
 			return 1;
 		}
-		if (!sccp_strlen_zero(conference->playback_language)) {
-			PBX(set_language) (conference->playback_channel, conference->playback_language);
+		if (!sccp_strlen_zero(conference->playback.language)) {
+			PBX(set_language) (conference->playback.channel, conference->playback.language);
 		}
 	}
 	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching Announcer from Conference\n", conference->id);
-	if (sccpconf_announce_channel_push(conference->playback_channel, conference->bridge)) {
-		pbx_mutex_unlock(&conference->playback_lock);
+	if (sccpconf_announce_channel_push(conference->playback.channel, conference->bridge)) {
+		pbx_mutex_unlock(&conference->playback.lock);
 		return 1;
 	}
 
 	/* The channel is all under our control, in goes the prompt */
 	if (!ast_strlen_zero(filename)) {
-		ast_stream_and_wait(conference->playback_channel, filename, "");
+		ast_stream_and_wait(conference->playback.channel, filename, "");
 	} else if (say_number >= 0) {
 
 	}
 
 	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Detaching Announcer from Conference\n", conference->id);
-	sccpconf_announce_channel_depart(conference->playback_channel);
+	sccpconf_announce_channel_depart(conference->playback.channel);
 
-	pbx_mutex_unlock(&conference->playback_lock);
+	pbx_mutex_unlock(&conference->playback.lock);
 
 	return 0;
 }
@@ -835,48 +835,48 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		return 1;
 	}
 
-	pbx_mutex_lock(&conference->playback_lock);
+	pbx_mutex_lock(&conference->playback.lock);
 
 	if (!sccp_strlen_zero(filename) && !pbx_fileexists(filename, NULL, NULL)) {
 		pbx_log(LOG_WARNING, "File %s does not exists in any format\n", !sccp_strlen_zero(filename) ? filename : "<unknown>");
 		return 0;
 	}
 
-	if (!(conference->playback_channel)) {
+	if (!(conference->playback.channel)) {
 		char data[14];
 
 		snprintf(data, sizeof(data), "SCCPCONF/%04d", conference->id);
-		if (!(conference->playback_channel = PBX(requestAnnouncementChannel) (AST_FORMAT_SLINEAR, NULL, data))) {
-			pbx_mutex_unlock(&conference->playback_lock);
+		if (!(conference->playback.channel = PBX(requestAnnouncementChannel) (AST_FORMAT_SLINEAR, NULL, data))) {
+			pbx_mutex_unlock(&conference->playback.lock);
 			return 0;
 		}
-		if (!sccp_strlen_zero(conference->playback_language)) {
-			PBX(set_language) (conference->playback_channel, conference->playback_language);
+		if (!sccp_strlen_zero(conference->playback.language)) {
+			PBX(set_language) (conference->playback.channel, conference->playback.language);
 		}
-		pbx_channel_set_bridge(conference->playback_channel, conference->bridge);
+		pbx_channel_set_bridge(conference->playback.channel, conference->bridge);
 
-		if (ast_call(conference->playback_channel, "", 0)) {
-			pbx_hangup(conference->playback_channel);
-			conference->playback_channel = NULL;
-			pbx_mutex_unlock(&conference->playback_lock);
+		if (ast_call(conference->playback.channel, "", 0)) {
+			pbx_hangup(conference->playback.channel);
+			conference->playback.channel = NULL;
+			pbx_mutex_unlock(&conference->playback.lock);
 			return 0;
 		}
 
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Created Playback Channel\n", conference->id);
-		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback_channel))) {
+		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback.channel))) {
 			// Update CDR to prevent nasty ast warning when hanging up this channel (confbridge does not set the cdr correctly)
-			pbx_cdr_start(pbx_channel_cdr(conference->playback_channel));
+			pbx_cdr_start(pbx_channel_cdr(conference->playback.channel));
 #if ASTERISK_VERSION_GROUP < 110
-			conference->playback_channel->cdr->answer = ast_tvnow();
+			conference->playback.channel->cdr->answer = ast_tvnow();
 			underlying_channel->cdr->answer = ast_tvnow();
 #endif
-			pbx_cdr_update(conference->playback_channel);
+			pbx_cdr_update(conference->playback.channel);
 		} else {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Could not get Underlying channel from newly created playback channel\n", conference->id);
 		}
 	} else {
 		/* Channel was already available so we just need to add it back into the bridge */
-		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback_channel))) {
+		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback.channel))) {
 			sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
 			if (pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0)) {
 				sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Impart playback channel failed\n", conference->id);
@@ -890,7 +890,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		}
 	}
 	if (underlying_channel) {
-		if (!stream_and_wait(conference->playback_channel, filename, say_number)) {
+		if (!stream_and_wait(conference->playback.channel, filename, say_number)) {
 			ast_log(LOG_WARNING, "Failed to play %s or '%d'!\n", filename, say_number);
 		} else {
 			res = 1;
@@ -901,7 +901,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 	} else {
 		pbx_log(LOG_ERROR, "SCCPCONF/%04d: No Underlying channel available to use for playback\n", conference->id);
 	}
-	pbx_mutex_unlock(&conference->playback_lock);
+	pbx_mutex_unlock(&conference->playback.lock);
 	return res;
 }
 #endif

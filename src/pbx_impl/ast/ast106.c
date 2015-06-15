@@ -2072,7 +2072,7 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 		ast_queue_frame(c->owner, &ast_null_frame);
 	}
 
-	ast_rtp_setqos(c->rtp.audio.rtp, d->audio_tos, d->audio_cos, "SCCP RTP");
+	ast_rtp_setqos(c->rtp.audio.rtp, (uint32_t)d->audio_tos, (uint32_t))d->audio_cos, "SCCP RTP");
 	d = sccp_device_release(d);
 	return TRUE;
 }
@@ -2115,7 +2115,7 @@ static boolean_t sccp_wrapper_asterisk16_create_video_rtp(sccp_channel_t * c)
 		ast_queue_frame(c->owner, &ast_null_frame);
 	}
 
-	ast_rtp_setqos(c->rtp.video.rtp, d->video_tos, d->video_cos, "SCCP VRTP");
+	ast_rtp_setqos(c->rtp.video.rtp, (uint32_t)d->video_tos, (uint32_t)d->video_cos, "SCCP VRTP");
 	d = sccp_device_release(d);
 	return TRUE;
 }

@@ -87,23 +87,51 @@ CREATE TABLE IF NOT EXISTS `sccpline` (
 --
 -- Table with button-configuration for device
 --
+-- foreign constrainst:
+--   device -> sccpdevice.name
+--   type -> buttontype enum
+--   name -> if type=='line' then sccpline.name
+--           else free field
+-- unique constraints:
+--   device, instance, type
+--
 CREATE TABLE IF NOT EXISTS `buttonconfig` (
   `device` varchar(15) NOT NULL default '',
   `instance` tinyint(4) NOT NULL default '0',
   `type` enum('line','speeddial','service','feature','empty') NOT NULL default 'line',
   `name` varchar(36) default NULL,
   `options` varchar(100) default NULL,
-  PRIMARY KEY  (`device`,`instance`),
+  PRIMARY KEY  (`device`,`instance`,`type`),
   KEY `device` (`device`),
-  
   FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
 
-
+--
+-- trigger to check buttonconfig sccpline foreign key constrainst:
+--   if type=='line' then check name against sccpline.name column
+--   else free field
+--
+DROP TRIGGER IF EXISTS trg_buttonconfig;
+CREATE TRIGGER trg_buttonconfig BEFORE INSERT ON buttonconfig
+FOR EACH ROW
+BEGIN
+	IF new.`type` = 'line' THEN
+		IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccp.line`.`name` = new.`name`) = 0
+		THEN
+			INSERT error_msg VALUES('foreign key contraint violated. if type==line then sccpline.name needs to exists for buttonconfig.name!');
+		END IF
+	END IF
+END;
 
 --
 -- View for merging device and button configuration
+--
+-- combines sccpdevice and buttonconfig on buttonconfig.device=sccpdevice.name to 
+-- produce a complete chan-sccp-b device entry including multiple buttons seperated by comma's
+--
+-- When altering sccpdevice or buttonconfig, this view needs to be dropped and recreated afterwards
+--
 --
 CREATE OR REPLACE
 ALGORITHM = MERGE

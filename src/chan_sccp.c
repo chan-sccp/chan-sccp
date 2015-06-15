@@ -16,7 +16,6 @@
  * $Date$
  * $Revision$
  */
-
 #include <config.h>
 #include "common.h"
 
@@ -354,7 +353,6 @@ int load_config(void)
 {
 	int oldPort = 0;											//ntohs(GLOB(bindaddr));
 	int newPort = 0;
-	int on = 1;
 	char addrStr[INET6_ADDRSTRLEN];
 
 	oldPort = sccp_socket_getPort(&GLOB(bindaddr));
@@ -424,28 +422,6 @@ int load_config(void)
 			return 0;
 		}
 		GLOB(descriptor) = socket(res->ai_family, res->ai_socktype, res->ai_protocol);			// need to add code to handle multiple interfaces (multi homed server) -> multiple socket descriptors
-
-		on = 1;
-
-		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {
-			pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-		}
-		if (setsockopt(GLOB(descriptor), IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {
-			pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-		} else if (GLOB(sccp_tos)) {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket ToS mark %d\n", GLOB(sccp_tos));
-		}
-		if (setsockopt(GLOB(descriptor), IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {
-			pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
-		}
-#if defined(linux)
-		if (setsockopt(GLOB(descriptor), SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {
-			pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
-		} else if (GLOB(sccp_cos)) {
-			sccp_log((DEBUGCAT_SOCKET)) (VERBOSE_PREFIX_1 "Using SCCP Socket CoS mark %d\n", GLOB(sccp_cos));
-		}
-#endif
-
 		if (GLOB(descriptor) < 0) {
 			pbx_log(LOG_WARNING, "Unable to create SCCP socket: %s\n", strerror(errno));
 		} else {
@@ -561,7 +537,9 @@ boolean_t sccp_prePBXLoad(void)
 	GLOB(callwaiting_tone) = SKINNY_TONE_CALLWAITINGTONE;
 	GLOB(privacy) = TRUE;											/* permit private function */
 	GLOB(mwilamp) = SKINNY_LAMP_ON;
+	#if 0
 	GLOB(protocolversion) = SCCP_DRIVER_SUPPORTED_PROTOCOL_HIGH;
+	#endif
 	GLOB(amaflags) = pbx_channel_string2amaflag("documentation");
 	GLOB(callanswerorder) = SCCP_ANSWER_OLDEST_FIRST;
 	GLOB(socket_thread) = AST_PTHREADT_NULL;

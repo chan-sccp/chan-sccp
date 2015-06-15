@@ -903,78 +903,59 @@ void *sccp_socket_device_thread(void *session)
 	return NULL;
 }
 
+#define SCCP_SETSOCKETOPTION(_SOCKET, _LEVEL,_OPTIONNAME, _OPTIONVAL, _OPTIONLEN) 							\
+	if (setsockopt(_SOCKET, _LEVEL, _OPTIONNAME, (void*)_OPTIONVAL, _OPTIONLEN)  == -1) {						\
+		if (errno != ENOTSUP) {													\
+			pbx_log(LOG_WARNING, "Failed to set SCCP socket: " #_LEVEL ":" #_OPTIONNAME " error: '%s'\n", strerror(errno));	\
+		}															\
+	}
+	
 void sccp_socket_setoptions(int new_socket) 
 {
 	int on = 1;
+	int value;
 
-	if (setsockopt(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)) < 0) {				/* allow chan-sccp-b to reuse and already open socket on port 2000 */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket to SO_REUSEADDR mode: %s\n", strerror(errno));
-	}
-	if (setsockopt(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on)) < 0) {				/* Disabled the nagle algorithm and tries to send any messages as soon as possible */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_NODELAY: %s\n", strerror(errno));
-	}
-	if (setsockopt(new_socket, IPPROTO_IP, IP_TOS, &GLOB(sccp_tos), sizeof(GLOB(sccp_tos))) < 0) {		/* Set Socket TOS value */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket TOS to %d: %s\n", GLOB(sccp_tos), strerror(errno));
-	}
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
+	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_NODELAY, &on, sizeof(on));
+	value = (int) GLOB(sccp_tos);
+	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_IP, IP_TOS, &value, sizeof(value));
 #if defined(linux)
-	if (setsockopt(new_socket, SOL_SOCKET, SO_PRIORITY, &GLOB(sccp_cos), sizeof(GLOB(sccp_cos))) < 0) {	/* Set Socket COS Priority */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket COS to %d: %s\n", GLOB(sccp_cos), strerror(errno));
-	}
-
+	value = (int) GLOB(sccp_cos);
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_PRIORITY, &value, sizeof(value));
+	
+	/* timeeo */
 	struct timeval tv = { SOCKET_TIMEOUT_SEC, SOCKET_TIMEOUT_MILLISEC };					/* timeout after seven seconds when trying to read/write from/to a socket */
-	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0) {				/* timeout after seven seconds when trying to read from a socket */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_RCVTIMEO: %s\n", strerror(errno));
-	}
-	if (setsockopt(new_socket, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv)) < 0) {				/* timeout after seven seconds when trying to write to a socket */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_SNDTIMEO: %s\n", strerror(errno));
-	}
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+
 	/* keepalive */
 	int ip_keepidle  = SOCKET_KEEPALIVE_IDLE;								/* The time (in seconds) the connection needs to remain idle before TCP starts sending keepalive probes */
 	int ip_keepintvl = SOCKET_KEEPALIVE_INTVL;								/* The time (in seconds) between individual keepalive probes, once we have started to probe. */
 	int ip_keepcnt   = SOCKET_KEEPALIVE_CNT;								/* The maximum number of keepalive probes TCP should send before dropping the connection. */
-	if (setsockopt(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket TCP_KEEPIDLE to %d: %s\n", ip_keepidle, strerror(errno));
-	}
-	if (setsockopt(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket TCP_KEEPINTVL to %d: %s\n", ip_keepintvl, strerror(errno));
-	}
-	if (setsockopt(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket TCP_KEEPCNT to %d: %s\n", ip_keepcnt, strerror(errno));
-	}
-	if (setsockopt(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_KEEPALIVE: %s\n", strerror(errno));
-	}
-	/* */
-	
+	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPIDLE, &ip_keepidle, sizeof(int));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPINTVL, &ip_keepintvl, sizeof(int));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_TCP, TCP_KEEPCNT, &ip_keepcnt, sizeof(int));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_KEEPALIVE, &on, sizeof(on));
+
 	/* linger */
 	struct linger so_linger = {SOCKET_LINGER_ONOFF, SOCKET_LINGER_WAIT};					/* linger=on but wait 0 milliseconds before closing socket and discard all outboung messages */
-	if (setsockopt(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_LINGER: %s\n", strerror(errno));
-	}
-	/* */
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_LINGER, &so_linger, sizeof(so_linger));
 	
 	/* thin-tcp */
 #ifdef TCP_THIN_LINEAR_TIMEOUTS
-	if (setsockopt(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on)) < 0) {		/* change all tcp behaviour into realtime-like tcp connections */
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_THIN_LINEAR_TIMEOUTS: %s\n", strerror(errno));
-	}
-	if (setsockopt(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket to TCP_THIN_DUPACK (Reduce number of duplicate Acks needed): %s\n", strerror(errno));
-	}
+	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_LINEAR_TIMEOUTS, &on, sizeof(on));
+	SCCP_SETSOCKETOPTION(new_socket, IPPROTO_TCP, TCP_THIN_DUPACK, &on, sizeof(on));
 #endif
 	/* */
 	/* rcvbuf / sndbug */
 	int so_rcvbuf = SOCKET_RCVBUF;
 	int so_sndbuf = SOCKET_SNDBUF;
-	
-	if (setsockopt(new_socket, SOL_SOCKET, SO_RCVBUF, &so_rcvbuf, sizeof(int)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_RCVBUF to %d: %s\n", so_rcvbuf, strerror(errno));
-	}
-	if (setsockopt(new_socket, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, sizeof(int)) < 0) {
-		pbx_log(LOG_WARNING, "Failed to set SCCP socket SO_SNDBUF to %d: %s\n", so_sndbuf, strerror(errno));
-	}
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_RCVBUF, &so_rcvbuf, sizeof(int));
+	SCCP_SETSOCKETOPTION(new_socket, SOL_SOCKET, SO_SNDBUF, &so_sndbuf, sizeof(int));
 #endif
 }
+
+#undef SCCP_SETSOCKETOPTION
 /*!
  * \brief Socket Accept Connection
  *

@@ -43,13 +43,14 @@ CREATE TABLE sccpdevice (
   conf_mute_on_entry		varchar(3)	DEFAULT 'off',
   conf_music_on_hold_class      varchar(80)	DEFAULT 'default',
   conf_show_conflist            varchar(3)      DEFAULT 'on',
+  backgroundImage		varchar(255) 	DEFAULT '',
+  ringtone			varchar(255)	DEFAULT '',
   setvar 			varchar(100) 	DEFAULT NULL,
   disallow 			varchar(255) 	DEFAULT NULL,
   allow 			varchar(255) 	DEFAULT NULL,
   name 				varchar(15) 	NOT NULL DEFAULT '',
   PRIMARY KEY  (name)
 );
-
 
 --
 -- Table with device-configuration
@@ -76,6 +77,8 @@ CREATE TABLE sccpline (
   silencesuppression 		varchar(45) 	DEFAULT NULL,
   callgroup 			varchar(45) 	DEFAULT NULL,
   pickupgroup 			varchar(45) 	DEFAULT NULL,
+  namedcallgroup 		varchar(45) 	DEFAULT NULL,
+  namedpickupgroup 		varchar(45) 	DEFAULT NULL,
   dnd 				varchar(7) 	DEFAULT 'reject',
   amaflags 			varchar(45) 	DEFAULT NULL,
   defaultSubscriptionId_number 	varchar(5)	DEFAULT NULL,
@@ -116,5 +119,5 @@ CREATE VIEW sccpdeviceconfig AS
 		group_concat(buttonconfig.type||","||buttonconfig.name||","||buttonconfig.options,";") as button 
 	FROM buttonconfig, sccpdevice 
 	WHERE buttonconfig.device=sccpdevice.name 
-	ORDER BY instance;
-
+	GROUP BY sccpdevice.name
+	ORDER BY sccpdevice.name, buttonconfig.instance;

@@ -182,7 +182,7 @@ AC_DEFUN([CS_FIND_PROGRAMS], [
 	AC_PATH_PROGS(SH,bash sh,[echo No compatible shell found])
 	AC_PATH_PROGS(M4,gm4 m4,[echo No m4 found, who will process my macros now ?])
 	AC_PATH_PROGS(GREP, ggrep grep,[echo Missing grep so skipping but I doubt we will get anywhere])
-	AC_PATH_PROGS(SED,gsed sed,[echo sed not found, doh!])
+	AC_PATH_PROGS(SED, gsed sed,[echo sed not found, doh!])
 	AC_PATH_PROGS(CAT,cat,[echo cat not found, Doh!])
 	AC_PATH_PROGS(TR,tr,[echo tr not found, need this for upper/lowercase conversions])
 	AC_PATH_PROGS(UNAME,uname,[echo uname not found so no version info will be available])
@@ -256,30 +256,19 @@ dnl	fi
 AC_DEFUN([CS_WITH_CCACHE],[
 	dnl Compile With CCACHE
 	AC_ARG_WITH(ccache,
-	  AC_HELP_STRING([--with-ccache[=PATH]], [use ccache during compile]), [ac_cv_use_ccache="${withval}"], [ac_cv_use_ccache="no"])
+	  AC_HELP_STRING([--with-ccache[=PATH]], [use ccache during compile]), [ac_cv_use_ccache="${withval}"], [ac_cv_use_ccache="yes"])
 	AS_IF([test "_${ac_cv_use_ccache}" != "_no"], [
-		if test "${ac_cv_use_ccache}" = "yes"; then
-			AC_PATH_PROGS(CCACHE,ccache,[echo ccache not found])
-			if test -n "${CCACHE}"; then
-				CC="$CCACHE $CC"    
-				CPP="$CCACHE $CPP"  
-				AC_SUBST([CC])
-				AC_SUBST([CPP])
-				AC_SUBST([CCACHE])
-			fi
+		AC_PATH_PROGS(CCACHE,ccache,[No],${withval}:${PATH})
+		if test "${CCACHE}" != "No"; then
+			CC="$CCACHE $CC"    
+			CPP="$CCACHE $CPP"  
+			AC_SUBST([CC])
+			AC_SUBST([CPP])
+			AC_SUBST([CCACHE])
+			AC_MSG_NOTICE([using ccache: ${ac_cv_use_ccache}])
 		else
-			if -f "${ac_cv_use_ccache}"; then
-				CCACHE="${ac_cv_use_ccache}"
-				CC="$CCACHE $CC"  
-				CPP="$CCACHE $CPP"
-				AC_SUBST([CC])
-				AC_SUBST([CPP])
-				AC_SUBST([CCACHE])
-				AC_MSG_NOTICE([using ccache: ${ac_cv_use_ccache}])
-			else
-				CCACHE=""
-				echo ccache not found
-			fi
+			CCACHE=""
+			dnl echo ccache not found
 		fi
 	])
 ])
@@ -465,22 +454,6 @@ AC_DEFUN([CS_SETUP_DOXYGEN], [
 	DX_INIT_DOXYGEN($PACKAGE, doc/doxygen.cfg)
 ])
 
-AC_DEFUN([AX_CHECK_COMPILE_FLAG],
-[AC_PREREQ(2.59)dnl for _AC_LANG_PREFIX
-AS_VAR_PUSHDEF([CACHEVAR],[ax_cv_check_[]_AC_LANG_ABBREV[]flags_$4_$1])dnl
-AC_CACHE_CHECK([whether _AC_LANG compiler accepts $1], CACHEVAR, [
-  ax_check_save_flags=$[]_AC_LANG_PREFIX[]FLAGS
-  _AC_LANG_PREFIX[]FLAGS="$[]_AC_LANG_PREFIX[]FLAGS $4 $1"
-  AC_COMPILE_IFELSE([m4_default([$5],[AC_LANG_PROGRAM()])],
-    [AS_VAR_SET(CACHEVAR,[yes])],
-    [AS_VAR_SET(CACHEVAR,[no])])
-  _AC_LANG_PREFIX[]FLAGS=$ax_check_save_flags])
-AS_IF([test x"AS_VAR_GET(CACHEVAR)" = xyes],
-  [m4_default([$2], :)],
-  [m4_default([$3], :)])
-AS_VAR_POPDEF([CACHEVAR])dnl
-])dnl AX_CHECK_COMPILE_FLAGS
-
 AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_ARG_ENABLE(optimization, [AC_HELP_STRING([--enable-optimization],[no detection or tuning flags for cpu version])], enable_optimization=$enableval,[enable_optimization=no; if test "${REPOS_TYPE}" = "TGZ"; then enable_optimization=yes; fi])
 	AC_ARG_ENABLE(debug,[AC_HELP_STRING([--disable-debug],[disable debug information])],enable_debug=$enableval,[enable_debug=yes;if test "${REPOS_TYPE}" = "TGZ"; then enable_debug=no; fi])
@@ -519,20 +492,61 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 		enable_debug_mutex="yes"
 		strip_binaries="no"
 
-		CFLAGS_saved="`echo ${CFLAGS_saved}|${SED} 's/^[ \t]*//;s/[ \t]*$//'`" 	dnl Remove leading/ending spaces
+	 	dnl Remove leading/ending spaces
+		CFLAGS_saved="`echo ${CFLAGS_saved}|sed 's/^[ \t]*//;s/[ \t]*$//'`"
 		CFLAGS_saved="${CFLAGS_saved} -Wall"
 		GDB_FLAGS="-g3 -ggdb3"
+		
 		if test "x${GCC}" = "xyes"; then
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wstrict-prototypes)
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-prototypes)
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wmissing-declarations)
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wnested-externs)
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
-			AX_CFLAGS_GCC_OPTION_NEW(-Wnonnull)
-dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)
-dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
-			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector-all)
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-fstack-protector-all dnl
+				-Wmissing-declarations dnl
+				-Wnested-externs dnl
+				-Wno-long-long dnl
+				-Wnonnull dnl
+				-Wcast-align dnl
+				-Wno-unused-parameter dnl
+				-Wno-missing-field-initializers dnl
+				-Wold-style-definition dnl
+				-Wformat-security dnl
+				-Wstrict-aliasing dnl
+				-Wmissing-format-attribute dnl
+				-Wmissing-noreturn dnl
+				-Winit-self dnl
+				-Wmissing-include-dirs dnl
+				-Wunused-but-set-variable dnl
+				-Warray-bounds dnl
+				-Wimplicit-function-declaration dnl
+				-Wreturn-type dnl
+				-Wno-unused-parameter dnl
+				dnl
+				dnl // should be added and fixed dnl
+				dnl -Wsign-compare dnl
+				dnl -Wstrict-prototypes dnl
+				dnl -Wshadow dnl
+				dnl -Wmissing-prototypes dnl
+				dnl -Wswitch-enum 
+				dnl
+				dnl // very pedantic dnl
+				dnl -Wundef dnl
+				dnl -Wdeclaration-after-statement dnl
+				dnl -Wwrite-strings dnl
+				dnl -Wpointer-arith dnl
+				dnl -Wformat=2 dnl
+				dnl -Wformat-nonliteral dnl
+				dnl -Winline  dnl
+				dnl -Wpacked dnl
+				dnl -Wredundant-decls dnl
+				dnl -Wswitch-default 
+				dnl
+				dnl // do not add dnl
+				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
+				dnl -Wno-unused-but-set-variable dnl
+			], ax_warn_cflags_variable)
     		fi 
+    		
 	else
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		DEBUG=0
@@ -540,18 +554,26 @@ dnl			AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
 		enable_debug_mutex="no"
 		CFLAGS_saved="${CFLAGS_saved}"
 		if test "x${GCC}" = "xyes"; then
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-long-long)
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-parameter)
-dnl                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-unused-but-set-variable)	// has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html)
-                        AX_CFLAGS_GCC_OPTION_NEW(-Wno-ignored-qualifiers)
-			AX_CFLAGS_GCC_OPTION_NEW(-fstack-protector)
+			AC_LANG_SAVE
+			AC_LANG_C
+			AX_APPEND_COMPILE_FLAGS([ dnl
+				-fstack-protector dnl
+				-Wno-long-long dnl
+				-Wno-unused-parameter dnl
+				-Wno-ignored-qualifiers dnl
+				dnl
+				dnl // do not add dnl
+				dnl // has negative side effect on certain platforms (http://xen.1045712.n5.nabble.com/xen-4-0-testing-test-7147-regressions-FAIL-td4415622.html) dnl
+				dnl -Wno-unused-but-set-variable dnl
+			], ax_warn_cflags_variable)
 		fi		
 	fi
 	CFLAGS_saved="${CFLAGS_saved} -I."		dnl include our own directory first, so that we can find config.h when using a builddir
-	CFLAGS="${CFLAGS_saved}"
+	CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
+	AC_SUBST([ax_warn_cflags_variable])
 ])
 
 AC_DEFUN([CS_ENABLE_GCOV], [
@@ -789,7 +811,6 @@ AC_DEFUN([CS_WITH_HASH_SIZE], [
 ])
 
 AC_DEFUN([CS_PARSE_WITH_AND_ENABLE], [
-	CS_ENABLE_OPTIMIZATION
 	CS_ENABLE_GCOV
 	CS_ENABLE_REFCOUNT_DEBUG
 	CS_ENABLE_LOCK_DEBUG

@@ -310,8 +310,8 @@ struct ast_ha *pbx_append_ha(NEWCONST char *sense, const char *stuff, struct ast
 struct ast_context *pbx_context_find_or_create(struct ast_context **extcontexts, struct ast_hashtab *exttable, const char *name, const char *registrar);
 struct ast_config *pbx_config_load(const char *filename, const char *who_asked, struct ast_flags flags);
 const char *pbx_inet_ntoa(struct in_addr ia);
-int pbx_str2cos(const char *value, unsigned int *cos);
-int pbx_str2tos(const char *value, unsigned int *tos);
+int pbx_str2cos(const char *value, uint8_t *cos);
+int pbx_str2tos(const char *value, uint8_t *tos);
 int pbx_context_remove_extension(const char *context, const char *extension, int priority, const char *registrar);
 void pbxman_send_listack(struct mansession *s, const struct message *m, char *msg, char *listflag);
 int pbx_moh_start(PBX_CHANNEL_TYPE * chan, const char *mclass, const char *interpclass);
