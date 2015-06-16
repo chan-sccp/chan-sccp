@@ -91,20 +91,6 @@ DROP TYPE IF EXISTS buttontype;
 CREATE TYPE buttontype AS ENUM ('line','speeddial','service','feature','empty');
 
 --
--- isTypeLine Using to check sccpline.name foreign key contraint if buttonconfig.type=='line'
---
-CREATE OR REPLACE FUNCTION isTypeLine(buttontype, varchar) returns boolean as $$
-select exists(
-        select 1
-        from sccpline
-        where 
-                $1 <> 'line'
-        or
-                sccpline.name = $2
-);
-$$ language sql;
-
---
 -- buttonconfig table
 -- foreign constrainst:
 --   device -> sccpdevice.name
@@ -125,8 +111,7 @@ CREATE TABLE buttonconfig(
   CONSTRAINT devicename FOREIGN KEY (device)
       REFERENCES sccpdevice ("name") MATCH SIMPLE
       ON UPDATE NO ACTION ON DELETE NO ACTION
-  CONSTRAINT linename CHECK (isTypeLine("type", "name"))
-  UNIQUE (device, instance, "type")    
+  UNIQUE (device, instance)    
 );
 
 --
