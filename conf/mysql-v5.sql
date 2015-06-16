@@ -106,24 +106,6 @@ CREATE TABLE IF NOT EXISTS `buttonconfig` (
   FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=latin1;
 
-
---
--- trigger to check buttonconfig sccpline foreign key constrainst:
---   if type=='line' then check name against sccpline.name column
---   else free field
---
-DROP TRIGGER IF EXISTS trg_buttonconfig;
-CREATE TRIGGER trg_buttonconfig BEFORE INSERT ON buttonconfig
-FOR EACH ROW
-BEGIN
-	IF new.`type` = 'line' THEN
-		IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccp.line`.`name` = new.`name`) = 0
-		THEN
-			INSERT error_msg VALUES('foreign key contraint violated. if type==line then sccpline.name needs to exists for buttonconfig.name!');
-		END IF
-	END IF
-END;
-
 --
 -- View for merging device and button configuration
 --
