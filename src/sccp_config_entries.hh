@@ -263,6 +263,7 @@ static const SCCPConfigOption sccpLineConfigOptions[] = {
 	{"cid_num", 			L_OBJ_REF(cid_num), 			TYPE_STRING,									SCCP_CONFIG_FLAG_REQUIRED,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"callerid number\n"},
 	{"defaultSubscriptionId_name",	L_OBJ_REF(defaultSubscriptionId.name), 	TYPE_STRING,						 			SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Name used on a shared line when no name is specified on the line button for the device\n"},
 	{"defaultSubscriptionId_number",L_OBJ_REF(defaultSubscriptionId.number),TYPE_STRING,						 			SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number used on a shared line when no name is specified on the line button for the device\n"},
+	{"disallow|allow", 		L_OBJ_REF(reduced_preferences), 	TYPE_PARSER(sccp_config_parse_codec_preferences),				SCCP_CONFIG_FLAG_MULTI_ENTRY,					SCCP_CONFIG_NOUPDATENEEDED,		NULL,				""},
 	{"callerid", 			0, 	0, 				TYPE_STRING,									SCCP_CONFIG_FLAG_OBSOLETE, 					SCCP_CONFIG_NOUPDATENEEDED, 		NULL,				"obsolete callerid param. Use cid_num and cid_name\n"},
 	{"mailbox", 			L_OBJ_REF(mailboxes), 			TYPE_PARSER(sccp_config_parse_mailbox),						SCCP_CONFIG_FLAG_NONE,	 					SCCP_CONFIG_NEEDDEVICERESET, 		"",				"Mailbox to store messages in. Format 'mailbox@context' or 'mailbox' when you use 'default' context\n"},
 	{"vmnum", 			L_OBJ_REF(vmnum), 			TYPE_STRING,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		NULL,				"Number to dial to get to the users Mailbox\n"},

@@ -528,6 +528,50 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
 }
 
 /*!
+ * \brief combine/reduce device caps / prefs to line caps / prefs
+ * function is like this temporarily until preferences have been transfered from device to line in V4.3
+ */
+void sccp_line_copyCapabilitiesFromDeviceToLine(sccp_line_t *l, sccp_device_t *d, int shared)
+{
+	if (!l || !d) {
+		return;
+	}
+
+	/* combine capabilities of all devices on shared line */
+	if (!shared) {
+		memcpy(&l->combined_capabilities.audio, &d->capabilities.audio, sizeof(l->combined_capabilities.audio));
+		memcpy(&l->combined_capabilities.video, &d->capabilities.video, sizeof(l->combined_capabilities.video));
+	} else {
+		sccp_utils_combineCodecSets((skinny_codec_t **)&l->combined_capabilities.audio, d->capabilities.audio);
+		sccp_utils_combineCodecSets((skinny_codec_t **)&l->combined_capabilities.video, d->capabilities.video);
+	}
+	pbx_log(LOG_NOTICE, "%s: copyCodecSetsFromDevice %s ToLine %s: first cap: %d\n", d->id, d->id, l->name, l->combined_capabilities.audio[0]);
+}
+
+/*!
+ * \brief combine/reduce device caps / prefs to line caps / prefs
+ * function is like this temporarily until preferences have been transfered from device to line in V4.3
+ */
+static void sccp_line_copyPreferencesFromDeviceToLine(sccp_line_t *l, sccp_device_t *d, int shared)
+{
+	if (!l || !d) {
+		return;
+	}
+
+	/* reduce to common preferences of all device on shared line */
+	if (l->reduced_preferences.audio[0] == SKINNY_CODEC_NONE || l->reduced_preferences_auto_generated) {
+		if (!shared) {
+			memcpy(&l->reduced_preferences.audio , &d->preferences.audio , sizeof(l->reduced_preferences.audio ));
+			memcpy(&l->reduced_preferences.video , &d->preferences.video , sizeof(l->reduced_preferences.video ));
+		} else {
+			sccp_utils_reduceCodecSet  ((skinny_codec_t **)&l->reduced_preferences.audio , d->preferences.audio );
+			sccp_utils_reduceCodecSet  ((skinny_codec_t **)&l->reduced_preferences.video , d->preferences.video );
+		}
+		l->reduced_preferences_auto_generated = TRUE;
+	}
+}
+
+/*!
  * \brief Attach a Device to a line
  * \param line SCCP Line
  * \param d SCCP Device
@@ -552,7 +596,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 		sccp_linedevice_release(linedevice);
 		return;
 	}
-
+	
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
@@ -572,6 +616,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	}
 
 	SCCP_LIST_LOCK(&l->devices);
+	sccp_line_copyPreferencesFromDeviceToLine(l, d, SCCP_LIST_GETSIZE(&l->devices));		/* combine / reduce codec from device for this (shared) line */
 	SCCP_LIST_INSERT_HEAD(&l->devices, linedevice, list);
 	SCCP_LIST_UNLOCK(&l->devices);
 
@@ -604,6 +649,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
 	sccp_linedevices_t *linedevice;
+	int shared = 0;
 
 	if (!l) {
 		return;
@@ -612,6 +658,8 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&l->devices, linedevice, list) {
+		sccp_line_copyCapabilitiesFromDeviceToLine(l, device, shared++);		/* rebuild line codec table */
+		sccp_line_copyPreferencesFromDeviceToLine(l, device, shared++);		/* rebuild line codec table */
 		if (device == NULL || linedevice->device == device) {
 			regcontext_exten(l, &(linedevice->subscriptionId), 0);
 			SCCP_LIST_REMOVE_CURRENT(list);

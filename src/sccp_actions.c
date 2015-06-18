@@ -1983,9 +1983,8 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		/* we have no preferred codec, use capabilities -MC */
 		memcpy(&d->preferences.audio, &d->capabilities.audio, sizeof(d->preferences.audio));
 	}
-
+	
 	char cap_buf[512];
-
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: num of codecs %d, capabilities: %s\n", DEV_ID_LOG(d), (int) ARRAY_LEN(d->capabilities.audio), cap_buf);
 }
