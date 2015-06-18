@@ -734,6 +734,19 @@ struct sccp_line {
 		int oldmsgs;											/*!< Old Messages */
 	} voicemailStatistic;											/*!< VoiceMail Statistics Structure */
 
+	struct {
+		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Capabilities */
+		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Capabilities */
+	} combined_capabilities;										/*!< Combined Capabilities of a Shared Line Participants */
+
+	struct {
+		skinny_codec_t audio[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Audio Codec Preferences */
+		skinny_codec_t video[SKINNY_MAX_CAPABILITIES];							/*!< SCCP Video Codec Preferences */
+	} reduced_preferences;											/*!< Will eventually take over the role from device->preferences
+														     For now it will either be automatically build based on reduced d->preferences of all shared line participants,
+														     Or be user defined in sccp.conf per line */
+	boolean_t reduced_preferences_auto_generated;								/*!< Temporary Variable to distinguish source of l->preferences */
+
 	char adhocNumber[SCCP_MAX_EXTENSION];									/*!< number that should be dialed when device offhocks this line */
 	/* this is for reload routines */
 	boolean_t pendingDelete;										/*!< this bit will tell the scheduler to delete this line when unused */

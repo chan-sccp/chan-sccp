@@ -1449,7 +1449,6 @@ sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, co
  */
 void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 {
-	skinny_codec_t preferredCodec = SKINNY_CODEC_NONE;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Answer Channel %d / %s\n", DEV_ID_LOG(device), channel->callid, channel->designator);
 
@@ -1521,7 +1520,8 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 	}
 
 	/** check if we have preferences from channel request */
-	preferredCodec = channel->preferences.audio[0];
+#if 0
+	skinny_codec_t preferredCodec = channel->preferences.audio[0];
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) current preferredCodec=%d\n", DEV_ID_LOG(device), preferredCodec);
 
 	/** we changed channel->preferences.audio in sccp_channel_setDevice, so push the preferred codec back to pos 1 */
@@ -1541,6 +1541,7 @@ void sccp_channel_answer(const sccp_device_t * device, sccp_channel_t * channel)
 		memcpy(&channel->preferences.audio[numFoundCodecs], tempCodecPreferences, sizeof(skinny_codec_t) * (ARRAY_LEN(channel->preferences.audio) - numFoundCodecs));
 	}
 	//! \todo move this to openreceive- and startmediatransmission (we do calc in openreceiv and startmedia, so check if we can remove)
+#endif
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_answer) Update Channel Capability\n", DEV_ID_LOG(device));
 	sccp_channel_updateChannelCapability(channel);
 
