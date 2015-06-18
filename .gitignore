@@ -19,3 +19,5 @@ src/config.h.bak
 src/config.h.in.bak
 .*~
 *~
+.revision
+src/revision.h

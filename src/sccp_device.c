@@ -1908,6 +1908,8 @@ void sccp_dev_postregistration(void *data)
 				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
 				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
 			}
+			/* combine device capabilities and add to (shared) line */
+			sccp_line_copyCapabilitiesFromDeviceToLine(linedevice->line, linedevice->device, SCCP_LIST_GETSIZE(&linedevice->line->devices));
 		}
 	}
 	sprintf(family, "SCCP/%s", d->id);
