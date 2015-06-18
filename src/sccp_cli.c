@@ -1164,6 +1164,8 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	sccp_linedevices_t *linedevice;
 	sccp_mailbox_t *mailbox;
 	PBX_VARIABLE_TYPE *v = NULL;
+	char pref_buf[256];
+	char cap_buf[512];
 	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	const char *actionid = "";
 
@@ -1186,6 +1188,8 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 		pbx_log(LOG_WARNING, "Failed to get line %s\n", line);
 		CLI_AMI_RETURN_ERROR(fd, s, m, "Can't find settings for line %s\n", line);
 	}
+	sccp_multiple_codecs2str(pref_buf, sizeof(pref_buf) - 1, l->reduced_preferences.audio, ARRAY_LEN(l->reduced_preferences.audio));
+	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, l->combined_capabilities.audio, ARRAY_LEN(l->combined_capabilities.audio));
 
 	if (!s) {
 		CLI_AMI_OUTPUT(fd, s, "\n--- SCCP channel driver line settings ------------------------------------------------------------------------------------\n");
@@ -1232,6 +1236,8 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("Active Channel Count",	CLI_AMI_LIST_WIDTH, "%d", SCCP_RWLIST_GETSIZE(&l->channels));
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone Digits",	CLI_AMI_LIST_WIDTH, "%s", l->secondary_dialtone_digits ? l->secondary_dialtone_digits : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Sec. Dialtone",		CLI_AMI_LIST_WIDTH, "0x%02x", l->secondary_dialtone_tone);
+	CLI_AMI_OUTPUT_PARAM("(Combined) Capabilities",	CLI_AMI_LIST_WIDTH, "%s", cap_buf);
+	CLI_AMI_OUTPUT_PARAM("(Reduced) Preferences",	CLI_AMI_LIST_WIDTH, "%s", pref_buf);
 	CLI_AMI_OUTPUT_BOOL("Echo Cancellation",	CLI_AMI_LIST_WIDTH, l->echocancel);
 	CLI_AMI_OUTPUT_BOOL("Silence Suppression",	CLI_AMI_LIST_WIDTH, l->silencesuppression);
 	CLI_AMI_OUTPUT_BOOL("Can Transfer",		CLI_AMI_LIST_WIDTH, l->transfer);

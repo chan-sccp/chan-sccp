@@ -40,6 +40,7 @@ void sccp_line_kill_channels(sccp_line_t * l);
 sccp_channelstate_t sccp_line_getDNDChannelState(sccp_line_t * line);
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c);
 void sccp_line_cfwd(sccp_line_t * l, sccp_device_t * device, sccp_callforward_t type, char *number);
+void sccp_line_copyCapabilitiesFromDeviceToLine(sccp_line_t *l, sccp_device_t *d, int shared);
 
 // find line
 sccp_line_t *sccp_line_find_byname(const char *name, uint8_t realtime);
