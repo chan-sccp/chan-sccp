@@ -1,3 +1,33 @@
+Version: V4.2_STABLE
+=====================
+New Features in V4.2
+ - Enums processed using awk generation script
+ - Multi channel Direct RTP (Partial)
+ - Enums processed using meta programming (Renewed macro implementation)
+ - Support for named callgroup / pickupgroups when using >asterisk-11
+ - Added Support for Asterisk-12
+ - Added Support for Asterisk-13
+ - Support for IPv4 and IPv6
+ - Updated/Changed DTMF Handling to always take rfc2833
+ - Multi Channel Direct RTP (ie: SIP-SCCP direct media)
+ - Enums processed using meta programming (Renewed macro implementation)
+ - Support for named callgroup / pickupgroups when using >asterisk-11
+ - Added support for earlyrtp=immediate
+ - Added Scheduled Hangup (So that you can hear the hangupcause)
+ - Reworked digittimeout
+ - Improved sccp.conf / buttonconfig button change detection on sccp reload
+ - Allow HASH() dialplan function when using SCCPDEVICE(), SCCPLINE() and SCCPCHANNEL()
+ - Added Audio Quality Statistics in CHANNEL() and SCCPDEVICE() / SCCPCHANNEL)()
+ - Updated hangup / queue_hangup handling
+ - Support for UTF-8 config file (allowing accented characters in labels and description on older phones)
+
+Bug Fixes
+ - Fixed Some asterisk-12 / asterisk-13 issues
+ - Fixed buttontemplate instance issue
+ - Fixed RTP Handling
+ - Replaced Asterisk Scheduled Macro Use
+ - Numerous smaller / bigger fixes (Check ChangeLog for details)
+
 Version: 4.2.0_RC3
 ==================
 New Features in V4.2
@@ -154,5 +184,3 @@ Fixed/Improved:
  - Group pickup
  - Call parking
 
-
-Version: 4.2.0_RC3
