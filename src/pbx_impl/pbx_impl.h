@@ -14,11 +14,10 @@
 #ifndef __PBX_IMPL_H
 #define __PBX_IMPL_H
 
-#include <config.h>
+#include "../common.h"
 #if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
 #endif
-#include "../common.h"
 
 #ifdef HAVE_ASTERISK
 #include "ast/ast.h"
