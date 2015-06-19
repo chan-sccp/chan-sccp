@@ -18,6 +18,7 @@
 #include "sccp_device.h"
 #include "sccp_channel.h"
 #include "sccp_line.h"
+#include "sccp_mwi.h"
 #include "sccp_utils.h"
 #include "sccp_conference.h"
 #include "sccp_socket.h"
@@ -196,7 +197,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 							snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.service.url);
 							break;
 						case FEATURE:
-							snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options);
+							snprintf(tmp, sizeof(tmp), "[%d,%s,%s,%s]", config->instance, sccp_config_buttontype2str(config->type), config->label, config->button.feature.options ? config->button.feature.options : "");
 							break;
 						case EMPTY:
 							snprintf(tmp, sizeof(tmp), "[%d,%s]", config->instance, sccp_config_buttontype2str(config->type));

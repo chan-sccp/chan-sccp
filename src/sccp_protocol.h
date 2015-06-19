@@ -3404,8 +3404,8 @@ static const uint8_t softkeysmap[] = {
  * \brief SKINNY Soft Key Modes Structure
  */
 typedef struct {
-	uint8_t id;												/*!< Soft Key ID */
 	uint8_t *ptr;												/*!< Point to next Mode */
+	uint8_t id;												/*!< Soft Key ID */
 	uint8_t count;												/*!< Soft Key Count */
 } softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
 

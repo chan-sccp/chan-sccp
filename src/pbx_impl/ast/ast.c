@@ -347,9 +347,9 @@ skinny_codec_t pbx_codec2skinny_codec(ast_format_type fmt)
 {
 	uint32_t i;
 
-	for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
-		if (skinny2pbx_codec_maps[i].pbx_codec == (uint64_t) fmt) {
-			return skinny2pbx_codec_maps[i].skinny_codec;
+	for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
+		if (pbx2skinny_codec_maps[i].pbx_codec == (uint64_t) fmt) {
+			return pbx2skinny_codec_maps[i].skinny_codec;
 		}
 	}
 	return 0;
@@ -366,9 +366,9 @@ ast_format_type skinny_codec2pbx_codec(skinny_codec_t codec)
 {
 	uint32_t i;
 
-	for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
-		if (skinny2pbx_codec_maps[i].skinny_codec == codec) {
-			return skinny2pbx_codec_maps[i].pbx_codec;
+	for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
+		if (pbx2skinny_codec_maps[i].skinny_codec == codec) {
+			return pbx2skinny_codec_maps[i].pbx_codec;
 		}
 	}
 	return 0;

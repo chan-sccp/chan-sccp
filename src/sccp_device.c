@@ -27,9 +27,12 @@
 #include "sccp_config.h"
 #include "sccp_actions.h"
 #include "sccp_features.h"
+#include "sccp_featureButton.h"
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sccp_rtp.h"
+#include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 int __sccp_device_destroy(const void *ptr);
@@ -1959,6 +1962,52 @@ void sccp_dev_postregistration(void *data)
 	return;
 }
 
+static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
+{
+	if (!buttonconfig) {
+		return;
+	}
+	if (buttonconfig->label) {
+		sccp_free(buttonconfig->label);
+	}
+	switch(buttonconfig->type) {
+		case LINE:
+			if (buttonconfig->button.line.name) {
+				sccp_free(buttonconfig->button.line.name);
+			}
+			if (buttonconfig->button.line.subscriptionId) {
+				sccp_free(buttonconfig->button.line.subscriptionId);
+			}
+			if (buttonconfig->button.line.options) {
+				sccp_free(buttonconfig->button.line.options);
+			}
+			break;
+		case SPEEDDIAL:
+			if (buttonconfig->button.speeddial.ext) {
+				sccp_free(buttonconfig->button.speeddial.ext);
+			}
+			if (buttonconfig->button.speeddial.hint) {
+				sccp_free(buttonconfig->button.speeddial.hint);
+			}
+			break;
+		case SERVICE:
+			if (buttonconfig->button.service.url) {
+				sccp_free(buttonconfig->button.service.url);
+			}
+		case FEATURE:
+			if (buttonconfig->button.feature.options) {
+				sccp_free(buttonconfig->button.feature.options);
+			}
+		case EMPTY:
+		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
+			break;
+	}
+	sccp_free(buttonconfig);
+	buttonconfig = NULL;
+}
+
+
+
 /*!
  * \brief Clean Device
  *
@@ -2037,9 +2086,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
 				SCCP_LIST_REMOVE_CURRENT(list);
-				sccp_free(config);
-				config = NULL;
-
+				sccp_buttonconfig_destroy(config);
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
@@ -2144,8 +2191,7 @@ int __sccp_device_destroy(const void *ptr)
 	/* only generated on read config, so do not remove on reset/restart */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	while ((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
-		sccp_free(config);
-		config = NULL;
+		sccp_buttonconfig_destroy(config);
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
@@ -2669,7 +2715,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 	if (!event || !(device = event->event.featureChanged.device)) {
 		return;
 	}
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);

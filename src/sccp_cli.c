@@ -863,7 +863,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 																\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
-			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6",		s,	6,	buttonconfig->button.line.subscriptionId.number)	\
+			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6",		s,	6,	buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->number : "")	\
 			CLI_AMI_TABLE_FIELD(Label,		"-29.29",	s,	29, 	l->label)						\
 			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
@@ -888,7 +888,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
 			CLI_AMI_TABLE_FIELD(Number,		"-36.36",	s,	36,	buttonconfig->button.speeddial.ext)		\
-			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint)
+			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint ? buttonconfig->button.speeddial.hint : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
@@ -908,7 +908,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
-			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options)		\
+			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "")		\
 			CLI_AMI_TABLE_FIELD(Status,		"-27",		d,	27, 	buttonconfig->button.feature.status)
 #include "sccp_cli_table.h"
 			local_table_total++;
@@ -927,7 +927,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,		4,	buttonconfig->index + 1)		\
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
 			CLI_AMI_TABLE_FIELD(URL,		"-64.64",	s,	64,	buttonconfig->button.service.url)
 #include "sccp_cli_table.h"
@@ -1579,10 +1579,10 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
 #define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
 static struct refcount_test {
+	char *test;
 	int id;
 	int loop;
 	unsigned int threadid;
-	char *test;
 } *object[NUM_OBJECTS];
 
 static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)

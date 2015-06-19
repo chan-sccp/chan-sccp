@@ -15,6 +15,8 @@
 #include <config.h>
 #include "common.h"
 #include "sccp_device.h"
+#include "sccp_channel.h"
+#include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_socket.h"
 #if HAVE_ICONV_H
@@ -229,7 +231,7 @@ gcc_inline size_t msgtype2size(sccp_mid_t type)
 
 gcc_inline const char *pbxsccp_devicestate2str(uint32_t value)
 {														/* pbx_impl/ast/ast.h */
-	_ARR2STR(pbx_devicestates, devicestate, value, text);
+	_ARR2STR(sccp_pbx_devicestates, devicestate, value, text);
 }
 
 gcc_inline const char *extensionstatus2str(uint32_t value)
@@ -260,11 +262,6 @@ gcc_inline const char *codec2key(skinny_codec_t value)
 gcc_inline const char *codec2name(skinny_codec_t value)
 {														/* sccp_protocol.h */
 	_ARR2STR(skinny_codecs, codec, value, name);
-}
-
-gcc_inline const char *featureType2str(sccp_feature_type_t value)
-{														/* chan_sccp.h */
-	_ARR2STR(sccp_feature_types, featureType, value, text);
 }
 
 gcc_inline uint32_t debugcat2int(const char *str)
@@ -640,26 +637,6 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage * sas)
 }
 
 /*!
- * \brief convert Feature String 2 Feature ID
- * \param str Feature Str as char
- * \return Feature Type
- */
-sccp_feature_type_t sccp_featureStr2featureID(const char *const str)
-{
-	if (!str) {
-		return SCCP_FEATURE_UNKNOWN;
-	}
-	uint32_t i;
-
-	for (i = 0; i < ARRAY_LEN(sccp_feature_types); i++) {
-		if (!strcasecmp(sccp_feature_types[i].text, str)) {
-			return sccp_feature_types[i].featureType;
-		}
-	}
-	return SCCP_FEATURE_UNKNOWN;
-}
-
-/*!
  * \brief Handle Feature Change Event for persistent feature storage
  * \param event SCCP Event
  *
@@ -682,7 +659,7 @@ void sccp_util_featureStorageBackend(const sccp_event_t * event)
 		return;
 	}
 
-	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: StorageBackend got Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 	sprintf(family, "SCCP/%s", device->id);
 
 	switch (event->event.featureChanged.featureType) {
@@ -930,103 +907,6 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
 #endif
 	return result;
-}
-
-/*!
- * \brief Parse a debug categories line to debug int
- * \param arguments Array of Arguments
- * \param startat Start Point in the Arguments Array
- * \param argc Count of Arguments
- * \param new_debug_value as uint32_t
- * \return new_debug_value as uint32_t
- */
-int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
-{
-	int argi;
-	int32_t i;
-	char *argument = "";
-	char *token = "";
-	const char delimiters[] = " ,\t";
-	boolean_t subtract = 0;
-
-	if (sscanf((char *) arguments[startat], "%d", &new_debug_value) != 1) {
-		for (argi = startat; argi < argc; argi++) {
-			argument = (char *) arguments[argi];
-			if (!strncmp(argument, "none", 4)) {
-				new_debug_value = 0;
-				break;
-			} else if (!strncmp(argument, "no", 2)) {
-				subtract = 1;
-			} else if (!strncmp(argument, "all", 3)) {
-				new_debug_value = 0;
-				for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-					if (!subtract) {
-						new_debug_value += sccp_debug_categories[i].category;
-					}
-				}
-			} else {
-				// parse comma separated debug_var
-				token = strtok(argument, delimiters);
-				while (token != NULL) {
-					// match debug level name to enum
-					for (i = 0; i < ARRAY_LEN(sccp_debug_categories); i++) {
-						if (strcasecmp(token, sccp_debug_categories[i].key) == 0) {
-							if (subtract) {
-								if ((new_debug_value & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-									new_debug_value -= sccp_debug_categories[i].category;
-								}
-							} else {
-								if ((new_debug_value & sccp_debug_categories[i].category) != sccp_debug_categories[i].category) {
-									new_debug_value += sccp_debug_categories[i].category;
-								}
-							}
-						}
-					}
-					token = strtok(NULL, delimiters);
-				}
-			}
-		}
-	}
-	return new_debug_value;
-}
-
-/*!
- * \brief Write the current debug value to debug categories
- * \param debugvalue DebugValue as uint32_t
- * \return string containing list of categories comma seperated (you need to free it)
- */
-char *sccp_get_debugcategories(int32_t debugvalue)
-{
-	int32_t i;
-	char *res = NULL;
-	char *tmpres = NULL;
-	const char *sep = ",";
-	size_t size = 0;
-
-	for (i = 0; i < ARRAY_LEN(sccp_debug_categories); ++i) {
-		if ((debugvalue & sccp_debug_categories[i].category) == sccp_debug_categories[i].category) {
-			size_t new_size = size;
-
-			new_size += strlen(sccp_debug_categories[i].key) + 1 /*sizeof(sep) */  + 1;
-			tmpres = sccp_realloc(res, new_size);
-			if (tmpres == NULL) {
-				pbx_log(LOG_ERROR, "Memory Allocation Error\n");
-				sccp_free(res);
-				return NULL;
-			}
-			res = tmpres;
-			if (size == 0) {
-				strcpy(res, sccp_debug_categories[i].key);
-			} else {
-				strcat(res, sep);
-				strcat(res, sccp_debug_categories[i].key);
-			}
-
-			size = new_size;
-		}
-	}
-
-	return res;
 }
 
 /*!

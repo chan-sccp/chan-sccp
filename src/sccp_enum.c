@@ -1797,6 +1797,87 @@ char *sccp_rtp_info_all_entries(void) {
 /* = End =========================================================================================                  sccp_rtp_info === */
 
 
+/* = Begin =======================================================================================              sccp_feature_type === */
+
+
+/*
+ * \brief enum sccp_feature_type
+ */
+static const char *sccp_feature_type_map[] = {
+	[SCCP_FEATURE_UNKNOWN] = "FEATURE_UNKNOWN",
+	[SCCP_FEATURE_CFWDNONE] = "cfwd off",
+	[SCCP_FEATURE_CFWDALL] = "cfwdall",
+	[SCCP_FEATURE_CFWDBUSY] = "cfwdbusy",
+	[SCCP_FEATURE_DND] = "dnd",
+	[SCCP_FEATURE_PRIVACY] = "privacy",
+	[SCCP_FEATURE_MONITOR] = "monitor",
+	[SCCP_FEATURE_HOLD] = "hold",
+	[SCCP_FEATURE_TRANSFER] = "transfer",
+	[SCCP_FEATURE_MULTIBLINK] = "multiblink",
+	[SCCP_FEATURE_MOBILITY] = "mobility",
+	[SCCP_FEATURE_CONFERENCE] = "conference",
+	[SCCP_FEATURE_DO_NOT_DISTURB] = "do not disturb",
+	[SCCP_FEATURE_CONF_LIST] = "ConfList",
+	[SCCP_FEATURE_REMOVE_LAST_PARTICIPANT] = "RemoveLastParticipant",
+	[SCCP_FEATURE_HLOG] = "Hunt Group Log-in/out",
+	[SCCP_FEATURE_QRT] = "QRT",
+	[SCCP_FEATURE_CALLBACK] = "CallBack",
+	[SCCP_FEATURE_OTHER_PICKUP] = "OtherPickup",
+	[SCCP_FEATURE_VIDEO_MODE] = "VideoMode",
+	[SCCP_FEATURE_NEW_CALL] = "NewCall",
+	[SCCP_FEATURE_END_CALL] = "EndCall",
+	[SCCP_FEATURE_TESTE] = "FEATURE_TESTE",
+	[SCCP_FEATURE_TESTF] = "FEATURE_TESTF",
+	[SCCP_FEATURE_TESTI] = "FEATURE_TESTI",
+	[SCCP_FEATURE_TESTG] = "Messages",
+	[SCCP_FEATURE_TESTH] = "Directory",
+	[SCCP_FEATURE_TESTJ] = "Application",
+#ifdef CS_DEVSTATE_FEATURE
+	[SCCP_FEATURE_DEVSTATE] = "devstate",
+#endif
+	[SCCP_FEATURE_PICKUP] = "pickup",
+	[SCCP_FEATURE_TYPE_SENTINEL] = "LOOKUPERROR"
+};
+
+int sccp_feature_type_exists(int sccp_feature_type_int_value) {
+	if ((SCCP_FEATURE_CFWDNONE <=sccp_feature_type_int_value) && (sccp_feature_type_int_value < SCCP_FEATURE_TYPE_SENTINEL )) {
+		return 1;
+	}
+	return 0;
+	return 0;
+}
+
+const char * sccp_feature_type2str(sccp_feature_type_t enum_value) {
+	if ((SCCP_FEATURE_UNKNOWN <= enum_value) && (enum_value <= SCCP_FEATURE_TYPE_SENTINEL)) {
+		return sccp_feature_type_map[enum_value];
+	}
+	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_feature_type2str\n", enum_value);
+	return "SCCP: OutOfBounds Error during lookup of sccp_feature_type2str\n";
+}
+
+sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str) {
+	int idx;
+	for (idx = 0; idx < ARRAY_LEN(sccp_feature_type_map); idx++) {
+		if (sccp_strcaseequals(sccp_feature_type_map[idx], lookup_str)) {
+			return idx;
+		}
+	}
+	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_feature_type_str2val(%s) not found\n", lookup_str);
+	return SCCP_FEATURE_TYPE_SENTINEL;
+}
+
+int sccp_feature_type_str2intval(const char *lookup_str) {
+	int res = sccp_feature_type_str2val(lookup_str);
+	return (int)res != SCCP_FEATURE_TYPE_SENTINEL ? res : -1;
+}
+
+char *sccp_feature_type_all_entries(void) {
+	static char res[] = "FEATURE_UNKNOWN,cfwd off,cfwdall,cfwdbusy,dnd,privacy,monitor,hold,transfer,multiblink,mobility,conference,do not disturb,ConfList,RemoveLastParticipant,Hunt Group Log-in/out,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,FEATURE_TESTE,FEATURE_TESTF,FEATURE_TESTI,Messages,Directory,Application,,devstate,pickup";
+	return res;
+}
+/* = End =========================================================================================              sccp_feature_type === */
+
+
 /* = Begin =======================================================================================                skinny_lampmode === */
 
 /*!

@@ -697,7 +697,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
 					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 						buttonconfig->instance = btn[i].instance = lineInstance++;
-						sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
+						sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
 						if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 							d->defaultLineInstance = buttonconfig->instance;
 							defaultLineSet = TRUE;
@@ -880,8 +880,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
-		sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
-
+		sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 
 	return btn;
@@ -1191,7 +1190,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
-				if (strcasestr(config->button.line.options, "default")) {
+				if (sccp_strcaseequals(config->button.line.options, "default")) {
 					d->defaultLineInstance = lineNumber;
 					sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 				}
@@ -1983,9 +1982,8 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		/* we have no preferred codec, use capabilities -MC */
 		memcpy(&d->preferences.audio, &d->capabilities.audio, sizeof(d->preferences.audio));
 	}
-
+	
 	char cap_buf[512];
-
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: num of codecs %d, capabilities: %s\n", DEV_ID_LOG(d), (int) ARRAY_LEN(d->capabilities.audio), cap_buf);
 }
@@ -3466,7 +3464,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				break;
 			}
 
-			if (!strcasecmp(config->button.feature.options, "callpresent")) {
+			if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
 				res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 
 				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
@@ -3481,7 +3479,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				}
 				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
 			} else {
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options);
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options ? config->button.feature.options : "");
 			}
 
 			break;
@@ -3515,9 +3513,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
 			}
 
-			if (!strcasecmp(config->button.feature.options, "silent")) {
+			if (sccp_strcaseequals(config->button.feature.options, "silent")) {
 				d->dndFeature.status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
-			} else if (!strcasecmp(config->button.feature.options, "busy")) {
+			} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
 				d->dndFeature.status = (config->button.feature.status) ? SCCP_DNDMODE_REJECT : SCCP_DNDMODE_OFF;
 			}
 
@@ -3544,16 +3542,14 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		  * Handling of custom devicestate toggle buttons.
 		  */
 		case SCCP_FEATURE_DEVSTATE:
-			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status ? "On" : "Off");
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
 
 			if (TRUE == toggleState) {
-				// char devstateName[100];
-				// sprintf(devstateName, "Custom:%s", config->button.feature.options);
-				enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
-
-				//pbx_devstate_changed_literal(newDeviceState, devstateName);
-				ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
-				pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
+				if (!sccp_strlen_zero(config->button.feature.options)) {
+					enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
+					ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
+					pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
+				}
 			}
 
 			break;
