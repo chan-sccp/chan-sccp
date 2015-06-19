@@ -466,11 +466,6 @@ int load_config(void)
 	memset(&GLOB(bindaddr), 0, sizeof(GLOB(bindaddr)));
 	GLOB(allowAnonymous) = TRUE;
 
-#ifdef CS_SCCP_REALTIME
-	sccp_copy_string(GLOB(realtimedevicetable), "sccpdevice", sizeof(GLOB(realtimedevicetable)));
-	sccp_copy_string(GLOB(realtimelinetable), "sccpline", sizeof(GLOB(realtimelinetable)));
-#endif
-
 #if SCCP_PLATFORM_BYTE_ORDER == SCCP_LITTLE_ENDIAN
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Platform byte order   : LITTLE ENDIAN\n");
 #else
@@ -604,15 +599,11 @@ boolean_t sccp_prePBXLoad(void)
 
 	GLOB(descriptor) = -1;
 
-	//GLOB(bindaddr.sin_port) = DEFAULT_SCCP_PORT;
 	GLOB(bindaddr).ss_family = AF_INET;
 	((struct sockaddr_in *) &GLOB(bindaddr))->sin_port = DEFAULT_SCCP_PORT;
 
 	GLOB(externrefresh) = 60;
 	GLOB(keepalive) = SCCP_KEEPALIVE;
-	//sccp_copy_string(GLOB(dateformat), "M/D/YA", sizeof(GLOB(dateformat)));
-	//sccp_copy_string(GLOB(context), "default", sizeof(GLOB(context)));
-	//sccp_copy_string(GLOB(servername), "Asterisk", sizeof(GLOB(servername)));
 
 	/* Wait up to 16 seconds for first digit */
 	GLOB(firstdigittimeout) = 16;
