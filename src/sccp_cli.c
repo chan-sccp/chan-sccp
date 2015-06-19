@@ -46,7 +46,6 @@
  *  - We need to return RESULT_SUCCESS (for cli calls) at the end. If we set CLI_AMI_RETURN_ERROR, we will exit the function immediately and return RESULT_FAILURE. We need to make sure that all references are released before sending CLI_AMI_RETURN_ERROR.
  *  .
  */
-#include <config.h>
 #include "common.h"
 #include "sccp_cli.h"
 #include "sccp_device.h"

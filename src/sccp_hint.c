@@ -25,7 +25,6 @@
  * \todo (Page needs to be re-written)
  */
 
-#include <config.h>
 #include "common.h"
 #include "sccp_hint.h"
 #include "sccp_device.h"

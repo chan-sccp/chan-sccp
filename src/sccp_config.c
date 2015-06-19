@@ -84,7 +84,6 @@
  *
  */
 
-#include <config.h>
 #include "common.h"
 #include "sccp_config.h"
 #include "sccp_device.h"

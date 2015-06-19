@@ -12,7 +12,6 @@
  * $Date$
  * $Revision$
  */
-#include <config.h>
 #include "common.h"
 #include "sccp_appfunctions.h"
 #include "sccp_device.h"

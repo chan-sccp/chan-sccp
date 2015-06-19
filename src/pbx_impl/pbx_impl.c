@@ -15,7 +15,6 @@
 #ifndef __PBX_IMPL_C
 #define __PBX_IMPL_C
 
-#include <config.h>
 #include "../common.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
