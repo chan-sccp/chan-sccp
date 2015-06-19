@@ -149,6 +149,7 @@ static const SCCPConfigOption sccpGlobalConfigOptions[]={
 
 	{"hotline_context",	offsize(struct sccp_line,context),offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_context),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"sccp",				""},
 	{"hotline_extension", 	offsize(sccp_hotline_t,exten), offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_exten),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"111",				""},
+	{"hotline_label", 	offsize(struct sccp_line,label), offsetof(struct sccp_global_vars,hotline),	TYPE_PARSER(sccp_config_parse_hotline_label),	SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NEEDDEVICERESET,		"hotline",			""},
 	{"fallback",			G_OBJ_REF(token_fallback),		TYPE_STRINGPTR,									SCCP_CONFIG_FLAG_NONE,						SCCP_CONFIG_NOUPDATENEEDED,		"no",				"Immediately fallback to primairy/master server when it becomes available (master/slave asterisk cluster) (TokenRequest)\n"
 																																					"Possible values are: true/false/odd/even/script.\n" 
 																																					"active/passive cluster: true on active/false on passive\n" 
