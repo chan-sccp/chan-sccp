@@ -20,7 +20,6 @@
  * Relations:   SCCP Channels connect Asterisk Channels to SCCP Lines
  */
 
-#include <config.h>
 #include "common.h"
 #include "sccp_device.h"
 #include "sccp_pbx.h"

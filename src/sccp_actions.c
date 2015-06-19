@@ -23,7 +23,6 @@
  *              Phones Requesting function to be performed
  */
 
-#include <config.h>
 #include "common.h"
 #include "sccp_actions.h"
 #include "sccp_device.h"
