@@ -84,7 +84,11 @@ typedef struct sccp_conference sccp_conference_t;
 typedef struct sccp_mailbox sccp_mailbox_t;
 
 #ifndef SOLARIS
+#if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
+typedef _Bool boolean_t;
+#else
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
+#endif
 #else
 #define FALSE B_FALSE
 #define TRUE B_TRUE
