@@ -12,7 +12,6 @@
  * $Revision$
  */
 
-#include <config.h>
 #include "common.h"
 #include "sccp_indicate.h"
 #include "sccp_device.h"
