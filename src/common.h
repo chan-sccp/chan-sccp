@@ -80,13 +80,11 @@ typedef struct sccp_conference sccp_conference_t;								/*!< SCCP Conference St
 typedef struct sccp_rtp sccp_rtp_t;										/*!< SCCP RTP Struct Type */
 typedef struct sccp_private_channel_data sccp_private_channel_data_t;						/*!< SCCP Private Channel Data Structure */
 typedef struct sccp_cfwd_information sccp_cfwd_information_t;							/*!< SCCP CallForward information Structure */
+typedef struct sccp_conference sccp_conference_t;
+typedef struct sccp_mailbox sccp_mailbox_t;
 
 #ifndef SOLARIS
-#if defined __STDC__ && defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L
-typedef _Bool boolean_t;
-#else
 typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
-#endif
 #else
 #define FALSE B_FALSE
 #define TRUE B_TRUE

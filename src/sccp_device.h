@@ -176,8 +176,7 @@ struct sccp_device {
 	SCCP_LIST_HEAD (, sccp_addon_t) addons;									/*!< Add-Ons connect to this Device */
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
 
-	char *description;											/*!< Internal Description. Skinny protocol does not use it */
-
+	char description[SCCP_MAX_DEVICE_DESCRIPTION];								/*!< Internal Description. Skinny protocol does not use it */
 	uint16_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
 	uint16_t accessorystatus;										/*!< Accessory Status */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
@@ -211,11 +210,8 @@ struct sccp_device {
 	time_t registrationTime;
 
 	struct sccp_ha *ha;											/*!< Permit or Deny Connections to the Main Socket */
-
-	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
 	boolean_t meetme;											/*!< Meetme on/off */
-	char *meetmeopts;											/*!< Meetme Options to be Used */
-
+	char meetmeopts[SCCP_MAX_CONTEXT];									/*!< Meetme Options to be Used */
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
 	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */
@@ -235,6 +231,7 @@ struct sccp_device {
 	boolean_t directed_pickup_modeanswer;									/*!< Directed Pickup Mode Answer (Boolean, default on). Answer on directed pickup */
 	char directed_pickup_context[SCCP_MAX_CONTEXT];								/*!< Directed Pickup Context to Use in DialPlan */
 #endif
+	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
 	struct {
 		sccp_channel_t *transferee;									/*!< SCCP Channel which will be transferred */
 		sccp_channel_t *transferer;									/*!< SCCP Channel which initiated the transferee */

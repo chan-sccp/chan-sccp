@@ -150,8 +150,7 @@ struct sccp_channel {
 	boolean_t (*isMicrophoneEnabled) (void);
 
 	/* next should be converted to pointers, to reduce size */
-	char *musicclass;											/*!< Music Class */
-
+	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
 	sccp_callinfo_t callInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
