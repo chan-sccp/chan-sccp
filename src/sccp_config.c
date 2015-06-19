@@ -1226,28 +1226,6 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 			}
 			hotline->line->adhocNumber = strdup(value);
 		}
-	} else {
-		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	}
-	return changed;
-}
-
-/*!
- * \brief Config Converter/Parser for Hotline Extension
- *
- * \note not multi_entry
- */
-sccp_value_changed_t sccp_config_parse_hotline_label(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment)
-{
-	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
-	char *value = strdupa(v->value);
-	sccp_hotline_t *hotline = *(sccp_hotline_t **) dest;
-
-	if (hotline->line && !sccp_strcaseequals(hotline->line->label, value)) {
-		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		if (hotline->line->label) {
-			sccp_free(hotline->line->label);
-		}
 		hotline->line->label = strdup(value);
 	} else {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
