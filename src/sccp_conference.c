@@ -12,6 +12,7 @@
 #include "common.h"
 #include "sccp_conference.h"
 #include "sccp_device.h"
+#include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_channel.h"
 #include "sccp_cli.h"
