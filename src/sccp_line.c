@@ -659,6 +659,7 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 			sccp_channel_updateChannelDesignator(c);
+			sccp_channel_updateMusicClass(c, l);
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
 				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
