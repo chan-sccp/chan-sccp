@@ -368,6 +368,9 @@ int __sccp_line_destroy(const void *ptr)
 	#endif
 	*/
 	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
+	if (l->regcontext) {
+		sccp_free(l->regcontext);
+	}
 
 	// cleanup channels
 	sccp_channel_t *c = NULL;
@@ -535,7 +538,7 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
  */
-void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, struct subscriptionId *subscriptionId)
+void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId)
 {
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
@@ -552,7 +555,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 		sccp_linedevice_release(linedevice);
 		return;
 	}
-
+	
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
@@ -728,7 +731,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				continue;
 			}
 		} else {
-			context = GLOB(regcontext);
+			context = strdup(GLOB(regcontext));
 		}
 		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP");					/* make sure the context exists */
 		if (con) {

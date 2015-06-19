@@ -22,24 +22,23 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
 
-struct sccp_devstate_SubscribingDevice {
+struct sccp_devstate_SubscribingDevice 
+{
+	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
 	const sccp_device_t *device;										/*!< SCCP Device */
-	uint8_t instance;											/*!< Instance */
 	sccp_buttonconfig_t *buttonConfig;
 	char label[StationMaxNameSize];
-
-	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
+	uint8_t instance;											/*!< Instance */
 };
 
 typedef struct sccp_devstate_deviceState sccp_devstate_deviceState_t;
-struct sccp_devstate_deviceState {
-
+struct sccp_devstate_deviceState 
+{
+	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
+	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 	char devicestate[StationMaxNameSize];
 	PBX_EVENT_SUBSCRIPTION *sub;
 	uint32_t featureState;
-	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
-
-	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 };
 
 static SCCP_LIST_HEAD (, struct sccp_devstate_deviceState) deviceStates;

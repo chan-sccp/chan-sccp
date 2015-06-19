@@ -93,6 +93,7 @@
 #include "sccp_featureButton.h"
 #include "sccp_mwi.h"
 #include "sccp_socket.h"
+#include "sccp_devstate.h"
 #include <asterisk/paths.h>
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
@@ -201,19 +202,19 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
  */
 typedef struct SCCPConfigSegment {
 	const char *name;
-	const sccp_config_segment_t segment;
 	const SCCPConfigOption *config;
 	long unsigned int config_size;
+	const sccp_config_segment_t segment;
 } SCCPConfigSegment;
 
 /*!
  * \brief SCCP Config Option Struct Initialization
  */
 static const SCCPConfigSegment sccpConfigSegments[] = {
-	{"general", SCCP_CONFIG_GLOBAL_SEGMENT, sccpGlobalConfigOptions, ARRAY_LEN(sccpGlobalConfigOptions)},
-	{"device", SCCP_CONFIG_DEVICE_SEGMENT, sccpDeviceConfigOptions, ARRAY_LEN(sccpDeviceConfigOptions)},
-	{"line", SCCP_CONFIG_LINE_SEGMENT, sccpLineConfigOptions, ARRAY_LEN(sccpLineConfigOptions)},
-	{"softkey", SCCP_CONFIG_SOFTKEY_SEGMENT, sccpSoftKeyConfigOptions, ARRAY_LEN(sccpSoftKeyConfigOptions)},
+	{"general", sccpGlobalConfigOptions, ARRAY_LEN(sccpGlobalConfigOptions), SCCP_CONFIG_GLOBAL_SEGMENT},
+	{"device", sccpDeviceConfigOptions, ARRAY_LEN(sccpDeviceConfigOptions), SCCP_CONFIG_DEVICE_SEGMENT},
+	{"line", sccpLineConfigOptions, ARRAY_LEN(sccpLineConfigOptions), SCCP_CONFIG_LINE_SEGMENT},
+	{"softkey", sccpSoftKeyConfigOptions, ARRAY_LEN(sccpSoftKeyConfigOptions), SCCP_CONFIG_SOFTKEY_SEGMENT},
 };
 
 /*!
@@ -1790,9 +1791,11 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 				if (LINE == config->type &&
 				    sccp_strequals(config->label, name) && 
 				    sccp_strequals(config->button.line.name, composedLineRegistrationId.mainId) && 
-				    sccp_strcaseequals(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number) && 
-				    sccp_strequals(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name) && 
-				    sccp_strequals(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux)
+				    config->button.line.subscriptionId && (
+					sccp_strcaseequals(config->button.line.subscriptionId->number, composedLineRegistrationId.subscriptionId.number) &
+					sccp_strequals(config->button.line.subscriptionId->name, composedLineRegistrationId.subscriptionId.name) && 
+					sccp_strequals(config->button.line.subscriptionId->aux, composedLineRegistrationId.subscriptionId.aux)
+				    )
 				) {
 					if (!options || sccp_strequals(config->button.line.options, options)) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition remained the same\n");
@@ -1817,7 +1820,7 @@ sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index,
 				}
 				break;
 			case FEATURE:
-				if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_featureStr2featureID(options)) {
+				if (FEATURE == config->type && index == config->index && sccp_strequals(config->label, name) && config->button.feature.id == sccp_feature_type_str2val(options)) {
 					if (!args || sccp_strequals(config->button.feature.options, args)) {
 						sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition remained the same\n");
 						changed = SCCP_CONFIG_CHANGE_NOCHANGE;
@@ -1898,46 +1901,50 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Line Button Definition\n");
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: ComposedId mainId: %s, subscriptionId.number: %s, subscriptionId.name: %s, subscriptionId.aux: %s\n", composedLineRegistrationId.mainId, composedLineRegistrationId.subscriptionId.number, composedLineRegistrationId.subscriptionId.name, composedLineRegistrationId.subscriptionId.aux);
 			config->type = LINE;
-			sccp_copy_string(config->label, name, sizeof(config->label));
-			sccp_copy_string(config->button.line.name, composedLineRegistrationId.mainId, sizeof(config->button.line.name));
-			sccp_copy_string(config->button.line.subscriptionId.number, composedLineRegistrationId.subscriptionId.number, sizeof(config->button.line.subscriptionId.number));
-			sccp_copy_string(config->button.line.subscriptionId.name, composedLineRegistrationId.subscriptionId.name, sizeof(config->button.line.subscriptionId.name));
-			sccp_copy_string(config->button.line.subscriptionId.aux, composedLineRegistrationId.subscriptionId.aux, sizeof(config->button.line.subscriptionId.aux));
+			config->label = strdup(name);
+			config->button.line.name = strdup(composedLineRegistrationId.mainId);
+			sccp_subscription_id_t *subscriptionId;
+			if ((subscriptionId = malloc(sizeof(sccp_subscription_id_t)))) {
+				sccp_copy_string(subscriptionId->number, composedLineRegistrationId.subscriptionId.number, sizeof(subscriptionId->number));
+				sccp_copy_string(subscriptionId->name, composedLineRegistrationId.subscriptionId.name, sizeof(subscriptionId->name));
+				sccp_copy_string(subscriptionId->aux, composedLineRegistrationId.subscriptionId.aux, sizeof(subscriptionId->aux));
+				config->button.line.subscriptionId = subscriptionId;
+			}
 			if (options) {
-				sccp_copy_string(config->button.line.options, options, sizeof(config->button.line.options));
+				config->button.line.options = strdup(options);
 			} else {
-				sccp_copy_string(config->button.line.options, "", sizeof(config->button.line.options));
+				config->button.line.options = NULL;
 			}
 			break;
 		}
 		case SPEEDDIAL:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Speeddial Button Definition\n");
 			config->type = SPEEDDIAL;
-			sccp_copy_string(config->label, name, sizeof(config->label));
-			sccp_copy_string(config->button.speeddial.ext, options, sizeof(config->button.speeddial.ext));
+			config->label =strdup(name);
+			config->button.speeddial.ext = strdup(options);
 			if (args) {
-				sccp_copy_string(config->button.speeddial.hint, args, sizeof(config->button.speeddial.hint));
+				config->button.speeddial.hint = strdup(args);
 			} else {
-				sccp_copy_string(config->button.speeddial.hint, "", sizeof(config->button.speeddial.hint));
+				config->button.speeddial.hint = NULL;
 			}
 			break;
 		case SERVICE:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Service Button Definition\n");
 			config->type = SERVICE;
-			sccp_copy_string(config->label, name, sizeof(config->label));
-			sccp_copy_string(config->button.service.url, options, sizeof(config->button.service.url));
+			config->label = strdup(name);
+			config->button.service.url = strdup(options);
 			break;
 		case FEATURE:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Feature Button Definition\n");
 			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "featureID: %s\n", options);
 			config->type = FEATURE;
-			sccp_copy_string(config->label, name, sizeof(config->label));
-			config->button.feature.id = sccp_featureStr2featureID(options);
+			config->label = strdup(name);
+			config->button.feature.id = sccp_feature_type_str2val(options);
 			if (args) {
-				sccp_copy_string(config->button.feature.options, args, sizeof(config->button.feature.options));
+				config->button.feature.options = strdup(args);
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Arguments present on feature button: %d\n", config->instance);
 			} else {
-				sccp_copy_string(config->button.feature.options, "", sizeof(config->button.feature.options));
+				config->button.feature.options = NULL;
 			}
 			sccp_log((DEBUGCAT_FEATURE + DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_BUTTONTEMPLATE)) (VERBOSE_PREFIX_3 "Configured feature button with featureID: %s args: %s\n", options, args);
 
@@ -1945,9 +1952,12 @@ sccp_value_changed_t sccp_config_addButton(void *buttonconfig_head, int index, s
 		case EMPTY:
 			sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "SCCP: Empty Button Definition\n");
 			config->type = EMPTY;
+			config->label = NULL;
 			break;
 		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "SCCP: Enum ButtonType SENTINEL\n");
+			config->type = EMPTY;
+			config->label = NULL;
 			break;
 	}
 	return SCCP_CONFIG_CHANGE_CHANGED;
@@ -2008,14 +2018,14 @@ static void sccp_config_buildDevice(sccp_device_t * d, PBX_VARIABLE_TYPE * varia
 	SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 		if (config->type == FEATURE) {
 			/* Check for the presence of a devicestate specifier and register in device list. */
-			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && (strncmp("", config->button.feature.options, 254))) {
+			if ((SCCP_FEATURE_DEVSTATE == config->button.feature.id) && !sccp_strlen_zero(config->button.feature.options)) {
 				dspec = sccp_calloc(1, sizeof(sccp_devstate_specifier_t));
 				if (!dspec) {
 					pbx_log(LOG_ERROR, "error while allocating memory for devicestate specifier");
 				} else {
 					sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Recognized devstate feature button: %d\n", config->instance);
 					SCCP_LIST_LOCK(&d->devstateSpecifiers);
-					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(config->button.feature.options));
+					sccp_copy_string(dspec->specifier, config->button.feature.options, sizeof(dspec->specifier));
 					SCCP_LIST_INSERT_TAIL(&d->devstateSpecifiers, dspec, list);
 					SCCP_LIST_UNLOCK(&d->devstateSpecifiers);
 				}
@@ -2563,7 +2573,7 @@ FUNC_EXIT:
  * \brief Soft Key Str to Label Mapping
  */
 static const struct softkeyConfigurationTemplate {
-	const char configVar[15];										/*!< Config Variable as Character */
+	const char configVar[16];										/*!< Config Variable as Character */
 	const int softkey;											/*!< Softkey as Int */
 } softKeyTemplate[] = {
 	/* *INDENT-OFF* */

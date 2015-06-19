@@ -32,8 +32,8 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  * \brief SCCP Structure to pass data to the pbx answer thread
  */
 struct sccp_answer_conveyor_struct {
-	uint32_t callid;
 	sccp_linedevices_t *linedevice;
+	uint32_t callid;
 };
 
 /*!
@@ -668,7 +668,6 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 		/* \todo it would be nice if we could set audio preferences by line instead of only per device, especially in case of shared line */
 		sccp_line_copyCodecSetsFromLineToChannel(l, c);
 	}
-
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:              cid_num: \"%s\"\n", c->callInfo.callingPartyNumber);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:             cid_name: \"%s\"\n", c->callInfo.callingPartyName);
 	sccp_log((DEBUGCAT_PBX + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "SCCP:          accountcode: \"%s\"\n", l->accountcode);

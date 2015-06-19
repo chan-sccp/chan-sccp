@@ -82,9 +82,9 @@ static inline skinny_codec_t sccp_asterisk11_getSkinnyFormatSingle(struct ast_fo
 
 	ast_format_cap_iter_start(ast_format_capability);
 	while (!ast_format_cap_iter_next(ast_format_capability, &tmp_fmt)) {
-		for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
-			if (skinny2pbx_codec_maps[i].pbx_codec == tmp_fmt.id) {
-				codec = skinny2pbx_codec_maps[i].skinny_codec;
+		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
+			if (pbx2skinny_codec_maps[i].pbx_codec == tmp_fmt.id) {
+				codec = pbx2skinny_codec_maps[i].skinny_codec;
 				break;
 			}
 		}
@@ -109,9 +109,9 @@ static uint8_t sccp_asterisk111_getSkinnyFormatMultiple(struct ast_format_cap *a
 		if (AST_FORMAT_GET_TYPE(tmp_fmt.id) != mask) {
 			continue;
 		}
-		for (i = 1; i < ARRAY_LEN(skinny2pbx_codec_maps); i++) {
-			if (skinny2pbx_codec_maps[i].pbx_codec == tmp_fmt.id) {
-				codec[position++] = skinny2pbx_codec_maps[i].skinny_codec;
+		for (i = 1; i < ARRAY_LEN(pbx2skinny_codec_maps); i++) {
+			if (pbx2skinny_codec_maps[i].pbx_codec == tmp_fmt.id) {
+				codec[position++] = pbx2skinny_codec_maps[i].skinny_codec;
 				break;
 			}
 		}
@@ -329,11 +329,11 @@ static boolean_t sccp_wrapper_asterisk111_setReadFormat(const sccp_channel_t * c
 //              return;
 //      }
 //
-//      for (x = 0; x < ARRAY_LEN(skinny2pbx_codec_maps) && len <= size; x++) {
+//      for (x = 0; x < ARRAY_LEN(pbx2skinny_codec_maps) && len <= size; x++) {
 //              ast_format_copy(&tmp_fmt, &f_list[x].format);
 //              if (ast_format_cap_iscompatible(format, &tmp_fmt)) {
-//                      if (skinny2pbx_codec_maps[x].pbx_codec == ((uint) tmp_fmt.id)) {
-//                              codecs[len++] = skinny2pbx_codec_maps[x].skinny_codec;
+//                      if (pbx2skinny_codec_maps[x].pbx_codec == ((uint) tmp_fmt.id)) {
+//                              codecs[len++] = pbx2skinny_codec_maps[x].skinny_codec;
 //                      }
 //              }
 //      }
