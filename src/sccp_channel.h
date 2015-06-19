@@ -150,7 +150,8 @@ struct sccp_channel {
 	boolean_t (*isMicrophoneEnabled) (void);
 
 	/* next should be converted to pointers, to reduce size */
-	char musicclass[SCCP_MAX_MUSICCLASS];									/*!< Music Class */
+	char *musicclass;											/*!< Music Class */
+
 	sccp_callinfo_t callInfo;
 	sccp_video_mode_t videomode;										/*!< Video Mode (0 off - 1 user - 2 auto) */
 
@@ -171,6 +172,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device);	
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids);
 
 void sccp_channel_updateChannelDesignator(sccp_channel_t * c);
+void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l);
 void sccp_channel_updateChannelCapability(sccp_channel_t * channel);
 void sccp_channel_send_callinfo(const sccp_device_t * device, const sccp_channel_t * c);
 void sccp_channel_send_callinfo2(sccp_channel_t * c);

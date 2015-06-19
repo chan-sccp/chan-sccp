@@ -416,6 +416,20 @@ void sccp_channel_updateChannelDesignator(sccp_channel_t * c)
 	}
 }
 
+void sccp_channel_updateMusicClass(sccp_channel_t * c, const sccp_line_t *l)
+{
+	if (c) {
+		if (c->musicclass) {
+			sccp_free(c->musicclass);
+		}
+		if (!sccp_strlen_zero(l->musicclass)) {
+			c->musicclass = strdup(l->musicclass);
+		} else if (!sccp_strlen_zero(GLOB(musicclass))) {
+			c->musicclass = strdup(GLOB(musicclass));
+		}
+	}
+}
+
 /*!
  * \brief Update Channel Capability
  * \param channel a *retained* SCCP Channel
@@ -1687,7 +1701,11 @@ int sccp_channel_hold(sccp_channel_t * channel)
 #endif
 	{
 		if (channel->owner) {
-			PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
+			if (!sccp_strlen_zero(channel->musicclass)) {
+				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(channel->musicclass, NULL), !sccp_strlen_zero(channel->musicclass) ? strlen(channel->musicclass) + 1 : 0);
+			} else {
+				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
+			}
 		}
 	}
 	//sccp_rtp_stop(channel);
@@ -1957,6 +1975,9 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "Destroying channel %08x\n", channel->callid);
+	if (channel->musicclass) {
+		sccp_free(channel->musicclass);
+	}
 	if (channel->rtp.audio.rtp || channel->rtp.video.rtp) {
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
