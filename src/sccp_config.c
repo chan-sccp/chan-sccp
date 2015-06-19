@@ -1195,7 +1195,10 @@ sccp_value_changed_t sccp_config_parse_hotline_context(void *dest, const size_t 
 
 	if (!sccp_strcaseequals(hotline->line->context, value)) {
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
-		pbx_copy_string(hotline->line->context, value, size);
+		if (hotline->line->context) {
+			sccp_free(hotline->line->context);
+		}
+		hotline->line->context = strdup(value);
 	} else {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}
@@ -1217,7 +1220,10 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 		changed = SCCP_CONFIG_CHANGE_CHANGED;
 		pbx_copy_string(hotline->exten, value, size);
 		if (hotline->line) {
-			sccp_copy_string(hotline->line->adhocNumber, value, sizeof(hotline->line->adhocNumber));
+			if (hotline->line->adhocNumber) {
+				sccp_free(hotline->line->adhocNumber);
+			}
+			hotline->line->adhocNumber = strdup(value);
 		}
 	} else {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
