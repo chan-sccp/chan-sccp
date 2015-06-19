@@ -46,19 +46,19 @@ typedef struct sccp_hint_list sccp_hint_list_t;
 static char default_eid_str[32];
 #endif
 
-struct sccp_hint_SubscribingDevice {
-
+struct sccp_hint_SubscribingDevice 
+{
+	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
 	const sccp_device_t *device;										/*!< SCCP Device */
 	uint8_t instance;											/*!< Instance */
 	uint8_t positionOnDevice;										/*!< Instance */
-
-	SCCP_LIST_ENTRY (sccp_hint_SubscribingDevice_t) list;							/*!< Hint Subscribing Device Linked List Entry */
 };														/*!< SCCP Hint Subscribing Device Structure */
 
 /*!
  *\brief SCCP Hint Line State Structure
  */
-struct sccp_hint_lineState {
+struct sccp_hint_lineState 
+{
 	sccp_line_t *line;
 	sccp_channelstate_t state;
 
@@ -427,10 +427,7 @@ static void sccp_hint_deviceRegistered(const sccp_device_t * device)
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			positionOnDevice++;
 
-			if (config->type == SPEEDDIAL) {
-				if (sccp_strlen_zero(config->button.speeddial.hint)) {
-					continue;
-				}
+			if (config->type == SPEEDDIAL && !sccp_strlen_zero(config->button.speeddial.hint)) {
 				sccp_hint_addSubscription4Device(device, config->button.speeddial.hint, config->instance, positionOnDevice);
 			}
 		}

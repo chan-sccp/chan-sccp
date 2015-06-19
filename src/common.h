@@ -44,10 +44,61 @@ extern "C" {
 #include <inttypes.h>
 #endif
 
+/* global types */
+#if defined(HAVE_UNALIGNED_BUSERROR)										// for example sparc64
+typedef unsigned long sccp_group_t;										/*!< SCCP callgroup / pickupgroup */
+#else
+typedef ULONG sccp_group_t;											/*!< SCCP callgroup / pickupgroup */
+#endif
+
+typedef struct sccp_channel sccp_channel_t;									/*!< SCCP Channel Structure */
+typedef struct sccp_session sccp_session_t;									/*!< SCCP Session Structure */
+typedef struct sccp_line sccp_line_t;										/*!< SCCP Line Structure */
+typedef struct sccp_speed sccp_speed_t;										/*!< SCCP Speed Structure */
+typedef struct sccp_service sccp_service_t;									/*!< SCCP Service Structure */
+typedef struct sccp_device sccp_device_t;									/*!< SCCP Device Structure */
+typedef struct sccp_addon sccp_addon_t;										/*!< SCCP Add-On Structure */
+typedef struct sccp_hint sccp_hint_t;										/*!< SCCP Hint Structure */
+typedef struct sccp_hostname sccp_hostname_t;									/*!< SCCP HostName Structure */
+
+#ifdef CS_DEVSTATE_FEATURE
+typedef struct sccp_devstate_specifier sccp_devstate_specifier_t;						/*!< SCCP Custom DeviceState Specifier Structure */
+#endif
+typedef struct sccp_feature_configuration sccp_featureConfiguration_t;						/*!< SCCP Feature Configuration Structure */
+typedef struct sccp_selectedchannel sccp_selectedchannel_t;							/*!< SCCP Selected Channel Structure */
+typedef struct sccp_ast_channel_name sccp_ast_channel_name_t;							/*!< SCCP Asterisk Channel Name Structure */
+typedef struct sccp_buttonconfig sccp_buttonconfig_t;								/*!< SCCP Button Config Structure */
+typedef struct sccp_hotline sccp_hotline_t;									/*!< SCCP Hotline Structure */
+typedef struct sccp_callinfo sccp_callinfo_t;									/*!< SCCP Call Information Structure */
+typedef struct sccp_call_statistics sccp_call_statistics_t;							/*!< SCCP Call Statistic Structure */
+typedef struct sccp_linedevices sccp_linedevices_t;								/*!< SCCP Line Connected to Devices */
+typedef struct softKeySetConfiguration sccp_softKeySetConfiguration_t;						/*!< SoftKeySet configuration */
+typedef struct sccp_mailbox sccp_mailbox_t;									/*!< SCCP Mailbox Type Definition */
+typedef struct subscriptionId sccp_subscription_id_t;								/*!< SCCP SubscriptionId Structure */
+typedef struct composedId sccp_composed_id_t;									/*!< SCCP ComposedId Structure */
+typedef struct sccp_conference sccp_conference_t;								/*!< SCCP Conference Structure */
+typedef struct sccp_rtp sccp_rtp_t;										/*!< SCCP RTP Struct Type */
+typedef struct sccp_private_channel_data sccp_private_channel_data_t;						/*!< SCCP Private Channel Data Structure */
+typedef struct sccp_cfwd_information sccp_cfwd_information_t;							/*!< SCCP CallForward information Structure */
+typedef struct sccp_conference sccp_conference_t;
+typedef struct sccp_mailbox sccp_mailbox_t;
+
+#ifndef SOLARIS
+typedef enum { FALSE = 0, TRUE = 1 } boolean_t;									/*!< Asterisk Reverses True and False; nice !! */
+#else
+#define FALSE B_FALSE
+#define TRUE B_TRUE
+#endif
+
+/* callback function types */
+typedef void sk_func(sccp_device_t * d, sccp_line_t * l, sccp_channel_t * c);
+typedef int (*sccp_sched_cb) (const void *data);
+
 #include "sccp_enum.h"
 #include "sccp_dllists.h"
 #include "sccp_threadpool.h"
 #include "chan_sccp.h"
+#include "sccp_rtp.h"
 #include "sccp_refcount.h"
 #include "sccp_event.h"
 #include "pbx_impl/pbx_impl.h"

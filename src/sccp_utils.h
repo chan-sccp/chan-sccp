@@ -115,8 +115,6 @@ sccp_device_t *sccp_device_find_byipaddress(struct sockaddr_storage *sin);
 
 sccp_feature_type_t sccp_featureStr2featureID(const char *str);
 boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const char *SubscriptionIdNum);
-int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug);
-char *sccp_get_debugcategories(int32_t debugvalue);
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName);
 
 int socket_equals(struct sockaddr_storage *s0, struct sockaddr_storage *s1);

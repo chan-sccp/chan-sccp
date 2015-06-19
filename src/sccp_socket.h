@@ -15,6 +15,43 @@
 #ifndef __SCCP_SOCKET_H
 #define __SCCP_SOCKET_H
 
+/*!
+ * \brief SCCP Host Access Rule Structure
+ *
+ * internal representation of acl entries In principle user applications would have no need for this,
+ * but there is sometimes a need to extract individual items, e.g. to print them, and rather than defining iterators to
+ * navigate the list, and an externally visible 'struct ast_ha_entry', at least in the short term it is more convenient to make the whole
+ * thing public and let users play with them.
+ */
+struct sccp_ha {
+	struct sockaddr_storage netaddr;
+	struct sockaddr_storage netmask;
+	struct sccp_ha *next;
+	int sense;
+};
+
+/*!
+ * \brief SCCP Session Structure
+ * \note This contains the current session the phone is in
+ */
+struct sccp_session {
+	time_t lastKeepAlive;											/*!< Last KeepAlive Time */
+	SCCP_RWLIST_ENTRY (sccp_session_t) list;								/*!< Linked List Entry for this Session */
+	sccp_device_t *device;											/*!< Associated Device */
+	struct pollfd fds[1];											/*!< File Descriptor */
+	struct sockaddr_storage sin;										/*!< Incoming Socket Address */
+	boolean_t needcheckringback;										/*!< Need Check Ring Back. (0/1) default 1 */
+	uint16_t protocolType;
+	uint8_t gone_missing;											/*!< KeepAlive received from an unregistered device */
+	volatile uint8_t session_stop;										/*!< Signal Session Stop */
+	sccp_mutex_t write_lock;										/*!< Prevent multiple threads writing to the socket at the same time */
+	sccp_mutex_t lock;											/*!< Asterisk: Lock Me Up and Tie me Down */
+	pthread_t session_thread;										/*!< Session Thread */
+	struct sockaddr_storage ourip;										/*!< Our IP is for rtp use */
+	struct sockaddr_storage ourIPv4;
+};														/*!< SCCP Session Structure */
+
+
 boolean_t sccp_socket_is_IPv4(const struct sockaddr_storage *sockAddrStorage);
 boolean_t sccp_socket_is_IPv6(const struct sockaddr_storage *sockAddrStorage);
 uint16_t sccp_socket_getPort(const struct sockaddr_storage *sockAddrStorage);
