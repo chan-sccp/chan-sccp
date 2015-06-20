@@ -307,8 +307,8 @@ static const struct sccp_debug_category {
 	{"lock",		"lock debug level", 			DEBUGCAT_LOCK},
 	{"refcount",		"refcount lock debug level", 		DEBUGCAT_REFCOUNT},
 	{"message",		"message debug level", 			DEBUGCAT_MESSAGE},
-	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE}, 
-	{"threadpool",		"threadpool debug level",	 	DEBUGCAT_THPOOL}, 
+	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
+	{"threadpool",		"threadpool debug level",	 	DEBUGCAT_THPOOL},
 	{"filelinefunc",	"add line/file/function to debug output", DEBUGCAT_FILELINEFUNC},
 	{"high",		"high debug level", 			DEBUGCAT_HIGH},
 	/* *INDENT-ON* */
