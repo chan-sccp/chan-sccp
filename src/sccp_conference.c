@@ -257,8 +257,10 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->channel->conference_participant_id = participant->id;
 		participant->playback_announcements = device->conf_play_part_announce;
 
+		channel->calltype=SKINNY_CALLTYPE_INBOUND;
 		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
 		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
+		channel->calltype=SKINNY_CALLTYPE_OUTBOUND;
 		participant->isModerator = TRUE;
 		device->conferencelist_active = device->conf_show_conflist;					// Activate conflist
 		// sccp_softkey_setSoftkeyState(device, KEYMODE_CONNCONF, SKINNY_LBL_JOIN, TRUE);
@@ -419,7 +421,6 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 	}
 
 	/* this is just a workaround to update sip and other channels also -MC */
-
 	/** @todo we should fix this workaround -MC */
 #if ASTERISK_VERSION_GROUP > 106
 	struct ast_party_connected_line connected;
