@@ -174,7 +174,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		/* handle dummy speeddial */
 		sccp_dev_speed_find_byindex(d, lineInstance, TRUE, &k);
 		if (sccp_strlen(k.ext) > 0) {
-			adhocNumber = k.ext;
+			adhocNumber = strdupa(k.ext);
 		}
 
 		line = l;											/*!< use l as line to dialout */
@@ -196,7 +196,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINE_AVAILABLE, GLOB(digittimeout));
 	} else {
 		if (!adhocNumber && !sccp_strlen_zero(line->adhocNumber)) {
-			adhocNumber = line->adhocNumber;
+			adhocNumber = strdupa(line->adhocNumber);
 		}
 
 		/* check if we have an active channel on an other line, that does not have any dialed number 
