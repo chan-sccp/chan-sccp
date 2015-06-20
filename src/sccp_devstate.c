@@ -109,7 +109,9 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 				}
 				SCCP_LIST_UNLOCK(&deviceStates);
 
-				sccp_devstate_addSubscriber(deviceState, device, config);
+				if (deviceState) {
+					sccp_devstate_addSubscriber(deviceState, device, config);
+				}
 			}
 		}
 	}
@@ -165,7 +167,7 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *devstate)
 {
 	if (!devstate) {
-		return;
+		return NULL;
 	}
 
 	sccp_devstate_deviceState_t *deviceState = NULL;
@@ -182,7 +184,7 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate)
 {
 	if (!devstate) {
-		return;
+		return NULL;
 	}
 
 	sccp_devstate_deviceState_t *deviceState = NULL;
