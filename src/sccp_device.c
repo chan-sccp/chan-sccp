@@ -1875,7 +1875,7 @@ int sccp_device_check_ringback(sccp_device_t * device)
 void sccp_dev_postregistration(void *data)
 {
 	sccp_device_t *d = data;
-	sccp_event_t event = { 0 };
+	sccp_event_t event = {{{ 0 }}};
 
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
@@ -2029,7 +2029,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_channel_t *c = NULL;
-	sccp_event_t event = { 0 };
+	sccp_event_t event = {{{ 0 }}};
 	int i = 0;
 
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)

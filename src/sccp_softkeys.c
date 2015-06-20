@@ -195,7 +195,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINE_AVAILABLE, GLOB(digittimeout));
 	} else {
-		if (!adhocNumber && (strlen(line->adhocNumber) > 0)) {
+		if (!adhocNumber && !sccp_strlen_zero(line->adhocNumber)) {
 			adhocNumber = line->adhocNumber;
 		}
 
