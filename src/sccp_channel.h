@@ -149,7 +149,6 @@ struct sccp_channel {
 	boolean_t (*hangupRequest) (sccp_channel_t * channel);
 	boolean_t (*isMicrophoneEnabled) (void);
 
-	/* next should be converted to pointers, to reduce size */
 	char *musicclass;											/*!< Music Class */
 
 	sccp_callinfo_t callInfo;

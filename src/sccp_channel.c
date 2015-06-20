@@ -1702,9 +1702,13 @@ int sccp_channel_hold(sccp_channel_t * channel)
 	{
 		if (channel->owner) {
 			if (!sccp_strlen_zero(channel->musicclass)) {
-				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(channel->musicclass, NULL), !sccp_strlen_zero(channel->musicclass) ? strlen(channel->musicclass) + 1 : 0);
+				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, channel->musicclass, sccp_strlen(channel->musicclass) + 1);
+			} else if (!sccp_strlen_zero(l->musicclass)) {
+				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, l->musicclass, sccp_strlen(l->musicclass) + 1);
+			} else if (!sccp_strlen_zero(GLOB(musicclass))) {
+				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, GLOB(musicclass), sccp_strlen(GLOB(musicclass)) + 1);
 			} else {
-				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, S_OR(l->musicclass, NULL), !sccp_strlen_zero(l->musicclass) ? strlen(l->musicclass) + 1 : 0);
+				PBX(queue_control_data) (channel->owner, AST_CONTROL_HOLD, NULL, 0);
 			}
 		}
 	}
