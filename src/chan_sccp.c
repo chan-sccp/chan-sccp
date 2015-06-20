@@ -40,7 +40,6 @@
 #include "sccp_appfunctions.h"
 #include "sccp_management.h"
 #include "sccp_rtp.h"
-
 #include "sccp_devstate.h"
 #include "revision.h"
 #include <signal.h>
