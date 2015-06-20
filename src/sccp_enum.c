@@ -3,6 +3,7 @@
  * $Date: $
  * $Revision: $
  */
+#include <config.h>
 #include "common.h"
 #include "sccp_enum.h"
 #include "sccp_utils.h"

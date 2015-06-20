@@ -8,6 +8,7 @@
  * $Date$
  * $Revision$  
  */
+#include <config.h>
 #ifdef CS_SCCP_MANAGER
 #include "common.h"
 #include "sccp_management.h"

@@ -17,6 +17,7 @@
  * Relations:   SCCP Hint
  */
 
+#include <config.h>
 #include "common.h"
 #include "sccp_event.h"
 #include "sccp_device.h"

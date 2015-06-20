@@ -14,6 +14,7 @@
 #ifndef __PBX_IMPL_C
 #define __PBX_IMPL_C
 
+#include <config.h>
 #include "common.h"
 #include "sccp_pbx.h"
 #include "sccp_device.h"
