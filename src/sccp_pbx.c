@@ -815,7 +815,7 @@ sccp_extension_status_t sccp_pbx_helper(sccp_channel_t * c)
 	sccp_extension_status_t extensionStatus;
 
 	if (!sccp_strlen_zero(c->dialedNumber)) {
-		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[strlen(c->dialedNumber) - 1]) {
+		if (GLOB(recorddigittimeoutchar) && GLOB(digittimeoutchar) == c->dialedNumber[sccp_strlen(c->dialedNumber) - 1]) {
 			/* we finished dialing with digit timeout char */
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: We finished dialing with digit timeout char %s\n", c->designator, c->dialedNumber);
 			return SCCP_EXTENSION_EXACTMATCH;
@@ -939,9 +939,9 @@ void *sccp_pbx_softswitch(sccp_channel_t * channel)
 		// so that we don't dial strange extensions with a trailing characters.
 		char shortenedNumber[256] = { '\0' };
 		sccp_copy_string(shortenedNumber, c->dialedNumber, sizeof(shortenedNumber));
-		unsigned int len = strlen(shortenedNumber);
+		unsigned int len = sccp_strlen(shortenedNumber);
 
-		assert(strlen(c->dialedNumber) == len);
+		assert(sccp_strlen(c->dialedNumber) == len);
 
 		if (len > 0 && GLOB(digittimeoutchar) == shortenedNumber[len - 1]) {
 			shortenedNumber[len - 1] = '\0';

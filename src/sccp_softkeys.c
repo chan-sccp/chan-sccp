@@ -173,7 +173,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 	if (!l || instance != lineInstance) {
 		/* handle dummy speeddial */
 		sccp_dev_speed_find_byindex(d, lineInstance, TRUE, &k);
-		if (strlen(k.ext) > 0) {
+		if (sccp_strlen(k.ext) > 0) {
 			adhocNumber = k.ext;
 		}
 
@@ -205,7 +205,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		sccp_channel_t *activeChannel = NULL;
 
 		if (!adhocNumber && (activeChannel = sccp_device_getActiveChannel(d))) {
-			if (activeChannel->line != l && strlen(activeChannel->dialedNumber) == 0) {
+			if (activeChannel->line != l && sccp_strlen(activeChannel->dialedNumber) == 0) {
 				sccp_channel_endcall(activeChannel);
 			}
 			sccp_channel_release(activeChannel);
@@ -382,7 +382,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
 		return;
 	}
 
-	len = strlen(c->dialedNumber);
+	len = sccp_strlen(c->dialedNumber);
 
 	/* we have no number, so nothing to process */
 	if (!len) {

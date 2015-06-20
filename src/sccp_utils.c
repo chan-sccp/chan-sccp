@@ -43,7 +43,7 @@ void sccp_dump_packet(unsigned char *messagebuffer, int len)
 {
 	static const int numcolumns = 16;									// number output columns
 
-	if (len <= 0 || !messagebuffer || !strlen((const char *) messagebuffer)) {				// safe quard
+	if (len <= 0 || !messagebuffer || !sccp_strlen((const char *) messagebuffer)) {				// safe quard
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: messagebuffer is not valid. exiting sccp_dump_packet\n");
 		return;
 	}
@@ -885,9 +885,9 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	filterPhones = FALSE;											/* set the default to call all phones */
 
 	/* First condition: Non-trivial subscriptionId specified for matching in call. */
-	if (strlen(channel->subscriptionId.number) != 0) {
+	if (sccp_strlen(channel->subscriptionId.number) != 0) {
 		/* Second condition: SubscriptionId does not match default subscriptionId of line. */
-		if (0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, strlen(channel->subscriptionId.number))) {
+		if (0 != strncasecmp(channel->subscriptionId.number, channel->line->defaultSubscriptionId.number, sccp_strlen(channel->subscriptionId.number))) {
 			filterPhones = TRUE;
 		}
 	}
@@ -895,13 +895,13 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 	if (FALSE == filterPhones) {
 		/* Accept phone for calling if all phones shall be called. */
 		result = TRUE;
-	} else if (0 != strlen(subscriptionIdNum) &&								/* We already know that we won't search for a trivial subscriptionId. */
-		   (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, strlen(channel->subscriptionId.number)))) {	/* Do the match! */
+	} else if (0 != sccp_strlen(subscriptionIdNum) &&								/* We already know that we won't search for a trivial subscriptionId. */
+		   (0 != strncasecmp(channel->subscriptionId.number, subscriptionIdNum, sccp_strlen(channel->subscriptionId.number)))) {	/* Do the match! */
 		result = FALSE;
 	}
 #if 0
-	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, strlen(channel->subscriptionId.number));
-	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? strlen(subscriptionIdNum) : -1);
+	pbx_log(LOG_NOTICE, "sccp_channel->subscriptionId.number=%s, length=%d\n", channel->subscriptionId.number, sccp_strlen(channel->subscriptionId.number));
+	pbx_log(LOG_NOTICE, "subscriptionIdNum=%s, length=%d\n", subscriptionIdNum ? subscriptionIdNum : "NULL", subscriptionIdNum ? sccp_strlen(subscriptionIdNum) : -1);
 
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: sccp_channel->subscriptionId.number=%s, SubscriptionId=%s\n", (channel->subscriptionId.number) ? channel->subscriptionId.number : "NULL", (subscriptionIdNum) ? subscriptionIdNum : "NULL");
 	pbx_log(LOG_NOTICE, "sccp_util_matchSubscriptionId: result: %d\n", result);
@@ -924,9 +924,9 @@ boolean_t sccp_util_matchSubscriptionId(const sccp_channel_t * channel, const ch
 sccp_msg_t *sccp_utils_buildLineStatDynamicMessage(uint32_t lineInstance, uint32_t type, const char *dirNum, const char *fqdn, const char *lineDisplayName)
 {
 	sccp_msg_t *msg = NULL;
-	int dirNum_len = (dirNum != NULL) ? strlen(dirNum) : 0;
-	int FQDN_len = (fqdn != NULL) ? strlen(fqdn) : 0;
-	int lineDisplayName_len = (lineDisplayName != NULL) ? strlen(lineDisplayName) : 0;
+	int dirNum_len = (dirNum != NULL) ? sccp_strlen(dirNum) : 0;
+	int FQDN_len = (fqdn != NULL) ? sccp_strlen(fqdn) : 0;
+	int lineDisplayName_len = (lineDisplayName != NULL) ? sccp_strlen(lineDisplayName) : 0;
 	int dummy_len = dirNum_len + FQDN_len + lineDisplayName_len;
 
 	int hdr_len = 8 - 1;
@@ -1960,7 +1960,7 @@ char *sccp_trimwhitespace(char *str)
 		return str;
 	}
 	// Trim trailing space
-	end = str + strlen(str) - 1;
+	end = str + sccp_strlen(str) - 1;
 	while (end > str && isspace(*end)) {
 		end--;
 	}
@@ -1973,7 +1973,7 @@ char *sccp_trimwhitespace(char *str)
 gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf, size_t len) {
 	iconv_t cd;
 	size_t incount, outcount = len;
-	incount = strlen(utf8str);
+	incount = sccp_strlen(utf8str);
 	if (incount) {
 		cd = iconv_open("ISO8859-1", "UTF-8");
 		if (cd == (iconv_t) -1) {

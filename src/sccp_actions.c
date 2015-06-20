@@ -1346,7 +1346,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 	 * \note Check speeddial before handling adHoc allows speeddials to be used and makes adHoc Non-Mandatory (This is a personal Preference - DdG). 
 	 * To make adhoc mandatory you can close it down in the dialplan. 
 	 */
-	if (strlen(l->adhocNumber) > 0) {
+	if (!sccp_strlen_zero(l->adhocNumber)) {
 		sccp_feat_adhocDial(d, l);
 		return;
 	}
@@ -1763,7 +1763,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 
 		// Channel already in use
 		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
-			len = strlen(channel->dialedNumber);
+			len = sccp_strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
 			sccp_pbx_softswitch(channel);
 			return;
@@ -2301,7 +2301,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 	sccp_dev_send(d, msg_out);
 
 	/* sometimes a phone sends an ' ' entry, I think we can ignore this one */
-	if (strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
+	if (sccp_strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
 		return;
 	}
 
@@ -2477,7 +2477,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		return;
 	}
 
-	len = strlen(channel->dialedNumber);
+	len = sccp_strlen(channel->dialedNumber);
 	if (len + 1 >= (SCCP_MAX_EXTENSION)) {
 		/*! \todo Shouldn't we only skip displaying the number to the phone (Maybe even showing '...' at the end), but still dial it ? */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Maximum Length of Extension reached. Skipping Digit\n", channel->designator);
@@ -2590,10 +2590,10 @@ void sccp_handle_dialtone(sccp_device_t *d, sccp_line_t *l, sccp_channel_t * cha
 	 * when catching call forward number, meetme room,
 	 * etc.
 	 * */
-	if (strlen(channel->dialedNumber) == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
+	if (sccp_strlen_zero(channel->dialedNumber) && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 		sccp_dev_stoptone(d, instance, channel->callid);
 		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, 0);
-	} else if (strlen(channel->dialedNumber) > 0) {
+	} else if (!sccp_strlen_zero(channel->dialedNumber)) {
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIGITSFOLL);
 	}
 }
@@ -3249,7 +3249,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 						return;
 					}
 
-					len = strlen(channel->dialedNumber);
+					len = sccp_strlen(channel->dialedNumber);
 					sccp_copy_string(channel->dialedNumber + len, calledParty, sizeof(channel->dialedNumber) - len);
 					sccp_pbx_softswitch(channel);
 					return;
@@ -3373,12 +3373,12 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
 		if (d->inuseprotocolversion < 7) {
 			REQ(msg_out, ServiceURLStatMessage);
 			msg_out->data.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
-			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, strlen(config->button.service.url) + 1);
-			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
-			d->copyStr2Locale(d, msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
+			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, sccp_strlen(config->button.service.url) + 1);
+			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
+			d->copyStr2Locale(d, msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
 		} else {
-			int URL_len = strlen(config->button.service.url);
-			int label_len = strlen(config->label);
+			int URL_len = sccp_strlen(config->button.service.url);
+			int label_len = sccp_strlen(config->label);
 			int dummy_len = URL_len + label_len;
 
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;

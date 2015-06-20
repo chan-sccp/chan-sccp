@@ -668,8 +668,8 @@ static int sccp_manager_startCall(struct mansession *s, const struct message *m)
 		.uniqueid = astman_get_header(m, "ChannelId"),
 		//.uniqueid2 = astman_get_header(m, "OtherChannelId")
 	};
-	if ((ids.uniqueid && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid))
-	    //|| (ids.uniqueid2 && AST_MAX_PUBLIC_UNIQUEID < strlen(ids.uniqueid2))
+	if ((ids.uniqueid && AST_MAX_PUBLIC_UNIQUEID < sccp_strlen(ids.uniqueid))
+	    //|| (ids.uniqueid2 && AST_MAX_PUBLIC_UNIQUEID < sccp_strlen(ids.uniqueid2))
 	    ) {
 		astman_send_error_va(s, m, "Uniqueid length exceeds maximum of %d\n", AST_MAX_PUBLIC_UNIQUEID);
 		return 0;
@@ -839,7 +839,7 @@ static void sccp_asterisk_parseStrToAstMessage(char *str, struct message *m)
 	int x = 0;
 	int curlen;
 
-	curlen = strlen(str);
+	curlen = sccp_strlen(str);
 	for (x = 0; x < curlen; x++) {
 		int cr;												/* set if we have \r */
 

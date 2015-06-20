@@ -274,7 +274,7 @@ static PBX_VARIABLE_TYPE *createVariableSetForMultiEntryParameters(PBX_VARIABLE_
 
 	char delims[] = "|";
 	char *token = NULL;
-	char *option_name = alloca(strlen(configOptionName) + 1);
+	char *option_name = alloca(sccp_strlen(configOptionName) + 1);
 
 	sprintf(option_name, "%s%s", configOptionName, delims);							// add delims to string
 	token = strtok(option_name, delims);
@@ -441,7 +441,7 @@ static sccp_configurationchange_t sccp_config_object_setValue(void *obj, PBX_VAR
 			str = (char *) dst;
 
 			if (!sccp_strlen_zero(value)) {
-				if (strlen(value) > sccpConfigOption->size - 1) {
+				if (sccp_strlen(value) > sccpConfigOption->size - 1) {
 					pbx_log(LOG_NOTICE, "SCCP: config parameter %s:%s value '%s' is too long, only using the first %d characters\n", sccpConfigSegment->name, name, value, (int) sccpConfigOption->size - 1);
 				}
 				if (strncasecmp(str, value, sccpConfigOption->size - 1)) {
@@ -763,7 +763,7 @@ static void sccp_config_set_defaults(void *obj, const sccp_config_segment_t segm
 				referralValueFound = FALSE;
 
 				/* tokenparsing */
-				char *option_tokens = alloca(strlen(sccpDstConfig[cur_elem].name) + 1);
+				char *option_tokens = alloca(sccp_strlen(sccpDstConfig[cur_elem].name) + 1);
 
 				sprintf(option_tokens, "%s|", sccpDstConfig[cur_elem].name);
 				char *option_tokens_saveptr = NULL;
@@ -1092,7 +1092,7 @@ sccp_value_changed_t sccp_config_parse_secondaryDialtoneDigits(void *dest, const
 	char *value = strdupa(v->value);
 	char *str = (char *) dest;
 
-	if (strlen(value) <= 9) {
+	if (sccp_strlen(value) <= 9) {
 		if (!sccp_strcaseequals(str, value)) {
 			sccp_copy_string(str, value, 9);
 			changed = SCCP_CONFIG_CHANGE_CHANGED;
@@ -2929,7 +2929,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	char *description = "";
 	char *description_part = "";
 
-	if (strlen(req_segment) == 0) {										// return all segments
+	if (sccp_strlen_zero(req_segment)) {										// return all segments
 		int sccp_config_revision = 0;
 
 		sscanf(SCCP_CONFIG_REVISION, "$" "Revision: %i" "$", &sccp_config_revision);
@@ -2946,7 +2946,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 			total++;
 		}
 		astman_append(s, "Event: SegmentlistComplete\r\n\r\n");
-	} else if (strlen(req_option) == 0) {									// return all options for segment
+	} else if (sccp_strlen_zero(req_option)) {									// return all options for segment
 		astman_send_listack(s, m, "List of SegmentOptions will follow", "start");
 		for (i = 0; i < ARRAY_LEN(sccpConfigSegments); i++) {
 			if (sccp_strcaseequals(sccpConfigSegments[i].name, req_segment)) {
@@ -3028,10 +3028,10 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 								astman_append(s, "Possible Values: [%s]\r\n", all_entries);
 								break;
 						}
-						if (config->defaultValue && !strlen(config->defaultValue) == 0) {
+						if (config->defaultValue && !sccp_strlen_zero(config->defaultValue)) {
 							astman_append(s, "DefaultValue: %s\r\n", config->defaultValue);
 						}
-						if (strlen(config->description) != 0) {
+						if (!sccp_strlen_zero(config->description)) {
 							description = strdupa(config->description);
 							astman_append(s, "Description: ");
 							while (description && (description_part = strsep(&description, "\n"))) {
@@ -3077,7 +3077,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 	const char *req_segment = astman_get_header(m, "Segment");
 	int comma = 0;
 
-	if (strlen(req_segment) == 0) {										// return all segments
+	if (sccp_strlen_zero(req_segment)) {										// return all segments
 		int sccp_config_revision = 0;
 
 		sscanf(SCCP_CONFIG_REVISION, "$" "Revision: %i" "$", &sccp_config_revision);
@@ -3284,7 +3284,7 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 
 							astman_append(s, "\"DefaultValue\":\"%s\"", config[cur_elem].defaultValue);
 
-							if (strlen(config[cur_elem].description) != 0) {
+							if (!sccp_strlen_zero(config[cur_elem].description)) {
 								char *description = strdupa(config[cur_elem].description);
 								char *description_part = "";
 

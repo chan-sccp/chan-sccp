@@ -205,7 +205,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
 
-	if (!l || !d || strlen(d->id) < 3) {
+	if (!l || !d || sccp_strlen(d->id) < 3) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
@@ -1303,7 +1303,7 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
 void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
 
-	if (!l || !d || strlen(d->id) < 3) {
+	if (!l || !d || sccp_strlen(d->id) < 3) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
