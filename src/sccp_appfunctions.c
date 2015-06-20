@@ -96,7 +96,7 @@ static int sccp_func_sccpdevice(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, cha
 			if (ast_str_strlen(colnames)) {
 				ast_str_append(&colnames, 0, ",");
 			}
-			pbx_str_append_escapecommas(&colnames, 0, token, strlen(token));
+			pbx_str_append_escapecommas(&colnames, 0, token, sccp_strlen(token));
 			/** */
 			
 			if (!strcasecmp(token, "ip")) {
@@ -359,7 +359,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			if (ast_str_strlen(colnames)) {
 				ast_str_append(&colnames, 0, ",");
 			}
-			pbx_str_append_escapecommas(&colnames, 0, token, strlen(token));
+			pbx_str_append_escapecommas(&colnames, 0, token, sccp_strlen(token));
 			/** */
 			
 			if (!strcasecmp(token, "id")) {
@@ -588,7 +588,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 			if (ast_str_strlen(colnames)) {
 				ast_str_append(&colnames, 0, ",");
 			}
-			pbx_str_append_escapecommas(&colnames, 0, token, strlen(token));
+			pbx_str_append_escapecommas(&colnames, 0, token, sccp_strlen(token));
 			/** */
 			
 
