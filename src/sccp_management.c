@@ -269,7 +269,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 		astman_append(s, "ChannelType: SCCP\r\n");
 		astman_append(s, "ObjectId: %s\r\n", device->id);
 		astman_append(s, "ObjectType: device\r\n");
-		astman_append(s, "Description: %s\r\n", device->description);
+		astman_append(s, "Description: %s\r\n", device->description  ? device->description : "<not set>");
 		astman_append(s, "IPaddress: %s\r\n", clientAddress);
 		astman_append(s, "Reg_Status: %s\r\n", skinny_registrationstate2str(device->registrationState));
 		astman_append(s, "Reg_Time: %s\r\n", regtime);
@@ -314,7 +314,7 @@ static int sccp_manager_show_lines(struct mansession *s, const struct message *m
 		astman_append(s, "ObjectId: %s\r\n", line->id);
 		astman_append(s, "ObjectType: line\r\n");
 		astman_append(s, "Name: %s\r\n", line->name);
-		astman_append(s, "Description: %s\r\n", line->description);
+		astman_append(s, "Description: %s\r\n", line->description  ? line->description : "<not set>");
 		astman_append(s, "Num_Channels: %d\r\n\r\n", SCCP_RWLIST_GETSIZE(&line->channels));
 		total++;
 	}

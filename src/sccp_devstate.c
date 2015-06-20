@@ -104,7 +104,7 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 
 				SCCP_LIST_LOCK(&deviceStates);
 				deviceState = sccp_devstate_getDeviceStateHandler(config->button.feature.options);
-				if (!deviceState) {
+				if (!deviceState && config->button.feature.options) {
 					deviceState = sccp_devstate_createDeviceStateHandler(config->button.feature.options);
 				}
 				SCCP_LIST_UNLOCK(&deviceStates);
@@ -164,6 +164,10 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 
 sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *devstate)
 {
+	if (!devstate) {
+		return;
+	}
+
 	sccp_devstate_deviceState_t *deviceState = NULL;
 
 	SCCP_LIST_TRAVERSE(&deviceStates, deviceState, list) {
@@ -177,6 +181,10 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate)
 {
+	if (!devstate) {
+		return;
+	}
+
 	sccp_devstate_deviceState_t *deviceState = NULL;
 	char buf[256] = "";
 

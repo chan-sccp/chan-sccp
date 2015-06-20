@@ -197,12 +197,18 @@ static void sccp_device_setRingtone(const sccp_device_t * device, const char *ur
 
 static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
 {
+	if (!dst || !src) {
+		return;
+	}
 	sccp_copy_string(dst, src, dst_size);
 }
 
 #if HAVE_ICONV_H
 static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
 {
+	if (!dst || !src) {
+		return;
+	}
 	char *buf = sccp_alloca(dst_size);
 	size_t buf_len = dst_size;
 	memset(buf, 0, dst_size);
