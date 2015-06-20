@@ -12,8 +12,9 @@
  * $Revision$
  */
 
-#include "common.h"
 #include <netinet/in.h>
+#include <config.h>
+#include "common.h"
 #include "sccp_socket.h"
 #include "sccp_device.h"
 #include "sccp_utils.h"

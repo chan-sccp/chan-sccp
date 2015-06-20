@@ -8,6 +8,7 @@
  * $Revision$
  */
 
+#include <config.h>
 #include "common.h"
 #include "sccp_conference.h"
 #include "sccp_device.h"

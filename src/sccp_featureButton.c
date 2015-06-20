@@ -19,6 +19,7 @@
  * Relations:   Call SCCP Features
  */
 
+#include <config.h>
 #include "common.h"
 #include "sccp_featureButton.h"
 #include "sccp_device.h"
