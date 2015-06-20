@@ -1169,19 +1169,15 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 	}
 	msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 
-	//sccp_copy_string(msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
 	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
 
 	/* lets set the device description for the first line, so it will be display on top of device -MC */
 	if (lineNumber == 1) {
-		//sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	} else {
-		//sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
-		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
+		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l && l->description) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	}
-	//sccp_copy_string(msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
-	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
+	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, ((l && l->label) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
 
 	sccp_dev_send(d, msg_out);
 
@@ -2315,7 +2311,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
 		msg_out->data.NotificationMessage.lel_status = htolel(status);
 		sccp_dev_send(d, msg_out);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context, status);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context ? line->context : "<not set>", status);
 		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, subscriptionID, timer, featureID);
 	}
 }
