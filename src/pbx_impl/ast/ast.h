@@ -15,7 +15,6 @@
 #define __SCCP_PBX_WRAPPER_H
 
 //#define REF_DEBUG 1
-#include <config.h>
 
 #if ASTERISK_VERSION_NUMBER >= 10400
 #include <asterisk.h>

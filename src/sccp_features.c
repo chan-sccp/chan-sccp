@@ -22,6 +22,7 @@
  * Relations:   These Features are called by FeatureButtons. Features can in turn call on Actions.
  */
 
+#include <config.h>
 #include "common.h"
 #include "sccp_features.h"
 #include "sccp_device.h"

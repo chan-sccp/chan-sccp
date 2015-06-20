@@ -45,6 +45,7 @@
  * These rules need to followed to the letter !
  */
 
+#include <config.h>
 #include "common.h"
 #include "sccp_channel.h"
 #include "sccp_device.h"

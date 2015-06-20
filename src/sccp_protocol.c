@@ -10,6 +10,7 @@
  * $Revision$
  */
 
+#include <config.h>
 #include "common.h"
 #include "sccp_protocol.h"
 #include "sccp_device.h"
