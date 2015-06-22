@@ -2131,7 +2131,7 @@ static void sccp_config_add_default_softkeyset(void)
 			}
 		}
 	}
-	pbx_log(LOG_NOTICE, "Adding ' default' softkeyset\n");
+	//pbx_log(LOG_NOTICE, "Adding 'default' softkeyset\n");
 	sccp_config_softKeySet(softkeyset_root, "default");
 	pbx_variables_destroy(softkeyset_root);
 }

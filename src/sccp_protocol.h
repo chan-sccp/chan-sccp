@@ -3409,8 +3409,6 @@ typedef struct {
 	uint8_t count;												/*!< Soft Key Count */
 } softkey_modes;												/*!< SKINNY Soft Key Modes Structure */
 
-static const softkey_modes SoftKeyModes[StationMaxSoftKeySetDefinition];
-
 /*!
  * \brief SCCP Device Protocol Callback Structure
  *
