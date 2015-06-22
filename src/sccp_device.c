@@ -326,6 +326,12 @@ void sccp_device_pre_reload(void)
 			d->pendingDelete = 1;
 		}
 		d->pendingUpdate = 0;
+		
+		/* clear softkeyset */
+		d->softkeyset = NULL;
+		d->softKeyConfiguration.modes = NULL;
+		d->softKeyConfiguration.size = 0;
+		
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			config->pendingDelete = 1;
@@ -440,8 +446,8 @@ sccp_device_t *sccp_device_create(const char *id)
 	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
 	memset(d->call_statistics, 0, (sizeof(sccp_call_statistics_t) * 2));
 
-	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
-	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
+//	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
+//	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	d->registrationState = SKINNY_DEVICE_RS_NONE;

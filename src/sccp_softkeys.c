@@ -1085,7 +1085,7 @@ void sccp_softkey_clear(void)
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
-		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
+		for (i = 0; i < StationMaxSoftKeySetDefinition; i++) {
 			if (k->modes[i].ptr) {
 				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Freeing KeyMode Ptr: %p for KeyMode %i\n", k->modes[i].ptr, i);
 				sccp_free(k->modes[i].ptr);
@@ -1172,7 +1172,9 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 {
 	uint8_t i;
 
-	if (!device) {
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
+
+	if (!device || !device->softKeyConfiguration.size) {
 		return;
 	}
 
