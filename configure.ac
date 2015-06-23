@@ -7,12 +7,15 @@ dnl DATE: $Date$
 dnl REVISION: $Revision$
 dnl NOTE: Process this file with autoconf to produce a configure script.
 AC_PREREQ([2.64])
-AC_INIT([Chan_SCCP],[4.2_TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
+AC_INIT([Chan_SCCP],m4_esyscmd([cat .version |tr -d '\n']),[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
 
 MIN_ASTERISK_VERSION=106
 MAX_ASTERISK_VERSION=113
 
 AC_CONFIG_AUX_DIR([autoconf])
+dnl AC_USE_SYSTEM_EXTENSIONS must be called before any macros that run
+dnl the compiler (like AC_PROG_LIBTOOL) to avoid autoconf errors.
+AC_USE_SYSTEM_EXTENSIONS
 AC_CONFIG_MACRO_DIR([autoconf])
 
 CFLAGS_saved="${CFLAGS}"
@@ -41,7 +44,6 @@ AH_TOP([
 #include "pbx_impl/ast/include_asterisk_autoconfig.h"
 ])
 
-AC_USE_SYSTEM_EXTENSIONS
 CONFIGURE_PART([Checking AutoMake:])
 
 AM_MAINTAINER_MODE([disable])								dnl Switches off auto-regeneration on configure.ac / Makefile.am changes

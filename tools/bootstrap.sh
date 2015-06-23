@@ -1,72 +1,98 @@
 #!/bin/sh
 #
-# FILE: Automatically generate configure script
-# COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
-# CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
-# LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
-#          See the LICENSE file at the top of the source tree.
-# DATE:     $Date$
-# REVISION: $Revision$
+# Helps generate autoconf stuff, when code is checked out from SCM.
+#
+# Copyright (C) 2006-2014 - Karel Zak <kzak@redhat.com>
+#
+srcdir=`dirname $0`/..
+test -z "$srcdir" && srcdir=.
 
-if [ -f src/Makefile ]; then
-  rm -rf config aclocal.m4 autom4te.cache/ src/Makefile.in src/config.h src/Makefile
-fi
+THEDIR=`pwd`
+cd $srcdir
+DIE=0
+CONFIG_DIR="autoconf"
+AL_OPTS="--force -I $CONFIG_DIR"
 
-if [ -f config.cache ]; then
-  rm config.cache
-fi
-check_for_app() {
-	$1 --version 2>&1 >/dev/null
-	if [ $? != 0 ]
-	then
-		echo "Please install $1 and run bootstrap.sh again!"
-		exit 1
-	fi
+test -f src/chan_sccp.c || {
+	echo
+	echo "You must run this script in the top-level chan-sccp-b directory"
+	echo
+	DIE=1
 }
 
-# On FreeBSD and OpenBSD, multiple autoconf/automake versions have different names.
-# On linux, environment variables tell which one to use.
+(autoconf --version) < /dev/null > /dev/null 2>&1 || {
+	echo
+	echo "You must have autoconf installed to generate chan-sccp-b build system."
+	echo
+	DIE=1
+}
+(autoheader --version) < /dev/null > /dev/null 2>&1 || {
+	echo
+	echo "You must have autoheader installed to generate chan-sccp-b build system."
+	echo "The autoheader command is part of the GNU autoconf package."
+	echo
+	DIE=1
+}
 
-uname -s | grep -q BSD
-if [ $? = 0 ] ; then	# BSD case
-	case `uname -sr` in
-		'FreeBSD 4'*)	# FreeBSD 4.x has a different naming
-			MY_AC_VER=265
-			MY_AM_VER=111
-			;;
-		*)
-			MY_AC_VER=-2.65
-			MY_AM_VER=-1.11
-			;;
-	esac
-else	# linux case
-	MY_AC_VER=
-	MY_AM_VER=
-	AUTOCONF_VERSION=2.60
-	AUTOMAKE_VERSION=1.10
-	export AUTOCONF_VERSION
-	export AUTOMAKE_VERSION
+(automake --version) < /dev/null > /dev/null 2>&1 || {
+	echo
+	echo "You must have automake installed to generate chan-sccp-b build system."
+	echo 
+	DIE=1
+}
+
+if test "$DIE" -eq 1; then
+	exit 1
 fi
 
-check_for_app autoconf${MY_AC_VER}
-check_for_app autoheader${MY_AC_VER}
-check_for_app automake${MY_AM_VER}
-check_for_app aclocal${MY_AM_VER}
-
-echo "Generating the configure script ..."
-echo 
-aclocal${MY_AM_VER} --force -I autoconf
-#libtoolize --force --copy
-autoheader${MY_AC_VER}
-automake${MY_AM_VER} --add-missing --copy --force-missing 2>/dev/null
-autoconf${MY_AC_VER}
-
-echo "Running configure script..."
 echo
+echo "Generate build-system by:"
+echo "   aclocal:    $(aclocal --version | head -1)"
+echo "   autoconf:   $(autoconf --version | head -1)"
+echo "   autoheader: $(autoheader --version | head -1)"
+echo "   automake:   $(automake --version | head -1)"
+
+#chmod +x version.sh
+rm -rf autom4te.cache
+
+aclocal $AL_OPTS
+autoconf $AC_OPTS
+autoheader $AH_OPTS
+# automake --add-missing --copy --force-missing 2>/dev/null
+
+# it's better to use helper files from automake installation than
+# maintain copies in git tree
+find_autofile() {
+	if [ -f "$1" ]; then
+		return
+	fi
+	for HELPER_DIR in $(automake --print-libdir 2>/dev/null) \
+			/usr/share/libtool \
+			/usr/share/automake-* ; do
+		f="$HELPER_DIR/$1"
+		if [ -f "$f" ]; then
+			cp "$f" $CONFIG_DIR/
+			return
+		fi
+	done
+	echo "Cannot find "$1" in known locations"
+	exit 1
+}
+
+mkdir -p $CONFIG_DIR/
+find_autofile config.guess
+find_autofile config.sub
+find_autofile install-sh
+
+
+cd $THEDIR
 if test -f config.status; then
+	echo
+	echo "Already configured, re-using current settings..."
+	echo
 	make
 else
-	./configure
+	echo
+	echo "Now type '$srcdir/configure' and 'make' to compile."
+	echo
 fi
-
-exit 0
