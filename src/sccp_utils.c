@@ -600,6 +600,7 @@ unsigned int sccp_app_separate_args(char *buf, char delim, char **array, int arr
 }
 #endif
 
+#if 0 /* unused */
 /*!
  * \brief get the SoftKeyIndex for a given SoftKeyLabel on specified keymode
  * \param d SCCP Device
@@ -613,6 +614,7 @@ int sccp_softkeyindex_find_label(sccp_device_t * d, unsigned int keymode, unsign
 {
 	return -1;
 }
+#endif
 
 /*!
  * \brief This is used on device reconnect attempt

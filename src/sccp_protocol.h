@@ -210,7 +210,9 @@ struct skinny_codec {
 	unsigned int sample_rate;
 	unsigned int sound_quality;
 	unsigned int rtp_payload_type;
-} static const skinny_codecs[] = {
+};
+
+static const struct skinny_codec skinny_codecs[] = {
 	/* *INDENT-OFF* */
 	{SKINNY_CODEC_NONE,		SKINNY_CODEC_TYPE_UNKNOWN, 	"",		"",		"No codec", 				NULL,		0,	0,	0},	//payload unknown
 	{SKINNY_CODEC_NONSTANDARD,	SKINNY_CODEC_TYPE_UNKNOWN,	"",		"",		"Non-standard codec", 			NULL,		0,	0,	0},	//payload unknown

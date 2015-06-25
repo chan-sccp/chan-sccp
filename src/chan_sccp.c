@@ -355,7 +355,7 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t new_debug_value)
 {
 	int argi;
-	int32_t i;
+	uint32_t i;
 	char *argument = "";
 	char *token = "";
 	const char delimiters[] = " ,\t";
@@ -409,7 +409,7 @@ int32_t sccp_parse_debugline(char *arguments[], int startat, int argc, int32_t n
  */
 char *sccp_get_debugcategories(int32_t debugvalue)
 {
-	int32_t i;
+	uint32_t i;
 	char *res = NULL;
 	char *tmpres = NULL;
 	const char *sep = ",";
