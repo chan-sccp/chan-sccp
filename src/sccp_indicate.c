@@ -411,10 +411,10 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				int lenDialed = 0, lenSecDialtoneDigits = 0;
 				uint32_t secondary_dialtone_tone = 0;
 
-				lenDialed = strlen(c->dialedNumber);
+				lenDialed = sccp_strlen(c->dialedNumber);
 
 				/* secondary dialtone check */
-				lenSecDialtoneDigits = strlen(l->secondary_dialtone_digits);
+				lenSecDialtoneDigits = sccp_strlen(l->secondary_dialtone_digits);
 				secondary_dialtone_tone = l->secondary_dialtone_tone;
 
 				if (lenSecDialtoneDigits > 0 && lenDialed == lenSecDialtoneDigits && !strncmp(c->dialedNumber, l->secondary_dialtone_digits, lenSecDialtoneDigits)) {

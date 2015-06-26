@@ -205,7 +205,7 @@ void sccp_feat_handle_callforward(sccp_line_t * l, sccp_device_t * device, sccp_
 void sccp_feat_handle_directed_pickup(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
 
-	if (!l || !d || strlen(d->id) < 3) {
+	if (!l || !d || sccp_strlen(d->id) < 3) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
@@ -1149,8 +1149,6 @@ static void *sccp_feat_meetme_thread(void *data)
 		if (!pbx_channel_context(c->owner) || sccp_strlen_zero(pbx_channel_context(c->owner))) {
 			return NULL;
 		}
-		/* replaced by meetmeopts in global, device, line */
-		// snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, (c->line->meetmeopts&& !sccp_strlen_zero(c->line->meetmeopts)) ? c->line->meetmeopts : "qd");
 		if (!sccp_strlen_zero(c->line->meetmeopts)) {
 			snprintf(meetmeopts, sizeof(meetmeopts), "%s%c%s", c->dialedNumber, SCCP_CONF_SPACER, c->line->meetmeopts);
 		} else if (!sccp_strlen_zero(d->meetmeopts)) {
@@ -1303,7 +1301,7 @@ int sccp_feat_barge(sccp_channel_t * c, char *exten)
 void sccp_feat_handle_cbarge(sccp_line_t * l, uint8_t lineInstance, sccp_device_t * d)
 {
 
-	if (!l || !d || strlen(d->id) < 3) {
+	if (!l || !d || sccp_strlen(d->id) < 3) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if line or device are not defined!\n");
 		return;
 	}
@@ -1446,7 +1444,7 @@ void sccp_feat_changed(sccp_device_t * device, sccp_linedevices_t * linedevice, 
 		event.event.featureChanged.optional_linedevice = linedevice ? sccp_linedevice_retain(linedevice) : NULL;
 		event.event.featureChanged.featureType = featureType;
 		sccp_event_fire(&event);
-		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "%s: Feature %s Change Event Scheduled\n", device->id, featureType2str(featureType));
+		sccp_log(DEBUGCAT_FEATURE) (VERBOSE_PREFIX_3 "%s: Feature %s Change Event Scheduled\n", device->id, sccp_feature_type2str(featureType));
 	}
 }
 
