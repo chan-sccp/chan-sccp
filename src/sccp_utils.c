@@ -2039,6 +2039,7 @@ char *sccp_dec2binstr(char *buf, size_t size, int value)
 
 gcc_inline void sccp_copy_string(char *dst, const char *src, size_t size)
 {
+        assert(NULL != dst && NULL != src);
 	if (size != 0) {
 		while (--size != 0) {
 			if ((*dst++ = *src++) == '\0') {
