@@ -373,14 +373,22 @@ struct {												\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
-#define SCCP_LIST_FIND(head, var, field, compare, retain) ({						\
+#define SCCP_LIST_FIND(head, var, field, compare, retain, _file, _line, _func) ({			\
+	typeof(var) __tmp_##var##_line;								\
 	for((var) = (head)->first; (var); (var) = (var)->field.next) {					\
-	        if ((var) && compare) {									\
-	        	if (retain) {									\
-		                sccp_refcount_retain((var), __FILE__, __LINE__, __PRETTY_FUNCTION__);	\
-			}										\
-			break;										\
-	        }											\
+		__tmp_##var##_line = sccp_refcount_retain((var), _file, _line, _func);			\
+	        if (__tmp_##var##_line) {								\
+	        	if (compare) {									\
+	        		if (!retain) {								\
+		 		        sccp_refcount_release(__tmp_##var##_line, _file, _line, _func);\
+	        		}									\
+				break;									\
+		        }										\
+ 		        sccp_refcount_release(__tmp_##var##_line, _file, _line, _func);		\
+		} else {										\
+			pbx_log(LOG_ERROR, "SCCP (%s:%d:%s): Failed to get reference to variable during SCCP_LIST_FIND\n", _file, _line, _func);\
+			(var) = NULL;									\
+		}											\
 	}                                                                                               \
 	(var);												\
 })
