@@ -1265,7 +1265,7 @@ static void sccp_protocol_parseEnblocCallV22(const sccp_msg_t * msg, char *calle
 {
 	sccp_copy_string(calledParty, msg->data.EnblocCallMessage.v18.calledParty, 25);
 #if defined(HAVE_UNALIGNED_BUSERROR)
-	*lineInstance = letohl(get_unaligned_uint32(msg->data.EnblocCallMessage.v18.lel_lineInstance));
+	*lineInstance = letohl(get_unaligned_uint32((const void *) &msg->data.EnblocCallMessage.v18.lel_lineInstance));
 #else
 	*lineInstance = letohl(msg->data.EnblocCallMessage.v18.lel_lineInstance);
 #endif

@@ -3094,7 +3094,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
 			call_stats[SCCP_CALLSTATISTIC_LAST].packets_lost = letohl(get_unaligned_uint32((const void *) &msg_in->data.ConnectionStatisticsRes.v22.lel_LostPkts));
 			call_stats[SCCP_CALLSTATISTIC_LAST].jitter = letohl(get_unaligned_uint32((const void *) &msg_in->data.ConnectionStatisticsRes.v22.lel_Jitter));
 			call_stats[SCCP_CALLSTATISTIC_LAST].latency = letohl(get_unaligned_uint32((const void *) &msg_in->data.ConnectionStatisticsRes.v22.lel_latency));
-			QualityStatsSize = letohl(get_unaligned_uint32(msg_in->data.ConnectionStatisticsRes.v22.lel_QualityStatsSize));
+			QualityStatsSize = letohl(get_unaligned_uint32((const void *) &msg_in->data.ConnectionStatisticsRes.v22.lel_QualityStatsSize));
 #else
 			call_stats[SCCP_CALLSTATISTIC_LAST].num = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_CallIdentifier);
 			call_stats[SCCP_CALLSTATISTIC_LAST].packets_sent = letohl(msg_in->data.ConnectionStatisticsRes.v22.lel_SentPackets);

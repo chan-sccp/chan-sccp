@@ -831,7 +831,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 	sccp_line_t *l = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	l = SCCP_RWLIST_FIND(&GLOB(lines), l, list, (sccp_strcaseequals(l->name, name)), TRUE);
+	l = SCCP_RWLIST_FIND(&GLOB(lines), l, list, (sccp_strcaseequals(l->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
@@ -991,7 +991,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 	}
 
 	SCCP_LIST_LOCK(&l->devices);
-	linedevice = SCCP_LIST_FIND(&l->devices, linedevice, list, (device == linedevice->device), TRUE);
+	linedevice = SCCP_LIST_FIND(&l->devices, linedevice, list, (device == linedevice->device), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (!linedevice) {
