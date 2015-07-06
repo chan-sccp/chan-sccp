@@ -2146,22 +2146,26 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	/* setup hostname -> externip */
 	sccp_updateExternIp();											/* deprecated, not needed any more */
 
-	/* setup regcontext */
-	char newcontexts[SCCP_MAX_CONTEXT];
-	char oldcontexts[SCCP_MAX_CONTEXT];
-	char *stringp, *context, *oldregcontext;
+	if (GLOB(regcontext)) {
+                /* setup regcontext */
+		char newcontexts[SCCP_MAX_CONTEXT]="";
+		char oldcontexts[SCCP_MAX_CONTEXT]="";
+		char *stringp, *context, *oldregcontext;
 
-	sccp_copy_string(newcontexts, GLOB(regcontext), sizeof(newcontexts));
-	stringp = newcontexts;
+		sccp_copy_string(newcontexts, GLOB(regcontext), sizeof(newcontexts));
+		//memcpy(newcontexts, GLOB(regcontext), sizeof(newcontexts));
+		stringp = newcontexts;
 
-	sccp_copy_string(oldcontexts, GLOB(used_context), sizeof(oldcontexts));					// Initialize copy of current regcontext for later use in removing stale contexts
-	oldregcontext = oldcontexts;
+		sccp_copy_string(oldcontexts, GLOB(used_context), sizeof(oldcontexts));				// Initialize copy of current regcontext for later use in removing stale contexts
+		//memcpy(oldcontexts, GLOB(used_context), sizeof(oldcontexts));					// Initialize copy of current regcontext for later use in removing stale contexts
+		oldregcontext = oldcontexts;
 
-	cleanup_stale_contexts(stringp, oldregcontext);								// Let's remove any contexts that are no longer defined in regcontext
+		cleanup_stale_contexts(stringp, oldregcontext);							// Let's remove any contexts that are no longer defined in regcontext
 
-	while ((context = strsep(&stringp, "&"))) {								// Create contexts if they don't exist already
-		sccp_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
-		pbx_context_find_or_create(NULL, NULL, context, "SCCP");
+		while ((context = strsep(&stringp, "&"))) {							// Create contexts if they don't exist already
+			sccp_copy_string(GLOB(used_context), context, sizeof(GLOB(used_context)));
+			pbx_context_find_or_create(NULL, NULL, context, "SCCP");
+		}
 	}
 	
 	return TRUE;
