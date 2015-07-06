@@ -2420,7 +2420,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 					sccp_channel_t *c = NULL;
 
 					SCCP_LIST_LOCK(&l->channels);
-					channel = SCCP_LIST_FIND(&l->channels, c, list, (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_GETDIGITS || c->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE);
+					channel = SCCP_LIST_FIND(&l->channels, c, list, (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_GETDIGITS || c->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 					SCCP_LIST_UNLOCK(&l->channels);
 				}
 			}
