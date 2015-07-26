@@ -1,12 +1,10 @@
-dnl FILE: chan-sccp-b configure file
-dnl COPYRIGHT: chan-sccp-b.sourceforge.net group 2009
-dnl CREATED BY: Created by Diederik de Groot
-dnl LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License.
-dnl          See the LICENSE file at the top of the source tree.
-dnl DATE: $Date$
-dnl REVISION: $Revision$
-dnl NOTE: Process this file with autoconf to produce a configure script.
-AC_PREREQ([2.64])
+vdnl FILE: chan-sccp-b configure file dnl COPYRIGHT:
+chan-sccp-b.sourceforge.net group 2009 dnl CREATED BY: Created by Diederik
+de Groot dnl LICENSE: This program is free software and may be modified and
+distributed under the terms of the GNU Public License.  dnl See the LICENSE
+file at the top of the source tree.  dnl DATE: $Date: 2015-07-26 11:08:32
++0200 (zo, 26 jul 2015) $ dnl REVISION: $Revision$ dnl NOTE: Process
+this file with autoconf to produce a configure script.  AC_PREREQ([2.64])
 AC_INIT([Chan_SCCP],[4.2_TRUNK],[https://sourceforge.net/projects/chan-sccp-b/],[Chan_SCCP])
 
 MIN_ASTERISK_VERSION=106
@@ -146,9 +144,9 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable} ${BFD_LIBS}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable} ${LIBBFD}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${BFD_LIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${LIBBFD}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"

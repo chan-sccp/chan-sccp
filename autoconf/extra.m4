@@ -552,8 +552,10 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 			[
 				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
 				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
-				AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])
-				LIBBFD="-lbfd"
+				AC_SEARCH_LIBS([bfd_openr], [bfd], [
+					AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])
+					LIBBFD="-lbfd"
+				])
 			]
 		)
 	else
