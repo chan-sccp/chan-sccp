@@ -325,6 +325,21 @@ int __sccp_line_destroy(const void *ptr)
 	sccp_line_t *l = (sccp_line_t *) ptr;
 
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
+	
+	// checking if line was correctly removed from globals, if not this indicates an over release of refcount
+	sccp_line_t *tmpl;
+	SCCP_RWLIST_RDLOCK(&GLOB(lines));
+	SCCP_RWLIST_TRAVERSE(&GLOB(lines), tmpl, list) {
+		if (tmpl == l) {
+			// sccp_line_destroy was not called on this line, though refcount says it should be destroyed.
+			// catch
+			pbx_log(LOG_ERROR, "SCCP: __sccp_line_destroy called on %s but line still exists in globals!!\n", l->name);
+			// and fix
+			sccp_line_retain(l);
+		}
+	}
+	SCCP_RWLIST_UNLOCK(&GLOB(lines));
+	
 
 	// cleanup linedevices
 	sccp_line_removeDevice(l, NULL);
@@ -831,7 +846,7 @@ sccp_line_t *sccp_line_find_byname(const char *name, uint8_t useRealtime)
 	sccp_line_t *l = NULL;
 
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
-	l = SCCP_RWLIST_FIND(&GLOB(lines), l, list, (sccp_strcaseequals(l->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	l = SCCP_RWLIST_FIND(&GLOB(lines), sccp_line_t, tmpl, list, (sccp_strcaseequals(tmpl->name, name)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 #ifdef CS_SCCP_REALTIME
 	if (!l && useRealtime) {
@@ -991,7 +1006,7 @@ sccp_linedevices_t *__sccp_linedevice_find(const sccp_device_t * device, const s
 	}
 
 	SCCP_LIST_LOCK(&l->devices);
-	linedevice = SCCP_LIST_FIND(&l->devices, linedevice, list, (device == linedevice->device), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	linedevice = SCCP_LIST_FIND(&l->devices, sccp_linedevices_t, tmplinedevice, list, (device == tmplinedevice->device), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_LIST_UNLOCK(&l->devices);
 
 	if (!linedevice) {

@@ -2380,19 +2380,20 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	//pbx_log(LOG_NOTICE, "%s: callid %d\n", DEV_ID_LOG(s->device), callid);
 
 	if (!d) {												// should never be possible, d should have been retained in calling function
-		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(s->device));
+		pbx_log(LOG_NOTICE, "%s: Device sent a Keypress, but device is not specified! Exiting\n", DEV_ID_LOG(d));
 		return;
 	}
+	
+	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: SCCP (handle_keypad) digit:%08x, callid:%d, lineInstance:%d\n", DEV_ID_LOG(d), digit, callid, lineInstance);
 
-	/* Old phones like 7912 never uses callid
-	 * so we would have trouble finding the right channel
-	 */
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
 	AUTO_RELEASE sccp_linedevices_t *linedevice;
 	
-	
-	if ((channel = sccp_device_getActiveChannel(d)) && channel->callid == callid) {
+	/* Old phones like 7912 never uses callid
+	 * so we would have trouble finding the right channel
+	 */
+	if ((channel = sccp_device_getActiveChannel(d)) && (callid == 0 || channel->callid == callid)) {
 		l = sccp_line_retain(channel->line);
 		linedevice = sccp_linedevice_find(d, l);
 		
@@ -2402,7 +2403,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		 * 
 		 */
 		if(linedevice->lineInstance != lineInstance){
-		    pbx_log(LOG_NOTICE, "%s: linedevice->lineInstance != lineInstance (%d != %d)\n", DEV_ID_LOG(s->device), linedevice->lineInstance, lineInstance);
+		    pbx_log(LOG_NOTICE, "%s: linedevice->lineInstance != lineInstance (%d != %d)\n", DEV_ID_LOG(d), linedevice->lineInstance, lineInstance);
 		}
 	}
 	
@@ -2414,26 +2415,14 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			}
 		} else {
 			if ((l = sccp_line_find_byid(d, lineInstance))) {
-				if (d->active_channel && d->active_channel->line == l) {
-					channel = sccp_device_getActiveChannel(d);
-				} else {
-					sccp_channel_t *c = NULL;
-
-					SCCP_LIST_LOCK(&l->channels);
-					channel = SCCP_LIST_FIND(&l->channels, c, list, (c->state == SCCP_CHANNELSTATE_OFFHOOK || c->state == SCCP_CHANNELSTATE_GETDIGITS || c->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
-					SCCP_LIST_UNLOCK(&l->channels);
-				}
+				SCCP_LIST_LOCK(&l->channels);
+				channel = SCCP_LIST_FIND(&l->channels, sccp_channel_t, tmpc, list, (tmpc->state == SCCP_CHANNELSTATE_OFFHOOK || tmpc->state == SCCP_CHANNELSTATE_GETDIGITS || tmpc->state == SCCP_CHANNELSTATE_DIGITSFOLL), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+				SCCP_LIST_UNLOCK(&l->channels);
 			}
 		}
-	} else if(!l) {
-		if (callid) {
-			if ((channel = sccp_channel_find_byid(callid)) && channel->line) {
-				l = sccp_line_retain(channel->line);
-			}
-		} else {
-			if ((channel = sccp_device_getActiveChannel(d)) && channel->line) {
-				l = sccp_line_retain(channel->line);
-			}
+	} else if(!l && callid) {
+		if ((channel = sccp_channel_find_byid(callid)) && channel->line) {
+			l = sccp_line_retain(channel->line);
 		}
 	}
 
@@ -2558,7 +2547,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			sccp_safe_sleep(100);									// we would hear last keypad stroke before starting all
 			sccp_pbx_softswitch(channel);								// channel will be released by hangup
 		}
-		sccp_handle_dialtone(channel);
+		sccp_handle_dialtone(d, l, channel);
 
 	} else if (PBX(getChannelPbx) (channel) || channel->state == SCCP_CHANNELSTATE_DIALING) {		/* Overlap Dialing (\todo should we check &GLOB(allowoverlap) here ? */
 		/* add digit to dialed number */
@@ -2580,29 +2569,19 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 
 /*!
  * \brief Handle DialTone Without Lock
- * \param channel SCCP Channel as sccp_channel_t
+ * \param d SCCP Device (retained)
+ * \param l SCCP Line (retained)
+ * \param channel SCCP Channel (retained)
  */
-void sccp_handle_dialtone(sccp_channel_t * channel)
+void sccp_handle_dialtone(sccp_device_t *d, sccp_line_t *l, sccp_channel_t * channel)
 {
 	uint8_t instance;
 
-	if (!channel) {
+	if (!d || !l || !channel) {
 		return;
 	}
 
 	if (channel->softswitch_action != SCCP_SOFTSWITCH_DIAL || channel->scheduler.hangup) {
-		return;
-	}
-
-	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(channel->line);
-
-	if (!l) {
-		return;
-	}
-
-	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
-
-	if (!d) {
 		return;
 	}
 
@@ -2664,7 +2643,7 @@ void sccp_handle_soft_key_event(sccp_session_t * s, sccp_device_t * d, sccp_msg_
 		}
 	}
 
-	if (lineInstance) {
+	if (!l && lineInstance) {
 		l = sccp_line_find_byid(d, lineInstance);
 	}
 

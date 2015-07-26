@@ -373,24 +373,25 @@ struct {												\
 })
 #define SCCP_RWLIST_REMOVE SCCP_LIST_REMOVE
 
-#define SCCP_LIST_FIND(head, var, field, compare, retain, _file, _line, _func) ({			\
-	typeof(var) __tmp_##var##_line;								\
-	for((var) = (head)->first; (var); (var) = (var)->field.next) {					\
-		__tmp_##var##_line = sccp_refcount_retain((var), _file, _line, _func);			\
-	        if (__tmp_##var##_line) {								\
-	        	if (compare) {									\
-	        		if (!retain) {								\
-		 		        sccp_refcount_release(__tmp_##var##_line, _file, _line, _func);\
+#define SCCP_LIST_FIND(_head, _type, _var, _field, _compare, _retain, _file, _line, _func) ({			\
+	_type *_var;											\
+	_type *__tmp_##_var##_line;									\
+	for((_var) = (_head)->first; (_var); (_var) = (_var)->_field.next) {					\
+		__tmp_##_var##_line = sccp_refcount_retain((_var), _file, _line, _func);			\
+	        if (__tmp_##_var##_line) {								\
+	        	if (_compare) {									\
+	        		if (!_retain) {								\
+		 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);	\
 	        		}									\
 				break;									\
 		        }										\
- 		        sccp_refcount_release(__tmp_##var##_line, _file, _line, _func);		\
+ 		        sccp_refcount_release(__tmp_##_var##_line, _file, _line, _func);			\
 		} else {										\
 			pbx_log(LOG_ERROR, "SCCP (%s:%d:%s): Failed to get reference to variable during SCCP_LIST_FIND\n", _file, _line, _func);\
-			(var) = NULL;									\
+			(_var) = NULL;									\
 		}											\
 	}                                                                                               \
-	(var);												\
+	(_var);												\
 })
 
 #define SCCP_RWLIST_FIND SCCP_LIST_FIND
