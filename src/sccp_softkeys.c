@@ -393,7 +393,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
 		sccp_channel_schedule_digittimout(c, (len >= 1) ? GLOB(digittimeout) : GLOB(digittimeout));
 	}
 	// sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: backspacing dial number %s\n", c->device->id, c->dialedNumber);
-	sccp_handle_dialtone(c);
+	sccp_handle_dialtone(d, l, c);
 	sccp_handle_backspace(d, lineInstance, c->callid);
 }
 

@@ -2836,7 +2836,7 @@ sccp_device_t *sccp_device_find_byid(const char *id, boolean_t useRealtime)
 	}
 
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
-	d = SCCP_RWLIST_FIND(&GLOB(devices), d, list, (sccp_strcaseequals(d->id, id)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+	d = SCCP_RWLIST_FIND(&GLOB(devices), sccp_device_t, tmpd, list, (sccp_strcaseequals(tmpd->id, id)), TRUE, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 
 #ifdef CS_SCCP_REALTIME
