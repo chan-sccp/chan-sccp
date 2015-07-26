@@ -147,6 +147,8 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 void sccp_utils_register_tests(void);
 void sccp_utils_unregister_tests(void);
 #endif
-
+#ifdef DEBUG
+void sccp_do_backtrace();
+#endif
 #endif
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

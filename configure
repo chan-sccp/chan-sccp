@@ -807,6 +807,7 @@ REPOS_TYPE
 SCCP_REVISION
 SCCP_BRANCH
 SCCP_VERSION
+LIBBFD
 ax_warn_cflags_variable
 GDB_FLAGS
 DEBUG
@@ -5762,6 +5763,7 @@ $as_echo "$as_me: --enable-optimization: ${enable_optimization}" >&6;}
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: --enable-debug: ${enable_debug}" >&5
 $as_echo "$as_me: --enable-debug: ${enable_debug}" >&6;}
 
+	LIBBFD=""
 	if test -n "${CPPFLAGS_saved}"; then
 	 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
  	else
@@ -5918,6 +5920,34 @@ done
 
     		fi
 
+		ac_fn_c_check_header_mongrel "$LINENO" "execinfo.h" "ac_cv_header_execinfo_h" "$ac_includes_default"
+if test "x$ac_cv_header_execinfo_h" = xyes; then :
+
+
+$as_echo "#define HAVE_EXECINFO_H 1" >>confdefs.h
+
+				ac_fn_c_check_header_mongrel "$LINENO" "dlfcn.h" "ac_cv_header_dlfcn_h" "$ac_includes_default"
+if test "x$ac_cv_header_dlfcn_h" = xyes; then :
+
+$as_echo "#define HAVE_DLADDR_H 1" >>confdefs.h
+
+fi
+
+
+				ac_fn_c_check_header_mongrel "$LINENO" "bfd.h" "ac_cv_header_bfd_h" "$ac_includes_default"
+if test "x$ac_cv_header_bfd_h" = xyes; then :
+
+$as_echo "#define HAVE_BFD_H 1" >>confdefs.h
+
+fi
+
+
+				LIBBFD="-lbfd"
+
+
+fi
+
+
 	else
 
 $as_echo "#define DEBUG 0" >>confdefs.h
@@ -6010,6 +6040,7 @@ done
 	fi
 	CFLAGS_saved="${CFLAGS_saved} -I."			CFLAGS="${CFLAGS_saved} "
 	CPPFLAGS="${CPPFLAGS_saved} -I. "
+
 
 
 
@@ -22112,6 +22143,7 @@ else
 fi
 
 
+CS_CHECK_LIBBFD
 
 
 # Check whether --with-changelog-oldest was given.
@@ -22740,7 +22772,6 @@ $as_echo "${T_MD}Checking Asterisk Headers:${T_ME}" >&6; }
 	#include <asterisk/autoconfig.h>
 	#include <asterisk/buildopts.h>
   "
-
   ac_fn_c_check_header_compile "$LINENO" "asterisk/lock.h" "ac_cv_header_asterisk_lock_h" "
                 	$HEADER_INCLUDE
 
@@ -31677,9 +31708,9 @@ echo "             CPP : ${CPP}"
 if test -n "$HOST_CC" ; then
 echo "         HOST_CC : ${CC}"
 fi
-echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable}"
+echo "          CFLAGS : ${CFLAGS} ${AM_CFLAGS} ${PBX_CFLAGS} ${GDB_FLAGS} ${PTHREAD_CFLAGS} ${COVERAGE_CFLAGS} ${EVENT_CFLAGS} ${LIBEXSLT_CFLAGS} ${LIBCURL_CFLAGS} ${ax_warn_cflags_variable} ${BFD_LIBS}"
 echo "        CPPFLAGS : ${CPPFLAGS} ${AM_CPPFLAGS} ${PBX_CPPFLAGS} ${GDB_FLAGS} ${PTHREAD_CPPFLAGS} ${COVERAGE_CPPFLAGS} ${EVENT_CPPFLAGS} ${LIBEXSLT_CPPFLAGS} ${LIBCURL_CPPFLAGS}"
-echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS}"
+echo "         LDFLAGS : ${LDFLAGS} ${PBX_LDFLAGS} ${PTHREAD_LIBS} ${EVENT_LIBS} ${LIBEXSLT_LIBS} ${LIBCURL_LIBS} ${AST_CLANG_BLOCKS_LIBS} ${BFD_LIBS}"
 echo "        PBX_TYPE : ${PBX_TYPE}"
 echo "      PBX_PREFIX : ${PBX_PREFIX}"
 echo "         PBX_ETC : ${PBX_ETC}"

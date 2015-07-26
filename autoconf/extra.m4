@@ -460,6 +460,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_MSG_NOTICE([--enable-optimization: ${enable_optimization}]) 
 	AC_MSG_NOTICE([--enable-debug: ${enable_debug}])
 
+	LIBBFD=""
 	if test -n "${CPPFLAGS_saved}"; then
 	 	CPPFLAGS_saved="${CPPFLAGS_saved} -U_FORTIFY_SOURCE"
  	else 
@@ -546,7 +547,15 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 				dnl -Wno-unused-but-set-variable dnl
 			], ax_warn_cflags_variable)
     		fi 
-    		
+
+		AC_CHECK_HEADER([execinfo.h],
+			[
+				AC_DEFINE(HAVE_EXECINFO_H,1,[Found 'execinfo.h'])
+				AC_CHECK_HEADER([dlfcn.h], [AC_DEFINE(HAVE_DLADDR_H, 1, [Found 'dlfcn.h'])])
+				AC_CHECK_HEADER([bfd.h], [AC_DEFINE(HAVE_BFD_H, 1, [Found 'bfd.h'])])
+				LIBBFD="-lbfd"
+			]
+		)
 	else
 		AC_DEFINE([DEBUG],[0],[No Extra debugging.])
 		DEBUG=0
@@ -574,6 +583,7 @@ AC_DEFUN([CS_ENABLE_OPTIMIZATION], [
 	AC_SUBST([DEBUG])
 	AC_SUBST([GDB_FLAGS])
 	AC_SUBST([ax_warn_cflags_variable])
+	AC_SUBST([LIBBFD])
 ])
 
 AC_DEFUN([CS_ENABLE_GCOV], [

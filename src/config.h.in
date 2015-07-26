@@ -310,6 +310,9 @@
 /* Define to 1 if you have the <atomic_ops.h> header file. */
 #undef HAVE_ATOMIC_OPS_H
 
+/* Found 'bfd.h' */
+#undef HAVE_BFD_H
+
 /* Define to 1 if bswap_16 is available. */
 #undef HAVE_BSWAP_16
 
@@ -346,6 +349,9 @@
 /* Define to 1 if you have the <dirent.h> header file. */
 #undef HAVE_DIRENT_H
 
+/* Found 'dlfcn.h' */
+#undef HAVE_DLADDR_H
+
 /* Define if you have the GNU dld library. */
 #undef HAVE_DLD
 
@@ -369,6 +375,9 @@
 
 /* Define to 1 if the system has the type `error_t'. */
 #undef HAVE_ERROR_T
+
+/* Found 'execinfo.h' */
+#undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H

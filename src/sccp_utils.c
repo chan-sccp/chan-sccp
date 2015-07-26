@@ -20,6 +20,16 @@
 #if HAVE_ICONV_H
 #include <iconv.h>
 #endif
+#ifdef DEBUG
+#ifdef HAVE_EXECINFO_H
+#include <execinfo.h>
+#if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
+#include <dlfcn.h>
+#include <bfd.h>
+#endif
+#endif
+#endif
+
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 /*!
@@ -2117,4 +2127,179 @@ void sccp_utils_unregister_tests(void)
         AST_TEST_UNREGISTER(chan_sccp_ha_tests);
 }
 #endif
+
+#ifdef DEBUG
+#if HAVE_EXECINFO_H
+static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
+{
+	char **strings;
+#if defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
+	int stackfr;
+	bfd *bfdobj;           /* bfd.h */
+	Dl_info dli;           /* dlfcn.h */
+	long allocsize;
+	asymbol **syms = NULL; /* bfd.h */
+	bfd_vma offset;        /* bfd.h */
+	const char *lastslash;
+	asection *section;
+	const char *file, *func;
+	unsigned int line;
+	char address_str[128];
+	char msg[1024];
+	size_t strings_size;
+	size_t *eachlen;
+
+	strings_size = num_frames * sizeof(*strings);
+
+	eachlen = ast_std_calloc(num_frames, sizeof(*eachlen));
+	strings = ast_std_calloc(num_frames, sizeof(*strings));
+	if (!eachlen || !strings) {
+		ast_std_free(eachlen);
+		ast_std_free(strings);
+		return NULL;
+	}
+
+	for (stackfr = 0; stackfr < num_frames; stackfr++) {
+		int found = 0, symbolcount;
+
+		msg[0] = '\0';
+
+		if (!dladdr(addresses[stackfr], &dli)) {
+			continue;
+		}
+
+		if (strcmp(dli.dli_fname, "asterisk") == 0) {
+			char asteriskpath[256];
+
+			if (!(dli.dli_fname = ast_utils_which("asterisk", asteriskpath, sizeof(asteriskpath)))) {
+				/* This will fail to find symbols */
+				dli.dli_fname = "asterisk";
+			}
+		}
+
+		lastslash = strrchr(dli.dli_fname, '/');
+		if ((bfdobj = bfd_openr(dli.dli_fname, NULL)) &&
+			bfd_check_format(bfdobj, bfd_object) &&
+			(allocsize = bfd_get_symtab_upper_bound(bfdobj)) > 0 &&
+			(syms = ast_std_malloc(allocsize)) &&
+			(symbolcount = bfd_canonicalize_symtab(bfdobj, syms))) {
+
+			if (bfdobj->flags & DYNAMIC) {
+				offset = addresses[stackfr] - dli.dli_fbase;
+			} else {
+				offset = addresses[stackfr] - (void *) 0;
+			}
+
+			for (section = bfdobj->sections; section; section = section->next) {
+				if (!bfd_get_section_flags(bfdobj, section) & SEC_ALLOC ||
+					section->vma > offset ||
+					section->size + section->vma < offset) {
+					continue;
+				}
+
+				if (!bfd_find_nearest_line(bfdobj, section, syms, offset - section->vma, &file, &func, &line)) {
+					continue;
+				}
+
+				/* file can possibly be null even with a success result from bfd_find_nearest_line */
+				file = file ? file : "";
+
+				/* Stack trace output */
+				found++;
+				if ((lastslash = strrchr(file, '/'))) {
+					const char *prevslash;
+
+					for (prevslash = lastslash - 1; *prevslash != '/' && prevslash >= file; prevslash--) {
+					}
+					if (prevslash >= file) {
+						lastslash = prevslash;
+					}
+				}
+				if (dli.dli_saddr == NULL) {
+					address_str[0] = '\0';
+				} else {
+					snprintf(address_str, sizeof(address_str), " (%p+%lX)",
+						dli.dli_saddr,
+						(unsigned long) (addresses[stackfr] - dli.dli_saddr));
+				}
+				snprintf(msg, sizeof(msg), "%s:%u %s()%s",
+					lastslash ? lastslash + 1 : file, line,
+					S_OR(func, "???"),
+					address_str);
+
+				break; /* out of section iteration */
+			}
+		}
+		if (bfdobj) {
+			bfd_close(bfdobj);
+			ast_std_free(syms);
+		}
+
+		/* Default output, if we cannot find the information within BFD */
+		if (!found) {
+			if (dli.dli_saddr == NULL) {
+				address_str[0] = '\0';
+			} else {
+				snprintf(address_str, sizeof(address_str), " (%p+%lX)",
+					dli.dli_saddr,
+					(unsigned long) (addresses[stackfr] - dli.dli_saddr));
+			}
+			snprintf(msg, sizeof(msg), "%s %s()%s",
+				lastslash ? lastslash + 1 : dli.dli_fname,
+				S_OR(dli.dli_sname, "<unknown>"),
+				address_str);
+		}
+
+		if (!ast_strlen_zero(msg)) {
+			char **tmp;
+
+			eachlen[stackfr] = strlen(msg) + 1;
+			if (!(tmp = ast_std_realloc(strings, strings_size + eachlen[stackfr]))) {
+				ast_std_free(strings);
+				strings = NULL;
+				break; /* out of stack frame iteration */
+			}
+			strings = tmp;
+			strings[stackfr] = (char *) strings + strings_size;
+			strcpy(strings[stackfr], msg);/* Safe since we just allocated the room. */
+			strings_size += eachlen[stackfr];
+		}
+	}
+
+	if (strings) {
+		/* Recalculate the offset pointers because of the reallocs. */
+		strings[0] = (char *) strings + num_frames * sizeof(*strings);
+		for (stackfr = 1; stackfr < num_frames; stackfr++) {
+			strings[stackfr] = strings[stackfr - 1] + eachlen[stackfr - 1];
+		}
+	}
+	ast_std_free(eachlen);
+#else
+	strings = backtrace_symbols(addresses, num_frames);
+#endif  // defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
+	return strings;
+}
+#endif  // HAVE_EXECINFO_H
+
+void sccp_do_backtrace()
+{
+#if HAVE_EXECINFO_H
+	void	*addresses[SCCP_BACKTRACE_SIZE];
+	size_t  size, i;
+	char     **strings;
+	struct ast_str *btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
+	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "OS: %s, PLATFORM: %s, KERNEL: %s\nASTERISK: %s\nCHAN-SCCP-b: %s\n", BUILD_OS, BUILD_MACHINE, BUILD_KERNEL, pbx_get_version(), SCCP_VERSIONSTR);
+		
+	size = backtrace(addresses, SCCP_BACKTRACE_SIZE);
+	strings = __sccp_bt_get_symbols(addresses, size);
+
+	for (i = 1; i < size; i++) {
+		pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, " (bt) > %s\n", strings[i]);		
+	}
+	free(strings);	// malloced by backtrace_symbols
+
+	pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));
+#endif	// HAVE_EXECINFO_H
+}
+#endif  // DEBUG
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

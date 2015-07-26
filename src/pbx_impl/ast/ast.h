@@ -76,6 +76,7 @@
 #include <asterisk/event_defs.h>
 #endif
 #include <asterisk/indications.h>
+#include <asterisk/ast_version.h>
 
 #if CS_TEST_FRAMEWORK
 #include "asterisk/test.h"
