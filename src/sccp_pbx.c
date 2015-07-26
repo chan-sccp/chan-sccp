@@ -365,32 +365,34 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 	/* remove call from transferee, transferer */
 	sccp_linedevices_t *linedevice = NULL;
-
-	SCCP_LIST_LOCK(&l->devices);
-	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-		AUTO_RELEASE sccp_device_t *tmpDevice = sccp_device_retain(linedevice->device);
-
-		if (tmpDevice) {
-			sccp_channel_transfer_release(tmpDevice, c);
-		}
-	}
-	SCCP_LIST_UNLOCK(&l->devices);
-	/* done - remove call from transferee, transferer */
-
-	sccp_line_removeChannel(l, c);
-
-	if (!d) {
-		/* channel is not answered, just ringin over all devices */
-		/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
+	if (l) {
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
-			if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
-				d = sccp_device_retain(linedevice->device);
-				break;
+			AUTO_RELEASE sccp_device_t *tmpDevice = sccp_device_retain(linedevice->device);
+
+			if (tmpDevice) {
+				sccp_channel_transfer_release(tmpDevice, c);
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
+		/* done - remove call from transferee, transferer */
+
+		sccp_line_removeChannel(l, c);
+
+		if (!d) {
+			/* channel is not answered, just ringin over all devices */
+			/* find the first the device on which it is registered and hangup that one (__sccp_indicate_remote_device will do the rest) */
+			SCCP_LIST_LOCK(&l->devices);
+			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
+				if (linedevice->device && SKINNY_DEVICE_RS_OK == linedevice->device->registrationState) {
+					d = sccp_device_retain(linedevice->device);
+					break;
+				}
+			}
+			SCCP_LIST_UNLOCK(&l->devices);
+		}
 	}
+
 	if (d) {
 		d->monitorFeature.status &= ~SCCP_FEATURE_MONITOR_STATE_ACTIVE;
 		sccp_log((DEBUGCAT_PBX)) (VERBOSE_PREFIX_3 "%s: Reset monitor state after hangup\n", DEV_ID_LOG(d));
