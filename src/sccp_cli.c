@@ -2088,6 +2088,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 			all_entries++;
 		}
 		pbx_cli(fd, "%s\n", all_entries);
+		#ifdef DEBUG
+		sccp_do_backtrace();
+		#endif
 		return RESULT_SUCCESS;
 	}
 	return RESULT_FAILURE;
