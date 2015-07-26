@@ -181,7 +181,7 @@ int sccp_refcount_schedule_cleanup(const void *data)
 	return 0;
 }
 
-void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
+void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, const char *identifier, void *destructor)
 {
 	RefCountedObject *obj;
 	void *ptr = NULL;
@@ -242,8 +242,8 @@ void *sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types type, c
 		fflush(sccp_ref_debug_log);
 	}
 #endif
-	memset(ptr, 0, size);
-	return ptr;
+	//memset(ptr, 0, size);
+	return (void * const)ptr;
 }
 
 #if CS_REFCOUNT_DEBUG
@@ -437,7 +437,7 @@ void sccp_refcount_updateIdentifier(void *ptr, char *identifier)
 	}
 }
 
-gcc_inline void *sccp_refcount_retain(void *ptr, const char *filename, int lineno, const char *func)
+gcc_inline void * const sccp_refcount_retain(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -453,18 +453,21 @@ gcc_inline void *sccp_refcount_retain(void *ptr, const char *filename, int linen
 		if ((sccp_globals->debug & (((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT))) == ((&obj_info[obj->type])->debugcat + DEBUGCAT_REFCOUNT)) {
 			ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) %*.*s> %*s refcount increased %.2d  +> %.2d for %10s: %s (%p)\n", filename, lineno, func, refcountval, refcountval, "--------------------", 20 - refcountval, " ", refcountval, newrefcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 		}
-		return obj->data;
+		return (void * const) obj->data;
 	} else {
 #if CS_REFCOUNT_DEBUG
 		__sccp_refcount_debug((void *) ptr, NULL, 1, filename, lineno, func);
 #endif
 		ast_log(__LOG_VERBOSE, __FILE__, 0, "retain", "SCCP: (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to retain a %s: %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? (&obj_info[obj->type])->datatype : "UNREF", (obj) ? obj->identifier : "UNREF", obj);
 		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
+		#ifdef DEBUG
+		sccp_do_backtrace();
+		#endif
 		return NULL;
 	}
 }
 
-gcc_inline void *sccp_refcount_release(const void *ptr, const char *filename, int lineno, const char *func)
+gcc_inline void * const sccp_refcount_release(const void * const ptr, const char *filename, int lineno, const char *func)
 {
 	RefCountedObject *obj = NULL;
 	volatile int refcountval;
@@ -485,7 +488,7 @@ gcc_inline void *sccp_refcount_release(const void *ptr, const char *filename, in
 			sccp_refcount_remove_obj(ptr);
 		} else {
 			if ((sccp_globals->debug & ((debugcat + DEBUGCAT_REFCOUNT))) == (debugcat ^ DEBUGCAT_REFCOUNT)) {
-				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, obj->identifier, obj);
+				ast_log(__LOG_VERBOSE, __FILE__, 0, "", " %-15.15s:%-4.4d (%-25.25s) <%*.*s %*s refcount decreased %.2d  <- %.2d for %10s: %s (%p)\n", filename, lineno, func, newrefcountval, newrefcountval, "--------------------", 20 - newrefcountval, " ", newrefcountval, refcountval, (&obj_info[obj->type])->datatype, obj->identifier, obj);
 			}
 		}
 	} else {
@@ -494,6 +497,9 @@ gcc_inline void *sccp_refcount_release(const void *ptr, const char *filename, in
 #endif
 		ast_log(__LOG_VERBOSE, __FILE__, 0, "release", "SCCP (%-15.15s:%-4.4d (%-25.25s)) ALARM !! trying to release a %s (%p) with invalid memory reference! this should never happen !\n", filename, lineno, func, (obj) ? obj->identifier : "UNREF", obj);
 		ast_log(LOG_ERROR, "SCCP: (release) Refcount Object %p could not be found (Major Logic Error). Please report to developers\n", ptr);
+		#ifdef DEBUG
+		sccp_do_backtrace();
+		#endif
 	}
 	return NULL;
 }
