@@ -2287,9 +2287,14 @@ void sccp_do_backtrace()
 	void	*addresses[SCCP_BACKTRACE_SIZE];
 	size_t  size, i;
 	char     **strings;
-	struct ast_str *btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
-	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "OS: %s, PLATFORM: %s, KERNEL: %s\nASTERISK: %s\nCHAN-SCCP-b: %s\n", BUILD_OS, BUILD_MACHINE, BUILD_KERNEL, pbx_get_version(), SCCP_VERSIONSTR);
-		
+	struct ast_str *btbuf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2);
+	
+	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
+	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "OPERATING SYSTEM: %s, ARCHITECTURE: %s, KERNEL: %s\nASTERISK: %s\nCHAN-SCCP-b: %s\n", BUILD_OS, BUILD_MACHINE, BUILD_KERNEL, pbx_get_version(), SCCP_VERSIONSTR);
+#if !defined(HAVE_DLADDR_H) || !defined(HAVE_BFD_H)
+	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "To get a better backtrace you would need to install libbfd (package binutils devel package)\n"
+#endif		
+	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "--------------------------------------------------------------------------(bt)--\n");
 	size = backtrace(addresses, SCCP_BACKTRACE_SIZE);
 	strings = __sccp_bt_get_symbols(addresses, size);
 
@@ -2298,6 +2303,7 @@ void sccp_do_backtrace()
 	}
 	free(strings);	// malloced by backtrace_symbols
 
+	pbx_str_append(&btbuf, DEFAULT_PBX_STR_BUFFERSIZE, "================================================================================\n");
 	pbx_log(LOG_WARNING, "SCCP: (backtrace) \n%s\n", pbx_str_buffer(btbuf));
 #endif	// HAVE_EXECINFO_H
 }
