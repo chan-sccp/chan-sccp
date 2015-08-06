@@ -3286,6 +3286,7 @@ int sccp_config_generate(char *filename, int configType)
 	char name_and_value[100];
 	char size_str[15] = "";
 	int linelen = 0;
+	struct ast_str *extra_info = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE * 2);
 
 	char fn[PATH_MAX];
 
@@ -3325,26 +3326,80 @@ int sccp_config_generate(char *filename, int configType)
 
 		config = sccpConfigSegment->config;
 		for (sccp_option = 0; sccp_option < sccpConfigSegment->config_size; sccp_option++) {
-			if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
+			//if ((config[sccp_option].flags & SCCP_CONFIG_FLAG_IGNORE & SCCP_CONFIG_FLAG_DEPRECATED & SCCP_CONFIG_FLAG_OBSOLETE) == 0) {
+			if ((config[sccp_option].flags & (SCCP_CONFIG_FLAG_IGNORE | SCCP_CONFIG_FLAG_DEPRECATED | SCCP_CONFIG_FLAG_OBSOLETE)) == 0) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "adding name: %s, default_value: %s\n", config[sccp_option].name, config[sccp_option].defaultValue);
 
 				if (!sccp_strlen_zero(config[sccp_option].name)) {
 					if (!sccp_strlen_zero(config[sccp_option].defaultValue)			// non empty
 					    || (configType != 2 && ((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) != SCCP_CONFIG_FLAG_REQUIRED && sccp_strlen_zero(config[sccp_option].defaultValue)))	// empty but required
 					    ) {
-						snprintf(name_and_value, sizeof(name_and_value), "%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
+					    	if (strstr(config[sccp_option].name, "|")) {
+					    		char delims[] = "|";
+					    		char *option_name_tokens = strdupa(config[sccp_option].name);
+					    		char *option_value_tokens;
+					    		if (!sccp_strlen_zero(config[sccp_option].defaultValue)) {
+					    			option_value_tokens = strdupa(config[sccp_option].defaultValue);
+					    		} else {
+					    			option_value_tokens = strdupa("\"\"");
+							}
+					    		char *option_name_tokens_saveptr;
+					    		char *option_value_tokens_saveptr;
+					    		char *option_name = strtok_r(option_name_tokens, delims, &option_name_tokens_saveptr);
+					    		char *option_value = strtok_r(option_value_tokens, delims, &option_value_tokens_saveptr);
+					    		while (option_name != NULL) {
+								snprintf(name_and_value, sizeof(name_and_value), "%s = %s", option_name, option_value ? option_value : "\"\"");
+								fprintf(f, "%s", name_and_value);
+								option_name = strtok_r(NULL, delims, &option_name_tokens_saveptr);
+								option_value = strtok_r(NULL, delims, &option_value_tokens_saveptr);
+								if (option_name) {
+									fprintf(f, "\n");
+								}
+							}
+					    	} else {
+							snprintf(name_and_value, sizeof(name_and_value), "%s = %s", config[sccp_option].name, sccp_strlen_zero(config[sccp_option].defaultValue) ? "\"\"" : config[sccp_option].defaultValue);
+							fprintf(f, "%s", name_and_value);
+					    	}
 						linelen = (int) strlen(name_and_value);
-						fprintf(f, "%s", name_and_value);
+						switch (config[sccp_option].type) {
+							case SCCP_CONFIG_DATATYPE_STRING:
+								snprintf(size_str, sizeof(size_str), "(SIZE: %d) ", (int) config[sccp_option].size - 1);
+								break;
+							case SCCP_CONFIG_DATATYPE_ENUM:
+								{
+									char *all_entries = strdupa(config[sccp_option].all_entries());
+									char *possible_entry = "";
+									int subcomma = 0;
+									
+									pbx_str_append(&extra_info, 0, "(POSSIBLE VALUES: [");
+									while (all_entries && (possible_entry = strsep(&all_entries, ","))) {
+										pbx_str_append(&extra_info, 0, "%s\"%s\"", subcomma ? "," : "", possible_entry);
+										subcomma = 1;
+									}
+									pbx_str_append(&extra_info, 0, "])");
+								}
+								size_str[0] = '\0';
+								break;
+							default:
+								size_str[0] = '\0';
+								break;
+						}
+						fprintf(f, "%*.s ; %s%s%s%s%s", 81 - linelen, " ",
+							((config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED) ? "(REQUIRED) " : "", 
+							((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY) " : "", 
+							((config[sccp_option].flags & SCCP_CONFIG_FLAG_DEPRECATED) == SCCP_CONFIG_FLAG_DEPRECATED) ? "(DEPRECATED) " : "",
+							((config[sccp_option].flags & SCCP_CONFIG_FLAG_OBSOLETE) == SCCP_CONFIG_FLAG_OBSOLETE) ? "(DEPRECATED) " : "",
+							size_str
+							);
 						if (!sccp_strlen_zero(config[sccp_option].description)) {
 							description = sccp_strdupa(config[sccp_option].description);
 							while ((description_part = strsep(&description, "\n"))) {
 								if (!sccp_strlen_zero(description_part)) {
-									if (config[sccp_option].type == SCCP_CONFIG_DATATYPE_STRING) {
-										snprintf(size_str, sizeof(size_str), " (Size: %d)", (int) config[sccp_option].size - 1);
+									if (linelen) {
+										fprintf(f, "%s\n", description_part);
 									} else {
-										size_str[0] = '\0';
+										fprintf(f, "%*.s ; %s\n", 81, " ", description_part);
 									}
-									fprintf(f, "%*.s ; %s%s%s%s\n", 81 - linelen, " ", (config[sccp_option].flags & SCCP_CONFIG_FLAG_REQUIRED) == SCCP_CONFIG_FLAG_REQUIRED ? "(REQUIRED) " : "", ((config[sccp_option].flags & SCCP_CONFIG_FLAG_MULTI_ENTRY) == SCCP_CONFIG_FLAG_MULTI_ENTRY) ? "(MULTI-ENTRY)" : "", description_part, size_str);
 									linelen = 0;
 								}
 							}
@@ -3353,6 +3408,10 @@ int sccp_config_generate(char *filename, int configType)
 							}
 						} else {
 							fprintf(f, "\n");
+						}
+						if (ast_str_strlen(extra_info)) {
+							fprintf(f, "%*.s ; %s\n", 81, " ", pbx_str_buffer(extra_info));
+							ast_str_reset(extra_info);
 						}
 					}
 				} else {
