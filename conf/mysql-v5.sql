@@ -1,10 +1,10 @@
-/*
- * this is for users how like to sepatet device and button configuration
- * You have to change the table names to:
- *
- * sccpdevices -> sccpdeviceconfig
- * sccplines -> sccpline  
-*/
+--
+-- this is for users how like to sepatet device and button configuration
+-- You have to change the table names to:
+--
+-- sccpdevices -> sccpdeviceconfig
+-- sccplines -> sccpline  
+--
 
 --
 -- Table with line-configuration
@@ -105,6 +105,27 @@ CREATE TABLE IF NOT EXISTS `buttonconfig` (
   KEY `device` (`device`),
   FOREIGN KEY (device) REFERENCES sccpdevice(name) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=INNODB DEFAULT CHARSET=latin1;
+
+
+--
+-- trigger to check buttonconfig sccpline foreign key constrainst:
+--   if type=='line' then check name against sccpline.name column
+--   else free field
+--
+DROP TRIGGER IF EXISTS trg_buttonconfig;
+
+DELIMITER $$
+CREATE TRIGGER trg_buttonconfig BEFORE INSERT ON buttonconfig
+FOR EACH ROW
+BEGIN
+	IF NEW.`type` = 'line' THEN
+		IF (SELECT COUNT(*) FROM `sccpline` WHERE `sccpline`.`name` = NEW.`name`) = 0
+		THEN
+			UPDATE `Foreign key contraint violated: line does not exist in sccpline` SET x=1;
+		END IF;
+	END IF;
+END$$
+DELIMITER ;
 
 --
 -- View for merging device and button configuration
