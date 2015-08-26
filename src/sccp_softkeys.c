@@ -1037,23 +1037,41 @@ void sccp_softkey_post_reload(void)
 	/* only required because softkeys are parsed after devices */
 	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
 	sccp_softKeySetConfiguration_t *softkeyset;
+	sccp_softKeySetConfiguration_t *default_softkeyset = NULL;
 	sccp_device_t *d;
-
+	
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
-		SCCP_RWLIST_WRLOCK(&GLOB(devices));
-		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		if (sccp_strcaseequals("default", softkeyset->name)) {
+                	default_softkeyset = softkeyset;
+                }
+	}
+	SCCP_LIST_UNLOCK(&softKeySetConfig);
+	
+	if (!default_softkeyset) {
+		pbx_log(LOG_ERROR, "SCCP: 'default' softkeyset could not be found. Something is horribly wrong here\n");
+	}
+
+	SCCP_RWLIST_WRLOCK(&GLOB(devices));
+	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+		SCCP_LIST_LOCK(&softKeySetConfig);
+		SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {
 			if (sccp_strcaseequals(d->softkeyDefinition, softkeyset->name)) {
 				sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Re-attaching softkeyset: %s to device d: %s\n", softkeyset->name, d->id);
 				d->softkeyset = softkeyset;
 				d->softKeyConfiguration.modes = softkeyset->modes;
 				d->softKeyConfiguration.size = softkeyset->numberOfSoftKeySets;
-//				sccp_handle_soft_key_set_req(d->s, d, NULL);
 			}
 		}
-		SCCP_RWLIST_UNLOCK(&GLOB(devices));
+		SCCP_LIST_UNLOCK(&softKeySetConfig);
+		
+		if (default_softkeyset && !d->softkeyset) {
+			d->softkeyset = default_softkeyset;
+			d->softKeyConfiguration.modes = default_softkeyset->modes;
+			d->softKeyConfiguration.size = default_softkeyset->numberOfSoftKeySets;
+		}
 	}
-	SCCP_LIST_UNLOCK(&softKeySetConfig);
+	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
 
 /*!
