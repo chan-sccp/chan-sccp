@@ -323,6 +323,9 @@ void sccp_device_pre_reload(void)
 			config->pendingUpdate = 0;
 		}
 		SCCP_LIST_UNLOCK(&d->buttonconfig);
+		d->softkeyset = NULL;
+		d->softKeyConfiguration.modes = 0;
+		d->softKeyConfiguration.size = 0;
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
 }
