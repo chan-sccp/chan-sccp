@@ -1171,11 +1171,11 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 {
 	uint8_t i;
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
-
 	if (!device) {
 		return;
 	}
+
+	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
 
 	/* find softkey */
 	for (i = 0; i < device->softKeyConfiguration.modes[softKeySet].count; i++) {
