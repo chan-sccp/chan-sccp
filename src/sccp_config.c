@@ -1226,7 +1226,6 @@ sccp_value_changed_t sccp_config_parse_hotline_exten(void *dest, const size_t si
 			}
 			hotline->line->adhocNumber = strdup(value);
 		}
-		hotline->line->label = strdup(value);
 	} else {
 		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
 	}

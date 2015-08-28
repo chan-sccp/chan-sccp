@@ -247,7 +247,6 @@ void *sccp_create_hotline(void)
 #endif
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
-		hotline->label = strdup("hotline");								// needs to freed 
 		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
 		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
 	}
