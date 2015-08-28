@@ -178,11 +178,6 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 {
 	sccp_device_t *d = NULL;
 
-	if (!GLOB(module_running)) {
-		pbx_log(LOG_ERROR, "Chan-sccp-b module is not up and running at this moment\n");
-		goto EXIT;
-	}
-
 	if (!s || (s->fds[0].fd < 0)) {
 		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
 		goto EXIT;
