@@ -1848,7 +1848,6 @@ int sccp_feature_type_exists(int sccp_feature_type_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_feature_type2str(sccp_feature_type_t enum_value) {
