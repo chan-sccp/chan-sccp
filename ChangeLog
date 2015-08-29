@@ -1,4 +1,162 @@
+2015-07-26  ddegroot
+
+	* [r6153] src/sccp_pbx.c: Fix: sccp_pbx_hangup (check if line was
+	  found before using it, null pointer dereference)
+
+	* [r6152] src/sccp_actions.c, src/sccp_actions.h,
+	  src/sccp_channel.c, src/sccp_device.c, src/sccp_dllists.h,
+	  src/sccp_line.c, src/sccp_softkeys.c: Fix: make SCCP_LIST_FIND
+	  traverse the list more carefully by retaining and checking result
+	  for every step. Adapt other source to use new SCCP_LIST_FIND.
+	  Fix: sccp_handle_keypad when parsing older devices
+
+	* [r6151] src/sccp_refcount.h: Use sccp_do_backtrace
+
+	* [r6150] src/sccp_cli.c, src/sccp_refcount.c: Use
+	  sccp_do_backtrace
+
+	* [r6149] src/chan_sccp.h: Add: Detection of LibBFD. Add:
+	  sccp_do_backtrace() function
+
+	* [r6148] Makefile.in: Add: Detection of LibBFD. Add:
+	  sccp_do_backtrace() function
+
+	* [r6147] autoconf/asterisk.m4, autoconf/extra.m4, configure,
+	  configure.ac, contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/config.h.in,
+	  src/pbx_impl/ast/ast.h, src/pbx_impl/ast/define.h,
+	  src/sccp_utils.c, src/sccp_utils.h: Add: Detection of LibBFD.
+	  Add: sccp_do_backtrace() function
+
+2015-07-06  ddegroot
+
+	* [r6145] src/sccp_actions.c: Fix: racecondition => check refcount
+	  during SCCP_LIST_FIND before running compare.
+
+	* [r6144] src/sccp_actions.c, src/sccp_channel.c,
+	  src/sccp_device.c, src/sccp_dllists.h, src/sccp_line.c,
+	  src/sccp_protocol.c: Fix: racecondition => check refcount during
+	  SCCP_LIST_FIND before running compare.
+
+	* [r6143] src/sccp_config.c: Fix: potential null pointer
+	  dereference when regcontext is an empty string
+
+	* [r6142] src/sccp_utils.c: Enhancement: assert pointers before
+	  running sccp_copy_string
+
+	* [r6141] src/pbx_impl/ast/ast106.c: Fix compile issue against
+	  asterisk-1.6.2
+
+2015-06-20  ddegroot
+
+	* [r6140] src/sccp_conference.c: Fix: moderator partyName and
+	  Number in ConfList
+
+2015-06-18  marcelloceschia
+
+	* [r6139] .gitignore, src/chan_sccp.h, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config_entries.hh, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_pbx.c: revert merge request
+
+	* [r6138] .gitignore, src/chan_sccp.h, src/pbx_impl/ast/ast113.c,
+	  src/sccp_actions.c, src/sccp_channel.c, src/sccp_cli.c,
+	  src/sccp_config_entries.hh, src/sccp_device.c, src/sccp_line.c,
+	  src/sccp_line.h, src/sccp_pbx.c: Merge pull request #260 from
+	  dkgroot/move_dev_pref_to_line_pref
+	  
+	  move dev preferences to line preferences
+
+2015-06-17  ddegroot
+
+	* [r6137] src/sccp_hint.c: Fix: typo
+
+2015-06-16  ddegroot
+
+	* [r6136] conf/mysql-v5.sql, conf/postgres.sql: Fix: Removed Line
+	  Contraint from buttonconfig table (postregsql/mysql-v5).
+
+2015-06-15  ddegroot
+
+	* [r6135] NEWS, debian/changelog: Update NEWS / ChangeLog
+
+	* [r6130] .version: Update version number
+
+	* [r6129] tools/versioncheck: Fix versioncheck script to include
+	  the correct Branch
+
+	* [r6128] conf/mysql-v5.sql: Enhancement: Added trigger to check
+	  sccpline when adding a line to buttonconfig
+
+	* [r6127] src/Makefile.in, src/common.h: Enhancement: reorder
+	  common.h
+
+2015-06-14  ddegroot
+
+	* [r6126] conf/postgres.sql: Fix: Added Contraint for
+	  buttonconfig.name to require sccpline.name entry if
+	  buttonconfig.type is set to 'line'
+
+2015-06-13  ddegroot
+
+	* [r6125] autoconf/extra.m4, configure: Enhancement: Default enable
+	  use of ccache when found in path (to disable use :
+	  --without-ccache).
+
+	* [r6124] src/sccp_config.c: Fix: skip empty mailbox entries during
+	  config parsing. Issue reported by Pavel Troller.
+
+	* [r6123] src/chan_sccp.c, src/sccp_socket.c: Fix: Warning about
+	  setting socket option COS. Enhanced sccp_set_socketoption
+	  function generate error messages only in case the option is
+	  supported by the platform in questin.
+
+2015-06-12  ddegroot
+
+	* [r6122] src/sccp_line.c, src/sccp_utils.c, src/sccp_utils.h: Fix:
+	  Warning about alignment cast potential source for unaligned
+	  access.
+
+	* [r6121] autoconf/acinclude.m4, configure: Fix: detection of
+	  -fstack-protector support by compiler. Returned a warning instead
+	  of error when not available on platform.
+
+	* [r6120] src/chan_sccp.h, src/pbx_impl/ast/ast.c,
+	  src/pbx_impl/ast/ast.h, src/sccp_config.c, src/sccp_socket.c:
+	  Enhancement: change tos/cos type size to uint8_t instead of
+	  uint16_t (max value for tos and cos is 255).
+
+	* [r6119] src/pbx_impl/ast/ast.c, src/pbx_impl/ast/ast.h,
+	  src/pbx_impl/ast/ast106.c, src/pbx_impl/ast/ast108.c,
+	  src/pbx_impl/ast/ast110.c, src/pbx_impl/ast/ast111.c,
+	  src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c,
+	  src/sccp_protocol.c, src/sccp_socket.c: Fix: handling of cos/tos
+	  values explicit uint16_t casting (preventing unaligned access)
+
+	* [r6118] src/sccp_actions.c, src/sccp_config.c,
+	  src/sccp_config_entries.hh: Fix: reduce/remove warnings.
+	  Requested by Pavel
+
+2015-06-11  ddegroot
+
+	* [r6117] src/sccp_actions.c: Fix: speeddial with blf handling for
+	  newer devices. Reported by Pavel and Niklas.
+
 2015-06-09  ddegroot
+
+	* [r6116] src/sccp_config.c: Fix old style declaration (missing
+	  void)
+
+	* [r6115] src/pbx_impl/ast/ast112.c, src/pbx_impl/ast/ast113.c: Fix
+	  compile warning about missing declaration
+
+	* [r6114] ChangeLog, Makefile.in, autoconf/acinclude.m4,
+	  autoconf/asterisk.m4, autoconf/extra.m4, configure, configure.ac,
+	  contrib/gen_sccpconf/Makefile.in, doc/Makefile.in,
+	  src/Makefile.am, src/Makefile.in, src/config.h.in: Fix: addition
+	  of compile warning flags. Enabled a couple more compiler
+	  warnings. Added the intention to enable a few others. Update
+	  ChangeLog. Replaced old m4 compiler flags checking macro
 
 	* [r6113] src/sccp_event.c: Fix: natural alignment for
 	  sccp_event_subscriptions -> elements rearranged.

@@ -48,6 +48,7 @@
 #define pbx_sched_wait ast_sched_wait
 #define pbx_io_wait ast_io_wait
 #define pbx_gethostbyname ast_gethostbyname
+#define pbx_get_version ast_get_version
 #define pbx_apply_ha ast_apply_ha
 #define pbx_moh_stop ast_moh_stop
 #define pbx_channel_alloc ast_channel_alloc

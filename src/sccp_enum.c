@@ -50,7 +50,6 @@ int sccp_channelstate_exists(int sccp_channelstate_int_value) {
 		}
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_channelstate2str(sccp_channelstate_t enum_value) {
@@ -175,7 +174,6 @@ int sccp_channelstatereason_exists(int sccp_channelstatereason_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_channelstatereason2str(sccp_channelstatereason_t enum_value) {
@@ -230,7 +228,6 @@ int sccp_earlyrtp_exists(int sccp_earlyrtp_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_earlyrtp2str(sccp_earlyrtp_t enum_value) {
@@ -284,7 +281,6 @@ int sccp_devicestate_exists(int sccp_devicestate_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_devicestate2str(sccp_devicestate_t enum_value) {
@@ -337,7 +333,6 @@ int sccp_callforward_exists(int sccp_callforward_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_callforward2str(sccp_callforward_t enum_value) {
@@ -387,7 +382,6 @@ int sccp_dtmfmode_exists(int sccp_dtmfmode_int_value) {
 	if ((SCCP_DTMFMODE_RFC2833 <=sccp_dtmfmode_int_value) && (sccp_dtmfmode_int_value < SCCP_DTMFMODE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -439,7 +433,6 @@ int sccp_autoanswer_exists(int sccp_autoanswer_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_autoanswer2str(sccp_autoanswer_t enum_value) {
@@ -490,7 +483,6 @@ int sccp_dndmode_exists(int sccp_dndmode_int_value) {
 	if ((SCCP_DNDMODE_REJECT <=sccp_dndmode_int_value) && (sccp_dndmode_int_value < SCCP_DNDMODE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -544,7 +536,6 @@ int sccp_accessory_exists(int sccp_accessory_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_accessory2str(sccp_accessory_t enum_value) {
@@ -595,7 +586,6 @@ int sccp_accessorystate_exists(int sccp_accessorystate_int_value) {
 	if ((SCCP_ACCESSORYSTATE_ONHOOK <=sccp_accessorystate_int_value) && (sccp_accessorystate_int_value < SCCP_ACCESSORYSTATE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -650,7 +640,6 @@ int sccp_config_buttontype_exists(int sccp_config_buttontype_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_config_buttontype2str(sccp_config_buttontype_t enum_value) {
@@ -700,7 +689,6 @@ int sccp_devstate_state_exists(int sccp_devstate_state_int_value) {
 	if ((SCCP_DEVSTATE_INUSE <=sccp_devstate_state_int_value) && (sccp_devstate_state_int_value < SCCP_DEVSTATE_STATE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -752,7 +740,6 @@ int sccp_blindtransferindication_exists(int sccp_blindtransferindication_int_val
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_blindtransferindication2str(sccp_blindtransferindication_t enum_value) {
@@ -802,7 +789,6 @@ int sccp_call_answer_order_exists(int sccp_call_answer_order_int_value) {
 	if ((SCCP_ANSWER_LAST_FIRST <=sccp_call_answer_order_int_value) && (sccp_call_answer_order_int_value < SCCP_CALL_ANSWER_ORDER_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -857,7 +843,6 @@ int sccp_nat_exists(int sccp_nat_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_nat2str(sccp_nat_t enum_value) {
@@ -908,7 +893,6 @@ int sccp_video_mode_exists(int sccp_video_mode_int_value) {
 	if ((SCCP_VIDEO_MODE_USER <=sccp_video_mode_int_value) && (sccp_video_mode_int_value < SCCP_VIDEO_MODE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -971,7 +955,6 @@ int sccp_event_type_exists(int sccp_event_type_int_value) {
 		}
 	}
 	return res;
-	return 0;
 }
 
 const char * sccp_event_type2str(int sccp_event_type_int_value) {
@@ -1030,7 +1013,6 @@ int sccp_parkresult_exists(int sccp_parkresult_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_parkresult2str(sccp_parkresult_t enum_value) {
@@ -1080,7 +1062,6 @@ int sccp_calleridpresence_exists(int sccp_calleridpresence_int_value) {
 	if ((CALLERID_PRESENCE_ALLOWED <=sccp_calleridpresence_int_value) && (sccp_calleridpresence_int_value < SCCP_CALLERIDPRESENCE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -1136,7 +1117,6 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
 		}
 	}
 	return res;
-	return 0;
 }
 
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
@@ -1196,7 +1176,6 @@ int sccp_extension_status_exists(int sccp_extension_status_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_extension_status2str(sccp_extension_status_t enum_value) {
@@ -1248,7 +1227,6 @@ int sccp_channel_request_status_exists(int sccp_channel_request_status_int_value
 	if ((SCCP_REQUEST_STATUS_LINEUNKNOWN <=sccp_channel_request_status_int_value) && (sccp_channel_request_status_int_value < SCCP_CHANNEL_REQUEST_STATUS_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -1304,7 +1282,6 @@ int sccp_message_priority_exists(int sccp_message_priority_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_message_priority2str(sccp_message_priority_t enum_value) {
@@ -1356,7 +1333,6 @@ int sccp_push_result_exists(int sccp_push_result_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_push_result2str(sccp_push_result_t enum_value) {
@@ -1407,7 +1383,6 @@ int sccp_tokenstate_exists(int sccp_tokenstate_int_value) {
 	if ((SCCP_TOKEN_STATE_ACK <=sccp_tokenstate_int_value) && (sccp_tokenstate_int_value < SCCP_TOKENSTATE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -1468,7 +1443,6 @@ int sccp_softswitch_exists(int sccp_softswitch_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_softswitch2str(sccp_softswitch_t enum_value) {
@@ -1519,7 +1493,6 @@ int sccp_phonebook_exists(int sccp_phonebook_int_value) {
 	if ((SCCP_PHONEBOOK_MISSED <=sccp_phonebook_int_value) && (sccp_phonebook_int_value < SCCP_PHONEBOOK_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -1572,7 +1545,6 @@ int sccp_feature_monitor_state_exists(int sccp_feature_monitor_state_int_value) 
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_value) {
@@ -1621,7 +1593,6 @@ int sccp_readingtype_exists(int sccp_readingtype_int_value) {
 	if ((SCCP_CONFIG_READRELOAD <=sccp_readingtype_int_value) && (sccp_readingtype_int_value < SCCP_READINGTYPE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -1677,7 +1648,6 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 		}
 	}
 	return res;
-	return 0;
 }
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
@@ -1736,7 +1706,6 @@ int sccp_call_statistics_type_exists(int sccp_call_statistics_type_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_call_statistics_type2str(sccp_call_statistics_type_t enum_value) {
@@ -1791,7 +1760,6 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 		}
 	}
 	return res;
-	return 0;
 }
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
@@ -1880,7 +1848,6 @@ int sccp_feature_type_exists(int sccp_feature_type_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * sccp_feature_type2str(sccp_feature_type_t enum_value) {
@@ -1933,7 +1900,6 @@ int skinny_lampmode_exists(int skinny_lampmode_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_lampmode2str(skinny_lampmode_t enum_value) {
@@ -1983,7 +1949,6 @@ int skinny_calltype_exists(int skinny_calltype_int_value) {
 	if ((SKINNY_CALLTYPE_OUTBOUND <=skinny_calltype_int_value) && (skinny_calltype_int_value < SKINNY_CALLTYPE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -2049,7 +2014,6 @@ int skinny_callstate_exists(int skinny_callstate_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_callstate2str(skinny_callstate_t enum_value) {
@@ -2102,7 +2066,6 @@ int skinny_callpriority_exists(int skinny_callpriority_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_callpriority2str(skinny_callpriority_t enum_value) {
@@ -2153,7 +2116,6 @@ int skinny_callinfo_visibility_exists(int skinny_callinfo_visibility_int_value) 
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_callinfo_visibility2str(skinny_callinfo_visibility_t enum_value) {
@@ -2203,7 +2165,6 @@ int skinny_callsecuritystate_exists(int skinny_callsecuritystate_int_value) {
 	if ((SKINNY_CALLSECURITYSTATE_NOTAUTHENTICATED <=skinny_callsecuritystate_int_value) && (skinny_callsecuritystate_int_value < SKINNY_CALLSECURITYSTATE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -2256,7 +2217,6 @@ int skinny_busylampfield_state_exists(int skinny_busylampfield_state_int_value) 
 	if ((SKINNY_BLF_STATUS_IDLE <=skinny_busylampfield_state_int_value) && (skinny_busylampfield_state_int_value < SKINNY_BUSYLAMPFIELD_STATE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -2314,7 +2274,6 @@ int skinny_alarm_exists(int skinny_alarm_int_value) {
 			return 1;
 		}
 	}
-	return 0;
 	return 0;
 }
 
@@ -2466,7 +2425,6 @@ int skinny_tone_exists(int skinny_tone_int_value) {
 			return 1;
 		}
 	}
-	return 0;
 	return 0;
 }
 
@@ -2769,7 +2727,6 @@ int skinny_videoformat_exists(int skinny_videoformat_int_value) {
 		}
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_videoformat2str(skinny_videoformat_t enum_value) {
@@ -2847,7 +2804,6 @@ int skinny_ringtype_exists(int skinny_ringtype_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_ringtype2str(skinny_ringtype_t enum_value) {
@@ -2898,7 +2854,6 @@ int skinny_receivetransmit_exists(int skinny_receivetransmit_int_value) {
 	if ((SKINNY_TRANSMITRECEIVE_RECEIVE <=skinny_receivetransmit_int_value) && (skinny_receivetransmit_int_value < SKINNY_RECEIVETRANSMIT_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -2960,7 +2915,6 @@ int skinny_keymode_exists(int skinny_keymode_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_keymode2str(skinny_keymode_t enum_value) {
@@ -3013,7 +2967,6 @@ int skinny_registrationstate_exists(int skinny_registrationstate_int_value) {
 	if ((SKINNY_DEVICE_RS_TIMEOUT <=skinny_registrationstate_int_value) && (skinny_registrationstate_int_value < SKINNY_REGISTRATIONSTATE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -3074,7 +3027,6 @@ int skinny_mediastatus_exists(int skinny_mediastatus_int_value) {
 	if ((SKINNY_MEDIASTATUS_Unknown <=skinny_mediastatus_int_value) && (skinny_mediastatus_int_value < SKINNY_MEDIASTATUS_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 
@@ -3181,7 +3133,6 @@ int skinny_stimulus_exists(int skinny_stimulus_int_value) {
 			return 1;
 		}
 	}
-	return 0;
 	return 0;
 }
 
@@ -3449,7 +3400,6 @@ int skinny_buttontype_exists(int skinny_buttontype_int_value) {
 			return 1;
 		}
 	}
-	return 0;
 	return 0;
 }
 
@@ -3761,7 +3711,6 @@ int skinny_devicetype_exists(int skinny_devicetype_int_value) {
 			return 1;
 		}
 	}
-	return 0;
 	return 0;
 }
 
@@ -4125,7 +4074,6 @@ int skinny_encryptiontype_exists(int skinny_encryptiontype_int_value) {
 		return 1;
 	}
 	return 0;
-	return 0;
 }
 
 const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value) {
@@ -4180,7 +4128,6 @@ int skinny_miscCommandType_exists(int skinny_miscCommandType_int_value) {
 	if ((SKINNY_MISCCOMMANDTYPE_VIDEOFASTUPDATEPICTURE <=skinny_miscCommandType_int_value) && (skinny_miscCommandType_int_value < SKINNY_MISCCOMMANDTYPE_SENTINEL )) {
 		return 1;
 	}
-	return 0;
 	return 0;
 }
 

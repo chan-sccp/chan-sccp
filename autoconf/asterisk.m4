@@ -231,7 +231,6 @@ AC_DEFUN([AST_CHECK_HEADERS],[
 	#include <asterisk/autoconfig.h>
 	#include <asterisk/buildopts.h>
   "
-    
   AC_CHECK_HEADER([asterisk/lock.h],
                 [
                         lock_compiled=yes

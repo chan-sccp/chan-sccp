@@ -251,7 +251,6 @@ codeSkip == 1			{ next }
 		print "\t}"> out_source_file
 		print "\treturn 0;" > out_source_file
 	}
-	print "\treturn 0;" > out_source_file
 	print "}\n" > out_source_file
 
 	# const char * sccp_channelstate2str(sccp_channelstate_t enum_value) {

@@ -177,7 +177,6 @@ struct sccp_device {
 	SCCP_LIST_HEAD (, sccp_hostname_t) permithosts;								/*!< Permit Registration to the Hostname/IP Address */
 
 	char *description;											/*!< Internal Description. Skinny protocol does not use it */
-
 	uint16_t accessoryused;											/*!< Accessory Used. This are for support of message 0x0073 AccessoryStatusMessage - Protocol v.11 CCM7 -FS */
 	uint16_t accessorystatus;										/*!< Accessory Status */
 	char imageversion[StationMaxImageVersionSize];								/*!< Version to Send to the phone */
@@ -215,7 +214,6 @@ struct sccp_device {
 	sccp_dtmfmode_t dtmfmode;										/*!< DTMF Mode (0 inband - 1 outofband) */
 	boolean_t meetme;											/*!< Meetme on/off */
 	char *meetmeopts;											/*!< Meetme Options to be Used */
-
 	skinny_lampmode_t mwilamp;										/*!< MWI/Lamp to indicate MailBox Messages */
 	boolean_t mwioncall;											/*!< MWI On Call Support (Boolean, default=on) */
 	boolean_t softkeysupport;										/*!< Soft Key Support (Boolean, default=on) */

@@ -759,7 +759,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
 	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_devicetype2str(d->skinny_type), d->skinny_type);
 	CLI_AMI_OUTPUT_YES_NO("Softkey support",	CLI_AMI_LIST_WIDTH, d->softkeysupport);
-	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s (%p)", d->softkeyDefinition, d->softkeyset);
+	CLI_AMI_OUTPUT_PARAM("Softkeyset",		CLI_AMI_LIST_WIDTH, "%s => %s (%p)", d->softkeyDefinition, d->softkeyset ? d->softkeyset->name : "NULL !", d->softkeyset);
 	CLI_AMI_OUTPUT_YES_NO("BTemplate support",	CLI_AMI_LIST_WIDTH, d->buttonTemplate);
 	CLI_AMI_OUTPUT_YES_NO("linesRegistered",	CLI_AMI_LIST_WIDTH, d->linesRegistered);
 	CLI_AMI_OUTPUT_PARAM("Image Version",		CLI_AMI_LIST_WIDTH, "%s", d->loadedimageversion);
@@ -2087,6 +2087,9 @@ static int sccp_test(int fd, int argc, char *argv[])
 			all_entries++;
 		}
 		pbx_cli(fd, "%s\n", all_entries);
+		#ifdef DEBUG
+		sccp_do_backtrace();
+		#endif
 		return RESULT_SUCCESS;
 	}
 	return RESULT_FAILURE;

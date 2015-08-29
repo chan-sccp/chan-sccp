@@ -2072,7 +2072,7 @@ static boolean_t sccp_wrapper_asterisk16_create_audio_rtp(sccp_channel_t * c)
 		ast_queue_frame(c->owner, &ast_null_frame);
 	}
 
-	ast_rtp_setqos(c->rtp.audio.rtp, (uint32_t)d->audio_tos, (uint32_t))d->audio_cos, "SCCP RTP");
+	ast_rtp_setqos(c->rtp.audio.rtp, (uint32_t)d->audio_tos, (uint32_t)d->audio_cos, "SCCP RTP");
 	d = sccp_device_release(d);
 	return TRUE;
 }
