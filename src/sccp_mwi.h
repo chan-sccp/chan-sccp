@@ -17,14 +17,6 @@
 #include "asterisk/event.h"
 #endif
 
-/*!
- * \brief SCCP Mailbox Structure
- */
-struct sccp_mailbox {
-	char *mailbox;												/*!< Mailbox */
-	char *context;												/*!< Context */
-	SCCP_LIST_ENTRY (sccp_mailbox_t) list;									/*!< Mailbox Linked List Entry */
-};														/*!< SCCP Mailbox Structure */
 
 void sccp_mwi_module_start(void);
 void sccp_mwi_module_stop(void);

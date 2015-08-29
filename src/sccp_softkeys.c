@@ -24,7 +24,6 @@
 #include "sccp_features.h"
 #include "sccp_actions.h"
 #include "sccp_rtp.h"
-#include "sccp_socket.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
@@ -173,8 +172,8 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 	if (!l || instance != lineInstance) {
 		/* handle dummy speeddial */
 		sccp_dev_speed_find_byindex(d, lineInstance, TRUE, &k);
-		if (sccp_strlen(k.ext) > 0) {
-			adhocNumber = strdupa(k.ext);
+		if (strlen(k.ext) > 0) {
+			adhocNumber = k.ext;
 		}
 
 		line = l;											/*!< use l as line to dialout */
@@ -195,8 +194,8 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		sccp_dev_starttone(d, SKINNY_TONE_ZIPZIP, 0, 0, 1);
 		sccp_dev_displayprompt(d, 0, 0, SKINNY_DISP_NO_LINE_AVAILABLE, GLOB(digittimeout));
 	} else {
-		if (!adhocNumber && !sccp_strlen_zero(line->adhocNumber)) {
-			adhocNumber = strdupa(line->adhocNumber);
+		if (!adhocNumber && (strlen(line->adhocNumber) > 0)) {
+			adhocNumber = line->adhocNumber;
 		}
 
 		/* check if we have an active channel on an other line, that does not have any dialed number 
@@ -205,7 +204,7 @@ static void sccp_sk_newcall(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
 		sccp_channel_t *activeChannel = NULL;
 
 		if (!adhocNumber && (activeChannel = sccp_device_getActiveChannel(d))) {
-			if (activeChannel->line != l && sccp_strlen(activeChannel->dialedNumber) == 0) {
+			if (activeChannel->line != l && strlen(activeChannel->dialedNumber) == 0) {
 				sccp_channel_endcall(activeChannel);
 			}
 			sccp_channel_release(activeChannel);
@@ -382,7 +381,7 @@ static void sccp_sk_backspace(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_d
 		return;
 	}
 
-	len = sccp_strlen(c->dialedNumber);
+	len = strlen(c->dialedNumber);
 
 	/* we have no number, so nothing to process */
 	if (!len) {
@@ -1085,7 +1084,7 @@ void sccp_softkey_clear(void)
 
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	while ((k = SCCP_LIST_REMOVE_HEAD(&softKeySetConfig, list))) {
-		for (i = 0; i < StationMaxSoftKeySetDefinition; i++) {
+		for (i = 0; i < (sizeof(SoftKeyModes) / sizeof(softkey_modes)); i++) {
 			if (k->modes[i].ptr) {
 				//sccp_log((DEBUGCAT_CONFIG + DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "Freeing KeyMode Ptr: %p for KeyMode %i\n", k->modes[i].ptr, i);
 				sccp_free(k->modes[i].ptr);
@@ -1172,9 +1171,7 @@ void sccp_softkey_setSoftkeyState(sccp_device_t * device, uint8_t softKeySet, ui
 {
 	uint8_t i;
 
-	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: softkey '%s' on %s to %s\n", DEV_ID_LOG(device), label2str(softKey), skinny_keymode2str(softKeySet), enable ? "on" : "off");
-
-	if (!device || !device->softKeyConfiguration.size) {
+	if (!device) {
 		return;
 	}
 

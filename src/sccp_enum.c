@@ -43,7 +43,7 @@ static const char *sccp_channelstate_map[] = {"DOWN",
 
 int sccp_channelstate_exists(int sccp_channelstate_int_value) {
 	static const int sccp_channelstates[] = {SCCP_CHANNELSTATE_DOWN,SCCP_CHANNELSTATE_ONHOOK,SCCP_CHANNELSTATE_OFFHOOK,SCCP_CHANNELSTATE_GETDIGITS,SCCP_CHANNELSTATE_DIGITSFOLL,SCCP_CHANNELSTATE_SPEEDDIAL,SCCP_CHANNELSTATE_DIALING,SCCP_CHANNELSTATE_RINGOUT,SCCP_CHANNELSTATE_RINGING,SCCP_CHANNELSTATE_PROCEED,SCCP_CHANNELSTATE_PROGRESS,SCCP_CHANNELSTATE_CONNECTED,SCCP_CHANNELSTATE_CONNECTEDCONFERENCE,SCCP_CHANNELSTATE_HOLD,SCCP_CHANNELSTATE_CALLWAITING,SCCP_CHANNELSTATE_CALLPARK,SCCP_CHANNELSTATE_CALLREMOTEMULTILINE,SCCP_CHANNELSTATE_CALLCONFERENCE,SCCP_CHANNELSTATE_CALLTRANSFER,SCCP_CHANNELSTATE_BLINDTRANSFER,SCCP_CHANNELSTATE_DND,SCCP_CHANNELSTATE_BUSY,SCCP_CHANNELSTATE_CONGESTION,SCCP_CHANNELSTATE_INVALIDNUMBER,SCCP_CHANNELSTATE_INVALIDCONFERENCE,SCCP_CHANNELSTATE_ZOMBIE,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(sccp_channelstates); idx++) {
 		if (sccp_channelstates[idx]==sccp_channelstate_int_value) {
 			return 1;
@@ -185,7 +185,7 @@ const char * sccp_channelstatereason2str(sccp_channelstatereason_t enum_value) {
 }
 
 sccp_channelstatereason_t sccp_channelstatereason_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_channelstatereason_map); idx++) {
 		if (sccp_strcaseequals(sccp_channelstatereason_map[idx], lookup_str)) {
 			return idx;
@@ -239,7 +239,7 @@ const char * sccp_earlyrtp2str(sccp_earlyrtp_t enum_value) {
 }
 
 sccp_earlyrtp_t sccp_earlyrtp_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_earlyrtp_map); idx++) {
 		if (sccp_strcaseequals(sccp_earlyrtp_map[idx], lookup_str)) {
 			return idx;
@@ -292,7 +292,7 @@ const char * sccp_devicestate2str(sccp_devicestate_t enum_value) {
 }
 
 sccp_devicestate_t sccp_devicestate_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_devicestate_map); idx++) {
 		if (sccp_strcaseequals(sccp_devicestate_map[idx], lookup_str)) {
 			return idx;
@@ -344,7 +344,7 @@ const char * sccp_callforward2str(sccp_callforward_t enum_value) {
 }
 
 sccp_callforward_t sccp_callforward_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_callforward_map); idx++) {
 		if (sccp_strcaseequals(sccp_callforward_map[idx], lookup_str)) {
 			return idx;
@@ -394,7 +394,7 @@ const char * sccp_dtmfmode2str(sccp_dtmfmode_t enum_value) {
 }
 
 sccp_dtmfmode_t sccp_dtmfmode_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_dtmfmode_map); idx++) {
 		if (sccp_strcaseequals(sccp_dtmfmode_map[idx], lookup_str)) {
 			return idx;
@@ -444,7 +444,7 @@ const char * sccp_autoanswer2str(sccp_autoanswer_t enum_value) {
 }
 
 sccp_autoanswer_t sccp_autoanswer_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_autoanswer_map); idx++) {
 		if (sccp_strcaseequals(sccp_autoanswer_map[idx], lookup_str)) {
 			return idx;
@@ -495,7 +495,7 @@ const char * sccp_dndmode2str(sccp_dndmode_t enum_value) {
 }
 
 sccp_dndmode_t sccp_dndmode_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_dndmode_map); idx++) {
 		if (sccp_strcaseequals(sccp_dndmode_map[idx], lookup_str)) {
 			return idx;
@@ -547,7 +547,7 @@ const char * sccp_accessory2str(sccp_accessory_t enum_value) {
 }
 
 sccp_accessory_t sccp_accessory_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_accessory_map); idx++) {
 		if (sccp_strcaseequals(sccp_accessory_map[idx], lookup_str)) {
 			return idx;
@@ -598,7 +598,7 @@ const char * sccp_accessorystate2str(sccp_accessorystate_t enum_value) {
 }
 
 sccp_accessorystate_t sccp_accessorystate_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_accessorystate_map); idx++) {
 		if (sccp_strcaseequals(sccp_accessorystate_map[idx], lookup_str)) {
 			return idx;
@@ -651,7 +651,7 @@ const char * sccp_config_buttontype2str(sccp_config_buttontype_t enum_value) {
 }
 
 sccp_config_buttontype_t sccp_config_buttontype_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_config_buttontype_map); idx++) {
 		if (sccp_strcaseequals(sccp_config_buttontype_map[idx], lookup_str)) {
 			return idx;
@@ -701,7 +701,7 @@ const char * sccp_devstate_state2str(sccp_devstate_state_t enum_value) {
 }
 
 sccp_devstate_state_t sccp_devstate_state_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_devstate_state_map); idx++) {
 		if (sccp_strcaseequals(sccp_devstate_state_map[idx], lookup_str)) {
 			return idx;
@@ -751,7 +751,7 @@ const char * sccp_blindtransferindication2str(sccp_blindtransferindication_t enu
 }
 
 sccp_blindtransferindication_t sccp_blindtransferindication_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_blindtransferindication_map); idx++) {
 		if (sccp_strcaseequals(sccp_blindtransferindication_map[idx], lookup_str)) {
 			return idx;
@@ -801,7 +801,7 @@ const char * sccp_call_answer_order2str(sccp_call_answer_order_t enum_value) {
 }
 
 sccp_call_answer_order_t sccp_call_answer_order_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_call_answer_order_map); idx++) {
 		if (sccp_strcaseequals(sccp_call_answer_order_map[idx], lookup_str)) {
 			return idx;
@@ -854,7 +854,7 @@ const char * sccp_nat2str(sccp_nat_t enum_value) {
 }
 
 sccp_nat_t sccp_nat_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_nat_map); idx++) {
 		if (sccp_strcaseequals(sccp_nat_map[idx], lookup_str)) {
 			return idx;
@@ -905,7 +905,7 @@ const char * sccp_video_mode2str(sccp_video_mode_t enum_value) {
 }
 
 sccp_video_mode_t sccp_video_mode_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_video_mode_map); idx++) {
 		if (sccp_strcaseequals(sccp_video_mode_map[idx], lookup_str)) {
 			return idx;
@@ -959,8 +959,7 @@ int sccp_event_type_exists(int sccp_event_type_int_value) {
 
 const char * sccp_event_type2str(int sccp_event_type_int_value) {
 	static char res[90] = "";
-	uint32_t i;
-	int pos = 0;
+	int i, pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_event_type_map) - 1; i++) {
 		if ((sccp_event_type_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 90, "%s%s", pos ? "," : "", sccp_event_type_map[i]);
@@ -974,7 +973,7 @@ const char * sccp_event_type2str(int sccp_event_type_int_value) {
 }
 
 sccp_event_type_t sccp_event_type_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_event_type_map); idx++) {
 		if (sccp_strcaseequals(sccp_event_type_map[idx], lookup_str)) {
 			return 1 << idx;
@@ -1024,7 +1023,7 @@ const char * sccp_parkresult2str(sccp_parkresult_t enum_value) {
 }
 
 sccp_parkresult_t sccp_parkresult_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_parkresult_map); idx++) {
 		if (sccp_strcaseequals(sccp_parkresult_map[idx], lookup_str)) {
 			return idx;
@@ -1074,7 +1073,7 @@ const char * sccp_calleridpresence2str(sccp_calleridpresence_t enum_value) {
 }
 
 sccp_calleridpresence_t sccp_calleridpresence_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_calleridpresence_map); idx++) {
 		if (sccp_strcaseequals(sccp_calleridpresence_map[idx], lookup_str)) {
 			return idx;
@@ -1121,8 +1120,7 @@ int sccp_rtp_status_exists(int sccp_rtp_status_int_value) {
 
 const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
 	static char res[138] = "";
-	uint32_t i;
-	int pos = 0;
+	int i, pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_status_map) - 1; i++) {
 		if ((sccp_rtp_status_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 138, "%s%s", pos ? "," : "", sccp_rtp_status_map[i]);
@@ -1136,7 +1134,7 @@ const char * sccp_rtp_status2str(int sccp_rtp_status_int_value) {
 }
 
 sccp_rtp_status_t sccp_rtp_status_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_status_map); idx++) {
 		if (sccp_strcaseequals(sccp_rtp_status_map[idx], lookup_str)) {
 			return 1 << idx;
@@ -1187,7 +1185,7 @@ const char * sccp_extension_status2str(sccp_extension_status_t enum_value) {
 }
 
 sccp_extension_status_t sccp_extension_status_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_extension_status_map); idx++) {
 		if (sccp_strcaseequals(sccp_extension_status_map[idx], lookup_str)) {
 			return idx;
@@ -1239,7 +1237,7 @@ const char * sccp_channel_request_status2str(sccp_channel_request_status_t enum_
 }
 
 sccp_channel_request_status_t sccp_channel_request_status_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_channel_request_status_map); idx++) {
 		if (sccp_strcaseequals(sccp_channel_request_status_map[idx], lookup_str)) {
 			return idx;
@@ -1293,7 +1291,7 @@ const char * sccp_message_priority2str(sccp_message_priority_t enum_value) {
 }
 
 sccp_message_priority_t sccp_message_priority_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_message_priority_map); idx++) {
 		if (sccp_strcaseequals(sccp_message_priority_map[idx], lookup_str)) {
 			return idx;
@@ -1344,7 +1342,7 @@ const char * sccp_push_result2str(sccp_push_result_t enum_value) {
 }
 
 sccp_push_result_t sccp_push_result_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_push_result_map); idx++) {
 		if (sccp_strcaseequals(sccp_push_result_map[idx], lookup_str)) {
 			return idx;
@@ -1395,7 +1393,7 @@ const char * sccp_tokenstate2str(sccp_tokenstate_t enum_value) {
 }
 
 sccp_tokenstate_t sccp_tokenstate_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_tokenstate_map); idx++) {
 		if (sccp_strcaseequals(sccp_tokenstate_map[idx], lookup_str)) {
 			return idx;
@@ -1454,7 +1452,7 @@ const char * sccp_softswitch2str(sccp_softswitch_t enum_value) {
 }
 
 sccp_softswitch_t sccp_softswitch_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_softswitch_map); idx++) {
 		if (sccp_strcaseequals(sccp_softswitch_map[idx], lookup_str)) {
 			return idx;
@@ -1505,7 +1503,7 @@ const char * sccp_phonebook2str(sccp_phonebook_t enum_value) {
 }
 
 sccp_phonebook_t sccp_phonebook_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_phonebook_map); idx++) {
 		if (sccp_strcaseequals(sccp_phonebook_map[idx], lookup_str)) {
 			return idx;
@@ -1556,7 +1554,7 @@ const char * sccp_feature_monitor_state2str(sccp_feature_monitor_state_t enum_va
 }
 
 sccp_feature_monitor_state_t sccp_feature_monitor_state_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_feature_monitor_state_map); idx++) {
 		if (sccp_strcaseequals(sccp_feature_monitor_state_map[idx], lookup_str)) {
 			return idx;
@@ -1605,7 +1603,7 @@ const char * sccp_readingtype2str(sccp_readingtype_t enum_value) {
 }
 
 sccp_readingtype_t sccp_readingtype_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_readingtype_map); idx++) {
 		if (sccp_strcaseequals(sccp_readingtype_map[idx], lookup_str)) {
 			return idx;
@@ -1652,8 +1650,7 @@ int sccp_configurationchange_exists(int sccp_configurationchange_int_value) {
 
 const char * sccp_configurationchange2str(int sccp_configurationchange_int_value) {
 	static char res[246] = "";
-	uint32_t i;
-	int pos = 0;
+	int i, pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_configurationchange_map) - 1; i++) {
 		if ((sccp_configurationchange_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 246, "%s%s", pos ? "," : "", sccp_configurationchange_map[i]);
@@ -1667,7 +1664,7 @@ const char * sccp_configurationchange2str(int sccp_configurationchange_int_value
 }
 
 sccp_configurationchange_t sccp_configurationchange_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_configurationchange_map); idx++) {
 		if (sccp_strcaseequals(sccp_configurationchange_map[idx], lookup_str)) {
 			return 1 << idx;
@@ -1717,7 +1714,7 @@ const char * sccp_call_statistics_type2str(sccp_call_statistics_type_t enum_valu
 }
 
 sccp_call_statistics_type_t sccp_call_statistics_type_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_call_statistics_type_map); idx++) {
 		if (sccp_strcaseequals(sccp_call_statistics_type_map[idx], lookup_str)) {
 			return idx;
@@ -1764,8 +1761,7 @@ int sccp_rtp_info_exists(int sccp_rtp_info_int_value) {
 
 const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
 	static char res[327] = "";
-	uint32_t i;
-	int pos = 0;
+	int i, pos = 0;
 	for (i = 0; i < ARRAY_LEN(sccp_rtp_info_map) - 1; i++) {
 		if ((sccp_rtp_info_int_value & 1 << i) == 1 << i) {
 			pos += snprintf(res + pos, 327, "%s%s", pos ? "," : "", sccp_rtp_info_map[i]);
@@ -1779,7 +1775,7 @@ const char * sccp_rtp_info2str(int sccp_rtp_info_int_value) {
 }
 
 sccp_rtp_info_t sccp_rtp_info_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(sccp_rtp_info_map); idx++) {
 		if (sccp_strcaseequals(sccp_rtp_info_map[idx], lookup_str)) {
 			return 1 << idx;
@@ -1799,86 +1795,6 @@ char *sccp_rtp_info_all_entries(void) {
 	return res;
 }
 /* = End =========================================================================================                  sccp_rtp_info === */
-
-
-/* = Begin =======================================================================================              sccp_feature_type === */
-
-
-/*
- * \brief enum sccp_feature_type
- */
-static const char *sccp_feature_type_map[] = {
-	[SCCP_FEATURE_UNKNOWN] = "FEATURE_UNKNOWN",
-	[SCCP_FEATURE_CFWDNONE] = "cfwd off",
-	[SCCP_FEATURE_CFWDALL] = "cfwdall",
-	[SCCP_FEATURE_CFWDBUSY] = "cfwdbusy",
-	[SCCP_FEATURE_DND] = "dnd",
-	[SCCP_FEATURE_PRIVACY] = "privacy",
-	[SCCP_FEATURE_MONITOR] = "monitor",
-	[SCCP_FEATURE_HOLD] = "hold",
-	[SCCP_FEATURE_TRANSFER] = "transfer",
-	[SCCP_FEATURE_MULTIBLINK] = "multiblink",
-	[SCCP_FEATURE_MOBILITY] = "mobility",
-	[SCCP_FEATURE_CONFERENCE] = "conference",
-	[SCCP_FEATURE_DO_NOT_DISTURB] = "do not disturb",
-	[SCCP_FEATURE_CONF_LIST] = "ConfList",
-	[SCCP_FEATURE_REMOVE_LAST_PARTICIPANT] = "RemoveLastParticipant",
-	[SCCP_FEATURE_HLOG] = "Hunt Group Log-in/out",
-	[SCCP_FEATURE_QRT] = "QRT",
-	[SCCP_FEATURE_CALLBACK] = "CallBack",
-	[SCCP_FEATURE_OTHER_PICKUP] = "OtherPickup",
-	[SCCP_FEATURE_VIDEO_MODE] = "VideoMode",
-	[SCCP_FEATURE_NEW_CALL] = "NewCall",
-	[SCCP_FEATURE_END_CALL] = "EndCall",
-	[SCCP_FEATURE_TESTE] = "FEATURE_TESTE",
-	[SCCP_FEATURE_TESTF] = "FEATURE_TESTF",
-	[SCCP_FEATURE_TESTI] = "FEATURE_TESTI",
-	[SCCP_FEATURE_TESTG] = "Messages",
-	[SCCP_FEATURE_TESTH] = "Directory",
-	[SCCP_FEATURE_TESTJ] = "Application",
-#ifdef CS_DEVSTATE_FEATURE
-	[SCCP_FEATURE_DEVSTATE] = "devstate",
-#endif
-	[SCCP_FEATURE_PICKUP] = "pickup",
-	[SCCP_FEATURE_TYPE_SENTINEL] = "LOOKUPERROR"
-};
-
-int sccp_feature_type_exists(int sccp_feature_type_int_value) {
-	if ((SCCP_FEATURE_CFWDNONE <=sccp_feature_type_int_value) && (sccp_feature_type_int_value < SCCP_FEATURE_TYPE_SENTINEL )) {
-		return 1;
-	}
-	return 0;
-}
-
-const char * sccp_feature_type2str(sccp_feature_type_t enum_value) {
-	if ((SCCP_FEATURE_UNKNOWN <= enum_value) && (enum_value <= SCCP_FEATURE_TYPE_SENTINEL)) {
-		return sccp_feature_type_map[enum_value];
-	}
-	pbx_log(LOG_ERROR, "SCCP: Error during lookup of '%d' in sccp_feature_type2str\n", enum_value);
-	return "SCCP: OutOfBounds Error during lookup of sccp_feature_type2str\n";
-}
-
-sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str) {
-	uint32_t idx;
-	for (idx = 0; idx < ARRAY_LEN(sccp_feature_type_map); idx++) {
-		if (sccp_strcaseequals(sccp_feature_type_map[idx], lookup_str)) {
-			return idx;
-		}
-	}
-	pbx_log(LOG_ERROR, "SCCP: LOOKUP ERROR, sccp_feature_type_str2val(%s) not found\n", lookup_str);
-	return SCCP_FEATURE_TYPE_SENTINEL;
-}
-
-int sccp_feature_type_str2intval(const char *lookup_str) {
-	int res = sccp_feature_type_str2val(lookup_str);
-	return (int)res != SCCP_FEATURE_TYPE_SENTINEL ? res : -1;
-}
-
-char *sccp_feature_type_all_entries(void) {
-	static char res[] = "FEATURE_UNKNOWN,cfwd off,cfwdall,cfwdbusy,dnd,privacy,monitor,hold,transfer,multiblink,mobility,conference,do not disturb,ConfList,RemoveLastParticipant,Hunt Group Log-in/out,QRT,CallBack,OtherPickup,VideoMode,NewCall,EndCall,FEATURE_TESTE,FEATURE_TESTF,FEATURE_TESTI,Messages,Directory,Application,,devstate,pickup";
-	return res;
-}
-/* = End =========================================================================================              sccp_feature_type === */
 
 
 /* = Begin =======================================================================================                skinny_lampmode === */
@@ -1911,7 +1827,7 @@ const char * skinny_lampmode2str(skinny_lampmode_t enum_value) {
 }
 
 skinny_lampmode_t skinny_lampmode_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_lampmode_map); idx++) {
 		if (sccp_strcaseequals(skinny_lampmode_map[idx], lookup_str)) {
 			return idx;
@@ -1961,7 +1877,7 @@ const char * skinny_calltype2str(skinny_calltype_t enum_value) {
 }
 
 skinny_calltype_t skinny_calltype_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_calltype_map); idx++) {
 		if (sccp_strcaseequals(skinny_calltype_map[idx], lookup_str)) {
 			return idx;
@@ -2025,7 +1941,7 @@ const char * skinny_callstate2str(skinny_callstate_t enum_value) {
 }
 
 skinny_callstate_t skinny_callstate_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_callstate_map); idx++) {
 		if (sccp_strcaseequals(skinny_callstate_map[idx], lookup_str)) {
 			return idx;
@@ -2077,7 +1993,7 @@ const char * skinny_callpriority2str(skinny_callpriority_t enum_value) {
 }
 
 skinny_callpriority_t skinny_callpriority_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_callpriority_map); idx++) {
 		if (sccp_strcaseequals(skinny_callpriority_map[idx], lookup_str)) {
 			return idx;
@@ -2127,7 +2043,7 @@ const char * skinny_callinfo_visibility2str(skinny_callinfo_visibility_t enum_va
 }
 
 skinny_callinfo_visibility_t skinny_callinfo_visibility_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_callinfo_visibility_map); idx++) {
 		if (sccp_strcaseequals(skinny_callinfo_visibility_map[idx], lookup_str)) {
 			return idx;
@@ -2177,7 +2093,7 @@ const char * skinny_callsecuritystate2str(skinny_callsecuritystate_t enum_value)
 }
 
 skinny_callsecuritystate_t skinny_callsecuritystate_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_callsecuritystate_map); idx++) {
 		if (sccp_strcaseequals(skinny_callsecuritystate_map[idx], lookup_str)) {
 			return idx;
@@ -2229,7 +2145,7 @@ const char * skinny_busylampfield_state2str(skinny_busylampfield_state_t enum_va
 }
 
 skinny_busylampfield_state_t skinny_busylampfield_state_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_busylampfield_state_map); idx++) {
 		if (sccp_strcaseequals(skinny_busylampfield_state_map[idx], lookup_str)) {
 			return idx;
@@ -2268,7 +2184,7 @@ static const char *skinny_alarm_map[] = {"Critical",
 
 int skinny_alarm_exists(int skinny_alarm_int_value) {
 	static const int skinny_alarms[] = {SKINNY_ALARM_CRITICAL,SKINNY_ALARM_WARNING,SKINNY_ALARM_INFORMATIONAL,SKINNY_ALARM_UNKNOWN,SKINNY_ALARM_MAJOR,SKINNY_ALARM_MINOR,SKINNY_ALARM_MARGINAL,SKINNY_ALARM_TRACEINFO,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_alarms); idx++) {
 		if (skinny_alarms[idx]==skinny_alarm_int_value) {
 			return 1;
@@ -2419,7 +2335,7 @@ static const char *skinny_tone_map[] = {"Silence",
 
 int skinny_tone_exists(int skinny_tone_int_value) {
 	static const int skinny_tones[] = {SKINNY_TONE_SILENCE,SKINNY_TONE_DTMF1,SKINNY_TONE_DTMF2,SKINNY_TONE_DTMF3,SKINNY_TONE_DTMF4,SKINNY_TONE_DTMF5,SKINNY_TONE_DTMF6,SKINNY_TONE_DTMF7,SKINNY_TONE_DTMF8,SKINNY_TONE_DTMF9,SKINNY_TONE_DTMF0,SKINNY_TONE_DTMFSTAR,SKINNY_TONE_DTMFPOUND,SKINNY_TONE_DTMFA,SKINNY_TONE_DTMFB,SKINNY_TONE_DTMFC,SKINNY_TONE_DTMFD,SKINNY_TONE_INSIDEDIALTONE,SKINNY_TONE_OUTSIDEDIALTONE,SKINNY_TONE_LINEBUSYTONE,SKINNY_TONE_ALERTINGTONE,SKINNY_TONE_REORDERTONE,SKINNY_TONE_RECORDERWARNINGTONE,SKINNY_TONE_RECORDERDETECTEDTONE,SKINNY_TONE_REVERTINGTONE,SKINNY_TONE_RECEIVEROFFHOOKTONE,SKINNY_TONE_PARTIALDIALTONE,SKINNY_TONE_NOSUCHNUMBERTONE,SKINNY_TONE_BUSYVERIFICATIONTONE,SKINNY_TONE_CALLWAITINGTONE,SKINNY_TONE_CONFIRMATIONTONE,SKINNY_TONE_CAMPONINDICATIONTONE,SKINNY_TONE_RECALLDIALTONE,SKINNY_TONE_ZIPZIP,SKINNY_TONE_ZIP,SKINNY_TONE_BEEPBONK,SKINNY_TONE_MUSICTONE,SKINNY_TONE_HOLDTONE,SKINNY_TONE_TESTTONE,SKINNY_TONE_DTMONITORWARNINGTONE,SKINNY_TONE_ADDCALLWAITING,SKINNY_TONE_PRIORITYCALLWAIT,SKINNY_TONE_RECALLDIAL,SKINNY_TONE_BARGIN,SKINNY_TONE_DISTINCTALERT,SKINNY_TONE_PRIORITYALERT,SKINNY_TONE_REMINDERRING,SKINNY_TONE_PRECEDENCE_RINGBACK,SKINNY_TONE_PREEMPTIONTONE,SKINNY_TONE_MF1,SKINNY_TONE_MF2,SKINNY_TONE_MF3,SKINNY_TONE_MF4,SKINNY_TONE_MF5,SKINNY_TONE_MF6,SKINNY_TONE_MF7,SKINNY_TONE_MF8,SKINNY_TONE_MF9,SKINNY_TONE_MF0,SKINNY_TONE_MFKP1,SKINNY_TONE_MFST,SKINNY_TONE_MFKP2,SKINNY_TONE_MFSTP,SKINNY_TONE_MFST3P,SKINNY_TONE_MILLIWATT,SKINNY_TONE_MILLIWATTTEST,SKINNY_TONE_HIGHTONE,SKINNY_TONE_FLASHOVERRIDE,SKINNY_TONE_FLASH,SKINNY_TONE_PRIORITY,SKINNY_TONE_IMMEDIATE,SKINNY_TONE_PREAMPWARN,SKINNY_TONE_2105HZ,SKINNY_TONE_2600HZ,SKINNY_TONE_440HZ,SKINNY_TONE_300HZ,SKINNY_TONE_MLPP_PALA,SKINNY_TONE_MLPP_ICA,SKINNY_TONE_MLPP_VCA,SKINNY_TONE_MLPP_BPA,SKINNY_TONE_MLPP_BNEA,SKINNY_TONE_MLPP_UPA,SKINNY_TONE_NOTONE,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_tones); idx++) {
 		if (skinny_tones[idx]==skinny_tone_int_value) {
 			return 1;
@@ -2720,7 +2636,7 @@ static const char *skinny_videoformat_map[] = {"undefined",
 
 int skinny_videoformat_exists(int skinny_videoformat_int_value) {
 	static const int skinny_videoformats[] = {SKINNY_VIDEOFORMAT_UNDEFINED,SKINNY_VIDEOFORMAT_SQCIF,SKINNY_VIDEOFORMAT_QCIF,SKINNY_VIDEOFORMAT_CIF,SKINNY_VIDEOFORMAT_4CIF,SKINNY_VIDEOFORMAT_16CIF,SKINNY_VIDEOFORMAT_CUSTOM,SKINNY_VIDEOFORMAT_UNKNOWN,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_videoformats); idx++) {
 		if (skinny_videoformats[idx]==skinny_videoformat_int_value) {
 			return 1;
@@ -2815,7 +2731,7 @@ const char * skinny_ringtype2str(skinny_ringtype_t enum_value) {
 }
 
 skinny_ringtype_t skinny_ringtype_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_ringtype_map); idx++) {
 		if (sccp_strcaseequals(skinny_ringtype_map[idx], lookup_str)) {
 			return idx;
@@ -2866,7 +2782,7 @@ const char * skinny_receivetransmit2str(skinny_receivetransmit_t enum_value) {
 }
 
 skinny_receivetransmit_t skinny_receivetransmit_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_receivetransmit_map); idx++) {
 		if (sccp_strcaseequals(skinny_receivetransmit_map[idx], lookup_str)) {
 			return idx;
@@ -2926,7 +2842,7 @@ const char * skinny_keymode2str(skinny_keymode_t enum_value) {
 }
 
 skinny_keymode_t skinny_keymode_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_keymode_map); idx++) {
 		if (sccp_strcaseequals(skinny_keymode_map[idx], lookup_str)) {
 			return idx;
@@ -2979,7 +2895,7 @@ const char * skinny_registrationstate2str(skinny_registrationstate_t enum_value)
 }
 
 skinny_registrationstate_t skinny_registrationstate_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_registrationstate_map); idx++) {
 		if (sccp_strcaseequals(skinny_registrationstate_map[idx], lookup_str)) {
 			return idx;
@@ -3039,7 +2955,7 @@ const char * skinny_mediastatus2str(skinny_mediastatus_t enum_value) {
 }
 
 skinny_mediastatus_t skinny_mediastatus_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_mediastatus_map); idx++) {
 		if (sccp_strcaseequals(skinny_mediastatus_map[idx], lookup_str)) {
 			return idx;
@@ -3127,7 +3043,7 @@ static const char *skinny_stimulus_map[] = {"Unused",
 
 int skinny_stimulus_exists(int skinny_stimulus_int_value) {
 	static const int skinny_stimuluss[] = {SKINNY_STIMULUS_UNUSED,SKINNY_STIMULUS_LASTNUMBERREDIAL,SKINNY_STIMULUS_SPEEDDIAL,SKINNY_STIMULUS_HOLD,SKINNY_STIMULUS_TRANSFER,SKINNY_STIMULUS_FORWARDALL,SKINNY_STIMULUS_FORWARDBUSY,SKINNY_STIMULUS_FORWARDNOANSWER,SKINNY_STIMULUS_DISPLAY,SKINNY_STIMULUS_LINE,SKINNY_STIMULUS_T120CHAT,SKINNY_STIMULUS_T120WHITEBOARD,SKINNY_STIMULUS_T120APPLICATIONSHARING,SKINNY_STIMULUS_T120FILETRANSFER,SKINNY_STIMULUS_VIDEO,SKINNY_STIMULUS_VOICEMAIL,SKINNY_STIMULUS_ANSWERRELEASE,SKINNY_STIMULUS_AUTOANSWER,SKINNY_STIMULUS_SELECT,SKINNY_STIMULUS_FEATURE,SKINNY_STIMULUS_SERVICEURL,SKINNY_STIMULUS_BLFSPEEDDIAL,SKINNY_STIMULUS_MALICIOUSCALL,SKINNY_STIMULUS_GENERICAPPB1,SKINNY_STIMULUS_GENERICAPPB2,SKINNY_STIMULUS_GENERICAPPB3,SKINNY_STIMULUS_GENERICAPPB4,SKINNY_STIMULUS_GENERICAPPB5,SKINNY_STIMULUS_MULTIBLINKFEATURE,SKINNY_STIMULUS_MEETMECONFERENCE,SKINNY_STIMULUS_CONFERENCE,SKINNY_STIMULUS_CALLPARK,SKINNY_STIMULUS_CALLPICKUP,SKINNY_STIMULUS_GROUPCALLPICKUP,SKINNY_STIMULUS_MOBILITY,SKINNY_STIMULUS_DO_NOT_DISTURB,SKINNY_STIMULUS_CONF_LIST,SKINNY_STIMULUS_REMOVE_LAST_PARTICIPANT,SKINNY_STIMULUS_QRT,SKINNY_STIMULUS_CALLBACK,SKINNY_STIMULUS_OTHER_PICKUP,SKINNY_STIMULUS_VIDEO_MODE,SKINNY_STIMULUS_NEW_CALL,SKINNY_STIMULUS_END_CALL,SKINNY_STIMULUS_HLOG,SKINNY_STIMULUS_QUEUING,SKINNY_STIMULUS_TESTE,SKINNY_STIMULUS_TESTF,SKINNY_STIMULUS_TESTI,SKINNY_STIMULUS_MESSAGES,SKINNY_STIMULUS_DIRECTORY,SKINNY_STIMULUS_APPLICATION,SKINNY_STIMULUS_HEADSET,SKINNY_STIMULUS_KEYPAD,SKINNY_STIMULUS_AEC,SKINNY_STIMULUS_UNDEFINED,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_stimuluss); idx++) {
 		if (skinny_stimuluss[idx]==skinny_stimulus_int_value) {
 			return 1;
@@ -3394,7 +3310,7 @@ static const char *skinny_buttontype_map[] = {"Unused",
 
 int skinny_buttontype_exists(int skinny_buttontype_int_value) {
 	static const int skinny_buttontypes[] = {SKINNY_BUTTONTYPE_UNUSED,SKINNY_BUTTONTYPE_LASTNUMBERREDIAL,SKINNY_BUTTONTYPE_SPEEDDIAL,SKINNY_BUTTONTYPE_HOLD,SKINNY_BUTTONTYPE_TRANSFER,SKINNY_BUTTONTYPE_FORWARDALL,SKINNY_BUTTONTYPE_FORWARDBUSY,SKINNY_BUTTONTYPE_FORWARDNOANSWER,SKINNY_BUTTONTYPE_DISPLAY,SKINNY_BUTTONTYPE_LINE,SKINNY_BUTTONTYPE_T120CHAT,SKINNY_BUTTONTYPE_T120WHITEBOARD,SKINNY_BUTTONTYPE_T120APPLICATIONSHARING,SKINNY_BUTTONTYPE_T120FILETRANSFER,SKINNY_BUTTONTYPE_VIDEO,SKINNY_BUTTONTYPE_VOICEMAIL,SKINNY_BUTTONTYPE_ANSWERRELEASE,SKINNY_BUTTONTYPE_AUTOANSWER,SKINNY_BUTTONTYPE_FEATURE,SKINNY_BUTTONTYPE_SERVICEURL,SKINNY_BUTTONTYPE_BLFSPEEDDIAL,SKINNY_BUTTONTYPE_GENERICAPPB1,SKINNY_BUTTONTYPE_GENERICAPPB2,SKINNY_BUTTONTYPE_GENERICAPPB3,SKINNY_BUTTONTYPE_GENERICAPPB4,SKINNY_BUTTONTYPE_GENERICAPPB5,SKINNY_BUTTONTYPE_MULTIBLINKFEATURE,SKINNY_BUTTONTYPE_MEETMECONFERENCE,SKINNY_BUTTONTYPE_CONFERENCE,SKINNY_BUTTONTYPE_CALLPARK,SKINNY_BUTTONTYPE_CALLPICKUP,SKINNY_BUTTONTYPE_GROUPCALLPICKUP,SKINNY_BUTTONTYPE_MOBILITY,SKINNY_BUTTONTYPE_DO_NOT_DISTURB,SKINNY_BUTTONTYPE_CONF_LIST,SKINNY_BUTTONTYPE_REMOVE_LAST_PARTICIPANT,SKINNY_BUTTONTYPE_QRT,SKINNY_BUTTONTYPE_CALLBACK,SKINNY_BUTTONTYPE_OTHER_PICKUP,SKINNY_BUTTONTYPE_VIDEO_MODE,SKINNY_BUTTONTYPE_NEW_CALL,SKINNY_BUTTONTYPE_END_CALL,SKINNY_BUTTONTYPE_HLOG,SKINNY_BUTTONTYPE_QUEUING,SKINNY_BUTTONTYPE_TESTE,SKINNY_BUTTONTYPE_TESTF,SKINNY_BUTTONTYPE_TESTI,SKINNY_BUTTONTYPE_MESSAGES,SKINNY_BUTTONTYPE_DIRECTORY,SKINNY_BUTTONTYPE_APPLICATION,SKINNY_BUTTONTYPE_HEADSET,SKINNY_BUTTONTYPE_KEYPAD,SKINNY_BUTTONTYPE_AEC,SKINNY_BUTTONTYPE_UNDEFINED,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_buttontypes); idx++) {
 		if (skinny_buttontypes[idx]==skinny_buttontype_int_value) {
 			return 1;
@@ -3705,7 +3621,7 @@ static const char *skinny_devicetype_map[] = {"Undefined: Maybe you forgot the d
 
 int skinny_devicetype_exists(int skinny_devicetype_int_value) {
 	static const int skinny_devicetypes[] = {SKINNY_DEVICETYPE_UNDEFINED,SKINNY_DEVICETYPE_VGC,SKINNY_DEVICETYPE_ATA186,SKINNY_DEVICETYPE_ATA188,SKINNY_DEVICETYPE_VIRTUAL30SPPLUS,SKINNY_DEVICETYPE_PHONEAPPLICATION,SKINNY_DEVICETYPE_ANALOGACCESS,SKINNY_DEVICETYPE_DIGITALACCESSPRI,SKINNY_DEVICETYPE_DIGITALACCESST1,SKINNY_DEVICETYPE_DIGITALACCESSTITAN2,SKINNY_DEVICETYPE_ANALOGACCESSELVIS,SKINNY_DEVICETYPE_DIGITALACCESSLENNON,SKINNY_DEVICETYPE_CONFERENCEBRIDGE,SKINNY_DEVICETYPE_CONFERENCEBRIDGEYOKO,SKINNY_DEVICETYPE_CONFERENCEBRIDGEDIXIELAND,SKINNY_DEVICETYPE_CONFERENCEBRIDGESUMMIT,SKINNY_DEVICETYPE_H225,SKINNY_DEVICETYPE_H323PHONE,SKINNY_DEVICETYPE_H323TRUNK,SKINNY_DEVICETYPE_MUSICONHOLD,SKINNY_DEVICETYPE_PILOT,SKINNY_DEVICETYPE_TAPIPORT,SKINNY_DEVICETYPE_TAPIROUTEPOINT,SKINNY_DEVICETYPE_VOICEINBOX,SKINNY_DEVICETYPE_VOICEINBOXADMIN,SKINNY_DEVICETYPE_LINEANNUNCIATOR,SKINNY_DEVICETYPE_SOFTWAREMTPDIXIELAND,SKINNY_DEVICETYPE_CISCOMEDIASERVER,SKINNY_DEVICETYPE_CONFERENCEBRIDGEFLINT,SKINNY_DEVICETYPE_ROUTELIST,SKINNY_DEVICETYPE_LOADSIMULATOR,SKINNY_DEVICETYPE_MEDIA_TERM_POINT,SKINNY_DEVICETYPE_MEDIA_TERM_POINTYOKO,SKINNY_DEVICETYPE_MEDIA_TERM_POINTDIXIELAND,SKINNY_DEVICETYPE_MEDIA_TERM_POINTSUMMIT,SKINNY_DEVICETYPE_MGCPSTATION,SKINNY_DEVICETYPE_MGCPTRUNK,SKINNY_DEVICETYPE_RASPROXY,SKINNY_DEVICETYPE_TRUNK,SKINNY_DEVICETYPE_ANNUNCIATOR,SKINNY_DEVICETYPE_MONITORBRIDGE,SKINNY_DEVICETYPE_RECORDER,SKINNY_DEVICETYPE_MONITORBRIDGEYOKO,SKINNY_DEVICETYPE_SIPTRUNK,SKINNY_DEVICETYPE_ANALOG_GATEWAY,SKINNY_DEVICETYPE_BRI_GATEWAY,SKINNY_DEVICETYPE_30SPPLUS,SKINNY_DEVICETYPE_12SPPLUS,SKINNY_DEVICETYPE_12SP,SKINNY_DEVICETYPE_12,SKINNY_DEVICETYPE_30VIP,SKINNY_DEVICETYPE_CISCO7902,SKINNY_DEVICETYPE_CISCO7905,SKINNY_DEVICETYPE_CISCO7906,SKINNY_DEVICETYPE_CISCO7910,SKINNY_DEVICETYPE_CISCO7911,SKINNY_DEVICETYPE_CISCO7912,SKINNY_DEVICETYPE_CISCO7920,SKINNY_DEVICETYPE_CISCO7921,SKINNY_DEVICETYPE_CISCO7925,SKINNY_DEVICETYPE_CISCO7931,SKINNY_DEVICETYPE_CISCO7935,SKINNY_DEVICETYPE_CISCO7936,SKINNY_DEVICETYPE_CISCO7937,SKINNY_DEVICETYPE_CISCO7940,SKINNY_DEVICETYPE_CISCO7941,SKINNY_DEVICETYPE_CISCO7941GE,SKINNY_DEVICETYPE_CISCO7942,SKINNY_DEVICETYPE_CISCO7945,SKINNY_DEVICETYPE_CISCO7960,SKINNY_DEVICETYPE_CISCO7961,SKINNY_DEVICETYPE_CISCO7961GE,SKINNY_DEVICETYPE_CISCO7962,SKINNY_DEVICETYPE_CISCO7965,SKINNY_DEVICETYPE_CISCO7970,SKINNY_DEVICETYPE_CISCO7971,SKINNY_DEVICETYPE_CISCO7975,SKINNY_DEVICETYPE_CISCO7985,SKINNY_DEVICETYPE_NOKIA_E_SERIES,SKINNY_DEVICETYPE_CISCO_IP_COMMUNICATOR,SKINNY_DEVICETYPE_NOKIA_ICC,SKINNY_DEVICETYPE_CISCO6901,SKINNY_DEVICETYPE_CISCO6911,SKINNY_DEVICETYPE_CISCO6921,SKINNY_DEVICETYPE_CISCO6941,SKINNY_DEVICETYPE_CISCO6945,SKINNY_DEVICETYPE_CISCO6961,SKINNY_DEVICETYPE_CISCO8941,SKINNY_DEVICETYPE_CISCO8945,SKINNY_DEVICETYPE_SPA_303G,SKINNY_DEVICETYPE_SPA_502G,SKINNY_DEVICETYPE_SPA_504G,SKINNY_DEVICETYPE_SPA_509G,SKINNY_DEVICETYPE_SPA_521S,SKINNY_DEVICETYPE_SPA_524SG,SKINNY_DEVICETYPE_SPA_525G,SKINNY_DEVICETYPE_SPA_525G2,SKINNY_DEVICETYPE_CISCO_ADDON_7914,SKINNY_DEVICETYPE_CISCO_ADDON_7915_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7915_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_12BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_7916_24BUTTON,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500S,SKINNY_DEVICETYPE_CISCO_ADDON_SPA500DS,SKINNY_DEVICETYPE_CISCO_ADDON_SPA932DS,};
-	uint32_t idx;
+	int idx;
 	for (idx=0; idx < ARRAY_LEN(skinny_devicetypes); idx++) {
 		if (skinny_devicetypes[idx]==skinny_devicetype_int_value) {
 			return 1;
@@ -4085,7 +4001,7 @@ const char * skinny_encryptiontype2str(skinny_encryptiontype_t enum_value) {
 }
 
 skinny_encryptiontype_t skinny_encryptiontype_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_encryptiontype_map); idx++) {
 		if (sccp_strcaseequals(skinny_encryptiontype_map[idx], lookup_str)) {
 			return idx;
@@ -4140,7 +4056,7 @@ const char * skinny_miscCommandType2str(skinny_miscCommandType_t enum_value) {
 }
 
 skinny_miscCommandType_t skinny_miscCommandType_str2val(const char *lookup_str) {
-	uint32_t idx;
+	int idx;
 	for (idx = 0; idx < ARRAY_LEN(skinny_miscCommandType_map); idx++) {
 		if (sccp_strcaseequals(skinny_miscCommandType_map[idx], lookup_str)) {
 			return idx;

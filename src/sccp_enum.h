@@ -665,54 +665,6 @@ char *sccp_rtp_info_all_entries(void);
 /* = End =========================================================================================                  sccp_rtp_info === */
 
 
-/* = Begin =======================================================================================              sccp_feature_type === */
-
-/*
- * \brief enum sccp_feature_type
- */
-typedef enum sccp_feature_type {
-	SCCP_FEATURE_UNKNOWN,
-	SCCP_FEATURE_CFWDNONE,
-	SCCP_FEATURE_CFWDALL,
-	SCCP_FEATURE_CFWDBUSY,
-	SCCP_FEATURE_DND,
-	SCCP_FEATURE_PRIVACY,
-	SCCP_FEATURE_MONITOR,
-	SCCP_FEATURE_HOLD,
-	SCCP_FEATURE_TRANSFER,
-	SCCP_FEATURE_MULTIBLINK,
-	SCCP_FEATURE_MOBILITY,
-	SCCP_FEATURE_CONFERENCE,
-	SCCP_FEATURE_DO_NOT_DISTURB,
-	SCCP_FEATURE_CONF_LIST,
-	SCCP_FEATURE_REMOVE_LAST_PARTICIPANT,
-	SCCP_FEATURE_HLOG,
-	SCCP_FEATURE_QRT,
-	SCCP_FEATURE_CALLBACK,
-	SCCP_FEATURE_OTHER_PICKUP,
-	SCCP_FEATURE_VIDEO_MODE,
-	SCCP_FEATURE_NEW_CALL,
-	SCCP_FEATURE_END_CALL,
-	SCCP_FEATURE_TESTE,
-	SCCP_FEATURE_TESTF,
-	SCCP_FEATURE_TESTI,
-	SCCP_FEATURE_TESTG,
-	SCCP_FEATURE_TESTH,
-	SCCP_FEATURE_TESTJ,
-#ifdef CS_DEVSTATE_FEATURE
-	SCCP_FEATURE_DEVSTATE,
-#endif
-	SCCP_FEATURE_PICKUP,
-	SCCP_FEATURE_TYPE_SENTINEL
-} sccp_feature_type_t;
-int sccp_feature_type_exists(int sccp_feature_type_int_value);
-const char * sccp_feature_type2str(sccp_feature_type_t enum_value);
-sccp_feature_type_t sccp_feature_type_str2val(const char *lookup_str);
-int sccp_feature_type_str2intval(const char *lookup_str);
-char *sccp_feature_type_all_entries(void);
-/* = End =========================================================================================              sccp_feature_type === */
-
-
 /* = Begin =======================================================================================                skinny_lampmode === */
 
 /*

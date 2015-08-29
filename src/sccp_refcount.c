@@ -96,10 +96,10 @@ struct refcount_object {
 	volatile CAS32_TYPE refcount;
 	enum sccp_refcounted_types type;
 	char identifier[REFCOUNT_INDENTIFIER_SIZE];
-	int len;
 	int alive;
+	size_t len;
 	SCCP_RWLIST_ENTRY (RefCountedObject) list;
-	unsigned char data[0] __attribute__((aligned(64)));
+	unsigned char data[0];
 };
 
 static ast_rwlock_t objectslock;										// general lock to modify hash table entries
@@ -140,7 +140,7 @@ void sccp_refcount_destroy(void)
 		if (objects[x]) {
 			SCCP_RWLIST_WRLOCK(&(objects[x])->refCountedObjects);
 			while ((obj = SCCP_RWLIST_REMOVE_HEAD(&(objects[x])->refCountedObjects, list))) {
-				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
+				pbx_log(LOG_NOTICE, "Cleaning up [%3d]=type:%17s, id:%25s, ptr:%15p, refcount:%4d, alive:%4s, size:%4d\n", x, (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
 				if ((&obj_info[obj->type])->destructor) {
 					(&obj_info[obj->type])->destructor(obj->data);
 				}
@@ -201,7 +201,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 		(&obj_info[type])->destructor = destructor;
 	}
 	// initialize object    
-	obj->len = (int)size;
+	obj->len = size;
 	obj->type = type;
 	obj->refcount = 1;
 #ifndef SCCP_ATOMIC
@@ -377,7 +377,7 @@ void sccp_refcount_print_hashtable(int fd)
 				} else {
 					pbx_cli(fd, "| [%3d] ", x);
 				}
-				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", obj->len);
+				pbx_cli(fd, "| %17s | %25s | %15p | %4d | %4s | %4d |\n", (obj_info[obj->type]).datatype, obj->identifier, obj, (int) obj->refcount, SCCP_LIVE_MARKER == obj->alive ? "yes" : "no", (int) obj->len);
 				prev = x;
 				numentries++;
 			}

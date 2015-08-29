@@ -243,7 +243,7 @@ codeSkip == 1			{ next }
 			}
 		}
 		print "};" >out_source_file
-		print "\tuint32_t idx;" >out_source_file
+		print "\tint idx;" >out_source_file
 		print "\tfor (idx=0; idx < ARRAY_LEN(" namespace "_" enum_name "s); idx++) {" > out_source_file 
 		print "\t\tif ("namespace "_" enum_name "s[idx]==" namespace "_" enum_name "_int_value) {" > out_source_file
 		print "\t\t\treturn 1;" > out_source_file
@@ -268,8 +268,7 @@ codeSkip == 1			{ next }
 			}
 			print "const char * " namespace "_" enum_name "2str(int " namespace "_" enum_name "_int_value) {" > out_source_file
 			print "\tstatic char res[" totlen "] = \"\";" >out_source_file
-			print "\tuint32_t i;" >out_source_file
-			print "\tint pos = 0;" >out_source_file
+			print "\tint i, pos = 0;" >out_source_file
 			print "\tfor (i = 0; i < ARRAY_LEN(" namespace "_" enum_name "_map) - 1; i++) {" >out_source_file
 			print "\t\tif (("namespace "_" enum_name "_int_value & 1 << i) == 1 << i) {" >out_source_file
 			print "\t\t\tpos += snprintf(res + pos, " totlen ", \"%s%s\", pos ? \",\" : \"\", " namespace "_" enum_name "_map[i]);" >out_source_file
@@ -297,7 +296,7 @@ codeSkip == 1			{ next }
 	# sccp_channelstate_t sccp_channelstate_str2val(const char *lookup_str) {
 	print namespace "_" enum_name "_t " namespace "_" enum_name "_str2val(const char *lookup_str) {" > out_source_file
  	if (sparse == 0) {
-		print "\tuint32_t idx;" > out_source_file
+		print "\tint idx;" > out_source_file
 		print "\tfor (idx = 0; idx < ARRAY_LEN(" namespace "_" enum_name "_map); idx++) {" > out_source_file
 		print "\t\tif (sccp_strcaseequals(" namespace "_" enum_name "_map[idx], lookup_str)) {" > out_source_file
 		if (bitfield == 0) {

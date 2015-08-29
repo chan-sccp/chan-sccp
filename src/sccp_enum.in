@@ -279,41 +279,6 @@ enum rtp_info {
 	SCCP_RTP_INFO_ALLOW_DIRECTRTP,			=1<<2,	"RTP Info: Allow DirectMedia",
 }
 
-enum feature_type
-       SCCP_FEATURE_UNKNOWN,                           ,       "FEATURE_UNKNOWN",
-       SCCP_FEATURE_CFWDNONE,                          ,       "cfwd off",
-       SCCP_FEATURE_CFWDALL,                           ,       "cfwdall",
-       SCCP_FEATURE_CFWDBUSY,                          ,       "cfwdbusy",
-       SCCP_FEATURE_DND,                               ,       "dnd",
-       SCCP_FEATURE_PRIVACY,                           ,       "privacy",
-       SCCP_FEATURE_MONITOR,                           ,       "monitor",
-       SCCP_FEATURE_HOLD,                              ,       "hold",
-       SCCP_FEATURE_TRANSFER,                          ,       "transfer",
-       SCCP_FEATURE_MULTIBLINK,                        ,       "multiblink",
-       SCCP_FEATURE_MOBILITY,                          ,       "mobility",
-       SCCP_FEATURE_CONFERENCE,                        ,       "conference",
-       SCCP_FEATURE_DO_NOT_DISTURB,                    ,       "do not disturb",
-       SCCP_FEATURE_CONF_LIST,                         ,       "ConfList",
-       SCCP_FEATURE_REMOVE_LAST_PARTICIPANT,           ,       "RemoveLastParticipant",
-       SCCP_FEATURE_HLOG,                              ,       "Hunt Group Log-in/out",
-       SCCP_FEATURE_QRT,                               ,       "QRT",
-       SCCP_FEATURE_CALLBACK,                          ,       "CallBack",
-       SCCP_FEATURE_OTHER_PICKUP,                      ,       "OtherPickup",
-       SCCP_FEATURE_VIDEO_MODE,                        ,       "VideoMode",
-       SCCP_FEATURE_NEW_CALL,                          ,       "NewCall",
-       SCCP_FEATURE_END_CALL,                          ,       "EndCall",
-       SCCP_FEATURE_TESTE,                             ,       "FEATURE_TESTE",
-       SCCP_FEATURE_TESTF,                             ,       "FEATURE_TESTF",
-       SCCP_FEATURE_TESTI,                             ,       "FEATURE_TESTI",
-       SCCP_FEATURE_TESTG,                             ,       "Messages",
-       SCCP_FEATURE_TESTH,                             ,       "Directory",
-       SCCP_FEATURE_TESTJ,                             ,       "Application",
-#ifdef CS_DEVSTATE_FEATURE
-       SCCP_FEATURE_DEVSTATE,                          ,       "devstate",
-#endif
-       SCCP_FEATURE_PICKUP,                            ,       "pickup",
-}
-
 } /* NAMESPACE sccp */
 
 namespace skinny {
