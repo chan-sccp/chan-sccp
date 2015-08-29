@@ -40,6 +40,7 @@ before_script:
 
 # Report Results
 notifications:
+  slack: chan-sccp:yfQzKYTnTf4cD1iHElnTYsXD
   email:
     recipients:
       - ddegroot@talon.nl
