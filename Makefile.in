@@ -1120,6 +1120,9 @@ release:
 	  /usr/bin/joe NEWS; \
 	  /usr/bin/debchange; \
 	  tools/autorevision -o .revision -t m4 2>&1 >/dev/null; \
+	else \
+	  echo "Could not find $(SCCP_VERSION)_$(SCCP_BRANCH) in NEWS file"; \
+	  exit; \
 	fi 
 	@$(MAKE) dist-gzip
 
