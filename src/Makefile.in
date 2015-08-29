@@ -489,8 +489,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2015-06-09 21:40:42 +0200 (di, 09 jun 2015) $
-# REVISION: $Revision: 6114 $
+# DATE:     $Date: 2015-07-26 11:08:32 +0200 (zo, 26 jul 2015) $
+# REVISION: $Revision: 6147 $
 # NOTE: Process this file with automake to produce a makefile.in script.
 #AUTOMAKE_OPTIONS		= gnu silent-rules subdir-objects	(if automake 1.14)
 AUTOMAKE_OPTIONS = gnu 

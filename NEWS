@@ -1,4 +1,4 @@
-Version: V4.2_STABLE
+Version: v4.2_STABLE
 =====================
 New Features in V4.2
  - Enums processed using awk generation script
