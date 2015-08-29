@@ -22,24 +22,23 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
 
 typedef struct sccp_devstate_SubscribingDevice sccp_devstate_SubscribingDevice_t;
 
-struct sccp_devstate_SubscribingDevice {
+struct sccp_devstate_SubscribingDevice 
+{
+	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
 	const sccp_device_t *device;										/*!< SCCP Device */
-	uint8_t instance;											/*!< Instance */
 	sccp_buttonconfig_t *buttonConfig;
 	char label[StationMaxNameSize];
-
-	SCCP_LIST_ENTRY (sccp_devstate_SubscribingDevice_t) list;
+	uint8_t instance;											/*!< Instance */
 };
 
 typedef struct sccp_devstate_deviceState sccp_devstate_deviceState_t;
-struct sccp_devstate_deviceState {
-
+struct sccp_devstate_deviceState 
+{
+	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
+	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 	char devicestate[StationMaxNameSize];
 	PBX_EVENT_SUBSCRIPTION *sub;
 	uint32_t featureState;
-	SCCP_LIST_HEAD (, sccp_devstate_SubscribingDevice_t) subscribers;
-
-	SCCP_LIST_ENTRY (struct sccp_devstate_deviceState) list;
 };
 
 static SCCP_LIST_HEAD (, struct sccp_devstate_deviceState) deviceStates;
@@ -105,12 +104,14 @@ static void sccp_devstate_deviceRegistered(const sccp_device_t * device)
 
 				SCCP_LIST_LOCK(&deviceStates);
 				deviceState = sccp_devstate_getDeviceStateHandler(config->button.feature.options);
-				if (!deviceState) {
+				if (!deviceState && config->button.feature.options) {
 					deviceState = sccp_devstate_createDeviceStateHandler(config->button.feature.options);
 				}
 				SCCP_LIST_UNLOCK(&deviceStates);
 
-				sccp_devstate_addSubscriber(deviceState, device, config);
+				if (deviceState) {
+					sccp_devstate_addSubscriber(deviceState, device, config);
+				}
 			}
 		}
 	}
@@ -165,6 +166,10 @@ void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 
 sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *devstate)
 {
+	if (!devstate) {
+		return NULL;
+	}
+
 	sccp_devstate_deviceState_t *deviceState = NULL;
 
 	SCCP_LIST_TRAVERSE(&deviceStates, deviceState, list) {
@@ -178,6 +183,10 @@ sccp_devstate_deviceState_t *sccp_devstate_getDeviceStateHandler(const char *dev
 
 sccp_devstate_deviceState_t *sccp_devstate_createDeviceStateHandler(const char *devstate)
 {
+	if (!devstate) {
+		return NULL;
+	}
+
 	sccp_devstate_deviceState_t *deviceState = NULL;
 	char buf[256] = "";
 

@@ -16,6 +16,7 @@
 #include "common.h"
 #include "sccp_channel.h"
 #include "sccp_device.h"
+#include "sccp_line.h"
 #include "sccp_utils.h"
 #include "sccp_rtp.h"
 #include "sccp_socket.h"
@@ -126,7 +127,7 @@ void sccp_rtp_stop(sccp_channel_t * c)
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_peer(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
 	if (sccp_socket_getPort(new_peer) == 0) {
@@ -165,7 +166,7 @@ void sccp_rtp_set_peer(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr
  * \param rtp SCCP RTP
  * \param new_peer socket info to remote device
  */
-void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockaddr_storage *new_peer)
+void sccp_rtp_set_phone(sccp_channel_t * c, sccp_rtp_t *rtp, struct sockaddr_storage *new_peer)
 {
 	/* validate socket */
 	if (sccp_socket_getPort(new_peer) == 0) {
@@ -206,7 +207,7 @@ void sccp_rtp_set_phone(sccp_channel_t * c, struct sccp_rtp *rtp, struct sockadd
 /*!
  * \brief Get Audio Peer RTP Information
  */
-sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_rtp **rtp)
+sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, sccp_rtp_t **rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
@@ -229,7 +230,7 @@ sccp_rtp_info_t sccp_rtp_getAudioPeerInfo(const sccp_channel_t * c, struct sccp_
 /*!
  * \brief Get Video Peer RTP Information
  */
-sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_rtp ** rtp)
+sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, sccp_rtp_t ** rtp)
 {
 	sccp_rtp_info_t result = SCCP_RTP_INFO_NORTP;
 
@@ -251,7 +252,7 @@ sccp_rtp_info_t sccp_rtp_getVideoPeerInfo(const sccp_channel_t * c, struct sccp_
 /*!
  * \brief Get Payload Type
  */
-uint8_t sccp_rtp_get_payloadType(const struct sccp_rtp * rtp, skinny_codec_t codec)
+uint8_t sccp_rtp_get_payloadType(const sccp_rtp_t * rtp, skinny_codec_t codec)
 {
 	if (PBX(rtp_get_payloadType)) {
 		return PBX(rtp_get_payloadType) (rtp, codec);
@@ -314,7 +315,7 @@ boolean_t sccp_rtp_getVideoPeer(sccp_channel_t * c, struct sockaddr_storage **ne
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_storage *us)
+boolean_t sccp_rtp_getUs(const sccp_rtp_t *rtp, struct sockaddr_storage *us)
 {
 	if (rtp->rtp) {
 		PBX(rtp_getUs) (rtp->rtp, us);
@@ -325,7 +326,7 @@ boolean_t sccp_rtp_getUs(const struct sccp_rtp *rtp, struct sockaddr_storage *us
 	}
 }
 
-uint16_t sccp_rtp_getServerPort(const struct sccp_rtp * rtp)
+uint16_t sccp_rtp_getServerPort(const sccp_rtp_t * rtp)
 {
 	uint16_t port = 0;
 	struct sockaddr_storage sas;
@@ -339,7 +340,7 @@ uint16_t sccp_rtp_getServerPort(const struct sccp_rtp * rtp)
 /*!
  * \brief Retrieve Phone Socket Information
  */
-boolean_t sccp_rtp_getPeer(const struct sccp_rtp *rtp, struct sockaddr_storage *them)
+boolean_t sccp_rtp_getPeer(const sccp_rtp_t *rtp, struct sockaddr_storage *them)
 {
 	if (rtp->rtp) {
 		PBX(rtp_getPeer) (rtp->rtp, them);

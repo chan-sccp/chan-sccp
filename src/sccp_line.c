@@ -247,13 +247,6 @@ void *sccp_create_hotline(void)
 #endif
 		sccp_copy_string(hotline->cid_name, "hotline", sizeof(hotline->cid_name));
 		sccp_copy_string(hotline->cid_num, "hotline", sizeof(hotline->cid_name));
-		sccp_copy_string(hotline->context, "default", sizeof(hotline->context));
-		sccp_copy_string(hotline->label, "hotline", sizeof(hotline->label));
-		sccp_copy_string(hotline->adhocNumber, "111", sizeof(hotline->adhocNumber));
-
-		//sccp_copy_string(hotline->mailbox, "hotline", sizeof(hotline->mailbox));
-		sccp_copy_string(GLOB(hotline)->exten, "111", sizeof(GLOB(hotline)->exten));
-
 		GLOB(hotline)->line = sccp_line_retain(hotline);						// retain line inside hotline
 		sccp_line_addToGlobals(hotline);								// retain line inside GlobalsList
 	}
@@ -383,6 +376,9 @@ int __sccp_line_destroy(const void *ptr)
 	#endif
 	*/
 	sccp_config_cleanup_dynamically_allocated_memory(l, SCCP_CONFIG_LINE_SEGMENT);
+	if (l->regcontext) {
+		sccp_free(l->regcontext);
+	}
 
 	// cleanup channels
 	sccp_channel_t *c = NULL;
@@ -550,7 +546,7 @@ void sccp_line_cfwd(sccp_line_t * line, sccp_device_t * device, sccp_callforward
  * \param subscriptionId Subscription ID for addressing individual devices on the line
  * 
  */
-void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, struct subscriptionId *subscriptionId)
+void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId)
 {
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 	AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
@@ -567,7 +563,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 		sccp_linedevice_release(linedevice);
 		return;
 	}
-
+	
 	sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: add device to line %s\n", DEV_ID_LOG(device), l->name);
 
 	char ld_id[REFCOUNT_INDENTIFIER_SIZE];
@@ -671,6 +667,7 @@ void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel)
 		SCCP_LIST_LOCK(&l->channels);
 		if ((c = sccp_channel_retain(channel))) {							// Add into list retained
 			sccp_channel_updateChannelDesignator(c);
+			sccp_channel_updateMusicClass(c, l);
 			sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_1 "SCCP: Adding channel %d to line %s\n", c->callid, l->name);
 			if (GLOB(callanswerorder) == SCCP_ANSWER_OLDEST_FIRST) {
 				SCCP_LIST_INSERT_TAIL(&l->channels, c, list);					// add to list
@@ -743,7 +740,7 @@ static void regcontext_exten(sccp_line_t * l, struct subscriptionId *subscriptio
 				continue;
 			}
 		} else {
-			context = GLOB(regcontext);
+			context = strdup(GLOB(regcontext));
 		}
 		con = pbx_context_find_or_create(NULL, NULL, context, "SCCP");					/* make sure the context exists */
 		if (con) {

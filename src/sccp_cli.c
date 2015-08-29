@@ -556,7 +556,7 @@ static int sccp_show_globals(int fd, sccp_cli_totals_t *totals, struct mansessio
 	CLI_AMI_OUTPUT_PARAM("Token FallBack", CLI_AMI_LIST_WIDTH, "%s", GLOB(token_fallback));
 	CLI_AMI_OUTPUT_PARAM("Token Backoff-Time", CLI_AMI_LIST_WIDTH, "%d", GLOB(token_backoff_time));
 	CLI_AMI_OUTPUT_BOOL("Hotline_Enabled", CLI_AMI_LIST_WIDTH, GLOB(allowAnonymous));
-	CLI_AMI_OUTPUT_PARAM("Hotline_Context", CLI_AMI_LIST_WIDTH, "%s", GLOB(hotline->line->context));
+	CLI_AMI_OUTPUT_PARAM("Hotline_Context", CLI_AMI_LIST_WIDTH, "%s", GLOB(hotline)->line->context ? GLOB(hotline)->line->context : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Hotline_Exten", CLI_AMI_LIST_WIDTH, "%s", GLOB(hotline->exten));
 	CLI_AMI_OUTPUT_PARAM("Threadpool Size", CLI_AMI_LIST_WIDTH, "%d/%d", sccp_threadpool_jobqueue_count(GLOB(general_threadpool)), sccp_threadpool_thread_count(GLOB(general_threadpool)));
 
@@ -632,7 +632,7 @@ static int sccp_show_devices(int fd, sccp_cli_totals_t *totals, struct mansessio
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_RWLIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 																	\
-		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description)								\
+		CLI_AMI_TABLE_FIELD(Descr,		"-25.25",	s,	25,	d->description ? d->description : "<not set>")								\
 		CLI_AMI_TABLE_FIELD(Address,		"44.44",	s,	44,	addrStr)								\
 		CLI_AMI_TABLE_FIELD(Mac,		"-16.16",	s,	16,	d->id)									\
 		CLI_AMI_TABLE_FIELD(RegState,		"-10.10",	s,	10, 	skinny_registrationstate2str(d->registrationState))			\
@@ -755,7 +755,7 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 	CLI_AMI_OUTPUT_PARAM("MWI light",		CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_lampmode2str(d->mwilamp), d->mwilamp);
 	CLI_AMI_OUTPUT_PARAM("MWI handset light", 	CLI_AMI_LIST_WIDTH, "%s (%d)", sccp_dec2binstr(binstr, 32, d->mwilight), d->mwilight);
 	CLI_AMI_OUTPUT_PARAM("MWI During call",		CLI_AMI_LIST_WIDTH, "%s", d->mwioncall ? "keep on" : "turn off");
-	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description);
+	CLI_AMI_OUTPUT_PARAM("Description",		CLI_AMI_LIST_WIDTH, "%s", d->description ? d->description : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Config Phone Type",	CLI_AMI_LIST_WIDTH, "%s", d->config_type);
 	CLI_AMI_OUTPUT_PARAM("Skinny Phone Type",	CLI_AMI_LIST_WIDTH, "%s(%d)", skinny_devicetype2str(d->skinny_type), d->skinny_type);
 	CLI_AMI_OUTPUT_YES_NO("Softkey support",	CLI_AMI_LIST_WIDTH, d->softkeysupport);
@@ -863,8 +863,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_FIELDS 																\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)				\
 			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	l->name)						\
-			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6",		s,	6,	buttonconfig->button.line.subscriptionId.number)	\
-			CLI_AMI_TABLE_FIELD(Label,		"-29.29",	s,	29, 	l->label)						\
+			CLI_AMI_TABLE_FIELD(Suffix,		"-6.6",		s,	6,	buttonconfig->button.line.subscriptionId ? buttonconfig->button.line.subscriptionId->number : "")	\
+			CLI_AMI_TABLE_FIELD(Label,		"-29.29",	s,	29, 	l->label ? l->label : "")						\
 			CLI_AMI_TABLE_FIELD(CfwdType,		"-10",		s,	10, 	(linedevice && linedevice->cfwdAll.enabled ? "All" : (linedevice && linedevice->cfwdBusy.enabled ? "Busy" : "None")))	\
 			CLI_AMI_TABLE_FIELD(CfwdNumber,		"16.16",	s,	16, 	(linedevice && linedevice->cfwdAll.enabled ? linedevice->cfwdAll.number : (linedevice && linedevice->cfwdBusy.enabled ? linedevice->cfwdBusy.number : "")))
 #include "sccp_cli_table.h"
@@ -886,9 +886,9 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
-			CLI_AMI_TABLE_FIELD(Number,		"-36.36",	s,	36,	buttonconfig->button.speeddial.ext)		\
-			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint)
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
+			CLI_AMI_TABLE_FIELD(Number,		"-36.36",	s,	36,	buttonconfig->button.speeddial.ext ? buttonconfig->button.speeddial.ext : "")		\
+			CLI_AMI_TABLE_FIELD(Hint,		"-27.27",	s,	27, 	buttonconfig->button.speeddial.hint ? buttonconfig->button.speeddial.hint : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 
@@ -907,8 +907,8 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 
 #define CLI_AMI_TABLE_FIELDS 															\
 			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
-			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options)		\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
+			CLI_AMI_TABLE_FIELD(Options,		"-36.36",	s,	36,	buttonconfig->button.feature.options ? buttonconfig->button.feature.options : "")		\
 			CLI_AMI_TABLE_FIELD(Status,		"-27",		d,	27, 	buttonconfig->button.feature.status)
 #include "sccp_cli_table.h"
 			local_table_total++;
@@ -927,9 +927,9 @@ static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession
 #define CLI_AMI_TABLE_LIST_UNLOCK SCCP_LIST_UNLOCK
 
 #define CLI_AMI_TABLE_FIELDS 															\
-			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,		4,	buttonconfig->index + 1)		\
-			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label)				\
-			CLI_AMI_TABLE_FIELD(URL,		"-64.64",	s,	64,	buttonconfig->button.service.url)
+			CLI_AMI_TABLE_FIELD(Id,			"-4",		d,	4,	buttonconfig->index + 1)			\
+			CLI_AMI_TABLE_FIELD(Name,		"-23.23",	s,	23,	buttonconfig->label ? buttonconfig->label : "")				\
+			CLI_AMI_TABLE_FIELD(URL,		"-64.64",	s,	64,	buttonconfig->button.service.url ? buttonconfig->button.service.url : "")
 #include "sccp_cli_table.h"
 			local_table_total++;
 	}
@@ -1057,7 +1057,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			if ((d = sccp_device_retain(linedevice->device))) {
 				if (!s) {
 					pbx_cli(fd, "| %-13s %-9s %-30s %-16s %-4s %-4d %-10s %-10s %-16s %-10s |\n",
-						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label, (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
+						!found_linedevice ? l->name : " +--", linedevice->subscriptionId.number, l->label ? l->label : "--", (d) ? d->id : "--", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF", SCCP_RWLIST_GETSIZE(&l->channels), (channel) ? sccp_channelstate2str(channel->state) : "--", (channel) ? skinny_calltype2str(channel->calltype) : "", (channel) ? ((channel->calltype == SKINNY_CALLTYPE_OUTBOUND) ? channel->callInfo.calledPartyName : channel->callInfo.callingPartyName) : "", cap_buf);
 				} else {
 					astman_append(s, "Event: SCCPLineEntry\r\n");
 					astman_append(s, "ChannelType: SCCP\r\n");
@@ -1090,7 +1090,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 				astman_append(s, "ChannelObjectType: Line\r\n");
 				astman_append(s, "ActionId: %s\r\n", actionid);
 				astman_append(s, "Exten: %s\r\n", l->name);
-				astman_append(s, "Label: %s\r\n", l->label);
+				astman_append(s, "Label: %s\r\n", l->label ? l->label : "<not set>");
 				astman_append(s, "Device: %s\r\n", "(null)");
 				astman_append(s, "MWI: %s\r\n", (l->voicemailStatistic.newmsgs) ? "ON" : "OFF");
 				astman_append(s, "\r\n");
@@ -1206,8 +1206,8 @@ static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *
 	CLI_AMI_OUTPUT_PARAM("VoiceMail number", 	CLI_AMI_LIST_WIDTH, "%s", l->vmnum ? l->vmnum : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Transfer to Voicemail",	CLI_AMI_LIST_WIDTH, "%s", l->trnsfvm ? l->trnsfvm : "No");
 	CLI_AMI_OUTPUT_BOOL("MeetMe enabled",		CLI_AMI_LIST_WIDTH, l->meetme);
-	CLI_AMI_OUTPUT_PARAM("MeetMe number",		CLI_AMI_LIST_WIDTH, "%s", l->meetmenum);
-	CLI_AMI_OUTPUT_PARAM("MeetMe Options",		CLI_AMI_LIST_WIDTH, "%s", l->meetmeopts);
+	CLI_AMI_OUTPUT_PARAM("MeetMe number",		CLI_AMI_LIST_WIDTH, "%s", l->meetmenum ? l->meetmenum : "<not set>");
+	CLI_AMI_OUTPUT_PARAM("MeetMe Options",		CLI_AMI_LIST_WIDTH, "%s", l->meetmeopts ? l->meetmeopts : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Context",			CLI_AMI_LIST_WIDTH, "%s (%s)", l->context ? l->context : "<not set>", pbx_context_find(l->context) ? "exists" : "does not exist !!");
 	CLI_AMI_OUTPUT_PARAM("Language",		CLI_AMI_LIST_WIDTH, "%s", l->language ? l->language : "<not set>");
 	CLI_AMI_OUTPUT_PARAM("Account Code",		CLI_AMI_LIST_WIDTH, "%s", l->accountcode ? l->accountcode : "<not set>");
@@ -1374,7 +1374,6 @@ static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansessi
 		CLI_AMI_TABLE_FIELD(Name,		"-25.25",	s,	25,	strdupa(tmpname))					\
 		CLI_AMI_TABLE_FIELD(LineName,		"-10.10",	s,	10,	channel->line->name)					\
 		CLI_AMI_TABLE_FIELD(DeviceName,		"-16",		s,		16,	d ? d->id : "(unknown)")			\
-/*		CLI_AMI_TABLE_FIELD(DeviceDescr,	"-32.32",	s,	32,	d ? d->description : "(unknown)")		*/	\
 		CLI_AMI_TABLE_FIELD(NumCalled,		"-10.10",	s,	10,	channel->callInfo.calledPartyNumber)			\
 		CLI_AMI_TABLE_FIELD(PBX State,		"-10.10",	s,	10,	(channel->owner) ? pbx_state2str(PBX(getChannelState)(channel)) : "(none)")	\
 		CLI_AMI_TABLE_FIELD(SCCP State,		"-10.10",	s,	10,	sccp_channelstate2str(channel->state))			\
@@ -1579,10 +1578,10 @@ CLI_AMI_ENTRY(show_hint_subscriptions, sccp_show_hint_subscriptions, "Show all S
 #define NUM_OBJECTS 100
 #ifdef CS_EXPERIMENTAL
 static struct refcount_test {
+	char *test;
 	int id;
 	int loop;
 	unsigned int threadid;
-	char *test;
 } *object[NUM_OBJECTS];
 
 static void sccp_cli_refcount_test_destroy(struct refcount_test *obj)
