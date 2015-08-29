@@ -27,9 +27,12 @@
 #include "sccp_config.h"
 #include "sccp_actions.h"
 #include "sccp_features.h"
+#include "sccp_featureButton.h"
 #include "sccp_socket.h"
 #include "sccp_indicate.h"
 #include "sccp_mwi.h"
+#include "sccp_rtp.h"
+#include "sccp_devstate.h"
 
 SCCP_FILE_VERSION(__FILE__, "$Revision$");
 int __sccp_device_destroy(const void *ptr);
@@ -194,12 +197,18 @@ static void sccp_device_setRingtone(const sccp_device_t * device, const char *ur
 
 static void sccp_device_copyStr2Locale_UTF8(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
 {
+	if (!dst || !src) {
+		return;
+	}
 	sccp_copy_string(dst, src, dst_size);
 }
 
 #if HAVE_ICONV_H
 static void sccp_device_copyStr2Locale_Convert(const sccp_device_t *d, char *dst, const char *src, size_t dst_size)
 {
+	if (!dst || !src) {
+		return;
+	}
 	char *buf = sccp_alloca(dst_size);
 	size_t buf_len = dst_size;
 	memset(buf, 0, dst_size);
@@ -317,6 +326,12 @@ void sccp_device_pre_reload(void)
 			d->pendingDelete = 1;
 		}
 		d->pendingUpdate = 0;
+		
+		/* clear softkeyset */
+		d->softkeyset = NULL;
+		d->softKeyConfiguration.modes = NULL;
+		d->softKeyConfiguration.size = 0;
+		
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			config->pendingDelete = 1;
@@ -431,8 +446,8 @@ sccp_device_t *sccp_device_create(const char *id)
 	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
 	memset(d->call_statistics, 0, (sizeof(sccp_call_statistics_t) * 2));
 
-	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
-	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
+//	d->softKeyConfiguration.modes = (softkey_modes *) SoftKeyModes;
+//	d->softKeyConfiguration.size = ARRAY_LEN(SoftKeyModes);
 	d->state = SCCP_DEVICESTATE_ONHOOK;
 	d->postregistration_thread = AST_PTHREADT_STOP;
 	d->registrationState = SKINNY_DEVICE_RS_NONE;
@@ -1872,7 +1887,7 @@ int sccp_device_check_ringback(sccp_device_t * device)
 void sccp_dev_postregistration(void *data)
 {
 	sccp_device_t *d = data;
-	sccp_event_t event = { 0 };
+	sccp_event_t event = {{{ 0 }}};
 
 #ifndef ASTDB_FAMILY_KEY_LEN
 #define ASTDB_FAMILY_KEY_LEN 100
@@ -1959,6 +1974,52 @@ void sccp_dev_postregistration(void *data)
 	return;
 }
 
+static void sccp_buttonconfig_destroy(sccp_buttonconfig_t *buttonconfig)
+{
+	if (!buttonconfig) {
+		return;
+	}
+	if (buttonconfig->label) {
+		sccp_free(buttonconfig->label);
+	}
+	switch(buttonconfig->type) {
+		case LINE:
+			if (buttonconfig->button.line.name) {
+				sccp_free(buttonconfig->button.line.name);
+			}
+			if (buttonconfig->button.line.subscriptionId) {
+				sccp_free(buttonconfig->button.line.subscriptionId);
+			}
+			if (buttonconfig->button.line.options) {
+				sccp_free(buttonconfig->button.line.options);
+			}
+			break;
+		case SPEEDDIAL:
+			if (buttonconfig->button.speeddial.ext) {
+				sccp_free(buttonconfig->button.speeddial.ext);
+			}
+			if (buttonconfig->button.speeddial.hint) {
+				sccp_free(buttonconfig->button.speeddial.hint);
+			}
+			break;
+		case SERVICE:
+			if (buttonconfig->button.service.url) {
+				sccp_free(buttonconfig->button.service.url);
+			}
+		case FEATURE:
+			if (buttonconfig->button.feature.options) {
+				sccp_free(buttonconfig->button.feature.options);
+			}
+		case EMPTY:
+		case SCCP_CONFIG_BUTTONTYPE_SENTINEL:
+			break;
+	}
+	sccp_free(buttonconfig);
+	buttonconfig = NULL;
+}
+
+
+
 /*!
  * \brief Clean Device
  *
@@ -1980,7 +2041,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 	sccp_buttonconfig_t *config = NULL;
 	sccp_selectedchannel_t *selectedChannel = NULL;
 	sccp_channel_t *c = NULL;
-	sccp_event_t event = { 0 };
+	sccp_event_t event = {{{ 0 }}};
 	int i = 0;
 
 #if defined(CS_DEVSTATE_FEATURE) && defined(CS_AST_HAS_EVENT)
@@ -2037,9 +2098,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 			config->instance = 0;									/* reset button configuration to rebuild template on register */
 			if (config->pendingDelete) {
 				SCCP_LIST_REMOVE_CURRENT(list);
-				sccp_free(config);
-				config = NULL;
-
+				sccp_buttonconfig_destroy(config);
 			}
 		}
 		SCCP_LIST_TRAVERSE_SAFE_END;
@@ -2144,8 +2203,7 @@ int __sccp_device_destroy(const void *ptr)
 	/* only generated on read config, so do not remove on reset/restart */
 	SCCP_LIST_LOCK(&d->buttonconfig);
 	while ((config = SCCP_LIST_REMOVE_HEAD(&d->buttonconfig, list))) {
-		sccp_free(config);
-		config = NULL;
+		sccp_buttonconfig_destroy(config);
 	}
 	SCCP_LIST_UNLOCK(&d->buttonconfig);
 	SCCP_LIST_HEAD_DESTROY(&d->buttonconfig);
@@ -2669,7 +2727,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 	if (!event || !(device = event->event.featureChanged.device)) {
 		return;
 	}
-	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), featureType2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
+	sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_EVENT + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: Received Feature Change Event: %s(%d)\n", DEV_ID_LOG(device), sccp_feature_type2str(event->event.featureChanged.featureType), event->event.featureChanged.featureType);
 	switch (event->event.featureChanged.featureType) {
 		case SCCP_FEATURE_CFWDNONE:
 			sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);
@@ -2688,7 +2746,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 							if (s != tmp) {
 								pbx_build_string(&s, &len, ", ");
 							}
-							if (strlen(line->cid_num) + strlen(linedevice->cfwdAll.number) > 15) {
+							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdAll.number) > 15) {
 								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDALL, linedevice->cfwdAll.number);
 							} else {
 								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDALL, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdAll.number);
@@ -2701,7 +2759,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 							if (s != tmp) {
 								pbx_build_string(&s, &len, ", ");
 							}
-							if (strlen(line->cid_num) + strlen(linedevice->cfwdAll.number) > 15) {
+							if (sccp_strlen(line->cid_num) + sccp_strlen(linedevice->cfwdAll.number) > 15) {
 								pbx_build_string(&s, &len, "%s:%s", SKINNY_DISP_CFWDBUSY, linedevice->cfwdBusy.number);
 							} else {
 								pbx_build_string(&s, &len, "%s:%s %s %s", SKINNY_DISP_CFWDBUSY, line->cid_num, SKINNY_DISP_FORWARDED_TO, linedevice->cfwdBusy.number);
@@ -2712,7 +2770,7 @@ void sccp_device_featureChangedDisplay(const sccp_event_t * event)
 						break;
 				}
 			}
-			if (strlen(tmp) > 0) {
+			if (!sccp_strlen_zero(tmp)) {
 				sccp_device_addMessageToStack(device, SCCP_MESSAGE_PRIORITY_CFWD, tmp);
 			} else {
 				sccp_device_clearMessageFromStack(device, SCCP_MESSAGE_PRIORITY_CFWD);

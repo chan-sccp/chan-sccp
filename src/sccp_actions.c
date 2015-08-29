@@ -697,7 +697,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 					/*! retains new line in btn[i].ptr, finally released in sccp_dev_clean */
 					if ((btn[i].ptr = sccp_line_find_byname(buttonconfig->button.line.name, TRUE))) {
 						buttonconfig->instance = btn[i].instance = lineInstance++;
-						sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
+						sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
 						if (FALSE == defaultLineSet && !d->defaultLineInstance) {
 							d->defaultLineInstance = buttonconfig->instance;
 							defaultLineSet = TRUE;
@@ -880,8 +880,7 @@ static btnlist *sccp_make_button_template(sccp_device_t * d)
 		btn[i].type = SKINNY_BUTTONTYPE_LINE;
 		btn[i].ptr = sccp_line_retain(GLOB(hotline)->line);
 		buttonconfig->instance = btn[i].instance = SCCP_FIRST_LINEINSTANCE;
-		sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, &(buttonconfig->button.line.subscriptionId));
-
+		sccp_line_addDevice((sccp_line_t *) btn[i].ptr, d, btn[i].instance, buttonconfig->button.line.subscriptionId);
 	}
 
 	return btn;
@@ -1170,19 +1169,15 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 	}
 	msg_out->data.LineStatMessage.lel_lineNumber = htolel(lineNumber);
 
-	//sccp_copy_string(msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
 	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDirNumber, ((l) ? l->name : k.name), sizeof(msg_out->data.LineStatMessage.lineDirNumber));
 
 	/* lets set the device description for the first line, so it will be display on top of device -MC */
 	if (lineNumber == 1) {
-		//sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, (d->description), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	} else {
-		//sccp_copy_string(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
-		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
+		d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName, ((l && l->description) ? l->description : k.name), sizeof(msg_out->data.LineStatMessage.lineFullyQualifiedDisplayName));
 	}
-	//sccp_copy_string(msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
-	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, ((l) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
+	d->copyStr2Locale(d, msg_out->data.LineStatMessage.lineDisplayName, ((l && l->label) ? l->label : k.name), sizeof(msg_out->data.LineStatMessage.lineDisplayName));
 
 	sccp_dev_send(d, msg_out);
 
@@ -1191,7 +1186,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 		SCCP_LIST_LOCK(&d->buttonconfig);
 		SCCP_LIST_TRAVERSE(&d->buttonconfig, config, list) {
 			if (config->type == LINE && config->instance == lineNumber) {
-				if (strcasestr(config->button.line.options, "default")) {
+				if (config->button.line.options && strcasestr(config->button.line.options, "default")) {
 					d->defaultLineInstance = lineNumber;
 					sccp_log((DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "set defaultLineInstance to: %u\n", lineNumber);
 				}
@@ -1347,7 +1342,7 @@ static void sccp_handle_stimulus_line(sccp_device_t * d, sccp_line_t * l, uint8_
 	 * \note Check speeddial before handling adHoc allows speeddials to be used and makes adHoc Non-Mandatory (This is a personal Preference - DdG). 
 	 * To make adhoc mandatory you can close it down in the dialplan. 
 	 */
-	if (strlen(l->adhocNumber) > 0) {
+	if (!sccp_strlen_zero(l->adhocNumber)) {
 		sccp_feat_adhocDial(d, l);
 		return;
 	}
@@ -1764,7 +1759,7 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 
 		// Channel already in use
 		if ((channel->state == SCCP_CHANNELSTATE_DIALING) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL) || (channel->state == SCCP_CHANNELSTATE_OFFHOOK)) {
-			len = strlen(channel->dialedNumber);
+			len = sccp_strlen(channel->dialedNumber);
 			sccp_copy_string(channel->dialedNumber + len, k->ext, sizeof(channel->dialedNumber) - len);
 			sccp_pbx_softswitch(channel);
 			return;
@@ -1983,9 +1978,8 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		/* we have no preferred codec, use capabilities -MC */
 		memcpy(&d->preferences.audio, &d->capabilities.audio, sizeof(d->preferences.audio));
 	}
-
+	
 	char cap_buf[512];
-
 	sccp_multiple_codecs2str(cap_buf, sizeof(cap_buf) - 1, d->capabilities.audio, ARRAY_LEN(d->capabilities.audio));
 	sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_1 "%s: num of codecs %d, capabilities: %s\n", DEV_ID_LOG(d), (int) ARRAY_LEN(d->capabilities.audio), cap_buf);
 }
@@ -2303,7 +2297,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 	sccp_dev_send(d, msg_out);
 
 	/* sometimes a phone sends an ' ' entry, I think we can ignore this one */
-	if (strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
+	if (sccp_strlen(msg_in->data.SubscriptionStatReqMessage.subscriptionID) <= 1) {
 		return;
 	}
 
@@ -2317,7 +2311,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
 		msg_out->data.NotificationMessage.lel_status = htolel(status);
 		sccp_dev_send(d, msg_out);
-		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context, status);
+		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: send NotificationMessage for extension '%s', context '%s', state %d\n", DEV_ID_LOG(d), subscriptionID, line->context ? line->context : "<not set>", status);
 		sccp_log((DEBUGCAT_HINT + DEBUGCAT_ACTION)) (VERBOSE_PREFIX_3 "%s: Device sent Dialed PhoneBook Rec.'%u' (%u) dn '%s' (timer:0x%08X) line instance '%d'.\n", DEV_ID_LOG(d), index, unknown1, subscriptionID, timer, featureID);
 	}
 }
@@ -2479,7 +2473,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		return;
 	}
 
-	len = strlen(channel->dialedNumber);
+	len = sccp_strlen(channel->dialedNumber);
 	if (len + 1 >= (SCCP_MAX_EXTENSION)) {
 		/*! \todo Shouldn't we only skip displaying the number to the phone (Maybe even showing '...' at the end), but still dial it ? */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Maximum Length of Extension reached. Skipping Digit\n", channel->designator);
@@ -2592,10 +2586,10 @@ void sccp_handle_dialtone(sccp_device_t *d, sccp_line_t *l, sccp_channel_t * cha
 	 * when catching call forward number, meetme room,
 	 * etc.
 	 * */
-	if (strlen(channel->dialedNumber) == 0 && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
+	if (sccp_strlen_zero(channel->dialedNumber) && channel->state != SCCP_CHANNELSTATE_OFFHOOK) {
 		sccp_dev_stoptone(d, instance, channel->callid);
 		sccp_dev_starttone(d, SKINNY_TONE_INSIDEDIALTONE, instance, channel->callid, 0);
-	} else if (strlen(channel->dialedNumber) > 0) {
+	} else if (!sccp_strlen_zero(channel->dialedNumber)) {
 		sccp_indicate(d, channel, SCCP_CHANNELSTATE_DIGITSFOLL);
 	}
 }
@@ -3251,7 +3245,7 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 						return;
 					}
 
-					len = strlen(channel->dialedNumber);
+					len = sccp_strlen(channel->dialedNumber);
 					sccp_copy_string(channel->dialedNumber + len, calledParty, sizeof(channel->dialedNumber) - len);
 					sccp_pbx_softswitch(channel);
 					return;
@@ -3375,12 +3369,12 @@ void sccp_handle_services_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_m
 		if (d->inuseprotocolversion < 7) {
 			REQ(msg_out, ServiceURLStatMessage);
 			msg_out->data.ServiceURLStatMessage.lel_serviceURLIndex = htolel(urlIndex);
-			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, strlen(config->button.service.url) + 1);
-			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
-			d->copyStr2Locale(d, msg_out->data.ServiceURLStatMessage.label, config->label, strlen(config->label) + 1);
+			sccp_copy_string(msg_out->data.ServiceURLStatMessage.URL, config->button.service.url, sccp_strlen(config->button.service.url) + 1);
+			//sccp_copy_string(msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
+			d->copyStr2Locale(d, msg_out->data.ServiceURLStatMessage.label, config->label, sccp_strlen(config->label) + 1);
 		} else {
-			int URL_len = strlen(config->button.service.url);
-			int label_len = strlen(config->label);
+			int URL_len = sccp_strlen(config->button.service.url);
+			int label_len = sccp_strlen(config->label);
 			int dummy_len = URL_len + label_len;
 
 			int hdr_len = sizeof(msg_in->data.ServiceURLStatDynamicMessage) - 1;
@@ -3466,7 +3460,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				break;
 			}
 
-			if (!strcasecmp(config->button.feature.options, "callpresent")) {
+			if (sccp_strcaseequals(config->button.feature.options, "callpresent")) {
 				res = d->privacyFeature.status & SCCP_PRIVACYFEATURE_CALLPRESENT;
 
 				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
@@ -3481,7 +3475,7 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				}
 				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: device->privacyFeature.status=%d\n", d->id, d->privacyFeature.status);
 			} else {
-				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options);
+				sccp_log((DEBUGCAT_FEATURE_BUTTON + DEBUGCAT_FEATURE)) (VERBOSE_PREFIX_3 "%s: do not know how to handle %s\n", d->id, config->button.feature.options ? config->button.feature.options : "");
 			}
 
 			break;
@@ -3515,9 +3509,9 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 				config->button.feature.status = (config->button.feature.status == 0) ? 1 : 0;
 			}
 
-			if (!strcasecmp(config->button.feature.options, "silent")) {
+			if (sccp_strcaseequals(config->button.feature.options, "silent")) {
 				d->dndFeature.status = (config->button.feature.status) ? SCCP_DNDMODE_SILENT : SCCP_DNDMODE_OFF;
-			} else if (!strcasecmp(config->button.feature.options, "busy")) {
+			} else if (sccp_strcaseequals(config->button.feature.options, "busy")) {
 				d->dndFeature.status = (config->button.feature.status) ? SCCP_DNDMODE_REJECT : SCCP_DNDMODE_OFF;
 			}
 
@@ -3544,16 +3538,14 @@ void sccp_handle_feature_action(sccp_device_t * d, int instance, boolean_t toggl
 		  * Handling of custom devicestate toggle buttons.
 		  */
 		case SCCP_FEATURE_DEVSTATE:
-			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options, config->button.feature.status ? "On" : "Off");
+			sccp_log((DEBUGCAT_CORE + DEBUGCAT_FEATURE_BUTTON)) (VERBOSE_PREFIX_3 "%s: Feature Change DevState: '%s', State: '%s'\n", DEV_ID_LOG(d), config->button.feature.options ? config->button.feature.options : "", config->button.feature.status ? "On" : "Off");
 
 			if (TRUE == toggleState) {
-				// char devstateName[100];
-				// sprintf(devstateName, "Custom:%s", config->button.feature.options);
-				enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
-
-				//pbx_devstate_changed_literal(newDeviceState, devstateName);
-				ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
-				pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
+				if (!sccp_strlen_zero(config->button.feature.options)) {
+					enum ast_device_state newDeviceState = config->button.feature.status ? AST_DEVICE_NOT_INUSE : AST_DEVICE_INUSE;
+					ast_db_put("CustomDevstate", config->button.feature.options, ast_devstate_str(newDeviceState));
+					pbx_devstate_changed(newDeviceState, "Custom:%s", config->button.feature.options);
+				}
 			}
 
 			break;

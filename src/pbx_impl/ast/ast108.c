@@ -281,10 +281,10 @@ static void get_skinnyFormats(format_t format, skinny_codec_t codecs[], size_t s
 	if (!size) {
 		return;
 	}
-	for (x = 0; x < ARRAY_LEN(skinny2pbx_codec_maps) && len <= size; x++) {
-		if (skinny2pbx_codec_maps[x].pbx_codec & format) {
-			codecs[len++] = skinny2pbx_codec_maps[x].skinny_codec;
-			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "map ast codec " UI64FMT " to %d\n", (ULONG) (skinny2pbx_codec_maps[x].pbx_codec & format), skinny2pbx_codec_maps[x].skinny_codec);
+	for (x = 0; x < ARRAY_LEN(pbx2skinny_codec_maps) && len <= size; x++) {
+		if (pbx2skinny_codec_maps[x].pbx_codec & format) {
+			codecs[len++] = pbx2skinny_codec_maps[x].skinny_codec;
+			sccp_log((DEBUGCAT_CODEC)) (VERBOSE_PREFIX_3 "map ast codec " UI64FMT " to %d\n", (ULONG) (pbx2skinny_codec_maps[x].pbx_codec & format), pbx2skinny_codec_maps[x].skinny_codec);
 		}
 	}
 }
