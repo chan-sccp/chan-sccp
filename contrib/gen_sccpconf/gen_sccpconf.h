@@ -134,6 +134,7 @@ typedef struct SCCPConfigOption {
 #define sccp_config_parse_jbflags_log "(jbflags_log)=on|off"
 #define sccp_config_parse_codec_preferences "(codec)=all|(alaw,ulaw,gsm,ilbc,g722,g723,g729,g726,slin,slin16)"
 #define sccp_config_parse_deny_permit "(permit)=[[ipaddress]],internal | (deny)=[[ipaddress]],internal"
+#define sccp_config_parse_hotline_label ""
 //#define sccp_config_parse_dnd_wrapper "(dnd)=reject|silent|user|on|off"
 
 int (sccp_enum_str2intval) (const char *lookup_str);
