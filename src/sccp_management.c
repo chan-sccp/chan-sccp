@@ -967,5 +967,64 @@ void example_function() {
 
 #endif														/* HAVE_PBX_MANAGER_HOOK_H */
 
+boolean_t sccp_manager_retrieve_parkedcalls_cxml(struct ast_str *out) 
+{
+        boolean_t result = FALSE;
+#if defined(GCC_NESTED) || defined(CLANG_BLOCKS)
+        struct ast_str *parkedcalls_messageStr = ast_str_create(4196);
+#  ifdef GCC_NESTED
+        int parkedcalls_hook(int category, const char *event, char *content){
+                ast_str_append(&parkedcalls_messageStr, sizeof(parkedcalls_messageStr), "%s", content);
+                return 0;
+        };
+        struct manager_custom_hook hook = {__FILE__, parkedcalls_hook};
+        ast_hook_send_action(&hook, "Action: ParkedCalls\r\n");
+#  else 				// else if CLANG_BLOCKS
+/*
+        int (^parkedcalls_hook)(int category, const char *event, char *content) = ^(int category, const char *event, char *content) {
+                //ast_str_append(&parkedcalls_messageStr, sizeof(parkedcalls_messageStr), "%s", content);
+                return 0;
+        };
+        struct manager_custom_hook hook = {__FILE__, parkedcalls_hook};
+        ast_hook_send_action(&hook, "Action: ParkedCalls\r\n");
+*/
+#      warning "Clang Blocks method not implemented (yet)"
+#  endif				// GCC_NESTED
+        
+        if (parkedcalls_messageStr) {
+                char *tmpStr = ast_str_buffer(parkedcalls_messageStr);
+                struct message m = {0};
+                const char *event = "";
+                
+//                sccp_log(0)(VERBOSE_PREFIX_2 "SCCP: (sccp_manager_retrieve_parkedcalls_cxml) content=%s\n", ast_str_buffer(parkedcalls_messageStr));
+		ast_str_append(&out, sizeof(out), "<?xml version=\"1.0\"?>");
+		ast_str_append(&out, sizeof(out), "<CiscoIPPhoneDirectory>");
+		ast_str_append(&out, sizeof(out), "<Title>Parked Calls</Title>");
+		ast_str_append(&out, sizeof(out), "<Prompt>Please Choose on of the parking lots</Prompt>");
+		ast_str_append(&out, sizeof(out), "<DirectoryEntry>");
+        	do{
+        	        memset(&m, 0, sizeof(m));
+                        tmpStr = sccp_asterisk_parseStrToAstMessage(tmpStr, &m);
+                        event  = astman_get_header(&m, "Event");
+                        if (sccp_strcaseequals(event, "ParkedCall")){
+				ast_str_append(&out, sizeof(out), "<Name>%s (%s) by %s</Name><Telephone>%s</Telephone>", 
+					astman_get_header((const struct message *)&m, "CallerIdName"), 
+					astman_get_header((const struct message *)&m, "CallerIdNum"),
+					astman_get_header((const struct message *)&m, "ConnectedLineName"),
+					astman_get_header((const struct message *)&m, "Exten")
+				);
+//                                sccp_log(0)(VERBOSE_PREFIX_3 "SCCP: Found ParkedCall: %s on %s@%s\n", astman_get_header((const struct message *)&m, "Channel"), astman_get_header((const struct message *)&m, "Exten"), astman_get_header((const struct message *)&m, "ParkingLot"))
+                        }
+        	} while(!sccp_strlen_zero(tmpStr) && !sccp_strcaseequals(event, "ParkedCallsComplete"));
+		ast_str_append(&out, sizeof(out), "</DirectoryEntry>");
+		ast_str_append(&out, sizeof(out), "</CiscoIPPhoneDirectory>");
+
+                sccp_free(parkedcalls_messageStr);
+                result = TRUE;
+        }
+#endif					// defined(GCC_NESTED) || defined(CLANG_BLOCKS)
+        return result;
+}
+
 #endif														/* CS_SCCP_MANAGER */
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;

@@ -27,6 +27,7 @@ void sccp_manager_module_start(void);
 void sccp_manager_module_stop(void);
 
 int sccp_manager_action2pbx_str(struct ast_str *outStr, const char *manager_command);
+boolean_t sccp_manager_retrieve_parkedcalls_cxml(struct ast_str *out);
 
 #endif														/* SCCP_MANAGEMENT_H_ */
 #endif
