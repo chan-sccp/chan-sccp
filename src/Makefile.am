@@ -22,7 +22,8 @@ chan_sccp_la_SOURCES	=	sccp_enum.h		chan_sccp.h		sccp_cli.h		sccp_threadpool.h	\
 				sccp_refcount.h		sccp_protocol.h 	sccp_dllists.h		sccp_indicate.h		\
 				sccp_management.h	sccp_mwi.h		common.h		sccp_rtp.h 		\
 				sccp_appfunctions.h	sccp_socket.h		sccp_cli_table.h	sccp_devstate.h		\
-				revision.h		pbx_impl/ast/include_asterisk_autoconfig.h
+				sccp_xml.h              sccp_xml_embedded.h     sccp_webservice.h       revision.h		\
+				pbx_impl/ast/include_asterisk_autoconfig.h
                                                                 
 chan_sccp_la_SOURCES	+=	sccp_enum.c 		chan_sccp.c		sccp_channel.c		sccp_device.c		\
 				sccp_indicate.c 	sccp_pbx.c 		pbx_impl/pbx_impl.c	sccp_softkeys.c		\
@@ -30,7 +31,8 @@ chan_sccp_la_SOURCES	+=	sccp_enum.c 		chan_sccp.c		sccp_channel.c		sccp_device.c
 				sccp_cli.c		sccp_features.c 	sccp_config.c		sccp_hint.c 		\
                                 sccp_refcount.c		sccp_event.c		sccp_management.c	sccp_mwi.c		\
                                 sccp_conference.c	sccp_rtp.c		sccp_appfunctions.c	sccp_protocol.c		\
-                                sccp_socket.c		sccp_threadpool.c	sccp_devstate.c
+                                sccp_socket.c		sccp_threadpool.c	sccp_xml.c              sccp_webservice.c       \
+                                sccp_devstate.c
 
 #if CS_EXPERIMENTAL_XML
 #chan_sccp_la_SOURCES	+=      sccp_webservice.h       sccp_xml.h 		sccp_xml_embedded.h	sccp_webservice.c	\

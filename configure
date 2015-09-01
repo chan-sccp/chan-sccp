@@ -28501,7 +28501,8 @@ fi
 
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+				CPPFLAGS="${LIBEXSLT_CFLAGS}"
+		CFLAGS="${LIBEXSLT_CFLAGS}"
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xmlInitParser in -lxml2" >&5
 $as_echo_n "checking for xmlInitParser in -lxml2... " >&6; }
 if ${ac_cv_lib_xml2_xmlInitParser+:} false; then :

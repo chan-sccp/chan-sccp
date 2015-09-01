@@ -147,6 +147,8 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 void sccp_utils_register_tests(void);
 void sccp_utils_unregister_tests(void);
 #endif
+const char * sccp_get_str_variable_byKey(PBX_VARIABLE_TYPE *params, char *key);
+int sccp_get_int_variable_byKey(PBX_VARIABLE_TYPE *params, char *key);
 #ifdef DEBUG
 void sccp_do_backtrace();
 #endif

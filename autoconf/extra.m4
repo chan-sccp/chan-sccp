@@ -729,7 +729,9 @@ AC_DEFUN([CS_ENABLE_EXPERIMENTAL_XML], [
 	AS_IF([test "_${ac_cv_experimental_xml}" == "_yes" ], [
 		LIBEXSLT_CFLAGS=`${PKGCONFIG} libexslt --cflags`
 		LIBEXSLT_LIBS=`${PKGCONFIG} libexslt --libs`
-		CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		dnl CPPFLAGS="${CPPFLAGS} $LIBEXSLT_CFLAGS"
+		CPPFLAGS="${LIBEXSLT_CFLAGS}"
+		CFLAGS="${LIBEXSLT_CFLAGS}"
 		AC_CHECK_LIB([xml2],[xmlInitParser],[HAVE_LIBXML2=yes],[HAVE_LIBXML2=no])
 		AC_CHECK_HEADERS([libxml/tree.h]) 
 		AC_CHECK_HEADERS([libxml/parser.h]) 

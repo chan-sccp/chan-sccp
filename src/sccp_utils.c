@@ -1998,6 +1998,28 @@ gcc_inline boolean_t sccp_utils_convUtf8toLatin1(const char *utf8str, char *buf,
 }
 #endif
 
+const char * sccp_get_str_variable_byKey(PBX_VARIABLE_TYPE *params, char *key)
+{
+	PBX_VARIABLE_TYPE *param;
+	for(param = params;param;param = param->next) {
+		if (!strcasecmp(key, param->name)) {
+			return param->value;
+			break;
+		}
+	}
+	return NULL;
+}
+   
+int sccp_get_int_variable_byKey(PBX_VARIABLE_TYPE *params, char *key)
+{
+	const char *value = sccp_get_str_variable_byKey(params, key);
+	if (value) {
+		return atoi(value);
+	}
+	return -1;
+}
+
+
 #if CS_TEST_FRAMEWORK
 void sccp_utils_register_tests(void)
 {

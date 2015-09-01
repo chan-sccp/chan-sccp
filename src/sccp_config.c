@@ -195,7 +195,7 @@ sccp_value_changed_t sccp_config_parse_jbflags_enable(void *dest, const size_t s
 sccp_value_changed_t sccp_config_parse_jbflags_force(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size, PBX_VARIABLE_TYPE * v, const sccp_config_segment_t segment);
 sccp_value_changed_t sccp_config_checkButton(void *buttonconfig_head, int index, sccp_config_buttontype_t type, const char *name, const char *options, const char *args);
-
+sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment);
 #include "sccp_config_entries.hh"
 
 /*!
@@ -1294,6 +1294,37 @@ sccp_value_changed_t sccp_config_parse_jbflags_log(void *dest, const size_t size
 }
 
 /*!
+ * \brief Config Converter/Parser for WebDir
+ */
+sccp_value_changed_t sccp_config_parse_webdir(void *dest, const size_t size, PBX_VARIABLE_TYPE *v, const sccp_config_segment_t segment)
+{
+	sccp_value_changed_t changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	char *value = strdupa(v->value);
+	char *webdir = (char *) dest;
+	char new_webdir[PATH_MAX] = "";
+
+	if (sccp_strlen_zero(value)) {  
+		snprintf(new_webdir, sizeof(new_webdir), "%s/%s", ast_config_AST_DATA_DIR, "static-http/");
+	} else {
+		snprintf(new_webdir, sizeof(new_webdir), "%s", value);
+	}
+
+	if (!sccp_strcaseequals(new_webdir, webdir)) {
+		if (access(new_webdir, F_OK ) != -1) {
+			changed = SCCP_CONFIG_CHANGE_CHANGED;
+			pbx_copy_string(webdir, new_webdir, size);
+		} else {
+			pbx_log(LOG_WARNING, "The webdir '%s' specified could not be found.\n", new_webdir);
+			pbx_copy_string(webdir, "", size);
+			changed = SCCP_CONFIG_CHANGE_INVALIDVALUE;
+		}
+	} else {
+		changed = SCCP_CONFIG_CHANGE_NOCHANGE;
+	}
+	return changed;
+}
+
+/*!
  * \brief Config Converter/Parser for Debug
  *
  * \note multi_entry
@@ -2187,7 +2218,7 @@ boolean_t sccp_config_general(sccp_readingtype_t readingtype)
 	sccp_updateExternIp();											/* deprecated, not needed any more */
 
 	if (GLOB(regcontext)) {
-                /* setup regcontext */
+		/* setup regcontext */
 		char newcontexts[SCCP_MAX_CONTEXT]="";
 		char oldcontexts[SCCP_MAX_CONTEXT]="";
 		char *stringp, *context, *oldregcontext;
@@ -2310,7 +2341,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				/* create new device with default values */
 				if (!d) {
 					d = sccp_device_create(cat);
-					// sccp_copy_string(d->id, cat, sizeof(d->id));         /* set device name */
+					// sccp_copy_string(d->id, cat, sizeof(d->id));	 /* set device name */
 					sccp_device_addToGlobals(d);
 					device_count++;
 				} else {
@@ -3017,13 +3048,13 @@ int sccp_manager_config_metadata(struct mansession *s, const struct message *m)
 							case SCCP_CONFIG_DATATYPE_ENUM:
 								astman_append(s, "Type: ENUM\r\n");
 								astman_append(s, "Size: %d\r\n", (int) config->size - 1);
-                                                                char *all_entries = strdupa(config->all_entries());
-                                                                while (*all_entries) {
-                                                                        if (*all_entries == ',') {
-                                                                                *all_entries = '|';
-                                                                        }
-                                                                        all_entries++;
-                                                                }
+								char *all_entries = strdupa(config->all_entries());
+								while (*all_entries) {
+									if (*all_entries == ',') {
+										*all_entries = '|';
+									}
+									all_entries++;
+								}
 								astman_append(s, "Possible Values: [%s]\r\n", all_entries);
 								break;
 						}

@@ -264,10 +264,11 @@ typedef enum {
 	DEBUGCAT_LOCK 			= 1 << 23,
 	DEBUGCAT_REFCOUNT		= 1 << 24,
 	DEBUGCAT_MESSAGE 		= 1 << 25,
-	DEBUGCAT_NEWCODE 		= 1 << 26,
+	DEBUGCAT_WEBSERVICE 		= 1 << 26,
 	DEBUGCAT_THPOOL			= 1 << 27,
-	DEBUGCAT_FILELINEFUNC		= 1 << 28,
-	DEBUGCAT_HIGH 			= 1 << 29,
+	DEBUGCAT_XML                    = 1 << 28,
+	DEBUGCAT_FILELINEFUNC		= 1 << 29,
+	DEBUGCAT_HIGH 			= 1 << 30,
 	/* *INDENT-ON* */
 } sccp_debug_category_t;											/*!< SCCP Debug Category Enum (saved in global_vars:debug = uint32_t) */
 
@@ -308,8 +309,9 @@ static const struct sccp_debug_category {
 	{"lock",		"lock debug level", 			DEBUGCAT_LOCK},
 	{"refcount",		"refcount lock debug level", 		DEBUGCAT_REFCOUNT},
 	{"message",		"message debug level", 			DEBUGCAT_MESSAGE},
-	{"newcode",		"newcode debug level", 			DEBUGCAT_NEWCODE},
+	{"webservice",		"webservice debug level", 		DEBUGCAT_WEBSERVICE},
 	{"threadpool",		"threadpool debug level",	 	DEBUGCAT_THPOOL},
+	{"xml",	        	"xml debug level",	         	DEBUGCAT_XML},
 	{"filelinefunc",	"add line/file/function to debug output", DEBUGCAT_FILELINEFUNC},
 	{"high",		"high debug level", 			DEBUGCAT_HIGH},
 	/* *INDENT-ON* */
@@ -451,7 +453,9 @@ struct sccp_global_vars {
 	char *realtimelinetable;											/*!< Database Table Name for SCCP Lines */
 #endif
 	char used_context[SCCP_MAX_EXTENSION];									/*!< placeholder to check if context are already used in regcontext (DUNDI) */
-
+#if defined(CS_EXPERIMENTAL_XML)
+	char webdir[PATH_MAX];                                                                                  /*!< Directory for webfiles */
+#endif
 	char *config_file_name;											/*!< SCCP Config File Name in Use */
 	struct ast_config *cfg;
 	sccp_hotline_t *hotline;										/*!< HotLine */
