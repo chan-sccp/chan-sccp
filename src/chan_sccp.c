@@ -41,6 +41,9 @@
 #include "sccp_management.h"
 #include "sccp_rtp.h"
 #include "sccp_devstate.h"
+#ifdef HAVE_PBX_HTTP_H
+#include "sccp_webservice.h"
+#endif
 #include "revision.h"
 #include <signal.h>
 
@@ -585,9 +588,17 @@ boolean_t sccp_prePBXLoad(void)
 	sccp_mwi_module_start();
 	sccp_hint_module_start();
 	sccp_manager_module_start();
+#ifdef HAVE_PBX_HTTP_H
+	sccp_webservice_module_start();
+#endif
+#ifdef CS_EXPERIMENTAL_XML
+	sccp_xml_module_start();
+#endif
+                
 #ifdef CS_SCCP_CONFERENCE
 	sccp_conference_module_start();
 #endif
+
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_device_featureChangedDisplay, TRUE);
 	sccp_event_subscribe(SCCP_EVENT_FEATURE_CHANGED, sccp_util_featureStorageBackend, TRUE);
 
@@ -749,7 +760,12 @@ int sccp_preUnload(void)
 	}
 	GLOB(socket_thread) = AST_PTHREADT_STOP;
 	sccp_globals_unlock(socket_lock);
-
+#ifdef CS_EXPERIMENTAL_XML
+        sccp_xml_module_stop();  
+#endif
+#ifdef HAVE_PBX_HTTP_H
+        sccp_webservice_module_stop(); 
+#endif
 	sccp_manager_module_stop();
 	sccp_devstate_module_stop();
 #ifdef CS_SCCP_CONFERENCE
