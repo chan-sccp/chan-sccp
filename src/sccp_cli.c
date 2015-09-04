@@ -2770,6 +2770,11 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 						goto EXIT;
 					}
 				}
+				
+				if (!line) {
+					pbx_cli(fd, "Could not find/create line: '%s'\n", argv[3]);
+					goto EXIT;
+				}
 #ifdef CS_SCCP_REALTIME
 				if (line->realtime) {
 					v = pbx_load_realtime(GLOB(realtimelinetable), "name", argv[3], NULL);
