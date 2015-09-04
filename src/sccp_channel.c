@@ -1987,7 +1987,10 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		sccp_rtp_stop(channel);
 		sccp_rtp_destroy(channel);
 	}
-	sccp_channel_release(channel->line);
+	if (channel->line) {
+		sccp_line_release(channel->line);
+	}
+
 	if (channel->owner) {
 		PBX(set_owner) (channel, NULL);
 	}

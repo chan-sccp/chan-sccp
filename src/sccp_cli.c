@@ -2828,7 +2828,7 @@ static int sccp_cli_reload(int fd, int argc, char *argv[])
 					line->pendingDelete = 1;
 				}
 
-				line = sccp_device_release(line);
+				line = sccp_line_release(line);
 				returnval = RESULT_SUCCESS;
 			} else {
 				pbx_cli(fd, "Usage: sccp reload line [extension], line name required\n");
