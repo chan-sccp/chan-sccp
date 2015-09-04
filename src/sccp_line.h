@@ -143,7 +143,7 @@ void sccp_line_post_reload(void);
 void *sccp_create_hotline(void);
 sccp_line_t *sccp_line_create(const char *name);
 void sccp_line_addToGlobals(sccp_line_t * line);
-sccp_line_t *sccp_line_removeFromGlobals(sccp_line_t * line);
+void sccp_line_removeFromGlobals(sccp_line_t * line);
 void sccp_line_addDevice(sccp_line_t * l, sccp_device_t * device, uint8_t lineInstance, sccp_subscription_id_t *subscriptionId);
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device);
 void sccp_line_addChannel(sccp_line_t * line, sccp_channel_t * channel);
