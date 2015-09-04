@@ -2261,8 +2261,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 	uint8_t device_count = 0;
 	uint8_t line_count = 0;
 
-	sccp_line_t *l = NULL;
-	sccp_device_t *d = NULL;
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Loading Devices and Lines from config\n");
 
 	sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "Checking Reading Type\n");
@@ -2305,7 +2303,7 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				// However, do not look into realtime, since
 				// we might have been asked to create a device for realtime addition,
 				// thus causing an infinite loop / recursion.
-				d = sccp_device_find_byid(cat, FALSE);
+				AUTO_RELEASE sccp_device_t *d = sccp_device_find_byid(cat, FALSE);
 
 				/* create new device with default values */
 				if (!d) {
@@ -2322,7 +2320,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found device %d: %s\n", device_count, cat);
 				/* load saved settings from ast db */
 				sccp_config_restoreDeviceFeatureStatus(d);
-				d = sccp_device_release(d);
 			}
 		} else if (!strcasecmp(utype, "line")) {
 			/* check minimum requirements for a line */
@@ -2333,19 +2330,17 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 			line_count++;
 
 			v = ast_variable_browse(GLOB(cfg), cat);
+			AUTO_RELEASE sccp_line_t *l = sccp_line_find_byname(cat, FALSE);
 
 			/* check if we have this line already */
 			//    SCCP_RWLIST_WRLOCK(&GLOB(lines));
-			if ((l = sccp_line_find_byname(cat, FALSE))) {
+			if (l) {
 				sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "found line %d: %s, do update\n", line_count, cat);
 				sccp_config_buildLine(l, v, cat, FALSE);
-			} else {
-				if ((l = sccp_line_create(cat))) {
-					sccp_config_buildLine(l, v, cat, FALSE);
-					sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
-				}
+			} else if ((l = sccp_line_create(cat))) {
+				sccp_config_buildLine(l, v, cat, FALSE);
+				sccp_line_addToGlobals(l);						/* may find another line instance create by another thread, in that case the newly created line is going to be dropped when l is released */
 			}
-			l = l ? sccp_line_release(l) : NULL;							/* release either found / or newly created line. will remain retained in glob(lines) anyway. */
 			//    SCCP_RWLIST_UNLOCK(&GLOB(lines));
 
 		} else if (!strcasecmp(utype, "softkeyset")) {
@@ -2364,14 +2359,14 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 #ifdef CS_SCCP_REALTIME
 	/* reload realtime lines */
-	sccp_configurationchange_t res;
-
-	sccp_line_t *line = NULL;
+	sccp_configurationchange_t res = SCCP_CONFIG_NOUPDATENEEDED;
 	PBX_VARIABLE_TYPE *rv = NULL;
-
+	
+	sccp_line_t *l = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
-		if ((line = sccp_line_retain(l))) {
+		AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
+		if (line) {
 			do {
 				if (line->realtime == TRUE && line != GLOB(hotline)->line) {
 					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", line->name);
@@ -2394,17 +2389,16 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					pbx_variables_destroy(rv);
 				}
 			} while (0);
-			line = sccp_line_release(line);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(lines));
 	/* finished realtime line reload */
 
-	sccp_device_t *device;
-
+	sccp_device_t *d = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(devices));
 	SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
-		if ((device = sccp_device_retain(d))) {
+		AUTO_RELEASE sccp_device_t *device = sccp_device_retain(d);
+		if (device) {
 			do {
 				if (device->realtime == TRUE) {
 					sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_3 "%s: reload realtime line\n", device->id);
@@ -2427,7 +2421,6 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 					pbx_variables_destroy(rv);
 				}
 			} while (0);
-			device = sccp_device_release(device);
 		}
 	}
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
@@ -2435,12 +2428,11 @@ void sccp_config_readDevicesLines(sccp_readingtype_t readingtype)
 
 	if (GLOB(reload_in_progress) && GLOB(pendingUpdate)) {
 		sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_2 "Global param changed needing restart ->  Restart all device\n");
-		sccp_device_t *device;
 
 		SCCP_RWLIST_WRLOCK(&GLOB(devices));
-		SCCP_RWLIST_TRAVERSE(&GLOB(devices), device, list) {
-			if (!device->pendingDelete && !device->pendingUpdate) {
-				device->pendingUpdate = 1;
+		SCCP_RWLIST_TRAVERSE(&GLOB(devices), d, list) {
+			if (!d->pendingDelete && !d->pendingUpdate) {
+				d->pendingUpdate = 1;
 			}
 		}
 		SCCP_RWLIST_UNLOCK(&GLOB(devices));
