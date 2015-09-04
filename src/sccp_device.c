@@ -1719,8 +1719,8 @@ sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d)
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n", d->id);
 
- 	if (d->active_channel && channel = sccp_channel_retain(d->active_channel)) {
-		if (channel->state == SCCP_CHANNELSTATE_DOWN) {
+ 	if (d->active_channel && (channel = sccp_channel_retain(d->active_channel))) {
+		if (channel && channel->state == SCCP_CHANNELSTATE_DOWN) {
 			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: 'active channel': %s on device is DOWN apparently. Returning NULL\n", d->id, channel->designator);
 			channel = sccp_channel_release(channel);				/* explicit release, when not returning channel because it's DOWN */
 		}
