@@ -643,9 +643,10 @@ void sccp_device_removeFromGlobals(sccp_device_t * device)
 
 	SCCP_RWLIST_WRLOCK(&GLOB(devices));
 	device = SCCP_RWLIST_REMOVE(&GLOB(devices), device, list);
-	sccp_device_release(device);
 	SCCP_RWLIST_UNLOCK(&GLOB(devices));
+
 	sccp_log((DEBUGCAT_CORE + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "Removed device '%s' from Glob(devices)\n", DEV_ID_LOG(device));
+	device = device ? sccp_device_release(device) : NULL;		/* explicit release of device after removing from list */
 }
 
 /*!
@@ -1708,21 +1709,21 @@ void sccp_dev_set_activeline(sccp_device_t * device, const sccp_line_t * l)
  */
 sccp_channel_t *sccp_device_getActiveChannel(const sccp_device_t * d)
 {
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 
-	if (!d || !d->active_channel) {
+	if (!d) {
 		return NULL;
 	}
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Getting the active channel on device.\n", d->id);
 
-	if (!(channel = sccp_channel_retain(d->active_channel))) {
-		return NULL;
-	}
-
-	if (channel->state == SCCP_CHANNELSTATE_DOWN) {
-		channel = sccp_channel_release(channel);
-		return NULL;
+ 	if (d->active_channel && (channel = sccp_channel_retain(d->active_channel))) {
+		if (channel && channel->state == SCCP_CHANNELSTATE_DOWN) {
+			sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: 'active channel': %s on device is DOWN apparently. Returning NULL\n", d->id, channel->designator);
+			channel = sccp_channel_release(channel);				/* explicit release, when not returning channel because it's DOWN */
+		}
+	} else {
+		sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: No active channel on device.\n", d->id);
 	}
 
 	return channel;
@@ -1818,7 +1819,7 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 #ifndef ASTDB_RESULT_LEN
 #define ASTDB_RESULT_LEN 80
 #endif
-	sccp_linedevices_t *linedevice = NULL;
+	AUTO_RELEASE sccp_linedevices_t *linedevice = NULL;
 
 	if (!l || !device || !device->session) {
 		return;
@@ -1838,7 +1839,6 @@ void sccp_dev_forward_status(sccp_line_t * l, uint8_t lineInstance, sccp_device_
 	if ((linedevice = sccp_linedevice_find(device, l))) {
 		device->protocol->sendCallforwardMessage(device, linedevice);
 		sccp_log((DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Sent Forward Status (%s). Line: %s (%d)\n", device->id, (linedevice->cfwdAll.enabled ? "All" : (linedevice->cfwdBusy.enabled ? "Busy" : "None")), l->name, linedevice->lineInstance);
-		sccp_linedevice_release(linedevice);
 	} else {
 		pbx_log(LOG_NOTICE, "%s: Device does not have line configured (no linedevice found)\n", DEV_ID_LOG(device));
 	}
@@ -2135,9 +2135,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 			sccp_device_sendReset(d, SKINNY_DEVICE_RESTART);
 			usleep(20);
 			if (d->session) {
-				sccp_device_t *previous_device = sccp_session_removeDevice(d->session);
-
-				previous_device = previous_device ? sccp_device_release(previous_device) : NULL;
+				AUTO_RELEASE sccp_device_t *previous_device = sccp_session_removeDevice(d->session);
 			}
 			d->session = NULL;
 		}
@@ -2148,7 +2146,7 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 
 			for (i = 0; i < StationMaxButtonTemplateSize; i++) {
 				if ((btn[i].type == SKINNY_BUTTONTYPE_LINE) && btn[i].ptr) {
-					btn[i].ptr = sccp_line_release(btn[i].ptr);
+					btn[i].ptr = sccp_line_release(btn[i].ptr);			/* explicit release to cleanup device */
 				}
 			}
 			sccp_free(d->buttonTemplate);

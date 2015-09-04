@@ -176,7 +176,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  */
 inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_msg_t * msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
-	sccp_device_t *d = NULL;
+	AUTO_RELEASE sccp_device_t *d = NULL;
 
 	if (!s || (s->fds[0].fd < 0)) {
 		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
@@ -200,7 +200,6 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 	if (deviceIsNecessary && d && d->session && s != d->session) {
 		pbx_log(LOG_WARNING, "(%s) Provided Session and Device Session are not the same. Rejecting message handling\n", msgtypestr);
 		sccp_session_crossdevice_cleanup(s, d->session, FALSE);
-		d = d ? sccp_device_release(d) : NULL;
 		goto EXIT;
 	}
 
@@ -285,7 +284,7 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 {
 	const struct messageMap_cb *messageMap_cb = NULL;
 	uint32_t mid = 0;
-	sccp_device_t *device = NULL;
+	AUTO_RELEASE sccp_device_t *device = NULL;
 
 	if (!s) {
 		pbx_log(LOG_ERROR, "SCCP: (sccp_handle_message) Client does not have a session which is required. Exiting sccp_handle_message !\n");
@@ -335,7 +334,6 @@ int sccp_handle_message(sccp_msg_t * msg, sccp_session_t * s)
 		snprintf(servername, sizeof(servername), "%s %s", GLOB(servername), SKINNY_DISP_CONNECTED);
 		sccp_dev_displaynotify(device, servername, 5);
 	}
-	device = device ? sccp_device_release(device) : NULL;
 	return 0;
 }
 
@@ -716,7 +714,7 @@ int sccp_preUnload(void)
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "SCCP: Removing Lines\n");
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Removing Hotline\n");
 	sccp_line_removeFromGlobals(GLOB(hotline)->line);
-	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);
+	GLOB(hotline)->line = sccp_line_release(GLOB(hotline)->line);						/* explicit release of hotline->line */
 	sccp_free(GLOB(hotline));
 
 	/* removing lines */
