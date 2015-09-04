@@ -272,7 +272,7 @@ void sccp_handle_token_request(sccp_session_t * s, sccp_device_t * no_d, sccp_ms
 		return;
 	}
 
-	s->device = sccp_session_addDevice(s, device);								// retained in session
+	sccp_session_addDevice(s, device);								// retaining device in session
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
@@ -437,7 +437,7 @@ void sccp_handle_SPCPTokenReq(sccp_session_t * s, sccp_device_t * no_d, sccp_msg
 		return;
 	}
 	s->protocolType = SPCP_PROTOCOL;
-	s->device = sccp_session_addDevice(s, device);								// retained in session
+	sccp_session_addDevice(s, device);								// retaining device in session
 	device->status.token = SCCP_TOKEN_STATE_REJ;
 	device->skinny_type = deviceType;
 
@@ -542,7 +542,7 @@ void sccp_handle_register(sccp_session_t * s, sccp_device_t * maybe_d, sccp_msg_
 	if (device) {
 		if (!s->device || s->device != device) {
 			sccp_log((DEBUGCAT_DEVICE)) (VERBOSE_PREFIX_3 "%s: Allocating device to session (%d) %s\n", DEV_ID_LOG(device), s->fds[0].fd, sccp_socket_stringify_addr(&s->sin));
-			s->device = sccp_session_addDevice(s, device);						// replace retained in session (already connected via tokenReq before)
+			sccp_session_addDevice(s, device);							// retaining device in session
 		}
 
 		if (!device || !device->session || !s->device) {

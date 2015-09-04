@@ -667,19 +667,20 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
  */
 sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
 {
+	sccp_device_t *new_device = NULL;
 	if (session && device && session->device != device) {
 		sccp_session_lock(session);
+		new_device = sccp_device_retain(device);
 		if (session->device) {
-			sccp_device_t *previous_device = sccp_session_removeDevice(session);
-
-			previous_device = previous_device ? sccp_device_release(previous_device) : NULL;
+			AUTO_RELEASE sccp_device_t *previous_device = sccp_session_removeDevice(session);	/* releasing reference the returned device */
 		}
-		if ((session->device = sccp_device_retain(device))) {
-			session->device->session = session;
+		if (new_device) {
+			session->device = new_device;				/* keep newly retained device */
+			session->device->session = session;			/* update device session pointer */
 		}
 		sccp_session_unlock(session);
 	}
-	return (session && session->device) ? session->device : NULL;
+	return new_device;
 }
 
 /*!
