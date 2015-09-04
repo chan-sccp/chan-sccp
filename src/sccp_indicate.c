@@ -654,7 +654,7 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		}
 	}
 
-	tmpChannel.line = sccp_line_release(tmpChannel.line);
+	tmpChannel.line = sccp_line_release(tmpChannel.line);				/* explicit release of line, retained when creating a copy of the channel above */
 }
 
 // kate: indent-width 8; replace-tabs off; indent-mode cstyle; auto-insert-doxygen on; line-numbers on; tab-indents on; keep-extra-spaces off; auto-brackets off;
