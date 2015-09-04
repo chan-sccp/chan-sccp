@@ -221,7 +221,7 @@ void sccp_hint_module_stop(void)
 
 		SCCP_LIST_LOCK(&lineStates);
 		while ((lineState = SCCP_LIST_REMOVE_HEAD(&lineStates, list))) {
-			lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;
+			lineState->line = lineState->line ? sccp_line_release(lineState->line) : NULL;		/* explicit release*/
 			sccp_free(lineState);
 		}
 		SCCP_LIST_UNLOCK(&lineStates);
@@ -244,7 +244,7 @@ void sccp_hint_module_stop(void)
 				AUTO_RELEASE sccp_device_t *device = sccp_device_retain((sccp_device_t *) subscriber->device);
 
 				if (device) {
-					subscriber->device = sccp_device_release(subscriber->device);
+					subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
 					sccp_free(subscriber);
 				}
 			}
@@ -455,7 +455,7 @@ static void sccp_hint_deviceUnRegistered(const char *deviceName)
 			if (subscriber->device && !strcasecmp(subscriber->device->id, deviceName)) {
 				sccp_log((DEBUGCAT_HINT)) (VERBOSE_PREFIX_2 "%s: Freeing subscriber from hint exten: %s in %s\n", deviceName, hint->exten, hint->context);
 				SCCP_LIST_REMOVE_CURRENT(list);
-				subscriber->device = sccp_device_release(subscriber->device);
+				subscriber->device = sccp_device_release(subscriber->device);		/* explicit release*/
 				sccp_free(subscriber);
 			}
 		}
