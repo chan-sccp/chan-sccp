@@ -82,7 +82,7 @@ static void *sccp_pbx_call_autoanswer_thread(void *data)
 		}
 	}
 FINAL:
-	conveyor->linedevice = conveyor->linedevice ? sccp_linedevice_release(conveyor->linedevice) : NULL;	// retained in calling thread, final release here
+	conveyor->linedevice = conveyor->linedevice ? sccp_linedevice_release(conveyor->linedevice) : NULL;	// retained in calling thread, explicit release required here
 	sccp_free(conveyor);
 	return NULL;
 }
@@ -343,10 +343,10 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 
 #ifdef CS_SCCP_CONFERENCE
 	if (c && c->conference) {
-		c->conference = sccp_refcount_release(c->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		c->conference = sccp_refcount_release(c->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release required here */
 	}
 	if (d && d->conference) {
-		d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release required here */
 	}
 #endif														// CS_SCCP_CONFERENCE
 
@@ -371,7 +371,7 @@ int sccp_pbx_hangup(sccp_channel_t * channel)
 			AUTO_RELEASE sccp_device_t *tmpDevice = sccp_device_retain(linedevice->device);
 
 			if (tmpDevice) {
-				sccp_channel_transfer_release(tmpDevice, c);
+				sccp_channel_transfer_release(tmpDevice, c);					/* explicit release required here */
 			}
 		}
 		SCCP_LIST_UNLOCK(&l->devices);
@@ -790,17 +790,16 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
  *
  * \called_from_asterisk
  */
-int sccp_pbx_sched_dial(const void *data)
+int sccp_pbx_sched_dial(const void * data)
 {
-	AUTO_RELEASE sccp_channel_t *c = sccp_channel_retain((sccp_channel_t *) data);				// channel already retained in data
-
-	if (c) {
+	if (data) {
+		sccp_channel_t * c = (sccp_channel_t *) data;						// channel already retained in data
 		c->scheduler.digittimeout = -1;
 		if (c->owner && !PBX(getChannelPbx) (c)) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Timeout for call '%d'. Going to dial '%s'\n", c->callid, c->dialedNumber);
 			sccp_pbx_softswitch(c);
 		}
-		sccp_channel_release(c);									// release scheduled dial channel retension (scheduled digit timed out)
+		sccp_channel_release(c);								// explicitly release scheduled dial channel (take by scheduled digit timed out)
 	}
 	return 0;
 }
