@@ -183,7 +183,7 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	if (!private_data) {
 		/* error allocating memory */
 		pbx_log(LOG_ERROR, "%s: No memory to allocate channel private data on line %s\n", l->id, l->name);
-		channel = sccp_channel_release(channel);
+		channel = sccp_channel_release(channel);				/* explicit release when private_data could not be created */
 		return NULL;
 	}
 	memset(private_data, 0, sizeof(struct sccp_private_channel_data));
@@ -1210,7 +1210,7 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
 	SCCP_LIST_TRAVERSE_SAFE_BEGIN(&orig_channel->line->channels, c, list) {
 		if (c->parentChannel == orig_channel) {
 			sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: (sccp_channel_end_forwarding_channel) Send Hangup to CallForwarding Channel\n", c->designator);
-			c->parentChannel = sccp_channel_release(c->parentChannel);				/* release refcounted parentChannel */
+			c->parentChannel = sccp_channel_release(c->parentChannel);				/* explicit release refcounted parentChannel */
 			/* make sure a ZOMBIE channel is hungup using requestHangup if it is still available after the masquerade */
 			c->hangupRequest = sccp_wrapper_asterisk_requestHangup;
 			/* need to use scheduled hangup, so that we clear any outstanding locks (during masquerade) before calling hangup */
@@ -1226,18 +1226,20 @@ void sccp_channel_end_forwarding_channel(sccp_channel_t * orig_channel)
  */
 static int _sccp_channel_sched_endcall(const void *data)
 {
-	sccp_channel_t *channel = (sccp_channel_t *) data;
-
-	if (!channel) {
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
+	if (!data) {
 		return -1;
 	}
-	channel->scheduler.hangup = -1;
-	sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
-	if (!channel->scheduler.deny) {										/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
-		sccp_channel_stop_and_deny_scheduled_tasks(channel);
-		sccp_channel_endcall(channel);
+
+	if ((channel = sccp_channel_retain(data))) {
+		channel->scheduler.hangup = -1;
+		sccp_log(DEBUGCAT_CHANNEL) ("%s: Scheduled Hangup\n", channel->designator);
+		if (!channel->scheduler.deny) {										/* we cancelled all scheduled tasks, so we should not be hanging up this channel anymore */
+			sccp_channel_stop_and_deny_scheduled_tasks(channel);
+			sccp_channel_endcall(channel);
+		}
+		sccp_channel_release(channel);										/* explicit release of the ref taken when creating the scheduled hangup */
 	}
-	sccp_channel_release(channel);										/* releasing the ref taken when creating the scheduled hangup */
 	return 0;
 }
 
@@ -1328,7 +1330,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_2 "%s: Ending call %s (state:%s)\n", DEV_ID_LOG(d), channel->designator, sccp_channelstate2str(channel->state));
 		if (channel->privateData->device) {
 			sccp_channel_transfer_cancel(channel->privateData->device, channel);
-			sccp_channel_transfer_release(channel->privateData->device, channel);
+			sccp_channel_transfer_release(channel->privateData->device, channel);				/* explicit release */
 		}
 	}
 	if (channel->owner) {
@@ -1793,8 +1795,7 @@ int sccp_channel_resume(sccp_device_t * device, sccp_channel_t * channel, boolea
 		return FALSE;
 	}
 
-	/* release transfer if we are in the middle of a transfer */
-	sccp_channel_transfer_release(d, channel);
+	sccp_channel_transfer_release(d, channel);			/* explicitly release transfer if we are in the middle of a transfer */
 
 	sccp_log((DEBUGCAT_CHANNEL + DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Resume the channel %s-%08X\n", d->id, l->name, channel->callid);
 	sccp_channel_setDevice(channel, d);
@@ -1933,13 +1934,13 @@ void sccp_channel_clean(sccp_channel_t * channel)
 		if (d->active_channel == channel) {
 			sccp_channel_setDevice(channel, NULL);
 		}
-		sccp_channel_transfer_release(d, channel);
+		sccp_channel_transfer_release(d, channel);										/* explicitly release transfer when cleaning up channel */
 #ifdef CS_SCCP_CONFERENCE
 		if (d->conference && d->conference == channel->conference) {
-			d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			d->conference = sccp_refcount_release(d->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);			/* explicit release of conference */
 		}
 		if (channel->conference) {
-			channel->conference = sccp_refcount_release(channel->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+			channel->conference = sccp_refcount_release(channel->conference, __FILE__, __LINE__, __PRETTY_FUNCTION__);	/* explicit release of conference */
 		}
 #endif
 		if (channel->privacy) {
