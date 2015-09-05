@@ -121,7 +121,7 @@ void *sccp_socket_thread(void *ignore);
 void sccp_session_sendmsg(const sccp_device_t * device, sccp_mid_t t);
 int sccp_session_send(const sccp_device_t * device, sccp_msg_t * msg);
 int sccp_session_send2(sccp_session_t * s, sccp_msg_t * msg);
-sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device);
+void sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device);
 sccp_device_t *sccp_session_removeDevice(sccp_session_t * session);
 sccp_session_t *sccp_session_reject(sccp_session_t * session, char *message);
 void sccp_session_crossdevice_cleanup(sccp_session_t * current_session, sccp_session_t * previous_session, boolean_t token);
