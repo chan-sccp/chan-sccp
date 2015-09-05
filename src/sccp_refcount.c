@@ -29,7 +29,7 @@
  * - Rule 3: Functions that <b><em>receive an object pointer reference</em></b> via a function call expect the object <b><em>is being retained</em></b> in the calling function, during the time the called function lasts. 
  *   The object can <b><em>only</em></b> be released by the calling function not the called function,
  *
- * - Rule 4: When releasing an object the pointer we had toward the object should be nullified immediatly, either of these solutions is possible:
+ * - Rule 4: When releasing an object the pointer we had toward the object, should be nullified immediatly, either of these solutions is ok:
  *   \code
  *   d = sccp_device_release(d);                // sccp_release always returns NULL
  *   \endcode
@@ -517,12 +517,12 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
 		if ((tmpNewPtr = sccp_refcount_retain(newptr, filename, lineno, func))) {
 			*replaceptr = tmpNewPtr;
 			if (oldPtr) {										// release previous one after
-				sccp_refcount_release(oldPtr, filename, lineno, func);
+				sccp_refcount_release(oldPtr, filename, lineno, func);				/* explicit release */
 			}
 		}
 	} else {
 		if (oldPtr) {											// release previous one after
-			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);
+			*replaceptr = sccp_refcount_release(oldPtr, filename, lineno, func);			/* explicit release */
 		}
 	}
 }
@@ -535,7 +535,7 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
 void sccp_refcount_autorelease(void *ptr)
 {
 	if (*(void **) ptr) {
-		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);
+		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);			/* explicit release */
 	}
 }
 

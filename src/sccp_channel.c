@@ -1988,7 +1988,7 @@ void __sccp_channel_destroy(sccp_channel_t * channel)
 		sccp_rtp_destroy(channel);
 	}
 	if (channel->line) {
-		sccp_line_release(channel->line);
+		sccp_line_release(channel->line);					/* explicit release to cleanup line reference */
 	}
 
 	if (channel->owner) {
@@ -2054,11 +2054,12 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 		return;
 	}
 	/* exceptional case, we need to release half transfer before retaking, should never occur */
+	/* \todo check out if this should be reactiveated or removed */
 	// if (d->transferChannels.transferee && !d->transferChannels.transferer) {
-	//d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+	//d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);			/* explicit release */
 	// }
 	if (!d->transferChannels.transferee && d->transferChannels.transferer) {
-		d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);
+		d->transferChannels.transferer = sccp_channel_release(d->transferChannels.transferer);			/* explicit release */
 	}
 
 	if ((d->transferChannels.transferee = sccp_channel_retain(channel))) {								/** channel to be transfered */
@@ -2075,7 +2076,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 
 			if (!sccp_channel_hold(channel)) {							/* hold failed, restore */
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
-				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);	/* explicit release */
 				return;
 			}
 		}
@@ -2112,7 +2113,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
-				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);	/* explicit release */
 			} else {
 				// giving up
 				if (!sccp_channel_new) {
@@ -2123,7 +2124,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 				sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 				channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 				sccp_indicate(d, channel, SCCP_CHANNELSTATE_CONGESTION);
-				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+				d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);	/* explicit release */
 			}
 			pbx_channel_owner = pbx_channel_unref(pbx_channel_owner);
 		} else {
@@ -2132,7 +2133,7 @@ void sccp_channel_transfer(sccp_channel_t * channel, sccp_device_t * device)
 			sccp_dev_displayprompt(d, instance, channel->callid, SKINNY_DISP_CAN_NOT_COMPLETE_TRANSFER, SCCP_DISPLAYSTATUS_TIMEOUT);
 			channel->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
 			sccp_indicate(d, channel, prev_channel_state);
-			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);
+			d->transferChannels.transferee = sccp_channel_release(d->transferChannels.transferee);		/* explicit release */
 		}
 	}
 }
@@ -2147,8 +2148,8 @@ void sccp_channel_transfer_release(sccp_device_t * d, sccp_channel_t * c)
 	}
 
 	if ((d->transferChannels.transferee && c == d->transferChannels.transferee) || (d->transferChannels.transferer && c == d->transferChannels.transferer)) {
-		d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;
-		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;
+		d->transferChannels.transferee = d->transferChannels.transferee ? sccp_channel_release(d->transferChannels.transferee) : NULL;	/* explicit release */
+		d->transferChannels.transferer = d->transferChannels.transferer ? sccp_channel_release(d->transferChannels.transferer) : NULL;	/* explicit release */
 		sccp_log_and((DEBUGCAT_CHANNEL + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_3 "%s: Transfer on the channel %s-%08X released\n", d->id, c->line->name, c->callid);
 	}
 	c->channelStateReason = SCCP_CHANNELSTATEREASON_NORMAL;
@@ -2184,7 +2185,7 @@ void sccp_channel_transfer_cancel(sccp_device_t * d, sccp_channel_t * c)
 		enum ast_control_transfer control_transfer_message = AST_TRANSFER_FAILED;
 		PBX(queue_control_data) (c->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
-		sccp_channel_transfer_release(d, d->transferChannels.transferee);
+		sccp_channel_transfer_release(d, d->transferChannels.transferee);			/* explicit release */
 	}
 }
 
@@ -2362,7 +2363,7 @@ EXIT:
 #if ASTERISK_VERSION_GROUP >= 108
 	PBX(queue_control_data) (sccp_source_local_channel->owner, AST_CONTROL_TRANSFER, &control_transfer_message, sizeof(control_transfer_message));
 #endif
-	sccp_channel_transfer_release(d, d->transferChannels.transferee);
+	sccp_channel_transfer_release(d, d->transferChannels.transferee);			/* explicit release */
 }
 
 /*!
@@ -2494,7 +2495,7 @@ int sccp_channel_forward(sccp_channel_t * sccp_channel_parent, sccp_linedevices_
 		return 0;
 	} else {
 		pbx_log(LOG_NOTICE, "%s: (sccp_channel_forward) channel %s-%08x cannot dial this number %s\n", "SCCP", sccp_forwarding_channel->line->name, sccp_forwarding_channel->callid, dialedNumber);
-		sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);
+		sccp_forwarding_channel->parentChannel = sccp_channel_release(sccp_forwarding_channel->parentChannel);	/* explicit release */
 		sccp_channel_endcall(sccp_forwarding_channel);
 		return -1;
 	}
