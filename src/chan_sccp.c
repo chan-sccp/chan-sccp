@@ -172,11 +172,11 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  * \param msg SCCP Msg
  * \param msgtypestr Message
  * \param deviceIsNecessary Is a valid device necessary for this message to be processed, if it is, the device is retain during execution of this particular message parser
- * \return -1 or Device;
+ * \return -1 or retained Device;
  */
 inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_msg_t * msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
-	AUTO_RELEASE sccp_device_t *d = NULL;
+	sccp_device_t *d = NULL;
 
 	if (!s || (s->fds[0].fd < 0)) {
 		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
@@ -192,7 +192,7 @@ inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sc
 		pbx_log(LOG_WARNING, "No valid Session Device available to handle %s for, but device is needed\n", msgtypestr);
 		goto EXIT;
 	}
-	if (deviceIsNecessary && !(d = sccp_device_retain(s->device))) {
+	if (deviceIsNecessary && !(d = sccp_device_retain(s->device))) {			/* explicit retain to return d to sccp_handle_message */
 		pbx_log(LOG_WARNING, "Session Device vould not be retained, to handle %s for, but device is needed\n", msgtypestr);
 		goto EXIT;
 	}
