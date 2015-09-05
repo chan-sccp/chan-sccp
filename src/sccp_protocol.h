@@ -2153,7 +2153,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per MilliSecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< only used with G.723 payload */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2190,7 +2190,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2214,7 +2214,7 @@ typedef union {
 				uint32_t lel_millisecondPacketSize;						/*!< Packet Size per Millisecond */
 				uint32_t lel_payloadType;							/*!< Media_PayloadType */
 				uint32_t lel_precedenceValue;							/*!< Precedence Value */
-				uint32_t lel_ssValue;								/*!< Simple String Value */
+				uint32_t lel_ssValue;								/*!< Silence Suppression Value */
 				uint32_t lel_maxFramesPerPacket;						/*!< Maximum Frames per Packet */
 				uint32_t lel_g723BitRate;							/*!< G.723 BitRate (only used with G.723 payload) */
 				uint32_t lel_callReference;							/*!< Conference ID 1 */
@@ -2594,7 +2594,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2626,7 +2626,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
@@ -2649,7 +2649,7 @@ typedef union {
 				uint32_t lel_passThruPartyId;							/*!< Pass Through Party ID */
 				uint32_t lel_millisecondPacketSize;						/*!< Millisecond Packet Size */
 				uint32_t lel_payloadType;							/*!< Media_Payload Type */
-				uint32_t lel_vadValue;								/*!< VAD Value */
+				uint32_t lel_vadValue;								/*!< Voice Activity Detection Value */
 				uint32_t lel_g723BitRate;							/*!< G.723 Payload (Only applies to G.723) */
 				/* protocol version 5 fields */
 				uint32_t lel_callReference;							/*!< Conference ID */
