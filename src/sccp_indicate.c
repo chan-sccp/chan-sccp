@@ -76,7 +76,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 	}
 
 	/* all the check are ok. We can safely run all the dev functions with no more checks */
-	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP state %d (%s),channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_channelstate2str(state), c->state, sccp_channelstate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_channelstate2str(c->previousChannelState));
+	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_DEVICE + DEBUGCAT_LINE)) (VERBOSE_PREFIX_3 "%s: Indicate SCCP new state %d (%s), current channel state %d (%s) on call %s-%08x (previous channelstate %d (%s))\n", d->id, state, sccp_channelstate2str(state), c->state, sccp_channelstate2str(c->state), l->name, c->callid, c->previousChannelState, sccp_channelstate2str(c->previousChannelState));
 	sccp_channel_setChannelstate(c, state);
 
 	switch (state) {
@@ -454,7 +454,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 		sccp_event_fire(&event);
 	}
 
-	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x\n", d->id, sccp_channelstate2str(state), l->name, c->callid);
+	sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: Finish to indicate state SCCP (%s) on call %s-%08x. New state on channel: %s (%d)\n", d->id, sccp_channelstate2str(state), l->name, c->callid, sccp_channelstate2str(c->state), c->state);
 }
 
 /*!
