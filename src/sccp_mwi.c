@@ -505,7 +505,7 @@ void sccp_mwi_addMailboxSubscription(char *mailbox, char *context, sccp_line_t *
  */
 void sccp_mwi_setMWILineStatus(sccp_linedevices_t * lineDevice)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	sccp_line_t *l = lineDevice->line;
 	sccp_device_t *d = lineDevice->device;
 	int instance = 0;

@@ -198,8 +198,8 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 				sccp_log((DEBUGCAT_INDICATE + DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: DND is activated on device\n", d->id);
 				sccp_dev_set_ringer(d, SKINNY_RINGTYPE_SILENT, instance, c->callid);
 			} else {
-				sccp_linedevices_t *ownlinedevice;
-				sccp_device_t *remoteDevice;
+				sccp_linedevices_t *ownlinedevice = NULL;
+				sccp_device_t *remoteDevice = NULL;
 
 				SCCP_LIST_TRAVERSE(&l->devices, ownlinedevice, list) {
 					remoteDevice = ownlinedevice->device;
@@ -446,9 +446,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
 		/* notify features (sccp_feat_channelstateChanged = empty function, skipping) */
 		//sccp_feat_channelstateChanged(d, c);
 
-		sccp_event_t event;
-
-		memset(&event, 0, sizeof(sccp_event_t));
+		sccp_event_t event = {{{0}}};
 		event.type = SCCP_EVENT_LINESTATUS_CHANGED;
 		event.event.lineStatusChanged.line = sccp_line_retain(l);
 		event.event.lineStatusChanged.optional_device = d ? sccp_device_retain(d) : NULL;
@@ -471,8 +469,7 @@ void __sccp_indicate(sccp_device_t * device, sccp_channel_t * c, sccp_channelsta
  */
 static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t * c, sccp_line_t * line, sccp_channelstate_t state)
 {
-	sccp_channel_t tmpChannel;										/*!< use this channel to set original called/calling info */
-	int instance;
+	int instance = 0;
 	sccp_phonebook_t phonebookRecord = SCCP_PHONEBOOK_NONE;
 
 	if (!c || !line) {
@@ -495,9 +492,9 @@ static void __sccp_indicate_remote_device(sccp_device_t * device, sccp_channel_t
 		sccp_log((DEBUGCAT_INDICATE)) (VERBOSE_PREFIX_3 "SCCP: (__sccp_indicate_remote_device) I'm a hotline, do not notify me!\n");
 		return;
 	}
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 
-	memset(&tmpChannel, 0, sizeof(sccp_channel_t));
+	sccp_channel_t tmpChannel = {0};										/*!< use this channel to set original called/calling info */
 	tmpChannel.callid = c->callid;
 	if (c->privacy || !c->callInfo.presentation) {
 		sccp_copy_string(tmpChannel.callInfo.callingPartyName, SKINNY_DISP_PRIVATE, sizeof(tmpChannel.callInfo.callingPartyName));

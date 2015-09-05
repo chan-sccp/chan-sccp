@@ -143,7 +143,7 @@ static void sccp_devstate_deviceUnRegistered(const sccp_device_t * device)
 
 void sccp_devstate_deviceRegisterListener(const sccp_event_t * event)
 {
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 
 	if (!event) {
 		return;

@@ -32,7 +32,7 @@ SCCP_FILE_VERSION(__FILE__, "$Revision$");
  */
 static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	if (!channel) {
 		return;
@@ -97,7 +97,7 @@ static void sccp_device_sendCallinfoV3(const sccp_device_t * device, const sccp_
  */
 static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	if (!channel) {
 		return;
@@ -180,7 +180,7 @@ static void sccp_device_sendCallinfoV7(const sccp_device_t * device, const sccp_
  */
 static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sccp_channel_t * channel, uint8_t instance)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	if (!channel) {
 		return;
@@ -269,7 +269,7 @@ static void sccp_protocol_sendCallinfoV16(const sccp_device_t * device, const sc
  */
 static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const sccp_channel_t * channel)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	uint8_t instance;
 
 	REQ(msg, DialedNumberMessage);
@@ -290,7 +290,7 @@ static void sccp_protocol_sendDialedNumberV3(const sccp_device_t * device, const
  */
 static void sccp_protocol_sendDialedNumberV18(const sccp_device_t * device, const sccp_channel_t * channel)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	uint8_t instance;
 
 	REQ(msg, DialedNumberMessage);
@@ -315,7 +315,7 @@ static void sccp_protocol_sendDialedNumberV18(const sccp_device_t * device, cons
  */
 static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayPromptStatusMessage);
 	msg->data.DisplayPromptStatusMessage.lel_messageTimeout = htolel(timeout);
@@ -332,7 +332,7 @@ static void sccp_protocol_sendStaticDisplayprompt(const sccp_device_t * device, 
  */
 static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device, uint8_t lineInstance, uint32_t callid, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPromptStatusMessage) - 3;
@@ -358,7 +358,7 @@ static void sccp_protocol_sendDynamicDisplayprompt(const sccp_device_t * device,
  */
 static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t * device, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayNotifyMessage);
 	msg->data.DisplayNotifyMessage.lel_displayTimeout = htolel(timeout);
@@ -373,7 +373,7 @@ static void sccp_protocol_sendStaticDisplayNotify(const sccp_device_t * device, 
  */
 static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicNotifyMessage) - sizeof(msg->data.DisplayDynamicNotifyMessage.dummy);
@@ -398,7 +398,7 @@ static void sccp_protocol_sendDynamicDisplayNotify(const sccp_device_t * device,
  */
 static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, DisplayPriNotifyMessage);
 	msg->data.DisplayPriNotifyMessage.lel_displayTimeout = htolel(timeout);
@@ -414,7 +414,7 @@ static void sccp_protocol_sendStaticDisplayPriNotify(const sccp_device_t * devic
  */
 static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t * device, uint8_t priority, uint8_t timeout, const char *message)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	int msg_len = strlen(message);
 	int hdr_len = sizeof(msg->data.DisplayDynamicPriNotifyMessage) - 3;
@@ -439,7 +439,7 @@ static void sccp_protocol_sendDynamicDisplayPriNotify(const sccp_device_t * devi
  */
 static void sccp_protocol_sendCallForwardStatus(const sccp_device_t * device, const sccp_linedevices_t * linedevice)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
 	msg->data.ForwardStatMessage.v3.lel_lineNumber = htolel(linedevice->lineInstance);
@@ -462,7 +462,7 @@ static void sccp_protocol_sendCallForwardStatus(const sccp_device_t * device, co
  */
 static void sccp_protocol_sendCallForwardStatusV18(const sccp_device_t * device, const sccp_linedevices_t * linedevice)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, ForwardStatMessage);
 	msg->data.ForwardStatMessage.v18.lel_lineNumber = htolel(linedevice->lineInstance);
@@ -493,7 +493,7 @@ static void sccp_protocol_sendCallForwardStatusV18(const sccp_device_t * device,
  */
 static void sccp_protocol_sendRegisterAckV3(const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
 
@@ -519,7 +519,7 @@ static void sccp_protocol_sendRegisterAckV3(const sccp_device_t * device, uint8_
  */
 static void sccp_protocol_sendRegisterAckV4(const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
 
@@ -545,7 +545,7 @@ static void sccp_protocol_sendRegisterAckV4(const sccp_device_t * device, uint8_
  */
 static void sccp_protocol_sendRegisterAckV11(const sccp_device_t * device, uint8_t keepAliveInterval, uint8_t secondaryKeepAlive, char *dateformat)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, RegisterAckMessage);
 
@@ -949,7 +949,7 @@ static void sccp_protocol_sendStartMultiMediaTransmissionV17(const sccp_device_t
 /* fastPictureUpdate */
 static void sccp_protocol_sendFastPictureUpdate(const sccp_device_t * device, const sccp_channel_t * channel)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	REQ(msg, MiscellaneousCommandMessage);
 
