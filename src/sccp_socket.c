@@ -663,7 +663,7 @@ static boolean_t sccp_session_removeFromGlobals(sccp_session_t * s)
  * \param session SCCP Session
  * \param device SCCP Device
  */
-sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
+void sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
 {
 	sccp_device_t *new_device = NULL;
 	if (session && device && session->device != device) {
@@ -678,7 +678,6 @@ sccp_device_t *sccp_session_addDevice(sccp_session_t * session, sccp_device_t * 
 		}
 		sccp_session_unlock(session);
 	}
-	return new_device;
 }
 
 /*!
