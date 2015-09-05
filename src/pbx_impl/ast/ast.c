@@ -539,7 +539,7 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value)
 {
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
 	boolean_t res = TRUE;
 
 	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
