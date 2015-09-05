@@ -1752,7 +1752,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk16_rtpBridge(PBX_CHANNEL_TYPE
 	int new_flags = flags;
 
 	/* \note temporarily marked out until we figure out how to get directrtp back on track - DdG */
-	sccp_channel_t *sc0, *sc1;
+	sccp_channel_t *sc0 = NULL, *sc1 = NULL;
 
 	if ((sc0 = get_sccp_channel_from_pbx_channel(c0)) && (sc1 = get_sccp_channel_from_pbx_channel(c1))) {
 		// Switch off DTMF between SCCP phones
@@ -2003,7 +2003,7 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 {
 	format_t format = AST_FORMAT_ULAW;
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 
 	if (!(channel = CS_AST_CHANNEL_PVT(ast))) {
 		sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (getCodec) NO PVT\n");
@@ -2919,7 +2919,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 {
 
 	char *lineName;
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
@@ -2941,7 +2941,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	}
 
 	/** \todo move this to line implementation */
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 	sccp_push_result_t pushResult;
 
 	SCCP_LIST_LOCK(&line->devices);

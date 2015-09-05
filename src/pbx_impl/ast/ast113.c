@@ -851,7 +851,7 @@ static int sccp_wrapper_asterisk113_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_
 	sccp_channel_t *c = NULL;
 
 #ifdef CS_SCCP_VIDEO
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 #endif
 	int res = 0;
 
@@ -1265,7 +1265,7 @@ static sccp_parkresult_t sccp_wrapper_asterisk113_park(const sccp_channel_t * ho
 {
 	char extout[AST_MAX_EXTENSION];
 	char extstr[20];
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 	sccp_parkresult_t res = PARK_RESULT_FAIL;
 
 	// PBX_CHANNEL_TYPE *bridgedChannel = NULL;
@@ -2068,7 +2068,7 @@ static void sccp_wrapper_asterisk113_getCodec(PBX_CHANNEL_TYPE * ast, struct ast
 {
 	uint8_t i;
 	struct ast_format *ast_format;
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 	unsigned int framing;
 
 	if (!(channel = CS_AST_CHANNEL_PVT(ast))) {
@@ -3284,7 +3284,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 {
 
 	char *lineName;
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
@@ -3306,7 +3306,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 	}
 
 	/** \todo move this to line implementation */
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 	sccp_push_result_t pushResult;
 
 	SCCP_LIST_LOCK(&line->devices);
