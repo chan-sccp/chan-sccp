@@ -214,9 +214,6 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	channel->maxBitRate = 15000;
 	channel->videomode = SCCP_VIDEO_MODE_AUTO;
 
-	sccp_channel_setDevice(channel, device);
-	sccp_line_addChannel(l, channel);
-
 	sccp_log((DEBUGCAT_CHANNEL)) (VERBOSE_PREFIX_3 "%s: New channel number: %d on line %s\n", l->id, channel->callid, l->name);
 #if DEBUG
 	channel->getDevice_retained = __sccp_channel_getDevice_retained;
@@ -229,6 +226,9 @@ sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 	} else {
 		channel->dtmfmode = SCCP_DTMFMODE_RFC2833;
 	}
+
+	sccp_line_addChannel(l, channel);
+	channel->setDevice(channel, device);
 
 	channel->isMicrophoneEnabled = sccp_always_true;
 	channel->setMicrophone = sccp_channel_setMicrophoneState;
