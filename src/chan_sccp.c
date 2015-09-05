@@ -176,7 +176,7 @@ sccp_channel_request_status_t sccp_requestChannel(const char *lineName, skinny_c
  */
 inline static sccp_device_t *check_session_message_device(sccp_session_t * s, sccp_msg_t * msg, const char *msgtypestr, boolean_t deviceIsNecessary)
 {
-	AUTO_RELEASE sccp_device_t *d = NULL;
+	sccp_device_t *d = NULL;
 
 	if (!s || (s->fds[0].fd < 0)) {
 		pbx_log(LOG_ERROR, "(%s) Session no longer valid\n", msgtypestr);
