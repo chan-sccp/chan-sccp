@@ -93,7 +93,7 @@ static char *sccp_exec_completer(sccp_cli_completer_t completer, OLDCONST char *
  */
 static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
@@ -111,7 +111,7 @@ static char *sccp_complete_device(OLDCONST char *line, OLDCONST char *word, int 
 
 static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
@@ -140,7 +140,7 @@ static char *sccp_complete_connected_device(OLDCONST char *line, OLDCONST char *
  */
 static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	sccp_line_t *l;
+	sccp_line_t *l = NULL;
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
@@ -158,7 +158,7 @@ static char *sccp_complete_line(OLDCONST char *line, OLDCONST char *word, int po
 
 static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	sccp_line_t *l;
+	sccp_line_t *l = NULL;
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 
@@ -187,8 +187,8 @@ static char *sccp_complete_connected_line(OLDCONST char *line, OLDCONST char *wo
  */
 static char *sccp_complete_channel(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
-	sccp_line_t *l;
-	sccp_channel_t *c;
+	sccp_line_t *l = NULL;
+	sccp_channel_t *c = NULL;
 	int wordlen = strlen(word), which = 0;
 	char *ret = NULL;
 	char tmpname[StationMaxNameSize + 9];
@@ -282,9 +282,9 @@ static char *sccp_complete_debug(OLDCONST char *line, OLDCONST char *word, int p
 static char *sccp_complete_set(OLDCONST char *line, OLDCONST char *word, int pos, int state)
 {
 	uint8_t i;
-	sccp_device_t *d;
-	sccp_channel_t *c;
-	sccp_line_t *l;
+	sccp_device_t *d = NULL;
+	sccp_channel_t *c = NULL;
+	sccp_line_t *l = NULL;
 
 	int wordlen = strlen(word), which = 0;
 	char tmpname[80];
@@ -683,8 +683,8 @@ CLI_AMI_ENTRY(show_devices, sccp_show_devices, "List defined SCCP devices", cli_
      */
 static int sccp_show_device(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_device_t *d;
-	sccp_line_t *l;
+	sccp_device_t *d = NULL;
+	sccp_line_t *l = NULL;
 	char pref_buf[256];
 	char cap_buf[512];
 	struct ast_str *ha_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
@@ -1049,7 +1049,7 @@ static int sccp_show_lines(int fd, sccp_cli_totals_t *totals, struct mansession 
 			pbx_getformatname_multiple(cap_buf, sizeof(cap_buf), pbx_channel_nativeformats(channel->owner));
 		}
 
-		sccp_linedevices_t *linedevice;
+		sccp_linedevices_t *linedevice = NULL;
 
 		found_linedevice = 0;
 		SCCP_LIST_LOCK(&l->devices);
@@ -1160,9 +1160,9 @@ CLI_AMI_ENTRY(show_lines, sccp_show_lines, "List defined SCCP Lines", cli_lines_
     //static int sccp_show_line(int fd, int argc, char *argv[])
 static int sccp_show_line(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_line_t *l;
-	sccp_linedevices_t *linedevice;
-	sccp_mailbox_t *mailbox;
+	sccp_line_t *l = NULL;
+	sccp_linedevices_t *linedevice = NULL;
+	sccp_mailbox_t *mailbox = NULL;
 	PBX_VARIABLE_TYPE *v = NULL;
 	struct ast_str *callgroup_buf = pbx_str_alloca(DEFAULT_PBX_STR_BUFFERSIZE);
 	const char *actionid = "";
@@ -1333,9 +1333,9 @@ CLI_AMI_ENTRY(show_line, sccp_show_line, "List defined SCCP line settings", cli_
     //static int sccp_show_channels(int fd, int argc, char *argv[])
 static int sccp_show_channels(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_channel_t *channel;
-	sccp_line_t *l;
-	sccp_device_t *d;
+	sccp_channel_t *channel = NULL;
+	sccp_line_t *l = NULL;
+	sccp_device_t *d = NULL;
 	int local_line_total = 0;
 	char tmpname[25];
 	char addrStr[INET6_ADDRSTRLEN] = "";
@@ -1651,8 +1651,8 @@ static int sccp_test(int fd, int argc, char *argv[])
 	// OpenReceiveChannel TEST
 	if (!strcasecmp(argv[2], "openreceivechannel")) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Testing re-Sending OpenReceiveChannel to change Payloads on the fly!!\n");
-		sccp_msg_t *msg1;
-		sccp_msg_t *msg2;
+		sccp_msg_t *msg1 = NULL;
+		sccp_msg_t *msg2 = NULL;
 		int packetSize = 20;										/*! \todo calculate packetSize */
 
 		sccp_device_t *d = NULL;
@@ -1700,7 +1700,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		sccp_device_t *d = NULL;
 		sccp_buttonconfig_t *buttonconfig = NULL;
 		uint8_t instance = 0;
-		sccp_msg_t *msg1;
+		sccp_msg_t *msg1 = NULL;
 
 		if (argc < 5) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "Device Not specified\n");
@@ -2041,7 +2041,7 @@ static int sccp_test(int fd, int argc, char *argv[])
 		d = sccp_device_find_byid(argv[3], FALSE);
 		if (d) {
 			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat\n");
-			sccp_msg_t *msg;
+			sccp_msg_t *msg = NULL;
 			msg = sccp_utils_buildLineStatDynamicMessage(1, 0x01 & 0x08, "1234", "name", "disp1");
 			sccp_dev_send(d, msg);
 			sccp_log(DEBUGCAT_CORE) ("SCCP: Test LineStat1 0x01=OrigDialed & 0x08=CallingPartyName Sent\n");
@@ -2217,7 +2217,7 @@ CLI_AMI_ENTRY(show_softkeysets, sccp_show_softkeysets, "Show configured SoftKeyS
      */
 static int sccp_message_devices(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	int timeout = 10;
 	boolean_t beep = FALSE;
 	int local_line_total = 0;
@@ -2355,7 +2355,7 @@ CLI_AMI_ENTRY(message_device, sccp_message_device, "Send a message to SCCP Devic
      */
 static int sccp_system_message(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	int timeout = 0;
 	char timeoutStr[5] = "";
 	boolean_t beep = FALSE;
@@ -2560,8 +2560,8 @@ CLI_ENTRY(cli_remove_line_from_device, sccp_remove_line_from_device, "Remove a l
      */
 static int sccp_add_line_to_device(int fd, int argc, char *argv[])
 {
-	sccp_device_t *d;
-	sccp_line_t *l;
+	sccp_device_t *d = NULL;
+	sccp_line_t *l = NULL;
 
 	if (argc < 5) {
 		return RESULT_SHOWUSAGE;
@@ -3019,7 +3019,7 @@ CLI_ENTRY(cli_show_version, sccp_show_version, "Show SCCP version details", show
      */
 static int sccp_reset_restart(int fd, int argc, char *argv[])
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	boolean_t restart = TRUE;
 
 	if (argc < 3 || argc > 4) {
@@ -3106,8 +3106,8 @@ CLI_ENTRY(cli_restart, sccp_reset_restart, "Restart an SCCP device", restart_usa
      */
 static int sccp_unregister(int fd, int argc, char *argv[])
 {
-	sccp_msg_t *msg;
-	sccp_device_t *d;
+	sccp_msg_t *msg = NULL;
+	sccp_device_t *d = NULL;
 
 	if (argc != 3) {
 		return RESULT_SHOWUSAGE;
@@ -3158,7 +3158,7 @@ CLI_ENTRY(cli_unregister, sccp_unregister, "Unregister an SCCP device", unregist
      */
 static int sccp_start_call(int fd, int argc, char *argv[])
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	sccp_channel_t *channel = NULL;
 
 	sccp_line_t *line = NULL;
@@ -3285,7 +3285,7 @@ static int sccp_set_object(int fd, int argc, char *argv[])
 						cli_result = RESULT_FAILURE;
 						break;
 					}
-					sccp_device_t *d;
+					sccp_device_t *d = NULL;
 
 					if (!(d = sccp_device_find_byid(dev, FALSE))) {
 						pbx_log(LOG_WARNING, "Device not found\n");
@@ -3546,7 +3546,7 @@ CLI_ENTRY(cli_end_call, sccp_end_call, "Hangup a channel", end_call_usage, FALSE
      */
 static int sccp_tokenack(int fd, sccp_cli_totals_t *totals, struct mansession *s, const struct message *m, int argc, char *argv[])
 {
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	int local_line_total = 0;
 	const char *dev;
 

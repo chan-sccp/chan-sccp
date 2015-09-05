@@ -679,9 +679,9 @@ int sccp_preUnload(void)
 	GLOB(module_running) = FALSE;
 	pbx_mutex_unlock(&GLOB(lock));
 
-	sccp_device_t *d;
-	sccp_line_t *l;
-	sccp_session_t *s;
+	sccp_device_t *d = NULL;
+	sccp_line_t *l = NULL;
+	sccp_session_t *s = NULL;
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: Unloading Module\n");
 

@@ -119,7 +119,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(c->line);
 
 	if (l) {
-		sccp_linedevices_t *linedevice;
+		sccp_linedevices_t *linedevice = NULL;
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -198,7 +198,7 @@ int sccp_pbx_call(sccp_channel_t * c, char *dest, int timeout)
 	boolean_t isRinging = FALSE;
 	boolean_t hasDNDParticipant = FALSE;
 
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 
 	SCCP_LIST_LOCK(&l->devices);
 	SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -721,7 +721,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 
 	/* call ast_channel_call_forward_set with the forward destination if this device is forwarded */
 	if (SCCP_LIST_GETSIZE(&l->devices) == 1) {
-		sccp_linedevices_t *linedevice;
+		sccp_linedevices_t *linedevice = NULL;
 
 		SCCP_LIST_LOCK(&l->devices);
 		SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -742,7 +742,7 @@ uint8_t sccp_pbx_channel_allocate(sccp_channel_t * channel, const void *ids, con
 	{
 
 		/* (shared line version) call ast_channel_call_forward_set if all devices for this line are forwarded. Send the first forward destination to PBX */
-		sccp_linedevices_t *linedevice;
+		sccp_linedevices_t *linedevice = NULL;
 		int numdevices = SCCP_LIST_GETSIZE(&l->devices);
 		int numforwards = 0;
 		char cfwdnum[SCCP_MAX_EXTENSION] = "";
@@ -1233,8 +1233,8 @@ int sccp_pbx_transfer(PBX_CHANNEL_TYPE * ast, const char *dest)
 	}
 
 	/*
-	   sccp_device_t *d;
-	   sccp_channel_t *newcall;
+	   sccp_device_t *d = NULL;
+	   sccp_channel_t *newcall = NULL;
 	 */
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "Transferring '%s' to '%s'\n", PBX(getChannelName) (c), dest);

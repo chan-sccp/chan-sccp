@@ -508,7 +508,7 @@ static void sccp_sk_select(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_devi
 {
 	sccp_log((DEBUGCAT_SOFTKEY)) (VERBOSE_PREFIX_3 "%s: SoftKey Select Pressed\n", DEV_ID_LOG(d));
 	sccp_selectedchannel_t *x = NULL;
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 	uint8_t numSelectedChannels = 0, status = 0;
 
 	if (!d) {
@@ -623,7 +623,7 @@ static void sccp_sk_trnsfvm(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_dev
  */
 static void sccp_sk_private(const sccp_softkeyMap_cb_t * softkeyMap_cb, sccp_device_t * d, sccp_line_t * l, const uint32_t lineInstance, sccp_channel_t * c)
 {
-	AUTO_RELEASE sccp_channel_t *channel;
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	if (!d) {
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: sccp_sk_private function called without specifying a device\n");
 		return;
@@ -969,9 +969,9 @@ void sccp_softkey_post_reload(void)
 {
 	/* only required because softkeys are parsed after devices */
 	/* incase softkeysets have changed but device was not reloaded, then d->softkeyset needs to be fixed up */
-	sccp_softKeySetConfiguration_t *softkeyset;
+	sccp_softKeySetConfiguration_t *softkeyset = NULL;
 	sccp_softKeySetConfiguration_t *default_softkeyset = NULL;
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	
 	SCCP_LIST_LOCK(&softKeySetConfig);
 	SCCP_LIST_TRAVERSE(&softKeySetConfig, softkeyset, list) {

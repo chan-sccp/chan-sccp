@@ -143,7 +143,7 @@ static void sccp_channel_setMicrophoneState(sccp_channel_t * channel, boolean_t 
 sccp_channel_t *sccp_channel_allocate(sccp_line_t * l, sccp_device_t * device)
 {
 	/* this just allocate a sccp channel (not the asterisk channel, for that look at sccp_pbx_channel_allocate) */
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 	char designator[CHANNEL_DESIGNATOR_SIZE];
 	struct sccp_private_channel_data *private_data;
 	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(l);
@@ -483,7 +483,7 @@ void sccp_channel_send_callinfo2(sccp_channel_t * channel)
 	if (d) {
 		sccp_channel_send_callinfo(d, channel);
 	} else if (line) {
-		sccp_linedevices_t *linedevice;
+		sccp_linedevices_t *linedevice = NULL;
 
 		SCCP_LIST_LOCK(&line->devices);
 		SCCP_LIST_TRAVERSE(&line->devices, linedevice, list) {
@@ -781,7 +781,7 @@ void sccp_channel_openReceiveChannel(sccp_channel_t * channel)
  */
 void sccp_channel_closeReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	ast_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
@@ -863,7 +863,7 @@ void sccp_channel_openMultiMediaReceiveChannel(sccp_channel_t * channel)
  */
 void sccp_channel_closeMultiMediaReceiveChannel(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	ast_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
@@ -975,7 +975,7 @@ void sccp_channel_startMediaTransmission(sccp_channel_t * channel)
  */
 void sccp_channel_stopMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	ast_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
@@ -1117,7 +1117,7 @@ void sccp_channel_startMultiMediaTransmission(sccp_channel_t * channel)
  */
 void sccp_channel_stopMultiMediaTransmission(sccp_channel_t * channel, boolean_t KeepPortOpen)
 {
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 	ast_assert(channel != NULL);
 	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(channel);
@@ -1358,7 +1358,7 @@ void sccp_channel_endcall(sccp_channel_t * channel)
 sccp_channel_t *sccp_channel_newcall(sccp_line_t * l, sccp_device_t * device, const char *dial, uint8_t calltype, PBX_CHANNEL_TYPE * parentChannel, const void *ids)
 {
 	/* handle outgoing calls */
-	sccp_channel_t *channel;
+	sccp_channel_t *channel = NULL;
 
 	if (!l) {
 		pbx_log(LOG_ERROR, "SCCP: Can't allocate SCCP channel if a line is not defined!\n");

@@ -39,8 +39,8 @@ int sccp_line_destroy(const void *ptr);
  */
 void sccp_line_pre_reload(void)
 {
-	sccp_line_t *l;
-	sccp_linedevices_t *linedevice;
+	sccp_line_t *l = NULL;
+	sccp_linedevices_t *linedevice = NULL;
 
 	SCCP_RWLIST_WRLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), l, list) {
@@ -76,7 +76,7 @@ void sccp_line_pre_reload(void)
  */
 void sccp_line_post_reload(void)
 {
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 
 	SCCP_RWLIST_TRAVERSE_SAFE_BEGIN(&GLOB(lines), line, list) {
 		if (!line->pendingDelete && !line->pendingUpdate) {
@@ -86,7 +86,7 @@ void sccp_line_post_reload(void)
 
 		if (l) {
 			// existing lines
-			sccp_linedevices_t *linedevice;
+			sccp_linedevices_t *linedevice = NULL;
 			SCCP_LIST_LOCK(&l->devices);
 			SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
 				linedevice->device->pendingUpdate = 1;
@@ -176,9 +176,7 @@ void sccp_line_addToGlobals(sccp_line_t * line)
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "Added line '%s' to Glob(lines)\n", l->name);
 
 		/* emit event */
-		sccp_event_t event;
-
-		memset(&event, 0, sizeof(sccp_event_t));
+		sccp_event_t event = {{{0}}};
 		event.type = SCCP_EVENT_LINE_CREATED;
 		event.event.lineCreated.line = sccp_line_retain(l);
 		sccp_event_fire(&event);
@@ -209,8 +207,7 @@ void sccp_line_removeFromGlobals(sccp_line_t * line)
 
 	/* not sure if we should fire an event like this ? */
 	/*
-	   sccp_event_t event;
-	   memset(&event, 0, sizeof(sccp_event_t));
+	   sccp_event_t event = {{{0}}}L;
 	   event.type = SCCP_EVENT_LINE_DELETED;
 	   event.event.lineCreated.line = sccp_line_retain(line);
 	   sccp_event_fire(&event);
@@ -262,7 +259,7 @@ void *sccp_create_hotline(void)
  */
 void sccp_line_kill_channels(sccp_line_t * l)
 {
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
 
 	if (!l) {
 		return;
@@ -317,7 +314,7 @@ int __sccp_line_destroy(const void *ptr)
 	sccp_log((DEBUGCAT_LINE + DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Line FREE\n", l->name);
 	
 	// checking if line was correctly removed from globals, if not this indicates an over release of refcount
-	sccp_line_t *tmpl;
+	sccp_line_t *tmpl = NULL;
 	SCCP_RWLIST_RDLOCK(&GLOB(lines));
 	SCCP_RWLIST_TRAVERSE(&GLOB(lines), tmpl, list) {
 		if (tmpl == l) {
@@ -448,7 +445,7 @@ void sccp_line_delete_nolock(sccp_line_t * l)
 
 void sccp_line_copyCodecSetsFromLineToChannel(sccp_line_t *l, sccp_channel_t *c)
 {
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 	if (!l || !c) {
 		return;
 	}
@@ -585,9 +582,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
 	linedevice->device->configurationStatistic.numberOfLines++;
 
 	// fire event for new device
-	sccp_event_t event;
-
-	memset(&event, 0, sizeof(sccp_event_t));
+	sccp_event_t event = {{{0}}};
 	event.type = SCCP_EVENT_DEVICE_ATTACHED;
 	event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);
 	sccp_event_fire(&event);
@@ -609,7 +604,7 @@ void sccp_line_addDevice(sccp_line_t * line, sccp_device_t * d, uint8_t lineInst
  */
 void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 {
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 
 	if (!l) {
 		return;
@@ -623,10 +618,7 @@ void sccp_line_removeDevice(sccp_line_t * l, sccp_device_t * device)
 			SCCP_LIST_REMOVE_CURRENT(list);
 			l->statistic.numberOfActiveDevices--;
 
-			sccp_event_t event;
-
-			memset(&event, 0, sizeof(sccp_event_t));
-
+			sccp_event_t event = {{{0}}};
 			event.type = SCCP_EVENT_DEVICE_DETACHED;
 			event.event.deviceAttached.linedevice = sccp_linedevice_retain(linedevice);	/* after processing this event the linedevice will be cleaned up */
 			sccp_event_fire(&event);
@@ -689,7 +681,7 @@ void sccp_line_removeChannel(sccp_line_t * line, sccp_channel_t * channel)
 	if (!line || !channel) {
 		return;
 	}
-	sccp_channel_t *c;
+	sccp_channel_t *c = NULL;
 	AUTO_RELEASE sccp_line_t *l = sccp_line_retain(line);
 
 	if (l) {
@@ -1033,9 +1025,9 @@ sccp_linedevices_t *__sccp_linedevice_findByLineinstance(const sccp_device_t * d
 /* create linebutton array */
 void sccp_line_createLineButtonsArray(sccp_device_t * device)
 {
-	sccp_linedevices_t *linedevice;
+	sccp_linedevices_t *linedevice = NULL;
 	uint8_t lineInstances = 0;
-	btnlist *btn;
+	btnlist *btn = NULL;
 	uint8_t i;
 
 	if (device->lineButtons.instance) {
