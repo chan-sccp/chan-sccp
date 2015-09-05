@@ -364,7 +364,7 @@ int sccp_hint_devstate_cb(char *context, char *id, enum ast_extension_states sta
  */
 static void sccp_hint_eventListener(const sccp_event_t * event)
 {
-	sccp_device_t *device;
+	sccp_device_t *device = NULL;
 
 	if (!event) {
 		return;
@@ -1096,7 +1096,7 @@ static void sccp_hint_notifyPBX(struct sccp_hint_lineState *lineState)
 static void sccp_hint_notifySubscribers(sccp_hint_list_t * hint)
 {
 	sccp_hint_SubscribingDevice_t *subscriber = NULL;
-	sccp_msg_t *msg;
+	sccp_msg_t *msg = NULL;
 
 #ifdef CS_DYNAMIC_SPEEDDIAL
 	sccp_speed_t k;
@@ -1328,7 +1328,7 @@ static inline boolean_t sccp_hint_isCIDavailabe(const sccp_device_t * device, co
 
 static void sccp_hint_checkForDND(struct sccp_hint_lineState *lineState)
 {
-	sccp_linedevices_t *lineDevice;
+	sccp_linedevices_t *lineDevice = NULL;
 	sccp_line_t *line = lineState->line;
 
 	do {

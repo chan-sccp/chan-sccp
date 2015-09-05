@@ -994,7 +994,7 @@ void sccp_handle_accessorystatus_message(sccp_session_t * s, sccp_device_t * d, 
  */
 void sccp_handle_unregister(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 	int reason = letohl(msg_in->data.UnregisterMessage.lel_UnregisterReason);
 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: Unregister request Received (Reason: %s)\n", DEV_ID_LOG(d), reason ? "Unknown" : "Powersave");
@@ -1022,7 +1022,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 	int i;
 	uint8_t buttonCount = 0, lastUsedButtonPosition = 0;
 
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	if (d->registrationState != SKINNY_DEVICE_RS_PROGRESS && d->registrationState != SKINNY_DEVICE_RS_OK) {
 		pbx_log(LOG_WARNING, "%s: Received a button template request from unregistered device\n", d->id);
@@ -1118,7 +1118,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
 
 	sccp_dev_send(d, msg_out);
 	/*
-	   sccp_msg_t *dynamicR;
+	   sccp_msg_t *dynamicR = NULL;
 
 	   int hdr_len = sizeof(dynamicR->data.ButtonTemplateMessageDynamic) - sizeof(dynamicR->data.ButtonTemplateMessageDynamic.dummy);
 	   int dummy_len = (lastUsedButtonPosition + 1) * sizeof(StationButtonDefinition);
@@ -1145,7 +1145,7 @@ void sccp_handle_button_template_req(sccp_session_t * s, sccp_device_t * d, sccp
  */
 void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 	sccp_speed_t k;
 	sccp_buttonconfig_t *config;
 
@@ -1206,7 +1206,7 @@ void sccp_handle_line_number(sccp_session_t * s, sccp_device_t * d, sccp_msg_t *
 void sccp_handle_speed_dial_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	sccp_speed_t k;
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	int wanted = letohl(msg_in->data.SpeedDialStatReqMessage.lel_speedDialNumber);
 
@@ -1874,7 +1874,7 @@ void sccp_handle_offhook(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg
  */
 void sccp_handle_backspace(sccp_device_t * d, uint8_t line, uint32_t callid)
 {
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	if (!d || !d->session) {
 		return;
@@ -1993,7 +1993,7 @@ void sccp_handle_capabilities_res(sccp_session_t * s, sccp_device_t * d, sccp_ms
 void sccp_handle_soft_key_template_req(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
 	uint8_t i;
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	/* ok the device support the softkey map */
 	d->softkeysupport = 1;
@@ -2058,7 +2058,7 @@ void sccp_handle_soft_key_set_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 {
 
 	int iKeySetCount = 0;
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 	uint8_t i = 0;
 	uint8_t trnsfvm = 0;
 	uint8_t meetme = 0;
@@ -2328,7 +2328,7 @@ void sccp_handle_time_date_req(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	struct tm *cmtime = NULL;
 
 	// char servername[StationMaxDisplayNotifySize];
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	if (!s) {
 		return;
@@ -2382,25 +2382,23 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 
 	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	AUTO_RELEASE sccp_line_t *l = NULL;
-	AUTO_RELEASE sccp_linedevices_t *linedevice;
 	
 	/* Old phones like 7912 never uses callid
 	 * so we would have trouble finding the right channel
 	 */
 	if ((channel = sccp_device_getActiveChannel(d)) && (callid == 0 || channel->callid == callid)) {
 		l = sccp_line_retain(channel->line);
-		linedevice = sccp_linedevice_find(d, l);
 		
 		/* 
 		 * older devices like 7960 are sending button index instead of lineInstance 
 		 * so we can not trust lineInstance in this case
 		 * 
 		 */
+		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_find(d, l);
 		if(linedevice->lineInstance != lineInstance){
 		    pbx_log(LOG_NOTICE, "%s: linedevice->lineInstance != lineInstance (%d != %d)\n", DEV_ID_LOG(d), linedevice->lineInstance, lineInstance);
 		}
 	}
-	
 
 	if (!channel && lineInstance) {
 		if (callid) {
@@ -2707,7 +2705,7 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 		}
 		if (channel->state == SCCP_CHANNELSTATE_DOWN) {
 			pbx_log(LOG_WARNING, "%s: (OpenReceiveChannelAck) Channel is down. Giving up... (%d)\n", DEV_ID_LOG(d), channel->state);
-			sccp_msg_t *r;
+			sccp_msg_t *r = NULL;
 
 			REQ(r, CloseReceiveChannel);
 			msg_in->data.CloseReceiveChannel.lel_conferenceId = htolel(callReference);
@@ -2784,7 +2782,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		return;
 	}
 
-	AUTO_RELEASE sccp_channel_t *channel;
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
 
 	if ((d->active_channel && d->active_channel->passthrupartyid == passThruPartyId) || !passThruPartyId) {	// reduce the amount of searching by first checking active_channel
 		channel = sccp_channel_retain(d->active_channel);
@@ -2821,7 +2819,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 			pbx_log(LOG_ERROR, "%s: Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, addrStr);
 		}
 
-		sccp_msg_t *msg_out;
+		sccp_msg_t *msg_out = NULL;
 
 		msg_out = sccp_build_packet(MiscellaneousCommandMessage, sizeof(msg_in->data.MiscellaneousCommandMessage));
 		msg_out->data.MiscellaneousCommandMessage.lel_conferenceId = htolel(channel->callid);
@@ -2987,7 +2985,7 @@ void sccp_handle_mediatransmissionfailure(sccp_session_t * s, sccp_device_t * d,
  */
 void sccp_handle_version(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	REQ(msg_out, VersionMessage);
 	sccp_copy_string(msg_out->data.VersionMessage.requiredVersion, d->imageversion, sizeof(msg_out->data.VersionMessage.requiredVersion));
@@ -3159,7 +3157,7 @@ void sccp_handle_ConnectionStatistics(sccp_session_t * s, sccp_device_t * device
  */
 void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 
 	if (sccp_socket_is_any_addr(&s->ourip)) {
 		pbx_log(LOG_ERROR, "%s: Session IP Unspecified\n", DEV_ID_LOG(d));
@@ -3192,7 +3190,7 @@ void sccp_handle_ServerResMessage(sccp_session_t * s, sccp_device_t * d, sccp_ms
  */
 void sccp_handle_ConfigStatMessage(sccp_session_t * s, sccp_device_t * d, sccp_msg_t * msg_in)
 {
-	sccp_msg_t *msg_out;
+	sccp_msg_t *msg_out = NULL;
 	sccp_buttonconfig_t *config = NULL;
 	uint8_t lines = 0;
 	uint8_t speeddials = 0;
@@ -3327,7 +3325,7 @@ void sccp_handle_feature_stat_req(sccp_session_t * s, sccp_device_t * d, sccp_ms
 		sccp_dev_speed_find_byindex(d, index, TRUE, &k);
 
 		if (k.valid) {
-			sccp_msg_t *msg_out;
+			sccp_msg_t *msg_out = NULL;
 
 			REQ(msg_out, FeatureStatDynamicMessage);
 			msg_out->data.FeatureStatDynamicMessage.lel_featureIndex = htolel(index);

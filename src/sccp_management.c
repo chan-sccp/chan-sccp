@@ -299,7 +299,7 @@ static int sccp_manager_show_devices(struct mansession *s, const struct message 
 static int sccp_manager_show_lines(struct mansession *s, const struct message *m)
 {
 	const char *id = astman_get_header(m, "ActionID");
-	sccp_line_t *line;
+	sccp_line_t *line = NULL;
 	char idtext[256] = "";
 	int total = 0;
 

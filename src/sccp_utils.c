@@ -180,7 +180,7 @@ void sccp_pbx_setcallstate(sccp_channel_t * channel, int state)
 void sccp_dev_dbclean(void)
 {
 	struct ast_db_entry *entry = NULL;
-	sccp_device_t *d;
+	sccp_device_t *d = NULL;
 	char key[256];
 
 	//! \todo write an pbx implementation for that

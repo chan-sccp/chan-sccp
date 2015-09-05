@@ -446,7 +446,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "cfwd")) {
 				char tmp[1024] = "";
 				char lbuf[1024] = "";
-				sccp_linedevices_t *linedevice;
+				sccp_linedevices_t *linedevice = NULL;
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
@@ -463,7 +463,7 @@ static int sccp_func_sccpline(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, char 
 			} else if (!strcasecmp(token, "devices")) {
 				char tmp[1024] = "";
 				char lbuf[1024] = "";
-				sccp_linedevices_t *linedevice;
+				sccp_linedevices_t *linedevice = NULL;
 
 				SCCP_LIST_LOCK(&l->devices);
 				SCCP_LIST_TRAVERSE(&l->devices, linedevice, list) {
