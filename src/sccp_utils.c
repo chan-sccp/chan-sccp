@@ -2033,11 +2033,11 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 
 	strings_size = num_frames * sizeof(*strings);
 
-	eachlen = ast_std_calloc(num_frames, sizeof(*eachlen));
-	strings = ast_std_calloc(num_frames, sizeof(*strings));
+	eachlen = sccp_calloc(num_frames, sizeof(*eachlen));
+	strings = sccp_calloc(num_frames, sizeof(*strings));
 	if (!eachlen || !strings) {
-		ast_std_free(eachlen);
-		ast_std_free(strings);
+		sccp_free(eachlen);
+		sccp_free(strings);
 		return NULL;
 	}
 
@@ -2063,7 +2063,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 		if ((bfdobj = bfd_openr(dli.dli_fname, NULL)) &&
 			bfd_check_format(bfdobj, bfd_object) &&
 			(allocsize = bfd_get_symtab_upper_bound(bfdobj)) > 0 &&
-			(syms = ast_std_malloc(allocsize)) &&
+			(syms = sccp_malloc(allocsize)) &&
 			(symbolcount = bfd_canonicalize_symtab(bfdobj, syms))) {
 
 			if (bfdobj->flags & DYNAMIC) {
@@ -2114,7 +2114,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 		}
 		if (bfdobj) {
 			bfd_close(bfdobj);
-			ast_std_free(syms);
+			sccp_free(syms);
 		}
 
 		/* Default output, if we cannot find the information within BFD */
@@ -2136,8 +2136,8 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 			char **tmp;
 
 			eachlen[stackfr] = strlen(msg) + 1;
-			if (!(tmp = ast_std_realloc(strings, strings_size + eachlen[stackfr]))) {
-				ast_std_free(strings);
+			if (!(tmp = sccp_realloc(strings, strings_size + eachlen[stackfr]))) {
+				sccp_free(strings);
 				strings = NULL;
 				break; /* out of stack frame iteration */
 			}
@@ -2155,7 +2155,7 @@ static char **__sccp_bt_get_symbols(void **addresses, size_t num_frames)
 			strings[stackfr] = strings[stackfr - 1] + eachlen[stackfr - 1];
 		}
 	}
-	ast_std_free(eachlen);
+	sccp_free(eachlen);
 #else
 	strings = backtrace_symbols(addresses, num_frames);
 #endif  // defined(HAVE_DLADDR_H) && defined(HAVE_BFD_H)
