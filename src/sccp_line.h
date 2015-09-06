@@ -16,10 +16,10 @@
 #define __SCCP_LINE_H
 
 #ifdef DEBUG
-#define sccp_linedevice_retain(_x) 	({sccp_linedevices_t const *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_linedevice_release(_x) 	({sccp_linedevices_t const *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_retain(_x) 		({sccp_line_t const *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
-#define sccp_line_release(_x) 		({sccp_line_t const *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_linedevice_retain(_x) 	({sccp_linedevices_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_linedevice_release(_x) 	({sccp_linedevices_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_line_retain(_x) 		({sccp_line_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
+#define sccp_line_release(_x) 		({sccp_line_t const __attribute__((unused)) *tmp_##__LINE__##X = _x;ast_assert(tmp_##__LINE__##X != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #else
 #define sccp_linedevice_retain(_x) 	({ast_assert(_x != NULL);sccp_refcount_retain(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
 #define sccp_linedevice_release(_x) 	({ast_assert(_x != NULL);sccp_refcount_release(_x, __FILE__, __LINE__, __PRETTY_FUNCTION__);})
