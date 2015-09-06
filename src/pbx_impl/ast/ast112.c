@@ -392,6 +392,7 @@ char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format_cap *
  */
 static PBX_FRAME_TYPE *sccp_wrapper_asterisk112_rtp_read(PBX_CHANNEL_TYPE * ast)
 {
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	PBX_FRAME_TYPE *frame = &ast_null_frame;
 
@@ -560,40 +561,32 @@ static const char *asterisk_indication2str(int ind)
 
 static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, const void *data, size_t datalen)
 {
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
 	int res = 0;
 
-	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
+	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
+	if (!c) {
 		return -1;
 	}
 
-	if (!(d = sccp_channel_getDevice_retained(c))) {
-
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	if (!d) {
 		switch (ind) {
 			case AST_CONTROL_CONNECTED_LINE:
 				sccp_wrapper_asterisk112_connectedline(c, data, datalen);
-
 				res = 0;
 				break;
-
 			case AST_CONTROL_REDIRECTING:
 				sccp_asterisk_redirectedUpdate(c, data, datalen);
-
 				res = 0;
 				break;
 			default:
 				res = -1;
 				break;
 		}
-
-		c = sccp_channel_release(c);
 		return res;
 	}
 
 	if (c->state == SCCP_CHANNELSTATE_DOWN) {
-		c = sccp_channel_release(c);
-		d = d ? sccp_device_release(d) : NULL;
 		return -1;											/* Tell asterisk to provide inband signalling */
 	}
 
@@ -798,11 +791,8 @@ static int sccp_wrapper_asterisk112_indicate(PBX_CHANNEL_TYPE * ast, int ind, co
  */
 static int sccp_wrapper_asterisk112_rtp_write(PBX_CHANNEL_TYPE * ast, PBX_FRAME_TYPE * frame)
 {
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
-
-#ifdef CS_SCCP_VIDEO
-	sccp_device_t *device = NULL;
-#endif
 	int res = 0;
 
 	// if (!(c = get_sccp_channel_from_pbx_channel(ast))) {            // not following the refcount rules... channel is already retained
@@ -922,8 +912,11 @@ static void sccp_wrapper_asterisk112_setOwner(sccp_channel_t * channel, PBX_CHAN
 static boolean_t sccp_wrapper_asterisk112_allocPBXChannel(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
 	const struct ast_assigned_ids *assignedids = NULL;
-	sccp_line_t *line = channel->line;
 	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
+	if (!channel || !channel->line) {
+		return FALSE;
+	}
+	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(channel->line);
 
 	if (ids) {
 		assignedids = ids;
@@ -1404,7 +1397,6 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_request(const char *type, stru
 {
 	sccp_channel_request_status_t requestStatus;
 	PBX_CHANNEL_TYPE *result_ast_channel = NULL;
-	sccp_channel_t *channel = NULL;
 	struct ast_callid *callid;
 
 	skinny_codec_t audioCapabilities[SKINNY_MAX_CAPABILITIES];
@@ -1568,6 +1560,7 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk112_request(const char *type, stru
 	//callid = ast_read_threadstorage_callid();
 	int callid_created = ast_callid_threadstorage_auto(&callid);
 
+	AUTO_RELEASE sccp_channel_t *channel = NULL;
 	requestStatus = sccp_requestChannel(lineName, codec, audioCapabilities, ARRAY_LEN(audioCapabilities), autoanswer_type, autoanswer_cause, ringermode, &channel);
 	switch (requestStatus) {
 		case SCCP_REQUEST_STATUS_SUCCESS:								// everything is fine
@@ -1787,7 +1780,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk112_rtpBridge(PBX_CHANNEL_TYP
 
 static enum ast_rtp_glue_result sccp_wrapper_asterisk112_get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
-
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *audioRTP = NULL;
@@ -1834,6 +1827,7 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk112_get_rtp_info(PBX_CHANNE
 
 static enum ast_rtp_glue_result sccp_wrapper_asterisk112_get_vrtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *videoRTP = NULL;
@@ -1881,7 +1875,8 @@ static enum ast_rtp_glue_result sccp_wrapper_asterisk112_get_vrtp_info(PBX_CHANN
 
 static int sccp_wrapper_asterisk112_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE * rtp, PBX_RTP_TYPE * vrtp, PBX_RTP_TYPE * trtp, const struct ast_format_cap *codecs, int nat_active)
 {
-	sccp_channel_t *c = NULL;						//not following the refcount rules... channel is already retained
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
+	sccp_channel_t *c = NULL;
 	int result = 0;
 
 	do {
@@ -1911,7 +1906,8 @@ static int sccp_wrapper_asterisk112_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 			result = 0;
 			break;
 		}
-		if (!(d = sccp_channel_getDevice_retained(c))) {
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		if (!d) {
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_1 "%s: (asterisk112_update_rtp_peer) NO DEVICE\n", c->currentDeviceId);
 			result = -1;
 			break;
@@ -1986,7 +1982,6 @@ static int sccp_wrapper_asterisk112_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_
 	} while (0);
 
 	/* Need a return here to break the bridge */
-	d = d ? sccp_device_release(d) : NULL;
 	sccp_log(DEBUGCAT_RTP) (VERBOSE_PREFIX_3 "%s: (asterisk112_update_rtp_peer) Result: %d\n", c->currentDeviceId, result);
 	return result;
 }
@@ -1995,9 +1990,9 @@ static void sccp_wrapper_asterisk112_getCodec(PBX_CHANNEL_TYPE * ast, struct ast
 {
 	uint8_t i;
 	struct ast_format fmt;
-	sccp_channel_t *channel = NULL;
+	AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(ast);
 
-	if (!(channel = CS_AST_CHANNEL_PVT(ast))) {
+	if (!channel) {
 		sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (getCodec) NO PVT\n");
 		return;
 	}
@@ -2179,7 +2174,7 @@ static boolean_t sccp_wrapper_asterisk112_create_audio_rtp(sccp_channel_t * c)
 	if (!c) {
 		return FALSE;
 	}
-	sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 	if (!d) {
 		return FALSE;
 	}
@@ -2237,21 +2232,20 @@ static boolean_t sccp_wrapper_asterisk112_create_audio_rtp(sccp_channel_t * c)
 		ast_rtp_codecs_payloads_set_m_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 105);
 		ast_rtp_codecs_payloads_set_rtpmap_type(ast_rtp_instance_get_codecs(c->rtp.audio.rtp), c->rtp.audio.rtp, 105, "audio", "cisco-telephone-event", 0);
 	}
-	d = sccp_device_release(d);
 
 	return TRUE;
 }
 
 static boolean_t sccp_wrapper_asterisk112_create_video_rtp(sccp_channel_t * c)
 {
-	sccp_device_t *d = NULL;
 	struct ast_sockaddr sock = { {0,} };
 	struct ast_codec_pref astCodecPref;
 
 	if (!c) {
 		return FALSE;
 	}
-	if (!(d = sccp_channel_getDevice_retained(c))) {
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	if (!d) {
 		return FALSE;
 	}
 
@@ -3144,9 +3138,7 @@ struct ast_rtp_glue sccp_rtp = {
 #include "asterisk/message.h"
 static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from)
 {
-
 	char *lineName;
-	sccp_line_t *line = NULL;
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
@@ -3161,7 +3153,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 		return -1;
 	}
 
-	line = sccp_line_find_byname(lineName, FALSE);
+	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(lineName, FALSE);
 	if (!line) {
 		pbx_log(LOG_WARNING, "line '%s' not found\n", lineName);
 		return -1;
