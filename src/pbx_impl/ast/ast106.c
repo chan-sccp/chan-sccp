@@ -804,8 +804,11 @@ static void sccp_wrapper_asterisk106_setOwner(sccp_channel_t * channel, PBX_CHAN
 static boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channel, const void *ids, const PBX_CHANNEL_TYPE * pbxSrcChannel, PBX_CHANNEL_TYPE ** _pbxDstChannel)
 {
 	// const char *linkedId = ids ? strdupa(ids) : NULL;
-	sccp_line_t *line = NULL;
 	PBX_CHANNEL_TYPE *pbxDstChannel = NULL;
+	if (!channel || !channel->line) {
+		return FALSE;
+	}
+	AUTO_RELEASE sccp_line_t *line = sccp_line_retain(channel->line);
 
 	// if (ids) {
 	// 	linkedId = pbx_builtin_getvar_helper(pbxSrcChannel, SCCP_AST_LINKEDID_HELPER));
@@ -816,11 +819,6 @@ static boolean_t sccp_wrapper_asterisk16_allocPBXChannel(sccp_channel_t * channe
 	if (pbxDstChannel == NULL) {
 		return FALSE;
 	}
-
-	if (!channel || !channel->line) {
-		return FALSE;
-	}
-	line = channel->line;
 
 	pbxDstChannel->tech = &sccp_tech;
 	pbxDstChannel->tech_pvt = sccp_channel_retain(channel);
@@ -1116,7 +1114,8 @@ static int ast_do_pickup(PBX_CHANNEL_TYPE * chan, PBX_CHANNEL_TYPE * target)
 	const char *chan_name;											/*!< A masquerade changes channel names. */
 	const char *target_name;										/*!< A masquerade changes channel names. */
 	char *target_cid_name = NULL, *target_cid_number = NULL, *target_cid_ani = NULL;
-	sccp_channel_t *c = get_sccp_channel_from_pbx_channel(target);
+
+	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(target);
 
 	int res = -1;
 
@@ -1788,7 +1787,7 @@ static enum ast_bridge_result sccp_wrapper_asterisk16_rtpBridge(PBX_CHANNEL_TYPE
 
 static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_rtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
-
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *audioRTP = NULL;
@@ -1835,6 +1834,7 @@ static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_rtp_info(PBX_CHANNEL_
 
 static enum ast_rtp_get_result sccp_wrapper_asterisk16_get_vrtp_info(PBX_CHANNEL_TYPE * ast, PBX_RTP_TYPE ** rtp)
 {
+	//AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);				// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	sccp_rtp_info_t rtpInfo;
 	struct sccp_rtp *audioRTP = NULL;
@@ -1980,9 +1980,9 @@ static int sccp_wrapper_asterisk16_update_rtp_peer(PBX_CHANNEL_TYPE * ast, PBX_R
 static int sccp_wrapper_asterisk16_getCodec(PBX_CHANNEL_TYPE * ast)
 {
 	format_t format = AST_FORMAT_ULAW;
-	sccp_channel_t *channel = NULL;
+	AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(ast);
 
-	if (!(channel = CS_AST_CHANNEL_PVT(ast))) {
+	if (!channel) {
 		sccp_log((DEBUGCAT_RTP | DEBUGCAT_CODEC)) (VERBOSE_PREFIX_1 "SCCP: (getCodec) NO PVT\n");
 		return format;
 	}
@@ -2873,9 +2873,7 @@ static struct ast_rtp_protocol sccp_rtp = {
 #include "asterisk/message.h"
 static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to, const char *from)
 {
-
 	char *lineName;
-	sccp_line_t *line = NULL;
 	const char *messageText = ast_msg_get_body(msg);
 	int res = -1;
 
@@ -2890,7 +2888,7 @@ static int sccp_asterisk_message_send(const struct ast_msg *msg, const char *to,
 		return -1;
 	}
 
-	line = sccp_line_find_byname(lineName, FALSE);
+	AUTO_RELEASE sccp_line_t *line = sccp_line_find_byname(lineName, FALSE);
 	if (!line) {
 		pbx_log(LOG_WARNING, "line '%s' not found\n", lineName);
 		return -1;
