@@ -2406,8 +2406,8 @@ static int sccp_wrapper_asterisk16_sched_replace_ref(int *id, int when, ast_sche
 {
 	if (sched) {
 		// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) replacing id: %d\n", channel->designator, *id);
-		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release(_data), sccp_channel_release(channel), sccp_channel_retain(channel))	/* explicit retain / release */
-		//              sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) returning id: %d\n", channel->designator, *id);
+		AST_SCHED_REPLACE_UNREF(*id, sched, when, callback, channel, sccp_channel_release(_data), sccp_channel_release(channel), sccp_channel_retain(channel));	/* explicit retain / release */
+		// sccp_log(DEBUGCAT_CORE)(VERBOSE_PREFIX_3 "%s: (sched_replace_ref) returning id: %d\n", channel->designator, *id);
 		return *id;
 	}
 	return -1;
@@ -2693,46 +2693,42 @@ static PBX_CHANNEL_TYPE *sccp_wrapper_asterisk16_findChannelWithCallback(int (*c
 
 static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *data, int datalen)
 {
-
+	int res = -1;
 	if (!datalen || sccp_strlen_zero(data) || !(!strncmp(data, "http://", 7) || !strncmp(data, "file://", 7) || !strncmp(data, "ftp://", 6))) {
 		pbx_log(LOG_NOTICE, "SCCP: Received a non valid URL\n");
-		return -1;
+		return res;
 	}
 	struct ast_frame fr;
 
 	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
-	if (!c) {
-		return -1;
-	} else {
+	if (c) {
 #if DEBUG
 		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c, __FILE__, __LINE__, __PRETTY_FUNCTION__);
 #else
 		AUTO_RELEASE sccp_device_t *d = c->getDevice_retained(c);
 #endif
- 		if (!d) {
-			return -1;
-		}
-
-		memset(&fr, 0, sizeof(fr));
-		fr.frametype = AST_FRAME_HTML;
+ 		if (d) {
+			memset(&fr, 0, sizeof(fr));
+			fr.frametype = AST_FRAME_HTML;
 #if CS_AST_NEW_FRAME_STRUCT
-		fr.data.ptr = (char *) data;
+			fr.data.ptr = (char *) data;
 #else
-		fr.data = (char *) data;
+			fr.data = (char *) data;
 #endif
-		fr.src = "SCCP Send URL";
-		fr.datalen = datalen;
+			fr.src = "SCCP Send URL";
+			fr.datalen = datalen;
 
-		sccp_push_result_t pushResult = d->pushURL(d, data, 1, SKINNY_TONE_ZIP);
+			sccp_push_result_t pushResult = d->pushURL(d, data, 1, SKINNY_TONE_ZIP);
 
-		if (SCCP_PUSH_RESULT_SUCCESS == pushResult) {
-			fr.subclass = AST_HTML_LDCOMPLETE;
-		} else {
-			fr.subclass = AST_HTML_NOSUPPORT;
+			if (SCCP_PUSH_RESULT_SUCCESS == pushResult) {
+				fr.subclass = AST_HTML_LDCOMPLETE;
+			} else {
+				fr.subclass = AST_HTML_NOSUPPORT;
+			}
+			ast_queue_frame(ast, ast_frisolate(&fr));
 		}
-		ast_queue_frame(ast, ast_frisolate(&fr));
 	}
-	return 0;
+	return res;
 }
 
 /*!
