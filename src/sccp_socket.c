@@ -673,7 +673,8 @@ void sccp_session_addDevice(sccp_session_t * session, sccp_device_t * device)
 		sccp_session_lock(session);
 		new_device = sccp_device_retain(device);
 		if (session->device) {
-			AUTO_RELEASE sccp_device_t *previous_device = sccp_session_removeDevice(session);	/* releasing reference the returned device */
+			AUTO_RELEASE sccp_device_t *previous_device = NULL;
+			previous_device = sccp_session_removeDevice(session);	/* implicit release of returned device */
 		}
 		if (new_device) {
 			session->device = new_device;				/* keep newly retained device */

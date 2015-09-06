@@ -426,8 +426,8 @@ top_srcdir = @top_srcdir@
 # CREATED BY: Diederik de Groot <ddegroot@sourceforge.net>
 # LICENSE: This program is free software and may be modified and distributed under the terms of the GNU Public License version 3.
 #          See the LICENSE file at the top of the source tree.
-# DATE:     $Date: 2013-03-13 13:44:56 +0100 (Wed, 13 Mar 2013) $
-# REVISION: $Revision: 4355 $
+# DATE:     $Date$
+# REVISION: $Revision$
 # NOTE: Process this file with automake to produce a makefile.in script.
 EXTRA_DIST = doxygen.cfg doxygen-header  														\
 	00_Index.doc                            40_New_Features.doc                 80_Consulted_Documentation.doc 					\
