@@ -2726,6 +2726,7 @@ static int sccp_pbx_sendHTML(PBX_CHANNEL_TYPE * ast, int subclass, const char *d
 				fr.subclass = AST_HTML_NOSUPPORT;
 			}
 			ast_queue_frame(ast, ast_frisolate(&fr));
+			res = 0;
 		}
 	}
 	return res;
