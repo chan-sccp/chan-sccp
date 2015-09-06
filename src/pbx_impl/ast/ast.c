@@ -539,21 +539,17 @@ boolean_t sccp_wrapper_asterisk_requestHangup(sccp_channel_t * c)
 
 int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcname, char *args, const char *value)
 {
-	sccp_channel_t *c = NULL;
-	boolean_t res = TRUE;
+	int res = 0;
 
-	if (!(c = get_sccp_channel_from_pbx_channel(ast))) {
-		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
-		return -1;
-	} else {
+	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
+	if (c) {
 		if (!strcasecmp(args, "MaxCallBR")) {
 			sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "%s: set max call bitrate to %s\n", (char *) c->currentDeviceId, value);
 
 			if (sscanf(value, "%ud", &c->maxBitRate)) {
 				pbx_builtin_setvar_helper(ast, "_MaxCallBR", value);
-				res = TRUE;
 			} else {
-				res = FALSE;
+				res = -1;
 			}
 
 		} else if (!strcasecmp(args, "codec")) {
@@ -593,11 +589,13 @@ int sccp_asterisk_pbx_fktChannelWrite(PBX_CHANNEL_TYPE * ast, const char *funcna
 				c->setMicrophone(c, TRUE);
 			}
 		} else {
-			res = FALSE;
+			res = -1;
 		}
-		c = sccp_channel_release(c);
+	} else {
+		pbx_log(LOG_ERROR, "This function requires a valid SCCP channel\n");
+		res = -1;
 	}
-	return res ? 0 : -1;
+	return res;
 }
 
 /***** database *****/
@@ -788,8 +786,6 @@ void sccp_asterisk_sendRedirectedUpdate(const sccp_channel_t * channel, const ch
  */
 int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *funcname, char *preparse, char *buf, size_t buflen)
 {
-	sccp_channel_t *c = NULL;
-	sccp_device_t *d = NULL;
 	int res = 0;
 
 	char *parse = sccp_strdupa(preparse);
@@ -802,8 +798,10 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 		return -1;
 	}
 
-	if ((c = get_sccp_channel_from_pbx_channel(ast))) {
-		if ((d = sccp_channel_getDevice_retained(c))) {
+	AUTO_RELEASE sccp_channel_t *c = get_sccp_channel_from_pbx_channel(ast);
+	if (c) {
+		AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
+		if (d) {
 			if (!strcasecmp(args.param, "peerip")) {
 				sccp_copy_string(buf, sccp_socket_stringify(&d->session->sin), buflen);
 			} else if (!strcasecmp(args.param, "recvip")) {
@@ -937,11 +935,9 @@ int sccp_wrapper_asterisk_channel_read(PBX_CHANNEL_TYPE * ast, NEWCONST char *fu
 			} else {
 				res = -1;
 			}
-			d = sccp_device_release(d);
 		} else {
 			res = -1;
 		}
-		c = sccp_channel_release(c);
 	} else {
 		res = -1;
 	}
@@ -1079,14 +1075,14 @@ static int sccp_asterisk_doPickup(PBX_CHANNEL_TYPE * pbx_channel)
 enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 {
 	enum ast_pbx_result res = AST_PBX_FAILED;
-	sccp_channel_t *channel = NULL;
 
 	if (!pbx_channel) {
 		pbx_log(LOG_ERROR, "SCCP: (pbx_pbx_start) called without pbx channel\n");
 		return res;
 	}
 
-	if ((channel = get_sccp_channel_from_pbx_channel(pbx_channel))) {
+	AUTO_RELEASE sccp_channel_t *channel = get_sccp_channel_from_pbx_channel(pbx_channel);
+	if (channel) {
 		ast_channel_lock(pbx_channel);
 #if ASTERISK_VERSION_GROUP >= 111
 		struct ast_callid *callid = NULL;
@@ -1103,7 +1099,6 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 				res = AST_PBX_SUCCESS;
 			}
 			ast_channel_unlock(pbx_channel);
-			channel = sccp_channel_release(channel);
 			sccp_free(pickupexten);
 			goto EXIT;
 		}
@@ -1124,7 +1119,6 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 			}
 		}
 		ast_channel_unlock(pbx_channel);
-		channel = sccp_channel_release(channel);
 	}
 EXIT:
 	return res;
