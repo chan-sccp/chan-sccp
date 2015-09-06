@@ -426,6 +426,7 @@ const char *pbx_getformatname_multiple(char *buf, size_t size, struct ast_format
  */
 static PBX_FRAME_TYPE *sccp_wrapper_asterisk113_rtp_read(PBX_CHANNEL_TYPE * ast)
 {
+	//AUTO_RELEASE sccp_channel_t *c = NULL;									// not following the refcount rules... channel is already retained
 	sccp_channel_t *c = NULL;
 	PBX_FRAME_TYPE *frame = &ast_null_frame;
 
@@ -2211,7 +2212,7 @@ static boolean_t sccp_wrapper_asterisk113_create_audio_rtp(sccp_channel_t * c)
 	if (!c) {
 		return FALSE;
 	}
-	sccp_device_t *d = sccp_channel_getDevice_retained(c);
+	AUTO_RELEASE sccp_device_t *d = sccp_channel_getDevice_retained(c);
 	if (!d) {
 		return FALSE;
 	}
