@@ -440,7 +440,7 @@ sccp_device_t *sccp_device_create(const char *id)
 #endif
 	/*
 	if (PBX(endpoint_create)) {
-		d->endpoint = PBX(endpoint_create)("sccp", id);
+		d->endpoint = iPbx.endpoint_create("sccp", id);
 	}
 	*/
 	memset(d->softKeyConfiguration.activeMask, 0xFFFF, sizeof(d->softKeyConfiguration.activeMask));
@@ -1377,8 +1377,8 @@ void sccp_dev_set_message(sccp_device_t * d, const char *msg, const int timeout,
 		char msgtimeout[10];
 
 		sprintf(msgtimeout, "%d", timeout);
-		PBX(feature_addToDatabase) ("SCCP/message", "timeout", strdup(msgtimeout));
-		PBX(feature_addToDatabase) ("SCCP/message", "text", msg);
+		iPbx.feature_addToDatabase("SCCP/message", "timeout", strdup(msgtimeout));
+		iPbx.feature_addToDatabase("SCCP/message", "text", msg);
 	}
 
 	if (timeout) {
@@ -1402,8 +1402,8 @@ void sccp_dev_set_message(sccp_device_t * d, const char *msg, const int timeout,
 void sccp_dev_clear_message(sccp_device_t * d, const boolean_t cleardb)
 {
 	if (cleardb) {
-		PBX(feature_removeTreeFromDatabase) ("SCCP/message", "timeout");
-		PBX(feature_removeTreeFromDatabase) ("SCCP/message", "text");
+		iPbx.feature_removeTreeFromDatabase("SCCP/message", "timeout");
+		iPbx.feature_removeTreeFromDatabase("SCCP/message", "text");
 	}
 
 	sccp_device_clearMessageFromStack(d, SCCP_MESSAGE_PRIORITY_IDLE);
@@ -1916,12 +1916,12 @@ void sccp_dev_postregistration(void *data)
 			AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_retain(d->lineButtons.instance[instance]);
 
 			sprintf(family, "SCCP/%s/%s", d->id, linedevice->line->name);
-			if (PBX(feature_getFromDatabase) (family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+			if (iPbx.feature_getFromDatabase(family, "cfwdAll", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 				linedevice->cfwdAll.enabled = TRUE;
 				sccp_copy_string(linedevice->cfwdAll.number, buffer, sizeof(linedevice->cfwdAll.number));
 				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDALL);
 			}
-			if (PBX(feature_getFromDatabase) (family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+			if (iPbx.feature_getFromDatabase(family, "cfwdBusy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 				linedevice->cfwdBusy.enabled = TRUE;
 				sccp_copy_string(linedevice->cfwdBusy.number, buffer, sizeof(linedevice->cfwdAll.number));
 				sccp_feat_changed(d, linedevice, SCCP_FEATURE_CFWDBUSY);
@@ -1929,23 +1929,23 @@ void sccp_dev_postregistration(void *data)
 		}
 	}
 	sprintf(family, "SCCP/%s", d->id);
-	if (PBX(feature_getFromDatabase) (family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+	if (iPbx.feature_getFromDatabase(family, "dnd", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		d->dndFeature.status = sccp_dndmode_str2val(buffer);
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_DND);
 	}
 
-	if (PBX(feature_getFromDatabase) (family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+	if (iPbx.feature_getFromDatabase(family, "privacy", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		d->privacyFeature.status = TRUE;
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_PRIVACY);
 	}
 
-	if (PBX(feature_getFromDatabase) (family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
+	if (iPbx.feature_getFromDatabase(family, "monitor", buffer, sizeof(buffer)) && strcmp(buffer, "")) {
 		sccp_feat_monitor(d, NULL, 0, NULL);
 		sccp_feat_changed(d, NULL, SCCP_FEATURE_MONITOR);
 	}
 
 	char lastNumber[SCCP_MAX_EXTENSION] = "";
-	if (PBX(feature_getFromDatabase) (family, "lastDialedNumber", buffer, sizeof(buffer))) {
+	if (iPbx.feature_getFromDatabase(family, "lastDialedNumber", buffer, sizeof(buffer))) {
 		sscanf(buffer,"%80[^;];lineInstance=%d", lastNumber, &instance);
 		AUTO_RELEASE sccp_linedevices_t *linedevice = sccp_linedevice_findByLineinstance(d, instance);
 		if(linedevice){ 
@@ -2059,11 +2059,11 @@ void sccp_dev_clean(sccp_device_t * device, boolean_t remove_from_global, uint8_
 		d->mwilight = 0;										/* reset mwi light */
 		d->linesRegistered = FALSE;
 		sprintf(family, "SCCP/%s", d->id);
-		PBX(feature_removeFromDatabase) (family, "lastDialedNumber");
+		iPbx.feature_removeFromDatabase(family, "lastDialedNumber");
 		char buffer[SCCP_MAX_EXTENSION+16] = "\0";
 		if (!sccp_strlen_zero(d->redialInformation.number)) {
 			sprintf (buffer, "%s;lineInstance=%d", d->redialInformation.number, d->redialInformation.lineInstance);
-			PBX(feature_addToDatabase) (family, "lastDialedNumber", buffer);
+			iPbx.feature_addToDatabase(family, "lastDialedNumber", buffer);
 		}
 
 		/* hang up open channels and remove device from line */
@@ -2259,7 +2259,7 @@ int __sccp_device_destroy(const void *ptr)
 	}
 	/*
 	if (PBX(endpoint_shutdown)) {
-		PBX(endpoint_shutdown)(d->endpoint);
+		iPbx.endpoint_shutdown(d->endpoint);
 	}
 	*/
 

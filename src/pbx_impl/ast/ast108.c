@@ -627,7 +627,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 						sccp_device_setLastNumberDialed(d, c->dialedNumber, linedevice);
 					}
 				}
-				PBX(set_callstate) (c, AST_STATE_RING);
+				iPbx.set_callstate(c, AST_STATE_RING);
 
 				struct ast_channel_iterator *iterator = ast_channel_iterator_all_new();
 
@@ -672,7 +672,7 @@ static int sccp_wrapper_asterisk18_indicate(PBX_CHANNEL_TYPE * ast, int ind, con
 			break;
 		case AST_CONTROL_BUSY:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_BUSY);
-			PBX(set_callstate) (c, AST_STATE_BUSY);
+			iPbx.set_callstate(c, AST_STATE_BUSY);
 			break;
 		case AST_CONTROL_CONGESTION:
 			sccp_indicate(d, c, SCCP_CHANNELSTATE_CONGESTION);
@@ -1629,7 +1629,7 @@ static int sccp_wrapper_asterisk18_call(PBX_CHANNEL_TYPE * ast, char *dest, int 
 	sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Asterisk request to call %s (dest:%s, timeout: %d)\n", pbx_channel_name(ast), dest, timeout);
 
 	if (!sccp_strlen_zero(pbx_channel_call_forward(ast))) {
-		PBX(queue_control) (ast, -1);									/* Prod Channel if in the middle of a call_forward instead of proceed */
+		iPbx.queue_control(ast, -1);									/* Prod Channel if in the middle of a call_forward instead of proceed */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_3 "SCCP: Forwarding Call to '%s'\n", pbx_channel_call_forward(ast));
 		return 0;
 	}
@@ -2459,7 +2459,7 @@ static boolean_t sccp_wrapper_asterisk18_setWriteFormat(const sccp_channel_t * c
 	/*
 	   PBX_CHANNEL_TYPE *bridge;
 
-	   if (PBX(getRemoteChannel) (channel, &bridge)) {
+	   if (iPbx.getRemoteChannel(channel, &bridge)) {
 	   channel->owner->writeformat = 0;
 
 	   bridge->readformat = 0;
@@ -2493,7 +2493,7 @@ static boolean_t sccp_wrapper_asterisk18_setReadFormat(const sccp_channel_t * ch
 	/*
 	   PBX_CHANNEL_TYPE *bridge;
 
-	   if (PBX(getRemoteChannel) (channel, &bridge)) {
+	   if (iPbx.getRemoteChannel(channel, &bridge)) {
 	   channel->owner->readformat = 0;
 
 	   bridge->writeformat = 0;
@@ -3031,7 +3031,7 @@ static skinny_busylampfield_state_t sccp_wrapper_asterisk108_getExtensionState(c
 	skinny_busylampfield_state_t result = SKINNY_BLF_STATUS_UNKNOWN;
 
 	if (sccp_strlen_zero(extension) || sccp_strlen_zero(context)) {
-		pbx_log(LOG_ERROR, "SCCP: PBX(getExtensionState): Either extension:'%s' or context:;%s' provided is empty\n", extension, context);
+		pbx_log(LOG_ERROR, "SCCP: iPbx.getExtensionState: Either extension:'%s' or context:;%s' provided is empty\n", extension, context);
 		return result;
 	}
 
@@ -3200,7 +3200,7 @@ static boolean_t sccp_wrapper_asterisk_setLanguage(PBX_CHANNEL_TYPE * pbxChannel
 }
 
 #if defined(__cplusplus) || defined(c_plusplus)
-sccp_pbx_cb sccp_pbx = {
+const PbxInterface iPbx = {
 	/* *INDENT-OFF* */
 	alloc_pbxChannel:		sccp_wrapper_asterisk18_allocPBXChannel,
 	set_callstate:			sccp_wrapper_asterisk18_setCallState,
@@ -3327,7 +3327,7 @@ sccp_pbx_cb sccp_pbx = {
  * \brief SCCP - PBX Callback Functions 
  * (Decoupling Tight Dependencies on Asterisk Functions)
  */
-struct sccp_pbx_cb sccp_pbx = {
+const PbxInterface iPbx = {
 	/* *INDENT-OFF* */
         /* channel */
 	.alloc_pbxChannel 		= sccp_wrapper_asterisk18_allocPBXChannel,

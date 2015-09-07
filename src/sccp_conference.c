@@ -100,7 +100,7 @@ static void __sccp_conference_destroy(sccp_conference_t * conference)
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Destroying conference playback channel\n", conference->id);
 #if ASTERISK_VERSION_GROUP < 112
 		PBX_CHANNEL_TYPE *underlying_channel = NULL;
-		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback.channel))) {
+		if ((underlying_channel = iPbx.get_underlying_channel(conference->playback.channel))) {
 			pbx_hangup(underlying_channel);
 			pbx_hangup(conference->playback.channel);
 			pbx_channel_unref(underlying_channel);
@@ -193,7 +193,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 	conference->finishing = FALSE;
 	conference->isLocked = FALSE;
 	conference->isOnHold = FALSE;
-	conference->linkedid = strdup(PBX(getChannelLinkedId) (channel));
+	conference->linkedid = strdup(iPbx.getChannelLinkedId(channel));
 	if (device->conf_mute_on_entry) {
 		sccp_log((DEBUGCAT_CORE + DEBUGCAT_CONFERENCE)) (VERBOSE_PREFIX_3 "SCCP: Device: %s Mute on Entry: On -> All participant of conference: SCCPCONF/%04d, will be muted\n", DEV_ID_LOG(device), conferenceID);
 		conference->mute_on_entry = device->conf_mute_on_entry;
@@ -268,7 +268,7 @@ sccp_conference_t *sccp_conference_create(sccp_device_t * device, sccp_channel_t
 		participant->playback_announcements = device->conf_play_part_announce;
 
 		channel->calltype=SKINNY_CALLTYPE_INBOUND;
-		PBX(setChannelLinkedId) (participant->channel, conference->linkedid);
+		iPbx.setChannelLinkedId(participant->channel, conference->linkedid);
 		sccp_conference_update_callInfo(channel, participant->conferenceBridgePeer, participant, conference->id);
 		channel->calltype=SKINNY_CALLTYPE_OUTBOUND;
 		participant->isModerator = TRUE;
@@ -360,13 +360,13 @@ static void sccp_conference_connect_bridge_channels_to_participants(sccp_confere
 static boolean_t sccp_conference_masqueradeChannel(PBX_CHANNEL_TYPE * participant_ast_channel, sccp_conference_t * conference, sccp_conference_participant_t * participant)
 {
 	if (participant) {
-		if (!(PBX(allocTempPBXChannel) (participant_ast_channel, &participant->conferenceBridgePeer))) {
+		if (!(iPbx.allocTempPBXChannel(participant_ast_channel, &participant->conferenceBridgePeer))) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Creation of Temp Channel Failed. Exiting.\n", conference->id);
 			pbx_hangup(participant->conferenceBridgePeer);
 			pbx_channel_unref(participant_ast_channel);
 			return FALSE;
 		}
-		if (!PBX(masqueradeHelper) (participant_ast_channel, participant->conferenceBridgePeer)) {
+		if (!iPbx.masqueradeHelper(participant_ast_channel, participant->conferenceBridgePeer)) {
 			pbx_log(LOG_ERROR, "SCCPCONF/%04d: Failed to Masquerade TempChannel.\n", conference->id);
 			pbx_hangup(participant->conferenceBridgePeer);
 			pbx_channel_unref(participant_ast_channel);
@@ -456,7 +456,7 @@ void sccp_conference_update_callInfo(sccp_channel_t * channel, PBX_CHANNEL_TYPE 
 		ast_channel_set_connected_line(pbxChannel, &connected, &update_connected);
 	}
 #endif
-	PBX(set_connected_line) (channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
+	iPbx.set_connected_line(channel, confstr, confstr, AST_CONNECTED_LINE_UPDATE_SOURCE_TRANSFER);
 }
 
 /*!
@@ -494,7 +494,7 @@ boolean_t sccp_conference_addParticipatingChannel(sccp_conference_t * conference
 
 			if (channel && (device = sccp_channel_getDevice_retained(channel))) {
 				participant->playback_announcements = device->conf_play_part_announce;
-				PBX(setChannelLinkedId) (channel, conference->linkedid);
+				iPbx.setChannelLinkedId(channel, conference->linkedid);
 			} else {
 				participant->playback_announcements = conference->playback_announcements;
 			}
@@ -512,7 +512,7 @@ boolean_t sccp_conference_addParticipatingChannel(sccp_conference_t * conference
 					//device->conferencelist_active = device->conf_show_conflist;                   // Activate conflist on all sccp participants
 					sccp_dev_set_keyset(device, sccp_device_find_index_for_line(device, channel->line->name), channel->callid, KEYMODE_CONNCONF);
 				} else {									// PBX Channel
-					PBX(setPBXChannelLinkedId) (participant->conferenceBridgePeer, conference->linkedid);
+					iPbx.setPBXChannelLinkedId(participant->conferenceBridgePeer, conference->linkedid);
 				}
 				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_ID", conference->id);
 				pbx_builtin_setvar_int_helper(participant->conferenceBridgePeer, "__SCCP_CONFERENCE_PARTICIPANT_ID", participant->id);
@@ -805,12 +805,12 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		char data[14];
 
 		snprintf(data, sizeof(data), "SCCPCONF/%04d", conference->id);
-		if (!(conference->playback.channel = PBX(requestAnnouncementChannel) (AST_FORMAT_ALAW, NULL, data))) {
+		if (!(conference->playback.channel = iPbx.requestAnnouncementChannel(AST_FORMAT_ALAW, NULL, data))) {
 			pbx_mutex_unlock(&conference->playback.lock);
 			return 1;
 		}
 		if (!sccp_strlen_zero(conference->playback.language)) {
-			PBX(set_language) (conference->playback.channel, conference->playback.language);
+			iPbx.set_language(conference->playback.channel, conference->playback.language);
 		}
 	}
 	sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching Announcer from Conference\n", conference->id);
@@ -855,12 +855,12 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		char data[14];
 
 		snprintf(data, sizeof(data), "SCCPCONF/%04d", conference->id);
-		if (!(conference->playback.channel = PBX(requestAnnouncementChannel) (AST_FORMAT_SLINEAR, NULL, data))) {
+		if (!(conference->playback.channel = iPbx.requestAnnouncementChannel(AST_FORMAT_SLINEAR, NULL, data))) {
 			pbx_mutex_unlock(&conference->playback.lock);
 			return 0;
 		}
 		if (!sccp_strlen_zero(conference->playback.language)) {
-			PBX(set_language) (conference->playback.channel, conference->playback.language);
+			iPbx.set_language(conference->playback.channel, conference->playback.language);
 		}
 		pbx_channel_set_bridge(conference->playback.channel, conference->bridge);
 
@@ -872,7 +872,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		}
 
 		sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Created Playback Channel\n", conference->id);
-		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback.channel))) {
+		if ((underlying_channel = iPbx.get_underlying_channel(conference->playback.channel))) {
 			// Update CDR to prevent nasty ast warning when hanging up this channel (confbridge does not set the cdr correctly)
 			pbx_cdr_start(pbx_channel_cdr(conference->playback.channel));
 #if ASTERISK_VERSION_GROUP < 110
@@ -885,7 +885,7 @@ int playback_to_conference(sccp_conference_t * conference, const char *filename,
 		}
 	} else {
 		/* Channel was already available so we just need to add it back into the bridge */
-		if ((underlying_channel = PBX(get_underlying_channel) (conference->playback.channel))) {
+		if ((underlying_channel = iPbx.get_underlying_channel(conference->playback.channel))) {
 			sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Attaching '%s' to Conference\n", conference->id, pbx_channel_name(underlying_channel));
 			if (pbx_bridge_impart(conference->bridge, underlying_channel, NULL, NULL, 0)) {
 				sccp_log_and((DEBUGCAT_CONFERENCE + DEBUGCAT_HIGH)) (VERBOSE_PREFIX_4 "SCCPCONF/%04d: Impart playback channel failed\n", conference->id);
@@ -1408,7 +1408,7 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
 	if (start) {
 		if (participant->onMusicOnHold == FALSE) {
 			if (!sccp_strlen_zero(participant->device->conf_music_on_hold_class)) {
-				PBX(moh_start) (participant->conferenceBridgePeer, participant->device->conf_music_on_hold_class, NULL);
+				iPbx.moh_start(participant->conferenceBridgePeer, participant->device->conf_music_on_hold_class, NULL);
 				participant->onMusicOnHold = TRUE;
 				//pbx_set_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
 			} else {
@@ -1418,7 +1418,7 @@ void sccp_conference_play_music_on_hold_to_participant(sccp_conference_t * confe
 	} else {
 		if (!sccp_strlen_zero(participant->device->conf_music_on_hold_class)) {
 			if (!ast_bridge_suspend(conference->bridge, participant->conferenceBridgePeer)) {
-				PBX(moh_stop) (participant->conferenceBridgePeer);
+				iPbx.moh_stop(participant->conferenceBridgePeer);
 				//pbx_clear_flag(participant->conferenceBridgePeer, AST_FLAG_MOH);
 				ast_bridge_unsuspend(conference->bridge, participant->conferenceBridgePeer);
 				participant->onMusicOnHold = FALSE;

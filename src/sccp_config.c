@@ -2860,9 +2860,9 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	int timeout = 0;
 
 	/* Message */
-	if (PBX(feature_getFromDatabase) ("SCCP/message", "text", buffer, sizeof(buffer))) {
+	if (iPbx.feature_getFromDatabase("SCCP/message", "text", buffer, sizeof(buffer))) {
 		if (!sccp_strlen_zero(buffer)) {
-			if (PBX(feature_getFromDatabase) && PBX(feature_getFromDatabase) ("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
+			if (iPbx.feature_getFromDatabase && iPbx.feature_getFromDatabase("SCCP/message", "timeout", timebuffer, sizeof(timebuffer))) {
 				sscanf(timebuffer, "%i", &timeout);
 			}
 			if (timeout) {
@@ -2881,11 +2881,11 @@ void sccp_config_restoreDeviceFeatureStatus(sccp_device_t * device)
 	SCCP_LIST_LOCK(&device->devstateSpecifiers);
 	SCCP_LIST_TRAVERSE(&device->devstateSpecifiers, specifier, list) {
 		/* Check if there is already a devicestate entry */
-		if (PBX(feature_getFromDatabase) (devstate_db_family, specifier->specifier, buf, sizeof(buf))) {
+		if (iPbx.feature_getFromDatabase(devstate_db_family, specifier->specifier, buf, sizeof(buf))) {
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Found Existing Custom Devicestate Entry: %s, state: %s\n", device->id, specifier->specifier, buf);
 		} else {
 			/* If not present, add a new devicestate entry. Default: NOT_INUSE */
-			PBX(feature_addToDatabase) (devstate_db_family, specifier->specifier, "NOT_INUSE");
+			iPbx.feature_addToDatabase(devstate_db_family, specifier->specifier, "NOT_INUSE");
 			sccp_log((DEBUGCAT_CONFIG)) (VERBOSE_PREFIX_1 "%s: Initialized Devicestate Entry: %s\n", device->id, specifier->specifier);
 		}
 		/* Register as generic hint watcher */

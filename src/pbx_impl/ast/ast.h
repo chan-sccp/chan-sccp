@@ -112,7 +112,6 @@
 
 extern struct sccp_pbx_cb sccp_pbx;
 
-#define PBX(x) sccp_pbx.x
 #define AST_MODULE "chan_sccp"
 
 /*!

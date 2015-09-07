@@ -564,7 +564,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 		if (!(c = get_sccp_channel_from_pbx_channel(chan))) {
 			return -1;										/* Not a SCCP channel. */
 		}
-	} else if (PBX(getChannelByName) (data, &ast) && (c = get_sccp_channel_from_pbx_channel(ast)) != NULL) {
+	} else if (iPbx.getChannelByName(data, &ast) && (c = get_sccp_channel_from_pbx_channel(ast)) != NULL) {
 		/* continue with sccp channel */
 
 	} else {
@@ -660,7 +660,7 @@ static int sccp_func_sccpchannel(PBX_CHANNEL_TYPE * chan, NEWCONST char *cmd, ch
 				snprintf(buf, buf_len, "%d", c->parentChannel->callid);
 			} else if (!strcasecmp(token, "bridgepeer")) {
 				PBX_CHANNEL_TYPE *bridgechannel;
-				if (c->owner && (bridgechannel = PBX(get_bridged_channel)(c->owner))) {
+				if (c->owner && (bridgechannel = iPbx.get_bridged_channel(c->owner))) {
 					snprintf(buf, buf_len, "%s", pbx_channel_name(bridgechannel));
 					pbx_channel_unref(bridgechannel);
 				} else {

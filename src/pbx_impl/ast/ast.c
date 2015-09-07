@@ -949,7 +949,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 #if ASTERISK_VERSION_GROUP >= 112
 	char *featexten;
 
-	if (PBX(getFeatureExtension) (channel, &featexten)) {
+	if (iPbx.getFeatureExtension(channel, &featexten)) {
 		if (featexten && !sccp_strlen_zero(featexten)) {
 			struct ast_frame f = { AST_FRAME_DTMF, };
 			int j;
@@ -975,7 +975,7 @@ boolean_t sccp_wrapper_asterisk_featureMonitor(const sccp_channel_t * channel)
 		struct ast_call_feature feat;
 		memcpy(&feat, feature, sizeof(feat));
 		ast_unlock_call_features();
-		PBX_CHANNEL_TYPE *bridgePeer = PBX(get_bridged_channel)(channel->owner);
+		PBX_CHANNEL_TYPE *bridgePeer = iPbx.get_bridged_channel(channel->owner);
 		if (bridgePeer) {
 			feat.operation(channel->owner, bridgePeer, NULL, "monitor button", FEATURE_SENSE_CHAN | FEATURE_SENSE_PEER, NULL);
 			pbx_channel_unref(bridgePeer);
@@ -1091,10 +1091,10 @@ enum ast_pbx_result pbx_pbx_start(PBX_CHANNEL_TYPE * pbx_channel)
 		ast_channel_callid_set(pbx_channel, callid);
 #endif
 		// check if the pickup extension was entered
-		const char *dialedNumber = PBX(getChannelExten) (channel);
+		const char *dialedNumber = iPbx.getChannelExten(channel);
 		char *pickupexten;
 
-		if (PBX(getPickupExtension) (channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
+		if (iPbx.getPickupExtension(channel, &pickupexten) && sccp_strequals(dialedNumber, pickupexten)) {
 			if (sccp_asterisk_doPickup(pbx_channel)) {
 				res = AST_PBX_SUCCESS;
 			}
