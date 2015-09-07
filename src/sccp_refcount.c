@@ -247,7 +247,7 @@ void *const sccp_refcount_object_alloc(size_t size, enum sccp_refcounted_types t
 }
 
 #if CS_REFCOUNT_DEBUG
-int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
+static gcc_inline int __sccp_refcount_debug(void *ptr, RefCountedObject * obj, int delta, const char *file, int line, const char *func)
 {
 	if (!sccp_ref_debug_log) {
 		return -1;
@@ -532,7 +532,7 @@ gcc_inline void sccp_refcount_replace(void **replaceptr, void *newptr, const cha
  * Used together with the cleanup attribute, to handle the automatic reference release of an object when we leave the scope in which the 
  * reference was defined. 
  */
-void sccp_refcount_autorelease(void *ptr)
+gcc_inline void sccp_refcount_autorelease(void *ptr)
 {
 	if (*(void **) ptr) {
 		sccp_refcount_release(*(void **) ptr, __FILE__, __LINE__, __PRETTY_FUNCTION__);			/* explicit release */
