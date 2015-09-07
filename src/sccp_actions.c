@@ -1793,8 +1793,8 @@ void sccp_handle_speeddial(sccp_device_t * d, const sccp_speed_t * k)
 			return;
 		}
 		// Channel not in use
-		if (PBX(send_digits)) {
-			PBX(send_digits) (channel, k->ext);
+		if (iPbx.send_digits) {
+			iPbx.send_digits(channel, k->ext);
 		}
 	} else {
 		/* check Remote RINGING + gpickup */
@@ -2321,7 +2321,7 @@ void sccp_handle_dialedphonebook_message(sccp_session_t * s, sccp_device_t * d, 
 
 	if (line) {
 		REQ(msg_out, NotificationMessage);
-		uint32_t status = PBX(getExtensionState) (subscriptionID, line->context);
+		uint32_t status = iPbx.getExtensionState(subscriptionID, line->context);
 
 		msg_out->data.NotificationMessage.lel_transactionID = htolel(transactionID);
 		msg_out->data.NotificationMessage.lel_featureID = htolel(featureID);				/* lineInstance */
@@ -2478,9 +2478,9 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 	/* added PROGRESS to make sending digits possible during progress state (Pavel Troller) */
 	if (channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE || channel->state == SCCP_CHANNELSTATE_PROCEED || channel->state == SCCP_CHANNELSTATE_RINGOUT) {
 		/* we have to unlock 'cause the senddigit lock the channel */
-		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
+		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && iPbx.send_digit) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
-			PBX(send_digit) (channel, resp);
+			iPbx.send_digit(channel, resp);
 		} else {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Phone has sent DTMF Digit %c to %s (RFC2833)\n", DEV_ID_LOG(d), resp, l->name);
 		}
@@ -2492,7 +2492,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		/*! \todo Shouldn't we only skip displaying the number to the phone (Maybe even showing '...' at the end), but still dial it ? */
 		sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_2 "%s: Maximum Length of Extension reached. Skipping Digit\n", channel->designator);
 		sccp_dev_displayprompt(d, lineInstance, channel->callid, SKINNY_DISP_NO_MORE_DIGITS, SCCP_DISPLAYSTATUS_TIMEOUT);
-	} else if (((channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL)) && !PBX(getChannelPbx) (channel)) {
+	} else if (((channel->state == SCCP_CHANNELSTATE_OFFHOOK) || (channel->state == SCCP_CHANNELSTATE_GETDIGITS) || (channel->state == SCCP_CHANNELSTATE_DIGITSFOLL)) && !iPbx.getChannelPbx(channel)) {
 		/* enbloc emulation */
 		double max_deviation = SCCP_SIM_ENBLOC_DEVIATION;
 		int max_time_per_digit = SCCP_SIM_ENBLOC_MAX_PER_DIGIT;
@@ -2503,10 +2503,10 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		int number_of_digits = len;
 		int timeout_if_enbloc = SCCP_SIM_ENBLOC_TIMEOUT;						// new timeout if we have established we should enbloc dialing
 
-		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, PBX(sched_wait) (channel->scheduler.digittimeout));
+		sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC_EMU digittimeout '%d' ms, sched_wait '%d' ms\n", channel->enbloc.digittimeout, iPbx.sched_wait(channel->scheduler.digittimeout));
 		if (GLOB(simulate_enbloc) && !channel->enbloc.deactivate && number_of_digits >= 1) {		// skip the first digit (first digit had longer delay than the rest)
-			if ((channel->enbloc.digittimeout) < (PBX(sched_wait) (channel->scheduler.digittimeout))) {
-				lpbx_digit_usecs = (channel->enbloc.digittimeout) - (PBX(sched_wait) (channel->scheduler.digittimeout));
+			if ((channel->enbloc.digittimeout) < (iPbx.sched_wait(channel->scheduler.digittimeout))) {
+				lpbx_digit_usecs = (channel->enbloc.digittimeout) - (iPbx.sched_wait(channel->scheduler.digittimeout));
 			} else {
 				sccp_log((DEBUGCAT_CORE)) (VERBOSE_PREFIX_1 "SCCP: ENBLOC EMU Cancelled (past digittimeout)\n");
 				channel->enbloc.deactivate = 1;
@@ -2557,7 +2557,7 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 		}
 		sccp_handle_dialtone(d, l, channel);
 
-	} else if (PBX(getChannelPbx) (channel) || channel->state == SCCP_CHANNELSTATE_DIALING) {		/* Overlap Dialing (\todo should we check &GLOB(allowoverlap) here ? */
+	} else if (iPbx.getChannelPbx(channel) || channel->state == SCCP_CHANNELSTATE_DIALING) {		/* Overlap Dialing (\todo should we check &GLOB(allowoverlap) here ? */
 		/* add digit to dialed number */
 		channel->dialedNumber[len++] = resp;
 		channel->dialedNumber[len] = '\0';
@@ -2566,9 +2566,9 @@ void sccp_handle_keypad_button(sccp_session_t * s, sccp_device_t * d, sccp_msg_t
 			sccp_channel_set_calledparty(channel, NULL, channel->dialedNumber);
 			if (len==1) sccp_dev_set_keyset(d, lineInstance, channel->callid, KEYMODE_DIGITSFOLL);
 		}
-		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && PBX(send_digit)) {
+		if (channel->dtmfmode == SCCP_DTMFMODE_SKINNY && iPbx.send_digit) {
 			sccp_log((DEBUGCAT_ACTION)) (VERBOSE_PREFIX_1 "%s: Force Sending Emulated DTMF Digit %c to %s (using pbx frame)\n", DEV_ID_LOG(d), resp, l->name);
-			PBX(send_digit) (channel, resp);
+			iPbx.send_digit(channel, resp);
 		}
 	} else {
 		pbx_log(LOG_WARNING, "%s: keypad_button could not be handled correctly because of invalid state on line %s, channel: %d, state: %d\n", DEV_ID_LOG(d), l->name, channel->callid, channel->state);
@@ -2751,10 +2751,10 @@ void sccp_handle_open_receive_channel_ack(sccp_session_t * s, sccp_device_t * d,
 			channel->rtp.audio.writeState = SCCP_RTP_STATUS_ACTIVE;
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-				PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);
+				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
-				PBX(set_callstate) (channel, AST_STATE_UP);
+				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
 			pbx_log(LOG_ERROR, "%s: (OpenReceiveChannelAck) Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, sccp_socket_stringify(&sas));
@@ -2826,10 +2826,10 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 			channel->rtp.video.writeState = SCCP_RTP_STATUS_ACTIVE;
 
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-				PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);
+				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
-				PBX(set_callstate) (channel, AST_STATE_UP);
+				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 		} else {
 			pbx_log(LOG_ERROR, "%s: Can't set the RTP media address to %s, no asterisk rtp channel!\n", d->id, addrStr);
@@ -2851,7 +2851,7 @@ void sccp_handle_OpenMultiMediaReceiveAck(sccp_session_t * s, sccp_device_t * d,
 		// msg_out->data.FlowControlNotifyMessage.lel_maxBitRate           = htolel(500000);
 		// sccp_dev_send(d, msg_out);
 
-		PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
+		iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 	} else {
 		pbx_log(LOG_ERROR, "%s: No channel with this PassThruId %u!\n", d->id, partyID);
 	}
@@ -2910,10 +2910,10 @@ void sccp_handle_startmediatransmission_ack(sccp_session_t * s, sccp_device_t * 
 
 			/* indicate up state only if both transmit and receive is done - this should fix the 1sek delay -MC */
 			if (channel->calltype == SKINNY_CALLTYPE_INBOUND) {
-				PBX(queue_control) (channel->owner, AST_CONTROL_ANSWER);
+				iPbx.queue_control(channel->owner, AST_CONTROL_ANSWER);
 			}
 			if ((channel->state == SCCP_CHANNELSTATE_CONNECTED || channel->state == SCCP_CHANNELSTATE_CONNECTEDCONFERENCE) && ((channel->rtp.audio.writeState & SCCP_RTP_STATUS_ACTIVE) && (channel->rtp.audio.readState & SCCP_RTP_STATUS_ACTIVE))) {
-				PBX(set_callstate) (channel, AST_STATE_UP);
+				iPbx.set_callstate(channel, AST_STATE_UP);
 			}
 			sccp_log((DEBUGCAT_RTP)) (VERBOSE_PREFIX_3 "%s: Got StartMediaTranmission ACK.  Status: '%s' (%d), Remote TCP/IP: '%s', CallId %u (%u), PassThruId: %u\n", DEV_ID_LOG(d), skinny_mediastatus2str(mediastatus), mediastatus, sccp_socket_stringify(&sas), callID, callID1, partyID);
 		} else {
@@ -3264,8 +3264,8 @@ void sccp_handle_EnblocCallMessage(sccp_session_t * s, sccp_device_t * d, sccp_m
 					sccp_pbx_softswitch(channel);
 					return;
 				}
-				if (PBX(send_digits)) {
-					PBX(send_digits) (channel, calledParty);
+				if (iPbx.send_digits) {
+					iPbx.send_digits(channel, calledParty);
 				}
 				return;
 			}
@@ -4176,7 +4176,7 @@ void sccp_handle_miscellaneousCommandMessage(sccp_session_t * s, sccp_device_t *
 				break;
 		}
 		if (channel->owner) {
-			PBX(queue_control) (channel->owner, AST_CONTROL_VIDUPDATE);
+			iPbx.queue_control(channel->owner, AST_CONTROL_VIDUPDATE);
 		}
 		return;
 	}
